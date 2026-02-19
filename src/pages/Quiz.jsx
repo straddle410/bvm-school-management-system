@@ -39,6 +39,7 @@ export default function Quiz() {
    const [selectedQuiz, setSelectedQuiz] = useState(null);
    const [showResults, setShowResults] = useState(null);
    const [answers, setAnswers] = useState({});
+   const [answeredQuestions, setAnsweredQuestions] = useState({});
    const [quizForm, setQuizForm] = useState({
      title: '',
      quiz_date: format(new Date(), 'yyyy-MM-dd'),
@@ -134,9 +135,10 @@ export default function Quiz() {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['quiz-attempts']);
       setShowResults(data);
-      setSelectedQuiz(null);
-      setAnswers({});
-    }
+       setSelectedQuiz(null);
+       setAnswers({});
+       setAnsweredQuestions({});
+      }
   });
 
   const resetQuizForm = () => {
@@ -299,20 +301,53 @@ export default function Quiz() {
                   </div>
 
                   {q.type === 'MCQ' ? (
-                    <RadioGroup
-                      value={answers[i] || ''}
-                      onValueChange={(v) => setAnswers({ ...answers, [i]: v })}
-                      className="ml-11 space-y-2"
-                    >
-                      {q.options.map((opt, j) => (
-                        <div key={j} className="flex items-center space-x-2">
-                          <RadioGroupItem value={opt} id={`q${i}-o${j}`} />
-                          <Label htmlFor={`q${i}-o${j}`} className="cursor-pointer">
-                            {opt}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
+                    <div className="ml-11 space-y-2">
+                      {q.options.map((opt, j) => {
+                        const isSelected = answers[i] === opt;
+                        const isCorrect = opt === q.correct_answer;
+                        const showFeedback = answeredQuestions[i] && isSelected;
+
+                        return (
+                          <div
+                            key={j}
+                            onClick={() => {
+                              if (!answeredQuestions[i]) {
+                                setAnswers({ ...answers, [i]: opt });
+                                setAnsweredQuestions({ ...answeredQuestions, [i]: true });
+                              }
+                            }}
+                            className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                              isSelected
+                                ? showFeedback
+                                  ? isCorrect
+                                    ? 'bg-green-50 border-green-500'
+                                    : 'bg-red-50 border-red-500'
+                                  : 'bg-blue-50 border-blue-500'
+                                : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              id={`q${i}-o${j}`}
+                              checked={isSelected}
+                              onChange={() => {}}
+                              disabled={answeredQuestions[i]}
+                              className="cursor-pointer"
+                            />
+                            <Label htmlFor={`q${i}-o${j}`} className="cursor-pointer flex-1">
+                              {opt}
+                            </Label>
+                            {showFeedback && (
+                              isCorrect ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                              ) : (
+                                <XCircle className="h-5 w-5 text-red-600" />
+                              )
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   ) : (
                     <Textarea
                       value={answers[i] || ''}
@@ -325,10 +360,13 @@ export default function Quiz() {
                 </div>
               ))}
 
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-between items-center pt-4">
+                <p className="text-sm text-slate-500">
+                  Answered: {Object.keys(answeredQuestions).length}/{selectedQuiz.questions.length}
+                </p>
                 <Button 
                   onClick={() => submitAttemptMutation.mutate()}
-                  disabled={submitAttemptMutation.isPending}
+                  disabled={submitAttemptMutation.isPending || Object.keys(answeredQuestions).length < selectedQuiz.questions.length}
                 >
                   <Send className="mr-2 h-4 w-4" />
                   {submitAttemptMutation.isPending ? 'Submitting...' : 'Submit Quiz'}
