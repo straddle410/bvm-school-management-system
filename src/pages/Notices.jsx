@@ -294,7 +294,7 @@ export default function Notices() {
 function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit }) {
   const [expanded, setExpanded] = useState(false);
   const typeColor = TYPE_COLORS[notice.notice_type] || 'bg-slate-100 text-slate-700';
-  const canEdit = isAdmin || (user && notice.created_by_name === user.full_name);
+  const canEdit = isAdmin || (user && notice.created_by_name === (user.full_name || user.name));
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm overflow-hidden ${notice.is_pinned ? 'border-l-4 border-yellow-400' : ''}`}>
