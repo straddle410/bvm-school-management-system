@@ -54,17 +54,19 @@ export default function StaffLogin() {
 
       // Only admin requires OTP
       if (staff.role === 'Admin') {
-        // Generate random 6-digit OTP
-        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        await base44.integrations.Core.SendEmail({
-          to: staff.email,
-          subject: 'Your BVM School Admin Login OTP',
-          body: `Your OTP for login is: ${generatedOtp}\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.`
+        const response = await base44.functions.invoke('sendStaffOtp', {
+          email: staff.email,
+          staffName: staff.full_name
         });
 
+        if (!response.data.success) {
+          setError('Failed to send OTP. Please try again.');
+          setLoading(false);
+          return;
+        }
+
         setStaffForOtp(staff);
-        setSentOtp(generatedOtp);
+        setSentOtp(response.data.otp);
         setStep('otp');
         setOtpTimer(600); // 10 minutes
         setOtp('');
