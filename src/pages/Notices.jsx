@@ -178,7 +178,7 @@ export default function Notices() {
             e.preventDefault();
             createMutation.mutate({
               ...form,
-              status: isAdmin ? 'Published' : 'Submitted',
+              status: isAdmin ? 'Published' : 'Draft',
               created_by_name: user?.full_name
             });
           }} className="space-y-4">
