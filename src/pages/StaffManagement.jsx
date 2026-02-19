@@ -39,6 +39,8 @@ const DEFAULT_PERMISSIONS = {
   notices_needs_approval: true,
   gallery: false,
   gallery_needs_approval: true,
+  quiz: false,
+  quiz_needs_approval: true,
 };
 
 const emptyForm = {
