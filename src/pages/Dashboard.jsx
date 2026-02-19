@@ -139,6 +139,14 @@ export default function Dashboard() {
     return map[type] || '#78909c';
   };
 
+  const handleAdminAction = (action) => {
+    if (action === 'generateHallTicket') {
+      alert('Hall Ticket generation feature coming soon');
+    } else if (action === 'generateProgressCard') {
+      alert('Progress Card generation feature coming soon');
+    }
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* Banner Slider */}
