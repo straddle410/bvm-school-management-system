@@ -280,24 +280,14 @@ export default function Attendance() {
 
             {/* Action Buttons */}
             {filteredStudents.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              <div className="flex justify-end">
                 <Button 
-                  variant="outline"
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
                 >
                   <Save className="mr-2 h-4 w-4" />
                   {saveMutation.isPending ? 'Saving...' : 'Save Attendance'}
                 </Button>
-                {existingAttendance.length > 0 && currentStatus === 'Taken' && (
-                  <Button 
-                    onClick={() => submitMutation.mutate()}
-                    disabled={submitMutation.isPending}
-                  >
-                    <Send className="mr-2 h-4 w-4" />
-                    {submitMutation.isPending ? 'Submitting...' : 'Submit for Approval'}
-                  </Button>
-                )}
               </div>
             )}
           </>
