@@ -98,18 +98,7 @@ export default function Attendance() {
     }
   });
 
-  const submitMutation = useMutation({
-    mutationFn: async () => {
-      const promises = existingAttendance.map(a => 
-        base44.entities.Attendance.update(a.id, { status: 'Submitted' })
-      );
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['attendance']);
-      toast.success('Attendance submitted for approval');
-    }
-  });
+
 
   const toggleAttendance = (studentId, isPresent) => {
     setAttendanceData(prev => ({
