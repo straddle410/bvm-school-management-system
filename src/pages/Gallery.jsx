@@ -184,7 +184,7 @@ export default function Gallery() {
     <div className="bg-gray-100 min-h-screen pb-6">
       <div className="bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <h2 className="font-bold text-gray-900 text-lg">Gallery</h2>
-        {(isAdmin || canUpload) && (
+        {canCreateAlbum && (
           <Button size="sm" className="bg-[#1a237e] hover:bg-[#283593]" onClick={() => setShowCreateAlbum(true)}>
             <Plus className="h-4 w-4 mr-1" /> New Album
           </Button>
