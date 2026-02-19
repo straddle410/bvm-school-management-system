@@ -21,12 +21,20 @@ export default function Gallery() {
 
   useEffect(() => {
     const session = getStaffSession();
+    console.log('Staff session:', session);
     if (session) {
       setUser(session);
     } else {
       base44.auth.me().then(setUser).catch(() => {});
     }
   }, []);
+
+  useEffect(() => {
+    console.log('User:', user);
+    console.log('canCreateAlbum:', canCreateAlbum);
+    console.log('isAdmin:', isAdmin);
+    console.log('hasGalleryPermission:', hasGalleryPermission);
+  }, [user]);
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal';
   const hasGalleryPermission = user?.permissions?.gallery === true;
