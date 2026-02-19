@@ -193,6 +193,9 @@ export default function Settings() {
             <TabsTrigger value="subjects">
               <Database className="h-4 w-4 mr-2" /> Subjects
             </TabsTrigger>
+            <TabsTrigger value="banners">
+              <Layers className="h-4 w-4 mr-2" /> Banners
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="school" className="mt-6">
