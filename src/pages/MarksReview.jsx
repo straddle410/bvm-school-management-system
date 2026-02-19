@@ -46,23 +46,44 @@ export default function MarksReview() {
     enabled: !!(selectedClass && selectedSection)
   });
 
-  // Group marks by exam type and subject
-  const groupedData = React.useMemo(() => {
-    const grouped = {};
-    submittedMarks.forEach(mark => {
-      const key = `${mark.exam_type}-${mark.subject}`;
-      if (!grouped[key]) {
-        grouped[key] = {
-          exam_type: mark.exam_type,
-          subject: mark.subject,
-          marks: [],
-          status: mark.status
-        };
-      }
-      grouped[key].marks.push(mark);
-    });
-    return Object.values(grouped);
-  }, [submittedMarks]);
+  // Group marks by exam type
+   const groupedData = React.useMemo(() => {
+     const grouped = {};
+     submittedMarks.forEach(mark => {
+       if (!grouped[mark.exam_type]) {
+         grouped[mark.exam_type] = {
+           exam_type: mark.exam_type,
+           studentMarks: {}
+         };
+       }
+       if (!grouped[mark.exam_type].studentMarks[mark.student_id]) {
+         grouped[mark.exam_type].studentMarks[mark.student_id] = {
+           student_id: mark.student_id,
+           student_name: mark.student_name,
+           subjects: {}
+         };
+       }
+       grouped[mark.exam_type].studentMarks[mark.student_id].subjects[mark.subject] = mark;
+     });
+     return Object.values(grouped).map(group => {
+       const studentArray = Object.values(group.studentMarks);
+       const subjects = [...new Set(submittedMarks.filter(m => m.exam_type === group.exam_type).map(m => m.subject))];
+
+       // Calculate totals and ranks
+       const studentsWithTotals = studentArray.map(student => {
+         const total = Object.values(student.subjects).reduce((sum, mark) => sum + mark.marks_obtained, 0);
+         return { ...student, total };
+       });
+
+       studentsWithTotals.sort((a, b) => b.total - a.total);
+       const studentsWithRanks = studentsWithTotals.map((student, idx) => ({
+         ...student,
+         rank: idx + 1
+       }));
+
+       return { ...group, subjects, students: studentsWithRanks };
+     });
+   }, [submittedMarks]);
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
