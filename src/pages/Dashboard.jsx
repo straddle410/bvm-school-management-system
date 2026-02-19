@@ -44,7 +44,11 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    // Check staff session from localStorage (custom login)
+    const session = localStorage.getItem('staff_session');
+    if (session) {
+      try { setUser(JSON.parse(session)); } catch {}
+    }
   }, []);
 
   useEffect(() => {
