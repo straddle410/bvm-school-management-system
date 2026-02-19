@@ -1,4 +1,4 @@
-import { ExcelJS } from 'npm:exceljs@4.3.0';
+import ExcelJS from 'npm:exceljs@4.3.0';
 
 Deno.serve(async (req) => {
   try {
@@ -76,13 +76,10 @@ Deno.serve(async (req) => {
     worksheet.views = [{ state: 'frozen', ySplit: 1 }];
 
     const buffer = await workbook.xlsx.writeBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-    return new Response(buffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename=student_import_template.xlsx'
-      }
+    return Response.json({ 
+      file: base64
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
