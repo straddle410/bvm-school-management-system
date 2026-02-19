@@ -59,6 +59,8 @@ import Quiz from './pages/Quiz';
 import Calendar from './pages/Calendar';
 import Reports from './pages/Reports';
 import Approvals from './pages/Approvals';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +77,8 @@ export const PAGES = {
     "Calendar": Calendar,
     "Reports": Reports,
     "Approvals": Approvals,
+    "Settings": Settings,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
