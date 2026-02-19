@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bell, Pin, Plus, Megaphone, Calendar, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
+import TableBuilder from '@/components/TableBuilder';
 
 const TYPE_COLORS = {
   General: 'bg-blue-100 text-blue-700',
