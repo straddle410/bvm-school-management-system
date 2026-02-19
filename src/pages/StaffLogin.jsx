@@ -89,6 +89,7 @@ export default function StaffLogin() {
           role: staff.role,
           subjects: staff.subjects,
           classes_assigned: staff.classes_assigned,
+          permissions: staff.permissions,
         }));
         window.location.href = createPageUrl('Dashboard');
       }
