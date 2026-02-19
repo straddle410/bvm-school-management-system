@@ -31,6 +31,7 @@ export default function Gallery() {
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal';
   const hasGalleryPermission = user?.permissions?.gallery === true;
   const canUpload = isAdmin || hasGalleryPermission;
+  const canCreateAlbum = isAdmin || hasGalleryPermission;
   const needsApproval = !isAdmin && user?.permissions?.gallery_needs_approval !== false;
 
   const { data: albums = [] } = useQuery({
