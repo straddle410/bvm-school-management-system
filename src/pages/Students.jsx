@@ -630,5 +630,6 @@ export default function Students() {
         </SheetContent>
       </Sheet>
     </div>
+    </LoginRequired>
   );
 }

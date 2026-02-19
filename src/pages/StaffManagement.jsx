@@ -364,5 +364,6 @@ export default function StaffManagement() {
         </DialogContent>
       </Dialog>
     </div>
+    </LoginRequired>
   );
 }
