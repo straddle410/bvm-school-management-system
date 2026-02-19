@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Eye, EyeOff, LogIn, GraduationCap, Lock } from 'lucide-react';
+import { Eye, EyeOff, LogIn, GraduationCap, Lock, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
 
 export default function StaffLogin() {
   const [step, setStep] = useState('credentials'); // 'credentials' or 'otp'
