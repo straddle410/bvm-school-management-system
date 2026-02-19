@@ -323,5 +323,6 @@ export default function Reports() {
         </Tabs>
       </div>
     </div>
+    </LoginRequired>
   );
 }

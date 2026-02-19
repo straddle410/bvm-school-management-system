@@ -351,5 +351,6 @@ export default function Approvals() {
         </Tabs>
       </div>
     </div>
+    </LoginRequired>
   );
 }

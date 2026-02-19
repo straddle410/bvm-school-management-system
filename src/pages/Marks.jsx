@@ -426,5 +426,6 @@ export default function Marks() {
         </DialogContent>
       </Dialog>
     </div>
+    </LoginRequired>
   );
 }

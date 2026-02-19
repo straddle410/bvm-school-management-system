@@ -324,5 +324,6 @@ export default function Attendance() {
         ) : null}
       </div>
     </div>
+    </LoginRequired>
   );
 }
