@@ -484,8 +484,13 @@ export default function Students() {
               variant="outline" 
               className="hidden sm:flex"
               onClick={async () => {
-                const { data } = await base44.functions.invoke('generateStudentTemplate');
-                const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const response = await base44.functions.invoke('generateStudentTemplate');
+                const binaryString = atob(response.data.file);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -494,6 +499,7 @@ export default function Students() {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 a.remove();
+                toast.success('Template downloaded');
               }}
             >
               <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Template
