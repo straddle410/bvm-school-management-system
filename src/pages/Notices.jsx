@@ -44,11 +44,12 @@ export default function Notices() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    const session = require('@/components/useStaffSession').getStaffSession();
+    setUser(session);
   }, []);
 
-  const isStaff = user && ['admin', 'principal', 'teacher', 'staff'].includes(user.role);
-  const isAdmin = user && ['admin', 'principal'].includes(user.role);
+  const isStaff = user && ['Admin', 'Principal', 'Teacher', 'Staff'].includes(user.role);
+  const isAdmin = user && ['Admin', 'Principal'].includes(user.role);
 
   const { data: notices = [], isLoading } = useQuery({
     queryKey: ['notices'],
