@@ -36,6 +36,7 @@ export default function Results() {
   const [searched, setSearched] = useState(false);
   const [studentResult, setStudentResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [resultsByExam, setResultsByExam] = useState({});
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['exam-types-published'],
