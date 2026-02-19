@@ -34,6 +34,7 @@ const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies'
 
 export default function Quiz() {
    const [user, setUser] = useState(null);
+   const [userPermissions, setUserPermissions] = useState({});
    const [activeTab, setActiveTab] = useState('quizzes');
    const [showCreateDialog, setShowCreateDialog] = useState(false);
    const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -58,6 +59,7 @@ export default function Quiz() {
        try {
          const parsed = JSON.parse(session);
          setUser(parsed);
+         setUserPermissions(parsed.permissions || {});
        } catch {}
      } else {
        base44.auth.me().then(setUser).catch(() => {});
