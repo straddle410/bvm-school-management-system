@@ -253,8 +253,8 @@ export default function StaffManagement() {
                         {member.permissions.attendance && <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full">Attendance{member.permissions.attendance_needs_approval ? '*' : ''}</span>}
                         {member.permissions.marks && <span className="text-[9px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full">Marks{member.permissions.marks_needs_approval ? '*' : ''}</span>}
                         {member.permissions.post_notices && <span className="text-[9px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded-full">Notices{member.permissions.notices_needs_approval ? '*' : ''}</span>}
-                            {member.permissions.gallery && <span className="text-[9px] bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded-full">Gallery{member.permissions.gallery_needs_approval ? '*' : ''}</span>}
-                            {member.permissions.quiz && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full">Quiz{member.permissions.quiz_needs_approval ? '*' : ''}</span>}
+                        {member.permissions.gallery && <span className="text-[9px] bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded-full">Gallery{member.permissions.gallery_needs_approval ? '*' : ''}</span>}
+                        {member.permissions.quiz && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full">Quiz</span>}
                       </div>
                     )}
                     {member.temp_password && (
