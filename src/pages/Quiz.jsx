@@ -356,7 +356,7 @@ export default function Quiz() {
                         </div>
                         <CardTitle className="text-lg mt-3">{quiz.title}</CardTitle>
                         <p className="text-sm text-slate-500">
-                          {quiz.subject} • Class {quiz.class_name}
+                          {quiz.subject}
                         </p>
                       </CardHeader>
                       <CardContent>
