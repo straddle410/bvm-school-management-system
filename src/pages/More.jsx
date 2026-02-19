@@ -35,6 +35,7 @@ export default function More() {
     { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
     { label: 'Teachers', sub: 'Manage faculty', icon: Users, color: '#7e57c2', bg: '#ede7f6', page: 'Teachers' },
     { label: 'Admissions', sub: 'Online admission management', icon: UserPlus, color: '#26a69a', bg: '#e0f2f1', page: 'Admissions' },
+    { label: 'Staff Management', sub: 'Create & manage staff accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'StaffManagement' },
     { label: 'Exam & Marks', sub: 'Manage exams and results', icon: BookOpen, color: '#ab47bc', bg: '#f3e5f5', page: 'Marks' },
     { label: 'Attendance', sub: 'Daily attendance tracking', icon: ClipboardCheck, color: '#ef6c00', bg: '#fff3e0', page: 'Attendance' },
     { label: 'Approvals', sub: 'Bulk approve items', icon: ClipboardCheck, color: '#43a047', bg: '#e8f5e9', page: 'Approvals' },
