@@ -225,28 +225,23 @@ export default function MarksReview() {
                               </tr>
                             </thead>
                             <tbody>
-                              {group.students.slice(0, 10).map((student) => (
-                                <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
-                                  <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
-                                  <td className="p-2">{student.student_name}</td>
-                                  {group.subjects.map(subject => {
-                                    const mark = student.subjects[subject];
-                                    return (
-                                      <td key={subject} className="text-center p-2">
-                                        {mark ? `${mark.marks_obtained}` : '-'}
-                                      </td>
-                                    );
-                                  })}
-                                  <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          {group.students.length > 10 && (
-                            <p className="text-xs text-slate-500 p-2 text-center">
-                              +{group.students.length - 10} more students
-                            </p>
-                          )}
+                               {group.students.map((student) => (
+                                 <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
+                                   <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
+                                   <td className="p-2">{student.student_name}</td>
+                                   {group.subjects.map(subject => {
+                                     const mark = student.subjects[subject];
+                                     return (
+                                       <td key={subject} className="text-center p-2">
+                                         {mark ? mark.marks_obtained : '-'}
+                                       </td>
+                                     );
+                                   })}
+                                   <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
+                                 </tr>
+                               ))}
+                             </tbody>
+                            </table>
                         </div>
 
                         {/* Actions */}
