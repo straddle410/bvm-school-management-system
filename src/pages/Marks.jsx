@@ -166,10 +166,13 @@ export default function Marks() {
     }
   });
 
-  const updateMarks = (studentId, value) => {
+  const updateMarks = (studentId, subject, value) => {
     setMarksData(prev => ({
       ...prev,
-      [studentId]: { ...prev[studentId], marks_obtained: value }
+      [studentId]: { 
+        ...prev[studentId], 
+        [subject]: { ...prev[studentId]?.[subject], marks_obtained: value }
+      }
     }));
   };
 
