@@ -66,9 +66,10 @@ export default function Results() {
       studentId = rollInput.trim();
     }
 
+    // Only show Published marks to students
     const filter = { status: 'Published' };
     if (studentId) filter.student_id = studentId;
-    if (filterExam) filter.exam_type = filterExam;
+    if (filterExam && filterExam !== 'ALL') filter.exam_type = filterExam;
     if (filterClass) filter.class_name = filterClass;
 
     const marks = await base44.entities.Marks.filter(filter);
