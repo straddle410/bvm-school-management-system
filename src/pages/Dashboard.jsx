@@ -50,7 +50,13 @@ export default function Dashboard() {
 
   const { data: bannerSlides = [] } = useQuery({
     queryKey: ['banner-slides'],
-    queryFn: () => base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order')
+    queryFn: async () => {
+      try {
+        return await base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order');
+      } catch {
+        return [];
+      }
+    }
   });
 
   const banners = bannerSlides.length > 0
@@ -66,12 +72,24 @@ export default function Dashboard() {
 
   const { data: events = [] } = useQuery({
     queryKey: ['calendar-events-published'],
-    queryFn: () => base44.entities.CalendarEvent.filter({ status: 'Published' })
+    queryFn: async () => {
+      try {
+        return await base44.entities.CalendarEvent.filter({ status: 'Published' });
+      } catch {
+        return [];
+      }
+    }
   });
 
   const { data: notices = [] } = useQuery({
     queryKey: ['notices-published'],
-    queryFn: () => base44.entities.Notice.filter({ status: 'Published' })
+    queryFn: async () => {
+      try {
+        return await base44.entities.Notice.filter({ status: 'Published' });
+      } catch {
+        return [];
+      }
+    }
   });
 
   const upcomingEvents = events
