@@ -15,20 +15,39 @@ export default function StaffLogin() {
     setError('');
     setLoading(true);
 
-    const result = await base44.functions.invoke('staff-login', {
-      username: username.trim(),
-      password
-    });
+    // Find staff by username directly from entity
+    const staffList = await base44.entities.StaffAccount.filter({ username: username.trim() });
 
     setLoading(false);
 
-    if (result.success) {
-      // Store staff session in localStorage
-      localStorage.setItem('staff_session', JSON.stringify(result.staff));
-      window.location.href = createPageUrl('Dashboard');
-    } else {
-      setError(result.error || 'Invalid username or password');
+    if (!staffList || staffList.length === 0) {
+      setError('Invalid username or password');
+      return;
     }
+
+    const staff = staffList[0];
+
+    if (staff.temp_password !== password) {
+      setError('Invalid username or password');
+      return;
+    }
+
+    if (staff.is_active === false) {
+      setError('Your account has been deactivated. Contact admin.');
+      return;
+    }
+
+    // Store staff session in localStorage
+    localStorage.setItem('staff_session', JSON.stringify({
+      id: staff.id,
+      full_name: staff.full_name,
+      username: staff.username,
+      email: staff.email,
+      role: staff.role,
+      subjects: staff.subjects,
+      classes_assigned: staff.classes_assigned,
+    }));
+    window.location.href = createPageUrl('Dashboard');
   };
 
   return (
