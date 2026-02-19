@@ -75,9 +75,11 @@ Deno.serve(async (req) => {
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new Response(buffer, {
+      status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="Marks_${className}_${section}_${examType}.xlsx"`
+        'Content-Disposition': `attachment; filename="Marks_${className}_${section}_${examType}.xlsx"`,
+        'Content-Length': buffer.length.toString()
       }
     });
   } catch (error) {
