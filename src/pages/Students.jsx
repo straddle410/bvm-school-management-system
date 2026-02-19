@@ -63,7 +63,9 @@ export default function Students() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    const session = getStaffSession();
+    if (session) setUser(session);
+    else base44.auth.me().then(setUser).catch(() => {});
     // Check URL params for action=add
     const params = new URLSearchParams(window.location.search);
     if (params.get('action') === 'add') {
