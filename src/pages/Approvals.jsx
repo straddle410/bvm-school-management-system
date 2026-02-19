@@ -148,6 +148,7 @@ export default function Approvals() {
     { value: 'quizzes', label: 'Quizzes', count: pendingQuizzes.length, icon: HelpCircle },
     { value: 'events', label: 'Events', count: pendingEvents.length, icon: Calendar },
     { value: 'exams', label: 'Exam Types', count: pendingExams.length, icon: BookOpen },
+    { value: 'notices', label: 'Notices', count: pendingNotices.length, icon: MoreHorizontal },
   ];
 
   const totalPending = tabs.reduce((sum, tab) => sum + tab.count, 0);
