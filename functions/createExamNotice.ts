@@ -10,19 +10,50 @@ Deno.serve(async (req) => {
     }
 
     const examSchedule = `
-EXAMINATION SCHEDULE - CLASSES VII TO X
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Date            Subject              Day
-─────────────────────────────────────────────────
-20-02-2026      TELUGU               Wednesday
-21-02-2026      HINDI                Thursday
-22-02-2026      ENGLISH              Friday
-23-02-2026      MATHEMATICS          Saturday
-24-02-2026      SCIENCE              Sunday
-27-02-2026      SOCIAL STUDIES       Wednesday
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+<div style="margin: 20px 0; font-family: Arial, sans-serif;">
+  <h3 style="color: #1a237e; margin-bottom: 15px; text-align: center;">ANNUAL EXAMINATION SCHEDULE</h3>
+  <table style="width: 100%; border-collapse: collapse; border: 2px solid #1a237e;">
+    <thead>
+      <tr style="background-color: #1a237e; color: white;">
+        <th style="border: 1px solid #1a237e; padding: 12px; text-align: center; font-weight: bold;">Date</th>
+        <th style="border: 1px solid #1a237e; padding: 12px; text-align: center; font-weight: bold;">Subject</th>
+        <th style="border: 1px solid #1a237e; padding: 12px; text-align: center; font-weight: bold;">Day</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background-color: #f5f5f5;">
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">20-02-2026</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">TELUGU</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">Wednesday</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">21-02-2026</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">HINDI</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">Thursday</td>
+      </tr>
+      <tr style="background-color: #f5f5f5;">
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">22-02-2026</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">ENGLISH</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">Friday</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">23-02-2026</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">MATHEMATICS</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">Saturday</td>
+      </tr>
+      <tr style="background-color: #f5f5f5;">
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">24-02-2026</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">SCIENCE</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">Sunday</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">27-02-2026</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">SOCIAL STUDIES</td>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">Wednesday</td>
+      </tr>
+    </tbody>
+  </table>
+</div>`;
 
     const notice = await base44.entities.Notice.create({
       title: 'Annual Examination Schedule - Classes VII to X',
