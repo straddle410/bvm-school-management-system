@@ -50,6 +50,11 @@
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
+import Attendance from './pages/Attendance';
+import Marks from './pages/Marks';
+import Admissions from './pages/Admissions';
+import PublicAdmission from './pages/PublicAdmission';
+import Gallery from './pages/Gallery';
 import __Layout from './Layout.jsx';
 
 
@@ -57,6 +62,11 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Students": Students,
     "Teachers": Teachers,
+    "Attendance": Attendance,
+    "Marks": Marks,
+    "Admissions": Admissions,
+    "PublicAdmission": PublicAdmission,
+    "Gallery": Gallery,
 }
 
 export const pagesConfig = {
