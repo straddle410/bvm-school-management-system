@@ -45,8 +45,7 @@ export default function Notices() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const session = require('@/components/useStaffSession').getStaffSession();
-    setUser(session);
+    setUser(getStaffSession());
   }, []);
 
   const isStaff = user && ['Admin', 'Principal', 'Teacher', 'Staff'].includes(user.role);
