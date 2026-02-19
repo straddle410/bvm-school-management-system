@@ -3,289 +3,198 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import PageHeader from '@/components/ui/PageHeader';
-import StatsCard from '@/components/ui/StatsCard';
-import StatusBadge from '@/components/ui/StatusBadge';
-import DataTable from '@/components/ui/DataTable';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  GraduationCap, Users, ClipboardCheck, BookOpen, 
-  Clock, CheckCircle2, AlertCircle, Calendar,
-  TrendingUp, ArrowRight, UserPlus
+import {
+  GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
+  ClipboardList, Megaphone, MessageCircle, ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
-} from 'recharts';
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+const BANNER_IMAGES = [
+  {
+    url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80',
+    caption: 'Science Exhibition Winners - Proud Moments'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&q=80',
+    caption: 'Annual Day Celebrations 2024'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80',
+    caption: 'Sports Day - Champions at Heart'
+  },
+];
+
+const quickAccess = [
+  { label: 'Results', icon: GraduationCap, color: '#5c6bc0', bg: '#e8eaf6', page: 'Reports' },
+  { label: 'Gallery', icon: Image, color: '#ab47bc', bg: '#f3e5f5', page: 'Gallery' },
+  { label: 'Calendar', icon: Calendar, color: '#26a69a', bg: '#e0f2f1', page: 'Calendar' },
+  { label: 'Quiz', icon: Brain, color: '#7e57c2', bg: '#ede7f6', page: 'Quiz' },
+  { label: 'Notices', icon: Bell, color: '#26c6da', bg: '#e0f7fa', page: 'Calendar', badge: 2 },
+  { label: 'More', icon: MoreHorizontal, color: '#ef6c00', bg: '#fff3e0', page: 'More' },
+];
+
+const quickActions = [
+  { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks' },
+  { label: 'Announcement', icon: Megaphone, color: '#ef6c00', page: 'Calendar' },
+  { label: 'Message', icon: MessageCircle, color: '#e53935', page: 'Profile' },
+];
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const [bannerIndex, setBannerIndex] = useState(0);
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    const timer = setInterval(() => {
+      setBannerIndex(i => (i + 1) % BANNER_IMAGES.length);
+    }, 3500);
+    return () => clearInterval(timer);
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list()
-  });
-
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list()
-  });
-
-  const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance-today'],
-    queryFn: () => base44.entities.Attendance.filter({ 
-      date: format(new Date(), 'yyyy-MM-dd') 
-    })
-  });
-
-  const { data: admissions = [] } = useQuery({
-    queryKey: ['admissions'],
-    queryFn: () => base44.entities.Admission.list()
-  });
-
   const { data: events = [] } = useQuery({
-    queryKey: ['upcoming-events'],
+    queryKey: ['calendar-events-published'],
     queryFn: () => base44.entities.CalendarEvent.filter({ status: 'Published' })
   });
 
-  const publishedStudents = students.filter(s => s.status === 'Published');
-  const pendingApprovals = [
-    ...students.filter(s => ['Pending', 'Verified'].includes(s.status)),
-    ...admissions.filter(a => ['Submitted', 'Under Review', 'Verified'].includes(a.status)),
-  ];
-
-  const todayAttendance = attendance.filter(a => a.status === 'Published');
-  const presentCount = todayAttendance.filter(a => a.is_present).length;
-  const absentCount = todayAttendance.filter(a => !a.is_present).length;
-
-  const classDistribution = publishedStudents.reduce((acc, s) => {
-    const cls = s.class_name || 'Unknown';
-    acc[cls] = (acc[cls] || 0) + 1;
-    return acc;
-  }, {});
-
-  const pieData = Object.entries(classDistribution).map(([name, value]) => ({ name, value }));
+  const { data: admissions = [] } = useQuery({
+    queryKey: ['admissions-recent'],
+    queryFn: () => base44.entities.Admission.list('-created_date')
+  });
 
   const upcomingEvents = events
     .filter(e => new Date(e.start_date) >= new Date())
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-    .slice(0, 5);
+    .slice(0, 4);
+
+  const announcements = [
+    ...upcomingEvents.map(e => ({
+      id: e.id,
+      title: e.title,
+      date: e.start_date,
+      type: e.event_type
+    })),
+    ...admissions.slice(0, 3).map(a => ({
+      id: a.id,
+      title: `New Admission: ${a.student_name}`,
+      date: a.created_date,
+      type: 'Admission'
+    }))
+  ].slice(0, 5);
+
+  const eventTypeColor = (type) => {
+    const map = {
+      Holiday: '#e53935',
+      Exam: '#7e57c2',
+      PTM: '#1e88e5',
+      Event: '#43a047',
+      Meeting: '#f9a825',
+      Admission: '#26a69a',
+    };
+    return map[type] || '#78909c';
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <PageHeader 
-        title={`Welcome back, ${user?.full_name?.split(' ')[0] || 'Admin'}!`}
-        subtitle={format(new Date(), 'EEEE, MMMM d, yyyy')}
-      />
-
-      <div className="p-4 lg:p-8 space-y-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link to={createPageUrl('Students')}>
-            <StatsCard
-              title="Total Students"
-              value={publishedStudents.length}
-              subtitle="Published & Active"
-              icon={GraduationCap}
-              color="blue"
+    <div className="bg-gray-100 min-h-screen">
+      {/* Banner Slider */}
+      <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
+        {BANNER_IMAGES.map((img, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{ opacity: i === bannerIndex ? 1 : 0 }}
+          >
+            <img src={img.url} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <p className="absolute bottom-4 left-4 right-4 text-white font-bold text-base leading-tight">
+              {img.caption}
+            </p>
+          </div>
+        ))}
+        {/* Dots */}
+        <div className="absolute bottom-2 right-4 flex gap-1.5">
+          {BANNER_IMAGES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setBannerIndex(i)}
+              className={`rounded-full transition-all ${i === bannerIndex ? 'w-5 h-2 bg-yellow-400' : 'w-2 h-2 bg-white/60'}`}
             />
-          </Link>
-          <Link to={createPageUrl('Teachers')}>
-            <StatsCard
-              title="Total Teachers"
-              value={teachers.filter(t => t.status === 'Active').length}
-              subtitle="Active faculty"
-              icon={Users}
-              color="purple"
-            />
-          </Link>
-          <Link to={createPageUrl('Attendance')}>
-            <StatsCard
-              title="Today's Attendance"
-              value={todayAttendance.length > 0 ? `${Math.round((presentCount / (presentCount + absentCount)) * 100)}%` : '--'}
-              subtitle={`${presentCount} present, ${absentCount} absent`}
-              icon={ClipboardCheck}
-              color="green"
-            />
-          </Link>
-          <Link to={createPageUrl('Approvals')}>
-            <StatsCard
-              title="Pending Approvals"
-              value={pendingApprovals.length}
-              subtitle="Requires action"
-              icon={Clock}
-              color="amber"
-            />
-          </Link>
+          ))}
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Class Distribution */}
-          <Card className="border-0 shadow-sm lg:col-span-1">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold">Class Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[200px] flex items-center justify-center text-slate-400">
-                  No data available
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                {pieData.slice(0, 5).map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-2 text-xs">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                    />
-                    <span className="text-slate-600">Class {item.name}: {item.value}</span>
+      <div className="px-4 py-4 space-y-6">
+        {/* Quick Access */}
+        <div>
+          <h2 className="text-base font-bold text-gray-800 mb-3">Quick Access</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {quickAccess.map((item) => (
+              <Link key={item.label} to={createPageUrl(item.page)}>
+                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative">
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ backgroundColor: item.bg }}
+                  >
+                    <item.icon className="h-6 w-6" style={{ color: item.color }} />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Events */}
-          <Card className="border-0 shadow-sm lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
-              <Link to={createPageUrl('Calendar')}>
-                <Button variant="ghost" size="sm" className="text-blue-600">
-                  View All <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
+                  {item.badge && (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                      {item.badge}
+                    </span>
+                  )}
+                  <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                </div>
               </Link>
-            </CardHeader>
-            <CardContent>
-              {upcomingEvents.length > 0 ? (
-                <div className="space-y-3">
-                  {upcomingEvents.map((event) => (
-                    <div key={event.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
-                      <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                        <Calendar className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{event.title}</p>
-                        <p className="text-sm text-slate-500">
-                          {format(new Date(event.start_date), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-                      <StatusBadge status={event.event_type} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-12 text-center text-slate-400">
-                  No upcoming events
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </div>
-
-        {/* Recent Admissions */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Recent Admission Applications</CardTitle>
-            <Link to={createPageUrl('Admissions')}>
-              <Button variant="ghost" size="sm" className="text-blue-600">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {admissions.slice(0, 5).map((admission) => (
-                <div key={admission.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
-                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                    <UserPlus className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{admission.student_name}</p>
-                    <p className="text-sm text-slate-500">
-                      Applying for Class {admission.applying_for_class}
-                    </p>
-                  </div>
-                  <StatusBadge status={admission.status} />
-                </div>
-              ))}
-              {admissions.length === 0 && (
-                <div className="py-8 text-center text-slate-400">
-                  No admission applications yet
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Link to={createPageUrl('Students') + '?action=add'}>
-            <Card className="border-0 shadow-sm p-4 hover:shadow-md transition-all cursor-pointer group">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                  <GraduationCap className="h-6 w-6 text-blue-600" />
+        <div>
+          <h2 className="text-base font-bold text-gray-800 mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {quickActions.map((item) => (
+              <Link key={item.label} to={createPageUrl(item.page)}>
+                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm">
+                  <item.icon className="h-7 w-7" style={{ color: item.color }} />
+                  <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
                 </div>
-                <span className="text-sm font-medium text-slate-700">Add Student</span>
-              </div>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Attendance')}>
-            <Card className="border-0 shadow-sm p-4 hover:shadow-md transition-all cursor-pointer group">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="h-12 w-12 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                  <ClipboardCheck className="h-6 w-6 text-green-600" />
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Announcements */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-gray-800">Announcements</h2>
+            <Link to={createPageUrl('Calendar')} className="flex items-center text-xs text-blue-600 font-medium">
+              View All <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {announcements.length > 0 ? announcements.map((item) => (
+              <div key={item.id} className="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                <div
+                  className="w-2 h-10 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: eventTypeColor(item.type) }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {item.date ? format(new Date(item.date), 'MMM d, yyyy') : ''}
+                  </p>
                 </div>
-                <span className="text-sm font-medium text-slate-700">Mark Attendance</span>
+                <span
+                  className="text-[10px] font-semibold px-2 py-1 rounded-full"
+                  style={{ color: eventTypeColor(item.type), backgroundColor: eventTypeColor(item.type) + '20' }}
+                >
+                  {item.type}
+                </span>
               </div>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Marks')}>
-            <Card className="border-0 shadow-sm p-4 hover:shadow-md transition-all cursor-pointer group">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="h-12 w-12 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                  <BookOpen className="h-6 w-6 text-purple-600" />
-                </div>
-                <span className="text-sm font-medium text-slate-700">Enter Marks</span>
+            )) : (
+              <div className="bg-white rounded-2xl p-6 text-center text-gray-400 shadow-sm">
+                No announcements yet
               </div>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Quiz')}>
-            <Card className="border-0 shadow-sm p-4 hover:shadow-md transition-all cursor-pointer group">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="h-12 w-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-                  <AlertCircle className="h-6 w-6 text-amber-600" />
-                </div>
-                <span className="text-sm font-medium text-slate-700">Create Quiz</span>
-              </div>
-            </Card>
-          </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>

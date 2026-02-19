@@ -61,6 +61,7 @@ import Reports from './pages/Reports';
 import Approvals from './pages/Approvals';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import More from './pages/More';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "Approvals": Approvals,
     "Settings": Settings,
     "Profile": Profile,
+    "More": More,
 }
 
 export const pagesConfig = {
