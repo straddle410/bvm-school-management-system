@@ -174,42 +174,14 @@ export default function Notices() {
 
       {/* Table Builder Dialog */}
       <Dialog open={showTableBuilder} onOpenChange={setShowTableBuilder}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Insert Table</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Rows</Label>
-              <Input type="number" min="1" max="20" value={tableRows} onChange={e => setTableRows(parseInt(e.target.value))} />
-            </div>
-            <div>
-              <Label>Columns</Label>
-              <Input type="number" min="1" max="10" value={tableCols} onChange={e => setTableCols(parseInt(e.target.value))} />
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowTableBuilder(false)}>Cancel</Button>
-              <Button onClick={() => {
-                let tableHTML = '<table style="width:100%; border-collapse: collapse; border: 1px solid #ddd; margin: 10px 0;"><tr>';
-                for (let i = 0; i < tableCols; i++) {
-                  tableHTML += `<th style="border: 1px solid #ddd; padding: 8px; background-color: #1a237e; color: white;">Header ${i + 1}</th>`;
-                }
-                tableHTML += '</tr>';
-                for (let r = 1; r < tableRows; r++) {
-                  tableHTML += '<tr>';
-                  for (let c = 0; c < tableCols; c++) {
-                    tableHTML += `<td style="border: 1px solid #ddd; padding: 8px;"></td>`;
-                  }
-                  tableHTML += '</tr>';
-                }
-                tableHTML += '</table>';
-                setForm({...form, content: form.content + '\n' + tableHTML});
-                setShowTableBuilder(false);
-              }}>
-                Insert Table
-              </Button>
-            </div>
-          </div>
+        <DialogContent className="max-w-2xl">
+          <TableBuilder 
+            onInsert={(html) => {
+              setForm({...form, content: form.content + '\n' + html});
+              setShowTableBuilder(false);
+            }}
+            onClose={() => setShowTableBuilder(false)}
+          />
         </DialogContent>
       </Dialog>
 
