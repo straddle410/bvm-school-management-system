@@ -34,7 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, Search, Filter, Upload, Download, 
   MoreVertical, Eye, Pencil, Trash2, CheckCircle, XCircle,
-  FileSpreadsheet, Image as ImageIcon
+  FileSpreadsheet, Image as ImageIcon, FileDown
 } from 'lucide-react';
 import {
   DropdownMenu,
