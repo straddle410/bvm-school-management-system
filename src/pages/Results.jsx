@@ -38,6 +38,8 @@ export default function Results() {
   const [studentResult, setStudentResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [resultsByExam, setResultsByExam] = useState({});
+  const [showProgressReport, setShowProgressReport] = useState(false);
+  const [allMarks, setAllMarks] = useState([]);
 
   // Fetch exam types in correct order
   const examTypeOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
