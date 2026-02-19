@@ -112,7 +112,7 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
             <div className="space-y-2">
               {subjectStats.map((subject, idx) => (
                 <div key={idx} className="bg-white rounded-lg p-3 border border-slate-200">
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex justify-between items-start">
                     <div>
                       <p className="font-medium text-slate-800">{subject.name}</p>
                       <p className="text-xs text-slate-500">
@@ -123,7 +123,6 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
                       {subject.percentage}%
                     </Badge>
                   </div>
-                  <p className="text-xs text-slate-600 italic">{subject.remark}</p>
                 </div>
               ))}
             </div>
