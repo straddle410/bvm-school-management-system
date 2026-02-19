@@ -38,7 +38,6 @@ export default function Marks() {
   const [activeTab, setActiveTab] = useState('entry');
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedExam, setSelectedExam] = useState('');
   const [marksData, setMarksData] = useState({});
   const [showExamDialog, setShowExamDialog] = useState(false);
