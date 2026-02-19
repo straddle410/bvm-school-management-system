@@ -129,7 +129,16 @@ export default function StaffLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a237e] to-[#283593] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a237e] to-[#283593] flex flex-col items-center justify-center px-4 relative">
+      {/* Back Button */}
+      <Link 
+        to={createPageUrl('Dashboard')}
+        className="absolute top-4 left-4 text-white hover:text-blue-200 transition-colors"
+        title="Go back to home"
+      >
+        <ArrowLeft className="h-6 w-6" />
+      </Link>
+
       {/* Logo / Branding */}
       <div className="flex flex-col items-center mb-8">
         <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
