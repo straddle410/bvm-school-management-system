@@ -52,7 +52,6 @@ import Approvals from './pages/Approvals';
 import Attendance from './pages/Attendance';
 import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
-import Gallery from './pages/Gallery';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
 import More from './pages/More';
@@ -76,7 +75,6 @@ export const PAGES = {
     "Attendance": Attendance,
     "Calendar": Calendar,
     "Dashboard": Dashboard,
-    "Gallery": Gallery,
     "IDCards": IDCards,
     "Marks": Marks,
     "More": More,
