@@ -38,14 +38,11 @@ export default function Results() {
   const [isSearching, setIsSearching] = useState(false);
   const [resultsByExam, setResultsByExam] = useState({});
 
-  // Fetch unique exam types from published marks
+  // Fetch exam types in correct order
+  const examTypeOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['exam-types-from-marks'],
-    queryFn: async () => {
-      const marks = await base44.entities.Marks.filter({ status: 'Published' });
-      const uniqueExams = [...new Set(marks.map(m => m.exam_type))];
-      return uniqueExams.map((name, i) => ({ id: i, name }));
-    }
+    queryKey: ['exam-types-published'],
+    queryFn: () => base44.entities.ExamType.filter({ status: 'Published' })
   });
 
   // Load students when class+section is selected
