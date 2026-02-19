@@ -32,6 +32,7 @@ const quickActions = [
 
 const adminActions = [
   { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
+  { label: 'Attendance Report', icon: BarChart3, color: '#00796b', page: 'AttendanceReport' },
 ];
 
 export default function Dashboard() {
