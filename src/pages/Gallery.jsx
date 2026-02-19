@@ -170,6 +170,43 @@ export default function Gallery() {
           )}
         </div>
 
+        {/* Photo Lightbox Dialog */}
+        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
+          <DialogContent className="max-w-2xl w-full bg-black border-0 p-0">
+            <div className="relative">
+              <img src={selectedPhoto?.photo_url} alt={selectedPhoto?.caption} className="w-full h-auto max-h-[80vh] object-contain" />
+              {selectedPhoto?.caption && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 text-white text-sm">
+                  {selectedPhoto.caption}
+                </div>
+              )}
+              <button
+                onClick={goToPrevPhoto}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={goToNextPhoto}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
+              >
+                <ChevronLeft className="h-6 w-6 rotate-180" />
+              </button>
+              <div className="absolute top-2 right-2">
+                <button
+                  onClick={() => setSelectedPhoto(null)}
+                  className="bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+                {selectedPhotoIndex + 1} / {visiblePhotos.length}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Upload Dialog */}
         <Dialog open={showUpload} onOpenChange={setShowUpload}>
           <DialogContent>
