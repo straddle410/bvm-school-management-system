@@ -91,7 +91,7 @@ export default function More() {
               <p className="font-bold text-xl text-center">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
               <p className="text-white/60 text-sm mt-1 text-center">{schoolProfile?.tagline || 'Building Future Leaders'}</p>
               <button
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={() => window.location.href = createPageUrl('StaffLogin')}
                 className="mt-5 flex items-center gap-2 px-8 py-3 bg-yellow-400 text-gray-900 rounded-full text-sm font-bold transition-colors hover:bg-yellow-300 active:bg-yellow-500 w-full justify-center"
               >
                 <LogIn className="h-4 w-4" />
