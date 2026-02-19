@@ -38,30 +38,21 @@ function calculateRemarks(marks) {
       subjects[mark.subject] = {
         subject: mark.subject,
         marks_obtained: 0,
-        max_marks: 0,
-        marks_list: []
+        max_marks: 0
       };
     }
     subjects[mark.subject].marks_obtained += mark.marks_obtained;
     subjects[mark.subject].max_marks += mark.max_marks;
-    subjects[mark.subject].marks_list.push({
-      exam_type: mark.exam_type,
-      obtained: mark.marks_obtained,
-      max: mark.max_marks,
-      grade: mark.grade
-    });
     totalObtained += mark.marks_obtained;
     totalMax += mark.max_marks;
   });
 
-  // Add remarks and percentages to each subject
+  // Add percentages to each subject (no remarks)
   const subjectDetails = Object.values(subjects).map(subj => {
     const percentage = (subj.marks_obtained / subj.max_marks) * 100;
-    const remark = getSubjectRemark(percentage);
     return {
       ...subj,
-      percentage: Math.round(percentage),
-      remark
+      percentage: Math.round(percentage)
     };
   });
 
@@ -85,16 +76,6 @@ function calculateRemarks(marks) {
     subjects: subjectDetails,
     generated_date: new Date().toLocaleDateString('en-IN')
   };
-}
-
-function getSubjectRemark(percentage) {
-  if (percentage >= 80) {
-    return 'Excellent performance.';
-  } else if (percentage >= 60) {
-    return 'Can do better with more practice.';
-  } else {
-    return 'Needs improvement in this subject.';
-  }
 }
 
 function getOverallRemark(percentage, lowSubjects) {
