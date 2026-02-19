@@ -320,6 +320,15 @@ export default function Teachers() {
                   required
                 />
               </div>
+              <div className="col-span-2">
+                <Label>Role / Designation *</Label>
+                <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label>Email *</Label>
                 <Input
