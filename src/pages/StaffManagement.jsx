@@ -104,9 +104,9 @@ export default function StaffManagement() {
   const resetPasswordMutation = useMutation({
     mutationFn: ({ id, pass }) => base44.entities.StaffAccount.update(id, { temp_password: pass, must_change_password: true }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['staff-accounts']);
-      toast.success('Password reset successfully');
-    }
+       queryClient.invalidateQueries({ queryKey: ['staff-accounts'] });
+       toast.success('Password reset successfully');
+     }
   });
 
   const inviteMutation = useMutation({
