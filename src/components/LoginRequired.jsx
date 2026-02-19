@@ -39,7 +39,7 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
           </p>
           <Button
             className="w-full bg-[#1a237e] hover:bg-[#283593] text-white rounded-xl"
-            onClick={() => base44.auth.redirectToLogin()}
+            onClick={() => window.location.href = createPageUrl('StaffLogin')}
           >
             <LogIn className="h-4 w-4 mr-2" />
             Login
