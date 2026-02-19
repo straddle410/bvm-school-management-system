@@ -417,11 +417,12 @@ export default function StaffManagement() {
                 <p className="text-sm font-semibold text-slate-700 mb-2">Feature Permissions</p>
                 <div className="space-y-2">
                   {[
-                    { key: 'attendance', label: 'Attendance', approvalKey: 'attendance_needs_approval' },
-                    { key: 'marks', label: 'Marks Entry', approvalKey: 'marks_needs_approval' },
-                    { key: 'post_notices', label: 'Post Notices', approvalKey: 'notices_needs_approval' },
-                    { key: 'gallery', label: 'Gallery Upload', approvalKey: 'gallery_needs_approval' },
-                  ].map(({ key, label, approvalKey }) => (
+                     { key: 'attendance', label: 'Attendance', approvalKey: 'attendance_needs_approval' },
+                     { key: 'marks', label: 'Marks Entry', approvalKey: 'marks_needs_approval' },
+                     { key: 'post_notices', label: 'Post Notices', approvalKey: 'notices_needs_approval' },
+                     { key: 'gallery', label: 'Gallery Upload', approvalKey: 'gallery_needs_approval' },
+                     { key: 'quiz', label: 'Quiz Upload', approvalKey: 'quiz_needs_approval' },
+                   ].map(({ key, label, approvalKey }) => (
                     <div key={key} className="bg-slate-50 rounded-xl p-3">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-800">{label}</p>
