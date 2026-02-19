@@ -191,14 +191,18 @@ export default function Dashboard() {
           <div>
             <h2 className="text-base font-bold text-gray-800 mb-3">Quick Actions</h2>
             <div className="grid grid-cols-3 gap-3">
-              {quickActions.map((item) => (
-                <Link key={item.label} to={createPageUrl(item.page)}>
-                  <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm">
-                    <item.icon className="h-7 w-7" style={{ color: item.color }} />
-                    <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
-                  </div>
-                </Link>
-              ))}
+              {quickActions.map((item) => {
+                const hasPermission = !item.permission || (user.permissions?.[item.permission] === true);
+                if (!hasPermission) return null;
+                return (
+                  <Link key={item.label} to={createPageUrl(item.page)}>
+                    <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm">
+                      <item.icon className="h-7 w-7" style={{ color: item.color }} />
+                      <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
