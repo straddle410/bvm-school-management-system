@@ -189,15 +189,14 @@ export default function Results() {
               />
             </div>
 
-            {/* Exam Filter */}
+            {/* Exam Filter - MANDATORY */}
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Exam (optional)</Label>
+              <Label className="text-xs text-slate-500 mb-1 block">Exam Type <span className="text-red-500">*</span></Label>
               <Select value={filterExam} onValueChange={setFilterExam}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All Exams" />
+                  <SelectValue placeholder="Select Exam Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>All Exams</SelectItem>
                   {examTypes.map(e => (
                     <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
                   ))}
