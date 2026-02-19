@@ -440,7 +440,7 @@ export default function Quiz() {
                             >
                               {attempted ? 'Already Answered' : 'Start Quiz'}
                             </Button>
-                            {userPermissions.quiz && (
+                            {(userPermissions.quiz || user?.role === 'admin' || user?.role === 'Admin') && (
                               <Button
                                 variant="destructive"
                                 size="icon"
@@ -504,7 +504,7 @@ export default function Quiz() {
                                 Publish
                               </Button>
                             )}
-                            {userPermissions.quiz && (
+                            {(userPermissions.quiz || user?.role === 'admin' || user?.role === 'Admin') && (
                               <Button 
                                 size="sm"
                                 variant="destructive"
