@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, GraduationCap, Image, Calendar, MoreHorizontal } from 'lucide-react';
+import { Home, Bell, Image, Calendar, MoreHorizontal } from 'lucide-react';
 
 const bottomNav = [
   { name: 'Home', icon: Home, page: 'Dashboard' },
-  { name: 'Students', icon: GraduationCap, page: 'Students' },
+  { name: 'Notices', icon: Bell, page: 'Notices' },
   { name: 'Gallery', icon: Image, page: 'Gallery' },
   { name: 'Calendar', icon: Calendar, page: 'Calendar' },
   { name: 'More', icon: MoreHorizontal, page: 'More' },
