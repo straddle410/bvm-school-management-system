@@ -223,7 +223,7 @@ export default function Notices() {
               createMutation.mutate({
                 ...form,
                 status: isAdmin ? 'Published' : 'Draft',
-                created_by_name: user?.full_name
+                created_by_name: user?.name || user?.full_name
               });
             }
           }} className="space-y-4">
