@@ -184,7 +184,7 @@ export default function Notices() {
         {/* Regular Notices */}
         <div className="space-y-3">
           {regular.map(notice => (
-            <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} />
+            <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm} />
           ))}
         </div>
 
