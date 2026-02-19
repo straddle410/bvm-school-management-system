@@ -182,16 +182,90 @@ export default function Quiz() {
         title="Daily Quiz"
         subtitle="Test your knowledge"
         actions={
-          isTeacher && (
+          user && (user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal' || user.role === 'Teacher' || user.role === 'teacher') && (
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create Quiz
+              <Plus className="mr-2 h-4 w-4" /> Post Quiz
             </Button>
           )
         }
       />
 
       <div className="p-4 lg:p-8">
-        {selectedQuiz ? (
+        {showResults ? (
+          // Quiz Results View
+          <Card className="border-0 shadow-sm max-w-2xl mx-auto">
+            <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Quiz Results</CardTitle>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {selectedQuiz?.title || 'Quiz'}
+                  </p>
+                </div>
+                <Button variant="ghost" onClick={() => setShowResults(null)}>
+                  ← Back
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-500 mb-2">Your Score</p>
+                <p className="text-5xl font-bold text-blue-600 mb-2">
+                  {showResults.score}/{selectedQuiz?.questions?.filter(q => q.type === 'MCQ').length || 0}
+                </p>
+                <p className="text-lg text-slate-700">
+                  {Math.round((showResults.score / (selectedQuiz?.questions?.filter(q => q.type === 'MCQ').length || 1)) * 100)}% Correct
+                </p>
+              </div>
+
+              <div className="border-t pt-6 space-y-4">
+                <h3 className="font-semibold text-slate-900">Answer Review</h3>
+                {selectedQuiz?.questions.map((q, i) => {
+                  const isCorrect = q.type === 'MCQ' && answers[i] === q.correct_answer;
+                  const userAnswer = answers[i];
+                  return (
+                    <div key={i} className={`p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 border-green-200' : q.type === 'Descriptive' ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`}>
+                      <div className="flex items-start gap-3">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white font-semibold ${isCorrect ? 'bg-green-600' : q.type === 'Descriptive' ? 'bg-yellow-600' : 'bg-red-600'}`}>
+                          {i + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-900">{q.question}</p>
+                          <div className="mt-2 space-y-1 text-sm">
+                            {q.type === 'MCQ' ? (
+                              <>
+                                <p className="text-slate-600">Your answer: <span className="font-semibold">{userAnswer || 'Not answered'}</span></p>
+                                <p className={`${isCorrect ? 'text-green-700 font-semibold' : 'text-red-700'}`}>
+                                  Correct answer: <span className="font-semibold">{q.correct_answer}</span>
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-slate-600">Your answer: <span className="font-semibold">{userAnswer || 'Not answered'}</span></p>
+                                <p className="text-yellow-700">Model answer: <span className="font-semibold">{q.correct_answer}</span></p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          {isCorrect && <CheckCircle2 className="h-6 w-6 text-green-600" />}
+                          {!isCorrect && q.type === 'MCQ' && <XCircle className="h-6 w-6 text-red-600" />}
+                          {q.type === 'Descriptive' && <HelpCircle className="h-6 w-6 text-yellow-600" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={() => setShowResults(null)}>
+                  Back to Quizzes
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : selectedQuiz ? (
           // Quiz Taking View
           <Card className="border-0 shadow-sm max-w-2xl mx-auto">
             <CardHeader className="border-b">
