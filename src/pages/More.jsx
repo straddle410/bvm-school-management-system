@@ -16,14 +16,21 @@ export default function More() {
 
   useEffect(() => {
     base44.entities.SchoolProfile.list().then(p => p.length && setSchoolProfile(p[0])).catch(() => {});
-    base44.auth.me().then(u => {
-      setUser(u);
+    const session = getStaffSession();
+    if (session) {
+      setUser(session);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    } else {
+      base44.auth.me().then(u => {
+        setUser(u);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    }
   }, []);
 
-  const isAdmin = ['admin', 'principal'].includes(user?.role);
-  const isTeacher = ['admin', 'principal', 'teacher', 'staff'].includes(user?.role);
+  const role = user?.role || '';
+  const isAdmin = ['Admin', 'Principal'].includes(role);
+  const isTeacher = ['Admin', 'Principal', 'Teacher', 'Staff'].includes(role);
 
   const contentItems = [
     { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices' },
