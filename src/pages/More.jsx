@@ -128,7 +128,7 @@ export default function More() {
                     {user?.role || 'User'}
                   </span>
                   <button
-                    onClick={() => base44.auth.logout()}
+                    onClick={() => { clearStaffSession(); window.location.reload(); }}
                     className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
