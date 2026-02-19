@@ -86,12 +86,17 @@ export default function Quiz() {
    });
 
   const createQuizMutation = useMutation({
-    mutationFn: (data) => base44.entities.Quiz.create(data),
+    mutationFn: async (data) => {
+      const quiz = await base44.entities.Quiz.create(data);
+      await base44.entities.Quiz.update(quiz.id, { status: 'Published' });
+      return quiz;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['quizzes']);
       setShowCreateDialog(false);
+      setActiveTab('manage');
       resetQuizForm();
-      toast.success('Quiz created successfully');
+      toast.success('Quiz created and published successfully');
     }
   });
 
