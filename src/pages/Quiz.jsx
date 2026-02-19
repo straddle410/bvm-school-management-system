@@ -407,7 +407,7 @@ export default function Quiz() {
                             <div className="flex-1">
                               <h3 className="font-semibold">{quiz.title}</h3>
                               <p className="text-sm text-slate-500">
-                                {quiz.subject} • Class {quiz.class_name} • {quiz.quiz_date}
+                                {quiz.subject} • {quiz.quiz_date}
                               </p>
                               {quiz.status === 'Published' && (
                                 <p className="text-xs text-blue-600 font-semibold mt-1">
