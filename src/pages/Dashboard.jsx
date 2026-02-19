@@ -148,14 +148,14 @@ export default function Dashboard() {
             </div>
           </Link>
         ) : (
-          <button
-            onClick={() => base44.auth.redirectToLogin()}
+          <Link
+            to={createPageUrl('StaffLogin')}
             className="w-full bg-[#1a237e] text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm"
           >
             <LogIn className="h-5 w-5 flex-shrink-0" />
             <span className="text-sm font-semibold">Login to Teacher / Staff Portal</span>
             <ChevronRight className="h-4 w-4 ml-auto" />
-          </button>
+          </Link>
         )}
       </div>
 
