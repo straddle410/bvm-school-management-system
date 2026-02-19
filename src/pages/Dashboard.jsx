@@ -44,7 +44,15 @@ export default function Dashboard() {
     // Check staff session from localStorage (custom login)
     const session = localStorage.getItem('staff_session');
     if (session) {
-      try { setUser(JSON.parse(session)); } catch {}
+      try {
+        const parsed = JSON.parse(session);
+        setUser(parsed);
+        // Fetch fresh staff data to get latest permissions
+        base44.entities.StaffAccount.list().then(staff => {
+          const updated = staff.find(s => s.id === parsed.id);
+          if (updated) setUser(updated);
+        }).catch(() => {});
+      } catch {}
     }
   }, []);
 
