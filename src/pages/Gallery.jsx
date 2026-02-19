@@ -140,9 +140,9 @@ export default function Gallery() {
         )}
 
         <div className="grid grid-cols-3 gap-0.5 mt-0.5">
-          {visiblePhotos.map(photo => (
-            <div key={photo.id} className="relative aspect-square">
-              <img src={photo.photo_url} alt={photo.caption} className="w-full h-full object-cover" />
+          {visiblePhotos.map((photo, index) => (
+            <div key={photo.id} className="relative aspect-square cursor-pointer" onClick={() => handlePhotoClick(photo, index)}>
+              <img src={photo.photo_url} alt={photo.caption} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
               {photo.status === 'Pending' && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <span className="text-white text-[10px] font-bold bg-yellow-500 px-2 py-0.5 rounded-full">Pending</span>
