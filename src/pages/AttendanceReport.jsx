@@ -169,15 +169,27 @@ export default function AttendanceReport() {
                               ? Math.round((row.present / row.total_students) * 100)
                               : 0;
                             return (
-                              <tr 
-                                key={row.class_name} 
-                                className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
-                                onClick={() => setSelectedClassAbsent(row)}
-                              >
+                              <tr key={row.class_name} className="border-b border-slate-100 hover:bg-slate-50">
                                 <td className="p-3 font-semibold text-slate-700">Class {row.class_name}</td>
                                 <td className="text-center p-3 text-slate-700">{row.total_students}</td>
-                                <td className="text-center p-3 text-green-600 font-medium">{row.present}</td>
-                                <td className="text-center p-3 text-red-600 font-medium">{row.absent}</td>
+                                <td 
+                                  onClick={() => {
+                                    setSelectedClassData(row);
+                                    setViewType('present');
+                                  }}
+                                  className="text-center p-3 text-green-600 font-medium cursor-pointer hover:bg-green-50 rounded"
+                                >
+                                  {row.present}
+                                </td>
+                                <td 
+                                  onClick={() => {
+                                    setSelectedClassData(row);
+                                    setViewType('absent');
+                                  }}
+                                  className="text-center p-3 text-red-600 font-medium cursor-pointer hover:bg-red-50 rounded"
+                                >
+                                  {row.absent}
+                                </td>
                                 <td className="text-center p-3 font-semibold">
                                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                                     attendancePercent >= 85 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
