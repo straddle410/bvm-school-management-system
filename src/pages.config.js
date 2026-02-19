@@ -47,42 +47,48 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Admissions from './pages/Admissions';
+import Approvals from './pages/Approvals';
+import Attendance from './pages/Attendance';
+import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
+import Gallery from './pages/Gallery';
+import Marks from './pages/Marks';
+import More from './pages/More';
+import Profile from './pages/Profile';
+import PublicAdmission from './pages/PublicAdmission';
+import Quiz from './pages/Quiz';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+import StaffManagement from './pages/StaffManagement';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import Attendance from './pages/Attendance';
-import Marks from './pages/Marks';
-import Admissions from './pages/Admissions';
-import PublicAdmission from './pages/PublicAdmission';
-import Gallery from './pages/Gallery';
-import Quiz from './pages/Quiz';
-import Calendar from './pages/Calendar';
-import Reports from './pages/Reports';
-import Approvals from './pages/Approvals';
-import Settings from './pages/Settings';
-import Profile from './pages/Profile';
-import More from './pages/More';
-import StaffManagement from './pages/StaffManagement';
+import Results from './pages/Results';
+import Notices from './pages/Notices';
+import IDCards from './pages/IDCards';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Admissions": Admissions,
+    "Approvals": Approvals,
+    "Attendance": Attendance,
+    "Calendar": Calendar,
     "Dashboard": Dashboard,
+    "Gallery": Gallery,
+    "Marks": Marks,
+    "More": More,
+    "Profile": Profile,
+    "PublicAdmission": PublicAdmission,
+    "Quiz": Quiz,
+    "Reports": Reports,
+    "Settings": Settings,
+    "StaffManagement": StaffManagement,
     "Students": Students,
     "Teachers": Teachers,
-    "Attendance": Attendance,
-    "Marks": Marks,
-    "Admissions": Admissions,
-    "PublicAdmission": PublicAdmission,
-    "Gallery": Gallery,
-    "Quiz": Quiz,
-    "Calendar": Calendar,
-    "Reports": Reports,
-    "Approvals": Approvals,
-    "Settings": Settings,
-    "Profile": Profile,
-    "More": More,
-    "StaffManagement": StaffManagement,
+    "Results": Results,
+    "Notices": Notices,
+    "IDCards": IDCards,
 }
 
 export const pagesConfig = {
