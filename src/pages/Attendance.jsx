@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Calendar, CheckCircle2, XCircle, Users, Save, Send
+  Calendar, CheckCircle2, XCircle, Users, Save
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
