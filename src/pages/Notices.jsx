@@ -212,9 +212,9 @@ export default function Notices() {
       {/* Create Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create Notice</DialogTitle>
-          </DialogHeader>
+           <DialogHeader>
+             <DialogTitle>{editingNotice ? 'Edit Notice' : 'Create Notice'}</DialogTitle>
+           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
             if (editingNotice) {
