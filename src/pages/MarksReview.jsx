@@ -24,6 +24,7 @@ export default function MarksReview() {
   const [user, setUser] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
+  const [selectedExamType, setSelectedExamType] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
 
   const queryClient = useQueryClient();

@@ -55,6 +55,7 @@ import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
+import MarksReview from './pages/MarksReview';
 import More from './pages/More';
 import Notices from './pages/Notices';
 import Profile from './pages/Profile';
@@ -67,7 +68,6 @@ import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import MarksReview from './pages/MarksReview';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +80,7 @@ export const PAGES = {
     "Gallery": Gallery,
     "IDCards": IDCards,
     "Marks": Marks,
+    "MarksReview": MarksReview,
     "More": More,
     "Notices": Notices,
     "Profile": Profile,
@@ -92,7 +93,6 @@ export const PAGES = {
     "StaffManagement": StaffManagement,
     "Students": Students,
     "Teachers": Teachers,
-    "MarksReview": MarksReview,
 }
 
 export const pagesConfig = {
