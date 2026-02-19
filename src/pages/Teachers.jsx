@@ -146,7 +146,7 @@ export default function Teachers() {
 
   const columns = [
     {
-      header: 'Teacher',
+      header: 'Staff',
       cell: (row) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
@@ -160,6 +160,12 @@ export default function Teachers() {
             <p className="text-sm text-slate-500">{row.teacher_id}</p>
           </div>
         </div>
+      )
+    },
+    {
+      header: 'Role',
+      cell: (row) => (
+        <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">{row.role || 'Teacher'}</Badge>
       )
     },
     {
