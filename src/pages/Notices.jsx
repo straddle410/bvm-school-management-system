@@ -41,6 +41,9 @@ export default function Notices() {
     expiry_date: '',
     is_pinned: false
   });
+  const [showTableBuilder, setShowTableBuilder] = useState(false);
+  const [tableRows, setTableRows] = useState(3);
+  const [tableCols, setTableCols] = useState(3);
 
   const queryClient = useQueryClient();
 
