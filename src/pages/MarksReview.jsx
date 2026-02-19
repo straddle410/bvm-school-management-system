@@ -98,59 +98,7 @@ export default function MarksReview() {
     }
   });
 
-  const handleDownloadExcel = async (examType, subject) => {
-    const marks = groupedData.find(g => g.exam_type === examType && g.subject === subject)?.marks || [];
-    
-    try {
-      const response = await base44.functions.invoke('exportMarksToExcel', {
-        marks,
-        className: selectedClass,
-        section: selectedSection,
-        examType,
-        subject
-      });
 
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Marks_${selectedClass}_${selectedSection}_${examType}_${subject}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (error) {
-      toast.error('Failed to download Excel');
-    }
-  };
-
-  const handleDownloadPDF = async (examType, subject) => {
-    const marks = groupedData.find(g => g.exam_type === examType && g.subject === subject)?.marks || [];
-    
-    try {
-      const response = await base44.functions.invoke('exportMarksToPDF', {
-        marks,
-        className: selectedClass,
-        section: selectedSection,
-        examType,
-        subject
-      });
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Marks_${selectedClass}_${selectedSection}_${examType}_${subject}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (error) {
-      toast.error('Failed to download PDF');
-    }
-  };
 
   const handlePublish = (marksIds) => {
     if (window.confirm('Publish these results? Students will be able to see them.')) {
