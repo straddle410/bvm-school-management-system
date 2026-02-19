@@ -25,8 +25,9 @@ const quickAccess = [
 ];
 
 const quickActions = [
-  { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks' },
-  { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices' },
+  { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks', permission: 'marks' },
+  { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
+  { label: 'Post Quiz', icon: Brain, color: '#7e57c2', page: 'Quiz', permission: 'quiz' },
   { label: 'Results', icon: MessageCircle, color: '#e53935', page: 'Results' },
 ];
 
