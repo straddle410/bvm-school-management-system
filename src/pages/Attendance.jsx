@@ -30,7 +30,7 @@ export default function Attendance() {
   const [user, setUser] = useState(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedSection, setSelectedSection] = useState('');
+  const [selectedSection, setSelectedSection] = useState('A');
   const [attendanceData, setAttendanceData] = useState({});
   
   const queryClient = useQueryClient();
