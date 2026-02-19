@@ -42,11 +42,10 @@ export default function Quiz() {
    const [quizForm, setQuizForm] = useState({
      title: '',
      quiz_date: format(new Date(), 'yyyy-MM-dd'),
-     class_name: '',
      subject: '',
      questions: [
        { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
-       { question: '', type: 'Descriptive', options: [], correct_answer: '' }
+       { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' }
      ]
    });
 
