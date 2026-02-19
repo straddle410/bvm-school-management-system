@@ -34,7 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, Search, Filter, Upload, Download, 
   MoreVertical, Eye, Pencil, Trash2, CheckCircle, XCircle,
-  FileSpreadsheet, Image as ImageIcon, FileDown
+  FileSpreadsheet, Image as ImageIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -54,9 +54,6 @@ export default function Students() {
   const [filterSection, setFilterSection] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [importStatus, setImportStatus] = useState(null); // null | 'loading' | {success, failed, errors}
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -139,60 +136,6 @@ export default function Students() {
       toast.success('Student deleted successfully');
     }
   });
-
-  const downloadTemplate = () => {
-    const headers = [
-      'student_id', 'name', 'class_name', 'section', 'roll_no',
-      'dob', 'gender', 'blood_group',
-      'parent_name', 'parent_phone', 'parent_email',
-      'address', 'admission_date', 'academic_year', 'status'
-    ];
-    const sampleRow = [
-      'STU001', 'Ramesh Kumar', '5', 'A', '1',
-      '2015-04-10', 'Male', 'B+',
-      'Suresh Kumar', '9876543210', 'suresh@email.com',
-      '123 Main Street, City', '2024-06-01', '2024-25', 'Pending'
-    ];
-    const csv = [headers.join(','), sampleRow.join(',')].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'student_import_template.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = async () => {
-    if (!importFile) return;
-    setImportStatus('loading');
-    const text = await importFile.text();
-    const lines = text.trim().split('\n');
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-    const rows = lines.slice(1);
-    let success = 0, failed = 0, errors = [];
-    for (const line of rows) {
-      if (!line.trim()) continue;
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      const obj = {};
-      headers.forEach((h, i) => { obj[h] = values[i] || ''; });
-      if (!obj.name || !obj.class_name || !obj.section) {
-        failed++;
-        errors.push(`Row skipped: missing name, class or section`);
-        continue;
-      }
-      if (obj.roll_no) obj.roll_no = parseInt(obj.roll_no) || undefined;
-      try {
-        await base44.entities.Student.create({ ...obj, status: obj.status || 'Pending' });
-        success++;
-      } catch (e) {
-        failed++;
-        errors.push(`${obj.name}: ${e.message}`);
-      }
-    }
-    setImportStatus({ success, failed, errors });
-    queryClient.invalidateQueries(['students']);
-  };
 
   const resetForm = () => {
     setFormData({
@@ -534,8 +477,8 @@ export default function Students() {
         subtitle={`${filteredStudents.length} students`}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setShowImportDialog(true); setImportStatus(null); setImportFile(null); }}>
-              <Upload className="mr-2 h-4 w-4" /> Import
+            <Button variant="outline" className="hidden sm:flex">
+              <Download className="mr-2 h-4 w-4" /> Export
             </Button>
             <Button onClick={() => setShowAddDialog(true)}>
               <Plus className="mr-2 h-4 w-4" /> Add Student
