@@ -35,6 +35,8 @@ const quickActions = [
 const adminActions = [
   { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
   { label: 'Attendance Report', icon: BarChart3, color: '#00796b', page: 'AttendanceReport' },
+  { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', action: 'generateHallTicket' },
+  { label: 'Progress Card', icon: Award, color: '#f57c00', action: 'generateProgressCard' },
 ];
 
 export default function Dashboard() {
