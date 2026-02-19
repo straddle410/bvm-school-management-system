@@ -30,6 +30,10 @@ const quickActions = [
   { label: 'Results', icon: MessageCircle, color: '#e53935', page: 'Results' },
 ];
 
+const adminActions = [
+  { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
+];
+
 export default function Dashboard() {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [user, setUser] = useState(null);
