@@ -126,7 +126,7 @@ export default function Dashboard() {
         ))}
         {/* Dots */}
         <div className="absolute bottom-2 right-4 flex gap-1.5">
-          {BANNER_IMAGES.map((_, i) => (
+          {banners.map((_, i) => (
             <button
               key={i}
               onClick={() => setBannerIndex(i)}
