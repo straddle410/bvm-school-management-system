@@ -122,7 +122,7 @@ export default function StaffManagement() {
 
   const openEdit = (member) => {
     setEditingStaff(member);
-    setForm({ ...member });
+    setForm({ ...member, permissions: { ...DEFAULT_PERMISSIONS, ...(member.permissions || {}) } });
     setShowDialog(true);
   };
 
