@@ -273,7 +273,7 @@ export default function Teachers() {
           columns={columns}
           data={filteredTeachers}
           loading={isLoading}
-          emptyMessage="No teachers found. Add your first teacher to get started."
+          emptyMessage="No staff found. Add your first staff member to get started."
         />
       </div>
 
