@@ -100,15 +100,18 @@ export default function Results() {
       });
 
       setResultsByExam(grouped);
+      setAllMarks(marks);
       setStudentResult({
         student_id: m.student_id,
         student_name: m.student_name,
         class_name: m.class_name,
         section: m.section
       });
+      setShowProgressReport(false);
     } else {
       setStudentResult(null);
       setResultsByExam({});
+      setAllMarks([]);
     }
   };
 
