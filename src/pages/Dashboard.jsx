@@ -125,6 +125,33 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Login / User Bar */}
+      <div className="px-4 pt-3">
+        {user ? (
+          <Link to={createPageUrl('Profile')}>
+            <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
+              <div className="h-9 w-9 rounded-full bg-[#e8eaf6] flex items-center justify-center flex-shrink-0">
+                <User className="h-5 w-5 text-[#1a237e]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name || user.email}</p>
+                <p className="text-xs text-gray-500 capitalize">{user.role || 'User'}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </div>
+          </Link>
+        ) : (
+          <button
+            onClick={() => base44.auth.redirectToLogin()}
+            className="w-full bg-[#1a237e] text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm"
+          >
+            <LogIn className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm font-semibold">Login to Teacher / Staff Portal</span>
+            <ChevronRight className="h-4 w-4 ml-auto" />
+          </button>
+        )}
+      </div>
+
       <div className="px-4 py-4 space-y-6">
         {/* Quick Access */}
         <div>
