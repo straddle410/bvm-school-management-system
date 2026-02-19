@@ -69,6 +69,17 @@ export default function Notices() {
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Notice.update(editingNotice.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notices']);
+      setShowDialog(false);
+      setEditingNotice(null);
+      resetForm();
+      toast.success('Notice updated');
+    }
+  });
+
   const publishMutation = useMutation({
     mutationFn: (id) => base44.entities.Notice.update(id, { status: 'Published' }),
     onSuccess: () => {
