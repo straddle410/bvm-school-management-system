@@ -471,8 +471,7 @@ export default function Quiz() {
               </div>
             </TabsContent>
 
-            {userPermissions.quiz && (
-              <TabsContent value="manage" className="mt-6">
+            <TabsContent value="manage" className="mt-6">
                 <div className="space-y-4">
                   {quizzes.map(quiz => {
                     const attemptCount = attempts.filter(a => a.quiz_id === quiz.id).length;
@@ -534,7 +533,6 @@ export default function Quiz() {
                   )}
                 </div>
               </TabsContent>
-            )}
 
             <TabsContent value="history" className="mt-6">
               <div className="space-y-4">
