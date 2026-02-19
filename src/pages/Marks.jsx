@@ -239,64 +239,83 @@ export default function Marks() {
               </CardContent>
             </Card>
 
-            {selectedClass && selectedSection && selectedSubject && selectedExam && (
+            {selectedClass && selectedSection && selectedExam && (
               <>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <h3 className="font-semibold text-lg">
-                      {selectedSubject} - {selectedExam}
+                      {selectedExam} - All Subjects
                     </h3>
                     <span className="text-slate-500">Max: {maxMarks} | Pass: {passingMarks}</span>
                     <StatusBadge status={currentStatus} />
                   </div>
                 </div>
 
-                <Card className="border-0 shadow-sm">
+                <Card className="border-0 shadow-sm overflow-x-auto">
                   <CardContent className="p-0">
                     {filteredStudents.length === 0 ? (
                       <div className="py-12 text-center text-slate-400">
                         No students found in this class
                       </div>
                     ) : (
-                      <div className="divide-y">
-                        {filteredStudents.map((student, index) => {
-                          const marks = marksData[student.student_id || student.id]?.marks_obtained;
-                          const isPassing = marks !== undefined && marks >= passingMarks;
-                          return (
-                            <div 
-                              key={student.id}
-                              className={`flex items-center gap-4 p-4 ${
-                                marks !== undefined ? (isPassing ? 'bg-green-50/50' : 'bg-red-50/50') : ''
-                              }`}
-                            >
-                              <span className="text-sm text-slate-400 w-8">
-                                {student.roll_no || index + 1}
-                              </span>
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src={student.photo_url} />
-                                <AvatarFallback className="bg-blue-100 text-blue-700">
-                                  {student.name?.[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-slate-900 truncate">{student.name}</p>
-                                <p className="text-sm text-slate-500">{student.student_id}</p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  max={maxMarks}
-                                  value={marks ?? ''}
-                                  onChange={(e) => updateMarks(student.student_id || student.id, e.target.value)}
-                                  className="w-24"
-                                  placeholder="Marks"
-                                />
-                                <span className="text-slate-400">/ {maxMarks}</span>
-                              </div>
+                      <div className="min-w-max">
+                        {/* Header */}
+                        <div className="flex bg-slate-100 border-b sticky left-0 z-10">
+                          <div className="w-16 px-4 py-3 flex items-center text-sm font-semibold text-slate-600">Roll</div>
+                          <div className="w-48 px-4 py-3 flex items-center text-sm font-semibold text-slate-600">Name</div>
+                          {subjectList.map(subject => (
+                            <div key={subject} className="w-28 px-2 py-3 text-center text-sm font-semibold text-slate-600">
+                              {subject}
                             </div>
-                          );
-                        })}
+                          ))}
+                        </div>
+                        
+                        {/* Student Rows */}
+                        <div className="divide-y">
+                          {filteredStudents.map((student, index) => (
+                            <div key={student.id} className="flex">
+                              <div className="w-16 px-4 py-3 text-sm text-slate-400">
+                                {student.roll_no || index + 1}
+                              </div>
+                              <div className="w-48 px-4 py-3 flex items-center gap-2 text-sm">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={student.photo_url} />
+                                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                    {student.name?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-slate-900 truncate">{student.name}</p>
+                                  <p className="text-xs text-slate-500">{student.student_id}</p>
+                                </div>
+                              </div>
+                              {subjectList.map(subject => {
+                                const marks = marksData[student.student_id || student.id]?.[subject]?.marks_obtained;
+                                const isPassing = marks !== undefined && marks >= passingMarks;
+                                return (
+                                  <div 
+                                    key={subject}
+                                    className={`w-28 px-2 py-3 flex items-center justify-center ${
+                                      marks !== undefined ? (isPassing ? 'bg-green-50/50' : 'bg-red-50/50') : ''
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max={maxMarks}
+                                        value={marks ?? ''}
+                                        onChange={(e) => updateMarks(student.student_id || student.id, subject, e.target.value)}
+                                        className="w-16 text-center text-sm h-8"
+                                        placeholder="0"
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </CardContent>
