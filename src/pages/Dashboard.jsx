@@ -95,7 +95,10 @@ export default function Dashboard() {
       PTM: '#1e88e5',
       Event: '#43a047',
       Meeting: '#f9a825',
-      Admission: '#26a69a',
+      General: '#26a69a',
+      Urgent: '#d32f2f',
+      Fee: '#f9a825',
+      Notice: '#1e88e5',
     };
     return map[type] || '#78909c';
   };
