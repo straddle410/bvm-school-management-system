@@ -62,7 +62,8 @@ export default function Dashboard() {
       } catch {
         return [];
       }
-    }
+    },
+    staleTime: 1000 * 60 * 30 // Cache for 30 min
   });
 
   const banners = bannerSlides.length > 0
@@ -84,7 +85,8 @@ export default function Dashboard() {
       } catch {
         return [];
       }
-    }
+    },
+    staleTime: 1000 * 60 * 30 // Cache for 30 min
   });
 
   const { data: notices = [] } = useQuery({
@@ -95,7 +97,8 @@ export default function Dashboard() {
       } catch {
         return [];
       }
-    }
+    },
+    staleTime: 1000 * 60 * 30 // Cache for 30 min
   });
 
   const upcomingEvents = events
@@ -147,7 +150,7 @@ export default function Dashboard() {
             className="absolute inset-0 transition-opacity duration-700"
             style={{ opacity: i === bannerIndex ? 1 : 0 }}
           >
-            <img src={img.url} alt="" className="w-full h-full object-cover" />
+            <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <p className="absolute bottom-4 left-4 right-4 text-white font-bold text-base leading-tight">
               {img.caption}
