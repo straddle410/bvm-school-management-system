@@ -71,15 +71,26 @@ export default function Results() {
 
     if (marks.length > 0) {
       const m = marks[0];
+
+      // Group marks by exam type
+      const grouped = {};
+      marks.forEach(mark => {
+        if (!grouped[mark.exam_type]) {
+          grouped[mark.exam_type] = [];
+        }
+        grouped[mark.exam_type].push(mark);
+      });
+
+      setResultsByExam(grouped);
       setStudentResult({
         student_id: m.student_id,
         student_name: m.student_name,
         class_name: m.class_name,
-        section: m.section,
-        marks
+        section: m.section
       });
     } else {
       setStudentResult(null);
+      setResultsByExam({});
     }
   };
 
