@@ -35,8 +35,8 @@ const quickAccess = [
 
 const quickActions = [
   { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks' },
-  { label: 'Announcement', icon: Megaphone, color: '#ef6c00', page: 'Calendar' },
-  { label: 'Message', icon: MessageCircle, color: '#e53935', page: 'Profile' },
+  { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices' },
+  { label: 'Results', icon: MessageCircle, color: '#e53935', page: 'Results' },
 ];
 
 export default function Dashboard() {
