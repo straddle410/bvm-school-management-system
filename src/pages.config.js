@@ -53,20 +53,20 @@ import Attendance from './pages/Attendance';
 import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
+import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
 import More from './pages/More';
+import Notices from './pages/Notices';
 import Profile from './pages/Profile';
 import PublicAdmission from './pages/PublicAdmission';
 import Quiz from './pages/Quiz';
 import Reports from './pages/Reports';
+import Results from './pages/Results';
 import Settings from './pages/Settings';
+import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import Results from './pages/Results';
-import Notices from './pages/Notices';
-import IDCards from './pages/IDCards';
-import StaffLogin from './pages/StaffLogin';
 import __Layout from './Layout.jsx';
 
 
@@ -77,20 +77,20 @@ export const PAGES = {
     "Calendar": Calendar,
     "Dashboard": Dashboard,
     "Gallery": Gallery,
+    "IDCards": IDCards,
     "Marks": Marks,
     "More": More,
+    "Notices": Notices,
     "Profile": Profile,
     "PublicAdmission": PublicAdmission,
     "Quiz": Quiz,
     "Reports": Reports,
+    "Results": Results,
     "Settings": Settings,
+    "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
     "Students": Students,
     "Teachers": Teachers,
-    "Results": Results,
-    "Notices": Notices,
-    "IDCards": IDCards,
-    "StaffLogin": StaffLogin,
 }
 
 export const pagesConfig = {
