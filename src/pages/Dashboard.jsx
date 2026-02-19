@@ -218,7 +218,8 @@ export default function Dashboard() {
             <h2 className="text-base font-bold text-gray-800 mb-3">Quick Actions</h2>
             <div className="grid grid-cols-3 gap-3">
               {quickActions.map((item) => {
-                const hasPermission = !item.permission || (user.permissions?.[item.permission] === true);
+                const isAdmin = user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal';
+                const hasPermission = isAdmin || !item.permission || (user.permissions?.[item.permission] === true);
                 if (!hasPermission) return null;
                 return (
                   <Link key={item.label} to={createPageUrl(item.page)}>
