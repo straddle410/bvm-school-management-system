@@ -30,6 +30,17 @@ const generateUsername = (name) => {
   return name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 99 + 1);
 };
 
+const DEFAULT_PERMISSIONS = {
+  attendance: false,
+  attendance_needs_approval: true,
+  marks: false,
+  marks_needs_approval: true,
+  post_notices: false,
+  notices_needs_approval: true,
+  gallery: false,
+  gallery_needs_approval: true,
+};
+
 const emptyForm = {
   full_name: '',
   username: '',
@@ -42,6 +53,7 @@ const emptyForm = {
   joining_date: new Date().toISOString().split('T')[0],
   notes: '',
   platform_invite_sent: false,
+  permissions: { ...DEFAULT_PERMISSIONS },
 };
 
 export default function StaffManagement() {
