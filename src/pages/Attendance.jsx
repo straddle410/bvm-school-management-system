@@ -36,7 +36,7 @@ export default function Attendance() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    setUser(getStaffSession());
   }, []);
 
   const { data: students = [] } = useQuery({
