@@ -354,6 +354,15 @@ export default function Approvals() {
                 </div>
               ))}
             </TabsContent>
+
+            <TabsContent value="notices">
+              {renderApprovalList(pendingNotices, 'Notice', (item) => (
+                <div>
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-sm text-slate-500">{item.notice_type} | {item.target_audience}</p>
+                </div>
+              ))}
+            </TabsContent>
           </div>
         </Tabs>
       </div>
