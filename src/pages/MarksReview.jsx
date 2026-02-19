@@ -35,15 +35,22 @@ export default function MarksReview() {
     setIsAdmin(staffUser?.role === 'Admin');
   }, []);
 
+  // Fetch exam types
+  const { data: examTypes = [] } = useQuery({
+    queryKey: ['exam-types'],
+    queryFn: () => base44.entities.ExamType.list()
+  });
+
   // Fetch submitted and published marks
    const { data: submittedMarks = [] } = useQuery({
-     queryKey: ['marks-submitted', selectedClass, selectedSection],
+     queryKey: ['marks-submitted', selectedClass, selectedSection, selectedExamType],
      queryFn: async () => {
        const filter = {
          status: { $in: ['Submitted', 'Published'] }
        };
        if (selectedClass) filter.class_name = selectedClass;
        if (selectedSection) filter.section = selectedSection;
+       if (selectedExamType) filter.exam_type = selectedExamType;
        return base44.entities.Marks.filter(filter);
      },
      enabled: !!(selectedClass && selectedSection)
