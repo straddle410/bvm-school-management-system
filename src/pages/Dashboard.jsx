@@ -49,6 +49,15 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  const { data: bannerSlides = [] } = useQuery({
+    queryKey: ['banner-slides'],
+    queryFn: () => base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order')
+  });
+
+  const banners = bannerSlides.length > 0
+    ? bannerSlides.map(s => ({ url: s.image_url, caption: s.caption }))
+    : DEFAULT_BANNERS;
+
   const { data: events = [] } = useQuery({
     queryKey: ['calendar-events-published'],
     queryFn: () => base44.entities.CalendarEvent.filter({ status: 'Published' })
