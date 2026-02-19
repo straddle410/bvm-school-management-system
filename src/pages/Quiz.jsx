@@ -143,7 +143,6 @@ export default function Quiz() {
       subject: '',
       questions: [
         { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
-        { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
         { question: '', type: 'Descriptive', options: [], correct_answer: '' }
       ]
     });
