@@ -48,14 +48,6 @@ export default function Dashboard() {
       try {
         const parsed = JSON.parse(session);
         setUser(parsed);
-        // Fetch fresh staff data to get latest permissions
-        base44.entities.StaffAccount.list().then(staff => {
-          const updated = staff.find(s => s.id === parsed.id);
-          if (updated) setUser(updated);
-        }).catch(error => {
-          // Silently ignore fetch errors
-          console.debug('Failed to refresh staff data:', error);
-        });
       } catch (error) {
         console.debug('Failed to parse session:', error);
       }
