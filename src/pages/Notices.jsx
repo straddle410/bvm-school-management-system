@@ -217,11 +217,15 @@ export default function Notices() {
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
-            createMutation.mutate({
-              ...form,
-              status: isAdmin ? 'Published' : 'Draft',
-              created_by_name: user?.full_name
-            });
+            if (editingNotice) {
+              updateMutation.mutate(form);
+            } else {
+              createMutation.mutate({
+                ...form,
+                status: isAdmin ? 'Published' : 'Draft',
+                created_by_name: user?.full_name
+              });
+            }
           }} className="space-y-4">
             <div>
               <Label>Title *</Label>
