@@ -97,37 +97,39 @@ export default function Quiz() {
   });
 
   const submitQuizMutation = useMutation({
-    mutationFn: (id) => base44.entities.Quiz.update(id, { status: 'Submitted' }),
+    mutationFn: (id) => base44.entities.Quiz.update(id, { status: 'Published' }),
     onSuccess: () => {
       queryClient.invalidateQueries(['quizzes']);
-      toast.success('Quiz submitted for approval');
+      toast.success('Quiz published!');
     }
   });
 
   const submitAttemptMutation = useMutation({
     mutationFn: async () => {
       let score = 0;
+      const answersData = Object.entries(answers).map(([i, answer]) => ({
+        question_index: parseInt(i),
+        answer
+      }));
+
       selectedQuiz.questions.forEach((q, i) => {
         if (q.type === 'MCQ' && answers[i] === q.correct_answer) {
           score++;
         }
       });
-      
+
       return base44.entities.QuizAttempt.create({
         quiz_id: selectedQuiz.id,
-        student_id: user?.id,
-        student_name: user?.full_name,
-        answers: Object.entries(answers).map(([i, answer]) => ({
-          question_index: parseInt(i),
-          answer
-        })),
+        student_id: user?.id || 'anonymous',
+        student_name: user?.full_name || user?.name || 'Anonymous',
+        answers: answersData,
         score,
         attempt_date: format(new Date(), 'yyyy-MM-dd')
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['quiz-attempts']);
-      toast.success('Quiz submitted!');
+      setShowResults(data);
       setSelectedQuiz(null);
       setAnswers({});
     }
