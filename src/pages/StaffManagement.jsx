@@ -298,6 +298,34 @@ export default function StaffManagement() {
         </div>
       </div>
 
+      {/* Teacher Selector Dialog */}
+      <Dialog open={showTeacherSelector} onOpenChange={setShowTeacherSelector}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Teacher to Add as Staff</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {teachers.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-slate-500">No teachers found. Please add teachers first.</p>
+              </div>
+            ) : (
+              teachers.map(teacher => (
+                <button
+                  key={teacher.id}
+                  onClick={() => createFromTeacher(teacher)}
+                  className="w-full text-left p-3 rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-[#1a237e] transition-all"
+                >
+                  <p className="font-semibold text-slate-900">{teacher.name}</p>
+                  <p className="text-sm text-slate-500">{teacher.email}</p>
+                  {teacher.phone && <p className="text-sm text-slate-500">{teacher.phone}</p>}
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
