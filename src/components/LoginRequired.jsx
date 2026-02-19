@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { getStaffSession } from '@/components/useStaffSession';
 import { LogIn, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { createPageUrl } from '@/utils';
 
 /**
  * Wraps staff-only pages. 
@@ -13,7 +14,8 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
   const [user, setUser] = useState(undefined); // undefined = loading
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    const session = getStaffSession();
+    setUser(session);
   }, []);
 
   if (user === undefined) {
