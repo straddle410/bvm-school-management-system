@@ -33,38 +33,58 @@ const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'General Knowledge'];
 
 export default function Quiz() {
-  const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('quizzes');
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [quizForm, setQuizForm] = useState({
-    title: '',
-    quiz_date: format(new Date(), 'yyyy-MM-dd'),
-    class_name: '',
-    subject: '',
-    questions: [
-      { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
-      { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
-      { question: '', type: 'Descriptive', options: [], correct_answer: '' }
-    ]
-  });
-  
-  const queryClient = useQueryClient();
+   const [user, setUser] = useState(null);
+   const [activeTab, setActiveTab] = useState('quizzes');
+   const [showCreateDialog, setShowCreateDialog] = useState(false);
+   const [selectedQuiz, setSelectedQuiz] = useState(null);
+   const [showResults, setShowResults] = useState(null);
+   const [answers, setAnswers] = useState({});
+   const [quizForm, setQuizForm] = useState({
+     title: '',
+     quiz_date: format(new Date(), 'yyyy-MM-dd'),
+     class_name: '',
+     subject: '',
+     questions: [
+       { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
+       { question: '', type: 'Descriptive', options: [], correct_answer: '' }
+     ]
+   });
 
-  useEffect(() => {
-    base44.auth.me().then(setUser);
-  }, []);
+   const queryClient = useQueryClient();
 
-  const { data: quizzes = [], isLoading } = useQuery({
-    queryKey: ['quizzes'],
-    queryFn: () => base44.entities.Quiz.list('-quiz_date')
-  });
+   useEffect(() => {
+     const session = localStorage.getItem('staff_session');
+     if (session) {
+       try {
+         const parsed = JSON.parse(session);
+         setUser(parsed);
+       } catch {}
+     } else {
+       base44.auth.me().then(setUser).catch(() => {});
+     }
+   }, []);
 
-  const { data: attempts = [] } = useQuery({
-    queryKey: ['quiz-attempts'],
-    queryFn: () => base44.entities.QuizAttempt.list()
-  });
+   const { data: quizzes = [], isLoading } = useQuery({
+     queryKey: ['quizzes'],
+     queryFn: async () => {
+       try {
+         return await base44.entities.Quiz.list('-quiz_date');
+       } catch {
+         return [];
+       }
+     }
+   });
+
+   const { data: attempts = [] } = useQuery({
+     queryKey: ['quiz-attempts'],
+     queryFn: async () => {
+       try {
+         return await base44.entities.QuizAttempt.list();
+       } catch {
+         return [];
+       }
+     }
+   });
 
   const createQuizMutation = useMutation({
     mutationFn: (data) => base44.entities.Quiz.create(data),
