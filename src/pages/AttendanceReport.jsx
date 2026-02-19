@@ -246,29 +246,51 @@ export default function AttendanceReport() {
           )}
         </div>
 
-        {/* Absent Students Dialog */}
-        <Dialog open={!!selectedClassAbsent} onOpenChange={(open) => !open && setSelectedClassAbsent(null)}>
+        {/* Students Dialog */}
+        <Dialog open={!!selectedClassData} onOpenChange={(open) => !open && setSelectedClassData(null)}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Absent Students - Class {selectedClassAbsent?.class_name}</DialogTitle>
+              <DialogTitle>
+                {viewType === 'absent' ? 'Absent Students' : 'Present Students'} - Class {selectedClassData?.class_name}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              {selectedClassAbsent?.absent_students && selectedClassAbsent.absent_students.length > 0 ? (
-                selectedClassAbsent.absent_students.map((student, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800">{student.name}</p>
-                      <div className="flex items-center gap-1 mt-1 text-red-600 text-sm">
-                        <Phone className="h-4 w-4" />
-                        <a href={`tel:${student.phone}`} className="hover:underline">{student.phone}</a>
+              {viewType === 'absent' ? (
+                selectedClassData?.absent_students && selectedClassData.absent_students.length > 0 ? (
+                  selectedClassData.absent_students.map((student, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-800">{student.name}</p>
+                        <div className="flex items-center gap-1 mt-1 text-red-600 text-sm">
+                          <Phone className="h-4 w-4" />
+                          <a href={`tel:${student.phone}`} className="hover:underline">{student.phone}</a>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-slate-500">
+                    <p>No absent students</p>
                   </div>
-                ))
+                )
               ) : (
-                <div className="text-center py-6 text-slate-500">
-                  <p>No absent students for this class</p>
-                </div>
+                selectedClassData?.present_students && selectedClassData.present_students.length > 0 ? (
+                  selectedClassData.present_students.map((student, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-800">{student.name}</p>
+                        <div className="flex items-center gap-1 mt-1 text-green-600 text-sm">
+                          <Phone className="h-4 w-4" />
+                          <a href={`tel:${student.phone}`} className="hover:underline">{student.phone}</a>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-slate-500">
+                    <p>No present students</p>
+                  </div>
+                )
               )}
             </div>
           </DialogContent>
