@@ -54,7 +54,10 @@ export default function Calendar() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    base44.auth.me().then(setUser).catch(() => {
+      // User not authenticated, set user to null
+      setUser(null);
+    });
   }, []);
 
   const { data: events = [], isLoading } = useQuery({
