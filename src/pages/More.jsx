@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getStaffSession, clearStaffSession } from '@/components/useStaffSession';
 import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
