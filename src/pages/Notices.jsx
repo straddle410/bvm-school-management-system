@@ -254,9 +254,8 @@ function NoticeCard({ notice, isAdmin, onPublish, onDelete }) {
               {notice.is_pinned && <Pin className="h-3 w-3 text-yellow-500" />}
             </div>
             <h3 className="font-bold text-gray-900 text-sm">{notice.title}</h3>
-            <p className={`text-gray-600 text-sm mt-1 ${!expanded ? 'line-clamp-2' : ''}`}>
-              {notice.content}
-            </p>
+            <div className={`text-gray-600 text-sm mt-1 ${!expanded ? 'line-clamp-2' : ''}`} dangerouslySetInnerHTML={{ __html: notice.content }}>
+            </div>
             {notice.content.length > 100 && (
               <button onClick={() => setExpanded(!expanded)} className="text-blue-600 text-xs mt-1">
                 {expanded ? 'Show less' : 'Read more'}
