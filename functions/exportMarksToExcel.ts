@@ -2,7 +2,7 @@ import ExcelJS from 'npm:exceljs@4.3.0';
 
 Deno.serve(async (req) => {
   try {
-    const { marks, className, section, examType, subject } = await req.json();
+    const { marks, className, section, examType } = await req.json();
 
     if (!marks || marks.length === 0) {
       return Response.json({ error: 'No marks data provided' }, { status: 400 });
@@ -11,70 +11,67 @@ Deno.serve(async (req) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Marks');
 
-    // Title
-    worksheet.columns = [
-      { header: `${className}-${section} | ${subject} | ${examType}`, width: 50 }
+    // Get all unique subjects
+    const subjects = [...new Set(marks.map(m => m.subject))];
+
+    // Setup columns: Rank, Student Name, then all subjects, then Total
+    const columns = [
+      { header: 'Rank', width: 8 },
+      { header: 'Student Name', width: 25 },
+      ...subjects.map(s => ({ header: s, width: 15 })),
+      { header: 'Total', width: 12 }
     ];
+    worksheet.columns = columns;
+
+    // Title
+    worksheet.getCell('A1').value = `${className}-${section} | ${examType}`;
     worksheet.getCell('A1').font = { bold: true, size: 14 };
     worksheet.getCell('A1').alignment = { horizontal: 'center' };
-    worksheet.mergeCells('A1:D1');
+    worksheet.mergeCells(`A1:${String.fromCharCode(65 + columns.length - 1)}1`);
 
-    let row = 3;
-    worksheet.getCell(`A${row}`).value = 'Class:';
-    worksheet.getCell(`B${row}`).value = `${className}-${section}`;
-    worksheet.getCell(`A${row}`).font = { bold: true };
-    row++;
+    // Header row
+    const headerRow = 3;
+    const headerCells = ['A', 'B'];
+    subjects.forEach((_, i) => headerCells.push(String.fromCharCode(67 + i)));
+    headerCells.push(String.fromCharCode(67 + subjects.length));
 
-    worksheet.getCell(`A${row}`).value = 'Subject:';
-    worksheet.getCell(`B${row}`).value = subject;
-    worksheet.getCell(`A${row}`).font = { bold: true };
-    row++;
-
-    worksheet.getCell(`A${row}`).value = 'Exam Type:';
-    worksheet.getCell(`B${row}`).value = examType;
-    worksheet.getCell(`A${row}`).font = { bold: true };
-    row += 2;
-
-    // Headers
-    worksheet.getCell(`A${row}`).value = 'Student Name';
-    worksheet.getCell(`B${row}`).value = 'Student ID';
-    worksheet.getCell(`C${row}`).value = 'Marks';
-    worksheet.getCell(`D${row}`).value = 'Grade';
-
-    ['A', 'B', 'C', 'D'].forEach(col => {
-      worksheet.getCell(`${col}${row}`).font = { bold: true };
-      worksheet.getCell(`${col}${row}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a237e' } };
-      worksheet.getCell(`${col}${row}`).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerCells.forEach((col, idx) => {
+      const cell = worksheet.getCell(`${col}${headerRow}`);
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a237e' } };
     });
-    row++;
+
+    // Group marks by student and calculate totals
+    const studentMarks = {};
+    marks.forEach(mark => {
+      if (!studentMarks[mark.student_id]) {
+        studentMarks[mark.student_id] = {
+          student_name: mark.student_name,
+          subjects: {},
+          total: 0
+        };
+      }
+      studentMarks[mark.student_id].subjects[mark.subject] = mark.marks_obtained;
+      studentMarks[mark.student_id].total += mark.marks_obtained;
+    });
+
+    // Sort by total marks
+    const sortedStudents = Object.entries(studentMarks)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([id, data], idx) => ({ student_id: id, ...data, rank: idx + 1 }));
 
     // Data rows
-    marks.forEach(mark => {
-      worksheet.getCell(`A${row}`).value = mark.student_name;
-      worksheet.getCell(`B${row}`).value = mark.student_id;
-      worksheet.getCell(`C${row}`).value = `${mark.marks_obtained}/${mark.max_marks}`;
-      worksheet.getCell(`D${row}`).value = mark.grade;
+    let row = 4;
+    sortedStudents.forEach(student => {
+      let col = 0;
+      worksheet.getCell(row, ++col).value = student.rank;
+      worksheet.getCell(row, ++col).value = student.student_name;
+      subjects.forEach(subject => {
+        worksheet.getCell(row, ++col).value = student.subjects[subject] || '-';
+      });
+      worksheet.getCell(row, ++col).value = student.total;
       row++;
     });
-
-    // Summary
-    row += 2;
-    worksheet.getCell(`A${row}`).value = 'Summary';
-    worksheet.getCell(`A${row}`).font = { bold: true, size: 12 };
-    row++;
-
-    const totalMarks = marks.reduce((sum, m) => sum + m.marks_obtained, 0);
-    const maxMarks = marks.length > 0 ? marks[0].max_marks * marks.length : 0;
-    const avgPercentage = maxMarks > 0 ? Math.round((totalMarks / maxMarks) * 100) : 0;
-
-    worksheet.getCell(`A${row}`).value = 'Total Students:';
-    worksheet.getCell(`B${row}`).value = marks.length;
-    worksheet.getCell(`A${row}`).font = { bold: true };
-    row++;
-
-    worksheet.getCell(`A${row}`).value = 'Class Average %:';
-    worksheet.getCell(`B${row}`).value = avgPercentage;
-    worksheet.getCell(`A${row}`).font = { bold: true };
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new Response(buffer, {
