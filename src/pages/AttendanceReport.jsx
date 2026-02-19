@@ -160,6 +160,26 @@ export default function AttendanceReport() {
                               </tr>
                             );
                           })}
+                          {/* Total Row */}
+                          <tr className="bg-slate-100 border-t-2 border-slate-300">
+                            <td className="p-3 font-bold text-slate-800">TOTAL</td>
+                            <td className="text-center p-3 font-bold text-slate-800">
+                              {reportData.reduce((sum, row) => sum + row.total_students, 0)}
+                            </td>
+                            <td className="text-center p-3 font-bold text-green-700">
+                              {reportData.reduce((sum, row) => sum + row.present, 0)}
+                            </td>
+                            <td className="text-center p-3 font-bold text-red-700">
+                              {reportData.reduce((sum, row) => sum + row.absent, 0)}
+                            </td>
+                            <td className="text-center p-3 font-bold">
+                              <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+                                {reportData.length > 0 && reportData.reduce((sum, r) => sum + r.total_students, 0) > 0
+                                  ? Math.round((reportData.reduce((sum, r) => sum + r.present, 0) / reportData.reduce((sum, r) => sum + r.total_students, 0)) * 100)
+                                  : 0}%
+                              </span>
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
