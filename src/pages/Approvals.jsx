@@ -61,6 +61,11 @@ export default function Approvals() {
     queryFn: () => base44.entities.CalendarEvent.list()
   });
 
+  const { data: notices = [] } = useQuery({
+    queryKey: ['notices'],
+    queryFn: () => base44.entities.Notice.list()
+  });
+
   const { data: examTypes = [] } = useQuery({
     queryKey: ['exam-types'],
     queryFn: () => base44.entities.ExamType.list()
