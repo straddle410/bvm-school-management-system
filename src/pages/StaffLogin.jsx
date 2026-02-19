@@ -54,23 +54,30 @@ export default function StaffLogin() {
 
       // Only admin requires OTP
       if (staff.role === 'Admin') {
-        const response = await base44.functions.invoke('sendStaffOtp', {
-          email: staff.email,
-          staffName: staff.full_name
-        });
+        try {
+          const response = await base44.functions.invoke('sendStaffOtp', {
+            email: staff.email,
+            staffName: staff.full_name
+          });
 
-        const responseData = response.data || response;
-        if (!responseData.success) {
+          const responseData = response.data || response;
+          
+          if (responseData.otp) {
+            setStaffForOtp(staff);
+            setSentOtp(responseData.otp);
+            setStep('otp');
+            setOtpTimer(600); // 10 minutes
+            setOtp('');
+          } else {
+            setError(responseData.error || 'Failed to send OTP. Please try again.');
+            setLoading(false);
+            return;
+          }
+        } catch (otpError) {
           setError('Failed to send OTP. Please try again.');
           setLoading(false);
           return;
         }
-
-        setStaffForOtp(staff);
-        setSentOtp(responseData.otp);
-        setStep('otp');
-        setOtpTimer(600); // 10 minutes
-        setOtp('');
       } else {
         // Other staff login directly
         localStorage.setItem('staff_session', JSON.stringify({
