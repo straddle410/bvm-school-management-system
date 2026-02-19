@@ -51,8 +51,13 @@ export default function Dashboard() {
         base44.entities.StaffAccount.list().then(staff => {
           const updated = staff.find(s => s.id === parsed.id);
           if (updated) setUser(updated);
-        }).catch(() => {});
-      } catch {}
+        }).catch(error => {
+          // Silently ignore fetch errors
+          console.debug('Failed to refresh staff data:', error);
+        });
+      } catch (error) {
+        console.debug('Failed to parse session:', error);
+      }
     }
   }, []);
 
