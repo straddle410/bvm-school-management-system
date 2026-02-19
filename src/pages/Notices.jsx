@@ -191,7 +191,12 @@ export default function Notices() {
             </div>
             <div>
               <Label>Content *</Label>
-              <Textarea value={form.content} onChange={e => setForm({...form, content: e.target.value})} placeholder="Notice details..." rows={4} required />
+              <div className="flex gap-2 mb-2">
+                <Textarea value={form.content} onChange={e => setForm({...form, content: e.target.value})} placeholder="Notice details..." rows={4} required className="flex-1" />
+                <Button type="button" variant="outline" onClick={() => setShowTableBuilder(true)} className="self-start">
+                  + Table
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
