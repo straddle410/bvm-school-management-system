@@ -88,6 +88,23 @@ export default function Gallery() {
     onSuccess: () => queryClient.invalidateQueries(['photos', selectedAlbum?.id])
   });
 
+  const handlePhotoClick = (photo, index) => {
+    setSelectedPhoto(photo);
+    setSelectedPhotoIndex(index);
+  };
+
+  const goToPrevPhoto = () => {
+    const newIndex = selectedPhotoIndex === 0 ? visiblePhotos.length - 1 : selectedPhotoIndex - 1;
+    setSelectedPhotoIndex(newIndex);
+    setSelectedPhoto(visiblePhotos[newIndex]);
+  };
+
+  const goToNextPhoto = () => {
+    const newIndex = selectedPhotoIndex === visiblePhotos.length - 1 ? 0 : selectedPhotoIndex + 1;
+    setSelectedPhotoIndex(newIndex);
+    setSelectedPhoto(visiblePhotos[newIndex]);
+  };
+
   const createAlbumMutation = useMutation({
     mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, status: 'Published' }),
     onSuccess: () => {
