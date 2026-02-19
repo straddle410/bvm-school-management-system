@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   School, Save, Upload, Image as ImageIcon, Calendar, 
-  Users, Shield, Database, Clock, Plus, Trash2
+  Users, Shield, Database, Clock, Plus, Trash2, Layers
 } from 'lucide-react';
 import { toast } from "sonner";
 
