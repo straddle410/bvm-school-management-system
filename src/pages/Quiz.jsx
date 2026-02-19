@@ -459,7 +459,7 @@ export default function Quiz() {
                             <div>
                               <h3 className="font-semibold">{quiz?.title || 'Quiz'}</h3>
                               <p className="text-sm text-slate-500">
-                                Attempted on {attempt.attempt_date}
+                                {quiz?.subject} • {attempt.attempt_date}
                               </p>
                             </div>
                           </div>
