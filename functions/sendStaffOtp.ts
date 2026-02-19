@@ -13,9 +13,9 @@ Deno.serve(async (req) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send via Resend
+    // Send via Resend (testing only - requires domain verification for production)
     const result = await resend.emails.send({
-      from: 'BVM School <onboarding@resend.dev>',
+      from: 'onboarding@resend.dev',
       to: email,
       subject: 'Your BVM School Admin Login OTP',
       html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
