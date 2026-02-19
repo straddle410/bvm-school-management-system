@@ -139,7 +139,7 @@ export default function Marks() {
           grade,
           academic_year: '2024-25',
           entered_by: user?.email,
-          status: 'Draft',
+          status: 'Submitted',
           remarks: existing.remarks
         };
         
@@ -153,19 +153,6 @@ export default function Marks() {
     onSuccess: () => {
       queryClient.invalidateQueries(['marks']);
       toast.success('Marks saved successfully');
-    }
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: async () => {
-      const promises = existingMarks.map(m => 
-        base44.entities.Marks.update(m.id, { status: 'Submitted' })
-      );
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['marks']);
-      toast.success('Marks submitted for approval');
     }
   });
 
