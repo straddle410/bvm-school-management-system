@@ -55,6 +55,10 @@ import Marks from './pages/Marks';
 import Admissions from './pages/Admissions';
 import PublicAdmission from './pages/PublicAdmission';
 import Gallery from './pages/Gallery';
+import Quiz from './pages/Quiz';
+import Calendar from './pages/Calendar';
+import Reports from './pages/Reports';
+import Approvals from './pages/Approvals';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +71,10 @@ export const PAGES = {
     "Admissions": Admissions,
     "PublicAdmission": PublicAdmission,
     "Gallery": Gallery,
+    "Quiz": Quiz,
+    "Calendar": Calendar,
+    "Reports": Reports,
+    "Approvals": Approvals,
 }
 
 export const pagesConfig = {
