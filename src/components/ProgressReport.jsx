@@ -22,8 +22,7 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
       name,
       obtained: stats.obtained,
       max: stats.max,
-      percentage: Math.round((stats.obtained / stats.max) * 100),
-      remark: getSubjectRemark((stats.obtained / stats.max) * 100)
+      percentage: Math.round((stats.obtained / stats.max) * 100)
     }));
   };
 
