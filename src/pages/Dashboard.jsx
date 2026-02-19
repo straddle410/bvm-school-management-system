@@ -9,19 +9,10 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-const BANNER_IMAGES = [
-  {
-    url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80',
-    caption: 'Science Exhibition Winners - Proud Moments'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&q=80',
-    caption: 'Annual Day Celebrations 2024'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80',
-    caption: 'Sports Day - Champions at Heart'
-  },
+const DEFAULT_BANNERS = [
+  { url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80', caption: 'Science Exhibition Winners - Proud Moments' },
+  { url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&q=80', caption: 'Annual Day Celebrations 2024' },
+  { url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80', caption: 'Sports Day - Champions at Heart' },
 ];
 
 const quickAccess = [
