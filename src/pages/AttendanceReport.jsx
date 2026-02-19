@@ -48,7 +48,14 @@ export default function AttendanceReport() {
   // Fetch all students
   const { data: allStudents = [] } = useQuery({
     queryKey: ['students-all'],
-    queryFn: () => base44.entities.Student.list()
+    queryFn: async () => {
+      try {
+        return await base44.entities.Student.list();
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        return [];
+      }
+    }
   });
 
   // Process attendance data
