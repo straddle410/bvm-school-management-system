@@ -100,7 +100,7 @@ async function generateExcel(reportData) {
   ];
   worksheet.getCell('A1').font = { bold: true, size: 16 };
   worksheet.getCell('A1').alignment = { horizontal: 'center' };
-  worksheet.mergeCells('A1:F1');
+  worksheet.mergeCells('A1:D1');
 
   // Student Info
   let row = 3;
@@ -129,9 +129,8 @@ async function generateExcel(reportData) {
   worksheet.getCell(`B${row}`).value = 'Obtained';
   worksheet.getCell(`C${row}`).value = 'Total';
   worksheet.getCell(`D${row}`).value = '%';
-  worksheet.getCell(`E${row}`).value = 'Remarks';
   
-  ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+  ['A', 'B', 'C', 'D'].forEach(col => {
     worksheet.getCell(`${col}${row}`).font = { bold: true };
     worksheet.getCell(`${col}${row}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a237e' } };
     worksheet.getCell(`${col}${row}`).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -143,7 +142,6 @@ async function generateExcel(reportData) {
     worksheet.getCell(`B${row}`).value = subj.marks_obtained;
     worksheet.getCell(`C${row}`).value = subj.max_marks;
     worksheet.getCell(`D${row}`).value = subj.percentage;
-    worksheet.getCell(`E${row}`).value = subj.remark;
     row++;
   });
 
