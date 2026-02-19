@@ -471,7 +471,7 @@ export default function Quiz() {
               </div>
             </TabsContent>
 
-            {user && (user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal' || user.role === 'Teacher' || user.role === 'teacher') && (
+            {userPermissions.quiz && (
               <TabsContent value="manage" className="mt-6">
                 <div className="space-y-4">
                   {quizzes.map(quiz => {
