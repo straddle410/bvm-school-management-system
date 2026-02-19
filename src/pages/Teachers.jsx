@@ -37,6 +37,7 @@ import {
 import { toast } from "sonner";
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Economics', 'Art', 'Music', 'Physical Education'];
+const ROLES = ['Teacher', 'Principal', 'HOD', 'Vice Principal', 'Coordinator', 'Counselor', 'Librarian', 'Admin Staff'];
 
 export default function Teachers() {
   const [searchQuery, setSearchQuery] = useState('');
