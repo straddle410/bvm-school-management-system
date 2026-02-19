@@ -179,6 +179,7 @@ export default function Marks() {
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
 
   return (
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Exams & Marks">
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Exams & Marks"

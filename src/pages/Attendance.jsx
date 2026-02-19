@@ -133,6 +133,7 @@ export default function Attendance() {
   const currentStatus = existingAttendance[0]?.status || 'Not Taken';
 
   return (
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Attendance">
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Attendance"
