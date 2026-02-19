@@ -534,8 +534,8 @@ export default function Students() {
         subtitle={`${filteredStudents.length} students`}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" className="hidden sm:flex">
-              <Download className="mr-2 h-4 w-4" /> Export
+            <Button variant="outline" onClick={() => { setShowImportDialog(true); setImportStatus(null); setImportFile(null); }}>
+              <Upload className="mr-2 h-4 w-4" /> Import
             </Button>
             <Button onClick={() => setShowAddDialog(true)}>
               <Plus className="mr-2 h-4 w-4" /> Add Student
