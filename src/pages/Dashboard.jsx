@@ -25,11 +25,11 @@ const BANNER_IMAGES = [
 ];
 
 const quickAccess = [
-  { label: 'Results', icon: GraduationCap, color: '#5c6bc0', bg: '#e8eaf6', page: 'Reports' },
+  { label: 'Results', icon: GraduationCap, color: '#5c6bc0', bg: '#e8eaf6', page: 'Results' },
   { label: 'Gallery', icon: Image, color: '#ab47bc', bg: '#f3e5f5', page: 'Gallery' },
   { label: 'Calendar', icon: Calendar, color: '#26a69a', bg: '#e0f2f1', page: 'Calendar' },
   { label: 'Quiz', icon: Brain, color: '#7e57c2', bg: '#ede7f6', page: 'Quiz' },
-  { label: 'Notices', icon: Bell, color: '#26c6da', bg: '#e0f7fa', page: 'Calendar', badge: 2 },
+  { label: 'Notices', icon: Bell, color: '#26c6da', bg: '#e0f7fa', page: 'Notices' },
   { label: 'More', icon: MoreHorizontal, color: '#ef6c00', bg: '#fff3e0', page: 'More' },
 ];
 
