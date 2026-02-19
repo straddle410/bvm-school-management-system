@@ -134,6 +134,44 @@ export default function Settings() {
   });
 
   const [newSubject, setNewSubject] = useState('');
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerCaption, setBannerCaption] = useState('');
+
+  const { data: bannerSlides = [] } = useQuery({
+    queryKey: ['banner-slides'],
+    queryFn: () => base44.entities.BannerSlide.list('sort_order')
+  });
+
+  const addBannerMutation = useMutation({
+    mutationFn: async () => {
+      const result = await base44.integrations.Core.UploadFile({ file: bannerFile });
+      return base44.entities.BannerSlide.create({
+        image_url: result.file_url,
+        caption: bannerCaption,
+        sort_order: bannerSlides.length,
+        is_active: true
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['banner-slides']);
+      setBannerFile(null);
+      setBannerCaption('');
+      toast.success('Banner slide added');
+    }
+  });
+
+  const deleteBannerMutation = useMutation({
+    mutationFn: (id) => base44.entities.BannerSlide.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['banner-slides']);
+      toast.success('Banner removed');
+    }
+  });
+
+  const toggleBannerMutation = useMutation({
+    mutationFn: ({ id, is_active }) => base44.entities.BannerSlide.update(id, { is_active }),
+    onSuccess: () => queryClient.invalidateQueries(['banner-slides'])
+  });
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Settings">
