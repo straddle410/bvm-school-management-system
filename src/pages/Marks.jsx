@@ -224,16 +224,7 @@ export default function Marks() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjectList.map(s => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
                   <Select value={selectedExam} onValueChange={setSelectedExam}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Exam" />
