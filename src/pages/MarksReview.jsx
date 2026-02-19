@@ -177,7 +177,7 @@ export default function MarksReview() {
           {/* Filters */}
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Select value={selectedClass} onValueChange={setSelectedClass}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Class" />
@@ -195,6 +195,17 @@ export default function MarksReview() {
                   <SelectContent>
                     {SECTIONS.map(s => (
                       <SelectItem key={s} value={s}>Section {s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedExamType} onValueChange={setSelectedExamType} disabled={!selectedClass || !selectedSection}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Exam Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>All Exam Types</SelectItem>
+                    {examTypes.map(exam => (
+                      <SelectItem key={exam.id} value={exam.name}>{exam.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
