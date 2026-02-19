@@ -54,17 +54,26 @@ export default function Quiz() {
    const queryClient = useQueryClient();
 
    useEffect(() => {
-     const session = localStorage.getItem('staff_session');
-     if (session) {
-       try {
-         const parsed = JSON.parse(session);
-         setUser(parsed);
-         setUserPermissions(parsed.permissions || {});
-       } catch {}
-     } else {
-       base44.auth.me().then(setUser).catch(() => {});
-     }
-   }, []);
+      const session = localStorage.getItem('staff_session');
+      if (session) {
+        try {
+          const parsed = JSON.parse(session);
+          setUser(parsed);
+          setUserPermissions(parsed.permissions || {});
+        } catch {}
+      } else {
+        base44.auth.me().then(async (currentUser) => {
+          setUser(currentUser);
+          // Fetch staff account to get permissions
+          try {
+            const staffAccounts = await base44.entities.StaffAccount.filter({ email: currentUser.email });
+            if (staffAccounts.length > 0) {
+              setUserPermissions(staffAccounts[0].permissions || {});
+            }
+          } catch {}
+        }).catch(() => {});
+      }
+    }, []);
 
    const { data: quizzes = [], isLoading } = useQuery({
      queryKey: ['quizzes'],
