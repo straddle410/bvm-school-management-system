@@ -203,7 +203,7 @@ export default function Marks() {
             {/* Selection */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Select value={selectedClass} onValueChange={setSelectedClass}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Class" />
