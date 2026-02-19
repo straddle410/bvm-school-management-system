@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
-  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus
+  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus, FileText, Award
 } from 'lucide-react';
 import { format } from 'date-fns';
 
