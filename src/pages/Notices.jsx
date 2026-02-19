@@ -43,8 +43,7 @@ export default function Notices() {
     is_pinned: false
   });
   const [showTableBuilder, setShowTableBuilder] = useState(false);
-  const [tableRows, setTableRows] = useState(3);
-  const [tableCols, setTableCols] = useState(3);
+  const [editingNotice, setEditingNotice] = useState(null);
 
   const queryClient = useQueryClient();
 
