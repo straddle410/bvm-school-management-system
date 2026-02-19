@@ -13,7 +13,7 @@ const bottomNav = [
 ];
 
 // Pages that don't use the app shell
-const NO_LAYOUT_PAGES = ['PublicAdmission'];
+const NO_LAYOUT_PAGES = ['PublicAdmission', 'StaffLogin'];
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
