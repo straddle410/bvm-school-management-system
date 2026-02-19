@@ -1,8 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { Resend } from 'npm:resend@3.2.0';
+
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
     const { email, staffName } = await req.json();
 
     if (!email) {
@@ -12,12 +13,17 @@ Deno.serve(async (req) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send via Base44 SendEmail integration
-    await base44.integrations.Core.SendEmail({
+    // Send via Resend
+    const result = await resend.emails.send({
+      from: 'BVM School <onboarding@resend.dev>',
       to: email,
       subject: 'Your BVM School Admin Login OTP',
-      body: `Dear ${staffName || 'Admin'},\n\nYour OTP for login is: ${otp}\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.\n\nBest regards,\nBVM School of Excellence`
+      html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
     });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
 
     return Response.json({ otp, success: true });
   } catch (error) {
