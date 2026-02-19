@@ -81,15 +81,16 @@ export default function StaffLogin() {
         }
       } else {
         // Other staff login directly
+        console.log('Staff object:', staff);
         localStorage.setItem('staff_session', JSON.stringify({
           id: staff.id,
           full_name: staff.full_name,
           username: staff.username,
           email: staff.email,
           role: staff.role,
-          subjects: staff.subjects,
-          classes_assigned: staff.classes_assigned,
-          permissions: staff.permissions,
+          subjects: staff.subjects || [],
+          classes_assigned: staff.classes_assigned || [],
+          permissions: staff.permissions || {},
         }));
         window.location.href = createPageUrl('Dashboard');
       }
