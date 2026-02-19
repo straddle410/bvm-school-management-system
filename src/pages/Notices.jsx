@@ -333,18 +333,25 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit }) {
             </div>
           </div>
         </div>
-        {isAdmin && (
+        {(isAdmin || canEdit) && (
           <div className="flex gap-2 mt-3">
-            {notice.status !== 'Published' && (
+            {canEdit && (
+              <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => onEdit(notice)}>
+                Edit
+              </Button>
+            )}
+            {isAdmin && notice.status !== 'Published' && (
               <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" onClick={() => onPublish(notice.id)}>
                 Publish
               </Button>
             )}
-            <Button size="sm" variant="destructive" className={notice.status === 'Published' ? 'w-full' : 'flex-1'} onClick={() => {
-              if (confirm('Delete this notice?')) onDelete(notice.id);
-            }}>
-              Delete
-            </Button>
+            {isAdmin && (
+              <Button size="sm" variant="destructive" className={!canEdit ? 'w-full' : 'flex-1'} onClick={() => {
+                if (confirm('Delete this notice?')) onDelete(notice.id);
+              }}>
+                Delete
+              </Button>
+            )}
           </div>
         )}
       </div>
