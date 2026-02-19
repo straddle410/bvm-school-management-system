@@ -217,8 +217,10 @@ export default function Dashboard() {
             <div className="grid grid-cols-3 gap-3">
               {quickActions.map((item) => {
                 const isAdmin = user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal';
+                const isTeacher = user.role === 'Teacher' || user.role === 'teacher';
+                const isStaff = user.role === 'Staff' || user.role === 'staff';
                 const hasRolePermission = !item.roleRequired || item.roleRequired.includes(user.role);
-                const hasPermission = isAdmin || !item.permission || (user.permissions?.[item.permission] === true);
+                const hasPermission = (isAdmin || isTeacher || isStaff) || !item.permission || (user.permissions?.[item.permission] === true);
                 const shouldShow = (item.roleRequired && hasRolePermission) || (!item.roleRequired && hasPermission);
                 if (!shouldShow) return null;
                 return (
