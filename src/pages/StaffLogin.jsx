@@ -122,6 +122,7 @@ export default function StaffLogin() {
         role: staffForOtp.role,
         subjects: staffForOtp.subjects,
         classes_assigned: staffForOtp.classes_assigned,
+        permissions: staffForOtp.permissions,
       }));
       window.location.href = createPageUrl('Dashboard');
     } finally {
