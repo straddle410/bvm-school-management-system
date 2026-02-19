@@ -41,6 +41,11 @@ const quickActions = [
 
 export default function Dashboard() {
   const [bannerIndex, setBannerIndex] = useState(0);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => setUser(null));
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
