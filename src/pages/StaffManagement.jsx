@@ -58,6 +58,7 @@ const emptyForm = {
 
 export default function StaffManagement() {
   const [showDialog, setShowDialog] = useState(false);
+  const [showTeacherSelector, setShowTeacherSelector] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState('');
