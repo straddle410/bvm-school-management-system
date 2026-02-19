@@ -10,43 +10,19 @@ Deno.serve(async (req) => {
     }
 
     const examSchedule = `
-<table style="width:100%; border-collapse: collapse; margin: 15px 0;">
-  <tr style="background-color: #1a237e; color: white;">
-    <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Date</th>
-    <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Subject</th>
-    <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Day</th>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">20-02-2026</td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><strong>Telugu</strong></td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">Wednesday</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">21-02-2026</td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><strong>Hindi</strong></td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">Thursday</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">22-02-2026</td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><strong>English</strong></td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">Friday</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">23-02-2026</td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><strong>Mathematics</strong></td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">Saturday</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">24-02-2026</td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><strong>Science</strong></td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">Sunday</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">27-02-2026</td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><strong>Social Studies</strong></td>
-    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">Wednesday</td>
-  </tr>
-</table>`;
+EXAMINATION SCHEDULE - CLASSES VII TO X
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Date            Subject              Day
+─────────────────────────────────────────────────
+20-02-2026      TELUGU               Wednesday
+21-02-2026      HINDI                Thursday
+22-02-2026      ENGLISH              Friday
+23-02-2026      MATHEMATICS          Saturday
+24-02-2026      SCIENCE              Sunday
+27-02-2026      SOCIAL STUDIES       Wednesday
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
     const notice = await base44.entities.Notice.create({
       title: 'Annual Examination Schedule - Classes VII to X',
