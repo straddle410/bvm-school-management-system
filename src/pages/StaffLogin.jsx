@@ -51,24 +51,38 @@ export default function StaffLogin() {
         return;
       }
 
-      // Send OTP to phone
-      if (!staff.phone) {
-        setError('No phone number on file. Contact admin.');
-        setLoading(false);
-        return;
+      // Only admin requires OTP
+      if (staff.role === 'Admin') {
+        // Send OTP to email
+        if (!staff.phone) {
+          setError('No phone number on file. Contact admin.');
+          setLoading(false);
+          return;
+        }
+
+        await base44.integrations.Core.SendEmail({
+          to: staff.email,
+          subject: 'Your BVM School Admin Login OTP',
+          body: `Your OTP for login is: 123456\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.`
+        });
+
+        setStaffForOtp(staff);
+        setStep('otp');
+        setOtpTimer(600); // 10 minutes
+        setOtp('');
+      } else {
+        // Other staff login directly
+        localStorage.setItem('staff_session', JSON.stringify({
+          id: staff.id,
+          full_name: staff.full_name,
+          username: staff.username,
+          email: staff.email,
+          role: staff.role,
+          subjects: staff.subjects,
+          classes_assigned: staff.classes_assigned,
+        }));
+        window.location.href = createPageUrl('Dashboard');
       }
-
-      // Call backend to send OTP
-      await base44.integrations.Core.SendEmail({
-        to: staff.email,
-        subject: 'Your BVM School Admin Login OTP',
-        body: `Your OTP for login is: 123456\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.`
-      });
-
-      setStaffForOtp(staff);
-      setStep('otp');
-      setOtpTimer(600); // 10 minutes
-      setOtp('');
     } catch (err) {
       setError('Failed to send OTP. Please try again.');
     } finally {
