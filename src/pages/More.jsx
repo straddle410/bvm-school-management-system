@@ -24,14 +24,13 @@ export default function More() {
   const isTeacher = ['admin', 'principal', 'teacher', 'staff'].includes(user?.role);
 
   const contentItems = [
-    { label: 'Create Announcement', sub: 'Post a new announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Calendar' },
+    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices' },
     { label: 'Marks Entry', sub: 'Enter class-wise marks', icon: ClipboardList, color: '#1e88e5', bg: '#e3f2fd', page: 'Marks' },
-    { label: 'Upload Result', sub: 'Add individual result', icon: PlusCircle, color: '#1e88e5', bg: '#e3f2fd', page: 'Marks' },
-    { label: 'Send Message', sub: 'Message parents or students', icon: Send, color: '#e53935', bg: '#ffebee', page: 'Profile' },
+    { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance' },
+    { label: 'Add Event', sub: 'Post to school calendar', icon: Send, color: '#e53935', bg: '#ffebee', page: 'Calendar' },
   ];
 
   const adminItems = [
-    { label: 'Dashboard', sub: 'System overview & reports', icon: LayoutDashboard, color: '#1a237e', bg: '#e8eaf6', page: 'Dashboard' },
     { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
     { label: 'Teachers', sub: 'Manage faculty', icon: Users, color: '#7e57c2', bg: '#ede7f6', page: 'Teachers' },
     { label: 'Admissions', sub: 'Online admission management', icon: UserPlus, color: '#26a69a', bg: '#e0f2f1', page: 'Admissions' },
@@ -39,6 +38,7 @@ export default function More() {
     { label: 'Exam & Marks', sub: 'Manage exams and results', icon: BookOpen, color: '#ab47bc', bg: '#f3e5f5', page: 'Marks' },
     { label: 'Attendance', sub: 'Daily attendance tracking', icon: ClipboardCheck, color: '#ef6c00', bg: '#fff3e0', page: 'Attendance' },
     { label: 'Approvals', sub: 'Bulk approve items', icon: ClipboardCheck, color: '#43a047', bg: '#e8f5e9', page: 'Approvals' },
+    { label: 'ID Cards', sub: 'Generate student ID cards', icon: LayoutDashboard, color: '#1a237e', bg: '#e8eaf6', page: 'IDCards' },
     { label: 'Reports', sub: 'Analytics & reports', icon: LayoutDashboard, color: '#e53935', bg: '#ffebee', page: 'Reports' },
     { label: 'Settings', sub: 'School configuration', icon: Settings, color: '#78909c', bg: '#eceff1', page: 'Settings' },
   ];
