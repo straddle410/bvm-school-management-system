@@ -96,9 +96,9 @@ export default function StaffManagement() {
   const toggleActiveMutation = useMutation({
     mutationFn: ({ id, is_active }) => base44.entities.StaffAccount.update(id, { is_active }),
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries(['staff-accounts']);
-      toast.success(vars.is_active ? 'Account activated' : 'Account deactivated');
-    }
+       queryClient.invalidateQueries({ queryKey: ['staff-accounts'] });
+       toast.success(vars.is_active ? 'Account activated' : 'Account deactivated');
+     }
   });
 
   const resetPasswordMutation = useMutation({
