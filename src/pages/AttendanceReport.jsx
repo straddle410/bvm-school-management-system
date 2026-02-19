@@ -160,7 +160,11 @@ export default function AttendanceReport() {
                               ? Math.round((row.present / row.total_students) * 100)
                               : 0;
                             return (
-                              <tr key={row.class_name} className="border-b border-slate-100 hover:bg-slate-50">
+                              <tr 
+                                key={row.class_name} 
+                                className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                                onClick={() => setSelectedClassAbsent(row)}
+                              >
                                 <td className="p-3 font-semibold text-slate-700">Class {row.class_name}</td>
                                 <td className="text-center p-3 text-slate-700">{row.total_students}</td>
                                 <td className="text-center p-3 text-green-600 font-medium">{row.present}</td>
