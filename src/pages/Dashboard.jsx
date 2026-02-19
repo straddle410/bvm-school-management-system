@@ -111,7 +111,7 @@ export default function Dashboard() {
     <div className="bg-gray-100 min-h-screen">
       {/* Banner Slider */}
       <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
-        {BANNER_IMAGES.map((img, i) => (
+        {banners.map((img, i) => (
           <div
             key={i}
             className="absolute inset-0 transition-opacity duration-700"
