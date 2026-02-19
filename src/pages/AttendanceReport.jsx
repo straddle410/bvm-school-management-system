@@ -62,7 +62,8 @@ export default function AttendanceReport() {
         class_name: cls,
         total_students: 0,
         present: 0,
-        absent: 0
+        absent: 0,
+        absent_students: []
       };
     });
 
@@ -80,6 +81,13 @@ export default function AttendanceReport() {
           classData[record.class_name].present++;
         } else {
           classData[record.class_name].absent++;
+          const student = allStudents.find(s => s.student_id === record.student_id);
+          if (student) {
+            classData[record.class_name].absent_students.push({
+              name: student.name,
+              phone: student.parent_phone || 'N/A'
+            });
+          }
         }
       }
     });
