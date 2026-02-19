@@ -29,6 +29,7 @@ const quickActions = [
   { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
   { label: 'Post Quiz', icon: Brain, color: '#7e57c2', page: 'Quiz', permission: 'quiz' },
   { label: 'Take Attendance', icon: Check, color: '#1e88e5', page: 'Attendance', permission: 'attendance' },
+  { label: 'Add Event', icon: Plus, color: '#d32f2f', page: 'Calendar', roleRequired: ['Admin', 'Principal', 'Teacher'] },
 ];
 
 const adminActions = [
