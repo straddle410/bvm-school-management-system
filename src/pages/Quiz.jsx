@@ -143,6 +143,7 @@ export default function Quiz() {
     setQuizForm({
       title: '',
       quiz_date: format(new Date(), 'yyyy-MM-dd'),
+      class_name: '',
       subject: '',
       questions: [
         { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
@@ -512,14 +513,32 @@ export default function Quiz() {
                  required
                />
              </div>
-             <div>
-               <Label>Quiz Date *</Label>
-               <Input
-                 type="date"
-                 value={quizForm.quiz_date}
-                 onChange={(e) => setQuizForm({...quizForm, quiz_date: e.target.value})}
-                 required
-               />
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <Label>Quiz Date *</Label>
+                 <Input
+                   type="date"
+                   value={quizForm.quiz_date}
+                   onChange={(e) => setQuizForm({...quizForm, quiz_date: e.target.value})}
+                   required
+                 />
+               </div>
+               <div>
+                 <Label>Class *</Label>
+                 <Select
+                   value={quizForm.class_name}
+                   onValueChange={(v) => setQuizForm({...quizForm, class_name: v})}
+                 >
+                   <SelectTrigger>
+                     <SelectValue placeholder="Select class" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {CLASSES.map(c => (
+                       <SelectItem key={c} value={c}>Class {c}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
              </div>
              <div>
                <Label>Subject *</Label>
