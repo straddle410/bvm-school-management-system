@@ -59,11 +59,12 @@ export default function Calendar() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (e) {
-        // Check if staff is logged in
+        // Check if staff is logged in via staff login
         const staffSession = localStorage.getItem('staffSession');
         if (staffSession) {
           const staff = JSON.parse(staffSession);
-          setUser({ role: staff.role });
+          console.log('Staff session found:', staff);
+          setUser({ role: staff.role, full_name: staff.full_name, email: staff.email });
         } else {
           setUser(null);
         }
