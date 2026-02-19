@@ -228,6 +228,14 @@ export default function StaffManagement() {
                       {member.platform_invite_sent && <Badge className="text-[10px] px-2 py-0 bg-green-100 text-green-600">Invited</Badge>}
                     </div>
                     <p className="text-xs text-slate-500 truncate">@{member.username} · {member.email}</p>
+                    {member.permissions && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {member.permissions.attendance && <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full">Attendance{member.permissions.attendance_needs_approval ? '*' : ''}</span>}
+                        {member.permissions.marks && <span className="text-[9px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full">Marks{member.permissions.marks_needs_approval ? '*' : ''}</span>}
+                        {member.permissions.post_notices && <span className="text-[9px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded-full">Notices{member.permissions.notices_needs_approval ? '*' : ''}</span>}
+                        {member.permissions.gallery && <span className="text-[9px] bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded-full">Gallery{member.permissions.gallery_needs_approval ? '*' : ''}</span>}
+                      </div>
+                    )}
                     {member.temp_password && (
                       <div className="flex items-center gap-1 mt-1">
                         <KeyRound className="h-3 w-3 text-amber-500" />
