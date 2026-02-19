@@ -421,7 +421,7 @@ export default function StaffManagement() {
                      { key: 'marks', label: 'Marks Entry', approvalKey: 'marks_needs_approval' },
                      { key: 'post_notices', label: 'Post Notices', approvalKey: 'notices_needs_approval' },
                      { key: 'gallery', label: 'Gallery Upload', approvalKey: 'gallery_needs_approval' },
-                     { key: 'quiz', label: 'Quiz Upload', approvalKey: 'quiz_needs_approval' },
+                     { key: 'quiz', label: 'Quiz Upload', approvalKey: null },
                    ].map(({ key, label, approvalKey }) => (
                     <div key={key} className="bg-slate-50 rounded-xl p-3">
                       <div className="flex items-center justify-between">
