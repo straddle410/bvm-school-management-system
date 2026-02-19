@@ -71,6 +71,11 @@ export default function StaffManagement() {
     queryFn: () => base44.entities.StaffAccount.list('-created_date'),
   });
 
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers-list'],
+    queryFn: () => base44.entities.Teacher.list(),
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (editingStaff) {
