@@ -59,14 +59,15 @@ export default function StaffLogin() {
           staffName: staff.full_name
         });
 
-        if (!response.data.success) {
+        const responseData = response.data || response;
+        if (!responseData.success) {
           setError('Failed to send OTP. Please try again.');
           setLoading(false);
           return;
         }
 
         setStaffForOtp(staff);
-        setSentOtp(response.data.otp);
+        setSentOtp(responseData.otp);
         setStep('otp');
         setOtpTimer(600); // 10 minutes
         setOtp('');
