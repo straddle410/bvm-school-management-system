@@ -133,10 +133,10 @@ export default function StaffLogin() {
       {/* Back Button */}
       <Link 
         to={createPageUrl('Dashboard')}
-        className="absolute top-4 left-4 text-white hover:text-blue-200 transition-colors"
+        className="absolute top-6 left-6 text-white hover:text-blue-200 transition-colors z-50 p-2"
         title="Go back to home"
       >
-        <ArrowLeft className="h-6 w-6" />
+        <ArrowLeft className="h-7 w-7" />
       </Link>
 
       {/* Logo / Branding */}
