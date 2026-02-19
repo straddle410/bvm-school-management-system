@@ -87,8 +87,8 @@ export default function Calendar() {
   };
 
   const userRole = user?.role || 'user';
-  const isAdmin = ['admin', 'principal'].includes(userRole);
-  const isTeacher = ['admin', 'principal', 'teacher'].includes(userRole);
+  const isAdmin = ['Admin', 'Principal'].includes(userRole);
+  const isTeacher = ['Admin', 'Principal', 'Teacher'].includes(userRole);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
