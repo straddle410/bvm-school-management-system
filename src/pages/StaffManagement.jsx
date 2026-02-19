@@ -115,9 +115,9 @@ export default function StaffManagement() {
       return base44.entities.StaffAccount.update(member.id, { platform_invite_sent: true });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['staff-accounts']);
-      toast.success('Invitation sent! Staff will receive an email to set their password.');
-    },
+       queryClient.invalidateQueries({ queryKey: ['staff-accounts'] });
+       toast.success('Invitation sent! Staff will receive an email to set their password.');
+     },
     onError: () => toast.error('Failed to send invite')
   });
 
