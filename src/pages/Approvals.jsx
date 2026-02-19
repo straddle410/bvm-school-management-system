@@ -80,6 +80,7 @@ export default function Approvals() {
   const pendingQuizzes = quizzes.filter(q => ['Draft', 'Submitted', 'Approved'].includes(q.status) && q.status !== 'Published');
   const pendingEvents = events.filter(e => e.status === 'Pending');
   const pendingExams = examTypes.filter(e => ['Draft', 'Verified'].includes(e.status) && e.status !== 'Published');
+  const pendingNotices = notices.filter(n => ['Draft', 'Submitted'].includes(n.status));
 
   const getNextStatus = (currentStatus) => {
     const workflow = {
