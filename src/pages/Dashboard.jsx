@@ -201,8 +201,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Admin Actions - admin only */}
-        {user && user.role === 'Admin' && (
+        {/* Admin Actions - admin/principal only */}
+        {user && (user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal') && (
           <div>
             <h2 className="text-base font-bold text-gray-800 mb-3">Admin Tools</h2>
             <div className="grid grid-cols-3 gap-3">
