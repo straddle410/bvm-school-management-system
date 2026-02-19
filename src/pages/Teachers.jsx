@@ -232,11 +232,11 @@ export default function Teachers() {
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Teachers">
       <div className="min-h-screen bg-slate-50">
       <PageHeader 
-        title="Teachers"
-        subtitle={`${filteredTeachers.length} teachers`}
+        title="Staff"
+        subtitle={`${filteredTeachers.length} staff members`}
         actions={
           <Button onClick={() => { resetForm(); setShowAddDialog(true); }}>
-            <Plus className="mr-2 h-4 w-4" /> Add Teacher
+            <Plus className="mr-2 h-4 w-4" /> Add Staff
           </Button>
         }
       />
