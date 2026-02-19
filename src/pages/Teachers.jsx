@@ -305,11 +305,11 @@ export default function Teachers() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Teacher ID</Label>
+                <Label>Staff ID</Label>
                 <Input
                   value={formData.teacher_id}
                   onChange={(e) => setFormData({...formData, teacher_id: e.target.value})}
-                  placeholder="TCH001"
+                  placeholder="STF001"
                 />
               </div>
               <div>
