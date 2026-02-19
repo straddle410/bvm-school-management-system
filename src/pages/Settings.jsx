@@ -440,6 +440,71 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="banners" className="mt-6">
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle>Homepage Banner Slides</CardTitle>
+                <CardDescription>Manage the rotating images shown on the home screen</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Add new banner */}
+                <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                  <p className="text-sm font-medium text-slate-700">Add New Slide</p>
+                  <div>
+                    <Label>Image</Label>
+                    <label className="mt-1 flex items-center gap-3 cursor-pointer">
+                      <span className="px-4 py-2 bg-[#1a237e] text-white rounded-lg text-sm font-medium hover:bg-[#283593] transition-colors">
+                        {bannerFile ? bannerFile.name : 'Choose Image'}
+                      </span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => setBannerFile(e.target.files[0])} />
+                      {bannerFile && <span className="text-xs text-green-600 font-medium">✓ Selected</span>}
+                    </label>
+                  </div>
+                  <div>
+                    <Label>Caption (optional)</Label>
+                    <Input value={bannerCaption} onChange={e => setBannerCaption(e.target.value)} placeholder="e.g., Annual Day 2025" />
+                  </div>
+                  <Button
+                    onClick={() => addBannerMutation.mutate()}
+                    disabled={!bannerFile || addBannerMutation.isPending}
+                    className="bg-[#1a237e] hover:bg-[#283593]"
+                  >
+                    {addBannerMutation.isPending ? 'Uploading...' : <><Plus className="mr-2 h-4 w-4" /> Add Slide</>}
+                  </Button>
+                </div>
+
+                {/* Existing banners */}
+                <div className="space-y-2">
+                  {bannerSlides.map((slide, idx) => (
+                    <div key={slide.id} className="flex items-center gap-3 bg-white border rounded-xl p-3">
+                      <img src={slide.image_url} alt="" className="h-14 w-20 object-cover rounded-lg flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800 truncate">{slide.caption || 'No caption'}</p>
+                        <p className="text-xs text-slate-400">Slide {idx + 1}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={slide.is_active}
+                          onCheckedChange={(v) => toggleBannerMutation.mutate({ id: slide.id, is_active: v })}
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => deleteBannerMutation.mutate(slide.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {bannerSlides.length === 0 && (
+                    <p className="text-center text-slate-400 py-6 text-sm">No custom banners yet — default images are shown</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
