@@ -26,7 +26,8 @@ export default function AttendanceReport() {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [selectedClassAbsent, setSelectedClassAbsent] = useState(null);
+  const [selectedClassData, setSelectedClassData] = useState(null);
+  const [viewType, setViewType] = useState('absent');
 
   useEffect(() => {
     const staffUser = getStaffSession();
