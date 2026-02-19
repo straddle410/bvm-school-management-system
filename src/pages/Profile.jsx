@@ -28,6 +28,15 @@ export default function Profile() {
   }, []);
 
   const loadUser = async () => {
+    const session = getStaffSession();
+    if (session) {
+      setUser(session);
+      setFormData({
+        display_name: session.full_name || '',
+        phone: session.phone || ''
+      });
+      return;
+    }
     const currentUser = await base44.auth.me();
     setUser(currentUser);
     setFormData({
