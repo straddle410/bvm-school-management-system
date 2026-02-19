@@ -142,7 +142,8 @@ export default function StaffManagement() {
 
   const openEdit = (member) => {
     setEditingStaff(member);
-    setForm({ ...member, permissions: { ...DEFAULT_PERMISSIONS, ...(member.permissions || {}) } });
+    const mergedPermissions = { ...DEFAULT_PERMISSIONS, ...(member.permissions || {}) };
+    setForm({ ...member, permissions: mergedPermissions });
     setShowDialog(true);
   };
 
