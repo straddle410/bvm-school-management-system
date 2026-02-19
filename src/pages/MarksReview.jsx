@@ -245,17 +245,26 @@ export default function MarksReview() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          <Button
-                            onClick={() => handlePublish(allMarkIds)}
-                            disabled={publishMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700 gap-2"
-                            size="sm"
-                          >
-                            <Check className="h-4 w-4" />
-                            {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
-                          </Button>
-                        </div>
+                         <div className="flex flex-wrap gap-2 pt-2">
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => handleDownloadExcel(group.exam_type)}
+                             className="gap-2"
+                           >
+                             <Download className="h-4 w-4" />
+                             Export to Excel
+                           </Button>
+                           <Button
+                             onClick={() => handlePublish(allMarkIds)}
+                             disabled={publishMutation.isPending}
+                             className="bg-green-600 hover:bg-green-700 gap-2"
+                             size="sm"
+                           >
+                             <Check className="h-4 w-4" />
+                             {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
+                           </Button>
+                         </div>
                       </CardContent>
                     </Card>
                   );
