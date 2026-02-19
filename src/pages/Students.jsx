@@ -480,6 +480,24 @@ export default function Students() {
         subtitle={`${filteredStudents.length} students`}
         actions={
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="hidden sm:flex"
+              onClick={async () => {
+                const { data } = await base44.functions.invoke('generateStudentTemplate');
+                const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'student_import_template.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+              }}
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Template
+            </Button>
             <Button variant="outline" className="hidden sm:flex">
               <Download className="mr-2 h-4 w-4" /> Export
             </Button>
