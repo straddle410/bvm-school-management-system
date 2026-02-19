@@ -13,6 +13,7 @@ export default function StaffLogin() {
   const [error, setError] = useState('');
   const [otpTimer, setOtpTimer] = useState(0);
   const [staffForOtp, setStaffForOtp] = useState(null);
+  const [sentOtp, setSentOtp] = useState(null);
 
   // OTP timer effect
   useEffect(() => {
@@ -53,20 +54,17 @@ export default function StaffLogin() {
 
       // Only admin requires OTP
       if (staff.role === 'Admin') {
-        // Send OTP to email
-        if (!staff.phone) {
-          setError('No phone number on file. Contact admin.');
-          setLoading(false);
-          return;
-        }
+        // Generate random 6-digit OTP
+        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
         await base44.integrations.Core.SendEmail({
           to: staff.email,
           subject: 'Your BVM School Admin Login OTP',
-          body: `Your OTP for login is: 123456\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.`
+          body: `Your OTP for login is: ${generatedOtp}\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.`
         });
 
         setStaffForOtp(staff);
+        setSentOtp(generatedOtp);
         setStep('otp');
         setOtpTimer(600); // 10 minutes
         setOtp('');
@@ -96,8 +94,8 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
-      // Simple OTP verification (in production, verify against sent OTP)
-      if (otp !== '123456') {
+      // Verify OTP against sent OTP
+      if (otp !== sentOtp) {
         setError('Invalid OTP. Please try again.');
         setLoading(false);
         return;
