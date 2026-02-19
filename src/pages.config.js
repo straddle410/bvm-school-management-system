@@ -66,6 +66,7 @@ import Teachers from './pages/Teachers';
 import Results from './pages/Results';
 import Notices from './pages/Notices';
 import IDCards from './pages/IDCards';
+import StaffLogin from './pages/StaffLogin';
 import __Layout from './Layout.jsx';
 
 
@@ -89,6 +90,7 @@ export const PAGES = {
     "Results": Results,
     "Notices": Notices,
     "IDCards": IDCards,
+    "StaffLogin": StaffLogin,
 }
 
 export const pagesConfig = {
