@@ -42,13 +42,6 @@ export default function Dashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setBannerIndex(i => (i + 1) % (banners.length || 1));
-    }, 3500);
-    return () => clearInterval(timer);
-  }, []);
-
   const { data: bannerSlides = [] } = useQuery({
     queryKey: ['banner-slides'],
     queryFn: () => base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order')
@@ -57,6 +50,13 @@ export default function Dashboard() {
   const banners = bannerSlides.length > 0
     ? bannerSlides.map(s => ({ url: s.image_url, caption: s.caption }))
     : DEFAULT_BANNERS;
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBannerIndex(i => (i + 1) % (banners.length || 1));
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [banners.length]);
 
   const { data: events = [] } = useQuery({
     queryKey: ['calendar-events-published'],
