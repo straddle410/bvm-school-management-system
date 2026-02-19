@@ -335,12 +335,12 @@ export default function Marks() {
               </>
             )}
 
-            {(!selectedClass || !selectedSection || !selectedSubject || !selectedExam) && (
+            {(!selectedClass || !selectedSection || !selectedExam) && (
               <Card className="border-0 shadow-sm">
                 <CardContent className="py-16 text-center">
                   <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-slate-700">Select Options</h3>
-                  <p className="text-slate-500 mt-2">Choose class, section, subject and exam type to enter marks</p>
+                  <p className="text-slate-500 mt-2">Choose class, section and exam type to enter marks</p>
                 </CardContent>
               </Card>
             )}
