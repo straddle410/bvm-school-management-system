@@ -555,62 +555,65 @@ export default function Quiz() {
             <div className="space-y-6">
               <h3 className="font-semibold">Questions</h3>
               
-              {/* MCQ Questions */}
-              {quizForm.questions.slice(0, 2).map((q, i) => (
+              {/* Questions */}
+              {quizForm.questions.map((q, i) => (
                 <Card key={i} className="p-4 bg-slate-50 border-0">
-                  <Label className="text-xs text-slate-500 uppercase">MCQ Question {i + 1}</Label>
-                  <Input
-                    value={q.question}
-                    onChange={(e) => updateQuestion(i, 'question', e.target.value)}
-                    placeholder="Enter question"
-                    className="mt-2"
-                  />
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    {q.options.map((opt, j) => (
+                  {q.type === 'MCQ' ? (
+                    <>
+                      <Label className="text-xs text-slate-500 uppercase">MCQ Question {i + 1}</Label>
                       <Input
-                        key={j}
-                        value={opt}
-                        onChange={(e) => updateOption(i, j, e.target.value)}
-                        placeholder={`Option ${j + 1}`}
+                        value={q.question}
+                        onChange={(e) => updateQuestion(i, 'question', e.target.value)}
+                        placeholder="Enter MCQ question"
+                        className="mt-2"
                       />
-                    ))}
-                  </div>
-                  <div className="mt-3">
-                    <Label className="text-xs">Correct Answer</Label>
-                    <Select
-                      value={q.correct_answer}
-                      onValueChange={(v) => updateQuestion(i, 'correct_answer', v)}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select correct answer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {q.options.filter(o => o).map((opt, j) => (
-                          <SelectItem key={j} value={opt}>{opt}</SelectItem>
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        {q.options.map((opt, j) => (
+                          <Input
+                            key={j}
+                            value={opt}
+                            onChange={(e) => updateOption(i, j, e.target.value)}
+                            placeholder={`Option ${j + 1}`}
+                          />
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      </div>
+                      <div className="mt-3">
+                        <Label className="text-xs">Correct Answer</Label>
+                        <Select
+                          value={q.correct_answer}
+                          onValueChange={(v) => updateQuestion(i, 'correct_answer', v)}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select correct answer" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {q.options.filter(o => o).map((opt, j) => (
+                              <SelectItem key={j} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Label className="text-xs text-slate-500 uppercase">Descriptive Question</Label>
+                      <Input
+                        value={q.question}
+                        onChange={(e) => updateQuestion(i, 'question', e.target.value)}
+                        placeholder="Enter descriptive question"
+                        className="mt-2"
+                      />
+                      <Textarea
+                        value={q.correct_answer}
+                        onChange={(e) => updateQuestion(i, 'correct_answer', e.target.value)}
+                        placeholder="Model answer (for reference)"
+                        className="mt-2"
+                        rows={3}
+                      />
+                    </>
+                  )}
                 </Card>
               ))}
-
-              {/* Descriptive Question */}
-              <Card className="p-4 bg-slate-50 border-0">
-                <Label className="text-xs text-slate-500 uppercase">Descriptive Question</Label>
-                <Input
-                  value={quizForm.questions[2].question}
-                  onChange={(e) => updateQuestion(2, 'question', e.target.value)}
-                  placeholder="Enter descriptive question"
-                  className="mt-2"
-                />
-                <Textarea
-                  value={quizForm.questions[2].correct_answer}
-                  onChange={(e) => updateQuestion(2, 'correct_answer', e.target.value)}
-                  placeholder="Model answer (for reference)"
-                  className="mt-2"
-                  rows={3}
-                />
-              </Card>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
