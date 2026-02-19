@@ -50,19 +50,22 @@ export default function Marks() {
     setUser(getStaffSession());
   }, []);
 
-  const { data: students = [] } = useQuery({
+  const { data: students = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['students-published'],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published' })
+    queryFn: () => base44.entities.Student.filter({ status: 'Published' }),
+    staleTime: 5 * 60 * 1000
   });
 
-  const { data: examTypes = [] } = useQuery({
+  const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
     queryKey: ['exam-types'],
-    queryFn: () => base44.entities.ExamType.list()
+    queryFn: () => base44.entities.ExamType.list(),
+    staleTime: 5 * 60 * 1000
   });
 
-  const { data: subjects = [] } = useQuery({
+  const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
     queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list()
+    queryFn: () => base44.entities.Subject.list(),
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: existingMarks = [] } = useQuery({
@@ -73,7 +76,8 @@ export default function Marks() {
       subject: selectedSubject,
       exam_type: selectedExam
     }),
-    enabled: !!selectedClass && !!selectedSection && !!selectedSubject && !!selectedExam
+    enabled: !!(selectedClass && selectedSection && selectedSubject && selectedExam),
+    staleTime: 2 * 60 * 1000
   });
 
   useEffect(() => {
