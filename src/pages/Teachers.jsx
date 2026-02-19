@@ -418,7 +418,7 @@ export default function Teachers() {
                 Cancel
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (selectedTeacher ? 'Update' : 'Add Teacher')}
+                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (selectedTeacher ? 'Update' : 'Add Staff')}
               </Button>
             </div>
           </form>
