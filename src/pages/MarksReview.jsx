@@ -1,0 +1,286 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import LoginRequired from '@/components/LoginRequired';
+import { getStaffSession } from '@/components/useStaffSession';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import PageHeader from '@/components/ui/PageHeader';
+import StatusBadge from '@/components/ui/StatusBadge';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Download, Eye, Check } from 'lucide-react';
+import { toast } from "sonner";
+
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+const SECTIONS = ['A', 'B', 'C', 'D'];
+
+export default function MarksReview() {
+  const [user, setUser] = useState(null);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const staffUser = getStaffSession();
+    setUser(staffUser);
+    setIsAdmin(staffUser?.role === 'Admin');
+  }, []);
+
+  // Fetch submitted marks
+  const { data: submittedMarks = [] } = useQuery({
+    queryKey: ['marks-submitted', selectedClass, selectedSection],
+    queryFn: () => {
+      const filter = { status: 'Submitted' };
+      if (selectedClass) filter.class_name = selectedClass;
+      if (selectedSection) filter.section = selectedSection;
+      return base44.entities.Marks.filter(filter);
+    },
+    enabled: !!(selectedClass && selectedSection)
+  });
+
+  // Group marks by exam type and subject
+  const groupedData = React.useMemo(() => {
+    const grouped = {};
+    submittedMarks.forEach(mark => {
+      const key = `${mark.exam_type}-${mark.subject}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          exam_type: mark.exam_type,
+          subject: mark.subject,
+          marks: [],
+          status: mark.status
+        };
+      }
+      grouped[key].marks.push(mark);
+    });
+    return Object.values(grouped);
+  }, [submittedMarks]);
+
+  const publishMutation = useMutation({
+    mutationFn: async (marksIds) => {
+      const promises = marksIds.map(id =>
+        base44.entities.Marks.update(id, { status: 'Published' })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['marks-submitted']);
+      toast.success('Results published successfully');
+    }
+  });
+
+  const handleDownloadExcel = async (examType, subject) => {
+    const marks = groupedData.find(g => g.exam_type === examType && g.subject === subject)?.marks || [];
+    
+    try {
+      const response = await base44.functions.invoke('exportMarksToExcel', {
+        marks,
+        className: selectedClass,
+        section: selectedSection,
+        examType,
+        subject
+      });
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Marks_${selectedClass}_${selectedSection}_${examType}_${subject}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      toast.error('Failed to download Excel');
+    }
+  };
+
+  const handleDownloadPDF = async (examType, subject) => {
+    const marks = groupedData.find(g => g.exam_type === examType && g.subject === subject)?.marks || [];
+    
+    try {
+      const response = await base44.functions.invoke('exportMarksToPDF', {
+        marks,
+        className: selectedClass,
+        section: selectedSection,
+        examType,
+        subject
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Marks_${selectedClass}_${selectedSection}_${examType}_${subject}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      toast.error('Failed to download PDF');
+    }
+  };
+
+  const handlePublish = (marksIds) => {
+    if (window.confirm('Publish these results? Students will be able to see them.')) {
+      publishMutation.mutate(marksIds);
+    }
+  };
+
+  if (!isAdmin) {
+    return (
+      <LoginRequired allowedRoles={['admin']} pageName="Marks Review">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-slate-700">Access Denied</h2>
+            <p className="text-slate-500 mt-2">Only admins can access this page</p>
+          </div>
+        </div>
+      </LoginRequired>
+    );
+  }
+
+  return (
+    <LoginRequired allowedRoles={['admin']} pageName="Marks Review">
+      <div className="min-h-screen bg-slate-50">
+        <PageHeader 
+          title="Review Marks"
+          subtitle="Review and publish student results"
+        />
+
+        <div className="p-4 lg:p-8 space-y-6">
+          {/* Filters */}
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CLASSES.map(c => (
+                      <SelectItem key={c} value={c}>Class {c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedSection} onValueChange={setSelectedSection} disabled={!selectedClass}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECTIONS.map(s => (
+                      <SelectItem key={s} value={s}>Section {s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Results */}
+          {selectedClass && selectedSection ? (
+            groupedData.length > 0 ? (
+              <div className="space-y-4">
+                {groupedData.map((group, idx) => (
+                  <Card key={idx} className="border-0 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
+                      <h3 className="text-white font-semibold flex items-center justify-between">
+                        <span>{group.subject} - {group.exam_type}</span>
+                        <span className="text-sm">({group.marks.length} students)</span>
+                      </h3>
+                    </div>
+                    <CardContent className="p-4 space-y-4">
+                      {/* Preview Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200">
+                              <th className="text-left p-2 font-semibold text-slate-700">Student Name</th>
+                              <th className="text-center p-2 font-semibold text-slate-700">Marks</th>
+                              <th className="text-center p-2 font-semibold text-slate-700">Grade</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {group.marks.slice(0, 5).map((mark) => (
+                              <tr key={mark.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                <td className="p-2">{mark.student_name}</td>
+                                <td className="text-center p-2">{mark.marks_obtained}/{mark.max_marks}</td>
+                                <td className="text-center p-2 font-semibold">{mark.grade}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {group.marks.length > 5 && (
+                          <p className="text-xs text-slate-500 p-2 text-center">
+                            +{group.marks.length - 5} more students
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadExcel(group.exam_type, group.subject)}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Excel
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadPDF(group.exam_type, group.subject)}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          PDF
+                        </Button>
+                        <Button
+                          onClick={() => handlePublish(group.marks.map(m => m.id))}
+                          disabled={publishMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700 gap-2"
+                          size="sm"
+                        >
+                          <Check className="h-4 w-4" />
+                          {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-16 text-center">
+                  <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-slate-700">No marks to review</h3>
+                  <p className="text-slate-500 mt-2">No submitted marks for this class and section</p>
+                </CardContent>
+              </Card>
+            )
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="py-16 text-center">
+                <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-700">Select Class & Section</h3>
+                <p className="text-slate-500 mt-2">Choose a class and section to review marks</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </LoginRequired>
+  );
+}
