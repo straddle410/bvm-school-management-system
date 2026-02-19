@@ -48,6 +48,7 @@ export default function Teachers() {
   const [formData, setFormData] = useState({
     teacher_id: '',
     name: '',
+    role: 'Teacher',
     email: '',
     phone: '',
     subjects: [],
