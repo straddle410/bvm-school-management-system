@@ -355,6 +355,44 @@ export default function StaffManagement() {
                   placeholder="Any additional notes"
                 />
               </div>
+              {/* Permissions */}
+              <div className="col-span-2">
+                <p className="text-sm font-semibold text-slate-700 mb-2">Feature Permissions</p>
+                <div className="space-y-2">
+                  {[
+                    { key: 'attendance', label: 'Attendance', approvalKey: 'attendance_needs_approval' },
+                    { key: 'marks', label: 'Marks Entry', approvalKey: 'marks_needs_approval' },
+                    { key: 'post_notices', label: 'Post Notices', approvalKey: 'notices_needs_approval' },
+                    { key: 'gallery', label: 'Gallery Upload', approvalKey: 'gallery_needs_approval' },
+                  ].map(({ key, label, approvalKey }) => (
+                    <div key={key} className="bg-slate-50 rounded-xl p-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-800">{label}</p>
+                        <Switch
+                          checked={!!form.permissions?.[key]}
+                          onCheckedChange={v => setForm(f => ({
+                            ...f,
+                            permissions: { ...f.permissions, [key]: v }
+                          }))}
+                        />
+                      </div>
+                      {form.permissions?.[key] && (
+                        <div className="flex items-center justify-between mt-2 pl-2 border-l-2 border-blue-200">
+                          <p className="text-xs text-slate-500">Needs admin approval</p>
+                          <Switch
+                            checked={!!form.permissions?.[approvalKey]}
+                            onCheckedChange={v => setForm(f => ({
+                              ...f,
+                              permissions: { ...f.permissions, [approvalKey]: v }
+                            }))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="col-span-2 flex items-center justify-between bg-slate-50 rounded-xl p-3">
                 <div>
                   <p className="text-sm font-medium">Account Active</p>
