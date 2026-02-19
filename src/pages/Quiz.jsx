@@ -207,7 +207,7 @@ export default function Quiz() {
         title="Daily Quiz"
         subtitle="Test your knowledge"
         actions={
-          user && (user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal' || user.role === 'Teacher' || user.role === 'teacher') && (
+          userPermissions.quiz && (
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="mr-2 h-4 w-4" /> Post Quiz
             </Button>
@@ -395,11 +395,11 @@ export default function Quiz() {
           </Card>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-white border shadow-sm">
-              <TabsTrigger value="quizzes">Today's Quizzes</TabsTrigger>
-              {isTeacher && <TabsTrigger value="manage">Manage Quizzes</TabsTrigger>}
-              <TabsTrigger value="history">My Attempts</TabsTrigger>
-            </TabsList>
+                  <TabsList className="bg-white border shadow-sm">
+                    <TabsTrigger value="quizzes">Today's Quizzes</TabsTrigger>
+                    {userPermissions.quiz && <TabsTrigger value="manage">Manage Quizzes</TabsTrigger>}
+                    <TabsTrigger value="history">My Attempts</TabsTrigger>
+                  </TabsList>
 
             <TabsContent value="quizzes" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
