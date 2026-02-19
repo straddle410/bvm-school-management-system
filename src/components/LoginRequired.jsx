@@ -49,7 +49,7 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
     );
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.some(r => r.toLowerCase() === (user.role || '').toLowerCase())) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-6 text-center">
         <div className="bg-white rounded-3xl p-8 shadow-sm max-w-xs w-full">
