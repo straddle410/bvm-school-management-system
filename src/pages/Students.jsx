@@ -471,7 +471,7 @@ export default function Students() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Students">
-    <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Students"
         subtitle={`${filteredStudents.length} students`}

@@ -87,7 +87,7 @@ export default function Reports() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Reports">
-    <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Reports"
         subtitle="Analytics and insights"

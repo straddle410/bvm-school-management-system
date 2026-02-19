@@ -134,7 +134,7 @@ export default function Attendance() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Attendance">
-    <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Attendance"
         subtitle="Mark and manage daily attendance"

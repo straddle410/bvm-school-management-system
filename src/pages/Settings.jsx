@@ -137,7 +137,7 @@ export default function Settings() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Settings">
-    <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Settings"
         subtitle="Manage school configuration"

@@ -143,7 +143,7 @@ export default function StaffManagement() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Staff Management">
-    <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
       <PageHeader
         title="Staff Management"
         subtitle="Create and manage staff accounts"
