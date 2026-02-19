@@ -21,12 +21,16 @@ export default function Gallery() {
 
   useEffect(() => {
     const session = getStaffSession();
-    if (session) setUser(session);
-    else base44.auth.me().then(setUser).catch(() => {});
+    if (session) {
+      setUser(session);
+    } else {
+      base44.auth.me().then(setUser).catch(() => {});
+    }
   }, []);
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal';
-  const canUpload = isAdmin || (user?.permissions?.gallery === true);
+  const hasGalleryPermission = user?.permissions?.gallery === true;
+  const canUpload = isAdmin || hasGalleryPermission;
   const needsApproval = !isAdmin && user?.permissions?.gallery_needs_approval !== false;
 
   const { data: albums = [] } = useQuery({
