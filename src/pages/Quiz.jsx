@@ -109,6 +109,14 @@ export default function Quiz() {
     }
   });
 
+  const deleteQuizMutation = useMutation({
+    mutationFn: (id) => base44.entities.Quiz.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['quizzes']);
+      toast.success('Quiz deleted successfully');
+    }
+  });
+
   const submitAttemptMutation = useMutation({
     mutationFn: async () => {
       let score = 0;
@@ -470,6 +478,18 @@ export default function Quiz() {
                                 Publish
                               </Button>
                             )}
+                            <Button 
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to delete this quiz?')) {
+                                  deleteQuizMutation.mutate(quiz.id);
+                                }
+                              }}
+                              disabled={deleteQuizMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
