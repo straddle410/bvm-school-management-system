@@ -275,9 +275,13 @@ export default function Notices() {
               <Label htmlFor="pinned" className="cursor-pointer">Pin this notice</Label>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Posting...' : 'Post Notice'}
+              <Button type="button" variant="outline" onClick={() => {
+                setShowDialog(false);
+                setEditingNotice(null);
+                resetForm();
+              }}>Cancel</Button>
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                {editingNotice ? (updateMutation.isPending ? 'Updating...' : 'Update Notice') : (createMutation.isPending ? 'Posting...' : 'Post Notice')}
               </Button>
             </div>
           </form>
