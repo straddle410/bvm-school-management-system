@@ -225,8 +225,10 @@ export default function Dashboard() {
             <div className="grid grid-cols-3 gap-3">
               {quickActions.map((item) => {
                 const isAdmin = user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal';
+                const hasRolePermission = !item.roleRequired || item.roleRequired.includes(user.role);
                 const hasPermission = isAdmin || !item.permission || (user.permissions?.[item.permission] === true);
-                if (!hasPermission) return null;
+                const shouldShow = (item.roleRequired && hasRolePermission) || (!item.roleRequired && hasPermission);
+                if (!shouldShow) return null;
                 return (
                   <Link key={item.label} to={createPageUrl(item.page)}>
                     <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm">
