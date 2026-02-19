@@ -68,14 +68,13 @@ export default function Marks() {
   });
 
   const { data: existingMarks = [] } = useQuery({
-    queryKey: ['marks', selectedClass, selectedSection, selectedSubject, selectedExam],
+    queryKey: ['marks', selectedClass, selectedSection, selectedExam],
     queryFn: () => base44.entities.Marks.filter({
       class_name: selectedClass,
       section: selectedSection,
-      subject: selectedSubject,
       exam_type: selectedExam
     }),
-    enabled: !!(selectedClass && selectedSection && selectedSubject && selectedExam),
+    enabled: !!(selectedClass && selectedSection && selectedExam),
     staleTime: 2 * 60 * 1000
   });
 
@@ -83,7 +82,8 @@ export default function Marks() {
     if (existingMarks.length > 0) {
       const data = {};
       existingMarks.forEach(m => {
-        data[m.student_id] = { 
+        if (!data[m.student_id]) data[m.student_id] = {};
+        data[m.student_id][m.subject] = { 
           marks_obtained: m.marks_obtained, 
           id: m.id, 
           status: m.status,
