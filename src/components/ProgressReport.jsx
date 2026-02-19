@@ -6,11 +6,7 @@ import { Download, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function ProgressReport({ studentResult, marks, onExporting }) {
-  const getSubjectRemark = (percentage) => {
-    if (percentage >= 80) return 'Excellent performance.';
-    if (percentage >= 60) return 'Can do better with more practice.';
-    return 'Needs improvement in this subject.';
-  };
+
 
   const calculateSubjectStats = () => {
     const subjects = {};
