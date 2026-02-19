@@ -116,41 +116,48 @@ export default function Marks() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const promises = filteredStudents.map(student => {
-        const existing = marksData[student.student_id || student.id];
-        if (existing?.marks_obtained === undefined) return null;
+      const promises = [];
+      filteredStudents.forEach(student => {
+        const studentMarks = marksData[student.student_id || student.id];
+        if (!studentMarks) return;
         
-        const marks = parseFloat(existing.marks_obtained);
-        const percentage = (marks / maxMarks) * 100;
-        let grade = 'F';
-        if (percentage >= 90) grade = 'A+';
-        else if (percentage >= 80) grade = 'A';
-        else if (percentage >= 70) grade = 'B+';
-        else if (percentage >= 60) grade = 'B';
-        else if (percentage >= 50) grade = 'C';
-        else if (percentage >= passingMarks) grade = 'D';
+        subjectList.forEach(subject => {
+          const existing = studentMarks[subject];
+          if (existing?.marks_obtained === undefined) return;
+          
+          const marks = parseFloat(existing.marks_obtained);
+          const percentage = (marks / maxMarks) * 100;
+          let grade = 'F';
+          if (percentage >= 90) grade = 'A+';
+          else if (percentage >= 80) grade = 'A';
+          else if (percentage >= 70) grade = 'B+';
+          else if (percentage >= 60) grade = 'B';
+          else if (percentage >= 50) grade = 'C';
+          else if (percentage >= passingMarks) grade = 'D';
 
-        const data = {
-          student_id: student.student_id || student.id,
-          student_name: student.name,
-          class_name: selectedClass,
-          section: selectedSection,
-          subject: selectedSubject,
-          exam_type: selectedExam,
-          marks_obtained: marks,
-          max_marks: maxMarks,
-          grade,
-          academic_year: '2024-25',
-          entered_by: user?.email,
-          status: 'Submitted',
-          remarks: existing.remarks
-        };
-        
-        if (existing?.id) {
-          return base44.entities.Marks.update(existing.id, data);
-        }
-        return base44.entities.Marks.create(data);
-      }).filter(Boolean);
+          const data = {
+            student_id: student.student_id || student.id,
+            student_name: student.name,
+            class_name: selectedClass,
+            section: selectedSection,
+            subject: subject,
+            exam_type: selectedExam,
+            marks_obtained: marks,
+            max_marks: maxMarks,
+            grade,
+            academic_year: '2024-25',
+            entered_by: user?.email,
+            status: 'Submitted',
+            remarks: existing.remarks
+          };
+          
+          if (existing?.id) {
+            promises.push(base44.entities.Marks.update(existing.id, data));
+          } else {
+            promises.push(base44.entities.Marks.create(data));
+          }
+        });
+      });
       return Promise.all(promises);
     },
     onSuccess: () => {
