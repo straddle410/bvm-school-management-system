@@ -246,8 +246,7 @@ export default function StaffLogin() {
             </p>
           </>
         )}
-      </div>
-      </div>
-    </div>
+        </div>
+        </div>
   );
 }
