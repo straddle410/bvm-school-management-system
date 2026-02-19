@@ -282,50 +282,76 @@ export default function Results() {
 
         {/* Result */}
          {searched && (
-           studentResult ? (
-             <div className="space-y-4">
-               {/* Student Header */}
-               <div className="bg-[#1a237e] px-4 py-4 rounded-lg text-white">
-                 <h3 className="font-bold text-lg">{studentResult.student_name}</h3>
-                 <p className="text-blue-200 text-xs">
-                   Class {studentResult.class_name}-{studentResult.section} | ID: {studentResult.student_id}
-                 </p>
-               </div>
+            studentResult ? (
+              <div className="space-y-4">
+                {/* Student Header */}
+                <div className="bg-[#1a237e] px-4 py-4 rounded-lg text-white">
+                  <h3 className="font-bold text-lg">{studentResult.student_name}</h3>
+                  <p className="text-blue-200 text-xs">
+                    Class {studentResult.class_name}-{studentResult.section} | ID: {studentResult.student_id}
+                  </p>
+                </div>
 
-               {/* Separate cards for each exam type */}
-               {Object.entries(resultsByExam).map(([examType, marks]) => (
-                 <Card key={examType} className="border-0 shadow-sm overflow-hidden">
-                   <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
-                     <h4 className="text-white font-semibold text-sm flex items-center justify-between">
-                       <span>{examType}</span>
-                       <span className="text-yellow-300 text-lg font-bold">{getPercentage(marks)}%</span>
-                     </h4>
-                   </div>
-                   <CardContent className="p-4">
-                     <div className="space-y-2">
-                       {marks.map((m, i) => (
-                         <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
-                           <div>
-                             <p className="font-medium text-sm text-slate-800">{m.subject}</p>
-                           </div>
-                           <div className="flex items-center gap-3">
-                             <span className="text-sm font-semibold text-slate-700">
-                               {m.marks_obtained}/{m.max_marks}
-                             </span>
-                             {m.grade && (
-                               <Badge className={`text-xs ${gradeColor(m.grade)}`}>
-                                 {m.grade}
-                               </Badge>
-                             )}
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   </CardContent>
-                 </Card>
-               ))}
-             </div>
-           ) : (
+                {/* Toggle View Button */}
+                {allMarks.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setShowProgressReport(false)}
+                      variant={!showProgressReport ? 'default' : 'outline'}
+                      className={!showProgressReport ? 'bg-[#1a237e]' : ''}
+                    >
+                      Detailed Results
+                    </Button>
+                    <Button
+                      onClick={() => setShowProgressReport(true)}
+                      variant={showProgressReport ? 'default' : 'outline'}
+                      className={showProgressReport ? 'bg-[#1a237e]' : ''}
+                    >
+                      Progress Report
+                    </Button>
+                  </div>
+                )}
+
+                {showProgressReport && allMarks.length > 0 ? (
+                  <ProgressReport studentResult={studentResult} marks={allMarks} />
+                ) : (
+                  <>
+                    {/* Separate cards for each exam type */}
+                    {Object.entries(resultsByExam).map(([examType, marks]) => (
+                      <Card key={examType} className="border-0 shadow-sm overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
+                          <h4 className="text-white font-semibold text-sm flex items-center justify-between">
+                            <span>{examType}</span>
+                            <span className="text-yellow-300 text-lg font-bold">{getPercentage(marks)}%</span>
+                          </h4>
+                        </div>
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            {marks.map((m, i) => (
+                              <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
+                                <div>
+                                  <p className="font-medium text-sm text-slate-800">{m.subject}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-semibold text-slate-700">
+                                    {m.marks_obtained}/{m.max_marks}
+                                  </span>
+                                  {m.grade && (
+                                    <Badge className={`text-xs ${gradeColor(m.grade)}`}>
+                                      {m.grade}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                )}
+              </div>
+            ) : (
              <Card className="border-0 shadow-sm">
                <CardContent className="py-16 text-center">
                  <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-3" />
