@@ -65,8 +65,8 @@ import Results from './pages/Results';
 import Settings from './pages/Settings';
 import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
-import Teachers from './pages/Teachers';
 import Students from './pages/Students';
+import Teachers from './pages/Teachers';
 import __Layout from './Layout.jsx';
 
 
@@ -89,8 +89,8 @@ export const PAGES = {
     "Settings": Settings,
     "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
-    "Teachers": Teachers,
     "Students": Students,
+    "Teachers": Teachers,
 }
 
 export const pagesConfig = {

@@ -64,6 +64,7 @@ export default function Results() {
     const filter = { status: 'Published' };
     if (studentId) filter.student_id = studentId;
     if (filterExam) filter.exam_type = filterExam;
+    if (filterClass) filter.class_name = filterClass;
 
     const marks = await base44.entities.Marks.filter(filter);
     setSearched(true);
