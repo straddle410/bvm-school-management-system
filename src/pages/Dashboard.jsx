@@ -59,8 +59,6 @@ export default function Dashboard() {
     queryFn: () => base44.entities.CalendarEvent.filter({ status: 'Published' })
   });
 
-  // eslint-disable-next-line no-unused-vars
-
   const { data: notices = [] } = useQuery({
     queryKey: ['notices-published'],
     queryFn: () => base44.entities.Notice.filter({ status: 'Published' })
