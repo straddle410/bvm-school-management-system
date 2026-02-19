@@ -394,37 +394,45 @@ export default function Quiz() {
               </div>
             </TabsContent>
 
-            {isTeacher && (
+            {user && (user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal' || user.role === 'Teacher' || user.role === 'teacher') && (
               <TabsContent value="manage" className="mt-6">
                 <div className="space-y-4">
-                  {quizzes.map(quiz => (
-                    <Card key={quiz.id} className="border-0 shadow-sm">
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                            <HelpCircle className="h-6 w-6 text-amber-600" />
+                  {quizzes.map(quiz => {
+                    const attemptCount = attempts.filter(a => a.quiz_id === quiz.id).length;
+                    return (
+                      <Card key={quiz.id} className="border-0 shadow-sm">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                              <HelpCircle className="h-6 w-6 text-amber-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold">{quiz.title}</h3>
+                              <p className="text-sm text-slate-500">
+                                {quiz.subject} • Class {quiz.class_name} • {quiz.quiz_date}
+                              </p>
+                              {quiz.status === 'Published' && (
+                                <p className="text-xs text-blue-600 font-semibold mt-1">
+                                  {attemptCount} student{attemptCount !== 1 ? 's' : ''} answered
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-semibold">{quiz.title}</h3>
-                            <p className="text-sm text-slate-500">
-                              {quiz.subject} • Class {quiz.class_name} • {quiz.quiz_date}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <StatusBadge status={quiz.status} />
+                            {quiz.status === 'Draft' && (
+                              <Button 
+                                size="sm"
+                                onClick={() => submitQuizMutation.mutate(quiz.id)}
+                              >
+                                Publish
+                              </Button>
+                            )}
                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <StatusBadge status={quiz.status} />
-                          {quiz.status === 'Draft' && (
-                            <Button 
-                              size="sm"
-                              onClick={() => submitQuizMutation.mutate(quiz.id)}
-                            >
-                              Submit
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
 
                   {quizzes.length === 0 && (
                     <div className="py-16 text-center">
