@@ -110,6 +110,7 @@ export default function Teachers() {
     setFormData({
       teacher_id: '',
       name: '',
+      role: 'Teacher',
       email: '',
       phone: '',
       subjects: [],
