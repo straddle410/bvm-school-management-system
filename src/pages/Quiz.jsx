@@ -138,11 +138,10 @@ export default function Quiz() {
     setQuizForm({
       title: '',
       quiz_date: format(new Date(), 'yyyy-MM-dd'),
-      class_name: '',
       subject: '',
       questions: [
         { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' },
-        { question: '', type: 'Descriptive', options: [], correct_answer: '' }
+        { question: '', type: 'MCQ', options: ['', '', '', ''], correct_answer: '' }
       ]
     });
   };
