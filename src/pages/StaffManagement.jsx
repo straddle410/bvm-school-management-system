@@ -85,12 +85,12 @@ export default function StaffManagement() {
       return base44.entities.StaffAccount.create(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['staff-accounts']);
-      setShowDialog(false);
-      setEditingStaff(null);
-      setForm(emptyForm);
-      toast.success(editingStaff ? 'Staff updated' : 'Staff account created');
-    }
+       queryClient.invalidateQueries({ queryKey: ['staff-accounts'] });
+       setShowDialog(false);
+       setEditingStaff(null);
+       setForm(emptyForm);
+       toast.success(editingStaff ? 'Staff updated' : 'Staff account created');
+     }
   });
 
   const toggleActiveMutation = useMutation({
