@@ -121,8 +121,20 @@ export default function StaffManagement() {
   });
 
   const openCreate = () => {
+    setShowTeacherSelector(true);
+  };
+
+  const createFromTeacher = (teacher) => {
     setEditingStaff(null);
-    setForm(emptyForm);
+    setForm({
+      ...emptyForm,
+      full_name: teacher.name,
+      email: teacher.email,
+      phone: teacher.phone || '',
+      role: 'Teacher',
+      username: generateUsername(teacher.name),
+    });
+    setShowTeacherSelector(false);
     setShowDialog(true);
   };
 
