@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Save, Image as ImageIcon, Mail, Phone, Shield, Calendar
+  Save, Image as ImageIcon, Mail, Phone, Shield, Calendar, Lock
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
@@ -21,6 +21,12 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     display_name: '',
     phone: ''
+  });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
   });
 
   useEffect(() => {
@@ -58,6 +64,31 @@ export default function Profile() {
       toast.success('Profile updated successfully');
       setPhotoFile(null);
       loadUser();
+    }
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (passwordForm.new_password !== passwordForm.confirm_password) {
+        throw new Error('Passwords do not match');
+      }
+      if (passwordForm.new_password.length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+      // Call backend function to change password
+      const response = await base44.functions.invoke('changePassword', {
+        current_password: passwordForm.current_password,
+        new_password: passwordForm.new_password
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast.success('Password changed successfully');
+      setShowPasswordForm(false);
+      setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to change password');
     }
   });
 
@@ -160,6 +191,80 @@ export default function Profile() {
                 {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Security */}
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle>Security</CardTitle>
+            <CardDescription>Manage your password and security settings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!showPasswordForm ? (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPasswordForm(true)}
+                className="w-full"
+              >
+                <Lock className="h-4 w-4 mr-2" />
+                Change Password
+              </Button>
+            ) : (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                changePasswordMutation.mutate();
+              }} className="space-y-4">
+                <div>
+                  <Label>Current Password</Label>
+                  <Input
+                    type="password"
+                    value={passwordForm.current_password}
+                    onChange={(e) => setPasswordForm({...passwordForm, current_password: e.target.value})}
+                    placeholder="Enter your current password"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>New Password</Label>
+                  <Input
+                    type="password"
+                    value={passwordForm.new_password}
+                    onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
+                    placeholder="Enter new password (min 6 characters)"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Confirm Password</Label>
+                  <Input
+                    type="password"
+                    value={passwordForm.confirm_password}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
+                    placeholder="Confirm new password"
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={changePasswordMutation.isPending}
+                  >
+                    {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
+                  </Button>
+                </div>
+              </form>
+            )}
           </CardContent>
         </Card>
 
