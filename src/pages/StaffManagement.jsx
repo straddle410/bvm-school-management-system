@@ -427,25 +427,25 @@ export default function StaffManagement() {
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-800">{label}</p>
                         <Switch
-                          checked={!!form.permissions?.[key]}
-                          onCheckedChange={v => setForm(f => ({
-                            ...f,
-                            permissions: { ...f.permissions, [key]: v }
-                          }))}
-                        />
-                      </div>
-                      {form.permissions?.[key] && (
-                        <div className="flex items-center justify-between mt-2 pl-2 border-l-2 border-blue-200">
-                          <p className="text-xs text-slate-500">Needs admin approval</p>
-                          <Switch
-                            checked={!!form.permissions?.[approvalKey]}
-                            onCheckedChange={v => setForm(f => ({
-                              ...f,
-                              permissions: { ...f.permissions, [approvalKey]: v }
-                            }))}
-                          />
+                           checked={!!form.permissions?.[key]}
+                           onCheckedChange={v => setForm(f => ({
+                             ...f,
+                             permissions: { ...f.permissions, [key]: v }
+                           }))}
+                         />
                         </div>
-                      )}
+                        {form.permissions?.[key] && approvalKey && (
+                         <div className="flex items-center justify-between mt-2 pl-2 border-l-2 border-blue-200">
+                           <p className="text-xs text-slate-500">Needs admin approval</p>
+                           <Switch
+                             checked={!!form.permissions?.[approvalKey]}
+                             onCheckedChange={v => setForm(f => ({
+                               ...f,
+                               permissions: { ...f.permissions, [approvalKey]: v }
+                             }))}
+                           />
+                         </div>
+                        )}
                     </div>
                   ))}
                 </div>
