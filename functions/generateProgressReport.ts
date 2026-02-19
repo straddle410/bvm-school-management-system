@@ -181,9 +181,15 @@ async function generatePDF(reportData) {
       const doc = new PDFDocument();
       const chunks = [];
 
-      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('data', chunk => chunks.push(new Uint8Array(chunk)));
       doc.on('end', () => {
-        const buffer = Buffer.concat(chunks);
+        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+        const buffer = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          buffer.set(chunk, offset);
+          offset += chunk.length;
+        }
         resolve(new Response(buffer, {
           headers: {
             'Content-Type': 'application/pdf',
@@ -212,14 +218,13 @@ async function generatePDF(reportData) {
 
       // Table header
       doc.fontSize(9).font('Helvetica-Bold');
-      doc.rect(50, doc.y, 500, 20).fillAndStroke('#1a237e', '#1a237e');
+      doc.rect(50, doc.y, 450, 20).fillAndStroke('#1a237e', '#1a237e');
       
       const columns = [
-        { label: 'Subject', x: 60, width: 120 },
-        { label: 'Obtained', x: 190, width: 70 },
-        { label: 'Total', x: 270, width: 70 },
-        { label: '%', x: 350, width: 50 },
-        { label: 'Remarks', x: 410, width: 130 }
+        { label: 'Subject', x: 60, width: 150 },
+        { label: 'Obtained', x: 220, width: 70 },
+        { label: 'Total', x: 300, width: 70 },
+        { label: '%', x: 380, width: 50 }
       ];
 
       doc.fillColor('white');
@@ -230,15 +235,14 @@ async function generatePDF(reportData) {
 
       // Table rows
       doc.fillColor('black').font('Helvetica');
-      reportData.subjects.forEach((subj, idx) => {
+      reportData.subjects.forEach((subj) => {
         const yPos = doc.y;
         doc.fontSize(9);
-        doc.text(subj.subject, 60, yPos, { width: 120 });
-        doc.text(subj.marks_obtained.toString(), 190, yPos, { width: 70 });
-        doc.text(subj.max_marks.toString(), 270, yPos, { width: 70 });
-        doc.text(`${subj.percentage}%`, 350, yPos, { width: 50 });
-        doc.text(subj.remark, 410, yPos, { width: 130, height: 30 });
-        doc.moveDown(1.5);
+        doc.text(subj.subject, 60, yPos, { width: 150 });
+        doc.text(subj.marks_obtained.toString(), 220, yPos, { width: 70 });
+        doc.text(subj.max_marks.toString(), 300, yPos, { width: 70 });
+        doc.text(`${subj.percentage}%`, 380, yPos, { width: 50 });
+        doc.moveDown(1.2);
       });
 
       doc.moveDown(0.5);
