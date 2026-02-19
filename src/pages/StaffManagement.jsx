@@ -335,7 +335,11 @@ export default function StaffManagement() {
           <DialogHeader>
             <DialogTitle>{editingStaff ? 'Edit Staff Account' : 'Create Staff Account'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={e => { e.preventDefault(); saveMutation.mutate(form); }} className="space-y-4 pt-2">
+          <form onSubmit={e => { 
+            e.preventDefault();
+            const dataToSave = { ...form, permissions: { ...DEFAULT_PERMISSIONS, ...form.permissions } };
+            saveMutation.mutate(dataToSave);
+          }} className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
                 <Label>Full Name *</Label>
