@@ -100,7 +100,7 @@ export default function Results() {
     return max > 0 ? Math.round((total / max) * 100) : 0;
   };
 
-  const canSearch = selectedStudentId || rollInput.trim();
+  const canSearch = (selectedStudentId || rollInput.trim()) && filterExam;
 
   return (
     <div className="min-h-screen bg-gray-50">
