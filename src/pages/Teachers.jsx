@@ -220,6 +220,7 @@ export default function Teachers() {
   ];
 
   return (
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Teachers">
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Teachers"

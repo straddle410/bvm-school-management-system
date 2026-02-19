@@ -136,6 +136,7 @@ export default function Settings() {
   const [newSubject, setNewSubject] = useState('');
 
   return (
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Settings">
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Settings"
