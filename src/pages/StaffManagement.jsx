@@ -40,6 +40,7 @@ const DEFAULT_PERMISSIONS = {
   gallery: false,
   gallery_needs_approval: true,
   quiz: false,
+  quiz_needs_approval: true,
 };
 
 const emptyForm = {
