@@ -140,6 +140,60 @@ export default function Students() {
     }
   });
 
+  const downloadTemplate = () => {
+    const headers = [
+      'student_id', 'name', 'class_name', 'section', 'roll_no',
+      'dob', 'gender', 'blood_group',
+      'parent_name', 'parent_phone', 'parent_email',
+      'address', 'admission_date', 'academic_year', 'status'
+    ];
+    const sampleRow = [
+      'STU001', 'Ramesh Kumar', '5', 'A', '1',
+      '2015-04-10', 'Male', 'B+',
+      'Suresh Kumar', '9876543210', 'suresh@email.com',
+      '123 Main Street, City', '2024-06-01', '2024-25', 'Pending'
+    ];
+    const csv = [headers.join(','), sampleRow.join(',')].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'student_import_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async () => {
+    if (!importFile) return;
+    setImportStatus('loading');
+    const text = await importFile.text();
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const rows = lines.slice(1);
+    let success = 0, failed = 0, errors = [];
+    for (const line of rows) {
+      if (!line.trim()) continue;
+      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = values[i] || ''; });
+      if (!obj.name || !obj.class_name || !obj.section) {
+        failed++;
+        errors.push(`Row skipped: missing name, class or section`);
+        continue;
+      }
+      if (obj.roll_no) obj.roll_no = parseInt(obj.roll_no) || undefined;
+      try {
+        await base44.entities.Student.create({ ...obj, status: obj.status || 'Pending' });
+        success++;
+      } catch (e) {
+        failed++;
+        errors.push(`${obj.name}: ${e.message}`);
+      }
+    }
+    setImportStatus({ success, failed, errors });
+    queryClient.invalidateQueries(['students']);
+  };
+
   const resetForm = () => {
     setFormData({
       student_id: '',
