@@ -54,10 +54,22 @@ export default function Calendar() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {
-      // User not authenticated, set user to null
-      setUser(null);
-    });
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (e) {
+        // Check if staff is logged in
+        const staffSession = localStorage.getItem('staffSession');
+        if (staffSession) {
+          const staff = JSON.parse(staffSession);
+          setUser({ role: staff.role });
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    loadUser();
   }, []);
 
   const { data: events = [], isLoading } = useQuery({
