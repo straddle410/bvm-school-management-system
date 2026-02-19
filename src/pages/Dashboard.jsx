@@ -59,28 +59,32 @@ export default function Dashboard() {
     queryFn: () => base44.entities.CalendarEvent.filter({ status: 'Published' })
   });
 
-  const { data: admissions = [] } = useQuery({
-    queryKey: ['admissions-recent'],
-    queryFn: () => base44.entities.Admission.list('-created_date')
+  const { data: notices = [] } = useQuery({
+    queryKey: ['notices-published'],
+    queryFn: () => base44.entities.Notice.filter({ status: 'Published' })
   });
 
   const upcomingEvents = events
     .filter(e => new Date(e.start_date) >= new Date())
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-    .slice(0, 4);
+    .slice(0, 3);
+
+  const recentNotices = notices
+    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+    .slice(0, 3);
 
   const announcements = [
+    ...recentNotices.map(n => ({
+      id: n.id,
+      title: n.title,
+      date: n.publish_date || n.created_date,
+      type: n.notice_type || 'Notice'
+    })),
     ...upcomingEvents.map(e => ({
       id: e.id,
       title: e.title,
       date: e.start_date,
       type: e.event_type
-    })),
-    ...admissions.slice(0, 3).map(a => ({
-      id: a.id,
-      title: `New Admission: ${a.student_name}`,
-      date: a.created_date,
-      type: 'Admission'
     }))
   ].slice(0, 5);
 
