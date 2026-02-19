@@ -34,17 +34,19 @@ export default function MarksReview() {
     setIsAdmin(staffUser?.role === 'Admin');
   }, []);
 
-  // Fetch submitted marks
-  const { data: submittedMarks = [] } = useQuery({
-    queryKey: ['marks-submitted', selectedClass, selectedSection],
-    queryFn: () => {
-      const filter = { status: 'Submitted' };
-      if (selectedClass) filter.class_name = selectedClass;
-      if (selectedSection) filter.section = selectedSection;
-      return base44.entities.Marks.filter(filter);
-    },
-    enabled: !!(selectedClass && selectedSection)
-  });
+  // Fetch submitted and published marks
+   const { data: submittedMarks = [] } = useQuery({
+     queryKey: ['marks-submitted', selectedClass, selectedSection],
+     queryFn: async () => {
+       const filter = {
+         status: { $in: ['Submitted', 'Published'] }
+       };
+       if (selectedClass) filter.class_name = selectedClass;
+       if (selectedSection) filter.section = selectedSection;
+       return base44.entities.Marks.filter(filter);
+     },
+     enabled: !!(selectedClass && selectedSection)
+   });
 
   // Group marks by exam type
    const groupedData = React.useMemo(() => {
