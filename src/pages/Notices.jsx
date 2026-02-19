@@ -103,6 +103,20 @@ export default function Notices() {
     });
   };
 
+  const openEditForm = (notice) => {
+    setEditingNotice(notice);
+    setForm({
+      title: notice.title,
+      content: notice.content,
+      notice_type: notice.notice_type,
+      target_audience: notice.target_audience,
+      publish_date: notice.publish_date,
+      expiry_date: notice.expiry_date || '',
+      is_pinned: notice.is_pinned
+    });
+    setShowDialog(true);
+  };
+
   const visibleNotices = notices.filter(n => {
     if (!isStaff && n.status !== 'Published') return false;
     if (filterType !== 'all' && n.notice_type !== filterType) return false;
