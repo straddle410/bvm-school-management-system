@@ -212,75 +212,75 @@ export default function MarksReview() {
           {selectedClass && selectedSection ? (
             groupedData.length > 0 ? (
               <div className="space-y-4">
-                {groupedData.map((group, idx) => (
-                  <Card key={idx} className="border-0 shadow-sm overflow-hidden">
-                    <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
-                      <h3 className="text-white font-semibold flex items-center justify-between">
-                        <span>{group.subject} - {group.exam_type}</span>
-                        <span className="text-sm">({group.marks.length} students)</span>
-                      </h3>
-                    </div>
-                    <CardContent className="p-4 space-y-4">
-                      {/* Preview Table */}
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-slate-200">
-                              <th className="text-left p-2 font-semibold text-slate-700">Student Name</th>
-                              <th className="text-center p-2 font-semibold text-slate-700">Marks</th>
-                              <th className="text-center p-2 font-semibold text-slate-700">Grade</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {group.marks.slice(0, 5).map((mark) => (
-                              <tr key={mark.id} className="border-b border-slate-100 hover:bg-slate-50">
-                                <td className="p-2">{mark.student_name}</td>
-                                <td className="text-center p-2">{mark.marks_obtained}/{mark.max_marks}</td>
-                                <td className="text-center p-2 font-semibold">{mark.grade}</td>
+                {groupedData.map((group, idx) => {
+                  const allMarkIds = group.students.flatMap(s => 
+                    Object.values(s.subjects).map(m => m.id)
+                  );
+                  return (
+                    <Card key={idx} className="border-0 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
+                        <h3 className="text-white font-semibold flex items-center justify-between">
+                          <span>{group.exam_type}</span>
+                          <span className="text-sm">({group.students.length} students)</span>
+                        </h3>
+                      </div>
+                      <CardContent className="p-4 space-y-4">
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-slate-200 bg-slate-50">
+                                <th className="text-left p-2 font-semibold text-slate-700 w-16">Rank</th>
+                                <th className="text-left p-2 font-semibold text-slate-700 min-w-40">Student Name</th>
+                                {group.subjects.map(subject => (
+                                  <th key={subject} className="text-center p-2 font-semibold text-slate-700 min-w-24">
+                                    {subject}
+                                  </th>
+                                ))}
+                                <th className="text-center p-2 font-semibold text-slate-700 w-20">Total</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        {group.marks.length > 5 && (
-                          <p className="text-xs text-slate-500 p-2 text-center">
-                            +{group.marks.length - 5} more students
-                          </p>
-                        )}
-                      </div>
+                            </thead>
+                            <tbody>
+                              {group.students.slice(0, 10).map((student) => (
+                                <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
+                                  <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
+                                  <td className="p-2">{student.student_name}</td>
+                                  {group.subjects.map(subject => {
+                                    const mark = student.subjects[subject];
+                                    return (
+                                      <td key={subject} className="text-center p-2">
+                                        {mark ? `${mark.marks_obtained}` : '-'}
+                                      </td>
+                                    );
+                                  })}
+                                  <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {group.students.length > 10 && (
+                            <p className="text-xs text-slate-500 p-2 text-center">
+                              +{group.students.length - 10} more students
+                            </p>
+                          )}
+                        </div>
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadExcel(group.exam_type, group.subject)}
-                          className="gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          Excel
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadPDF(group.exam_type, group.subject)}
-                          className="gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          PDF
-                        </Button>
-                        <Button
-                          onClick={() => handlePublish(group.marks.map(m => m.id))}
-                          disabled={publishMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700 gap-2"
-                          size="sm"
-                        >
-                          <Check className="h-4 w-4" />
-                          {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Button
+                            onClick={() => handlePublish(allMarkIds)}
+                            disabled={publishMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700 gap-2"
+                            size="sm"
+                          >
+                            <Check className="h-4 w-4" />
+                            {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <Card className="border-0 shadow-sm">
