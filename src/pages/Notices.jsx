@@ -175,7 +175,7 @@ export default function Notices() {
             </p>
             <div className="space-y-3">
               {pinned.map(notice => (
-                <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} />
+                <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm} />
               ))}
             </div>
           </div>
