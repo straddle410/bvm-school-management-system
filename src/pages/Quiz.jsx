@@ -423,13 +423,29 @@ export default function Quiz() {
                               {attemptCount} student{attemptCount !== 1 ? 's' : ''} answered
                             </p>
                           </div>
-                          <Button 
-                            className="w-full"
-                            disabled={attempted}
-                            onClick={() => setSelectedQuiz(quiz)}
-                          >
-                            {attempted ? 'Already Answered' : 'Start Quiz'}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              className="flex-1"
+                              disabled={attempted}
+                              onClick={() => setSelectedQuiz(quiz)}
+                            >
+                              {attempted ? 'Already Answered' : 'Start Quiz'}
+                            </Button>
+                            {userPermissions.quiz && (
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this quiz?')) {
+                                    deleteQuizMutation.mutate(quiz.id);
+                                  }
+                                }}
+                                disabled={deleteQuizMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
