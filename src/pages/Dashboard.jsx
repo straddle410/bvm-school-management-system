@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setBannerIndex(i => (i + 1) % BANNER_IMAGES.length);
+      setBannerIndex(i => (i + 1) % (banners.length || 1));
     }, 3500);
     return () => clearInterval(timer);
   }, []);
