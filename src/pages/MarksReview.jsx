@@ -86,17 +86,53 @@ export default function MarksReview() {
    }, [submittedMarks]);
 
   const publishMutation = useMutation({
-    mutationFn: async (marksIds) => {
-      const promises = marksIds.map(id =>
-        base44.entities.Marks.update(id, { status: 'Published' })
-      );
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['marks-submitted']);
-      toast.success('Results published successfully');
-    }
-  });
+     mutationFn: async (marksIds) => {
+       const promises = marksIds.map(id =>
+         base44.entities.Marks.update(id, { status: 'Published' })
+       );
+       return Promise.all(promises);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries(['marks-submitted']);
+       toast.success('Results published successfully');
+     }
+   });
+
+   const handleDownloadExcel = async (examType) => {
+     try {
+       const group = groupedData.find(g => g.exam_type === examType);
+       if (!group) return;
+
+       const marks = group.students.flatMap(student =>
+         Object.values(student.subjects).map(mark => ({
+           ...mark,
+           student_name: student.student_name,
+           rank: student.rank
+         }))
+       );
+
+       const response = await base44.functions.invoke('exportMarksToExcel', {
+         marks,
+         className: selectedClass,
+         section: selectedSection,
+         examType
+       });
+
+       const blob = new Blob([response.data], {
+         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+       });
+       const url = window.URL.createObjectURL(blob);
+       const a = document.createElement('a');
+       a.href = url;
+       a.download = `Marks_${selectedClass}_${selectedSection}_${examType}.xlsx`;
+       document.body.appendChild(a);
+       a.click();
+       window.URL.revokeObjectURL(url);
+       a.remove();
+     } catch (error) {
+       toast.error('Failed to download Excel');
+     }
+   };
 
 
 
