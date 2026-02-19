@@ -78,12 +78,20 @@ export default function AttendanceReport() {
     // Count attendance
     attendanceData.forEach(record => {
       if (classData[record.class_name]) {
+        const student = allStudents.find(s => s.student_id === record.student_id);
         if (record.is_present) {
           classData[record.class_name].present++;
+          if (student) {
+            classData[record.class_name].present_students = classData[record.class_name].present_students || [];
+            classData[record.class_name].present_students.push({
+              name: student.name,
+              phone: student.parent_phone || 'N/A'
+            });
+          }
         } else {
           classData[record.class_name].absent++;
-          const student = allStudents.find(s => s.student_id === record.student_id);
           if (student) {
+            classData[record.class_name].absent_students = classData[record.class_name].absent_students || [];
             classData[record.class_name].absent_students.push({
               name: student.name,
               phone: student.parent_phone || 'N/A'
