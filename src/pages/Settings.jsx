@@ -453,5 +453,6 @@ export default function Settings() {
         </DialogContent>
       </Dialog>
     </div>
+    </LoginRequired>
   );
 }

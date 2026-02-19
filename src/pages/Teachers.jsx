@@ -407,5 +407,6 @@ export default function Teachers() {
         </DialogContent>
       </Dialog>
     </div>
+    </LoginRequired>
   );
 }
