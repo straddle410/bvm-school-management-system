@@ -344,6 +344,7 @@ export default function Quiz() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {todayQuizzes.map(quiz => {
                   const attempted = hasAttemptedToday(quiz.id);
+                  const attemptCount = attempts.filter(a => a.quiz_id === quiz.id).length;
                   return (
                     <Card key={quiz.id} className="border-0 shadow-sm">
                       <CardHeader className="pb-2">
@@ -361,16 +362,23 @@ export default function Quiz() {
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-slate-600 mb-4">
-                          {quiz.questions?.length || 3} questions
-                        </p>
-                        <Button 
-                          className="w-full"
-                          disabled={attempted}
-                          onClick={() => setSelectedQuiz(quiz)}
-                        >
-                          {attempted ? 'Already Attempted' : 'Start Quiz'}
-                        </Button>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-slate-600 mb-1">
+                              {quiz.questions?.length || 2} questions
+                            </p>
+                            <p className="text-xs text-blue-600 font-semibold">
+                              {attemptCount} student{attemptCount !== 1 ? 's' : ''} answered
+                            </p>
+                          </div>
+                          <Button 
+                            className="w-full"
+                            disabled={attempted}
+                            onClick={() => setSelectedQuiz(quiz)}
+                          >
+                            {attempted ? 'Already Answered' : 'Start Quiz'}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
