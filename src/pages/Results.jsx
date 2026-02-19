@@ -9,7 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, BookOpen } from 'lucide-react';
+import { Search, GraduationCap, BookOpen, Share2, Printer } from 'lucide-react';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
@@ -75,13 +75,25 @@ export default function Results() {
     if (marks.length > 0) {
       const m = marks[0];
 
-      // Group marks by exam type
+      // Group marks by exam type in correct order
       const grouped = {};
+      const examOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
+      examOrder.forEach(exam => {
+        grouped[exam] = [];
+      });
+
       marks.forEach(mark => {
         if (!grouped[mark.exam_type]) {
           grouped[mark.exam_type] = [];
         }
         grouped[mark.exam_type].push(mark);
+      });
+
+      // Remove empty exam types
+      Object.keys(grouped).forEach(key => {
+        if (grouped[key].length === 0) {
+          delete grouped[key];
+        }
       });
 
       setResultsByExam(grouped);
@@ -103,7 +115,28 @@ export default function Results() {
     return max > 0 ? Math.round((total / max) * 100) : 0;
   };
 
-  const canSearch = (selectedStudentId || rollInput.trim()) && filterExam;
+  const canSearch = (selectedStudentId || rollInput.trim());
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Student Results',
+          text: `Results for ${studentResult?.student_name}`,
+          url: window.location.href
+        });
+      } catch (error) {
+        console.log('Share cancelled');
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -192,29 +225,52 @@ export default function Results() {
               />
             </div>
 
-            {/* Exam Filter - MANDATORY */}
+            {/* Exam Filter */}
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Exam Type <span className="text-red-500">*</span></Label>
+              <Label className="text-xs text-slate-500 mb-1 block">Exam Type</Label>
               <Select value={filterExam} onValueChange={setFilterExam}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Exam Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {examTypes.map(e => (
-                    <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
+                  <SelectItem value="ALL">ALL (All exams)</SelectItem>
+                  {['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'].map(e => (
+                    <SelectItem key={e} value={e}>{e}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <Button
-              className="w-full bg-[#1a237e] hover:bg-[#283593]"
-              onClick={handleSearch}
-              disabled={isSearching || !canSearch}
-            >
-              <Search className="mr-2 h-4 w-4" />
-              {isSearching ? 'Searching...' : 'View Result'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 bg-[#1a237e] hover:bg-[#283593]"
+                onClick={handleSearch}
+                disabled={isSearching || !canSearch}
+              >
+                <Search className="mr-2 h-4 w-4" />
+                {isSearching ? 'Searching...' : 'View Result'}
+              </Button>
+              {studentResult && Object.keys(resultsByExam).length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePrint}
+                    title="Print Results"
+                  >
+                    <Printer className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleShare}
+                    title="Share Results"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
 
