@@ -271,7 +271,7 @@ export default function Quiz() {
                 <div>
                   <CardTitle>{selectedQuiz.title}</CardTitle>
                   <p className="text-sm text-slate-500 mt-1">
-                    {selectedQuiz.subject} • Class {selectedQuiz.class_name}
+                    {selectedQuiz.subject}
                   </p>
                 </div>
                 <Button variant="ghost" onClick={() => setSelectedQuiz(null)}>
