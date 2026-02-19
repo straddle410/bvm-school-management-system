@@ -201,7 +201,7 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-bold text-gray-800">Announcements</h2>
-            <Link to={createPageUrl('Calendar')} className="flex items-center text-xs text-blue-600 font-medium">
+            <Link to={createPageUrl('Notices')} className="flex items-center text-xs text-blue-600 font-medium">
               View All <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
