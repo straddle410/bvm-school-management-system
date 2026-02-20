@@ -85,6 +85,7 @@ export default function Attendance() {
           student_name: student.name,
           is_present: existing?.is_present !== false,
           marked_by: user?.email,
+          academic_year: academicYear,
           status: 'Taken'
         };
         
