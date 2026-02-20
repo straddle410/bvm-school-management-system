@@ -51,7 +51,7 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
 export default function Students() {
-  const { academicYear } = useAcademicYear();
+  const { academicYear, setAcademicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterClass, setFilterClass] = useState('all');
