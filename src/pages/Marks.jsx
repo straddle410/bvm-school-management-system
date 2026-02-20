@@ -58,8 +58,8 @@ export default function Marks() {
   });
 
   const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
-    queryKey: ['exam-types', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear }),
+    queryKey: ['exam-types'],
+    queryFn: () => base44.entities.ExamType.list(),
     staleTime: 5 * 60 * 1000
   });
 
@@ -148,7 +148,7 @@ export default function Marks() {
             marks_obtained: marks,
             max_marks: maxMarks,
             grade,
-            academic_year: academicYear,
+            academic_year: '2024-25',
             entered_by: user?.email,
             status: 'Submitted',
             remarks: existing.remarks
