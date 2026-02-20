@@ -478,7 +478,7 @@ export default function Students() {
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Students">
       <div className="min-h-screen bg-slate-50">
       <PageHeader 
-        title="Students"
+        title={`Students — ${academicYear}`}
         subtitle={`${filteredStudents.length} students`}
         actions={
           <div className="flex gap-2">
