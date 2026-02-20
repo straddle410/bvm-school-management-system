@@ -22,11 +22,7 @@ export function AcademicYearProvider({ children }) {
   useEffect(() => {
     // Check if user is admin via base44 auth OR staff session in localStorage
     const checkAdmin = async () => {
-      try {
-        const user = await base44.auth.me();
-        if (user?.role === 'admin') { setIsAdmin(true); return; }
-      } catch {}
-      // Fallback: check staff session (custom login)
+      // First check staff session (custom login) - no network call needed
       try {
         const session = localStorage.getItem('staff_session');
         if (session) {
@@ -35,6 +31,14 @@ export function AcademicYearProvider({ children }) {
           if (role === 'Admin' || role === 'admin' || role === 'Principal' || role === 'principal') {
             setIsAdmin(true); return;
           }
+        }
+      } catch {}
+      // Fallback: check base44 auth (only if no staff session)
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const user = await base44.auth.me();
+          if (user?.role === 'admin') { setIsAdmin(true); return; }
         }
       } catch {}
       setIsAdmin(false);
