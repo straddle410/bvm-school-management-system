@@ -39,16 +39,17 @@ export default function MarksReview() {
 
   // Fetch exam types
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['exam-types'],
-    queryFn: () => base44.entities.ExamType.list()
+    queryKey: ['exam-types', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
   });
 
   // Fetch submitted and published marks
    const { data: submittedMarks = [] } = useQuery({
-     queryKey: ['marks-submitted', selectedClass, selectedSection, selectedExamType],
+     queryKey: ['marks-submitted', selectedClass, selectedSection, selectedExamType, academicYear],
      queryFn: async () => {
        const filter = {
-         status: { $in: ['Submitted', 'Published'] }
+         status: { $in: ['Submitted', 'Published'] },
+         academic_year: academicYear
        };
        if (selectedClass) filter.class_name = selectedClass;
        if (selectedSection) filter.section = selectedSection;
