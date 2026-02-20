@@ -52,8 +52,8 @@ export default function Results() {
 
   // Load students when class+section is selected
   const { data: classStudents = [] } = useQuery({
-    queryKey: ['students-class-section', filterClass, filterSection],
-    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, section: filterSection }),
+    queryKey: ['students-class-section', filterClass, filterSection, academicYear],
+    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, section: filterSection, academic_year: academicYear }),
     enabled: !!(filterClass && filterSection)
   });
 
@@ -69,7 +69,7 @@ export default function Results() {
     }
 
     // Only show Published marks to students
-    const filter = { status: 'Published' };
+    const filter = { status: 'Published', academic_year: academicYear };
     if (studentId) filter.student_id = studentId;
     if (filterExam && filterExam !== 'ALL') filter.exam_type = filterExam;
     if (filterClass) filter.class_name = filterClass;

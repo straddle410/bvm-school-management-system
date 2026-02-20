@@ -58,8 +58,8 @@ export default function Marks() {
   });
 
   const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
-    queryKey: ['exam-types'],
-    queryFn: () => base44.entities.ExamType.list(),
+    queryKey: ['exam-types', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear }),
     staleTime: 5 * 60 * 1000
   });
 
@@ -148,7 +148,7 @@ export default function Marks() {
             marks_obtained: marks,
             max_marks: maxMarks,
             grade,
-            academic_year: '2024-25',
+            academic_year: academicYear,
             entered_by: user?.email,
             status: 'Submitted',
             remarks: existing.remarks
@@ -389,7 +389,7 @@ export default function Marks() {
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
-            createExamMutation.mutate({...examForm, status: 'Draft'});
+            createExamMutation.mutate({...examForm, academic_year: academicYear, status: 'Draft'});
           }} className="space-y-4">
             <div>
               <Label>Exam Name</Label>

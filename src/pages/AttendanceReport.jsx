@@ -38,25 +38,18 @@ export default function AttendanceReport() {
 
   // Fetch attendance data
   const { data: attendanceData = [] } = useQuery({
-    queryKey: ['attendance-report', selectedDate],
+    queryKey: ['attendance-report', selectedDate, academicYear],
     queryFn: async () => {
-      const filter = {};
-      if (selectedDate) filter.date = selectedDate;
-      return base44.entities.Attendance.filter(filter);
+      return base44.entities.Attendance.filter({ date: selectedDate, academic_year: academicYear });
     },
     enabled: !!selectedDate
   });
 
-  // Fetch all students
+  // Fetch all students for the selected academic year
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['students-all'],
+    queryKey: ['students-all', academicYear],
     queryFn: async () => {
-      try {
-        return await base44.entities.Student.list();
-      } catch (error) {
-        console.error('Error fetching students:', error);
-        return [];
-      }
+      return base44.entities.Student.filter({ academic_year: academicYear });
     }
   });
 
