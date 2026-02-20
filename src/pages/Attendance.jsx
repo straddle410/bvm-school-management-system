@@ -42,8 +42,8 @@ export default function Attendance() {
   }, []);
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students-published'],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published' })
+    queryKey: ['students-published', academicYear],
+    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear })
   });
 
   const { data: existingAttendance = [] } = useQuery({
