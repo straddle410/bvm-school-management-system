@@ -58,8 +58,8 @@ export default function Marks() {
   });
 
   const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
-    queryKey: ['exam-types', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear }),
+    queryKey: ['exam-types'],
+    queryFn: () => base44.entities.ExamType.list(),
     staleTime: 5 * 60 * 1000
   });
 
@@ -389,7 +389,7 @@ export default function Marks() {
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
-            createExamMutation.mutate({...examForm, academic_year: academicYear, status: 'Draft'});
+            createExamMutation.mutate({...examForm, status: 'Draft'});
           }} className="space-y-4">
             <div>
               <Label>Exam Name</Label>
