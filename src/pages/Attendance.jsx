@@ -47,11 +47,12 @@ export default function Attendance() {
   });
 
   const { data: existingAttendance = [] } = useQuery({
-    queryKey: ['attendance', selectedDate, selectedClass, selectedSection],
+    queryKey: ['attendance', selectedDate, selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
       date: selectedDate,
       class_name: selectedClass,
-      section: selectedSection
+      section: selectedSection,
+      academic_year: academicYear
     }),
     enabled: !!selectedClass && !!selectedSection
   });
