@@ -24,7 +24,6 @@ import { Eye, Phone } from 'lucide-react';
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 export default function AttendanceReport() {
-  const { academicYear } = useAcademicYear();
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -38,18 +37,25 @@ export default function AttendanceReport() {
 
   // Fetch attendance data
   const { data: attendanceData = [] } = useQuery({
-    queryKey: ['attendance-report', selectedDate, academicYear],
+    queryKey: ['attendance-report', selectedDate],
     queryFn: async () => {
-      return base44.entities.Attendance.filter({ date: selectedDate, academic_year: academicYear });
+      const filter = {};
+      if (selectedDate) filter.date = selectedDate;
+      return base44.entities.Attendance.filter(filter);
     },
     enabled: !!selectedDate
   });
 
-  // Fetch all students for the selected academic year
+  // Fetch all students
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['students-all', academicYear],
+    queryKey: ['students-all'],
     queryFn: async () => {
-      return base44.entities.Student.filter({ academic_year: academicYear });
+      try {
+        return await base44.entities.Student.list();
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        return [];
+      }
     }
   });
 
