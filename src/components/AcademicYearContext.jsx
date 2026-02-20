@@ -15,29 +15,35 @@ const getDefaultYear = () => {
 };
 
 export function AcademicYearProvider({ children }) {
-  const [academicYear, setAcademicYearState] = useState(
-    () => localStorage.getItem('selected_academic_year') || getDefaultYear()
-  );
+  const [academicYear, setAcademicYearState] = useState(getDefaultYear());
   const [academicYears, setAcademicYears] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // Check if user is admin
+    base44.auth.me().then(user => {
+      setIsAdmin(user?.role === 'admin');
+    }).catch(() => setIsAdmin(false));
+
+    // Load academic years and set the current one
     base44.entities.AcademicYear.list('-start_date').then(years => {
       setAcademicYears(years);
-      if (!localStorage.getItem('selected_academic_year') && years.length > 0) {
-        const current = years.find(y => y.is_current) || years[0];
-        setAcademicYearState(current.year);
-        localStorage.setItem('selected_academic_year', current.year);
+      // Always default to the admin-set current year
+      const currentYear = years.find(y => y.is_current) || years[0];
+      if (currentYear) {
+        setAcademicYearState(currentYear.year);
       }
     }).catch(() => {});
   }, []);
 
   const setAcademicYear = (year) => {
+    // Only admin can change the year
+    if (!isAdmin) return;
     setAcademicYearState(year);
-    localStorage.setItem('selected_academic_year', year);
   };
 
   return (
-    <AcademicYearContext.Provider value={{ academicYear, setAcademicYear, academicYears }}>
+    <AcademicYearContext.Provider value={{ academicYear, setAcademicYear, academicYears, isAdmin }}>
       {children}
     </AcademicYearContext.Provider>
   );
@@ -47,9 +53,10 @@ export function useAcademicYear() {
   const ctx = useContext(AcademicYearContext);
   if (!ctx) {
     return {
-      academicYear: localStorage.getItem('selected_academic_year') || getDefaultYear(),
+      academicYear: getDefaultYear(),
       setAcademicYear: () => {},
-      academicYears: []
+      academicYears: [],
+      isAdmin: false
     };
   }
   return ctx;
