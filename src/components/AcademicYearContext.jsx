@@ -20,10 +20,26 @@ export function AcademicYearProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Check if user is admin
-    base44.auth.me().then(user => {
-      setIsAdmin(user?.role === 'admin');
-    }).catch(() => setIsAdmin(false));
+    // Check if user is admin via base44 auth OR staff session in localStorage
+    const checkAdmin = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (user?.role === 'admin') { setIsAdmin(true); return; }
+      } catch {}
+      // Fallback: check staff session (custom login)
+      try {
+        const session = localStorage.getItem('staff_session');
+        if (session) {
+          const parsed = JSON.parse(session);
+          const role = parsed?.role || '';
+          if (role === 'Admin' || role === 'admin' || role === 'Principal' || role === 'principal') {
+            setIsAdmin(true); return;
+          }
+        }
+      } catch {}
+      setIsAdmin(false);
+    };
+    checkAdmin();
 
     // Load academic years and set the current one
     base44.entities.AcademicYear.list('-start_date').then(years => {
