@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useAcademicYear } from '@/components/AcademicYearContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,6 @@ const gradeColor = (grade) => {
 };
 
 export default function Results() {
-  const { academicYear } = useAcademicYear();
   const [filterClass, setFilterClass] = useState('');
   const [filterSection, setFilterSection] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -52,8 +51,8 @@ export default function Results() {
 
   // Load students when class+section is selected
   const { data: classStudents = [] } = useQuery({
-    queryKey: ['students-class-section', filterClass, filterSection, academicYear],
-    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, section: filterSection, academic_year: academicYear }),
+    queryKey: ['students-class-section', filterClass, filterSection],
+    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, section: filterSection }),
     enabled: !!(filterClass && filterSection)
   });
 
@@ -69,7 +68,7 @@ export default function Results() {
     }
 
     // Only show Published marks to students
-    const filter = { status: 'Published', academic_year: academicYear };
+    const filter = { status: 'Published' };
     if (studentId) filter.student_id = studentId;
     if (filterExam && filterExam !== 'ALL') filter.exam_type = filterExam;
     if (filterClass) filter.class_name = filterClass;
