@@ -35,6 +35,7 @@ const SECTIONS = ['A'];
 const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies'];
 
 export default function Marks() {
+  const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('entry');
   const [selectedClass, setSelectedClass] = useState('');
