@@ -94,8 +94,8 @@ export default function Students() {
   });
 
   const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list('-created_date')
+    queryKey: ['students', academicYear],
+    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear }, '-created_date')
   });
 
   const createMutation = useMutation({
