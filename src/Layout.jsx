@@ -43,10 +43,11 @@ export default function Layout({ children, currentPageName }) {
   };
 
   if (NO_LAYOUT_PAGES.includes(currentPageName)) {
-    return <>{children}</>;
+    return <AcademicYearProvider>{children}</AcademicYearProvider>;
   }
 
   return (
+    <AcademicYearProvider>
     <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
       <header className="bg-[#1a237e] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
@@ -58,6 +59,7 @@ export default function Layout({ children, currentPageName }) {
             {schoolProfile?.school_name || 'BVM School of Excellence'}
           </span>
         </div>
+        <AcademicYearSelector />
       </header>
 
       {/* Main Content */}
