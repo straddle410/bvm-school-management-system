@@ -52,6 +52,7 @@ import Approvals from './pages/Approvals';
 import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
 import Calendar from './pages/Calendar';
+import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
@@ -68,7 +69,6 @@ import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +78,7 @@ export const PAGES = {
     "Attendance": Attendance,
     "AttendanceReport": AttendanceReport,
     "Calendar": Calendar,
+    "Dashboard": Dashboard,
     "Gallery": Gallery,
     "IDCards": IDCards,
     "Marks": Marks,
@@ -94,7 +95,6 @@ export const PAGES = {
     "StaffManagement": StaffManagement,
     "Students": Students,
     "Teachers": Teachers,
-    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

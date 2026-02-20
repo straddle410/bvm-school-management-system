@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { Home, Bell, Image, Calendar, MoreHorizontal } from 'lucide-react';
+import { AcademicYearProvider } from '@/components/AcademicYearContext';
+import AcademicYearSelector from '@/components/AcademicYearSelector';
 
 const bottomNav = [
   { name: 'Home', icon: Home, page: 'Dashboard' },
