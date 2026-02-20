@@ -89,7 +89,7 @@ export default function Students() {
     address: '',
     blood_group: '',
     admission_date: '',
-    academic_year: '2024-25',
+    academic_year: academicYear,
     status: 'Pending'
   });
 
