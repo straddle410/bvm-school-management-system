@@ -22,7 +22,6 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
 export default function MarksReview() {
-  const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
@@ -39,17 +38,16 @@ export default function MarksReview() {
 
   // Fetch exam types
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['exam-types', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
+    queryKey: ['exam-types'],
+    queryFn: () => base44.entities.ExamType.list()
   });
 
   // Fetch submitted and published marks
    const { data: submittedMarks = [] } = useQuery({
-     queryKey: ['marks-submitted', selectedClass, selectedSection, selectedExamType, academicYear],
+     queryKey: ['marks-submitted', selectedClass, selectedSection, selectedExamType],
      queryFn: async () => {
        const filter = {
-         status: { $in: ['Submitted', 'Published'] },
-         academic_year: academicYear
+         status: { $in: ['Submitted', 'Published'] }
        };
        if (selectedClass) filter.class_name = selectedClass;
        if (selectedSection) filter.section = selectedSection;
