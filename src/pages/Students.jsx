@@ -487,6 +487,7 @@ export default function Students() {
             <PromoteStudents
               academicYear={academicYear}
               onPromoted={(nextYear) => {
+                setAcademicYear(nextYear);
                 queryClient.invalidateQueries(['students']);
               }}
             />
