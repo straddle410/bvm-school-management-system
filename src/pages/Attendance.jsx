@@ -28,6 +28,7 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const SECTIONS = ['A'];
 
 export default function Attendance() {
+  const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedClass, setSelectedClass] = useState('');
