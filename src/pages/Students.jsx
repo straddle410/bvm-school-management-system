@@ -482,10 +482,18 @@ export default function Students() {
         title={`Students — ${academicYear}`}
         subtitle={`${filteredStudents.length} students`}
         actions={
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              className="hidden sm:flex"
+        <div className="flex gap-2">
+          {(user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'principal') && (
+            <PromoteStudents
+              academicYear={academicYear}
+              onPromoted={(nextYear) => {
+                queryClient.invalidateQueries(['students']);
+              }}
+            />
+          )}
+          <Button 
+            variant="outline" 
+            className="hidden sm:flex"
               onClick={async () => {
                 const response = await base44.functions.invoke('generateStudentTemplate');
                 const binaryString = atob(response.data.file);
