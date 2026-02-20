@@ -24,6 +24,7 @@ import { Eye, Phone } from 'lucide-react';
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 export default function AttendanceReport() {
+  const { academicYear } = useAcademicYear();
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);

@@ -30,6 +30,7 @@ const gradeColor = (grade) => {
 };
 
 export default function Results() {
+  const { academicYear } = useAcademicYear();
   const [filterClass, setFilterClass] = useState('');
   const [filterSection, setFilterSection] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
