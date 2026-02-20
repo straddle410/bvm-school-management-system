@@ -38,6 +38,7 @@ import {
   MoreVertical, Eye, Pencil, Trash2, CheckCircle, XCircle,
   FileSpreadsheet, Image as ImageIcon
 } from 'lucide-react';
+import PromoteStudents from '@/components/PromoteStudents';
 import {
   DropdownMenu,
   DropdownMenuContent,
