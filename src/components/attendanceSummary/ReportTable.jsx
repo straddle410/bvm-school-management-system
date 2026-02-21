@@ -10,6 +10,14 @@ import { format } from 'date-fns';
 import { exportToExcel, exportToPDF } from '@/components/attendanceSummary/exportUtils';
 
 export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, setSortBy, fromDate, toDate }) {
+  const handleHeaderClick = (field) => {
+    if (sortBy === field) {
+      setSortBy('name'); // Reset to default
+    } else {
+      setSortBy(field);
+    }
+  };
+
   const handleExcelExport = async () => {
     try {
       const filename = `Attendance_Report_${format(new Date(fromDate), 'dd-MMM-yyyy')}_to_${format(new Date(toDate), 'dd-MMM-yyyy')}.xlsx`;
@@ -93,14 +101,54 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-slate-50">
-                <th className="px-4 py-3 text-left font-semibold text-slate-700">Student Name</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Roll No</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Class</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Working Days</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Holidays</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Present</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Absent</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Attendance %</th>
+                <th onClick={() => handleHeaderClick('name')} className="px-4 py-3 text-left font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center gap-2">
+                    Student Name
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('rollNo')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Roll No
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('class')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Class
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('totalWorkingDays')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Working Days
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('totalHolidays')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Holidays
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('presentDays')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Present
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('absentDays')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Absent
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
+                <th onClick={() => handleHeaderClick('attendance-desc')} className="px-4 py-3 text-center font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Attendance %
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
