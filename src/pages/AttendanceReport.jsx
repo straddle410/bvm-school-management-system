@@ -84,9 +84,15 @@ export default function AttendanceReport() {
       }
     });
 
-    // Count attendance
+    // Count attendance - track processed students to avoid duplicates
+    const processedStudents = new Set();
     attendanceData.forEach(record => {
       if (classData[record.class_name]) {
+        const key = `${record.class_name}-${record.student_id}`;
+        // Skip if already processed for this class and student
+        if (processedStudents.has(key)) return;
+        processedStudents.add(key);
+        
         const student = allStudents.find(s => s.student_id === record.student_id);
         if (record.is_present) {
           classData[record.class_name].present++;
