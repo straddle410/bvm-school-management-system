@@ -117,14 +117,14 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
 
         // Left side
         if (leftSubject) {
-          const dateStr = new Date(leftSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '4-digit' });
+          const dateStr = new Date(leftSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
           doc.text(leftSubject.subject_name.substring(0, 14), col1 + 1, yPos + 4.5);
           doc.text(dateStr, col2 + 1, yPos + 4.5);
         }
 
         // Right side
         if (rightSubject) {
-          const dateStr = new Date(rightSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '4-digit' });
+          const dateStr = new Date(rightSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
           doc.text(rightSubject.subject_name.substring(0, 14), col4 + 1, yPos + 4.5);
           doc.text(dateStr, col5 + 1, yPos + 4.5);
         }
