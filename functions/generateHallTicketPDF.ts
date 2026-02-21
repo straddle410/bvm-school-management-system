@@ -116,25 +116,31 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No hall tickets selected' }, { status: 400 });
     }
 
-    // Fetch hall tickets
-    const hallTickets = await Promise.all(
-      hallTicketIds.map(id => base44.entities.HallTicket.get(id))
-    );
+    // Fetch hall tickets with error handling
+    const hallTickets = [];
+    for (const id of hallTicketIds) {
+      const ticket = await base44.asServiceRole.entities.HallTicket.get(id);
+      if (ticket) hallTickets.push(ticket);
+    }
+
+    if (hallTickets.length === 0) {
+      return Response.json({ error: 'No hall tickets found' }, { status: 404 });
+    }
 
     // Fetch school profile
-    const schoolProfiles = await base44.entities.SchoolProfile.list();
+    const schoolProfiles = await base44.asServiceRole.entities.SchoolProfile.list();
     const schoolProfile = schoolProfiles[0];
 
     // Generate PDF
     const pdfBuffer = await generatePDF(hallTickets, schoolProfile);
 
     // Log download
-    await base44.entities.HallTicketLog.create({
+    await base44.asServiceRole.entities.HallTicketLog.create({
       action: 'downloaded',
       hall_ticket_id: hallTicketIds[0],
       student_id: 'multiple',
-      performed_by: user.email,
-      details: `Downloaded PDF for ${hallTicketIds.length} hall tickets`
+      performed_by: user.email || 'unknown',
+      details: `Downloaded PDF for ${hallTickets.length} hall tickets`
     });
 
     return new Response(pdfBuffer, {
@@ -145,6 +151,7 @@ Deno.serve(async (req) => {
       }
     });
   } catch (error) {
+    console.error('[generateHallTicketPDF Error]', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
