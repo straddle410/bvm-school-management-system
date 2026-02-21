@@ -29,44 +29,48 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'No hall tickets found' }, { status: 404 });
         }
 
-        // Fetch school profile for template
-        const schoolProfiles = await base44.asServiceRole.entities.SchoolProfile.list();
-        const schoolProfile = schoolProfiles[0];
-        
-        if (!schoolProfile?.hall_ticket_template_url) {
-            return Response.json({ error: 'No hall ticket template uploaded' }, { status: 400 });
-        }
-
-        // Download and load template
-        const templateResponse = await fetch(schoolProfile.hall_ticket_template_url);
-        const templateBuffer = await templateResponse.arrayBuffer();
-        
+        // Create workbook
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(templateBuffer);
-        
-        const worksheet = workbook.worksheets[0];
-        
-        // Fill in hall ticket data - repeat template for each ticket
+        const worksheet = workbook.addWorksheet('Hall Tickets');
+
+        // Process each hall ticket
         let currentRow = 1;
-        const TICKET_HEIGHT = 15; // Rows per ticket in template
         
         hallTickets.forEach((ticket, index) => {
-            if (index > 0) {
-                currentRow += TICKET_HEIGHT;
-            }
+            // School Name
+            worksheet.getCell(currentRow, 1).value = 'BVM SCHOOL OF EXCELLENCE, KOTHAKOTA';
             
-            // Row 3 (relative): Student Name in merged column C
-            const studentNameRow = currentRow + 2;
-            const nameCell = worksheet.getCell(studentNameRow, 3);
-            nameCell.value = ticket.student_name;
+            // Exam name
+            worksheet.getCell(currentRow + 1, 1).value = 'EXAM NAME HALL TICKET-2023';
             
-            // Row 4 (relative): Student Number in column C, Class and Section in column E
-            const studentNumberRow = currentRow + 3;
-            const numberCell = worksheet.getCell(studentNumberRow, 3);
+            // Student Name label
+            worksheet.getCell(currentRow + 2, 1).value = 'STUDENT NAME :';
+            // Fill student name in merged columns (C:F)
+            const studentNameCell = worksheet.getCell(currentRow + 2, 3);
+            studentNameCell.value = ticket.student_name;
+            
+            // Student Number label
+            worksheet.getCell(currentRow + 3, 1).value = 'STUDENT NUMBER :';
+            // Fill student number in column C
+            const numberCell = worksheet.getCell(currentRow + 3, 3);
             numberCell.value = ticket.roll_number;
+            // Fill class and section in column E
+            const classSecCell = worksheet.getCell(currentRow + 3, 5);
+            classSecCell.value = `Class: ${ticket.class_name}   Section: ${ticket.section}`;
             
-            const classSecCell = worksheet.getCell(studentNumberRow, 5);
-            classSecCell.value = `${ticket.class_name} - ${ticket.section}`;
+            // Timings
+            worksheet.getCell(currentRow + 4, 1).value = 'TIMINGS 9:30 AM TO 12:30 PM';
+            
+            // Table headers
+            worksheet.getCell(currentRow + 7, 1).value = 'SUBJECT';
+            worksheet.getCell(currentRow + 7, 2).value = 'DATE';
+            worksheet.getCell(currentRow + 7, 3).value = 'INVIGILATOR SIGN';
+            
+            // Signature row
+            worksheet.getCell(currentRow + 12, 1).value = 'AO SIGNATURE';
+            worksheet.getCell(currentRow + 12, 5).value = 'PRINCIPAL SIGNATURE';
+            
+            currentRow += 15; // Space between tickets
         });
 
         // Generate Excel buffer
