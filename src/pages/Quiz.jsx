@@ -24,10 +24,12 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2
+  Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'General Knowledge'];
