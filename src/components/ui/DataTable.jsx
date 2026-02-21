@@ -10,13 +10,21 @@ import {
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { ArrowUpDown } from 'lucide-react';
+
 export default function DataTable({ 
   columns, 
   data, 
   loading,
   emptyMessage = "No data found",
-  onRowClick
+  onRowClick,
+  onSort
 }) {
+  const handleHeaderClick = (accessor) => {
+    if (onSort) {
+      onSort(accessor);
+    }
+  };
   if (loading) {
     return (
       <Card className="border-0 shadow-sm overflow-hidden">
@@ -24,8 +32,15 @@ export default function DataTable({
           <TableHeader>
             <TableRow className="bg-slate-50 hover:bg-slate-50">
               {columns.map((col, i) => (
-                <TableHead key={i} className="font-semibold text-slate-700">
-                  {col.header}
+                <TableHead 
+                  key={i} 
+                  className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors group"
+                  onClick={() => handleHeaderClick(col.accessor)}
+                >
+                  <div className="flex items-center gap-2">
+                    {col.header}
+                    {onSort && <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />}
+                  </div>
                 </TableHead>
               ))}
             </TableRow>
