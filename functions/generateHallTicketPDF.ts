@@ -22,40 +22,40 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       doc.setLineWidth(0.5);
       doc.rect(margin, yStart, ticketWidth, ticketHeight);
 
-      let yPos = yStart + 3;
+      let yPos = yStart + 4;
 
       // School name
-      doc.setFontSize(13);
+      doc.setFontSize(18);
       doc.setFont('Calibri', 'bold');
       doc.text('BVM SCHOOL OF EXCELLENCE, KOTHAKOTA', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 4;
+      yPos += 5.5;
 
       // Exam type
-      doc.setFontSize(10);
+      doc.setFontSize(14);
       doc.setFont('Calibri', 'bold');
       const examTypeText = examType ? `${examType.name} HALL TICKET-2023` : 'EXAM HALL TICKET-2023';
       doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 3.5;
+      yPos += 4.2;
 
       // Student info - inline labels and values
-      doc.setFontSize(9);
+      doc.setFontSize(12);
       doc.setFont('Calibri', 'bold');
       doc.text('STUDENT NAME :', margin + 2, yPos);
-      doc.setFont('Calibri', 'normal');
+      doc.setFont('Calibri', 'bold');
       doc.text(ticket.student_name || '', margin + 34, yPos);
-      yPos += 3;
+      yPos += 3.2;
 
       doc.setFont('Calibri', 'bold');
       doc.text('STUDENT NUMBER :', margin + 2, yPos);
-      doc.setFont('Calibri', 'normal');
+      doc.setFont('Calibri', 'bold');
       doc.text(ticket.hall_ticket_number || '', margin + 34, yPos);
-      yPos += 3;
+      yPos += 3.2;
 
       doc.setFont('Calibri', 'bold');
       doc.text('TIMINGS :', margin + 2, yPos);
-      doc.setFont('Calibri', 'normal');
+      doc.setFont('Calibri', 'bold');
       doc.text('9:30 AM TO 12:30 PM', margin + 34, yPos);
-      yPos += 3.5;
+      yPos += 3.8;
 
       // Two-column table: TELUGU, HINDI, ENGLISH on left | MATHEMATICS, GEN. SCIENCE, SOCIAL on right
       const subjectMap = {
