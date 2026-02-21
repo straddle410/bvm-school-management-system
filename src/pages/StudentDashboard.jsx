@@ -62,6 +62,15 @@ export default function StudentDashboard() {
 
   if (!student) return null;
 
+  const studentQuickAccess = [
+    { label: 'Results', page: 'Results', icon: Trophy, bg: '#e8f5e9', color: '#388e3c' },
+    { label: 'Notices', page: 'Notices', icon: Bell, bg: '#e3f2fd', color: '#1565c0' },
+    { label: 'Gallery', page: 'Gallery', icon: Image, bg: '#fce4ec', color: '#c62828' },
+    { label: 'Calendar', page: 'Calendar', icon: Calendar, bg: '#fff3e0', color: '#e65100' },
+    { label: 'Quiz', page: 'Quiz', icon: Brain, bg: '#f3e5f5', color: '#6a1b9a' },
+    { label: 'Homework', page: 'StudentDashboard', icon: BookOpen, bg: '#fff8e1', color: '#f57f17' },
+  ];
+
   const presentCount = attendance.filter(a => a.is_present).length;
   const attendancePct = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
 
