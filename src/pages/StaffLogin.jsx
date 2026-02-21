@@ -31,15 +31,17 @@ export default function StaffLogin() {
 
     try {
        // Find staff by username (case-insensitive)
-       const staffList = await base44.entities.StaffAccount.filter({ username: username.trim().toLowerCase() });
+       const searchTerm = username.trim();
+       const allStaff = await base44.entities.StaffAccount.list();
+       const staff = allStaff.find(s => 
+         s.username && s.username.toLowerCase() === searchTerm.toLowerCase()
+       );
 
-       if (!staffList || staffList.length === 0) {
+       if (!staff) {
          setError('Invalid username or password');
          setLoading(false);
          return;
        }
-
-       const staff = staffList[0].data || staffList[0];
 
       if (staff.temp_password !== password) {
         setError('Invalid username or password');
