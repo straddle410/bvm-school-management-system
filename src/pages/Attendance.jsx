@@ -106,18 +106,18 @@ export default function Attendance() {
           setIsHoliday(true);
           setHolidayReason(holidayRecord.holiday_reason || '');
         } else {
-          setIsHoliday(isSunday);
-          setHolidayReason(isSunday ? 'Sunday' : '');
+          setIsHoliday(isSunday || isMarkedHoliday);
+          setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
         }
       }
     } else {
       setAttendanceData({});
       if (!manuallyChanged) {
-        setIsHoliday(isSunday);
-        setHolidayReason(isSunday ? 'Sunday' : '');
+        setIsHoliday(isSunday || isMarkedHoliday);
+        setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     }
-  }, [existingAttendance, isSunday, manuallyChanged]);
+  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays]);
 
   const filteredStudents = students.filter(s => 
     s.class_name === selectedClass && s.section === selectedSection
