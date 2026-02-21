@@ -27,8 +27,8 @@ const quickAccess = [
 const quickActions = [
   { label: 'Take Attendance', icon: Check, color: '#1e88e5', page: 'Attendance', permission: 'attendance' },
   { label: 'Post Quiz', icon: Brain, color: '#7e57c2', page: 'Quiz', permission: 'quiz' },
+  { label: 'Homework', icon: BookOpen, color: '#f57c00', page: 'HomeworkManage', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
-  { label: 'Add Event', icon: Plus, color: '#d32f2f', page: 'Calendar', roleRequired: ['Admin', 'Principal', 'Teacher'] },
   { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks', permission: 'marks' },
 ];
 
