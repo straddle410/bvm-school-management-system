@@ -213,22 +213,24 @@ export default function Calendar() {
                   
                   const dayEvents = getEventsForDay(day);
                   const isSelected = selectedDate && isSameDay(day, selectedDate);
-                  
+                  const isHolidayDay = isAttendanceHoliday(day);
+
                   return (
-                    <div
-                      key={day.toISOString()}
-                      onClick={() => handleDateClick(day)}
-                      className={`
-                        aspect-square p-1 rounded-xl cursor-pointer transition-all
-                        ${isToday(day) ? 'bg-blue-50' : ''}
-                        ${isSelected ? 'ring-2 ring-blue-500' : ''}
-                        hover:bg-slate-50
-                      `}
-                    >
-                      <div className={`
-                        h-7 w-7 rounded-full flex items-center justify-center text-sm mx-auto
-                        ${isToday(day) ? 'bg-blue-600 text-white' : 'text-slate-700'}
-                      `}>
+                   <div
+                     key={day.toISOString()}
+                     onClick={() => handleDateClick(day)}
+                     className={`
+                       aspect-square p-1 rounded-xl cursor-pointer transition-all
+                       ${isHolidayDay && !isToday(day) ? 'bg-red-50' : ''}
+                       ${isToday(day) ? 'bg-blue-50' : ''}
+                       ${isSelected ? 'ring-2 ring-blue-500' : ''}
+                       hover:bg-slate-100
+                     `}
+                   >
+                     <div className={`
+                       h-7 w-7 rounded-full flex items-center justify-center text-sm mx-auto
+                       ${isToday(day) ? 'bg-blue-600 text-white' : isHolidayDay ? 'bg-red-500 text-white' : 'text-slate-700'}
+                     `}>
                         {format(day, 'd')}
                       </div>
                       <div className="mt-1 space-y-0.5">
