@@ -130,36 +130,47 @@ export default function Attendance() {
     mutationFn: async () => {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
-      const allStudents = students.filter(s => s.status === 'Published');
-      const promises = [];
+      const allPublishedStudents = await base44.entities.Student.filter({ status: 'Published', academic_year: academicYear });
+      
       for (const day of days) {
         const dateStr = format(day, 'yyyy-MM-dd');
-        for (const cls of CLASSES) {
-          const classStudents = allStudents.filter(s => s.class_name === cls);
-          for (const student of classStudents) {
-            promises.push(base44.entities.Attendance.create({
-              date: dateStr,
-              class_name: cls,
-              section: student.section || 'A',
-              student_id: student.student_id || student.id,
-              student_name: student.name,
-              is_present: false,
-              is_holiday: true,
-              holiday_reason: rangeReason || 'Holiday',
-              marked_by: user?.email,
-              academic_year: academicYear,
-              status: 'Holiday'
-            }));
+        // Fetch existing records for this date
+        const existing = await base44.entities.Attendance.filter({ date: dateStr, academic_year: academicYear });
+        const existingMap = {};
+        existing.forEach(r => { existingMap[`${r.student_id}_${r.class_name}`] = r; });
+
+        const promises = allPublishedStudents.map(student => {
+          const key = `${student.student_id || student.id}_${student.class_name}`;
+          const existingRecord = existingMap[key];
+          const data = {
+            date: dateStr,
+            class_name: student.class_name,
+            section: student.section || 'A',
+            student_id: student.student_id || student.id,
+            student_name: student.name,
+            is_present: false,
+            is_holiday: true,
+            holiday_reason: rangeReason || 'Holiday',
+            marked_by: user?.email,
+            academic_year: academicYear,
+            status: 'Holiday'
+          };
+          if (existingRecord?.id) {
+            return base44.entities.Attendance.update(existingRecord.id, data);
           }
-        }
+          return base44.entities.Attendance.create(data);
+        });
+        await Promise.all(promises);
       }
-      return Promise.all(promises);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['attendance']);
-      toast.success(`Holiday marked for ${rangeStart} to ${rangeEnd}`);
+      toast.success(`Holiday marked from ${rangeStart} to ${rangeEnd}`);
       setShowRangeMode(false);
       setRangeStart(''); setRangeEnd(''); setRangeReason('');
+    },
+    onError: (err) => {
+      toast.error('Failed to mark holiday range: ' + err.message);
     }
   });
 
