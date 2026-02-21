@@ -5,146 +5,106 @@ const jsPDF = jsPDFModule.jsPDF || jsPDFModule;
 
 const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
     const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const ticketsPerPage = 3;
+    const ticketHeight = (pageHeight - 20) / ticketsPerPage;
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const marginTop = 8;
-    const marginLeft = 8;
-    const marginRight = 8;
-    const ticketHeight = (pageHeight - 2 * marginTop) / 3;
+    // Group tickets into pages of 3
+    for (let pageIdx = 0; pageIdx < Math.ceil(hallTickets.length / ticketsPerPage); pageIdx++) {
+      if (pageIdx > 0) doc.addPage();
 
-    // 3 tickets per page
-    hallTickets.forEach((ticket, index) => {
-      const ticketIndex = index % 3;
+      const pageTickets = hallTickets.slice(pageIdx * ticketsPerPage, (pageIdx + 1) * ticketsPerPage);
 
-      if (index > 0 && ticketIndex === 0) {
-        doc.addPage();
+      for (let ticketIdx = 0; ticketIdx < pageTickets.length; ticketIdx++) {
+        const ticket = pageTickets[ticketIdx];
+        const yStart = 10 + (ticketIdx * ticketHeight);
+
+        // Generate HTML for this ticket
+        const ticketHTML = generateTicketHTML(ticket, schoolProfile, timetable, examType);
+
+        // Create temporary container
+        const div = document.createElement('div');
+        div.innerHTML = ticketHTML;
+        div.style.position = 'absolute';
+        div.style.left = '-9999px';
+        div.style.width = '190mm';
+        document.body.appendChild(div);
+
+        // Convert to canvas using html2canvas
+        const canvas = await html2canvas(div, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+
+        // Calculate dimensions
+        const imgWidth = 190;
+        const imgHeight = (canvas.height / canvas.width) * imgWidth;
+
+        // Add image to PDF
+        const imgData = canvas.toDataURL('image/png');
+        doc.addImage(imgData, 'PNG', 10, yStart, imgWidth, Math.min(imgHeight, ticketHeight - 2));
+
+        // Clean up
+        document.body.removeChild(div);
       }
-
-      let yPos = marginTop + (ticketIndex * ticketHeight);
-      const ticketStartY = yPos;
-      const ticketWidth = pageWidth - marginLeft - marginRight;
-
-      // Outer border - thick
-      doc.setLineWidth(1);
-      doc.setDrawColor(0);
-      doc.rect(marginLeft, yPos, ticketWidth, ticketHeight);
-
-      yPos += 2.5;
-
-      // School name
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.text('BVM SCHOOL OF EXCELLENCE', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 4;
-
-      // Exam type
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      const examTypeText = examType ? `${examType.name} HALL TICKET - 2023` : 'EXAM HALL TICKET - 2023';
-      doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 5;
-
-      // Student Details
-      doc.setFontSize(7.5);
-      doc.setFont(undefined, 'bold');
-
-      const detailStartX = marginLeft + 2;
-      const detailValueX = marginLeft + 32;
-
-      doc.text('STUDENT NAME :', detailStartX, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(ticket.student_name || '', detailValueX, yPos);
-      yPos += 3.5;
-
-      doc.setFont(undefined, 'bold');
-      doc.text('STUDENT NUMBER :', detailStartX, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(ticket.hall_ticket_number || '', detailValueX, yPos);
-      yPos += 3.5;
-
-      doc.setFont(undefined, 'bold');
-      doc.text('TIMINGS :', detailStartX, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text('9:30 AM TO 12:30 PM', detailValueX, yPos);
-      yPos += 4.5;
-
-      // Single table spanning full width
-      const tableStartX = marginLeft + 1.5;
-      const tableEndX = marginLeft + ticketWidth - 1.5;
-      const tableWidth = tableEndX - tableStartX;
-
-      // Column widths
-      const subjectColWidth = tableWidth * 0.40;
-      const dateColWidth = tableWidth * 0.25;
-      const signColWidth = tableWidth * 0.35;
-
-      const colSubject = tableStartX;
-      const colDate = colSubject + subjectColWidth;
-      const colSign = colDate + dateColWidth;
-
-      const headerHeight = 4.5;
-      const rowHeight = 3.8;
-
-      // Table header
-      doc.setLineWidth(0.6);
-      doc.setFontSize(7);
-      doc.setFont(undefined, 'bold');
-
-      // Header cells
-      doc.rect(colSubject, yPos, subjectColWidth, headerHeight);
-      doc.rect(colDate, yPos, dateColWidth, headerHeight);
-      doc.rect(colSign, yPos, signColWidth, headerHeight);
-
-      doc.text('SUBJECT', colSubject + 1, yPos + 3.2);
-      doc.text('DATE', colDate + 1, yPos + 3.2);
-      doc.text('INVIGILATOR SIGN', colSign + 1, yPos + 3.2);
-
-      yPos += headerHeight;
-
-      // Subjects in order
-      const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GEN. SCIENCE', 'SOCIAL'];
-
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(6.5);
-
-      for (let i = 0; i < 6; i++) {
-        // Row cells
-        doc.rect(colSubject, yPos, subjectColWidth, rowHeight);
-        doc.rect(colDate, yPos, dateColWidth, rowHeight);
-        doc.rect(colSign, yPos, signColWidth, rowHeight);
-
-        // Subject
-        doc.text(subjects[i], colSubject + 1, yPos + 2.8);
-
-        // Date from timetable
-        const subject = timetable.find(t => t.subject_name === subjects[i]);
-        if (subject && subject.exam_date) {
-          const dateStr = new Date(subject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(dateStr, colDate + 1, yPos + 2.8);
-        }
-
-        yPos += rowHeight;
-      }
-
-      // Signature section - same horizontal line
-      yPos += 2;
-      const sigHeight = 6;
-
-      doc.setLineWidth(0.6);
-      doc.setFontSize(6.5);
-      doc.setFont(undefined, 'bold');
-
-      // Left signature box (under SUBJECT column)
-      doc.rect(colSubject, yPos, subjectColWidth, sigHeight);
-      doc.text('AO SIGNATURE', colSubject + 1, yPos + sigHeight + 1.5);
-
-      // Right signature box (under INVIGILATOR SIGN column)
-      doc.rect(colSign, yPos, signColWidth, sigHeight);
-      doc.text('PRINCIPAL SIGNATURE', colSign + 1, yPos + sigHeight + 1.5);
-    });
+    }
 
     return doc.output('arraybuffer');
+  };
+
+  const generateTicketHTML = (ticket, schoolProfile, timetable, examType) => {
+    const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GEN. SCIENCE', 'SOCIAL'];
+
+    const getSubjectDate = (subjectName) => {
+      const subject = timetable.find(t => t.subject_name === subjectName);
+      if (subject && subject.exam_date) {
+        return new Date(subject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      }
+      return '';
+    };
+
+    const subjectRows = subjects.map(subject => `
+      <tr>
+        <td>${subject}</td>
+        <td>${getSubjectDate(subject)}</td>
+        <td></td>
+      </tr>
+    `).join('');
+
+    const examTypeText = examType ? `${examType.name} HALL TICKET - 2023` : 'EXAM HALL TICKET - 2023';
+
+    return `
+      <div style="border: 2px solid black; padding: 12px; margin-bottom: 8px; font-family: Arial, sans-serif; page-break-inside: avoid;">
+        <div style="text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 2px;">
+          BVM SCHOOL OF EXCELLENCE, KOTHAKOTA
+        </div>
+        <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 10px;">
+          ${examTypeText}
+        </div>
+
+        <div style="font-size: 11px; margin-bottom: 10px;">
+          <div><b>STUDENT NAME :</b> ${ticket.student_name || ''}</div>
+          <div><b>STUDENT NUMBER :</b> ${ticket.hall_ticket_number || ''}</div>
+          <div><b>TIMINGS :</b> 9:30 AM TO 12:30 PM</div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 10px;">
+          <tr>
+            <th style="border: 1px solid black; padding: 4px; text-align: center; font-weight: bold;">SUBJECT</th>
+            <th style="border: 1px solid black; padding: 4px; text-align: center; font-weight: bold;">DATE</th>
+            <th style="border: 1px solid black; padding: 4px; text-align: center; font-weight: bold;">INVIGILATOR SIGN</th>
+          </tr>
+          ${subjectRows}
+        </table>
+
+        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 8px;">
+          <div style="border-top: 1px solid black; width: 45%; padding-top: 15px; text-align: left;">AO SIGNATURE</div>
+          <div style="border-top: 1px solid black; width: 45%; padding-top: 15px; text-align: right;">PRINCIPAL SIGNATURE</div>
+        </div>
+      </div>
+    `;
   };
 
 Deno.serve(async (req) => {
