@@ -114,22 +114,8 @@ Deno.serve(async (req) => {
             }
         );
 
-        // Share the spreadsheet with the user
-        const shareResponse = await fetch(
-            `https://www.googleapis.com/drive/v3/files/${spreadsheetId}/permissions`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    role: 'owner',
-                    type: 'user',
-                    emailAddress: user.email
-                })
-            }
-        );
+        // Note: Sharing is handled manually since app connector has limited drive scope
+        // The sheet is created in the app builder's Drive account
 
         // Log the action
         try {
