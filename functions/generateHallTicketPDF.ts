@@ -134,13 +134,17 @@ Deno.serve(async (req) => {
     const pdfBuffer = await generatePDF(hallTickets, schoolProfile);
 
     // Log download
-    await base44.asServiceRole.entities.HallTicketLog.create({
-      action: 'downloaded',
-      hall_ticket_id: hallTicketIds[0],
-      student_id: 'multiple',
-      performed_by: user.email || 'unknown',
-      details: `Downloaded PDF for ${hallTickets.length} hall tickets`
-    });
+    try {
+      await base44.asServiceRole.entities.HallTicketLog.create({
+        action: 'downloaded',
+        hall_ticket_id: hallTicketIds[0],
+        student_id: 'multiple',
+        performed_by: user?.email || 'system',
+        details: `Downloaded PDF for ${hallTickets.length} hall tickets`
+      });
+    } catch (e) {
+      console.error('Failed to log download:', e.message);
+    }
 
     return new Response(pdfBuffer, {
       status: 200,
