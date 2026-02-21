@@ -13,7 +13,9 @@ export default function StudentHallTicketView() {
   useEffect(() => {
     const ss = localStorage.getItem('student_session');
     if (ss) {
-      setStudentSession(JSON.parse(ss));
+      const parsed = JSON.parse(ss);
+      console.log('Student session:', parsed);
+      setStudentSession(parsed);
       loadSchoolProfile();
     }
   }, []);
