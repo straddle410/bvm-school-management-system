@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export const exportToExcel = async (data, filename, fromDate, toDate) => {
   const workbook = new ExcelJS.Workbook();
