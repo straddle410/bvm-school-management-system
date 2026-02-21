@@ -268,6 +268,7 @@ export default function Attendance() {
               <button
                 onClick={() => { 
                   setIsHoliday(!isHoliday); 
+                  setManuallyChanged(true);
                   if (isHoliday) setHolidayReason(''); 
                   else setHolidayReason(isSunday ? 'Sunday' : ''); 
                 }}
