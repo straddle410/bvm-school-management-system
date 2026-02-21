@@ -34,7 +34,15 @@ export default function Layout({ children, currentPageName }) {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (hasStudentSession) => {
+    // If student session exists, don't call auth.me() - just load school profile
+    if (hasStudentSession) {
+      try {
+        const profiles = await base44.entities.SchoolProfile.list();
+        if (profiles.length > 0) setSchoolProfile(profiles[0]);
+      } catch {}
+      return;
+    }
     try {
       const [currentUser, profiles] = await Promise.all([
         base44.auth.me(),
@@ -43,7 +51,6 @@ export default function Layout({ children, currentPageName }) {
       setUser(currentUser);
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
     } catch (e) {
-      // not logged in
       try {
         const profiles = await base44.entities.SchoolProfile.list();
         if (profiles.length > 0) setSchoolProfile(profiles[0]);
