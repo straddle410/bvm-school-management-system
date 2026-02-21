@@ -103,7 +103,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
         </div>
 
-        <div className="p-4 space-y-5">
+        <div className="p-4 pb-10 space-y-5">
           {/* Info */}
           {hw.description && (
             <div className="bg-blue-50 rounded-xl p-3">
