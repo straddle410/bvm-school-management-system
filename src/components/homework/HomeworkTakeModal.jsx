@@ -202,8 +202,11 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
             </div>
           )}
 
-          {/* Submit button */}
-          {!isSubmitted && (
+        </div>
+
+        {/* Submit button - sticky at bottom */}
+        {!isSubmitted && (
+          <div className="sticky bottom-0 bg-white border-t border-gray-100 px-4 py-3">
             <button
               onClick={() => submitMutation.mutate()}
               disabled={submitMutation.isPending}
@@ -215,8 +218,8 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
                 <><Send className="h-4 w-4" /> Submit Homework</>
               )}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
