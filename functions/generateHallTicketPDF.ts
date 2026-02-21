@@ -23,7 +23,7 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       doc.setDrawColor(0);
 
       // Outer border
-      doc.rect(margin, yPos, contentWidth, pageHeight - 2 * margin);
+      doc.rect(margin, yPos, contentWidth, ticketHeight - margin);
 
       yPos += 3;
 
