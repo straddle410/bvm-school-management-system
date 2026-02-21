@@ -90,8 +90,8 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-      <div className="bg-white w-full max-w-md rounded-t-3xl max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
+      <div className="bg-white w-full max-w-md rounded-t-3xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
         <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
           <h2 className="font-bold text-slate-800">{editItem ? 'Edit Homework' : 'Create Homework'}</h2>
           <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
