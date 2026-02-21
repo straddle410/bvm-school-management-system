@@ -1,9 +1,7 @@
 import { format } from 'date-fns';
-import ExcelJS from 'exceljs';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 export const exportToExcel = async (data, filename, fromDate, toDate) => {
+  const ExcelJS = (await import('exceljs')).default;
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Attendance Report');
 
@@ -83,6 +81,8 @@ export const exportToExcel = async (data, filename, fromDate, toDate) => {
 };
 
 export const exportToPDF = async (data, filename, fromDate, toDate) => {
+  const { jsPDF } = await import('jspdf');
+  await import('jspdf-autotable');
   const doc = new jsPDF('l', 'mm', 'a4'); // landscape, A4
 
   // Title
