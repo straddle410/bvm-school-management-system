@@ -27,11 +27,12 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     // Check student session first
-    try {
-      const ss = localStorage.getItem('student_session');
-      if (ss) setStudentSession(JSON.parse(ss));
-    } catch {}
-    loadData();
+    let ss = null;
+      try {
+        const raw = localStorage.getItem('student_session');
+        if (raw) { ss = JSON.parse(raw); setStudentSession(ss); }
+      } catch {}
+      loadData(!!ss);
   }, []);
 
   const loadData = async (hasStudentSession) => {
