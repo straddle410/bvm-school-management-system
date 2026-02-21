@@ -159,6 +159,8 @@ export default function Students() {
   const resetForm = () => {
     setFormData({
       student_id: '',
+      username: '',
+      password: 'BVM123',
       name: '',
       class_name: '',
       section: 'A',
