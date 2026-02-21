@@ -57,10 +57,11 @@ export default function HallTicketList({ examTypeId, classFilter }) {
 
     try {
       const staffSession = localStorage.getItem('staff_session');
-      const res = await base44.functions.invoke('generateHallTicketPDF', { 
-        hallTicketIds: selected,
-        staffSession
-      });
+      const payload = { hallTicketIds: selected };
+      if (staffSession) {
+        payload.staffSession = staffSession;
+      }
+      const res = await base44.functions.invoke('generateHallTicketPDF', payload);
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
