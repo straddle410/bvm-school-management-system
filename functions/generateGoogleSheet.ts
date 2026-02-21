@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
                 action: 'created_google_sheet',
                 hall_ticket_id: hallTicketIds[0],
                 student_id: 'multiple',
-                performed_by: user.email,
+                performed_by: user?.email || 'system',
                 details: `Created Google Sheet for ${hallTickets.length} hall tickets`
             });
         } catch (e) {
