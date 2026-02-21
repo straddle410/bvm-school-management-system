@@ -88,6 +88,7 @@ export default function Attendance() {
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || user?.role === 'admin';
   const isMarkedHoliday = holidays.length > 0;
+  const canManageHolidays = user?.role === 'admin' || user?.role === 'principal';
 
   // Track if user manually changed holiday toggle
   const [manuallyChanged, setManuallyChanged] = useState(false);
