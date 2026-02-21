@@ -94,23 +94,13 @@ Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const payload = await req.json();
-        const { hallTicketIds, staffSession } = payload;
+        const { hallTicketIds } = payload;
 
-        let user = null;
-        if (staffSession) {
-            try {
-                user = typeof staffSession === 'string' ? JSON.parse(staffSession) : staffSession;
-            } catch (e) {
-                console.error('Failed to parse staff session:', e.message);
-            }
-        }
-
-        if (!user) {
-            try {
-                user = await base44.auth.me();
-            } catch (e) {
-                console.error('Base44 auth failed:', e.message);
-            }
+        let user;
+        try {
+            user = await base44.auth.me();
+        } catch (e) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         if (!hallTicketIds || hallTicketIds.length === 0) {
