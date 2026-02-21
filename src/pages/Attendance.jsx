@@ -192,6 +192,40 @@ export default function Attendance() {
 
         {selectedClass && selectedSection && (
           <>
+            {/* Holiday Banner / Toggle */}
+            <Card className={`border-0 shadow-sm ${isHoliday ? 'bg-amber-50 border border-amber-200' : ''}`}>
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
+                    <Palmtree className={`h-5 w-5 ${isHoliday ? 'text-amber-500' : 'text-slate-400'}`} />
+                    <div>
+                      <p className="font-medium text-slate-800 text-sm">
+                        {isSunday ? '🔴 Sunday — Auto-marked as Holiday' : 'Mark as Holiday'}
+                      </p>
+                      <p className="text-xs text-slate-500">Students will be marked as holiday for this day</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {isHoliday && (
+                      <input
+                        type="text"
+                        placeholder="Reason (e.g. Diwali, Sunday)"
+                        value={holidayReason}
+                        onChange={e => setHolidayReason(e.target.value)}
+                        className="border rounded-lg px-3 py-1.5 text-sm w-48"
+                      />
+                    )}
+                    <button
+                      onClick={() => { setIsHoliday(!isHoliday); if (!isHoliday) setHolidayReason(isSunday ? 'Sunday' : ''); }}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card className="border-0 shadow-sm p-4">
