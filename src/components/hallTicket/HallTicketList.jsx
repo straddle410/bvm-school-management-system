@@ -87,19 +87,19 @@ export default function HallTicketList({ examTypeId, classFilter }) {
     try {
       const payload = { hallTicketIds: selected };
       const res = await base44.functions.invoke('generateHallTicketExcel', payload);
-      const blob = new Blob([res.data], { type: 'text/csv' });
+      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'hall_tickets.csv';
+      a.download = 'hall_tickets.xlsx';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-      toast.success('CSV downloaded');
+      toast.success('Excel downloaded');
     } catch (error) {
-      console.error('CSV download error:', error);
-      toast.error('Failed to generate CSV');
+      console.error('Excel download error:', error);
+      toast.error('Failed to generate Excel');
     }
   };
 
