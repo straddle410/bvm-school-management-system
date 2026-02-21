@@ -92,6 +92,24 @@ export default function StudentDashboard() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-20 p-4 space-y-4">
+
+        {/* Quick Access */}
+        <div>
+          <h2 className="text-base font-bold text-gray-800 mb-3">Quick Access</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {studentQuickAccess.map((item) => (
+              <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative h-full">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
+                    <item.icon className="h-6 w-6" style={{ color: item.color }} />
+                  </div>
+                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
         {/* Profile Card */}
         <Card className="border-0 shadow-sm overflow-hidden">
           <div className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] p-4">
