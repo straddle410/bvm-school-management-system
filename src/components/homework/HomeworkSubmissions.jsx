@@ -28,8 +28,8 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const graded = submissions.filter(s => s.status === 'Graded').length;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-      <div className="bg-white w-full max-w-md rounded-t-3xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
+      <div className="bg-white w-full max-w-md rounded-t-3xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
         <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
           <div>
             <h2 className="font-bold text-slate-800 text-sm">{homework.title}</h2>
