@@ -71,6 +71,7 @@ import Students from './pages/Students';
 import Teachers from './pages/Teachers';
 import StudentLogin from './pages/StudentLogin';
 import StudentDashboard from './pages/StudentDashboard';
+import HomeworkManage from './pages/HomeworkManage';
 import __Layout from './Layout.jsx';
 
 
@@ -99,6 +100,7 @@ export const PAGES = {
     "Teachers": Teachers,
     "StudentLogin": StudentLogin,
     "StudentDashboard": StudentDashboard,
+    "HomeworkManage": HomeworkManage,
 }
 
 export const pagesConfig = {
