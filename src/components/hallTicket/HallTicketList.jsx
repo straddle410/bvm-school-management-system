@@ -56,15 +56,6 @@ export default function HallTicketList({ examTypeId, classFilter }) {
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>Hall Tickets</CardTitle>
         <div className="flex gap-2 flex-wrap">
-            <Button onClick={downloadPDF} disabled={selected.length === 0} className="gap-2">
-              <Download className="w-4 h-4" /> Download PDF
-            </Button>
-            <Button onClick={downloadExcel} disabled={selected.length === 0} className="gap-2 bg-blue-600 hover:bg-blue-700">
-              <FileText className="w-4 h-4" /> Download Excel
-            </Button>
-            <Button onClick={generateGoogleSheet} disabled={selected.length === 0} className="gap-2 bg-orange-600 hover:bg-orange-700">
-              <Sheet className="w-4 h-4" /> Generate Google Sheet
-            </Button>
             <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0} className="gap-2 bg-green-600">
               <Lock className="w-4 h-4" /> Approve & Lock
             </Button>
