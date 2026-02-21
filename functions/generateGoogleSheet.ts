@@ -54,21 +54,21 @@ Deno.serve(async (req) => {
         const spreadsheetId = spreadsheet.spreadsheetId;
         console.log('Created spreadsheet:', spreadsheetId);
 
-        // Prepare data rows
-        const values = [
-            ['STUDENT NAME', 'ROLL NUMBER', 'CLASS', 'SECTION', 'EXAM TYPE', 'HALL TICKET NO']
-        ];
-
-        hallTickets.forEach(ticket => {
-            values.push([
-                ticket.student_name,
-                ticket.roll_number,
-                ticket.class_name,
-                ticket.section,
-                ticket.exam_type,
-                ticket.hall_ticket_number
-            ]);
-        });
+        // Prepare hall ticket format (3 tickets per row)
+        const values = [];
+        for (let i = 0; i < hallTickets.length; i++) {
+            const ticket = hallTickets[i];
+            
+            if (i % 3 === 0) {
+                // Start new row with 3 tickets
+                values.push(['', '', '', '', '', '']);
+                values.push(['HALL TICKET NO:', ticket.hall_ticket_number, '', 'HALL TICKET NO:', hallTickets[i+1]?.hall_ticket_number || '', '', 'HALL TICKET NO:', hallTickets[i+2]?.hall_ticket_number || '']);
+                values.push(['STUDENT NAME:', ticket.student_name, '', 'STUDENT NAME:', hallTickets[i+1]?.student_name || '', '', 'STUDENT NAME:', hallTickets[i+2]?.student_name || '']);
+                values.push(['ROLL NO:', ticket.roll_number, '', 'ROLL NO:', hallTickets[i+1]?.roll_number || '', '', 'ROLL NO:', hallTickets[i+2]?.roll_number || '']);
+                values.push(['CLASS:', ticket.class_name + '-' + ticket.section, '', 'CLASS:', (hallTickets[i+1]?.class_name || '') + '-' + (hallTickets[i+1]?.section || ''), '', 'CLASS:', (hallTickets[i+2]?.class_name || '') + '-' + (hallTickets[i+2]?.section || '')]);
+                values.push(['', '', '', '', '', '']);
+            }
+        }
 
         // Update spreadsheet with data
         const updateResponse = await fetch(
