@@ -77,21 +77,25 @@ export default function Calendar() {
     queryFn: () => base44.entities.CalendarEvent.list()
   });
 
-  // Fetch attendance-marked holidays for the current month
-  const monthStr = format(currentMonth, 'yyyy-MM');
-  const { data: attendanceHolidays = [] } = useQuery({
-    queryKey: ['attendance-holidays', monthStr],
-    queryFn: () => base44.entities.Attendance.filter({ is_holiday: true, status: 'Holiday' }),
+  // Fetch marked holidays from Holiday entity
+  const { data: holidays = [] } = useQuery({
+    queryKey: ['holidays'],
+    queryFn: () => base44.entities.Holiday.filter({ status: 'Active' }),
   });
 
-  // Build a set of holiday date strings from attendance records
+  // Build a set of holiday date strings
   const holidayDateSet = React.useMemo(() => {
     const set = new Set();
-    attendanceHolidays.forEach(r => { if (r.date) set.add(r.date); });
+    holidays.forEach(h => { if (h.date) set.add(h.date); });
     return set;
-  }, [attendanceHolidays]);
+  }, [holidays]);
 
-  const isAttendanceHoliday = (date) => holidayDateSet.has(format(date, 'yyyy-MM-dd'));
+  // Check if date is Sunday or marked holiday
+  const isAttendanceHoliday = (date) => {
+    const isSunday = date.getDay() === 0;
+    const isMarkedHoliday = holidayDateSet.has(format(date, 'yyyy-MM-dd'));
+    return isSunday || isMarkedHoliday;
+  };
 
   const createEventMutation = useMutation({
     mutationFn: (data) => base44.entities.CalendarEvent.create(data),

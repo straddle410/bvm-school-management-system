@@ -51,9 +51,11 @@ import Admissions from './pages/Admissions';
 import Approvals from './pages/Approvals';
 import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
+import AttendanceReports from './pages/AttendanceReports';
 import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
+import HolidayCalendar from './pages/HolidayCalendar';
 import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
@@ -73,8 +75,6 @@ import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import HolidayCalendar from './pages/HolidayCalendar';
-import AttendanceReports from './pages/AttendanceReports';
 import __Layout from './Layout.jsx';
 
 
@@ -83,9 +83,11 @@ export const PAGES = {
     "Approvals": Approvals,
     "Attendance": Attendance,
     "AttendanceReport": AttendanceReport,
+    "AttendanceReports": AttendanceReports,
     "Calendar": Calendar,
     "Dashboard": Dashboard,
     "Gallery": Gallery,
+    "HolidayCalendar": HolidayCalendar,
     "HomeworkManage": HomeworkManage,
     "IDCards": IDCards,
     "Marks": Marks,
@@ -105,8 +107,6 @@ export const PAGES = {
     "StudentLogin": StudentLogin,
     "Students": Students,
     "Teachers": Teachers,
-    "HolidayCalendar": HolidayCalendar,
-    "AttendanceReports": AttendanceReports,
 }
 
 export const pagesConfig = {
