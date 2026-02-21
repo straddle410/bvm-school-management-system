@@ -94,7 +94,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ overscrollBehavior: 'contain' }}>
-      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ height: 'calc(100vh - 70px)', maxHeight: 'calc(100vh - 70px)' }}>
+      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ height: 'calc(100vh - 80px)', maxHeight: 'calc(100vh - 80px)' }}>
         <div className="bg-white px-4 pt-4 pb-3 flex items-center justify-between border-b flex-shrink-0">
           <div>
             <h2 className="font-bold text-slate-800 text-sm">{hw.title}</h2>
