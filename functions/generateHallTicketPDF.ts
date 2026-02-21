@@ -164,9 +164,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No hall tickets found' }, { status: 404 });
     }
 
-    // Fetch school profile and timetable
-    const [schoolProfiles, timetableList] = await Promise.all([
+    // Fetch school profile, exam type, and timetable
+    const [schoolProfiles, examTypeData, timetableList] = await Promise.all([
       base44.asServiceRole.entities.SchoolProfile.list(),
+      base44.asServiceRole.entities.ExamType.get(hallTickets[0].exam_type),
       base44.asServiceRole.entities.ExamTimetable.filter({
         exam_type: hallTickets[0].exam_type,
         academic_year: hallTickets[0].academic_year
@@ -175,7 +176,7 @@ Deno.serve(async (req) => {
     const schoolProfile = schoolProfiles[0];
 
     // Generate PDF
-    const pdfBuffer = await generatePDF(hallTickets, schoolProfile, timetableList);
+    const pdfBuffer = await generatePDF(hallTickets, schoolProfile, timetableList, examTypeData);
 
     // Log download
     try {
