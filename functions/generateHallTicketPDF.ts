@@ -22,39 +22,39 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       doc.setLineWidth(0.5);
       doc.rect(margin, yStart, ticketWidth, ticketHeight);
 
-      let yPos = yStart + 2;
+      let yPos = yStart + 3;
 
       // School name
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
+      doc.setFontSize(13);
+      doc.setFont('Calibri', 'bold');
       doc.text('BVM SCHOOL OF EXCELLENCE, KOTHAKOTA', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 3.5;
+      yPos += 4;
 
       // Exam type
-      doc.setFontSize(8.5);
-      doc.setFont(undefined, 'bold');
+      doc.setFontSize(10);
+      doc.setFont('Calibri', 'bold');
       const examTypeText = examType ? `${examType.name} HALL TICKET-2023` : 'EXAM HALL TICKET-2023';
       doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 3.2;
+      yPos += 3.5;
 
       // Student info - inline labels and values
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9);
+      doc.setFont('Calibri', 'bold');
       doc.text('STUDENT NAME :', margin + 2, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(ticket.student_name || '', margin + 33, yPos);
-      yPos += 2.8;
+      doc.setFont('Calibri', 'normal');
+      doc.text(ticket.student_name || '', margin + 34, yPos);
+      yPos += 3;
 
-      doc.setFont(undefined, 'bold');
+      doc.setFont('Calibri', 'bold');
       doc.text('STUDENT NUMBER :', margin + 2, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(ticket.hall_ticket_number || '', margin + 33, yPos);
-      yPos += 2.8;
+      doc.setFont('Calibri', 'normal');
+      doc.text(ticket.hall_ticket_number || '', margin + 34, yPos);
+      yPos += 3;
 
-      doc.setFont(undefined, 'bold');
+      doc.setFont('Calibri', 'bold');
       doc.text('TIMINGS :', margin + 2, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text('9:30 AM TO 12:30 PM', margin + 33, yPos);
+      doc.setFont('Calibri', 'normal');
+      doc.text('9:30 AM TO 12:30 PM', margin + 34, yPos);
       yPos += 3.5;
 
       // Two-column table: TELUGU, HINDI, ENGLISH on left | MATHEMATICS, GEN. SCIENCE, SOCIAL on right
