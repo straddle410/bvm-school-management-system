@@ -38,7 +38,7 @@ export function AcademicYearProvider({ children }) {
         const isAuth = await base44.auth.isAuthenticated();
         if (isAuth) {
           const user = await base44.auth.me();
-          if (user?.role === 'admin') { setIsAdmin(true); return; }
+          if (user?.role === 'admin' || user?.role === 'principal') { setIsAdmin(true); return; }
         }
       } catch {}
       setIsAdmin(false);
