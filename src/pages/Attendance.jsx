@@ -19,9 +19,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree
+  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange
 } from 'lucide-react';
-import { format, getDay } from 'date-fns';
+import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
