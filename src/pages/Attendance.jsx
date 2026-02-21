@@ -478,6 +478,7 @@ export default function Attendance() {
                               variant={isPresent ? 'default' : 'outline'}
                               className={isPresent ? 'bg-green-600 hover:bg-green-700' : ''}
                               onClick={() => toggleAttendance(student.student_id || student.id, true)}
+                              disabled={attendanceDisabled}
                             >
                               <CheckCircle2 className="h-4 w-4" />
                             </Button>
@@ -486,6 +487,7 @@ export default function Attendance() {
                               variant={!isPresent ? 'default' : 'outline'}
                               className={!isPresent ? 'bg-red-600 hover:bg-red-700' : ''}
                               onClick={() => toggleAttendance(student.student_id || student.id, false)}
+                              disabled={attendanceDisabled}
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>
