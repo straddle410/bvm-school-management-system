@@ -134,12 +134,11 @@ export default function Attendance() {
       
       for (const day of days) {
         const dateStr = format(day, 'yyyy-MM-dd');
-        // Fetch existing records for this date
         const existing = await base44.entities.Attendance.filter({ date: dateStr, academic_year: academicYear });
         const existingMap = {};
         existing.forEach(r => { existingMap[`${r.student_id}_${r.class_name}`] = r; });
 
-        const promises = allPublishedStudents.map(student => {
+        for (const student of allPublishedStudents) {
           const key = `${student.student_id || student.id}_${student.class_name}`;
           const existingRecord = existingMap[key];
           const data = {
@@ -156,21 +155,22 @@ export default function Attendance() {
             status: 'Holiday'
           };
           if (existingRecord?.id) {
-            return base44.entities.Attendance.update(existingRecord.id, data);
+            await base44.entities.Attendance.update(existingRecord.id, data);
+          } else {
+            await base44.entities.Attendance.create(data);
           }
-          return base44.entities.Attendance.create(data);
-        });
-        await Promise.all(promises);
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['attendance']);
+      queryClient.invalidateQueries(['attendance-holidays']);
       toast.success(`Holiday marked from ${rangeStart} to ${rangeEnd}`);
       setShowRangeMode(false);
       setRangeStart(''); setRangeEnd(''); setRangeReason('');
     },
     onError: (err) => {
-      toast.error('Failed to mark holiday range: ' + err.message);
+      toast.error('Failed to mark holiday: ' + (err?.message || 'Unknown error'));
     }
   });
 
