@@ -280,7 +280,13 @@ export default function Attendance() {
                 </Button>
               </CardHeader>
               <CardContent className="p-0">
-                {filteredStudents.length === 0 ? (
+                {isHoliday ? (
+                  <div className="py-12 text-center text-amber-500">
+                    <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                    <p className="font-medium text-slate-700">Holiday: {holidayReason || 'Holiday'}</p>
+                    <p className="text-sm text-slate-400 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
+                  </div>
+                ) : filteredStudents.length === 0 ? (
                   <div className="py-12 text-center text-slate-400">
                     No published students found in this class
                   </div>
