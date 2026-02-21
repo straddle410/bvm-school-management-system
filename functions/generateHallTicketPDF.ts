@@ -135,21 +135,18 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       }
 
       // Signature section with spacing
-      yPos += 5;
-      doc.setFontSize(7);
+      yPos += 3;
+      doc.setFontSize(6.5);
       doc.setFont(undefined, 'bold');
 
       // Draw signature boxes
-      const sigBoxHeight = 10;
+      const sigBoxHeight = 7;
       doc.rect(col1, yPos, col3 - col1, sigBoxHeight);
       doc.rect(col4, yPos, col6 - col4, sigBoxHeight);
 
-      doc.text('AO SIGNATURE', col1 + 2, yPos + sigBoxHeight + 2);
-      doc.text('PRINCIPAL SIGNATURE', col4 + 2, yPos + sigBoxHeight + 2);
-
-      // Close outer border
-      doc.setLineWidth(0.7);
-      doc.rect(margin, margin, contentWidth, pageHeight - 2 * margin);
+      doc.setFontSize(6);
+      doc.text('AO SIGNATURE', col1 + 2, yPos + sigBoxHeight + 1.5);
+      doc.text('PRINCIPAL SIGNATURE', col4 + 2, yPos + sigBoxHeight + 1.5);
     });
 
     return doc.output('arraybuffer');
