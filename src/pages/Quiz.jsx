@@ -603,6 +603,9 @@ export default function Quiz() {
         )}
       </div>
 
+      {/* Student Bottom Nav */}
+      {studentSession && <StudentBottomNav currentPage="Quiz" />}
+
       {/* Create Quiz Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
