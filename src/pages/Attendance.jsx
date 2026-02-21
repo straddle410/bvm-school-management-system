@@ -370,6 +370,16 @@ export default function Attendance() {
 
         {selectedClass && selectedSection && (
           <>
+            {/* Holiday Block Message */}
+            {isHoliday && !hasHolidayOverride && (
+              <Card className="border-l-4 border-l-amber-500 bg-amber-50">
+                <CardContent className="p-4">
+                  <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
+                  <p className="text-xs text-amber-700 mt-1">Contact admin to enable attendance for this day</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card className="border-0 shadow-sm p-4">
