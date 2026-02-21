@@ -2,11 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
-import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 import StudentChangePassword from '@/components/StudentChangePassword';
+
+const studentQuickAccess = [
+  { label: 'Results', icon: Trophy, color: '#5c6bc0', bg: '#e8eaf6', page: 'Results' },
+  { label: 'Notices', icon: Bell, color: '#26c6da', bg: '#e0f7fa', page: 'Notices' },
+  { label: 'Gallery', icon: Image, color: '#ab47bc', bg: '#f3e5f5', page: 'Gallery' },
+  { label: 'Calendar', icon: Calendar, color: '#26a69a', bg: '#e0f2f1', page: 'Calendar' },
+  { label: 'Quiz', icon: Brain, color: '#7e57c2', bg: '#ede7f6', page: 'Quiz' },
+  { label: 'Homework', icon: BookOpen, color: '#e65100', bg: '#fff3e0', page: 'StudentDashboard' },
+];
 
 function getStudentSession() {
   try {
