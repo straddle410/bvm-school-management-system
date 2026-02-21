@@ -506,7 +506,7 @@ export default function Attendance() {
               <div className="flex justify-end">
                 <Button 
                   onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || (isHoliday && !hasHolidayOverride)}
                 >
                   <Save className="mr-2 h-4 w-4" />
                   {saveMutation.isPending ? 'Saving...' : 'Save Attendance'}
