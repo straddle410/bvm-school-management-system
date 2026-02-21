@@ -6,94 +6,96 @@ const jsPDF = jsPDFModule.jsPDF || jsPDFModule;
 const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = 210;
+    const pageHeight = 297;
     const ticketsPerPage = 3;
-    const ticketHeight = 96;
-    const margin = 6;
-    const ticketWidth = pageWidth - (2 * margin);
+    const ticketHeight = 95;
+    const marginLeft = 10;
+    const marginRight = 10;
+    const ticketWidth = pageWidth - marginLeft - marginRight;
 
     hallTickets.forEach((ticket, index) => {
         const ticketIndex = index % ticketsPerPage;
         if (index > 0 && ticketIndex === 0) doc.addPage();
 
-        const yStart = margin + (ticketIndex * (ticketHeight + 1.5));
+        const yStart = 10 + (ticketIndex * (ticketHeight + 2));
 
-        // Outer border
-        doc.setLineWidth(0.6);
-        doc.rect(margin, yStart, ticketWidth, ticketHeight);
+        // Border
+        doc.setLineWidth(0.8);
+        doc.rect(marginLeft, yStart, ticketWidth, ticketHeight);
 
-        let yPos = yStart + 2.5;
+        let yPos = yStart + 3;
+        const contentX = marginLeft + 3;
+        const contentWidth = ticketWidth - 6;
 
-        // School name - single line, properly sized
-        doc.setFontSize(14);
+        // Row 1: School Name - BOLD 16pt
+        doc.setFontSize(16);
         doc.setFont('Calibri', 'bold');
-        doc.text('BVM SCHOOL OF EXCELLENCE, KOTHAKOTA', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 4;
+        doc.text('BVM SCHOOL OF EXCELLENCE, KOTHAKOTA', contentX, yPos);
+        yPos += 5;
 
-        // Exam type
-        doc.setFontSize(12);
+        // Row 2: Exam Type - BOLD 13pt
+        doc.setFontSize(13);
         doc.setFont('Calibri', 'bold');
         const examTypeText = examType ? `${examType.name} HALL TICKET - 2023` : 'EXAM HALL TICKET - 2023';
-        doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
+        doc.text(examTypeText, contentX, yPos);
+        yPos += 4.5;
+
+        // Row 3: Student Name - 11pt normal
+        doc.setFontSize(11);
+        doc.setFont('Calibri', 'normal');
+        doc.text('STUDENT NAME : ' + (ticket.student_name || ''), contentX, yPos);
         yPos += 3.5;
 
-        // Student info - separated clearly
+        // Row 4: Student Number - 11pt normal
+        doc.text('STUDENT NUMBER : ' + (ticket.hall_ticket_number || ''), contentX, yPos);
+        yPos += 3.5;
+
+        // Row 5: Timings - 11pt normal
+        doc.text('TIMINGS : 9:30 AM TO 12:30 PM', contentX, yPos);
+        yPos += 5;
+
+        // Table Header
+        doc.setLineWidth(0.5);
+        doc.setFont('Calibri', 'bold');
         doc.setFontSize(10);
-        doc.setFont('Calibri', 'bold');
-        const infoX = margin + 2;
-        
-        doc.text('NAME:', infoX, yPos);
-        doc.setFont('Calibri', 'normal');
-        doc.text(ticket.student_name || '', infoX + 12, yPos);
-        yPos += 2.8;
 
-        doc.setFont('Calibri', 'bold');
-        doc.text('ROLL NO:', infoX, yPos);
-        doc.setFont('Calibri', 'normal');
-        doc.text(ticket.hall_ticket_number || '', infoX + 12, yPos);
-        yPos += 3.2;
+        const tableX = contentX;
+        const subjectColW = 5.5;
+        const dateColW = 6;
+        const signColW = contentWidth - subjectColW - dateColW;
+        const headerH = 3.5;
 
-        // Subjects table
-        doc.setLineWidth(0.35);
-        doc.setFontSize(9.5);
+        // Header row
+        doc.rect(tableX, yPos, subjectColW, headerH);
+        doc.rect(tableX + subjectColW, yPos, dateColW, headerH);
+        doc.rect(tableX + subjectColW + dateColW, yPos, signColW, headerH);
 
-        const tableX = margin + 1.5;
-        const tableW = ticketWidth - 3;
-        const col1W = 7;
-        const col2W = 9;
-        const col3W = tableW - col1W - col2W;
-        
-        const headerH = 3;
-        const rowH = 3;
+        doc.text('SUBJECT', tableX + 0.5, yPos + 2.2);
+        doc.text('DATE & DAY', tableX + subjectColW + 0.5, yPos + 2.2);
+        doc.text('INVIGILATOR SIGN', tableX + subjectColW + dateColW + 0.5, yPos + 2.2);
 
-        // Header
-        doc.setFont('Calibri', 'bold');
-        doc.rect(tableX, yPos, col1W, headerH);
-        doc.rect(tableX + col1W, yPos, col2W, headerH);
-        doc.rect(tableX + col1W + col2W, yPos, col3W, headerH);
-
-        doc.text('SUBJECT', tableX + 0.5, yPos + 1.8);
-        doc.text('DATE', tableX + col1W + 0.5, yPos + 1.8);
-        doc.text('SIGN', tableX + col1W + col2W + 0.5, yPos + 1.8);
-        
         yPos += headerH;
 
-        // Subject rows
-        const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GEN. SCIENCE', 'SOCIAL', 'OPTIONAL'];
-        
+        // Subjects
+        const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GENERAL SCIENCE', 'SOCIAL STUDIES', 'OPTIONAL SUBJECT'];
+        const rowH = 3.2;
+
         doc.setFont('Calibri', 'normal');
-        doc.setFontSize(9);
+        doc.setFontSize(10);
 
         subjects.forEach((subject) => {
-            doc.rect(tableX, yPos, col1W, rowH);
-            doc.rect(tableX + col1W, yPos, col2W, rowH);
-            doc.rect(tableX + col1W + col2W, yPos, col3W, rowH);
+            doc.rect(tableX, yPos, subjectColW, rowH);
+            doc.rect(tableX + subjectColW, yPos, dateColW, rowH);
+            doc.rect(tableX + subjectColW + dateColW, yPos, signColW, rowH);
 
-            doc.text(subject, tableX + 0.5, yPos + 1.7);
+            doc.text(subject, tableX + 0.5, yPos + 1.9);
 
             const tt = timetable.find(t => t.subject_name === subject);
             if (tt && tt.exam_date) {
-                const d = new Date(tt.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-                doc.text(d, tableX + col1W + 0.5, yPos + 1.7);
+                const date = new Date(tt.exam_date);
+                const d = date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                const day = date.toLocaleDateString('en-IN', { weekday: 'short' });
+                doc.text(`${d} ${day}`, tableX + subjectColW + 0.5, yPos + 1.9);
             }
 
             yPos += rowH;
@@ -101,21 +103,22 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
 
         // Signature line at bottom
         yPos = yStart + ticketHeight - 3.5;
+        doc.setLineWidth(0.4);
         doc.setFont('Calibri', 'normal');
-        doc.setFontSize(8);
-        
-        const sigX1 = margin + 2;
-        const sigX2 = margin + ticketWidth / 2 - 4;
-        const sigX3 = margin + ticketWidth - 12;
+        doc.setFontSize(9);
 
-        doc.line(sigX1, yPos, sigX1 + 12, yPos);
-        doc.text('AO SIGN', sigX1, yPos + 1.5);
+        const sig1X = contentX;
+        const sig2X = contentX + contentWidth / 2 - 4;
+        const sig3X = contentX + contentWidth - 12;
 
-        doc.line(sigX2, yPos, sigX2 + 12, yPos);
-        doc.text('DATE', sigX2 + 2, yPos + 1.5);
+        doc.line(sig1X, yPos, sig1X + 12, yPos);
+        doc.text('AO SIGNATURE', sig1X, yPos + 1.8);
 
-        doc.line(sigX3, yPos, sigX3 + 12, yPos);
-        doc.text('PRINCIPAL', sigX3, yPos + 1.5);
+        doc.line(sig2X, yPos, sig2X + 10, yPos);
+        doc.text('DATE', sig2X, yPos + 1.8);
+
+        doc.line(sig3X, yPos, sig3X + 12, yPos);
+        doc.text('PRINCIPAL SIGNATURE', sig3X, yPos + 1.8);
     });
 
     return doc.output('arraybuffer');
