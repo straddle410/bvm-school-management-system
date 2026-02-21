@@ -99,10 +99,12 @@ export default function Attendance() {
           section: selectedSection,
           student_id: student.student_id || student.id,
           student_name: student.name,
-          is_present: existing?.is_present !== false,
+          is_present: isHoliday ? false : (existing?.is_present !== false),
+          is_holiday: isHoliday,
+          holiday_reason: isHoliday ? (holidayReason || 'Holiday') : '',
           marked_by: user?.email,
           academic_year: academicYear,
-          status: 'Taken'
+          status: isHoliday ? 'Holiday' : 'Taken'
         };
         
         if (existing?.id) {
@@ -114,7 +116,7 @@ export default function Attendance() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['attendance']);
-      toast.success('Attendance saved successfully');
+      toast.success(isHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
     }
   });
 
