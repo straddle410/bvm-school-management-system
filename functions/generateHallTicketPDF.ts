@@ -3,14 +3,15 @@ import jsPDFModule from 'npm:jspdf@4.0.0';
 
 const jsPDF = jsPDFModule.jsPDF || jsPDFModule;
 
-const generatePDF = async (hallTickets, schoolProfile, timetable) => {
+const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
   const doc = new jsPDF('p', 'mm', 'a4');
   
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const ticketPerPage = 2;
+  const ticketPerPage = 3;
   const ticketHeight = pageHeight / ticketPerPage;
-  const margin = 5;
+  const margin = 8;
+  const contentWidth = pageWidth - 2 * margin;
 
   hallTickets.forEach((ticket, index) => {
     const positionInPage = index % ticketPerPage;
@@ -19,78 +20,104 @@ const generatePDF = async (hallTickets, schoolProfile, timetable) => {
       doc.addPage();
     }
 
-    const yPos = positionInPage * ticketHeight + margin;
+    const yPos = positionInPage * ticketHeight + 2;
     let currentY = yPos + 2;
 
-    // Draw ticket border
-    doc.setDrawColor(100);
-    doc.rect(margin, yPos, pageWidth - 2 * margin, ticketHeight - 2);
+    // Outer border
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.rect(margin, yPos, contentWidth, ticketHeight - 3);
 
     // School header
-    doc.setFontSize(10);
+    doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
-    doc.text(schoolProfile?.school_name || 'School Name', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 3;
-
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'normal');
-    doc.text('EXAM HALL TICKET', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 3;
-
-    // Student info
-    doc.setFontSize(7);
-    const col1 = margin + 3;
-    const col2 = pageWidth / 2 - 5;
-
-    doc.setFont(undefined, 'bold');
-    doc.text('Ticket No:', col1, currentY);
-    doc.setFont(undefined, 'normal');
-    doc.text(ticket.hall_ticket_number, col1 + 18, currentY);
-    
-    doc.setFont(undefined, 'bold');
-    doc.text('Class:', col2, currentY);
-    doc.setFont(undefined, 'normal');
-    doc.text(`${ticket.class_name}-${ticket.section}`, col2 + 12, currentY);
-    currentY += 3;
-
-    doc.setFont(undefined, 'bold');
-    doc.text('Name:', col1, currentY);
-    doc.setFont(undefined, 'normal');
-    doc.text(ticket.student_name, col1 + 18, currentY);
-    
-    doc.setFont(undefined, 'bold');
-    doc.text('Roll No:', col2, currentY);
-    doc.setFont(undefined, 'normal');
-    doc.text(String(ticket.roll_number), col2 + 12, currentY);
+    doc.text(schoolProfile?.school_name || 'SCHOOL NAME', pageWidth / 2, currentY, { align: 'center' });
     currentY += 4;
 
-    // Timetable
-    if (timetable && timetable.length > 0) {
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(6);
-      doc.text('EXAM SCHEDULE', col1, currentY);
-      currentY += 2;
+    // Exam type
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    const examTypeText = examType ? `${examType.name} HALL TICKET` : 'EXAM HALL TICKET';
+    doc.text(examTypeText, pageWidth / 2, currentY, { align: 'center' });
+    currentY += 4.5;
 
-      timetable.forEach(entry => {
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(6);
-        const dateStr = new Date(entry.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-        doc.text(`${entry.subject_name} - ${dateStr} ${entry.start_time}`, col1, currentY);
-        currentY += 2;
-        if (currentY > yPos + ticketHeight - 12) break;
-      });
+    // Student name row
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'bold');
+    doc.text('STUDENT NAME :', margin + 2, currentY);
+    doc.setLineWidth(0.3);
+    doc.line(margin + 35, currentY - 1.5, pageWidth - margin - 2, currentY - 1.5);
+    currentY += 4;
+
+    // Student number row
+    doc.text('STUDENT NUMBER :', margin + 2, currentY);
+    doc.line(margin + 40, currentY - 1.5, pageWidth - margin - 2, currentY - 1.5);
+    currentY += 4;
+
+    // Timings
+    doc.setFontSize(7);
+    doc.setFont(undefined, 'bold');
+    doc.text('TIMINGS 9:30 AM TO 12:30 PM', pageWidth / 2, currentY, { align: 'center' });
+    currentY += 4;
+
+    // Table header
+    const col1 = margin + 2;
+    const col2 = margin + 25;
+    const col3 = margin + 42;
+    const col4 = margin + 62;
+    const col5 = margin + 87;
+    const col6 = pageWidth - margin - 2;
+
+    doc.setFontSize(7);
+    doc.setFont(undefined, 'bold');
+    
+    // Draw table header
+    doc.line(col1, currentY, col6, currentY);
+    doc.text('SUBJECT', col1, currentY + 2.5);
+    doc.text('DATE', col2 + 2, currentY + 2.5);
+    doc.text('INVIGILATOR SIGN', col3, currentY + 2.5);
+    doc.text('SUBJECT', col4, currentY + 2.5);
+    doc.text('DATE', col5 + 2, currentY + 2.5);
+    doc.text('INVIGILATOR SIGN', col6 - 18, currentY + 2.5);
+    currentY += 3.5;
+
+    doc.line(col1, currentY, col6, currentY);
+
+    // Table rows - up to 6 subjects (3 on left, 3 on right)
+    const rowHeight = 3.5;
+    const maxRows = 3;
+    
+    for (let i = 0; i < maxRows; i++) {
+      const leftSubject = timetable[i * 2];
+      const rightSubject = timetable[i * 2 + 1];
+
+      doc.setFontSize(7);
+      doc.setFont(undefined, 'normal');
+
+      // Left side
+      if (leftSubject) {
+        const dateStr = new Date(leftSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        doc.text(leftSubject.subject_name.substring(0, 12), col1 + 1, currentY + 2);
+        doc.text(dateStr, col2 + 2, currentY + 2);
+      }
+
+      // Right side
+      if (rightSubject) {
+        const dateStr = new Date(rightSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        doc.text(rightSubject.subject_name.substring(0, 12), col4 + 1, currentY + 2);
+        doc.text(dateStr, col5 + 2, currentY + 2);
+      }
+
+      currentY += rowHeight;
+      doc.line(col1, currentY, col6, currentY);
     }
 
-    // Signatures
-    currentY = yPos + ticketHeight - 8;
-    doc.setDrawColor(150);
+    // Signature section
+    currentY += 2;
+    doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
-    doc.setFontSize(6);
-    doc.text('Invigilator', col1, currentY);
-    doc.line(col1, currentY + 1, col1 + 15, currentY + 1);
-
-    doc.text('Principal', col2 + 5, currentY);
-    doc.line(col2 + 5, currentY + 1, col2 + 20, currentY + 1);
+    doc.text('AO SIGNATURE', col1 + 2, currentY);
+    doc.text('PRINCIPAL SIGNATURE', col4 + 5, currentY);
   });
 
   return doc.output('arraybuffer');
