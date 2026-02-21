@@ -91,8 +91,12 @@ export default function HallTicketList({ examTypeId, classFilter }) {
         payload.staffSession = staffSession;
       }
       const res = await base44.functions.invoke('generateHallTicketExcel', payload);
-      // Handle the response as raw bytes
-      const bytes = typeof res.data === 'string' ? new TextEncoder().encode(res.data) : new Uint8Array(res.data);
+      // Decode base64 to binary
+      const binaryString = atob(res.data.file);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
       const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
