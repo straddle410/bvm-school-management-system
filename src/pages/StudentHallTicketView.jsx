@@ -29,7 +29,7 @@ export default function StudentHallTicketView() {
 
   const { data: hallTickets = [] } = useQuery({
     queryKey: ['studentHallTickets', studentSession?.student_id],
-    queryFn: () => base44.entities.HallTicket.filter({ student_id: studentSession?.student_id, status: 'Published' }),
+    queryFn: () => base44.entities.HallTicket.filter({ student_name: studentSession?.name, status: 'Published' }),
     enabled: !!studentSession
   });
 
