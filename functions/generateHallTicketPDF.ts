@@ -68,31 +68,31 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       const colWidth = (pageWidth / 2 - 3) / 3;
 
       doc.setLineWidth(0.4);
-      doc.setFontSize(8);
+      doc.setFontSize(12);
       doc.setFont('Calibri', 'bold');
 
       // Headers
-      const hh = 3.5;
+      const hh = 4;
       doc.rect(leftX, yPos, colWidth, hh);
       doc.rect(leftX + colWidth, yPos, colWidth * 0.75, hh);
       doc.rect(leftX + colWidth * 1.75, yPos, colWidth * 1.25, hh);
-      doc.text('SUBJECT', leftX + 0.7, yPos + 2.5);
-      doc.text('DATE', leftX + colWidth + 0.5, yPos + 2.5);
-      doc.text('INVIGILATOR SIGN', leftX + colWidth * 1.75 + 0.3, yPos + 2.5);
+      doc.text('SUBJECT', leftX + 0.7, yPos + 2.8);
+      doc.text('DATE', leftX + colWidth + 0.5, yPos + 2.8);
+      doc.text('INVIGILATOR SIGN', leftX + colWidth * 1.75 + 0.3, yPos + 2.8);
 
       doc.rect(rightX, yPos, colWidth, hh);
       doc.rect(rightX + colWidth, yPos, colWidth * 0.75, hh);
       doc.rect(rightX + colWidth * 1.75, yPos, colWidth * 1.25, hh);
-      doc.text('SUBJECT', rightX + 0.7, yPos + 2.5);
-      doc.text('DATE', rightX + colWidth + 0.5, yPos + 2.5);
-      doc.text('INVIGILATOR SIGN', rightX + colWidth * 1.75 + 0.3, yPos + 2.5);
+      doc.text('SUBJECT', rightX + 0.7, yPos + 2.8);
+      doc.text('DATE', rightX + colWidth + 0.5, yPos + 2.8);
+      doc.text('INVIGILATOR SIGN', rightX + colWidth * 1.75 + 0.3, yPos + 2.8);
 
       yPos += hh;
 
       // Subject rows
       doc.setFont('Calibri', 'normal');
-      doc.setFontSize(8);
-      const rh = 3.5;
+      doc.setFontSize(12);
+      const rh = 4;
 
       for (let i = 0; i < 3; i++) {
         // Left column
