@@ -5,8 +5,8 @@ import { Plus, BookOpen, Trash2, Eye, CheckCircle, Clock, ChevronDown, ChevronUp
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import HomeworkForm from '@/components/homework/HomeworkForm';
-import HomeworkSubmissions from '@/components/homework/HomeworkSubmissions';
+import HomeworkForm from '@/components/homework/HomeworkForm.jsx';
+import HomeworkSubmissions from '@/components/homework/HomeworkSubmissions.jsx';
 
 const CLASSES = ['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10','11','12'];
 const TYPE_COLORS = {
