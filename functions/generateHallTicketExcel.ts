@@ -125,7 +125,7 @@ const generateExcel = async (hallTickets, schoolProfile, timetable, examType) =>
 
         // Set page setup for printing
         worksheet.pageSetup = {
-            paperSize: worksheet.paperSize.A4,
+            paperSize: 1,
             orientation: 'portrait',
             margins: { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5 }
         };
