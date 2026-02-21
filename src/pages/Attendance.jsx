@@ -40,6 +40,7 @@ export default function Attendance() {
   const [rangeStart, setRangeStart] = useState('');
   const [rangeEnd, setRangeEnd] = useState('');
   const [rangeReason, setRangeReason] = useState('');
+  const [rangeProgress, setRangeProgress] = useState(0);
 
   const queryClient = useQueryClient();
 
