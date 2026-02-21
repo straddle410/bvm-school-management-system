@@ -126,8 +126,8 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
         yPos += rh;
       }
 
-      // Signature boxes
-      yPos += 1.8;
+      // Signature boxes - push to bottom of ticket
+      yPos = yStart + ticketHeight - 5;
       doc.setFont(undefined, 'bold');
       doc.setFontSize(6.5);
 
