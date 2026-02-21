@@ -69,7 +69,7 @@ export default function StudentDashboard() {
     { label: 'Gallery', page: 'Gallery', icon: Image, bg: '#fce4ec', color: '#c62828' },
     { label: 'Calendar', page: 'Calendar', icon: Calendar, bg: '#fff3e0', color: '#e65100' },
     { label: 'Quiz', page: 'Quiz', icon: Brain, bg: '#f3e5f5', color: '#6a1b9a' },
-    { label: 'Homework', page: 'StudentDashboard', icon: BookOpen, bg: '#fff8e1', color: '#f57f17' },
+    { label: 'Homework', page: 'StudentHomework', icon: BookOpen, bg: '#fff8e1', color: '#f57f17' },
   ];
 
   const presentCount = attendance.filter(a => a.is_present).length;
