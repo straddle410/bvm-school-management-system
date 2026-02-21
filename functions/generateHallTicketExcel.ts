@@ -198,7 +198,12 @@ Deno.serve(async (req) => {
         }
 
         // Convert buffer to base64 string for JSON response
-        const base64String = Buffer.from(excelBuffer).toString('base64');
+        const bytes = new Uint8Array(excelBuffer);
+        let binaryString = '';
+        for (let i = 0; i < bytes.length; i++) {
+          binaryString += String.fromCharCode(bytes[i]);
+        }
+        const base64String = btoa(binaryString);
         return Response.json({ success: true, file: base64String });
     } catch (error) {
         console.error('[generateHallTicketExcel Error]', error.message);
