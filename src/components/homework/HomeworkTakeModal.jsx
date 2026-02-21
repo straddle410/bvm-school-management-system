@@ -100,7 +100,22 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
             <h2 className="font-bold text-slate-800 text-sm">{hw.title}</h2>
             <p className="text-xs text-gray-500">{hw.subject} • Class {hw.class_name}</p>
           </div>
-          <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
+          <div className="flex items-center gap-2">
+            {!isSubmitted && (
+              <button
+                onClick={() => submitMutation.mutate()}
+                disabled={submitMutation.isPending}
+                className="bg-[#1a237e] text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5"
+              >
+                {submitMutation.isPending ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <><Send className="h-3.5 w-3.5" /> Submit</>
+                )}
+              </button>
+            )}
+            <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
+          </div>
         </div>
 
         <div className="p-4 space-y-5 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
