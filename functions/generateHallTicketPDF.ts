@@ -95,9 +95,16 @@ Deno.serve(async (req) => {
     let user;
     if (staffSession) {
       try {
-        user = JSON.parse(staffSession);
+        user = typeof staffSession === 'string' ? JSON.parse(staffSession) : staffSession;
       } catch {
         return Response.json({ error: 'Invalid session' }, { status: 401 });
+      }
+    } else {
+      // Try base44 auth as fallback
+      try {
+        user = await base44.auth.me();
+      } catch {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
 
