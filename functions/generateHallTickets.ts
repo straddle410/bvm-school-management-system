@@ -3,14 +3,22 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
+    
+    // Check staff session from headers
+    const staffSession = req.headers.get('x-staff-session');
+    if (!staffSession) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    let user;
+    try {
+      user = JSON.parse(staffSession);
+    } catch {
+      return Response.json({ error: 'Invalid session' }, { status: 401 });
     }
 
     // Check if user is admin
-    if (user.role !== 'admin') {
+    if (user.role !== 'Admin' && user.role !== 'admin' && user.role !== 'Principal' && user.role !== 'principal') {
       return Response.json({ error: 'Only admins can generate hall tickets' }, { status: 403 });
     }
 
@@ -59,7 +67,7 @@ Deno.serve(async (req) => {
         student_photo_url: student.photo_url || '',
         academic_year: academicYear,
         status: 'Generated',
-        generated_by: user.email
+        generated_by: user.email || user.full_name
       });
     });
 
@@ -71,7 +79,7 @@ Deno.serve(async (req) => {
       action: 'generated',
       hall_ticket_id: 'bulk',
       student_id: 'multiple',
-      performed_by: user.email,
+      performed_by: user.email || user.full_name,
       details: `Generated ${hallTickets.length} hall tickets for Class ${classname}`
     });
 
