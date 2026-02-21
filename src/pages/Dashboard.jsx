@@ -202,10 +202,10 @@ export default function Dashboard() {
             {quickAccess
               .filter(item => !(item.page === 'StudentLogin' && user))
               .map((item) => (
-              <Link key={item.label} to={createPageUrl(item.page)}>
-                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative">
+              <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative h-full">
                   <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: item.bg }}
                   >
                     <item.icon className="h-6 w-6" style={{ color: item.color }} />
@@ -215,7 +215,7 @@ export default function Dashboard() {
                       {item.badge}
                     </span>
                   )}
-                  <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
                 </div>
               </Link>
             ))}
