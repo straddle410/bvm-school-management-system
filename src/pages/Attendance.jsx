@@ -229,7 +229,7 @@ export default function Attendance() {
               </Select>
             </div>
 
-            {/* Holiday Toggle - always visible */}
+            {/* Holiday Toggle - single day */}
             <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
               <Palmtree className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm font-medium flex-1">
@@ -250,6 +250,54 @@ export default function Attendance() {
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
+            </div>
+
+            {/* Holiday Range - multiple days */}
+            <div className="pt-2 border-t">
+              <button
+                onClick={() => setShowRangeMode(!showRangeMode)}
+                className="flex items-center gap-2 text-sm text-slate-500 hover:text-amber-600 transition-colors"
+              >
+                <CalendarRange className="h-4 w-4" />
+                <span>Mark Holiday Range (multiple days)</span>
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-1">New</span>
+              </button>
+              {showRangeMode && (
+                <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
+                  <p className="text-xs text-amber-700 font-medium">This will mark ALL classes as holiday for the selected date range.</p>
+                  <div className="flex flex-wrap gap-3 items-center">
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-xs text-slate-600">From</label>
+                      <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)}
+                        className="border rounded-lg px-2 py-1.5 text-sm" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-xs text-slate-600">To</label>
+                      <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)}
+                        className="border rounded-lg px-2 py-1.5 text-sm" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Reason (e.g. Summer Vacation)"
+                      value={rangeReason}
+                      onChange={e => setRangeReason(e.target.value)}
+                      className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-amber-500 hover:bg-amber-600 text-white"
+                      onClick={() => saveRangeMutation.mutate()}
+                      disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}
+                    >
+                      <Palmtree className="h-4 w-4 mr-1" />
+                      {saveRangeMutation.isPending ? 'Marking...' : 'Mark Holiday Range'}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
