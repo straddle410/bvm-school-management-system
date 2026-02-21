@@ -197,12 +197,11 @@ Deno.serve(async (req) => {
             console.error('Failed to log download:', e.message);
         }
 
-        return new Response(excelBuffer, {
+        return new Response(Buffer.from(excelBuffer), {
             status: 200,
             headers: {
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition': 'attachment; filename=hall_tickets.xlsx',
-                'Access-Control-Allow-Origin': '*'
+                'Content-Disposition': 'attachment; filename=hall_tickets.xlsx'
             }
         });
     } catch (error) {
