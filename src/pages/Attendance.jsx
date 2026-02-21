@@ -131,9 +131,11 @@ export default function Attendance() {
     mutationFn: async () => {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
+      const total = days.length;
       
       // Batch by day to avoid rate limiting
-      for (const day of days) {
+      for (let i = 0; i < days.length; i++) {
+        const day = days[i];
         const dateStr = format(day, 'yyyy-MM-dd');
         
         // Create/update a single holiday marker record instead of per-student
@@ -159,6 +161,7 @@ export default function Attendance() {
             status: 'Holiday'
           });
         }
+        setRangeProgress(Math.round(((i + 1) / total) * 100));
       }
     },
     onSuccess: () => {
@@ -166,10 +169,11 @@ export default function Attendance() {
       queryClient.invalidateQueries(['attendance-holidays']);
       toast.success(`Holiday marked from ${rangeStart} to ${rangeEnd}`);
       setShowRangeMode(false);
-      setRangeStart(''); setRangeEnd(''); setRangeReason('');
+      setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeProgress(0);
     },
     onError: (err) => {
       toast.error('Failed to mark holiday: ' + (err?.message || 'Unknown error'));
+      setRangeProgress(0);
     }
   });
 
