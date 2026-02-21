@@ -37,20 +37,12 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
             </Select>
           </div>
 
-          {/* Section Dropdown */}
+          {/* Section Dropdown - Only A */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700">Section</label>
-            <Select value={filters.section} onValueChange={(v) => setFilters({...filters, section: v})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Section" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="A">Section A</SelectItem>
-                <SelectItem value="B">Section B</SelectItem>
-                <SelectItem value="C">Section C</SelectItem>
-                <SelectItem value="D">Section D</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="px-3 py-2 border rounded-lg bg-slate-50 text-slate-600 text-sm">
+              Section A
+            </div>
           </div>
 
           {/* From Date */}
