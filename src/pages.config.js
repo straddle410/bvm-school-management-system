@@ -54,6 +54,7 @@ import AttendanceReport from './pages/AttendanceReport';
 import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
+import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
 import MarksReview from './pages/MarksReview';
@@ -67,12 +68,11 @@ import Results from './pages/Results';
 import Settings from './pages/Settings';
 import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
+import StudentDashboard from './pages/StudentDashboard';
+import StudentHomework from './pages/StudentHomework';
+import StudentLogin from './pages/StudentLogin';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import StudentLogin from './pages/StudentLogin';
-import StudentDashboard from './pages/StudentDashboard';
-import HomeworkManage from './pages/HomeworkManage';
-import StudentHomework from './pages/StudentHomework';
 import __Layout from './Layout.jsx';
 
 
@@ -84,6 +84,7 @@ export const PAGES = {
     "Calendar": Calendar,
     "Dashboard": Dashboard,
     "Gallery": Gallery,
+    "HomeworkManage": HomeworkManage,
     "IDCards": IDCards,
     "Marks": Marks,
     "MarksReview": MarksReview,
@@ -97,12 +98,11 @@ export const PAGES = {
     "Settings": Settings,
     "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
+    "StudentDashboard": StudentDashboard,
+    "StudentHomework": StudentHomework,
+    "StudentLogin": StudentLogin,
     "Students": Students,
     "Teachers": Teachers,
-    "StudentLogin": StudentLogin,
-    "StudentDashboard": StudentDashboard,
-    "HomeworkManage": HomeworkManage,
-    "StudentHomework": StudentHomework,
 }
 
 export const pagesConfig = {
