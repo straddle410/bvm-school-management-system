@@ -76,7 +76,18 @@ export default function Attendance() {
     enabled: !!user?.email
   });
 
+  const { data: holidays = [] } = useQuery({
+    queryKey: ['holidays', selectedDate, academicYear],
+    queryFn: () => base44.entities.Holiday.filter({
+      date: selectedDate,
+      academic_year: academicYear,
+      status: 'Active'
+    }),
+    enabled: !!selectedDate && !!academicYear
+  });
+
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || user?.role === 'admin';
+  const isMarkedHoliday = holidays.length > 0;
 
   // Track if user manually changed holiday toggle
   const [manuallyChanged, setManuallyChanged] = useState(false);
