@@ -70,6 +70,14 @@ export default function Attendance() {
     enabled: !!selectedClass && !!selectedSection
   });
 
+  const { data: staffAccount } = useQuery({
+    queryKey: ['staff-account', user?.email],
+    queryFn: () => base44.entities.StaffAccount.filter({ email: user?.email }),
+    enabled: !!user?.email
+  });
+
+  const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || user?.role === 'admin';
+
   // Track if user manually changed holiday toggle
   const [manuallyChanged, setManuallyChanged] = useState(false);
 
