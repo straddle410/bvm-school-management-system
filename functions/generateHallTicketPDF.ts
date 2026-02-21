@@ -6,10 +6,10 @@ const jsPDF = jsPDFModule.jsPDF || jsPDFModule;
 const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = 210;
-    const pageHeight = 297;
-    const ticketsPerPage = 3;
-    const ticketHeight = 94;
-    const margin = 10;
+      const pageHeight = 297;
+      const ticketsPerPage = 3;
+      const ticketHeight = 98;
+      const margin = 6;
 
     hallTickets.forEach((ticket, index) => {
       const ticketIndex = index % ticketsPerPage;
