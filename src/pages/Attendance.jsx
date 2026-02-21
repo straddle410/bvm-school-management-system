@@ -297,9 +297,9 @@ export default function Attendance() {
             <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
               <Palmtree className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm font-medium flex-1">
-                {isSunday ? '🔴 Sunday — Auto Holiday' : 'Mark as Holiday'}
+                {isSunday ? '🔴 Sunday — Auto Holiday' : isMarkedHoliday ? `📌 Marked Holiday: ${holidays[0]?.title || 'Holiday'}` : 'Mark as Holiday'}
               </span>
-              {isHoliday && (
+              {isHoliday && !isMarkedHoliday && (
                 <input
                   type="text"
                   placeholder="Holiday reason (e.g. Diwali)"
@@ -308,17 +308,19 @@ export default function Attendance() {
                   className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
                 />
               )}
-              <button
-                onClick={() => { 
-                  setIsHoliday(!isHoliday); 
-                  setManuallyChanged(true);
-                  if (isHoliday) setHolidayReason(''); 
-                  else setHolidayReason(isSunday ? 'Sunday' : ''); 
-                }}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
+              {!isMarkedHoliday && !isSunday && (
+                <button
+                  onClick={() => { 
+                    setIsHoliday(!isHoliday); 
+                    setManuallyChanged(true);
+                    if (isHoliday) setHolidayReason(''); 
+                    else setHolidayReason(''); 
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </button>
+              )}
             </div>
 
             {/* Holiday Range - multiple days */}
