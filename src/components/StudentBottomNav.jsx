@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { GraduationCap, Bell, Brain, Trophy, Calendar } from 'lucide-react';
+import { GraduationCap, Bell, Brain, Trophy, BookOpen } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', icon: GraduationCap, page: 'StudentDashboard' },
-  { label: 'Notices', icon: Bell, page: 'Notices' },
+  { label: 'Homework', icon: BookOpen, page: 'StudentHomework' },
   { label: 'Quiz', icon: Brain, page: 'Quiz' },
   { label: 'Results', icon: Trophy, page: 'Results' },
-  { label: 'Calendar', icon: Calendar, page: 'Calendar' },
+  { label: 'Notices', icon: Bell, page: 'Notices' },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
