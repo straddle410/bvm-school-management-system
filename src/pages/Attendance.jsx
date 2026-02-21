@@ -274,10 +274,13 @@ export default function Attendance() {
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <CardTitle className="text-lg">
                   Class {selectedClass}-{selectedSection}
+                  {isHoliday && <span className="ml-2 text-sm font-normal text-amber-600">🌴 Holiday</span>}
                 </CardTitle>
-                <Button variant="outline" size="sm" onClick={markAllPresent}>
-                  Mark All Present
-                </Button>
+                {!isHoliday && (
+                  <Button variant="outline" size="sm" onClick={markAllPresent}>
+                    Mark All Present
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="p-0">
                 {isHoliday ? (
