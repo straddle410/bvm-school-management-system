@@ -29,66 +29,47 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'No hall tickets found' }, { status: 404 });
         }
 
-        // Create workbook with basic options
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Hall Tickets', {
-            properties: { defaultColWidth: 12 }
-        });
+        const worksheet = workbook.addWorksheet('Hall Tickets');
 
-        let currentRow = 1;
+        let row = 1;
         
-        hallTickets.forEach((ticket) => {
-            // Row 1: School Name
-            const nameRow = worksheet.getRow(currentRow);
-            nameRow.getCell(1).value = 'BVM SCHOOL OF EXCELLENCE, KOTHAKOTA';
+        for (const ticket of hallTickets) {
+            // School header
+            worksheet.getCell(`A${row}`).value = 'BVM SCHOOL OF EXCELLENCE, KOTHAKOTA';
+            row++;
             
-            // Row 2: Exam Name
-            const examRow = worksheet.getRow(currentRow + 1);
-            examRow.getCell(1).value = 'EXAM NAME HALL TICKET-2023';
+            // Exam name
+            worksheet.getCell(`A${row}`).value = 'EXAM NAME HALL TICKET-2023';
+            row++;
             
-            // Row 3: Student Name
-            const studentLabelRow = worksheet.getRow(currentRow + 2);
-            studentLabelRow.getCell(1).value = 'STUDENT NAME :';
-            studentLabelRow.getCell(3).value = ticket.student_name;
+            // Student name
+            worksheet.getCell(`A${row}`).value = 'STUDENT NAME :';
+            worksheet.getCell(`C${row}`).value = ticket.student_name;
+            row++;
             
-            // Row 4: Student Number and Class/Section
-            const numberRow = worksheet.getRow(currentRow + 3);
-            numberRow.getCell(1).value = 'STUDENT NUMBER :';
-            numberRow.getCell(3).value = ticket.roll_number;
-            numberRow.getCell(5).value = `Class: ${ticket.class_name}   Section: ${ticket.section}`;
+            // Roll number and class
+            worksheet.getCell(`A${row}`).value = 'STUDENT NUMBER :';
+            worksheet.getCell(`C${row}`).value = ticket.roll_number;
+            worksheet.getCell(`E${row}`).value = `Class: ${ticket.class_name}   Section: ${ticket.section}`;
+            row++;
             
-            // Row 5: Timings
-            const timingRow = worksheet.getRow(currentRow + 4);
-            timingRow.getCell(1).value = 'TIMINGS 9:30 AM TO 12:30 PM';
+            // Timings
+            worksheet.getCell(`A${row}`).value = 'TIMINGS 9:30 AM TO 12:30 PM';
+            row += 3;
             
-            // Blank rows
-            worksheet.getRow(currentRow + 5);
-            worksheet.getRow(currentRow + 6);
+            // Headers
+            worksheet.getCell(`A${row}`).value = 'SUBJECT';
+            worksheet.getCell(`B${row}`).value = 'DATE';
+            worksheet.getCell(`C${row}`).value = 'INVIGILATOR SIGN';
+            row += 5;
             
-            // Row 8: Headers
-            const headerRow = worksheet.getRow(currentRow + 7);
-            headerRow.getCell(1).value = 'SUBJECT';
-            headerRow.getCell(2).value = 'DATE';
-            headerRow.getCell(3).value = 'INVIGILATOR SIGN';
-            
-            // Blank rows for subject entries
-            for (let i = 0; i < 4; i++) {
-                worksheet.getRow(currentRow + 8 + i);
-            }
-            
-            // Signature row
-            const sigRow = worksheet.getRow(currentRow + 12);
-            sigRow.getCell(1).value = 'AO SIGNATURE';
-            sigRow.getCell(5).value = 'PRINCIPAL SIGNATURE';
-            
-            // Blank row before next ticket
-            worksheet.getRow(currentRow + 13);
-            worksheet.getRow(currentRow + 14);
-            
-            currentRow += 15;
-        });
+            // Signatures
+            worksheet.getCell(`A${row}`).value = 'AO SIGNATURE';
+            worksheet.getCell(`E${row}`).value = 'PRINCIPAL SIGNATURE';
+            row += 3;
+        }
 
-        // Set column widths
         worksheet.columns = [
             { width: 25 },
             { width: 15 },
@@ -97,10 +78,8 @@ Deno.serve(async (req) => {
             { width: 25 }
         ];
 
-        // Generate and return buffer
         const buffer = await workbook.xlsx.writeBuffer();
 
-        // Log download
         try {
             await base44.asServiceRole.entities.HallTicketLog.create({
                 action: 'downloaded_excel',
@@ -117,11 +96,11 @@ Deno.serve(async (req) => {
             status: 200,
             headers: {
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition': `attachment; filename="hall_tickets.xlsx"`
+                'Content-Disposition': 'attachment; filename="hall_tickets.xlsx"'
             }
         });
     } catch (error) {
-        console.error('Error:', error.message, error.stack);
+        console.error('Error:', error.message);
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
