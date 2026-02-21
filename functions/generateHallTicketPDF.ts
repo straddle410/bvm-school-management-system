@@ -8,146 +8,135 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 10;
-    const contentWidth = pageWidth - 2 * margin;
+    const margin = 8;
+    const ticketHeight = (pageHeight - 2 * margin) / 3;
 
+    // 3 tickets per page
     hallTickets.forEach((ticket, index) => {
-      if (index > 0) {
+      const pageIndex = Math.floor(index / 3);
+      const ticketIndex = index % 3;
+
+      if (index > 0 && ticketIndex === 0) {
         doc.addPage();
       }
 
-      let yPos = margin;
-      doc.setLineWidth(0.7);
-      doc.setDrawColor(0);
+      let yPos = margin + (ticketIndex * ticketHeight);
+      const ticketWidth = pageWidth - 2 * margin;
+      const ticketContentWidth = ticketWidth - 2;
 
       // Outer border
-      doc.rect(margin, yPos, contentWidth, pageHeight - 2 * margin);
+      doc.setLineWidth(0.8);
+      doc.setDrawColor(0);
+      doc.rect(margin, yPos, ticketWidth, ticketHeight);
 
-      yPos += 3;
+      yPos += 2;
 
-      // School name
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
-      doc.text(schoolProfile?.school_name || 'SCHOOL NAME', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 5;
-
-      // Exam type header
+      // School name - bold, uppercase
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
-      const examTypeText = examType ? `${examType.name} HALL TICKET-2023` : 'EXAM HALL TICKET-2023';
-      doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 6;
+      const schoolNameText = (schoolProfile?.school_name || 'SCHOOL NAME').toUpperCase();
+      doc.text(schoolNameText, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 4;
 
-      // Student name field
-      doc.setFontSize(7.5);
+      // Exam type - bold
+      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
-      const fieldHeight = 6;
-      doc.rect(margin + 1, yPos, contentWidth - 2, fieldHeight);
-      doc.text('STUDENT NAME :', margin + 2.5, yPos + 4);
-      doc.text(ticket.student_name || '', margin + 35, yPos + 4);
-      yPos += fieldHeight;
+      const examTypeText = examType ? `${examType.name} HALL TICKET - 2023` : 'EXAM HALL TICKET - 2023';
+      doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 5;
 
-      // Student number field
-      doc.rect(margin + 1, yPos, contentWidth - 2, fieldHeight);
-      doc.text('STUDENT NUMBER :', margin + 2.5, yPos + 4);
-      doc.text(ticket.hall_ticket_number || '', margin + 35, yPos + 4);
-      yPos += fieldHeight;
-
-      // Timings row
-      doc.setLineWidth(0.7);
-      doc.rect(margin + 1, yPos, contentWidth - 2, fieldHeight);
+      // Student Details Section
       doc.setFontSize(7);
       doc.setFont(undefined, 'bold');
-      doc.text('TIMINGS 9:30 AM TO 12:30 PM', pageWidth / 2, yPos + 4, { align: 'center' });
+      const fieldHeight = 4.5;
+      const labelWidth = 40;
+
+      // Student Name
+      doc.text('STUDENT NAME :', margin + 1.5, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(ticket.student_name || '', margin + labelWidth, yPos);
       yPos += fieldHeight;
 
-      // Table setup with 6 equal columns
-      const leftMargin = margin + 1;
-      const tableWidth = contentWidth - 2;
-      const colWidth = tableWidth / 6;
+      // Student Number
+      doc.setFont(undefined, 'bold');
+      doc.text('STUDENT NUMBER :', margin + 1.5, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(ticket.hall_ticket_number || '', margin + labelWidth, yPos);
+      yPos += fieldHeight;
 
-      const col1 = leftMargin;
-      const col2 = col1 + colWidth;
-      const col3 = col2 + colWidth;
-      const col4 = col3 + colWidth;
-      const col5 = col4 + colWidth;
-      const col6 = col5 + colWidth;
+      // Timings
+      doc.setFont(undefined, 'bold');
+      doc.text('TIMINGS :', margin + 1.5, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text('9:30 AM TO 12:30 PM', margin + labelWidth, yPos);
+      yPos += 5;
 
-      const tableRowHeight = 7;
-      const headerRowHeight = 6;
+      // Exam Table - 3 columns: SUBJECT, DATE, INVIGILATOR SIGN
+      const tableLeft = margin + 1.5;
+      const tableWidth = ticketWidth - 3;
+      const col1Width = tableWidth * 0.35;
+      const col2Width = tableWidth * 0.25;
+      const col3Width = tableWidth * 0.4;
 
-      // Table header
+      const col1 = tableLeft;
+      const col2 = col1 + col1Width;
+      const col3 = col2 + col2Width;
+
+      const headerHeight = 4;
+      const rowHeight = 3.5;
+
+      // Table Header
       doc.setLineWidth(0.5);
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setFont(undefined, 'bold');
 
-      // Draw header border
-      doc.rect(col1, yPos, tableWidth, headerRowHeight);
-      doc.line(col2, yPos, col2, yPos + headerRowHeight);
-      doc.line(col3, yPos, col3, yPos + headerRowHeight);
-      doc.line(col4, yPos, col4, yPos + headerRowHeight);
-      doc.line(col5, yPos, col5, yPos + headerRowHeight);
-      doc.line(col6, yPos, col6, yPos + headerRowHeight);
+      // Header row
+      doc.rect(col1, yPos, col1Width, headerHeight);
+      doc.rect(col2, yPos, col2Width, headerHeight);
+      doc.rect(col3, yPos, col3Width, headerHeight);
 
-      doc.text('SUBJECT', col1 + 1, yPos + 4);
-      doc.text('DATE', col2 + 2.5, yPos + 4);
-      doc.text('INVIGILATOR SIGN', col3 + 0.5, yPos + 4);
-      doc.text('SUBJECT', col4 + 1, yPos + 4);
-      doc.text('DATE', col5 + 2.5, yPos + 4);
-      doc.text('INVIGILATOR SIGN', col6 + 0.5, yPos + 4);
+      doc.text('SUBJECT', col1 + 0.5, yPos + 3);
+      doc.text('DATE', col2 + 0.5, yPos + 3);
+      doc.text('INVIGILATOR SIGN', col3 + 0.5, yPos + 3);
 
-      yPos += headerRowHeight;
+      yPos += headerHeight;
 
-      // Table data rows
-      const maxRows = 3;
-      doc.setFontSize(6.5);
+      // Table data rows (6 subjects per ticket)
       doc.setFont(undefined, 'normal');
+      const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GEN. SCIENCE', 'SOCIAL'];
 
-      for (let i = 0; i < maxRows; i++) {
-        const leftSubject = timetable[i * 2];
-        const rightSubject = timetable[i * 2 + 1];
+      for (let i = 0; i < 6; i++) {
+        // Row boxes
+        doc.rect(col1, yPos, col1Width, rowHeight);
+        doc.rect(col2, yPos, col2Width, rowHeight);
+        doc.rect(col3, yPos, col3Width, rowHeight);
 
-        // Draw row borders
-        doc.rect(col1, yPos, tableWidth, tableRowHeight);
-        doc.line(col2, yPos, col2, yPos + tableRowHeight);
-        doc.line(col3, yPos, col3, yPos + tableRowHeight);
-        doc.line(col4, yPos, col4, yPos + tableRowHeight);
-        doc.line(col5, yPos, col5, yPos + tableRowHeight);
-        doc.line(col6, yPos, col6, yPos + tableRowHeight);
+        // Subject name
+        const subject = timetable.find(t => t.subject_name === subjects[i]) || { subject_name: subjects[i], exam_date: '' };
+        doc.text(subject.subject_name.substring(0, 15), col1 + 0.5, yPos + 2.5);
 
-        // Left side
-        if (leftSubject) {
-          const dateStr = new Date(leftSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-          doc.text(leftSubject.subject_name.substring(0, 14), col1 + 1, yPos + 4.5);
-          doc.text(dateStr, col2 + 1, yPos + 4.5);
+        // Date
+        if (subject.exam_date) {
+          const dateStr = new Date(subject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+          doc.text(dateStr, col2 + 0.5, yPos + 2.5);
         }
 
-        // Right side
-        if (rightSubject) {
-          const dateStr = new Date(rightSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-          doc.text(rightSubject.subject_name.substring(0, 14), col4 + 1, yPos + 4.5);
-          doc.text(dateStr, col5 + 1, yPos + 4.5);
-        }
-
-        yPos += tableRowHeight;
+        yPos += rowHeight;
       }
 
-      // Signature section with spacing
-      yPos += 5;
-      doc.setFontSize(7);
+      yPos += 2;
+
+      // Signature section
+      doc.setLineWidth(0.5);
+      doc.setFontSize(6);
       doc.setFont(undefined, 'bold');
 
-      // Draw signature boxes
-      const sigBoxHeight = 10;
-      doc.rect(col1, yPos, col3 - col1, sigBoxHeight);
-      doc.rect(col4, yPos, col6 - col4, sigBoxHeight);
+      const sigHeight = 5;
+      doc.rect(col1, yPos, col1Width, sigHeight);
+      doc.rect(col3, yPos, col3Width, sigHeight);
 
-      doc.text('AO SIGNATURE', col1 + 2, yPos + sigBoxHeight + 2);
-      doc.text('PRINCIPAL SIGNATURE', col4 + 2, yPos + sigBoxHeight + 2);
-
-      // Close outer border
-      doc.setLineWidth(0.7);
-      doc.rect(margin, margin, contentWidth, pageHeight - 2 * margin);
+      doc.text('AO SIGNATURE', col1 + 0.5, yPos + sigHeight + 1.5);
+      doc.text('PRINCIPAL SIGNATURE', col3 + 0.5, yPos + sigHeight + 1.5);
     });
 
     return doc.output('arraybuffer');
