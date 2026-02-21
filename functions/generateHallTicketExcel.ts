@@ -29,50 +29,48 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'No hall tickets found' }, { status: 404 });
         }
 
-        // Create workbook
+        // Fetch school profile for template
+        const schoolProfiles = await base44.asServiceRole.entities.SchoolProfile.list();
+        const schoolProfile = schoolProfiles[0];
+        
+        if (!schoolProfile?.hall_ticket_template_url) {
+            return Response.json({ error: 'No hall ticket template uploaded' }, { status: 400 });
+        }
+
+        // Download and load template
+        const templateResponse = await fetch(schoolProfile.hall_ticket_template_url);
+        const templateBuffer = await templateResponse.arrayBuffer();
+        
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Hall Tickets');
-
-        // Add headers
-        worksheet.columns = [
-            { header: 'Hall Ticket No', key: 'hall_ticket_number', width: 15 },
-            { header: 'Student Name', key: 'student_name', width: 25 },
-            { header: 'Class', key: 'class_name', width: 10 },
-            { header: 'Section', key: 'section', width: 10 },
-            { header: 'Roll No', key: 'roll_number', width: 10 },
-            { header: 'Status', key: 'status', width: 12 }
-        ];
-
-        // Style header row
-        const headerRow = worksheet.getRow(1);
-        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
-        headerRow.alignment = { horizontal: 'center', vertical: 'center' };
-
-        // Add data rows
-        hallTickets.forEach(ticket => {
-            worksheet.addRow({
-                hall_ticket_number: ticket.hall_ticket_number,
-                student_name: ticket.student_name,
-                class_name: ticket.class_name,
-                section: ticket.section,
-                roll_number: ticket.roll_number,
-                status: ticket.status
-            });
+        await workbook.xlsx.load(templateBuffer);
+        
+        const worksheet = workbook.worksheets[0];
+        
+        // Fill in hall ticket data - repeat template for each ticket
+        let currentRow = 1;
+        const TICKET_HEIGHT = 15; // Rows per ticket in template
+        
+        hallTickets.forEach((ticket, index) => {
+            if (index > 0) {
+                currentRow += TICKET_HEIGHT;
+            }
+            
+            // Row 3 (relative): Student Name in merged column C
+            const studentNameRow = currentRow + 2;
+            const nameCell = worksheet.getCell(studentNameRow, 3);
+            nameCell.value = ticket.student_name;
+            
+            // Row 4 (relative): Student Number in column C, Class and Section in column E
+            const studentNumberRow = currentRow + 3;
+            const numberCell = worksheet.getCell(studentNumberRow, 3);
+            numberCell.value = ticket.roll_number;
+            
+            const classSecCell = worksheet.getCell(studentNumberRow, 5);
+            classSecCell.value = `${ticket.class_name} - ${ticket.section}`;
         });
 
-        // Add borders and alignment to all cells
-        worksheet.eachRow((row, rowNumber) => {
-            row.eachCell((cell) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                };
-                cell.alignment = { horizontal: 'left', vertical: 'center' };
-            });
-        });
+        // Generate Excel buffer
+        const buffer = await workbook.xlsx.writeBuffer();
 
         // Log the download
         try {
@@ -86,9 +84,6 @@ Deno.serve(async (req) => {
         } catch (e) {
             console.error('Failed to log download:', e.message);
         }
-
-        // Generate Excel buffer
-        const buffer = await workbook.xlsx.writeBuffer();
 
         return new Response(buffer, {
             status: 200,
