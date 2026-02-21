@@ -32,6 +32,8 @@ const gradeColor = (grade) => {
 };
 
 export default function Results() {
+  const [studentSession, setStudentSession] = useState(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const [filterClass, setFilterClass] = useState('');
   const [filterSection, setFilterSection] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -43,6 +45,21 @@ export default function Results() {
   const [resultsByExam, setResultsByExam] = useState({});
   const [showProgressReport, setShowProgressReport] = useState(false);
   const [allMarks, setAllMarks] = useState([]);
+
+  useEffect(() => {
+    const session = localStorage.getItem('student_session');
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        setStudentSession(parsed);
+        // Pre-fill from student session
+        setFilterClass(parsed.class_name || '');
+        setFilterSection(parsed.section || '');
+        setSelectedStudentId(parsed.student_id || '');
+      } catch {}
+    }
+    setSessionLoaded(true);
+  }, []);
 
   // Fetch exam types in correct order
   const examTypeOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
