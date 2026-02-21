@@ -127,15 +127,15 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       }
 
       // Signature boxes
-      yPos += 1.5;
+      yPos += 1.8;
       doc.setFont(undefined, 'bold');
-      doc.setFontSize(6);
+      doc.setFontSize(6.5);
 
       doc.line(leftX, yPos, leftX + colWidth, yPos);
-      doc.text('AO SIGNATURE', leftX + 0.5, yPos + 1.8);
+      doc.text('AO SIGNATURE', leftX + 0.7, yPos + 1.8);
 
       doc.line(rightX + colWidth * 1.75, yPos, rightX + colWidth * 3, yPos);
-      doc.text('PRINCIPAL SIGNATURE', rightX + colWidth * 1.75 + 0.3, yPos + 1.8);
+      doc.text('PRINCIPAL SIGNATURE', rightX + colWidth * 1.75 + 0.4, yPos + 1.8);
     });
 
     return doc.output('arraybuffer');
