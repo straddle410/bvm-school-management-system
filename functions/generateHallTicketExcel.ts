@@ -201,7 +201,8 @@ Deno.serve(async (req) => {
             status: 200,
             headers: {
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition': 'attachment; filename=hall_tickets.xlsx'
+                'Content-Disposition': 'attachment; filename=hall_tickets.xlsx',
+                'Access-Control-Allow-Origin': '*'
             }
         });
     } catch (error) {
