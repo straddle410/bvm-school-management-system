@@ -30,8 +30,8 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
-       // Find staff by username
-       const staffList = await base44.entities.StaffAccount.filter({ username: username.trim() });
+       // Find staff by username (case-insensitive)
+       const staffList = await base44.entities.StaffAccount.filter({ username: username.trim().toLowerCase() });
 
        if (!staffList || staffList.length === 0) {
          setError('Invalid username or password');

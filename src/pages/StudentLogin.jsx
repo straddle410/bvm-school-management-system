@@ -17,8 +17,8 @@ export default function StudentLogin() {
     setLoading(true);
 
     try {
-      // Search by username
-      const results = await base44.entities.Student.filter({ username: username.trim() });
+       // Search by username (case-insensitive)
+       const results = await base44.entities.Student.filter({ username: username.trim().toLowerCase() });
 
       if (!results || results.length === 0) {
         setError('Invalid username or password');
