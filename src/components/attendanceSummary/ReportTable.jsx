@@ -21,7 +21,7 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
   const handleExcelExport = async () => {
     try {
       const filename = `Attendance_Report_${format(new Date(fromDate), 'dd-MMM-yyyy')}_to_${format(new Date(toDate), 'dd-MMM-yyyy')}.xlsx`;
-      await exportToExcel(data, filename);
+      await exportToExcel(data, filename, fromDate, toDate);
       toast.success('Exported to Excel');
     } catch (err) {
       toast.error('Failed to export Excel');
