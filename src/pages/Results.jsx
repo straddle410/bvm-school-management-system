@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -10,8 +10,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, BookOpen, Share2, Printer } from 'lucide-react';
+import { Search, GraduationCap, BookOpen, Share2, Printer, Lock } from 'lucide-react';
 import ProgressReport from '../components/ProgressReport';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
