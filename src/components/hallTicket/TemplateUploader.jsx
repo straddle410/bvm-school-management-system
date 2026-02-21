@@ -16,6 +16,13 @@ export default function TemplateUploader({ onTemplateUpload }) {
     setLoading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Save template URL to SchoolProfile
+      const profiles = await base44.entities.SchoolProfile.list();
+      if (profiles.length > 0) {
+        await base44.entities.SchoolProfile.update(profiles[0].id, { hall_ticket_template_url: file_url });
+      }
+      
       setTemplateUrl(file_url);
       onTemplateUpload?.(file_url);
       toast.success('Template uploaded successfully');
@@ -64,9 +71,18 @@ export default function TemplateUploader({ onTemplateUpload }) {
                 />
               </div>
               <Button
-                onClick={() => {
-                  setTemplateUrl(null);
-                  onTemplateUpload?.(null);
+                onClick={async () => {
+                  try {
+                    const profiles = await base44.entities.SchoolProfile.list();
+                    if (profiles.length > 0) {
+                      await base44.entities.SchoolProfile.update(profiles[0].id, { hall_ticket_template_url: null });
+                    }
+                    setTemplateUrl(null);
+                    onTemplateUpload?.(null);
+                    toast.success('Template removed');
+                  } catch (error) {
+                    toast.error('Failed to remove template');
+                  }
                 }}
                 variant="outline"
                 className="w-full"
