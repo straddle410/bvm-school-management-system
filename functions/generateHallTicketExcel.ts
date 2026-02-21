@@ -3,138 +3,92 @@ import ExcelJSModule from 'npm:exceljs@4.3.0';
 
 const ExcelJS = ExcelJSModule.default || ExcelJSModule;
 
-const generateExcel = async (hallTickets, schoolProfile, timetable, examType) => {
-    const workbook = new ExcelJS.Workbook();
+const generateExcel = async (hallTickets, schoolProfile, timetable, examType, templateUrl) => {
+          const workbook = new ExcelJS.Workbook();
 
-    hallTickets.forEach((ticket, index) => {
-        const worksheet = workbook.addWorksheet(`Ticket ${index + 1}`);
-        
-        // Set column widths
-        worksheet.columns = [
-            { width: 20 },
-            { width: 15 },
-            { width: 15 },
-            { width: 15 },
-            { width: 15 },
-            { width: 15 },
-            { width: 15 }
-        ];
+          // If template URL is provided, load it; otherwise create from scratch
+          if (templateUrl) {
+              try {
+                  const response = await fetch(templateUrl);
+                  const arrayBuffer = await response.arrayBuffer();
+                  await workbook.xlsx.load(arrayBuffer);
 
-        let row = 1;
+                  // Clear existing worksheets except the first one
+                  while (workbook.worksheets.length > 1) {
+                      workbook.removeWorksheet(workbook.worksheets[workbook.worksheets.length - 1]);
+                  }
+              } catch (error) {
+                  console.error('Failed to load template:', error);
+              }
+          }
 
-        // Row 1: School Name
-        const schoolNameCell = worksheet.getCell(row, 1);
-        schoolNameCell.value = 'BVM SCHOOL OF EXCELLENCE, KOTHAKOTA';
-        schoolNameCell.font = { name: 'Calibri', size: 16, bold: true };
-        schoolNameCell.alignment = { horizontal: 'left', vertical: 'center', wrapText: true };
-        worksheet.getRow(row).height = 20;
-        row += 1;
+          hallTickets.forEach((ticket, index) => {
+              let worksheet;
 
-        // Row 2: Exam Type
-        const examCell = worksheet.getCell(row, 1);
-        const examTypeText = examType ? `${examType.name} HALL TICKET - 2023` : 'EXAM HALL TICKET - 2023';
-        examCell.value = examTypeText;
-        examCell.font = { name: 'Calibri', size: 13, bold: true };
-        examCell.alignment = { horizontal: 'left', vertical: 'center', wrapText: true };
-        worksheet.getRow(row).height = 16;
-        row += 1;
+              if (templateUrl && index === 0) {
+                  // Use the loaded template for the first ticket
+                  worksheet = workbook.worksheets[0];
+              } else {
+                  // Create new worksheet for additional tickets
+                  worksheet = workbook.addWorksheet(`Ticket ${index + 1}`);
+              }
 
-        // Row 3: Student Name
-        const nameCell = worksheet.getCell(row, 1);
-        nameCell.value = `STUDENT NAME : ${ticket.student_name || ''}`;
-        nameCell.font = { name: 'Calibri', size: 11 };
-        nameCell.alignment = { horizontal: 'left', vertical: 'center' };
-        worksheet.getRow(row).height = 14;
-        row += 1;
+              // Fill student data into template
+              const studentName = ticket.student_name || '';
+              const hallTicketNumber = ticket.hall_ticket_number || '';
 
-        // Row 4: Student Number
-        const numberCell = worksheet.getCell(row, 1);
-        numberCell.value = `STUDENT NUMBER : ${ticket.hall_ticket_number || ''}`;
-        numberCell.font = { name: 'Calibri', size: 11 };
-        numberCell.alignment = { horizontal: 'left', vertical: 'center' };
-        worksheet.getRow(row).height = 14;
-        row += 1;
+              // Find and update cells with student data
+              worksheet.eachRow((row) => {
+                  row.eachCell((cell) => {
+                      if (cell.value && typeof cell.value === 'string') {
+                          // Replace placeholders
+                          if (cell.value.includes('STUDENT NAME')) {
+                              cell.value = `STUDENT NAME : ${studentName}`;
+                          } else if (cell.value.includes('STUDENT NUMBER')) {
+                              cell.value = `STUDENT NUMBER : ${hallTicketNumber}`;
+                          } else if (cell.value.includes('EXAM NAME')) {
+                              const examTypeText = examType ? `${examType.name} HALL TICKET-2023` : 'EXAM HALL TICKET-2023';
+                              cell.value = cell.value.replace(/EXAM NAME[^-]*/i, examTypeText);
+                          }
+                      }
+                  });
+              });
 
-        // Row 5: Timings
-        const timingCell = worksheet.getCell(row, 1);
-        timingCell.value = 'TIMINGS : 9:30 AM TO 12:30 PM';
-        timingCell.font = { name: 'Calibri', size: 11 };
-        timingCell.alignment = { horizontal: 'left', vertical: 'center' };
-        worksheet.getRow(row).height = 14;
-        row += 2;
+              // Fill timetable data
+              let subjectRow = null;
+              worksheet.eachRow((row, rowNumber) => {
+                  const firstCell = row.getCell(1).value;
+                  if (firstCell && firstCell.toString().toUpperCase().includes('SUBJECT')) {
+                      subjectRow = rowNumber + 1;
+                  }
+              });
 
-        // Table Header
-        const headerRow = worksheet.getRow(row);
-        headerRow.getCell(1).value = 'SUBJECT';
-        headerRow.getCell(2).value = 'DATE & DAY';
-        headerRow.getCell(3).value = 'INVIGILATOR SIGN';
+              if (subjectRow) {
+                  const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GENERAL SCIENCE', 'SOCIAL STUDIES', 'OPTIONAL SUBJECT'];
+                  subjects.forEach((subject, idx) => {
+                      const row = worksheet.getRow(subjectRow + idx);
+                      row.getCell(1).value = subject;
 
-        headerRow.eachCell((cell) => {
-            cell.font = { name: 'Calibri', size: 10, bold: true };
-            cell.alignment = { horizontal: 'left', vertical: 'center' };
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
-        });
-        worksheet.getRow(row).height = 16;
-        row += 1;
+                      const tt = timetable.find(t => t.subject_name === subject);
+                      if (tt && tt.exam_date) {
+                          const date = new Date(tt.exam_date);
+                          const d = date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                          const day = date.toLocaleDateString('en-IN', { weekday: 'short' });
+                          row.getCell(2).value = `${d} ${day}`;
+                      }
+                  });
+              }
 
-        // Subject rows
-        const subjects = ['TELUGU', 'HINDI', 'ENGLISH', 'MATHEMATICS', 'GENERAL SCIENCE', 'SOCIAL STUDIES', 'OPTIONAL SUBJECT'];
+              // Set page setup for printing
+              worksheet.pageSetup = {
+                  paperSize: 1,
+                  orientation: 'portrait',
+                  margins: { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5 }
+              };
+          });
 
-        subjects.forEach((subject) => {
-            const dataRow = worksheet.getRow(row);
-            dataRow.getCell(1).value = subject;
-            
-            const tt = timetable.find(t => t.subject_name === subject);
-            if (tt && tt.exam_date) {
-                const date = new Date(tt.exam_date);
-                const d = date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-                const day = date.toLocaleDateString('en-IN', { weekday: 'short' });
-                dataRow.getCell(2).value = `${d} ${day}`;
-            }
-
-            dataRow.eachCell((cell) => {
-                cell.font = { name: 'Calibri', size: 10 };
-                cell.alignment = { horizontal: 'left', vertical: 'center' };
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                };
-            });
-            worksheet.getRow(row).height = 14;
-            row += 1;
-        });
-
-        // Add signature lines at bottom
-        row += 1;
-        const sigRow = worksheet.getRow(row);
-        sigRow.getCell(1).value = 'AO SIGNATURE';
-        sigRow.getCell(2).value = 'DATE';
-        sigRow.getCell(3).value = 'PRINCIPAL SIGNATURE';
-
-        sigRow.eachCell((cell) => {
-            cell.font = { name: 'Calibri', size: 9 };
-            cell.alignment = { horizontal: 'left', vertical: 'center' };
-            cell.border = { top: { style: 'thin' } };
-        });
-
-        // Set page setup for printing
-        worksheet.pageSetup = {
-            paperSize: 1,
-            orientation: 'portrait',
-            margins: { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5 }
-        };
-    });
-
-    return await workbook.xlsx.writeBuffer();
-};
+          return await workbook.xlsx.writeBuffer();
+      };
 
 Deno.serve(async (req) => {
     try {
@@ -183,7 +137,7 @@ Deno.serve(async (req) => {
         ]);
         const schoolProfile = schoolProfiles[0];
 
-        const excelBuffer = await generateExcel(hallTickets, schoolProfile, timetableList, examTypeData);
+        const excelBuffer = await generateExcel(hallTickets, schoolProfile, timetableList, examTypeData, schoolProfile?.hall_ticket_template_url);
 
         try {
             await base44.asServiceRole.entities.HallTicketLog.create({
