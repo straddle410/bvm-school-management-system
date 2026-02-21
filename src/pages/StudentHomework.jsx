@@ -5,7 +5,7 @@ import { BookOpen, Clock, CheckCircle, AlertCircle, ChevronRight, X } from 'luci
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import StudentBottomNav from '@/components/StudentBottomNav';
-import HomeworkTakeModal from '@/components/homework/HomeworkTakeModal';
+import HomeworkTakeModal from '@/components/homework/HomeworkTakeModal.jsx';
 import { createPageUrl } from '@/utils';
 
 const TYPE_COLORS = {
