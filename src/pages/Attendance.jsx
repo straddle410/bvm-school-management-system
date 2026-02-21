@@ -155,7 +155,7 @@ export default function Attendance() {
       <div className="p-4 lg:p-8 space-y-6">
         {/* Filters */}
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
+          <CardContent className="p-4 space-y-3">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-slate-400" />
@@ -186,6 +186,29 @@ export default function Attendance() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Holiday Toggle - always visible */}
+            <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
+              <Palmtree className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm font-medium flex-1">
+                {isSunday ? '🔴 Sunday — Auto Holiday' : 'Mark as Holiday'}
+              </span>
+              {isHoliday && (
+                <input
+                  type="text"
+                  placeholder="Holiday reason (e.g. Diwali)"
+                  value={holidayReason}
+                  onChange={e => setHolidayReason(e.target.value)}
+                  className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+                />
+              )}
+              <button
+                onClick={() => { setIsHoliday(!isHoliday); if (!isHoliday) setHolidayReason(isSunday ? 'Sunday' : ''); }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
             </div>
           </CardContent>
         </Card>
