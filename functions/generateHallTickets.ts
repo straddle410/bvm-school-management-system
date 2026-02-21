@@ -26,6 +26,21 @@ Deno.serve(async (req) => {
     // Create SDK with service role to bypass auth
     const base44 = createClientFromRequest(req);
 
+    // Check if hall tickets already exist for this class/exam/year
+    const existingTickets = await base44.asServiceRole.entities.HallTicket.filter({
+      class_name: classname,
+      exam_type: examTypeId,
+      academic_year: academicYear,
+      section: section || 'A'
+    });
+
+    if (existingTickets.length > 0) {
+      return Response.json({
+        error: `Hall tickets already exist for Class ${classname}-${section || 'A'} in this exam. Delete existing tickets first.`,
+        existingCount: existingTickets.length
+      }, { status: 409 });
+    }
+
     // Fetch students
     const query = { class_name: classname, academic_year: academicYear, status: 'Published' };
     if (section) query.section = section;
