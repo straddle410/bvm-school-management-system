@@ -28,10 +28,15 @@ export default function StudentHallTicketView() {
   };
 
   const { data: hallTickets = [] } = useQuery({
-    queryKey: ['studentHallTickets', studentSession?.student_id],
+    queryKey: ['studentHallTickets', studentSession?.id],
     queryFn: async () => {
       try {
-        return await base44.entities.HallTicket.filter({ student_id: studentSession?.student_id, status: 'Published' });
+        const query = { status: 'Published' };
+        if (studentSession?.id) query.student_id = studentSession.id;
+        if (studentSession?.student_id) query.student_id = studentSession.student_id;
+        const result = await base44.entities.HallTicket.filter(query);
+        console.log('Hall tickets found:', result);
+        return result;
       } catch (error) {
         console.error('Hall ticket fetch error:', error);
         return [];
