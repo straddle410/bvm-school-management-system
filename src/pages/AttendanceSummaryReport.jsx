@@ -79,24 +79,7 @@ export default function AttendanceSummaryReport() {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin';
   const canAccessClass = isAdmin || staffAccount?.[0]?.classes_assigned?.includes(filters.class);
-
-  // Check permissions
-  if (hasGenerated && !isAdmin && !canAccessClass) {
-    return (
-      <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="AttendanceSummaryReport">
-        <div className="min-h-screen bg-slate-50">
-          <PageHeader title="Attendance Summary Report" subtitle="View and analyze student attendance" />
-          <div className="p-4 lg:p-8">
-            <Card className="border-l-4 border-l-red-500 bg-red-50">
-              <CardContent className="p-4">
-                <p className="text-sm text-red-900 font-medium">You don't have permission to view reports for this class.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </LoginRequired>
-    );
-  }
+  const noPermission = hasGenerated && !isAdmin && !canAccessClass;
 
   // Calculate report data
   const reportData = useMemo(() => {
@@ -168,41 +151,51 @@ export default function AttendanceSummaryReport() {
         />
 
         <div className="p-4 lg:p-8 space-y-6">
-          <FilterSection 
-            filters={filters} 
-            setFilters={setFilters} 
-            onGenerate={() => setHasGenerated(true)}
-            classes={CLASSES}
-          />
-
-          {hasGenerated && (
-            <>
-              <SummaryCards 
-                totalStudents={students.length}
-                avgAttendance={avgAttendance}
-                workingDays={reportData[0]?.totalWorkingDays || 0}
-              />
-
-              <ReportTable 
-                data={filteredData}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                fromDate={filters.fromDate}
-                toDate={filters.toDate}
-              />
-            </>
-          )}
-
-          {hasGenerated && students.length === 0 && (
-            <Card className="border-0 shadow-sm">
-              <CardContent className="py-16 text-center">
-                <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-700">No students found</h3>
-                <p className="text-slate-500 mt-2">Try selecting a different class or section</p>
+          {noPermission ? (
+            <Card className="border-l-4 border-l-red-500 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-sm text-red-900 font-medium">You don't have permission to view reports for this class.</p>
               </CardContent>
             </Card>
+          ) : (
+            <>
+              <FilterSection 
+                filters={filters} 
+                setFilters={setFilters} 
+                onGenerate={() => setHasGenerated(true)}
+                classes={CLASSES}
+              />
+
+              {hasGenerated && (
+                <>
+                  <SummaryCards 
+                    totalStudents={students.length}
+                    avgAttendance={avgAttendance}
+                    workingDays={reportData[0]?.totalWorkingDays || 0}
+                  />
+
+                  <ReportTable 
+                    data={filteredData}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    sortBy={sortBy}
+                    setSortBy={setSortBy}
+                    fromDate={filters.fromDate}
+                    toDate={filters.toDate}
+                  />
+                </>
+              )}
+
+              {hasGenerated && students.length === 0 && (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="py-16 text-center">
+                    <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700">No students found</h3>
+                    <p className="text-slate-500 mt-2">Try selecting a different class or section</p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
         </div>
       </div>
