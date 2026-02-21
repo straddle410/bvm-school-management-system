@@ -101,12 +101,12 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
         doc.rect(leftX + colWidth * 1.75, yPos, colWidth * 1.25, rh);
 
         const leftSubj = subjectMap.left[i];
-        doc.text(leftSubj, leftX + 0.7, yPos + 2.3);
+        doc.text(leftSubj, leftX + 0.7, yPos + 2.8);
 
         const ttLeft = timetable.find(t => t.subject_name === leftSubj);
         if (ttLeft && ttLeft.exam_date) {
           const d = new Date(ttLeft.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(d, leftX + colWidth + 0.5, yPos + 2.3);
+          doc.text(d, leftX + colWidth + 0.5, yPos + 2.8);
         }
 
         // Right column
@@ -115,12 +115,12 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
         doc.rect(rightX + colWidth * 1.75, yPos, colWidth * 1.25, rh);
 
         const rightSubj = subjectMap.right[i];
-        doc.text(rightSubj, rightX + 0.7, yPos + 2.3);
+        doc.text(rightSubj, rightX + 0.7, yPos + 2.8);
 
         const ttRight = timetable.find(t => t.subject_name === rightSubj);
         if (ttRight && ttRight.exam_date) {
           const d = new Date(ttRight.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(d, rightX + colWidth + 0.5, yPos + 2.3);
+          doc.text(d, rightX + colWidth + 0.5, yPos + 2.8);
         }
 
         yPos += rh;
