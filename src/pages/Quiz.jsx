@@ -85,6 +85,7 @@ export default function Quiz() {
           if (staffAccounts.length > 0) setUserPermissions(staffAccounts[0].permissions || {});
         } catch {}
       }).catch(() => {}).finally(() => setSessionLoaded(true));
+      // NOTE: No auto-logout here — student_session is checked above and preserved
     }, []);
 
    const { data: quizzes = [], isLoading } = useQuery({
