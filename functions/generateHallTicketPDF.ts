@@ -8,123 +8,149 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
   
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const ticketPerPage = 3;
-  const ticketHeight = pageHeight / ticketPerPage;
-  const margin = 8;
+  const margin = 12;
   const contentWidth = pageWidth - 2 * margin;
 
   hallTickets.forEach((ticket, index) => {
-    const positionInPage = index % ticketPerPage;
-    
-    if (index > 0 && positionInPage === 0) {
+    if (index > 0) {
       doc.addPage();
     }
 
-    const yPos = positionInPage * ticketHeight + 1;
-    let currentY = yPos + 1;
-    const lineWidth = 0.4;
-    doc.setLineWidth(lineWidth);
+    let yPos = margin;
+    doc.setLineWidth(0.5);
     doc.setDrawColor(0);
 
     // Outer border
-    doc.rect(margin, yPos, contentWidth, ticketHeight - 2);
+    doc.rect(margin, yPos, contentWidth, pageHeight - 2 * margin);
 
-    // School header section
-    doc.setFontSize(11);
-    doc.setFont(undefined, 'bold');
-    doc.text(schoolProfile?.school_name || 'SCHOOL NAME', pageWidth / 2, currentY + 1.5, { align: 'center' });
-    currentY += 3.5;
-    doc.line(margin, currentY, margin + contentWidth, currentY);
-    
-    // Exam type
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'bold');
-    const examTypeText = examType ? `${examType.name} HALL TICKET` : 'EXAM HALL TICKET';
-    doc.text(examTypeText, pageWidth / 2, currentY + 2, { align: 'center' });
-    currentY += 3.5;
-    doc.line(margin, currentY, margin + contentWidth, currentY);
+    // Inner border (offset)
+    doc.rect(margin + 2, yPos + 2, contentWidth - 4, pageHeight - 2 * margin - 4);
 
-    // Student name row
+    yPos += 5;
+
+    // School name
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(schoolProfile?.school_name || 'SCHOOL NAME', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+
+    // Exam type header
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    const examTypeText = examType ? `${examType.name} HALL TICKET-2023` : 'EXAM HALL TICKET-2023';
+    doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 8;
+
+    // Horizontal line after header
+    doc.line(margin + 2, yPos, margin + contentWidth - 2, yPos);
+    yPos += 4;
+
+    // Student name field
     doc.setFontSize(8);
     doc.setFont(undefined, 'bold');
-    const nameRowHeight = 3;
-    doc.text('STUDENT NAME :', margin + 1, currentY + 1.5);
-    currentY += nameRowHeight;
-    doc.line(margin, currentY, margin + contentWidth, currentY);
+    const fieldHeight = 5;
+    doc.rect(margin + 2, yPos, contentWidth - 4, fieldHeight);
+    doc.text('STUDENT NAME :', margin + 4, yPos + 3.5);
+    yPos += fieldHeight;
 
-    // Student number row
-    doc.text('STUDENT NUMBER :', margin + 1, currentY + 1.5);
-    currentY += nameRowHeight;
-    doc.line(margin, currentY, margin + contentWidth, currentY);
+    // Student number field
+    doc.rect(margin + 2, yPos, contentWidth - 4, fieldHeight);
+    doc.text('STUDENT NUMBER :', margin + 4, yPos + 3.5);
+    yPos += fieldHeight;
 
     // Timings row
+    doc.setLineWidth(0.5);
+    doc.rect(margin + 2, yPos, contentWidth - 4, fieldHeight);
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
-    doc.text('TIMINGS 9:30 AM TO 12:30 PM', pageWidth / 2, currentY + 1.5, { align: 'center' });
-    currentY += nameRowHeight;
-    doc.line(margin, currentY, margin + contentWidth, currentY);
+    doc.text('TIMINGS 9:30 AM TO 12:30 PM', pageWidth / 2, yPos + 3.5, { align: 'center' });
+    yPos += fieldHeight;
 
-    // Table columns
-    const col1X = margin + 1;
-    const col2X = margin + 22;
-    const col3X = margin + 38;
-    const col4X = margin + 52;
-    const col5X = margin + 73;
-    const col6X = margin + contentWidth - 2;
+    // Table setup
+    const col1 = margin + 2;
+    const col2 = col1 + 28;
+    const col3 = col2 + 24;
+    const col4 = col3 + 30;
+    const col5 = col4 + 28;
+    const col6 = col5 + 24;
+
+    const tableRowHeight = 6;
+    const headerRowHeight = 5;
 
     // Table header
+    doc.setLineWidth(0.5);
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
-    doc.text('SUBJECT', col1X, currentY + 1.5);
-    doc.text('DATE', col2X + 1, currentY + 1.5);
-    doc.text('INVIGILATOR SIGN', col3X + 3, currentY + 1.5);
-    doc.text('SUBJECT', col4X, currentY + 1.5);
-    doc.text('DATE', col5X + 1, currentY + 1.5);
-    doc.text('INVIGILATOR SIGN', col6X - 18, currentY + 1.5);
-    
-    currentY += nameRowHeight;
-    doc.line(margin, currentY, margin + contentWidth, currentY);
 
-    // Table rows - up to 6 subjects (3 on left, 3 on right)
+    // Draw header row
+    doc.line(col1, yPos, col6, yPos);
+    doc.line(col1, yPos + headerRowHeight, col6, yPos + headerRowHeight);
+    
+    // Vertical lines
+    doc.line(col2, yPos, col2, yPos + headerRowHeight);
+    doc.line(col3, yPos, col3, yPos + headerRowHeight);
+    doc.line(col4, yPos, col4, yPos + headerRowHeight);
+    doc.line(col5, yPos, col5, yPos + headerRowHeight);
+    doc.line(col6, yPos, col6, yPos + headerRowHeight);
+
+    doc.text('SUBJECT', col1 + 2, yPos + 3.5);
+    doc.text('DATE', col2 + 4, yPos + 3.5);
+    doc.text('INVIGILATOR SIGN', col3 + 2, yPos + 3.5);
+    doc.text('SUBJECT', col4 + 2, yPos + 3.5);
+    doc.text('DATE', col5 + 4, yPos + 3.5);
+    doc.text('INVIGILATOR SIGN', col6 - 22, yPos + 3.5);
+
+    yPos += headerRowHeight;
+
+    // Table data rows
     const maxRows = 3;
+    doc.setFontSize(7);
+    doc.setFont(undefined, 'normal');
 
-    // Vertical lines for table
-    doc.line(col2X, currentY - nameRowHeight, col2X, currentY + maxRows * nameRowHeight);
-    doc.line(col3X, currentY - nameRowHeight, col3X, currentY + maxRows * nameRowHeight);
-    doc.line(col4X, currentY - nameRowHeight, col4X, currentY + maxRows * nameRowHeight);
-    doc.line(col5X, currentY - nameRowHeight, col5X, currentY + maxRows * nameRowHeight);
-    
     for (let i = 0; i < maxRows; i++) {
       const leftSubject = timetable[i * 2];
       const rightSubject = timetable[i * 2 + 1];
 
-      doc.setFontSize(7);
-      doc.setFont(undefined, 'normal');
+      // Draw row
+      doc.line(col1, yPos + tableRowHeight, col6, yPos + tableRowHeight);
+      
+      // Vertical lines
+      doc.line(col2, yPos, col2, yPos + tableRowHeight);
+      doc.line(col3, yPos, col3, yPos + tableRowHeight);
+      doc.line(col4, yPos, col4, yPos + tableRowHeight);
+      doc.line(col5, yPos, col5, yPos + tableRowHeight);
+      doc.line(col6, yPos, col6, yPos + tableRowHeight);
 
       // Left side
       if (leftSubject) {
         const dateStr = new Date(leftSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-        doc.text(leftSubject.subject_name.substring(0, 14), col1X, currentY + 1.5);
-        doc.text(dateStr, col2X + 1, currentY + 1.5);
+        doc.text(leftSubject.subject_name.substring(0, 12), col1 + 1, yPos + 4);
+        doc.text(dateStr, col2 + 2, yPos + 4);
       }
 
       // Right side
       if (rightSubject) {
         const dateStr = new Date(rightSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-        doc.text(rightSubject.subject_name.substring(0, 14), col4X, currentY + 1.5);
-        doc.text(dateStr, col5X + 1, currentY + 1.5);
+        doc.text(rightSubject.subject_name.substring(0, 12), col4 + 1, yPos + 4);
+        doc.text(dateStr, col5 + 2, yPos + 4);
       }
 
-      currentY += nameRowHeight;
-      doc.line(margin, currentY, margin + contentWidth, currentY);
+      yPos += tableRowHeight;
     }
 
+    // Close table bottom line
+    doc.line(col1, yPos, col6, yPos);
+
     // Signature section
-    currentY += 1;
+    yPos += 8;
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
-    doc.text('AO SIGNATURE', col1X, currentY + 1);
-    doc.text('PRINCIPAL SIGNATURE', col4X, currentY + 1);
+    doc.text('AO SIGNATURE', col1 + 2, yPos);
+    doc.text('PRINCIPAL SIGNATURE', col4 + 2, yPos);
+
+    // Close outer border at bottom
+    doc.line(margin + 2, pageHeight - margin - 2, margin + contentWidth - 2, pageHeight - margin - 2);
+    doc.line(margin, pageHeight - margin, margin + contentWidth, pageHeight - margin);
   });
 
   return doc.output('arraybuffer');
