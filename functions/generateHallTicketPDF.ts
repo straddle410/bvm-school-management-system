@@ -88,13 +88,22 @@ const generatePDF = async (hallTickets, schoolProfile) => {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const payload = await req.json();
+    const { hallTicketIds, staffSession } = payload;
+
+    // Parse staff session
+    let user;
+    if (staffSession) {
+      try {
+        user = JSON.parse(staffSession);
+      } catch {
+        return Response.json({ error: 'Invalid session' }, { status: 401 });
+      }
+    }
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { hallTicketIds } = await req.json();
 
     if (!hallTicketIds || hallTicketIds.length === 0) {
       return Response.json({ error: 'No hall tickets selected' }, { status: 400 });

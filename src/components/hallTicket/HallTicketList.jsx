@@ -43,7 +43,11 @@ export default function HallTicketList({ examTypeId, classFilter }) {
     }
 
     try {
-      const res = await base44.functions.invoke('generateHallTicketPDF', { hallTicketIds: selected });
+      const staffSession = localStorage.getItem('staff_session');
+      const res = await base44.functions.invoke('generateHallTicketPDF', { 
+        hallTicketIds: selected,
+        staffSession
+      });
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -55,6 +59,7 @@ export default function HallTicketList({ examTypeId, classFilter }) {
       a.remove();
       toast.success('PDF downloaded');
     } catch (error) {
+      console.error('PDF download error:', error);
       toast.error('Failed to generate PDF');
     }
   };
