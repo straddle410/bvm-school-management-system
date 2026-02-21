@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Home, Bell, Image, Calendar, MoreHorizontal } from 'lucide-react';
 import { AcademicYearProvider } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
+import StudentBottomNav from '@/components/StudentBottomNav';
 
 const bottomNav = [
   { name: 'Home', icon: Home, page: 'Dashboard' },
