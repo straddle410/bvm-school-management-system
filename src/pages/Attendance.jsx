@@ -449,15 +449,16 @@ export default function Attendance() {
                   </div>
                 ) : (
                   <div className="divide-y">
-                    {filteredStudents.map((student, index) => {
-                      const isPresent = attendanceData[student.student_id || student.id]?.is_present !== false;
-                      return (
-                        <div 
-                          key={student.id}
-                          className={`flex items-center gap-4 p-4 transition-colors ${
-                            isPresent ? 'bg-white' : 'bg-red-50'
-                          }`}
-                        >
+                        {filteredStudents.map((student, index) => {
+                          const isPresent = attendanceData[student.student_id || student.id]?.is_present !== false;
+                          const attendanceDisabled = isHoliday && !hasHolidayOverride;
+                          return (
+                            <div 
+                              key={student.id}
+                              className={`flex items-center gap-4 p-4 transition-colors ${
+                                attendanceDisabled ? 'bg-slate-50 opacity-60' : isPresent ? 'bg-white' : 'bg-red-50'
+                              }`}
+                            >
                           <span className="text-sm text-slate-400 w-8">
                             {student.roll_no || index + 1}
                           </span>
