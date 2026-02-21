@@ -149,21 +149,38 @@ export default function Calendar() {
     }
   };
 
+  const handleClearStaleHolidays = async () => {
+    try {
+      await base44.functions.invoke('clearStaleHolidays', {});
+      queryClient.invalidateQueries(['attendance-holidays']);
+      toast.success('Stale holiday records cleared');
+    } catch (err) {
+      toast.error('Failed to clear stale records');
+    }
+  };
+
   const selectedDateEvents = selectedDate ? getEventsForDay(selectedDate) : [];
 
   return (
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
-        title="School Calendar"
-        subtitle="Events, holidays and important dates"
-        actions={
-          isTeacher && (
-            <Button onClick={() => setShowEventDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Add Event
-            </Button>
-          )
-        }
-      />
+         title="School Calendar"
+         subtitle="Events, holidays and important dates"
+         actions={
+           isTeacher && (
+             <div className="flex gap-2">
+               <Button onClick={() => setShowEventDialog(true)}>
+                 <Plus className="mr-2 h-4 w-4" /> Add Event
+               </Button>
+               {isAdmin && (
+                 <Button variant="outline" onClick={handleClearStaleHolidays}>
+                   Clear Stale Records
+                 </Button>
+               )}
+             </div>
+           )
+         }
+       />
 
       <div className="p-4 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
