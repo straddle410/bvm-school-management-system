@@ -43,16 +43,18 @@ export default function StudentDashboard() {
   const loadData = async (session) => {
     setLoading(true);
     try {
-      const [marksData, attendanceData, noticesData, homeworkData] = await Promise.all([
+      const [marksData, attendanceData, noticesData, homeworkData, submissionsData] = await Promise.all([
         base44.entities.Marks.filter({ student_id: session.student_id, status: 'Published' }, '-created_date', 50),
         base44.entities.Attendance.filter({ student_id: session.student_id, academic_year: session.academic_year }, '-date', 30),
         base44.entities.Notice.filter({ status: 'Published' }, '-created_date', 10),
         base44.entities.Homework.filter({ class_name: session.class_name, status: 'Published' }, '-due_date', 10),
+        base44.entities.HomeworkSubmission.filter({ student_id: session.student_id }, '-created_date', 100),
       ]);
       setMarks(marksData);
       setAttendance(attendanceData);
       setNotices(noticesData);
       setHomework(homeworkData);
+      setSubmissions(submissionsData);
     } catch (e) {}
     setLoading(false);
   };
