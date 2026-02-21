@@ -8,22 +8,20 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 8;
+    const margin = 10;
     const contentWidth = pageWidth - 2 * margin;
-    const ticketHeight = (pageHeight - 3 * margin) / 3;
 
     hallTickets.forEach((ticket, index) => {
-      if (index > 0 && index % 3 === 0) {
+      if (index > 0) {
         doc.addPage();
       }
 
-      const ticketIndex = index % 3;
-      let yPos = margin + ticketIndex * ticketHeight;
+      let yPos = margin;
       doc.setLineWidth(0.7);
       doc.setDrawColor(0);
 
       // Outer border
-      doc.rect(margin, yPos, contentWidth, ticketHeight - margin);
+      doc.rect(margin, yPos, contentWidth, pageHeight - 2 * margin);
 
       yPos += 3;
 
@@ -135,18 +133,21 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       }
 
       // Signature section with spacing
-      yPos += 3;
-      doc.setFontSize(6.5);
+      yPos += 5;
+      doc.setFontSize(7);
       doc.setFont(undefined, 'bold');
 
       // Draw signature boxes
-      const sigBoxHeight = 7;
+      const sigBoxHeight = 10;
       doc.rect(col1, yPos, col3 - col1, sigBoxHeight);
       doc.rect(col4, yPos, col6 - col4, sigBoxHeight);
 
-      doc.setFontSize(6);
-      doc.text('AO SIGNATURE', col1 + 2, yPos + sigBoxHeight + 1.5);
-      doc.text('PRINCIPAL SIGNATURE', col4 + 2, yPos + sigBoxHeight + 1.5);
+      doc.text('AO SIGNATURE', col1 + 2, yPos + sigBoxHeight + 2);
+      doc.text('PRINCIPAL SIGNATURE', col4 + 2, yPos + sigBoxHeight + 2);
+
+      // Close outer border
+      doc.setLineWidth(0.7);
+      doc.rect(margin, margin, contentWidth, pageHeight - 2 * margin);
     });
 
     return doc.output('arraybuffer');
