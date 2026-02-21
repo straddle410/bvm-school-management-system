@@ -94,7 +94,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-      <div className="bg-white w-full max-w-md rounded-t-3xl max-h-[95vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ maxHeight: '90vh' }}>
         <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
           <div>
             <h2 className="font-bold text-slate-800 text-sm">{hw.title}</h2>
