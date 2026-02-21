@@ -178,6 +178,7 @@ export default function StudentDashboard() {
             ) : (
               <div className="space-y-2">
                 {homework.map((hw) => {
+                  const isSubmitted = submissions.some(s => s.homework_id === hw.id);
                   const isOverdue = hw.due_date && new Date(hw.due_date) < new Date();
                   return (
                     <div key={hw.id} className="p-3 bg-orange-50 rounded-xl border border-orange-100">
@@ -188,9 +189,13 @@ export default function StudentDashboard() {
                           {hw.description && <p className="text-xs text-slate-600 mt-1 line-clamp-2">{hw.description}</p>}
                         </div>
                         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                          <Badge className={`text-[10px] ${isOverdue ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'} border-0`}>
-                            {isOverdue ? 'Overdue' : 'Pending'}
-                          </Badge>
+                          {isSubmitted ? (
+                            <Badge className="text-[10px] bg-blue-100 text-blue-700 border-0">Submitted</Badge>
+                          ) : (
+                            <Badge className={`text-[10px] ${isOverdue ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'} border-0`}>
+                              {isOverdue ? 'Overdue' : 'Pending'}
+                            </Badge>
+                          )}
                           {hw.due_date && (
                             <span className="text-[10px] text-slate-500">Due: {format(new Date(hw.due_date), 'dd MMM')}</span>
                           )}
