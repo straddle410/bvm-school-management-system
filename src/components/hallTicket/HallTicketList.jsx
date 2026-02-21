@@ -115,6 +115,9 @@ export default function HallTicketList({ examTypeId, classFilter }) {
           <Button onClick={downloadPDF} disabled={selected.length === 0} className="gap-2">
             <Download className="w-4 h-4" /> Download PDF
           </Button>
+          <Button onClick={downloadExcel} disabled={selected.length === 0} className="gap-2 bg-blue-600 hover:bg-blue-700">
+            <FileText className="w-4 h-4" /> Download Excel
+          </Button>
           <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0} className="gap-2 bg-green-600">
             <Lock className="w-4 h-4" /> Approve & Lock
           </Button>
