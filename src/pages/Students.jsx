@@ -328,11 +328,27 @@ export default function Students() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Student ID</Label>
+          <Label>Student ID (Auto-generated)</Label>
           <Input
             value={formData.student_id}
             onChange={(e) => setFormData({...formData, student_id: e.target.value})}
-            placeholder="STU001"
+            placeholder="S0001"
+          />
+        </div>
+        <div>
+          <Label>Login Username</Label>
+          <Input
+            value={formData.username}
+            onChange={(e) => setFormData({...formData, username: e.target.value})}
+            placeholder="e.g. S0001 or custom"
+          />
+        </div>
+        <div>
+          <Label>Login Password</Label>
+          <Input
+            value={formData.password}
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+            placeholder="Default: BVM123"
           />
         </div>
         <div>
