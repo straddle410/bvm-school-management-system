@@ -93,9 +93,9 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ maxHeight: '90vh' }}>
-        <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ overscrollBehavior: 'contain' }}>
+      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ height: '90vh' }}>
+        <div className="bg-white px-4 pt-4 pb-3 flex items-center justify-between border-b flex-shrink-0">
           <div>
             <h2 className="font-bold text-slate-800 text-sm">{hw.title}</h2>
             <p className="text-xs text-gray-500">{hw.subject} • Class {hw.class_name}</p>
@@ -103,7 +103,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
         </div>
 
-        <div className="p-4 space-y-5 overflow-y-auto flex-1">
+        <div className="p-4 space-y-5 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Info */}
           {hw.description && (
             <div className="bg-blue-50 rounded-xl p-3">
