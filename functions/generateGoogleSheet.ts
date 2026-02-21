@@ -45,6 +45,11 @@ Deno.serve(async (req) => {
             })
         });
 
+        if (!createResponse.ok) {
+            const error = await createResponse.json();
+            throw new Error(`Failed to create spreadsheet: ${error.error?.message}`);
+        }
+
         const spreadsheet = await createResponse.json();
         const spreadsheetId = spreadsheet.spreadsheetId;
         console.log('Created spreadsheet:', spreadsheetId);
