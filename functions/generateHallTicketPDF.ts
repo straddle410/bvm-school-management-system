@@ -20,71 +20,78 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       doc.addPage();
     }
 
-    const yPos = positionInPage * ticketHeight + 2;
-    let currentY = yPos + 2;
+    const yPos = positionInPage * ticketHeight + 1;
+    let currentY = yPos + 1;
+    const lineWidth = 0.4;
+    doc.setLineWidth(lineWidth);
+    doc.setDrawColor(0);
 
     // Outer border
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.5);
-    doc.rect(margin, yPos, contentWidth, ticketHeight - 3);
+    doc.rect(margin, yPos, contentWidth, ticketHeight - 2);
 
-    // School header
+    // School header section
     doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
-    doc.text(schoolProfile?.school_name || 'SCHOOL NAME', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 4;
-
+    doc.text(schoolProfile?.school_name || 'SCHOOL NAME', pageWidth / 2, currentY + 1.5, { align: 'center' });
+    currentY += 3.5;
+    doc.line(margin, currentY, margin + contentWidth, currentY);
+    
     // Exam type
     doc.setFontSize(9);
     doc.setFont(undefined, 'bold');
     const examTypeText = examType ? `${examType.name} HALL TICKET` : 'EXAM HALL TICKET';
-    doc.text(examTypeText, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 4.5;
+    doc.text(examTypeText, pageWidth / 2, currentY + 2, { align: 'center' });
+    currentY += 3.5;
+    doc.line(margin, currentY, margin + contentWidth, currentY);
 
     // Student name row
     doc.setFontSize(8);
     doc.setFont(undefined, 'bold');
-    doc.text('STUDENT NAME :', margin + 2, currentY);
-    doc.setLineWidth(0.3);
-    doc.line(margin + 35, currentY - 1.5, pageWidth - margin - 2, currentY - 1.5);
-    currentY += 4;
+    const nameRowHeight = 3;
+    doc.text('STUDENT NAME :', margin + 1, currentY + 1.5);
+    currentY += nameRowHeight;
+    doc.line(margin, currentY, margin + contentWidth, currentY);
 
     // Student number row
-    doc.text('STUDENT NUMBER :', margin + 2, currentY);
-    doc.line(margin + 40, currentY - 1.5, pageWidth - margin - 2, currentY - 1.5);
-    currentY += 4;
+    doc.text('STUDENT NUMBER :', margin + 1, currentY + 1.5);
+    currentY += nameRowHeight;
+    doc.line(margin, currentY, margin + contentWidth, currentY);
 
-    // Timings
+    // Timings row
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
-    doc.text('TIMINGS 9:30 AM TO 12:30 PM', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 4;
+    doc.text('TIMINGS 9:30 AM TO 12:30 PM', pageWidth / 2, currentY + 1.5, { align: 'center' });
+    currentY += nameRowHeight;
+    doc.line(margin, currentY, margin + contentWidth, currentY);
+
+    // Table columns
+    const col1X = margin + 1;
+    const col2X = margin + 22;
+    const col3X = margin + 38;
+    const col4X = margin + 52;
+    const col5X = margin + 73;
+    const col6X = margin + contentWidth - 2;
 
     // Table header
-    const col1 = margin + 2;
-    const col2 = margin + 25;
-    const col3 = margin + 42;
-    const col4 = margin + 62;
-    const col5 = margin + 87;
-    const col6 = pageWidth - margin - 2;
-
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
+    doc.text('SUBJECT', col1X, currentY + 1.5);
+    doc.text('DATE', col2X + 1, currentY + 1.5);
+    doc.text('INVIGILATOR SIGN', col3X + 3, currentY + 1.5);
+    doc.text('SUBJECT', col4X, currentY + 1.5);
+    doc.text('DATE', col5X + 1, currentY + 1.5);
+    doc.text('INVIGILATOR SIGN', col6X - 18, currentY + 1.5);
     
-    // Draw table header
-    doc.line(col1, currentY, col6, currentY);
-    doc.text('SUBJECT', col1, currentY + 2.5);
-    doc.text('DATE', col2 + 2, currentY + 2.5);
-    doc.text('INVIGILATOR SIGN', col3, currentY + 2.5);
-    doc.text('SUBJECT', col4, currentY + 2.5);
-    doc.text('DATE', col5 + 2, currentY + 2.5);
-    doc.text('INVIGILATOR SIGN', col6 - 18, currentY + 2.5);
-    currentY += 3.5;
+    currentY += nameRowHeight;
+    doc.line(margin, currentY, margin + contentWidth, currentY);
 
-    doc.line(col1, currentY, col6, currentY);
+    // Vertical lines for table
+    doc.line(col2X, currentY - nameRowHeight, col2X, currentY + maxRows * nameRowHeight);
+    doc.line(col3X, currentY - nameRowHeight, col3X, currentY + maxRows * nameRowHeight);
+    doc.line(col4X, currentY - nameRowHeight, col4X, currentY + maxRows * nameRowHeight);
+    doc.line(col5X, currentY - nameRowHeight, col5X, currentY + maxRows * nameRowHeight);
 
     // Table rows - up to 6 subjects (3 on left, 3 on right)
-    const rowHeight = 3.5;
     const maxRows = 3;
     
     for (let i = 0; i < maxRows; i++) {
@@ -97,27 +104,27 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       // Left side
       if (leftSubject) {
         const dateStr = new Date(leftSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-        doc.text(leftSubject.subject_name.substring(0, 12), col1 + 1, currentY + 2);
-        doc.text(dateStr, col2 + 2, currentY + 2);
+        doc.text(leftSubject.subject_name.substring(0, 14), col1X, currentY + 1.5);
+        doc.text(dateStr, col2X + 1, currentY + 1.5);
       }
 
       // Right side
       if (rightSubject) {
         const dateStr = new Date(rightSubject.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-        doc.text(rightSubject.subject_name.substring(0, 12), col4 + 1, currentY + 2);
-        doc.text(dateStr, col5 + 2, currentY + 2);
+        doc.text(rightSubject.subject_name.substring(0, 14), col4X, currentY + 1.5);
+        doc.text(dateStr, col5X + 1, currentY + 1.5);
       }
 
-      currentY += rowHeight;
-      doc.line(col1, currentY, col6, currentY);
+      currentY += nameRowHeight;
+      doc.line(margin, currentY, margin + contentWidth, currentY);
     }
 
     // Signature section
-    currentY += 2;
+    currentY += 1;
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
-    doc.text('AO SIGNATURE', col1 + 2, currentY);
-    doc.text('PRINCIPAL SIGNATURE', col4 + 5, currentY);
+    doc.text('AO SIGNATURE', col1X, currentY + 1);
+    doc.text('PRINCIPAL SIGNATURE', col4X, currentY + 1);
   });
 
   return doc.output('arraybuffer');
