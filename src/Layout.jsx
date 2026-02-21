@@ -55,8 +55,11 @@ export default function Layout({ children, currentPageName }) {
     return <AcademicYearProvider>{children}</AcademicYearProvider>;
   }
 
-  // If a student session exists, redirect them to StudentDashboard (they shouldn't use the staff layout)
-  if (studentSession) {
+  // Pages students are allowed to visit (they have their own session handling)
+  const STUDENT_ALLOWED_PAGES = ['Quiz', 'Results', 'Notices', 'Gallery', 'Calendar', 'More'];
+
+  // If a student session exists and they're on a non-allowed page, redirect to StudentDashboard
+  if (studentSession && !STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
     window.location.href = createPageUrl('StudentDashboard');
     return null;
   }
