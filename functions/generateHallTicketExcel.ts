@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
             console.error('Failed to log download:', e.message);
         }
 
-        return new Response(Buffer.from(excelBuffer), {
+        return new Response(excelBuffer, {
             status: 200,
             headers: {
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
