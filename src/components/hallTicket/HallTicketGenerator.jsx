@@ -20,17 +20,23 @@ export default function HallTicketGenerator() {
 
   const generateMutation = useMutation({
     mutationFn: async (data) => {
-      const res = await base44.functions.invoke('generateHallTickets', data);
+      const staffSession = localStorage.getItem('staff_session');
+      const res = await base44.functions.invoke('generateHallTickets', data, {
+        headers: {
+          'x-staff-session': staffSession || ''
+        }
+      });
       return res.data;
     },
     onSuccess: (data) => {
       setGenerating(false);
-      toast.success(data.message);
+      toast.success(data.message || 'Hall tickets generated successfully');
       setFilters({ exam_type: '', class: '', section: 'A', assignment_type: 'sequential' });
     },
     onError: (error) => {
       setGenerating(false);
-      toast.error(error.message);
+      console.error('Generation error:', error);
+      toast.error(error.response?.data?.error || error.message || 'Failed to generate hall tickets');
     }
   });
 
