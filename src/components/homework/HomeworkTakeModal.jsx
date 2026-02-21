@@ -79,7 +79,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
       : null;
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-        <div className="bg-white w-full max-w-md rounded-t-3xl p-8 text-center">
+        <div className="bg-white w-full max-w-md rounded-t-3xl p-8 text-center" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}>
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-800 mb-2">Submitted!</h2>
           {hw.homework_type === 'MCQ' && score !== null && (
