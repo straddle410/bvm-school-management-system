@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import * as ExcelJS from 'npm:exceljs@4.3.0';
+import ExcelJSModule from 'npm:exceljs@4.3.0';
+
+const ExcelJS = ExcelJSModule.default || ExcelJSModule;
 
 const generateExcel = async (hallTickets, schoolProfile, timetable, examType) => {
     const workbook = new ExcelJS.Workbook();
