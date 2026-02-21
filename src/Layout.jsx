@@ -64,13 +64,38 @@ export default function Layout({ children, currentPageName }) {
     return <AcademicYearProvider>{children}</AcademicYearProvider>;
   }
 
-  // Pages students are allowed to visit (they have their own session handling)
+  // Pages students are allowed to visit via layout
   const STUDENT_ALLOWED_PAGES = ['Quiz', 'Results', 'Notices', 'Gallery', 'Calendar', 'More'];
 
-  // If a student session exists and they're on a non-allowed page, redirect to StudentDashboard
+  // If student session exists and NOT on an allowed page, redirect instantly
   if (studentSession && !STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
-    window.location.href = createPageUrl('StudentDashboard');
+    // Use React Router navigation for instant client-side redirect (no page reload)
+    window.location.replace(createPageUrl('StudentDashboard'));
     return null;
+  }
+
+  // If student is on an allowed page, render with student bottom nav (no staff layout)
+  if (studentSession && STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
+    return (
+      <AcademicYearProvider>
+        <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto relative pb-20">
+          <header className="bg-[#1a237e] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+            <div className="flex items-center gap-3">
+              {schoolProfile?.logo_url && (
+                <img src={schoolProfile.logo_url} alt="Logo" className="h-8 w-8 object-contain rounded" />
+              )}
+              <span className="font-bold text-lg tracking-tight">
+                {schoolProfile?.school_name || 'BVM School of Excellence'}
+              </span>
+            </div>
+          </header>
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+          <StudentBottomNav currentPage={currentPageName} />
+        </div>
+      </AcademicYearProvider>
+    );
   }
 
   return (
