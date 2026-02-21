@@ -29,54 +29,78 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'No hall tickets found' }, { status: 404 });
         }
 
-        // Create workbook
+        // Create workbook with basic options
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Hall Tickets');
-
-        // Process each hall ticket
-        let currentRow = 1;
-        
-        hallTickets.forEach((ticket, index) => {
-            // School Name
-            worksheet.getCell(currentRow, 1).value = 'BVM SCHOOL OF EXCELLENCE, KOTHAKOTA';
-            
-            // Exam name
-            worksheet.getCell(currentRow + 1, 1).value = 'EXAM NAME HALL TICKET-2023';
-            
-            // Student Name label
-            worksheet.getCell(currentRow + 2, 1).value = 'STUDENT NAME :';
-            // Fill student name in merged columns (C:F)
-            const studentNameCell = worksheet.getCell(currentRow + 2, 3);
-            studentNameCell.value = ticket.student_name;
-            
-            // Student Number label
-            worksheet.getCell(currentRow + 3, 1).value = 'STUDENT NUMBER :';
-            // Fill student number in column C
-            const numberCell = worksheet.getCell(currentRow + 3, 3);
-            numberCell.value = ticket.roll_number;
-            // Fill class and section in column E
-            const classSecCell = worksheet.getCell(currentRow + 3, 5);
-            classSecCell.value = `Class: ${ticket.class_name}   Section: ${ticket.section}`;
-            
-            // Timings
-            worksheet.getCell(currentRow + 4, 1).value = 'TIMINGS 9:30 AM TO 12:30 PM';
-            
-            // Table headers
-            worksheet.getCell(currentRow + 7, 1).value = 'SUBJECT';
-            worksheet.getCell(currentRow + 7, 2).value = 'DATE';
-            worksheet.getCell(currentRow + 7, 3).value = 'INVIGILATOR SIGN';
-            
-            // Signature row
-            worksheet.getCell(currentRow + 12, 1).value = 'AO SIGNATURE';
-            worksheet.getCell(currentRow + 12, 5).value = 'PRINCIPAL SIGNATURE';
-            
-            currentRow += 15; // Space between tickets
+        const worksheet = workbook.addWorksheet('Hall Tickets', {
+            properties: { defaultColWidth: 12 }
         });
 
-        // Generate Excel buffer
+        let currentRow = 1;
+        
+        hallTickets.forEach((ticket) => {
+            // Row 1: School Name
+            const nameRow = worksheet.getRow(currentRow);
+            nameRow.getCell(1).value = 'BVM SCHOOL OF EXCELLENCE, KOTHAKOTA';
+            
+            // Row 2: Exam Name
+            const examRow = worksheet.getRow(currentRow + 1);
+            examRow.getCell(1).value = 'EXAM NAME HALL TICKET-2023';
+            
+            // Row 3: Student Name
+            const studentLabelRow = worksheet.getRow(currentRow + 2);
+            studentLabelRow.getCell(1).value = 'STUDENT NAME :';
+            studentLabelRow.getCell(3).value = ticket.student_name;
+            
+            // Row 4: Student Number and Class/Section
+            const numberRow = worksheet.getRow(currentRow + 3);
+            numberRow.getCell(1).value = 'STUDENT NUMBER :';
+            numberRow.getCell(3).value = ticket.roll_number;
+            numberRow.getCell(5).value = `Class: ${ticket.class_name}   Section: ${ticket.section}`;
+            
+            // Row 5: Timings
+            const timingRow = worksheet.getRow(currentRow + 4);
+            timingRow.getCell(1).value = 'TIMINGS 9:30 AM TO 12:30 PM';
+            
+            // Blank rows
+            worksheet.getRow(currentRow + 5);
+            worksheet.getRow(currentRow + 6);
+            
+            // Row 8: Headers
+            const headerRow = worksheet.getRow(currentRow + 7);
+            headerRow.getCell(1).value = 'SUBJECT';
+            headerRow.getCell(2).value = 'DATE';
+            headerRow.getCell(3).value = 'INVIGILATOR SIGN';
+            
+            // Blank rows for subject entries
+            for (let i = 0; i < 4; i++) {
+                worksheet.getRow(currentRow + 8 + i);
+            }
+            
+            // Signature row
+            const sigRow = worksheet.getRow(currentRow + 12);
+            sigRow.getCell(1).value = 'AO SIGNATURE';
+            sigRow.getCell(5).value = 'PRINCIPAL SIGNATURE';
+            
+            // Blank row before next ticket
+            worksheet.getRow(currentRow + 13);
+            worksheet.getRow(currentRow + 14);
+            
+            currentRow += 15;
+        });
+
+        // Set column widths
+        worksheet.columns = [
+            { width: 25 },
+            { width: 15 },
+            { width: 25 },
+            { width: 15 },
+            { width: 25 }
+        ];
+
+        // Generate and return buffer
         const buffer = await workbook.xlsx.writeBuffer();
 
-        // Log the download
+        // Log download
         try {
             await base44.asServiceRole.entities.HallTicketLog.create({
                 action: 'downloaded_excel',
@@ -86,18 +110,18 @@ Deno.serve(async (req) => {
                 details: `Downloaded Excel for ${hallTickets.length} hall tickets`
             });
         } catch (e) {
-            console.error('Failed to log download:', e.message);
+            console.error('Log error:', e.message);
         }
 
         return new Response(buffer, {
             status: 200,
             headers: {
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition': 'attachment; filename=hall_tickets.xlsx'
+                'Content-Disposition': `attachment; filename="hall_tickets.xlsx"`
             }
         });
     } catch (error) {
-        console.error('[generateHallTicketExcel Error]', error.message);
+        console.error('Error:', error.message, error.stack);
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
