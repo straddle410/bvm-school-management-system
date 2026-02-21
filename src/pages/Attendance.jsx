@@ -256,10 +256,14 @@ export default function Attendance() {
                 />
               )}
               <button
-                onClick={() => { setIsHoliday(!isHoliday); if (!isHoliday) setHolidayReason(isSunday ? 'Sunday' : ''); }}
+                onClick={() => { 
+                  setIsHoliday(!isHoliday); 
+                  if (isHoliday) setHolidayReason(''); 
+                  else setHolidayReason(isSunday ? 'Sunday' : ''); 
+                }}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
               >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
               </button>
             </div>
 
