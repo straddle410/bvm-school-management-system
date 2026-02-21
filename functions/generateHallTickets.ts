@@ -43,13 +43,25 @@ Deno.serve(async (req) => {
     
     const hallTickets = [];
 
+    // Generate random sequence if needed
+    let randomSequence = [];
+    if (assignmentType === 'random') {
+      // Create array [1, 2, 3, ..., studentCount]
+      randomSequence = Array.from({ length: students.length }, (_, i) => i + 1);
+      // Shuffle using Fisher-Yates
+      for (let i = randomSequence.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [randomSequence[i], randomSequence[j]] = [randomSequence[j], randomSequence[i]];
+      }
+    }
+
     students.forEach((student, idx) => {
       let xx;
       if (assignmentType === 'sequential') {
         xx = String(student.roll_no || idx + 1).padStart(2, '0');
       } else {
-        // Random assignment
-        xx = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+        // Random assignment - use pre-generated unique sequence
+        xx = String(randomSequence[idx]).padStart(2, '0');
       }
 
       const hallTicketNumber = `${yy}${cc}${xx}`;
