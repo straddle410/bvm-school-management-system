@@ -58,25 +58,33 @@ export default function Quiz() {
    const queryClient = useQueryClient();
 
    useEffect(() => {
-      const session = localStorage.getItem('staff_session');
-      if (session) {
+      const studentSess = localStorage.getItem('student_session');
+      if (studentSess) {
         try {
-          const parsed = JSON.parse(session);
+          const parsed = JSON.parse(studentSess);
+          setStudentSession(parsed);
+          setUser({ id: parsed.id, full_name: parsed.name, role: 'student' });
+        } catch {}
+        setSessionLoaded(true);
+        return;
+      }
+      const staffSess = localStorage.getItem('staff_session');
+      if (staffSess) {
+        try {
+          const parsed = JSON.parse(staffSess);
           setUser(parsed);
           setUserPermissions(parsed.permissions || {});
         } catch {}
-      } else {
-        base44.auth.me().then(async (currentUser) => {
-          setUser(currentUser);
-          // Fetch staff account to get permissions
-          try {
-            const staffAccounts = await base44.entities.StaffAccount.filter({ email: currentUser.email });
-            if (staffAccounts.length > 0) {
-              setUserPermissions(staffAccounts[0].permissions || {});
-            }
-          } catch {}
-        }).catch(() => {});
+        setSessionLoaded(true);
+        return;
       }
+      base44.auth.me().then(async (currentUser) => {
+        setUser(currentUser);
+        try {
+          const staffAccounts = await base44.entities.StaffAccount.filter({ email: currentUser.email });
+          if (staffAccounts.length > 0) setUserPermissions(staffAccounts[0].permissions || {});
+        } catch {}
+      }).catch(() => {}).finally(() => setSessionLoaded(true));
     }, []);
 
    const { data: quizzes = [], isLoading } = useQuery({
