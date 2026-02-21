@@ -288,13 +288,34 @@ export default function StudentDashboard() {
         </Card>
       </main>
 
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 z-50 shadow-lg">
+        <div className="flex items-center justify-around py-2">
+          {[
+            { label: 'Home', icon: GraduationCap, page: 'StudentDashboard' },
+            { label: 'Notices', icon: Bell, page: 'Notices' },
+            { label: 'Quiz', icon: Brain, page: 'Quiz' },
+            { label: 'Results', icon: Trophy, page: 'Results' },
+            { label: 'Calendar', icon: Calendar, page: 'Calendar' },
+          ].map((item) => (
+            <Link
+              key={item.page}
+              to={createPageUrl(item.page)}
+              className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-gray-400"
+            >
+              <item.icon className="h-6 w-6" />
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
+
       {showChangePassword && (
         <StudentChangePassword
           student={student}
           onClose={() => setShowChangePassword(false)}
           onSuccess={() => {
             setShowChangePassword(false);
-            // Update session
             const session = getStudentSession();
             setStudent(session);
           }}
