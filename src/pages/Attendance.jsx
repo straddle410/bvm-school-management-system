@@ -126,6 +126,43 @@ export default function Attendance() {
 
 
 
+  const saveRangeMutation = useMutation({
+    mutationFn: async () => {
+      if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
+      const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
+      const allStudents = students.filter(s => s.status === 'Published');
+      const promises = [];
+      for (const day of days) {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        for (const cls of CLASSES) {
+          const classStudents = allStudents.filter(s => s.class_name === cls);
+          for (const student of classStudents) {
+            promises.push(base44.entities.Attendance.create({
+              date: dateStr,
+              class_name: cls,
+              section: student.section || 'A',
+              student_id: student.student_id || student.id,
+              student_name: student.name,
+              is_present: false,
+              is_holiday: true,
+              holiday_reason: rangeReason || 'Holiday',
+              marked_by: user?.email,
+              academic_year: academicYear,
+              status: 'Holiday'
+            }));
+          }
+        }
+      }
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['attendance']);
+      toast.success(`Holiday marked for ${rangeStart} to ${rangeEnd}`);
+      setShowRangeMode(false);
+      setRangeStart(''); setRangeEnd(''); setRangeReason('');
+    }
+  });
+
   const toggleAttendance = (studentId, isPresent) => {
     setAttendanceData(prev => ({
       ...prev,
