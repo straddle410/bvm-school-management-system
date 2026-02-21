@@ -77,6 +77,22 @@ export default function Calendar() {
     queryFn: () => base44.entities.CalendarEvent.list()
   });
 
+  // Fetch attendance-marked holidays for the current month
+  const monthStr = format(currentMonth, 'yyyy-MM');
+  const { data: attendanceHolidays = [] } = useQuery({
+    queryKey: ['attendance-holidays', monthStr],
+    queryFn: () => base44.entities.Attendance.filter({ is_holiday: true, status: 'Holiday' }),
+  });
+
+  // Build a set of holiday date strings from attendance records
+  const holidayDateSet = React.useMemo(() => {
+    const set = new Set();
+    attendanceHolidays.forEach(r => { if (r.date) set.add(r.date); });
+    return set;
+  }, [attendanceHolidays]);
+
+  const isAttendanceHoliday = (date) => holidayDateSet.has(format(date, 'yyyy-MM-dd'));
+
   const createEventMutation = useMutation({
     mutationFn: (data) => base44.entities.CalendarEvent.create(data),
     onSuccess: () => {
