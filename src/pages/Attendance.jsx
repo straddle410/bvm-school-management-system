@@ -294,91 +294,105 @@ export default function Attendance() {
              />
            )}
 
-            {/* Holiday Toggle - single day */}
-            <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
-              <Palmtree className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm font-medium flex-1">
-                {isSunday ? '🔴 Sunday — Auto Holiday' : isMarkedHoliday ? `📌 Marked Holiday: ${holidays[0]?.title || 'Holiday'}` : 'Mark as Holiday'}
-              </span>
-              {isHoliday && !isMarkedHoliday && (
-                <input
-                  type="text"
-                  placeholder="Holiday reason (e.g. Diwali)"
-                  value={holidayReason}
-                  onChange={e => setHolidayReason(e.target.value)}
-                  className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
-                />
-              )}
-              {!isMarkedHoliday && !isSunday && (
-                <button
-                  onClick={() => { 
-                    setIsHoliday(!isHoliday); 
-                    setManuallyChanged(true);
-                    if (isHoliday) setHolidayReason(''); 
-                    else setHolidayReason(''); 
-                  }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                </button>
-              )}
-            </div>
+            {/* Holiday Toggle - Admin Only */}
+            {canManageHolidays && (
+              <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
+                <Palmtree className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm font-medium flex-1">
+                  {isSunday ? '🔴 Sunday — Auto Holiday' : isMarkedHoliday ? `📌 Marked Holiday: ${holidays[0]?.title || 'Holiday'}` : 'Mark as Holiday'}
+                </span>
+                {isHoliday && !isMarkedHoliday && (
+                  <input
+                    type="text"
+                    placeholder="Holiday reason (e.g. Diwali)"
+                    value={holidayReason}
+                    onChange={e => setHolidayReason(e.target.value)}
+                    className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+                  />
+                )}
+                {!isMarkedHoliday && !isSunday && (
+                  <button
+                    onClick={() => { 
+                      setIsHoliday(!isHoliday); 
+                      setManuallyChanged(true);
+                      if (isHoliday) setHolidayReason(''); 
+                      else setHolidayReason(''); 
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                )}
+              </div>
+            )}
 
-            {/* Holiday Range - multiple days */}
-            <div className="pt-2 border-t">
-              <button
-                onClick={() => setShowRangeMode(!showRangeMode)}
-                className="flex items-center gap-2 text-sm text-slate-500 hover:text-amber-600 transition-colors"
-              >
-                <CalendarRange className="h-4 w-4" />
-                <span>Mark Holiday Range (multiple days)</span>
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-1">New</span>
-              </button>
-              {showRangeMode && (
-                <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
-                  <p className="text-xs text-amber-700 font-medium">This will mark ALL classes as holiday for the selected date range.</p>
-                  <div className="flex flex-wrap gap-3 items-center">
-                    <div className="flex items-center gap-1.5">
-                      <label className="text-xs text-slate-600">From</label>
-                      <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)}
-                        className="border rounded-lg px-2 py-1.5 text-sm" />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <label className="text-xs text-slate-600">To</label>
-                      <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)}
-                        className="border rounded-lg px-2 py-1.5 text-sm" />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Reason (e.g. Summer Vacation)"
-                      value={rangeReason}
-                      onChange={e => setRangeReason(e.target.value)}
-                      className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-amber-500 hover:bg-amber-600 text-white"
-                      onClick={() => saveRangeMutation.mutate()}
-                      disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}
-                    >
-                      <Palmtree className="h-4 w-4 mr-1" />
-                      {saveRangeMutation.isPending ? `Marking... ${rangeProgress}%` : 'Mark Holiday Range'}
-                    </Button>
-                    {saveRangeMutation.isPending && (
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-amber-500 h-2 rounded-full transition-all"
-                          style={{ width: `${rangeProgress}%` }}
-                        />
-                      </div>
-                    )}
-                    <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)} disabled={saveRangeMutation.isPending}>Cancel</Button>
-                  </div>
+            {/* Show Holiday Info for Teachers */}
+            {!canManageHolidays && (isHoliday || isSunday) && (
+              <div className="pt-2 border-t text-amber-600">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Palmtree className="h-4 w-4" />
+                  {isSunday ? '🔴 Sunday — Auto Holiday' : `📌 Marked Holiday: ${holidayReason}`}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Holiday Range - Admin Only */}
+            {canManageHolidays && (
+              <div className="pt-2 border-t">
+                <button
+                  onClick={() => setShowRangeMode(!showRangeMode)}
+                  className="flex items-center gap-2 text-sm text-slate-500 hover:text-amber-600 transition-colors"
+                >
+                  <CalendarRange className="h-4 w-4" />
+                  <span>Mark Holiday Range (multiple days)</span>
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-1">Admin</span>
+                </button>
+                {showRangeMode && (
+                  <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
+                    <p className="text-xs text-amber-700 font-medium">This will mark ALL classes as holiday for the selected date range.</p>
+                    <div className="flex flex-wrap gap-3 items-center">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs text-slate-600">From</label>
+                        <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)}
+                          className="border rounded-lg px-2 py-1.5 text-sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs text-slate-600">To</label>
+                        <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)}
+                          className="border rounded-lg px-2 py-1.5 text-sm" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Reason (e.g. Summer Vacation)"
+                        value={rangeReason}
+                        onChange={e => setRangeReason(e.target.value)}
+                        className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-amber-500 hover:bg-amber-600 text-white"
+                        onClick={() => saveRangeMutation.mutate()}
+                        disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}
+                      >
+                        <Palmtree className="h-4 w-4 mr-1" />
+                        {saveRangeMutation.isPending ? `Marking... ${rangeProgress}%` : 'Mark Holiday Range'}
+                      </Button>
+                      {saveRangeMutation.isPending && (
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-amber-500 h-2 rounded-full transition-all"
+                            style={{ width: `${rangeProgress}%` }}
+                          />
+                        </div>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)} disabled={saveRangeMutation.isPending}>Cancel</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
