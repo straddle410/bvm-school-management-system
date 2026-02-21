@@ -68,31 +68,31 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
       const colWidth = (pageWidth / 2 - 3) / 3;
 
       doc.setLineWidth(0.4);
-      doc.setFontSize(7);
-      doc.setFont(undefined, 'bold');
+      doc.setFontSize(8);
+      doc.setFont('Calibri', 'bold');
 
       // Headers
-      const hh = 3.2;
+      const hh = 3.5;
       doc.rect(leftX, yPos, colWidth, hh);
       doc.rect(leftX + colWidth, yPos, colWidth * 0.75, hh);
       doc.rect(leftX + colWidth * 1.75, yPos, colWidth * 1.25, hh);
-      doc.text('SUBJECT', leftX + 0.7, yPos + 2.3);
-      doc.text('DATE', leftX + colWidth + 0.5, yPos + 2.3);
-      doc.text('INVIGILATOR SIGN', leftX + colWidth * 1.75 + 0.3, yPos + 2.3);
+      doc.text('SUBJECT', leftX + 0.7, yPos + 2.5);
+      doc.text('DATE', leftX + colWidth + 0.5, yPos + 2.5);
+      doc.text('INVIGILATOR SIGN', leftX + colWidth * 1.75 + 0.3, yPos + 2.5);
 
       doc.rect(rightX, yPos, colWidth, hh);
       doc.rect(rightX + colWidth, yPos, colWidth * 0.75, hh);
       doc.rect(rightX + colWidth * 1.75, yPos, colWidth * 1.25, hh);
-      doc.text('SUBJECT', rightX + 0.7, yPos + 2.3);
-      doc.text('DATE', rightX + colWidth + 0.5, yPos + 2.3);
-      doc.text('INVIGILATOR SIGN', rightX + colWidth * 1.75 + 0.3, yPos + 2.3);
+      doc.text('SUBJECT', rightX + 0.7, yPos + 2.5);
+      doc.text('DATE', rightX + colWidth + 0.5, yPos + 2.5);
+      doc.text('INVIGILATOR SIGN', rightX + colWidth * 1.75 + 0.3, yPos + 2.5);
 
       yPos += hh;
 
       // Subject rows
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(6.5);
-      const rh = 3;
+      doc.setFont('Calibri', 'normal');
+      doc.setFontSize(8);
+      const rh = 3.5;
 
       for (let i = 0; i < 3; i++) {
         // Left column
@@ -101,12 +101,12 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
         doc.rect(leftX + colWidth * 1.75, yPos, colWidth * 1.25, rh);
 
         const leftSubj = subjectMap.left[i];
-        doc.text(leftSubj, leftX + 0.7, yPos + 2.2);
+        doc.text(leftSubj, leftX + 0.7, yPos + 2.3);
 
         const ttLeft = timetable.find(t => t.subject_name === leftSubj);
         if (ttLeft && ttLeft.exam_date) {
           const d = new Date(ttLeft.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(d, leftX + colWidth + 0.5, yPos + 2.2);
+          doc.text(d, leftX + colWidth + 0.5, yPos + 2.3);
         }
 
         // Right column
@@ -115,12 +115,12 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
         doc.rect(rightX + colWidth * 1.75, yPos, colWidth * 1.25, rh);
 
         const rightSubj = subjectMap.right[i];
-        doc.text(rightSubj, rightX + 0.7, yPos + 2.2);
+        doc.text(rightSubj, rightX + 0.7, yPos + 2.3);
 
         const ttRight = timetable.find(t => t.subject_name === rightSubj);
         if (ttRight && ttRight.exam_date) {
           const d = new Date(ttRight.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(d, rightX + colWidth + 0.5, yPos + 2.2);
+          doc.text(d, rightX + colWidth + 0.5, yPos + 2.3);
         }
 
         yPos += rh;
@@ -128,8 +128,8 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
 
       // Signature boxes - push to bottom of ticket
       yPos = yStart + ticketHeight - 5;
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(6.5);
+      doc.setFont('Calibri', 'bold');
+      doc.setFontSize(8);
 
       doc.line(leftX, yPos, leftX + colWidth, yPos);
       doc.text('AO SIGNATURE', leftX + 0.7, yPos + 1.8);
