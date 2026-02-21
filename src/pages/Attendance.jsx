@@ -34,8 +34,13 @@ export default function Attendance() {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('A');
   const [attendanceData, setAttendanceData] = useState({});
+  const [isHoliday, setIsHoliday] = useState(false);
+  const [holidayReason, setHolidayReason] = useState('');
   
   const queryClient = useQueryClient();
+
+  // Auto-detect Sunday
+  const isSunday = getDay(new Date(selectedDate + 'T00:00:00')) === 0;
 
   useEffect(() => {
     setUser(getStaffSession());
