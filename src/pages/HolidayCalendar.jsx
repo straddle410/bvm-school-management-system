@@ -35,7 +35,7 @@ export default function HolidayCalendar() {
     enabled: !!user?.email
   });
 
-  const canManageHolidays = staffAccount?.[0]?.permissions?.manage_holidays || user?.role === 'admin';
+  const canManageHolidays = staffAccount?.[0]?.permissions?.manage_holidays || user?.role === 'Admin' || user?.role === 'admin' || user?.role === 'Principal' || user?.role === 'principal';
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Holiday.create({
