@@ -64,7 +64,7 @@ export default function StudentDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('student_session');
-    window.location.href = createPageUrl('Dashboard');
+    window.location.href = createPageUrl('StudentLogin');
   };
 
   if (!student) return null;
