@@ -534,7 +534,11 @@ export default function Students() {
             <Button variant="outline" className="hidden sm:flex">
               <Download className="mr-2 h-4 w-4" /> Export
             </Button>
-            <Button onClick={() => setShowAddDialog(true)}>
+            <Button onClick={async () => {
+              const newId = await generateStudentId();
+              setFormData(f => ({ ...f, student_id: newId, username: newId, password: 'BVM123' }));
+              setShowAddDialog(true);
+            }}>
               <Plus className="mr-2 h-4 w-4" /> Add Student
             </Button>
           </div>
