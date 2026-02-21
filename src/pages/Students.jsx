@@ -78,6 +78,8 @@ export default function Students() {
 
   const [formData, setFormData] = useState({
     student_id: '',
+    username: '',
+    password: 'BVM123',
     name: '',
     class_name: '',
     section: 'A',
@@ -93,6 +95,17 @@ export default function Students() {
     academic_year: academicYear,
     status: 'Pending'
   });
+
+  // Generate next unique student ID like S0001
+  const generateStudentId = async () => {
+    const all = await base44.entities.Student.list('-created_date', 1000);
+    const ids = all
+      .map(s => s.student_id)
+      .filter(id => id && /^S\d+$/.test(id))
+      .map(id => parseInt(id.slice(1)));
+    const max = ids.length > 0 ? Math.max(...ids) : 0;
+    return `S${String(max + 1).padStart(4, '0')}`;
+  };
 
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students', academicYear],
