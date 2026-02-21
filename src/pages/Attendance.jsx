@@ -162,33 +162,27 @@ export default function Attendance() {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
       const total = days.length;
-      
+
       // Batch by day to avoid rate limiting
       for (let i = 0; i < days.length; i++) {
         const day = days[i];
         const dateStr = format(day, 'yyyy-MM-dd');
-        
-        // Create/update a single holiday marker record instead of per-student
-        const holidayMarker = await base44.entities.Attendance.filter({ 
+
+        // Check if holiday already exists
+        const existingHoliday = await base44.entities.Holiday.filter({ 
           date: dateStr, 
-          is_holiday: true,
           academic_year: academicYear 
         });
-        
-        if (holidayMarker.length === 0) {
-          // Create one marker record for the day
-          await base44.entities.Attendance.create({
+
+        if (existingHoliday.length === 0) {
+          // Create proper Holiday entity record
+          await base44.entities.Holiday.create({
             date: dateStr,
-            class_name: 'All',
-            section: 'A',
-            student_id: 'HOLIDAY_MARKER',
-            student_name: 'Holiday',
-            is_present: false,
-            is_holiday: true,
-            holiday_reason: rangeReason || 'Holiday',
+            title: rangeReason || 'Holiday',
+            reason: rangeReason || 'Holiday',
             marked_by: user?.email,
             academic_year: academicYear,
-            status: 'Holiday'
+            status: 'Active'
           });
         }
         setRangeProgress(Math.round(((i + 1) / total) * 100));
