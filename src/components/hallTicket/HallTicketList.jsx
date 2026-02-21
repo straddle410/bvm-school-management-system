@@ -85,19 +85,9 @@ export default function HallTicketList({ examTypeId, classFilter }) {
     }
 
     try {
-      const staffSession = localStorage.getItem('staff_session');
       const payload = { hallTicketIds: selected };
-      if (staffSession) {
-        payload.staffSession = staffSession;
-      }
       const res = await base44.functions.invoke('generateHallTicketExcel', payload);
-      // Decode base64 to binary
-      const binaryString = atob(res.data.file);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
