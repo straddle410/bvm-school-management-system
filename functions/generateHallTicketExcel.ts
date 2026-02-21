@@ -117,15 +117,31 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'No hall tickets found' }, { status: 404 });
         }
 
-        const [schoolProfiles, examTypeData, timetableList] = await Promise.all([
-            base44.asServiceRole.entities.SchoolProfile.list(),
-            base44.asServiceRole.entities.ExamType.get(hallTickets[0].exam_type),
-            base44.asServiceRole.entities.ExamTimetable.filter({
+        let schoolProfile = null;
+        let examTypeData = null;
+        let timetableList = [];
+
+        try {
+            const schoolProfiles = await base44.asServiceRole.entities.SchoolProfile.list();
+            schoolProfile = schoolProfiles[0];
+        } catch (e) {
+            console.error('Failed to load school profile:', e.message);
+        }
+
+        try {
+            examTypeData = await base44.asServiceRole.entities.ExamType.get(hallTickets[0].exam_type);
+        } catch (e) {
+            console.error('Failed to load exam type:', e.message);
+        }
+
+        try {
+            timetableList = await base44.asServiceRole.entities.ExamTimetable.filter({
                 exam_type: hallTickets[0].exam_type,
                 academic_year: hallTickets[0].academic_year
-            })
-        ]);
-        const schoolProfile = schoolProfiles[0];
+            });
+        } catch (e) {
+            console.error('Failed to load timetable:', e.message);
+        }
 
         const excelBuffer = await generateExcel(hallTickets, schoolProfile, timetableList, examTypeData, schoolProfile?.hall_ticket_template_url);
 
