@@ -226,40 +226,61 @@ export default function Attendance() {
       />
 
       <div className="p-4 lg:p-8 space-y-6">
-        {/* Filters */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-slate-400" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="border rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Select Class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLASSES.map(c => (
-                    <SelectItem key={c} value={c}>Class {c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedSection} onValueChange={setSelectedSection}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Select Section" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SECTIONS.map(s => (
-                    <SelectItem key={s} value={s}>Section {s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+       {/* Filters */}
+       <Card className="border-0 shadow-sm">
+         <CardContent className="p-4 space-y-3">
+           <div className="flex flex-col sm:flex-row gap-4">
+             <div className="flex items-center gap-2">
+               <Calendar className="h-5 w-5 text-slate-400" />
+               <input
+                 type="date"
+                 value={selectedDate}
+                 onChange={(e) => setSelectedDate(e.target.value)}
+                 className="border rounded-lg px-3 py-2 text-sm"
+               />
+             </div>
+             <Select value={selectedClass} onValueChange={setSelectedClass}>
+               <SelectTrigger className="w-full sm:w-40">
+                 <SelectValue placeholder="Select Class" />
+               </SelectTrigger>
+               <SelectContent>
+                 {CLASSES.map(c => (
+                   <SelectItem key={c} value={c}>Class {c}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+             <Select value={selectedSection} onValueChange={setSelectedSection}>
+               <SelectTrigger className="w-full sm:w-40">
+                 <SelectValue placeholder="Select Section" />
+               </SelectTrigger>
+               <SelectContent>
+                 {SECTIONS.map(s => (
+                   <SelectItem key={s} value={s}>Section {s}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+
+           {/* Holiday Status Display */}
+           {selectedClass && selectedSection && (
+             <HolidayStatusDisplay 
+               isHoliday={isHoliday} 
+               isSunday={isSunday} 
+               hasOverride={hasHolidayOverride}
+               holidayReason={holidayReason}
+             />
+           )}
+
+           {/* Holiday Override Toggle */}
+           {isHoliday && canOverrideHoliday && selectedClass && selectedSection && (
+             <HolidayOverrideToggle 
+               selectedDate={selectedDate}
+               canOverride={canOverrideHoliday}
+               user={user}
+               academicYear={academicYear}
+               onOverrideChange={setHasHolidayOverride}
+             />
+           )}
 
             {/* Holiday Toggle - single day */}
             <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
