@@ -15,7 +15,15 @@ const getDefaultYear = () => {
 };
 
 export function AcademicYearProvider({ children }) {
-  const [academicYear, setAcademicYearState] = useState(getDefaultYear());
+  const [academicYear, setAcademicYearState] = useState(() => {
+    // Load from localStorage if available, otherwise use default
+    try {
+      const saved = localStorage.getItem('selected_academic_year');
+      return saved || getDefaultYear();
+    } catch {
+      return getDefaultYear();
+    }
+  });
   const [academicYears, setAcademicYears] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -48,10 +56,18 @@ export function AcademicYearProvider({ children }) {
     // Load academic years and set the current one
     base44.entities.AcademicYear.list('-start_date').then(years => {
       setAcademicYears(years);
-      // Always default to the admin-set current year
-      const currentYear = years.find(y => y.is_current) || years[0];
-      if (currentYear) {
-        setAcademicYearState(currentYear.year);
+      // Check if currently selected year exists in the list
+      const saved = localStorage.getItem('selected_academic_year');
+      const yearExists = years.find(y => y.year === saved);
+      if (yearExists) {
+        setAcademicYearState(saved);
+      } else {
+        // If saved year doesn't exist, use admin-set current year
+        const currentYear = years.find(y => y.is_current) || years[0];
+        if (currentYear) {
+          setAcademicYearState(currentYear.year);
+          localStorage.setItem('selected_academic_year', currentYear.year);
+        }
       }
     }).catch(() => {});
   }, []);
@@ -60,6 +76,7 @@ export function AcademicYearProvider({ children }) {
     // Only admin can change the year
     if (!isAdmin) return;
     setAcademicYearState(year);
+    localStorage.setItem('selected_academic_year', year);
   };
 
   return (
