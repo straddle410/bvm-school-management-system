@@ -8,15 +8,17 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 10;
+    const margin = 8;
     const contentWidth = pageWidth - 2 * margin;
+    const ticketHeight = (pageHeight - 3 * margin) / 3;
 
     hallTickets.forEach((ticket, index) => {
-      if (index > 0) {
+      if (index > 0 && index % 3 === 0) {
         doc.addPage();
       }
 
-      let yPos = margin;
+      const ticketIndex = index % 3;
+      let yPos = margin + ticketIndex * ticketHeight;
       doc.setLineWidth(0.7);
       doc.setDrawColor(0);
 
