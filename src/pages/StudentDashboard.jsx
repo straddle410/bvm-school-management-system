@@ -44,17 +44,19 @@ export default function StudentDashboard() {
     setLoading(true);
     try {
       const [marksData, attendanceData, noticesData, homeworkData, submissionsData] = await Promise.all([
-        base44.entities.Marks.filter({ student_id: session.student_id, status: 'Published' }, '-created_date', 50),
-        base44.entities.Attendance.filter({ student_id: session.student_id, academic_year: session.academic_year }, '-date', 30),
-        base44.entities.Notice.filter({ status: 'Published' }, '-created_date', 10),
-        base44.entities.Homework.filter({ class_name: session.class_name, status: 'Published' }, '-due_date', 10),
-        base44.entities.HomeworkSubmission.filter({ student_id: session.student_id }, '-created_date', 100),
+        base44.functions.invoke('getStudentData', { student_id: session.student_id, academic_year: session.academic_year, class_name: session.class_name }).then(r => ({
+          marks: r.data?.marks || [],
+          attendance: r.data?.attendance || [],
+          notices: r.data?.notices || [],
+          homework: r.data?.homework || [],
+          submissions: r.data?.submissions || []
+        }))
       ]);
-      setMarks(marksData);
-      setAttendance(attendanceData);
-      setNotices(noticesData);
-      setHomework(homeworkData);
-      setSubmissions(submissionsData);
+      setMarks(marksData.marks);
+      setAttendance(marksData.attendance);
+      setNotices(marksData.notices);
+      setHomework(marksData.homework);
+      setSubmissions(marksData.submissions);
     } catch (e) {}
     setLoading(false);
   };
