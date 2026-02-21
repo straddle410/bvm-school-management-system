@@ -213,7 +213,8 @@ export default function Quiz() {
     );
   };
 
-  if (sessionLoaded && !studentSession && !user) {
+  const isStaffLoggedIn = !!(localStorage.getItem('staff_session'));
+  if (sessionLoaded && !studentSession && !isStaffLoggedIn && !user) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-sm p-8 max-w-sm w-full text-center">
