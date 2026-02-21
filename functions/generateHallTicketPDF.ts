@@ -6,218 +6,201 @@ const jsPDF = jsPDFModule.jsPDF || jsPDFModule;
 const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = 210;
-      const pageHeight = 297;
-      const ticketsPerPage = 3;
-      const ticketHeight = 98;
-      const margin = 6;
+    const pageHeight = 297;
+    const ticketsPerPage = 3;
+    const ticketHeight = 97;
+    const margin = 5;
+    const ticketWidth = pageWidth - (2 * margin);
 
     hallTickets.forEach((ticket, index) => {
-      const ticketIndex = index % ticketsPerPage;
-      if (index > 0 && ticketIndex === 0) doc.addPage();
+        const ticketIndex = index % ticketsPerPage;
+        if (index > 0 && ticketIndex === 0) doc.addPage();
 
-      const yStart = margin + (ticketIndex * (ticketHeight + 1));
-      const ticketWidth = pageWidth - 12;
+        const yStart = margin + (ticketIndex * (ticketHeight + 1));
 
-      // Outer border
-      doc.setLineWidth(0.5);
-      doc.rect(margin, yStart, ticketWidth, ticketHeight);
+        // Outer border - tight fit
+        doc.setLineWidth(0.5);
+        doc.rect(margin, yStart, ticketWidth, ticketHeight);
 
-      let yPos = yStart + 4;
+        let yPos = yStart + 2;
 
-      // School name
-      doc.setFontSize(18);
-      doc.setFont('Calibri', 'bold');
-      doc.text('BVM SCHOOL OF EXCELLENCE, KOTHAKOTA', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 5.5;
+        // School name - bold, large, centered
+        doc.setFontSize(16);
+        doc.setFont('Calibri', 'bold');
+        const schoolNameLines = doc.splitTextToSize('BVM SCHOOL OF EXCELLENCE, KOTHAKOTA', ticketWidth - 4);
+        doc.text(schoolNameLines, pageWidth / 2, yPos, { align: 'center' });
+        yPos += schoolNameLines.length * 3 + 1;
 
-      // Exam type
-      doc.setFontSize(14);
-      doc.setFont('Calibri', 'bold');
-      const examTypeText = examType ? `${examType.name} HALL TICKET-2023` : 'EXAM HALL TICKET-2023';
-      doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 4.2;
+        // Exam type
+        doc.setFontSize(13);
+        doc.setFont('Calibri', 'bold');
+        const examTypeText = examType ? `${examType.name} HALL TICKET - 2023` : 'EXAM HALL TICKET - 2023';
+        doc.text(examTypeText, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 3.8;
 
-      // Student info - inline labels and values
-      doc.setFontSize(12);
-      doc.setFont('Calibri', 'bold');
-      doc.text('STUDENT NAME :', margin + 2, yPos);
-      doc.setFont('Calibri', 'bold');
-      doc.text(ticket.student_name || '', margin + 34, yPos);
-      yPos += 3.2;
+        // Student info section
+        doc.setFontSize(11);
+        doc.setFont('Calibri', 'bold');
+        doc.text('NAME:', margin + 2, yPos);
+        doc.setFont('Calibri', 'bold');
+        doc.text(ticket.student_name || '', margin + 16, yPos);
+        yPos += 3;
 
-      doc.setFont('Calibri', 'bold');
-      doc.text('STUDENT NUMBER :', margin + 2, yPos);
-      doc.setFont('Calibri', 'bold');
-      doc.text(ticket.hall_ticket_number || '', margin + 34, yPos);
-      yPos += 3.2;
+        doc.setFont('Calibri', 'bold');
+        doc.text('ROLL NO:', margin + 2, yPos);
+        doc.setFont('Calibri', 'bold');
+        doc.text(ticket.hall_ticket_number || '', margin + 16, yPos);
+        yPos += 3.2;
 
-      doc.setFont('Calibri', 'bold');
-      doc.text('TIMINGS :', margin + 2, yPos);
-      doc.setFont('Calibri', 'bold');
-      doc.text('9:30 AM TO 12:30 PM', margin + 34, yPos);
-      yPos += 3.8;
+        // Subjects table - 7 subjects in single column
+        doc.setLineWidth(0.3);
+        doc.setFontSize(10);
+        doc.setFont('Calibri', 'bold');
 
-      // Two-column table: TELUGU, HINDI, ENGLISH on left | MATHEMATICS, GEN. SCIENCE, SOCIAL on right
-      const subjectMap = {
-        left: ['TELUGU', 'HINDI', 'ENGLISH'],
-        right: ['MATHEMATICS', 'GEN. SCIENCE', 'SOCIAL']
-      };
+        const tableLeftX = margin + 1;
+        const subjectColWidth = 9;
+        const dateColWidth = 10;
+        const signColWidth = ticketWidth - subjectColWidth - dateColWidth - 2;
+        const headerHeight = 3;
+        const rowHeight = 3.2;
 
-      const leftX = margin + 2;
-      const rightX = pageWidth / 2 + 1;
-      const colWidth = (pageWidth / 2 - 3) / 3;
+        // Table header
+        doc.rect(tableLeftX, yPos, subjectColWidth, headerHeight);
+        doc.rect(tableLeftX + subjectColWidth, yPos, dateColWidth, headerHeight);
+        doc.rect(tableLeftX + subjectColWidth + dateColWidth, yPos, signColWidth, headerHeight);
 
-      doc.setLineWidth(0.4);
-      doc.setFontSize(12);
-      doc.setFont('Calibri', 'bold');
+        doc.setFontSize(9);
+        doc.setFont('Calibri', 'bold');
+        doc.text('SUBJECT', tableLeftX + 0.5, yPos + 1.8);
+        doc.text('DATE', tableLeftX + subjectColWidth + 0.5, yPos + 1.8);
+        doc.text('SIGNATURE', tableLeftX + subjectColWidth + dateColWidth + 0.5, yPos + 1.8);
 
-      // Headers
-      const hh = 4;
-      doc.rect(leftX, yPos, colWidth, hh);
-      doc.rect(leftX + colWidth, yPos, colWidth * 0.75, hh);
-      doc.rect(leftX + colWidth * 1.75, yPos, colWidth * 1.25, hh);
-      doc.text('SUBJECT', leftX + 0.7, yPos + 2.8);
-      doc.text('DATE', leftX + colWidth + 0.5, yPos + 2.8);
-      doc.text('INVIGILATOR SIGN', leftX + colWidth * 1.75 + 0.3, yPos + 2.8);
+        yPos += headerHeight;
 
-      doc.rect(rightX, yPos, colWidth, hh);
-      doc.rect(rightX + colWidth, yPos, colWidth * 0.75, hh);
-      doc.rect(rightX + colWidth * 1.75, yPos, colWidth * 1.25, hh);
-      doc.text('SUBJECT', rightX + 0.7, yPos + 2.8);
-      doc.text('DATE', rightX + colWidth + 0.5, yPos + 2.8);
-      doc.text('INVIGILATOR SIGN', rightX + colWidth * 1.75 + 0.3, yPos + 2.8);
+        // Subject rows - 7 subjects
+        const subjectMap = [
+            'TELUGU',
+            'HINDI',
+            'ENGLISH',
+            'MATHEMATICS',
+            'GENERAL SCIENCE',
+            'SOCIAL STUDIES',
+            'OPTIONAL SUBJECT'
+        ];
 
-      yPos += hh;
+        doc.setFont('Calibri', 'normal');
+        doc.setFontSize(10);
 
-      // Subject rows
-      doc.setFont('Calibri', 'normal');
-      doc.setFontSize(12);
-      const rh = 4;
+        subjectMap.forEach((subject, i) => {
+            doc.rect(tableLeftX, yPos, subjectColWidth, rowHeight);
+            doc.rect(tableLeftX + subjectColWidth, yPos, dateColWidth, rowHeight);
+            doc.rect(tableLeftX + subjectColWidth + dateColWidth, yPos, signColWidth, rowHeight);
 
-      for (let i = 0; i < 3; i++) {
-        // Left column
-        doc.rect(leftX, yPos, colWidth, rh);
-        doc.rect(leftX + colWidth, yPos, colWidth * 0.75, rh);
-        doc.rect(leftX + colWidth * 1.75, yPos, colWidth * 1.25, rh);
+            doc.text(subject, tableLeftX + 0.5, yPos + 1.9);
 
-        const leftSubj = subjectMap.left[i];
-        doc.text(leftSubj, leftX + 0.7, yPos + 2.8);
+            const tt = timetable.find(t => t.subject_name === subject);
+            if (tt && tt.exam_date) {
+                const d = new Date(tt.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                doc.text(d, tableLeftX + subjectColWidth + 0.5, yPos + 1.9);
+            }
 
-        const ttLeft = timetable.find(t => t.subject_name === leftSubj);
-        if (ttLeft && ttLeft.exam_date) {
-          const d = new Date(ttLeft.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(d, leftX + colWidth + 0.5, yPos + 2.8);
-        }
+            yPos += rowHeight;
+        });
 
-        // Right column
-        doc.rect(rightX, yPos, colWidth, rh);
-        doc.rect(rightX + colWidth, yPos, colWidth * 0.75, rh);
-        doc.rect(rightX + colWidth * 1.75, yPos, colWidth * 1.25, rh);
+        // Signature section at bottom
+        yPos = yStart + ticketHeight - 6;
+        doc.setLineWidth(0.3);
+        doc.setFontSize(8);
+        doc.setFont('Calibri', 'bold');
 
-        const rightSubj = subjectMap.right[i];
-        doc.text(rightSubj, rightX + 0.7, yPos + 2.8);
+        const sigWidth = (ticketWidth - 2) / 3;
 
-        const ttRight = timetable.find(t => t.subject_name === rightSubj);
-        if (ttRight && ttRight.exam_date) {
-          const d = new Date(ttRight.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' });
-          doc.text(d, rightX + colWidth + 0.5, yPos + 2.8);
-        }
+        // AO Signature
+        doc.line(margin + 1, yPos, margin + 1 + sigWidth - 1, yPos);
+        doc.text('AO SIGNATURE', margin + 2, yPos + 1.5);
 
-        yPos += rh;
-      }
+        // Date
+        doc.line(margin + 1 + sigWidth + 0.5, yPos, margin + 1 + sigWidth + sigWidth - 0.5, yPos);
+        doc.text('DATE', margin + 1 + sigWidth + 2, yPos + 1.5);
 
-      // Signature boxes - push to bottom of ticket
-      yPos = yStart + ticketHeight - 5;
-      doc.setFont('Calibri', 'bold');
-      doc.setFontSize(8);
-
-      doc.line(leftX, yPos, leftX + colWidth, yPos);
-      doc.text('AO SIGNATURE', leftX + 0.7, yPos + 1.8);
-
-      doc.line(rightX + colWidth * 1.75, yPos, rightX + colWidth * 3, yPos);
-      doc.text('PRINCIPAL SIGNATURE', rightX + colWidth * 1.75 + 0.4, yPos + 1.8);
+        // Principal Signature
+        doc.line(margin + 1 + sigWidth * 2 + 1, yPos, margin + 1 + sigWidth * 3, yPos);
+        doc.text('PRINCIPAL SIGNATURE', margin + 1 + sigWidth * 2 + 1.5, yPos + 1.5);
     });
 
     return doc.output('arraybuffer');
-  };
+};
 
 Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const payload = await req.json();
-    const { hallTicketIds, staffSession } = payload;
-
-    // Parse staff session - if provided use it, otherwise skip auth check
-    let user = null;
-    if (staffSession) {
-      try {
-        user = typeof staffSession === 'string' ? JSON.parse(staffSession) : staffSession;
-      } catch (e) {
-        console.error('Failed to parse staff session:', e.message);
-      }
-    }
-
-    // If no staff session, try base44 auth but don't fail
-    if (!user) {
-      try {
-        user = await base44.auth.me();
-      } catch (e) {
-        console.error('Base44 auth failed:', e.message);
-        // Continue without user - just generate the PDF
-      }
-    }
-
-    if (!hallTicketIds || hallTicketIds.length === 0) {
-      return Response.json({ error: 'No hall tickets selected' }, { status: 400 });
-    }
-
-    // Fetch hall tickets with error handling
-    const hallTickets = [];
-    for (const id of hallTicketIds) {
-      const ticket = await base44.asServiceRole.entities.HallTicket.get(id);
-      if (ticket) hallTickets.push(ticket);
-    }
-
-    if (hallTickets.length === 0) {
-      return Response.json({ error: 'No hall tickets found' }, { status: 404 });
-    }
-
-    // Fetch school profile, exam type, and timetable
-    const [schoolProfiles, examTypeData, timetableList] = await Promise.all([
-      base44.asServiceRole.entities.SchoolProfile.list(),
-      base44.asServiceRole.entities.ExamType.get(hallTickets[0].exam_type),
-      base44.asServiceRole.entities.ExamTimetable.filter({
-        exam_type: hallTickets[0].exam_type,
-        academic_year: hallTickets[0].academic_year
-      })
-    ]);
-    const schoolProfile = schoolProfiles[0];
-
-    // Generate PDF
-    const pdfBuffer = await generatePDF(hallTickets, schoolProfile, timetableList, examTypeData);
-
-    // Log download
     try {
-      await base44.asServiceRole.entities.HallTicketLog.create({
-        action: 'downloaded',
-        hall_ticket_id: hallTicketIds[0],
-        student_id: 'multiple',
-        performed_by: user?.email || 'system',
-        details: `Downloaded PDF for ${hallTickets.length} hall tickets`
-      });
-    } catch (e) {
-      console.error('Failed to log download:', e.message);
-    }
+        const base44 = createClientFromRequest(req);
+        const payload = await req.json();
+        const { hallTicketIds, staffSession } = payload;
 
-    return new Response(pdfBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename=hall_tickets.pdf'
-      }
-    });
-  } catch (error) {
-    console.error('[generateHallTicketPDF Error]', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
-  }
+        let user = null;
+        if (staffSession) {
+            try {
+                user = typeof staffSession === 'string' ? JSON.parse(staffSession) : staffSession;
+            } catch (e) {
+                console.error('Failed to parse staff session:', e.message);
+            }
+        }
+
+        if (!user) {
+            try {
+                user = await base44.auth.me();
+            } catch (e) {
+                console.error('Base44 auth failed:', e.message);
+            }
+        }
+
+        if (!hallTicketIds || hallTicketIds.length === 0) {
+            return Response.json({ error: 'No hall tickets selected' }, { status: 400 });
+        }
+
+        const hallTickets = [];
+        for (const id of hallTicketIds) {
+            const ticket = await base44.asServiceRole.entities.HallTicket.get(id);
+            if (ticket) hallTickets.push(ticket);
+        }
+
+        if (hallTickets.length === 0) {
+            return Response.json({ error: 'No hall tickets found' }, { status: 404 });
+        }
+
+        const [schoolProfiles, examTypeData, timetableList] = await Promise.all([
+            base44.asServiceRole.entities.SchoolProfile.list(),
+            base44.asServiceRole.entities.ExamType.get(hallTickets[0].exam_type),
+            base44.asServiceRole.entities.ExamTimetable.filter({
+                exam_type: hallTickets[0].exam_type,
+                academic_year: hallTickets[0].academic_year
+            })
+        ]);
+        const schoolProfile = schoolProfiles[0];
+
+        const pdfBuffer = await generatePDF(hallTickets, schoolProfile, timetableList, examTypeData);
+
+        try {
+            await base44.asServiceRole.entities.HallTicketLog.create({
+                action: 'downloaded',
+                hall_ticket_id: hallTicketIds[0],
+                student_id: 'multiple',
+                performed_by: user?.email || 'system',
+                details: `Downloaded PDF for ${hallTickets.length} hall tickets`
+            });
+        } catch (e) {
+            console.error('Failed to log download:', e.message);
+        }
+
+        return new Response(pdfBuffer, {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'attachment; filename=hall_tickets.pdf'
+            }
+        });
+    } catch (error) {
+        console.error('[generateHallTicketPDF Error]', error.message);
+        return Response.json({ error: error.message }, { status: 500 });
+    }
 });
