@@ -30,6 +30,7 @@ export default function StudentDashboard() {
   const [marks, setMarks] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [notices, setNotices] = useState([]);
+  const [homework, setHomework] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
