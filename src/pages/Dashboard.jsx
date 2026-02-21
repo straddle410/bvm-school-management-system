@@ -26,6 +26,7 @@ const quickAccess = [
 
 const quickActions = [
   { label: 'Take Attendance', icon: Check, color: '#1e88e5', page: 'Attendance', permission: 'attendance' },
+  { label: 'Attendance Summary', icon: BarChart3, color: '#00796b', page: 'AttendanceSummaryReport', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Post Quiz', icon: Brain, color: '#7e57c2', page: 'Quiz', permission: 'quiz' },
   { label: 'Homework', icon: BookOpen, color: '#f57c00', page: 'HomeworkManage', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
@@ -34,7 +35,6 @@ const quickActions = [
 
 const adminActions = [
   { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
-  { label: 'Attendance Summary', icon: BarChart3, color: '#00796b', page: 'AttendanceSummaryReport' },
   { label: 'Holidays', icon: Palmtree, color: '#f57f17', page: 'HolidayCalendar' },
   { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', action: 'generateHallTicket' },
   { label: 'Progress Card', icon: Award, color: '#f57c00', action: 'generateProgressCard' },
