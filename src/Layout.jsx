@@ -55,6 +55,10 @@ export default function Layout({ children, currentPageName }) {
     return <AcademicYearProvider>{children}</AcademicYearProvider>;
   }
 
+  // If student is logged in but tries to navigate away from allowed pages, redirect to StudentDashboard
+  // (This handles clicking items in bottom nav that students shouldn't access directly)
+  // We allow the student to view allowed pages but keep their session intact
+
   return (
     <AcademicYearProvider>
     <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
