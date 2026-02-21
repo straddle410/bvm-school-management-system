@@ -103,6 +103,27 @@ export default function HallTicketList({ examTypeId, classFilter }) {
     }
   };
 
+  const generateGoogleSheet = async () => {
+    if (selected.length === 0) {
+      toast.error('Please select hall tickets');
+      return;
+    }
+
+    try {
+      toast.loading('Creating Google Sheet...');
+      const res = await base44.functions.invoke('generateGoogleSheet', { hallTicketIds: selected });
+      toast.dismiss();
+
+      if (res.data.sheetUrl) {
+        toast.success('Google Sheet created! Opening...');
+        window.open(res.data.sheetUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Google Sheet error:', error);
+      toast.error('Failed to create Google Sheet');
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
