@@ -130,35 +130,33 @@ export default function Attendance() {
     mutationFn: async () => {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
-      const allPublishedStudents = await base44.entities.Student.filter({ status: 'Published', academic_year: academicYear });
       
+      // Batch by day to avoid rate limiting
       for (const day of days) {
         const dateStr = format(day, 'yyyy-MM-dd');
-        const existing = await base44.entities.Attendance.filter({ date: dateStr, academic_year: academicYear });
-        const existingMap = {};
-        existing.forEach(r => { existingMap[`${r.student_id}_${r.class_name}`] = r; });
-
-        for (const student of allPublishedStudents) {
-          const key = `${student.student_id || student.id}_${student.class_name}`;
-          const existingRecord = existingMap[key];
-          const data = {
+        
+        // Create/update a single holiday marker record instead of per-student
+        const holidayMarker = await base44.entities.Attendance.filter({ 
+          date: dateStr, 
+          is_holiday: true,
+          academic_year: academicYear 
+        });
+        
+        if (holidayMarker.length === 0) {
+          // Create one marker record for the day
+          await base44.entities.Attendance.create({
             date: dateStr,
-            class_name: student.class_name,
-            section: student.section || 'A',
-            student_id: student.student_id || student.id,
-            student_name: student.name,
+            class_name: 'All',
+            section: 'A',
+            student_id: 'HOLIDAY_MARKER',
+            student_name: 'Holiday',
             is_present: false,
             is_holiday: true,
             holiday_reason: rangeReason || 'Holiday',
             marked_by: user?.email,
             academic_year: academicYear,
             status: 'Holiday'
-          };
-          if (existingRecord?.id) {
-            await base44.entities.Attendance.update(existingRecord.id, data);
-          } else {
-            await base44.entities.Attendance.create(data);
-          }
+          });
         }
       }
     },
