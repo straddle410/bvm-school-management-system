@@ -17,16 +17,19 @@ export default function StudentLogin() {
     setLoading(true);
 
     try {
-       // Search by username (case-insensitive)
-       const results = await base44.entities.Student.filter({ username: username.trim().toLowerCase() });
+       // Search by username or student_id
+       const searchTerm = username.trim();
+       const allStudents = await base44.entities.Student.list();
+       const student = allStudents.find(s => 
+         (s.username && s.username.toLowerCase() === searchTerm.toLowerCase()) ||
+         (s.student_id && s.student_id === searchTerm)
+       );
 
-      if (!results || results.length === 0) {
+      if (!student) {
         setError('Invalid username or password');
         setLoading(false);
         return;
       }
-
-      const student = results[0];
       const storedPassword = student.password || 'BVM123';
 
       if (password !== storedPassword) {
