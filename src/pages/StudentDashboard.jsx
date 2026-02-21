@@ -159,6 +159,51 @@ export default function StudentDashboard() {
           </Card>
         </div>
 
+        {/* Homework / Assignments */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-orange-500" /> Homework & Assignments
+            </h3>
+            {loading ? (
+              <div className="text-center py-4 text-gray-400 text-sm">Loading...</div>
+            ) : homework.length === 0 ? (
+              <div className="text-center py-4 text-gray-400 text-sm">No homework assigned yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {homework.map((hw) => {
+                  const isOverdue = hw.due_date && new Date(hw.due_date) < new Date();
+                  return (
+                    <div key={hw.id} className="p-3 bg-orange-50 rounded-xl border border-orange-100">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-800 text-sm">{hw.title}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{hw.subject} {hw.assigned_by ? `• ${hw.assigned_by}` : ''}</p>
+                          {hw.description && <p className="text-xs text-slate-600 mt-1 line-clamp-2">{hw.description}</p>}
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <Badge className={`text-[10px] ${isOverdue ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'} border-0`}>
+                            {isOverdue ? 'Overdue' : 'Pending'}
+                          </Badge>
+                          {hw.due_date && (
+                            <span className="text-[10px] text-slate-500">Due: {format(new Date(hw.due_date), 'dd MMM')}</span>
+                          )}
+                        </div>
+                      </div>
+                      {hw.attachment_url && (
+                        <a href={hw.attachment_url} target="_blank" rel="noopener noreferrer"
+                          className="mt-2 flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                          <FileText className="h-3 w-3" /> View Attachment
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Attendance Summary */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
