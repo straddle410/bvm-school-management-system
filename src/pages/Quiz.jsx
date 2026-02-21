@@ -28,8 +28,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import StudentBottomNav from '@/components/StudentBottomNav';
 
 const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'General Knowledge'];
