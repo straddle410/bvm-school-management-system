@@ -41,6 +41,10 @@ export default function HallTicketManagement() {
         subtitle={`Academic Year: ${academicYear}`}
       />
 
+      <div className="mt-6 mb-8">
+        <TemplateUploader />
+      </div>
+
       <div className="mt-6">
         <Tabs defaultValue="exam-types" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
