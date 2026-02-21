@@ -78,14 +78,7 @@ export default function Quiz() {
         setSessionLoaded(true);
         return;
       }
-      base44.auth.me().then(async (currentUser) => {
-        setUser(currentUser);
-        try {
-          const staffAccounts = await base44.entities.StaffAccount.filter({ email: currentUser.email });
-          if (staffAccounts.length > 0) setUserPermissions(staffAccounts[0].permissions || {});
-        } catch {}
-      }).catch(() => {}).finally(() => setSessionLoaded(true));
-      // NOTE: No auto-logout here — student_session is checked above and preserved
+      setSessionLoaded(true);
     }, []);
 
    const { data: quizzes = [], isLoading } = useQuery({
