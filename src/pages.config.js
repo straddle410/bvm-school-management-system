@@ -56,6 +56,7 @@ import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
+import HallTicketManagement from './pages/HallTicketManagement';
 import HolidayCalendar from './pages/HolidayCalendar';
 import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
@@ -72,12 +73,11 @@ import Settings from './pages/Settings';
 import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import HallTicketManagement from './pages/HallTicketManagement';
-import StudentHallTicketView from './pages/StudentHallTicketView';
 import __Layout from './Layout.jsx';
 
 
@@ -91,6 +91,7 @@ export const PAGES = {
     "Calendar": Calendar,
     "Dashboard": Dashboard,
     "Gallery": Gallery,
+    "HallTicketManagement": HallTicketManagement,
     "HolidayCalendar": HolidayCalendar,
     "HomeworkManage": HomeworkManage,
     "IDCards": IDCards,
@@ -107,12 +108,11 @@ export const PAGES = {
     "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
     "StudentDashboard": StudentDashboard,
+    "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
     "StudentLogin": StudentLogin,
     "Students": Students,
     "Teachers": Teachers,
-    "HallTicketManagement": HallTicketManagement,
-    "StudentHallTicketView": StudentHallTicketView,
 }
 
 export const pagesConfig = {
