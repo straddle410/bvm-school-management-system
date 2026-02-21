@@ -67,6 +67,9 @@ export default function Attendance() {
     enabled: !!selectedClass && !!selectedSection
   });
 
+  // Track if user manually changed holiday toggle
+  const [manuallyChanged, setManuallyChanged] = useState(false);
+
   useEffect(() => {
     if (existingAttendance.length > 0) {
       const data = {};
@@ -74,21 +77,25 @@ export default function Attendance() {
         data[a.student_id] = { is_present: a.is_present, id: a.id, status: a.status };
       });
       setAttendanceData(data);
-      // Check if already marked as holiday
-      const holidayRecord = existingAttendance.find(a => a.is_holiday);
-      if (holidayRecord) {
-        setIsHoliday(true);
-        setHolidayReason(holidayRecord.holiday_reason || '');
-      } else {
-        setIsHoliday(isSunday);
-        setHolidayReason(isSunday ? 'Sunday' : '');
+      // Only update holiday status if user hasn't manually changed it
+      if (!manuallyChanged) {
+        const holidayRecord = existingAttendance.find(a => a.is_holiday);
+        if (holidayRecord) {
+          setIsHoliday(true);
+          setHolidayReason(holidayRecord.holiday_reason || '');
+        } else {
+          setIsHoliday(isSunday);
+          setHolidayReason(isSunday ? 'Sunday' : '');
+        }
       }
     } else {
       setAttendanceData({});
-      setIsHoliday(isSunday);
-      setHolidayReason(isSunday ? 'Sunday' : '');
+      if (!manuallyChanged) {
+        setIsHoliday(isSunday);
+        setHolidayReason(isSunday ? 'Sunday' : '');
+      }
     }
-  }, [existingAttendance, isSunday]);
+  }, [existingAttendance, isSunday, manuallyChanged]);
 
   const filteredStudents = students.filter(s => 
     s.class_name === selectedClass && s.section === selectedSection
