@@ -78,8 +78,9 @@ export default function AttendanceSummaryReport() {
   });
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin';
-  const canAccessClass = isAdmin || staffAccount?.[0]?.classes_assigned?.includes(filters.class);
-  const noPermission = hasGenerated && !isAdmin && !canAccessClass;
+  const isTeacher = user?.role === 'teacher' || user?.role === 'Teacher';
+  const canAccessClass = isAdmin || isTeacher;
+  const noPermission = hasGenerated && !canAccessClass;
 
   // Calculate report data
   const reportData = useMemo(() => {
