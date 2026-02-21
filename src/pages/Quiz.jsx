@@ -229,6 +229,8 @@ export default function Quiz() {
       <PageHeader 
         title="Daily Quiz"
         subtitle="Test your knowledge"
+        showBack={!!studentSession}
+        backUrl={studentSession ? createPageUrl('StudentDashboard') : undefined}
         actions={
           userPermissions.quiz && (
             <Button onClick={() => setShowCreateDialog(true)}>
