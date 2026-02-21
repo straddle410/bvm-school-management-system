@@ -90,8 +90,10 @@ export default function HallTicketList({ examTypeId, classFilter }) {
       if (staffSession) {
         payload.staffSession = staffSession;
       }
-      const res = await base44.functions.invoke('generateHallTicketExcel', payload, { responseType: 'arraybuffer' });
-      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const res = await base44.functions.invoke('generateHallTicketExcel', payload);
+      // Handle the response as raw bytes
+      const bytes = typeof res.data === 'string' ? new TextEncoder().encode(res.data) : new Uint8Array(res.data);
+      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
