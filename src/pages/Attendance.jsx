@@ -302,7 +302,7 @@ export default function Attendance() {
                       className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button
                       size="sm"
                       className="bg-amber-500 hover:bg-amber-600 text-white"
@@ -310,9 +310,17 @@ export default function Attendance() {
                       disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}
                     >
                       <Palmtree className="h-4 w-4 mr-1" />
-                      {saveRangeMutation.isPending ? 'Marking...' : 'Mark Holiday Range'}
+                      {saveRangeMutation.isPending ? `Marking... ${rangeProgress}%` : 'Mark Holiday Range'}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)}>Cancel</Button>
+                    {saveRangeMutation.isPending && (
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-amber-500 h-2 rounded-full transition-all"
+                          style={{ width: `${rangeProgress}%` }}
+                        />
+                      </div>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)} disabled={saveRangeMutation.isPending}>Cancel</Button>
                   </div>
                 </div>
               )}
