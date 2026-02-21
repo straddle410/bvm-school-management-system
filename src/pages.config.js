@@ -74,6 +74,7 @@ import StudentLogin from './pages/StudentLogin';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
 import HolidayCalendar from './pages/HolidayCalendar';
+import AttendanceReports from './pages/AttendanceReports';
 import __Layout from './Layout.jsx';
 
 
@@ -105,6 +106,7 @@ export const PAGES = {
     "Students": Students,
     "Teachers": Teachers,
     "HolidayCalendar": HolidayCalendar,
+    "AttendanceReports": AttendanceReports,
 }
 
 export const pagesConfig = {
