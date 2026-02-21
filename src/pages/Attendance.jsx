@@ -341,7 +341,7 @@ export default function Attendance() {
             </Card>
 
             {/* Action Buttons */}
-            {filteredStudents.length > 0 && (
+            {(filteredStudents.length > 0 || isHoliday) && (
               <div className="flex justify-end">
                 <Button 
                   onClick={() => saveMutation.mutate()}
