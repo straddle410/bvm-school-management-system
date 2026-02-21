@@ -213,6 +213,21 @@ export default function Quiz() {
     );
   };
 
+  if (sessionLoaded && !studentSession && !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-sm p-8 max-w-sm w-full text-center">
+          <Lock className="h-12 w-12 text-[#1a237e] mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Student Login Required</h2>
+          <p className="text-gray-500 text-sm mb-6">Please login as a student to attend the quiz.</p>
+          <Link to={createPageUrl('StudentLogin')}>
+            <Button className="w-full bg-[#1a237e] hover:bg-[#283593]">Go to Student Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
