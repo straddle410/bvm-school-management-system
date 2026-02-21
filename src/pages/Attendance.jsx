@@ -78,12 +78,11 @@ export default function Attendance() {
 
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', selectedDate, academicYear],
-    queryFn: () => base44.entities.Holiday.filter({
-      date: selectedDate,
-      academic_year: academicYear,
-      status: 'Active'
-    }),
-    enabled: !!selectedDate && !!academicYear
+    queryFn: async () => {
+      const allHolidays = await base44.entities.Holiday.filter({ status: 'Active' });
+      return allHolidays.filter(h => h.date === selectedDate);
+    },
+    enabled: !!selectedDate
   });
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || user?.role === 'admin';
@@ -94,27 +93,22 @@ export default function Attendance() {
   const [manuallyChanged, setManuallyChanged] = useState(false);
 
   useEffect(() => {
+    const detectedHoliday = isSunday || isMarkedHoliday;
+
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
         data[a.student_id] = { is_present: a.is_present, id: a.id, status: a.status };
       });
       setAttendanceData(data);
-      // Only update holiday status if user hasn't manually changed it
       if (!manuallyChanged) {
-        const holidayRecord = existingAttendance.find(a => a.is_holiday);
-        if (holidayRecord) {
-          setIsHoliday(true);
-          setHolidayReason(holidayRecord.holiday_reason || '');
-        } else {
-          setIsHoliday(isSunday || isMarkedHoliday);
-          setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
-        }
+        setIsHoliday(detectedHoliday);
+        setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     } else {
       setAttendanceData({});
       if (!manuallyChanged) {
-        setIsHoliday(isSunday || isMarkedHoliday);
+        setIsHoliday(detectedHoliday);
         setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     }
