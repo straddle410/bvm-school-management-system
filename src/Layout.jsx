@@ -23,8 +23,14 @@ const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Q
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
+  const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
+    // Check student session first
+    try {
+      const ss = localStorage.getItem('student_session');
+      if (ss) setStudentSession(JSON.parse(ss));
+    } catch {}
     loadData();
   }, []);
 
