@@ -43,6 +43,7 @@ export default function Attendance() {
   const [rangeEnd, setRangeEnd] = useState('');
   const [rangeReason, setRangeReason] = useState('');
   const [rangeProgress, setRangeProgress] = useState(0);
+  const [hasHolidayOverride, setHasHolidayOverride] = useState(false);
 
   const queryClient = useQueryClient();
 
