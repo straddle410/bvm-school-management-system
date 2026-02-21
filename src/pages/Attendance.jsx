@@ -36,7 +36,11 @@ export default function Attendance() {
   const [attendanceData, setAttendanceData] = useState({});
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayReason, setHolidayReason] = useState('');
-  
+  const [showRangeMode, setShowRangeMode] = useState(false);
+  const [rangeStart, setRangeStart] = useState('');
+  const [rangeEnd, setRangeEnd] = useState('');
+  const [rangeReason, setRangeReason] = useState('');
+
   const queryClient = useQueryClient();
 
   // Auto-detect Sunday
