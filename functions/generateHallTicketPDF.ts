@@ -85,14 +85,14 @@ const generatePDF = async (hallTickets, schoolProfile, timetable, examType) => {
     currentY += nameRowHeight;
     doc.line(margin, currentY, margin + contentWidth, currentY);
 
+    // Table rows - up to 6 subjects (3 on left, 3 on right)
+    const maxRows = 3;
+
     // Vertical lines for table
     doc.line(col2X, currentY - nameRowHeight, col2X, currentY + maxRows * nameRowHeight);
     doc.line(col3X, currentY - nameRowHeight, col3X, currentY + maxRows * nameRowHeight);
     doc.line(col4X, currentY - nameRowHeight, col4X, currentY + maxRows * nameRowHeight);
     doc.line(col5X, currentY - nameRowHeight, col5X, currentY + maxRows * nameRowHeight);
-
-    // Table rows - up to 6 subjects (3 on left, 3 on right)
-    const maxRows = 3;
     
     for (let i = 0; i < maxRows; i++) {
       const leftSubject = timetable[i * 2];
