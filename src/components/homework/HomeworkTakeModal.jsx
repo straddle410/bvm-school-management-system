@@ -219,26 +219,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
 
         </div>
 
-        {/* Submit button - always visible at bottom */}
-        <div className="bg-white border-t border-gray-200 px-4 py-4 flex-shrink-0">
-          {!isSubmitted ? (
-            <button
-              onClick={() => submitMutation.mutate()}
-              disabled={submitMutation.isPending}
-              className="w-full bg-[#1a237e] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[#283593] transition-colors"
-            >
-              {submitMutation.isPending ? (
-                <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <><Send className="h-4 w-4" /> Submit Homework</>
-              )}
-            </button>
-          ) : (
-            <button onClick={onClose} className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold">
-              Close
-            </button>
-          )}
-        </div>
+
       </div>
     </div>
   );
