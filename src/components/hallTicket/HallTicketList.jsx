@@ -36,6 +36,19 @@ export default function HallTicketList({ examTypeId, classFilter }) {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (ticketIds) => {
+      for (const id of ticketIds) {
+        await base44.entities.HallTicket.delete(id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hallTickets'] });
+      setSelected([]);
+      toast.success('Hall tickets deleted');
+    }
+  });
+
   const downloadPDF = async () => {
     if (selected.length === 0) {
       toast.error('Please select hall tickets');
@@ -74,6 +87,13 @@ export default function HallTicketList({ examTypeId, classFilter }) {
           </Button>
           <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0} className="gap-2 bg-green-600">
             <Lock className="w-4 h-4" /> Approve & Lock
+          </Button>
+          <Button onClick={() => {
+            if (confirm('Delete selected hall tickets? This cannot be undone.')) {
+              deleteMutation.mutate(selected);
+            }
+          }} disabled={selected.length === 0} className="gap-2 bg-red-600 hover:bg-red-700">
+            Delete
           </Button>
         </div>
       </CardHeader>
