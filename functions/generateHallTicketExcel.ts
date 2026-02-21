@@ -197,13 +197,9 @@ Deno.serve(async (req) => {
             console.error('Failed to log download:', e.message);
         }
 
-        return new Response(excelBuffer, {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition': 'attachment; filename=hall_tickets.xlsx'
-            }
-        });
+        // Convert buffer to base64 string for JSON response
+        const base64String = Buffer.from(excelBuffer).toString('base64');
+        return Response.json({ success: true, file: base64String });
     } catch (error) {
         console.error('[generateHallTicketExcel Error]', error.message);
         return Response.json({ error: error.message }, { status: 500 });
