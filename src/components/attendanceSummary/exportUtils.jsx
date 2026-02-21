@@ -82,49 +82,56 @@ export const exportToExcel = async (data, filename, fromDate, toDate) => {
 };
 
 export const exportToPDF = async (data, filename, fromDate, toDate) => {
-  const doc = new jsPDF('l', 'mm', 'a4'); // landscape, A4
+  const doc = new jsPDF('l', 'mm', 'a4');
   
   const pageHeight = doc.internal.pageSize.getHeight();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let yPos = 10;
+  let yPos = 12;
 
   // Title
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text('Attendance Summary Report', 10, yPos);
+  doc.text('Attendance Summary Report', 14, yPos);
   yPos += 8;
   
   // Info
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
-  doc.text(`Period: ${format(new Date(fromDate), 'dd MMM yyyy')} to ${format(new Date(toDate), 'dd MMM yyyy')}`, 10, yPos);
+  doc.text(`Period: ${format(new Date(fromDate), 'dd MMM yyyy')} to ${format(new Date(toDate), 'dd MMM yyyy')}`, 14, yPos);
   yPos += 6;
-  doc.text(`Total Students: ${data.length}`, 10, yPos);
-  yPos += 8;
+  doc.text(`Total Students: ${data.length}`, 14, yPos);
+  yPos += 10;
 
-  // Table headers
-  const colWidths = [35, 15, 15, 18, 15, 15, 15, 18];
+  // Table setup
   const columns = ['Student Name', 'Roll No', 'Class', 'Working Days', 'Holidays', 'Present', 'Absent', 'Attendance %'];
-  const startX = 8;
-  
-  // Draw header
+  const colWidths = [28, 12, 12, 16, 14, 12, 12, 16];
+  const startX = 14;
+  const headerHeight = 6;
+  const rowHeight = 5;
+
+  // Draw header row
   doc.setFillColor(30, 64, 175);
   doc.setTextColor(255, 255, 255);
   doc.setFont(undefined, 'bold');
-  doc.setFontSize(9);
-  
-  let xPos = startX;
-  columns.forEach((col, idx) => {
-    doc.text(col, xPos + colWidths[idx] / 2, yPos, { align: 'center', maxWidth: colWidths[idx] - 2 });
-    xPos += colWidths[idx];
-  });
-  yPos += 7;
+  doc.setFontSize(8);
 
-  // Draw rows
-  doc.setTextColor(0, 0, 0);
-  doc.setFont(undefined, 'normal');
+  let xPos = startX;
+  for (let i = 0; i < columns.length; i++) {
+    doc.rect(xPos, yPos, colWidths[i], headerHeight, 'F');
+    doc.text(columns[i], xPos + colWidths[i] / 2, yPos + 3.5, { align: 'center' });
+    xPos += colWidths[i];
+  }
+  yPos += headerHeight;
+
+  // Draw data rows
+  doc.setFontSize(7);
   
   data.forEach((student) => {
+    // Check for new page
+    if (yPos > pageHeight - 12) {
+      doc.addPage();
+      yPos = 12;
+    }
+
     const rowData = [
       student.name,
       String(student.rollNo),
@@ -136,34 +143,27 @@ export const exportToPDF = async (data, filename, fromDate, toDate) => {
       `${student.attendancePercent}%`
     ];
 
-    // Check if we need a new page
-    if (yPos > pageHeight - 15) {
-      doc.addPage();
-      yPos = 10;
+    // Set row background
+    const isLowAttendance = student.attendancePercent < 75;
+    if (isLowAttendance) {
+      doc.setFillColor(239, 83, 80);
+      doc.rect(startX, yPos, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+      doc.setTextColor(255, 255, 255);
+    } else {
+      doc.setFillColor(240, 240, 240);
+      doc.rect(startX, yPos, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+      doc.setTextColor(0, 0, 0);
     }
 
-    // Highlight low attendance row
-    if (student.attendancePercent < 75) {
-      doc.setFillColor(239, 83, 80);
-    } else {
-      doc.setFillColor(245, 245, 245);
+    // Draw cells
+    xPos = startX;
+    for (let i = 0; i < rowData.length; i++) {
+      doc.text(rowData[i], xPos + colWidths[i] / 2, yPos + 3.5, { align: 'center', maxWidth: colWidths[i] - 1 });
+      doc.rect(xPos, yPos, colWidths[i], rowHeight);
+      xPos += colWidths[i];
     }
     
-    xPos = startX;
-    rowData.forEach((cell, idx) => {
-      const cellX = xPos + colWidths[idx] / 2;
-      if (student.attendancePercent < 75 && idx === 7) {
-        doc.setTextColor(255, 255, 255);
-        doc.setFont(undefined, 'bold');
-      } else {
-        doc.setTextColor(0, 0, 0);
-        doc.setFont(undefined, 'normal');
-      }
-      doc.text(cell, cellX, yPos, { align: 'center', maxWidth: colWidths[idx] - 2 });
-      xPos += colWidths[idx];
-    });
-    
-    yPos += 6;
+    yPos += rowHeight;
   });
 
   doc.save(filename);
