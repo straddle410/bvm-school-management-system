@@ -195,8 +195,8 @@ export default function Attendance() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['attendance']);
-      queryClient.invalidateQueries(['attendance-holidays']);
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
       toast.success(`Holiday marked from ${rangeStart} to ${rangeEnd}`);
       setShowRangeMode(false);
       setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeProgress(0);
