@@ -47,16 +47,19 @@ export default function Results() {
   const [allMarks, setAllMarks] = useState([]);
 
   useEffect(() => {
-    const session = localStorage.getItem('student_session');
-    if (session) {
+    const studentSess = localStorage.getItem('student_session');
+    const staffSess = localStorage.getItem('staff_session');
+    if (studentSess) {
       try {
-        const parsed = JSON.parse(session);
+        const parsed = JSON.parse(studentSess);
         setStudentSession(parsed);
-        // Pre-fill from student session
         setFilterClass(parsed.class_name || '');
         setFilterSection(parsed.section || '');
         setSelectedStudentId(parsed.student_id || '');
       } catch {}
+    } else if (staffSess) {
+      // Staff/admin also allowed — treat as authorized
+      setStudentSession({ isStaff: true });
     }
     setSessionLoaded(true);
   }, []);
