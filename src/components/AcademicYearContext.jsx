@@ -54,7 +54,8 @@ export function AcademicYearProvider({ children }) {
     checkAdmin();
 
     // Load academic years and set the current one
-    base44.entities.AcademicYear.list('-start_date').then(years => {
+    const loadYears = async () => {
+      const years = await base44.entities.AcademicYear.list('-start_date');
       setAcademicYears(years);
       // Check if currently selected year exists in the list
       const saved = localStorage.getItem('selected_academic_year');
@@ -69,7 +70,16 @@ export function AcademicYearProvider({ children }) {
           localStorage.setItem('selected_academic_year', currentYear.year);
         }
       }
-    }).catch(() => {});
+    };
+    
+    loadYears().catch(() => {});
+
+    // Subscribe to AcademicYear changes - react when admin changes current year
+    const unsubscribe = base44.entities.AcademicYear.subscribe((event) => {
+      loadYears().catch(() => {});
+    });
+
+    return unsubscribe;
   }, []);
 
   const setAcademicYear = (year) => {
