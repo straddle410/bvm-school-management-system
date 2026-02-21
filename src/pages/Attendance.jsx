@@ -6,6 +6,8 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
+import HolidayStatusDisplay from '@/components/HolidayStatusDisplay';
+import HolidayOverrideToggle from '@/components/HolidayOverrideToggle';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
