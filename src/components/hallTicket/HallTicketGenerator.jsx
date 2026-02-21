@@ -21,10 +21,9 @@ export default function HallTicketGenerator() {
   const generateMutation = useMutation({
     mutationFn: async (data) => {
       const staffSession = localStorage.getItem('staff_session');
-      const res = await base44.functions.invoke('generateHallTickets', data, {
-        headers: {
-          'x-staff-session': staffSession || ''
-        }
+      const res = await base44.functions.invoke('generateHallTickets', {
+        ...data,
+        staffSession
       });
       return res.data;
     },

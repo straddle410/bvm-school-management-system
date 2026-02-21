@@ -1,7 +1,8 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
-
     const { examTypeId, classname, section, academicYear, assignmentType, staffSession } = payload;
 
     if (!examTypeId || !classname || !academicYear) {
@@ -22,20 +23,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Only admins can generate hall tickets' }, { status: 403 });
     }
 
-    // Use service role to access student data
-    const base44 = { asServiceRole: { entities: { Student: { filter: async (q) => {
-      // Mock implementation for now - in production this would use base44 SDK
-      return [];
-    }}} }};
+    // Create SDK with service role to bypass auth
+    const base44 = createClientFromRequest(req);
 
     // Fetch students
     const query = { class_name: classname, academic_year: academicYear, status: 'Published' };
     if (section) query.section = section;
     
-    const students = [];
+    const students = await base44.asServiceRole.entities.Student.filter(query, '-roll_no');
 
     if (students.length === 0) {
-      return Response.json({ error: 'No students found' }, { status: 404 });
+      return Response.json({ error: 'No students found', count: 0 }, { status: 200 });
     }
 
     // Generate hall ticket numbers
@@ -72,10 +70,10 @@ Deno.serve(async (req) => {
     });
 
     // Bulk create hall tickets
-    await base44.entities.HallTicket.bulkCreate(hallTickets);
+    await base44.asServiceRole.entities.HallTicket.bulkCreate(hallTickets);
 
     // Log the action
-    await base44.entities.HallTicketLog.create({
+    await base44.asServiceRole.entities.HallTicketLog.create({
       action: 'generated',
       hall_ticket_id: 'bulk',
       student_id: 'multiple',
@@ -89,6 +87,7 @@ Deno.serve(async (req) => {
       message: `Generated ${hallTickets.length} hall tickets successfully`
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Error:', error);
+    return Response.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 });
