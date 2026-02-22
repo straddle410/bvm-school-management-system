@@ -35,22 +35,46 @@ export default function TimetableManager() {
     queryFn: () => base44.entities.ExamTimetable.filter({ academic_year: academicYear }, 'exam_date')
   });
 
-  // Filter subjects by selected class
-  const filteredSubjects = formData.class_name
-    ? subjects.filter(s => !s.classes || s.classes.length === 0 || s.classes.includes(formData.class_name))
+  // Filter subjects by selected classes (show union of subjects for all selected classes)
+  const filteredSubjects = formData.selected_classes.length > 0
+    ? subjects.filter(s => !s.classes || s.classes.length === 0 || s.classes.some(c => formData.selected_classes.includes(c)))
     : subjects;
 
+  const toggleClass = (cls) => {
+    setFormData(prev => {
+      const already = prev.selected_classes.includes(cls);
+      return {
+        ...prev,
+        selected_classes: already ? prev.selected_classes.filter(c => c !== cls) : [...prev.selected_classes, cls],
+        subject_name: ''
+      };
+    });
+  };
+
   const createMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       const date = parse(data.exam_date, 'yyyy-MM-dd', new Date());
       const day = DAYS[date.getDay()];
-      return base44.entities.ExamTimetable.create({ ...data, day, academic_year: academicYear });
+      // Create one entry per selected class
+      await Promise.all(data.selected_classes.map(cls =>
+        base44.entities.ExamTimetable.create({
+          exam_type: data.exam_type,
+          class_name: cls,
+          subject_name: data.subject_name,
+          exam_date: data.exam_date,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          room_number: data.room_number,
+          day,
+          academic_year: academicYear
+        })
+      ));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
       setShowForm(false);
-      setFormData({ exam_type: '', class_name: '', subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
-      toast.success('Timetable entry added');
+      setFormData({ exam_type: '', selected_classes: [], subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
+      toast.success('Timetable entries added');
     }
   });
 
