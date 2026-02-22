@@ -161,9 +161,9 @@ export default function TimetableManager() {
                 onChange={(e) => setFormData({ ...formData, subject_name: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg"
                 required
-                disabled={!formData.class_name}
+                disabled={formData.selected_classes.length === 0}
               >
-                <option value="">{formData.class_name ? 'Select Subject' : 'Select class first'}</option>
+                <option value="">{formData.selected_classes.length > 0 ? 'Select Subject' : 'Select class first'}</option>
                 {filteredSubjects.map(s => (
                   <option key={s.id} value={s.name}>{s.name}</option>
                 ))}
