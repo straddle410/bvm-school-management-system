@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, Printer, FileText, Calendar, Clock, MapPin } from 'lucide-react';
+import { AlertCircle, Printer, FileText, Calendar, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function StudentHallTicketView() {
   const [studentSession, setStudentSession] = useState(null);
