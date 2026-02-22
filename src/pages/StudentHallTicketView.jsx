@@ -69,6 +69,45 @@ export default function StudentHallTicketView() {
           body * { visibility: hidden; }
           .print-area, .print-area * { visibility: visible; }
           .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+
+          /* Black & white print overrides */
+          .print-area .print-header {
+            background: #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .print-area .print-label {
+            color: #000 !important;
+          }
+          .print-area .print-value {
+            color: #000 !important;
+          }
+          .print-area .print-table th {
+            background: #000 !important;
+            color: #fff !important;
+            border: 1px solid #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .print-area .print-table td {
+            color: #000 !important;
+            border: 1px solid #000 !important;
+          }
+          .print-area .print-table tr {
+            background: #fff !important;
+          }
+          .print-area .print-instructions {
+            border: 1px solid #000 !important;
+            background: #fff !important;
+          }
+          .print-area .print-instructions p,
+          .print-area .print-instructions li {
+            color: #000 !important;
+          }
+          .print-area .print-school-name {
+            letter-spacing: 0.15em !important;
+            text-transform: uppercase !important;
+          }
         }
       `}</style>
     </div>
