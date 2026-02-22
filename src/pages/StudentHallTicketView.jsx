@@ -208,7 +208,7 @@ function HallTicketCard({ ticket, schoolProfile }) {
       </div>
 
       {/* Instructions */}
-      <div className="mx-4 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+      <div className="print-instructions mx-4 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
         <p className="text-xs font-bold text-yellow-800 mb-1">Important Instructions:</p>
         <ul className="text-xs text-yellow-700 space-y-0.5 list-disc list-inside">
           <li>Carry this hall ticket to every exam.</li>
