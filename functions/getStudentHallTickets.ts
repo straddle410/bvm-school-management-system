@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
 
     // Fetch published hall tickets for this student
     const hallTickets = await base44.asServiceRole.entities.HallTicket.filter(
-      { student_id, status: 'Published' },
+      { student_id, status: { $in: ['Published', 'Approved'] } },
       '-created_date'
     );
 
