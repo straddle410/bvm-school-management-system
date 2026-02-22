@@ -36,14 +36,22 @@ export default function StudentHallTicketView() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-[#1a237e] flex items-center gap-2">
-          <FileText className="h-6 w-6" /> My Hall Tickets
-        </h1>
+      <div className="flex items-center justify-between mb-4 print:hidden">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(createPageUrl('StudentDashboard'))}
+            className="flex items-center gap-1 text-[#1a237e] font-medium text-sm"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-xl font-bold text-[#1a237e] flex items-center gap-2">
+            <FileText className="h-6 w-6" /> My Hall Tickets
+          </h1>
+        </div>
         {hallTickets.length > 0 && (
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 bg-[#1a237e] text-white px-3 py-2 rounded-lg text-sm font-medium print:hidden"
+            className="flex items-center gap-2 bg-[#1a237e] text-white px-3 py-2 rounded-lg text-sm font-medium"
           >
             <Printer className="h-4 w-4" /> Print
           </button>
