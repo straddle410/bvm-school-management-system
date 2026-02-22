@@ -171,30 +171,30 @@ function HallTicketCard({ ticket, schoolProfile }) {
         </h3>
         {ticket.timetable && ticket.timetable.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
+            <table className="print-table w-full text-sm border-collapse border border-gray-300">
               <thead>
                 <tr className="bg-[#1a237e] text-white">
-                  <th className="text-left px-3 py-2 text-xs font-semibold rounded-tl-lg">Date</th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold">Day</th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold">Subject</th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold">Time</th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold rounded-tr-lg">Room</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold border border-gray-400">Date</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold border border-gray-400">Day</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold border border-gray-400">Subject</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold border border-gray-400">Time</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold border border-gray-400">Room</th>
                 </tr>
               </thead>
               <tbody>
                 {ticket.timetable.map((entry, idx) => (
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                    <td className="px-3 py-2 font-medium text-slate-700">
+                    <td className="px-3 py-2 font-medium text-slate-700 border border-gray-300">
                       {entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
-                    <td className="px-3 py-2 text-slate-600">
+                    <td className="px-3 py-2 text-slate-700 border border-gray-300">
                       {entry.day || (entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { weekday: 'short' }) : '—')}
                     </td>
-                    <td className="px-3 py-2 font-semibold text-slate-800">{entry.subject_name}</td>
-                    <td className="px-3 py-2 text-slate-600">
+                    <td className="px-3 py-2 font-semibold text-slate-800 border border-gray-300">{entry.subject_name}</td>
+                    <td className="px-3 py-2 text-slate-700 border border-gray-300">
                       {entry.start_time} – {entry.end_time}
                     </td>
-                    <td className="px-3 py-2 text-slate-600">{entry.room_number || '—'}</td>
+                    <td className="px-3 py-2 text-slate-700 border border-gray-300">{entry.room_number || '—'}</td>
                   </tr>
                 ))}
               </tbody>
