@@ -153,9 +153,6 @@ export default function TimetableManager() {
                   <p className="text-xs text-blue-600 mt-1">Selected: {formData.selected_classes.join(', ')}</p>
                 )}
               </div>
-              <div className="hidden">
-              </div>
-
               <select
                 value={formData.subject_name}
                 onChange={(e) => setFormData({ ...formData, subject_name: e.target.value })}
