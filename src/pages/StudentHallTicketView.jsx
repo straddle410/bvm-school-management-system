@@ -86,7 +86,7 @@ function HallTicketCard({ ticket, schoolProfile }) {
         <h2 className="text-lg font-bold">{schoolProfile?.school_name || 'BVM School of Excellence'}</h2>
         {schoolProfile?.address && <p className="text-blue-200 text-xs mt-0.5">{schoolProfile.address}</p>}
         <div className="mt-3 bg-white/20 rounded-lg px-4 py-1 inline-block">
-          <span className="text-sm font-semibold tracking-wide">HALL TICKET – {ticket.exam_type}</span>
+          <span className="text-sm font-semibold tracking-wide">HALL TICKET – {ticket.exam_type_name || ticket.exam_type}</span>
         </div>
       </div>
 
