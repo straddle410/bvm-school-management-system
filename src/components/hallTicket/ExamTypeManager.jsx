@@ -8,7 +8,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
-const EXAM_TYPES = ['SA1', 'SA2', 'SA3', 'Annual Exam', 'FA1', 'FA2', 'FA3', 'FA4'];
+const EXAM_TYPES = [
+  'Summative Assessment 1',
+  'Summative Assessment 2',
+  'Summative Assessment 3',
+  'Annual Exam',
+  'Formative Assessment 1',
+  'Formative Assessment 2',
+  'Formative Assessment 3',
+  'Formative Assessment 4'
+];
 
 export default function ExamTypeManager() {
   const { academicYear } = useAcademicYear();
