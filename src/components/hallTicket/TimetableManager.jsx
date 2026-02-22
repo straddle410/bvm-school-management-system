@@ -172,11 +172,33 @@ export default function TimetableManager() {
             </form>
           )}
 
+          {/* Filters */}
+          <div className="flex gap-2 mb-3">
+            <select
+              value={filterClass}
+              onChange={e => setFilterClass(e.target.value)}
+              className="px-3 py-1.5 border rounded-lg text-sm"
+            >
+              <option value="">All Classes</option>
+              {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+            </select>
+            <select
+              value={filterExamType}
+              onChange={e => setFilterExamType(e.target.value)}
+              className="px-3 py-1.5 border rounded-lg text-sm"
+            >
+              <option value="">All Exam Types</option>
+              {examTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
+            </select>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-100">
+                  <th className="p-2 text-left">Class</th>
                   <th className="p-2 text-left">Subject</th>
+                  <th className="p-2 text-left">Exam Type</th>
                   <th className="p-2 text-left">Date</th>
                   <th className="p-2 text-left">Day</th>
                   <th className="p-2 text-left">Time</th>
@@ -185,10 +207,12 @@ export default function TimetableManager() {
                 </tr>
               </thead>
               <tbody>
-                {timetable.map(entry => (
+                {displayedTimetable.map(entry => (
                   <tr key={entry.id} className="border-b hover:bg-slate-50">
+                    <td className="p-2 font-medium">{entry.class_name}</td>
                     <td className="p-2">{entry.subject_name}</td>
-                    <td className="p-2">{format(parse(entry.exam_date, 'yyyy-MM-dd', new Date()), 'dd MMM yyyy')}</td>
+                    <td className="p-2 text-xs text-slate-500">{getExamTypeName(entry.exam_type)}</td>
+                    <td className="p-2">{entry.exam_date ? format(parse(entry.exam_date, 'yyyy-MM-dd', new Date()), 'dd MMM yyyy') : '-'}</td>
                     <td className="p-2">{entry.day}</td>
                     <td className="p-2">{entry.start_time} - {entry.end_time}</td>
                     <td className="p-2">{entry.room_number || '-'}</td>
@@ -199,6 +223,9 @@ export default function TimetableManager() {
                     </td>
                   </tr>
                 ))}
+                {displayedTimetable.length === 0 && (
+                  <tr><td colSpan={8} className="p-4 text-center text-slate-400">No entries found</td></tr>
+                )}
               </tbody>
             </table>
           </div>
