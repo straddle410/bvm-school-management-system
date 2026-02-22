@@ -10,11 +10,14 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { format, parse } from 'date-fns';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 export default function TimetableManager() {
   const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ exam_type: '', subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
+  const [filterClass, setFilterClass] = useState('');
+  const [filterExamType, setFilterExamType] = useState('');
+  const [formData, setFormData] = useState({ exam_type: '', class_name: '', subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
   const queryClient = useQueryClient();
 
   const { data: examTypes = [] } = useQuery({
@@ -22,25 +25,31 @@ export default function TimetableManager() {
     queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
   });
 
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.list()
+  });
+
   const { data: timetable = [] } = useQuery({
     queryKey: ['timetable', academicYear],
-    queryFn: () => base44.entities.ExamTimetable.filter({ academic_year: academicYear }, '-exam_date')
+    queryFn: () => base44.entities.ExamTimetable.filter({ academic_year: academicYear }, 'exam_date')
   });
+
+  // Filter subjects by selected class
+  const filteredSubjects = formData.class_name
+    ? subjects.filter(s => !s.classes || s.classes.length === 0 || s.classes.includes(formData.class_name))
+    : subjects;
 
   const createMutation = useMutation({
     mutationFn: (data) => {
       const date = parse(data.exam_date, 'yyyy-MM-dd', new Date());
       const day = DAYS[date.getDay()];
-      return base44.entities.ExamTimetable.create({ 
-        ...data, 
-        day, 
-        academic_year: academicYear 
-      });
+      return base44.entities.ExamTimetable.create({ ...data, day, academic_year: academicYear });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
       setShowForm(false);
-      setFormData({ exam_type: '', subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
+      setFormData({ exam_type: '', class_name: '', subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
       toast.success('Timetable entry added');
     }
   });
@@ -55,12 +64,21 @@ export default function TimetableManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.exam_type || !formData.subject_name || !formData.exam_date || !formData.start_time || !formData.end_time) {
+    if (!formData.exam_type || !formData.class_name || !formData.subject_name || !formData.exam_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill all required fields');
       return;
     }
     createMutation.mutate(formData);
   };
+
+  // Filter displayed timetable
+  const displayedTimetable = timetable.filter(entry => {
+    if (filterClass && entry.class_name !== filterClass) return false;
+    if (filterExamType && entry.exam_type !== filterExamType) return false;
+    return true;
+  });
+
+  const getExamTypeName = (id) => examTypes.find(e => e.id === id)?.name || id;
 
   return (
     <div className="space-y-4">
@@ -74,25 +92,42 @@ export default function TimetableManager() {
         <CardContent>
           {showForm && (
             <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
-              <select
-                value={formData.exam_type}
-                onChange={(e) => setFormData({ ...formData, exam_type: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              >
-                <option value="">Select Exam Type</option>
-                {examTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.name}</option>
-                ))}
-              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={formData.exam_type}
+                  onChange={(e) => setFormData({ ...formData, exam_type: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                >
+                  <option value="">Select Exam Type</option>
+                  {examTypes.map(type => (
+                    <option key={type.id} value={type.id}>{type.name}</option>
+                  ))}
+                </select>
 
-              <Input
-                type="text"
-                placeholder="Subject Name"
+                <select
+                  value={formData.class_name}
+                  onChange={(e) => setFormData({ ...formData, class_name: e.target.value, subject_name: '' })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                >
+                  <option value="">Select Class</option>
+                  {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+                </select>
+              </div>
+
+              <select
                 value={formData.subject_name}
                 onChange={(e) => setFormData({ ...formData, subject_name: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
                 required
-              />
+                disabled={!formData.class_name}
+              >
+                <option value="">{formData.class_name ? 'Select Subject' : 'Select class first'}</option>
+                {filteredSubjects.map(s => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
 
               <div className="grid grid-cols-2 gap-2">
                 <Input
