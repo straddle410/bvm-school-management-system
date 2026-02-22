@@ -7,6 +7,7 @@ import { createPageUrl } from '@/utils';
 
 export default function StudentHallTicketView() {
   const [studentSession, setStudentSession] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ss = localStorage.getItem('student_session');
