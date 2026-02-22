@@ -88,8 +88,8 @@ export default function TimetableManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.exam_type || !formData.class_name || !formData.subject_name || !formData.exam_date || !formData.start_time || !formData.end_time) {
-      toast.error('Please fill all required fields');
+    if (!formData.exam_type || formData.selected_classes.length === 0 || !formData.subject_name || !formData.exam_date || !formData.start_time || !formData.end_time) {
+      toast.error('Please fill all required fields and select at least one class');
       return;
     }
     createMutation.mutate(formData);
