@@ -130,35 +130,35 @@ function HallTicketCard({ ticket, schoolProfile }) {
       </div>
 
       {/* Student Info */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-gray-200">
         <div className="flex items-start gap-4">
           {ticket.student_photo_url && (
             <img
               src={ticket.student_photo_url}
               alt="Student"
-              className="h-20 w-16 object-cover rounded-lg border-2 border-gray-200 flex-shrink-0"
+              className="h-20 w-16 object-cover rounded-lg border-2 border-gray-300 flex-shrink-0"
             />
           )}
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm flex-1">
             <div>
-              <p className="text-slate-400 text-xs">Student Name</p>
-              <p className="font-bold text-slate-800">{ticket.student_name}</p>
+              <p className="print-label text-slate-500 text-xs">Student Name</p>
+              <p className="print-value font-bold text-slate-800">{ticket.student_name}</p>
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Hall Ticket No.</p>
-              <p className="font-bold text-blue-700 text-base">{ticket.hall_ticket_number}</p>
+              <p className="print-label text-slate-500 text-xs">Hall Ticket No.</p>
+              <p className="print-value font-bold text-blue-700 text-base">{ticket.hall_ticket_number}</p>
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Class & Section</p>
-              <p className="font-semibold text-slate-700">{ticket.class_name} – {ticket.section}</p>
+              <p className="print-label text-slate-500 text-xs">Class & Section</p>
+              <p className="print-value font-semibold text-slate-700">{ticket.class_name} – {ticket.section}</p>
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Roll Number</p>
-              <p className="font-semibold text-slate-700">{ticket.roll_number || '—'}</p>
+              <p className="print-label text-slate-500 text-xs">Roll Number</p>
+              <p className="print-value font-semibold text-slate-700">{ticket.roll_number || '—'}</p>
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Academic Year</p>
-              <p className="font-semibold text-slate-700">{ticket.academic_year}</p>
+              <p className="print-label text-slate-500 text-xs">Academic Year</p>
+              <p className="print-value font-semibold text-slate-700">{ticket.academic_year}</p>
             </div>
           </div>
         </div>
