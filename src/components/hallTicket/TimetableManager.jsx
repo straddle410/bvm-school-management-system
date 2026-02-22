@@ -17,7 +17,7 @@ export default function TimetableManager() {
   const [showForm, setShowForm] = useState(false);
   const [filterClass, setFilterClass] = useState('');
   const [filterExamType, setFilterExamType] = useState('');
-  const [formData, setFormData] = useState({ exam_type: '', class_name: '', subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
+  const [formData, setFormData] = useState({ exam_type: '', selected_classes: [], subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
   const queryClient = useQueryClient();
 
   const { data: examTypes = [] } = useQuery({
