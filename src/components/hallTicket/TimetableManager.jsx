@@ -129,15 +129,31 @@ export default function TimetableManager() {
                   ))}
                 </select>
 
-                <select
-                  value={formData.class_name}
-                  onChange={(e) => setFormData({ ...formData, class_name: e.target.value, subject_name: '' })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  required
-                >
-                  <option value="">Select Class</option>
-                  {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
-                </select>
+              </div>
+
+              {/* Multi-class selector */}
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">Select Classes <span className="text-red-500">*</span></p>
+                <div className="flex flex-wrap gap-2">
+                  {CLASSES.map(c => {
+                    const selected = formData.selected_classes.includes(c);
+                    return (
+                      <button
+                        type="button"
+                        key={c}
+                        onClick={() => toggleClass(c)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400'}`}
+                      >
+                        {c}
+                      </button>
+                    );
+                  })}
+                </div>
+                {formData.selected_classes.length > 0 && (
+                  <p className="text-xs text-blue-600 mt-1">Selected: {formData.selected_classes.join(', ')}</p>
+                )}
+              </div>
+              <div className="hidden">
               </div>
 
               <select
