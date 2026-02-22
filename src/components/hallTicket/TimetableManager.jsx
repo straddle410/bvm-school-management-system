@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, PlusCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
@@ -12,12 +12,16 @@ import { format, parse } from 'date-fns';
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
+const emptyRow = () => ({ subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
+
 export default function TimetableManager() {
   const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
   const [filterClass, setFilterClass] = useState('');
   const [filterExamType, setFilterExamType] = useState('');
-  const [formData, setFormData] = useState({ exam_type: '', selected_classes: [], subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
+  const [examType, setExamType] = useState('');
+  const [selectedClasses, setSelectedClasses] = useState([]);
+  const [rows, setRows] = useState([emptyRow()]);
   const queryClient = useQueryClient();
 
   const { data: examTypes = [] } = useQuery({
@@ -35,46 +39,55 @@ export default function TimetableManager() {
     queryFn: () => base44.entities.ExamTimetable.filter({ academic_year: academicYear }, 'exam_date')
   });
 
-  // Filter subjects by selected classes (show union of subjects for all selected classes)
-  const filteredSubjects = formData.selected_classes.length > 0
-    ? subjects.filter(s => !s.classes || s.classes.length === 0 || s.classes.some(c => formData.selected_classes.includes(c)))
+  // Filter subjects by selected classes
+  const filteredSubjects = selectedClasses.length > 0
+    ? subjects.filter(s => !s.classes || s.classes.length === 0 || s.classes.some(c => selectedClasses.includes(c)))
     : subjects;
 
   const toggleClass = (cls) => {
-    setFormData(prev => {
-      const already = prev.selected_classes.includes(cls);
-      return {
-        ...prev,
-        selected_classes: already ? prev.selected_classes.filter(c => c !== cls) : [...prev.selected_classes, cls],
-        subject_name: ''
-      };
-    });
+    setSelectedClasses(prev =>
+      prev.includes(cls) ? prev.filter(c => c !== cls) : [...prev, cls]
+    );
+    setRows([emptyRow()]);
   };
 
+  const updateRow = (idx, field, value) => {
+    setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+  };
+
+  const addRow = () => setRows(prev => [...prev, emptyRow()]);
+
+  const removeRow = (idx) => setRows(prev => prev.filter((_, i) => i !== idx));
+
   const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const date = parse(data.exam_date, 'yyyy-MM-dd', new Date());
-      const day = DAYS[date.getDay()];
-      // Create one entry per selected class
-      await Promise.all(data.selected_classes.map(cls =>
-        base44.entities.ExamTimetable.create({
-          exam_type: data.exam_type,
-          class_name: cls,
-          subject_name: data.subject_name,
-          exam_date: data.exam_date,
-          start_time: data.start_time,
-          end_time: data.end_time,
-          room_number: data.room_number,
-          day,
-          academic_year: academicYear
-        })
-      ));
+    mutationFn: async ({ examType, selectedClasses, rows }) => {
+      const entries = [];
+      for (const row of rows) {
+        const date = parse(row.exam_date, 'yyyy-MM-dd', new Date());
+        const day = DAYS[date.getDay()];
+        for (const cls of selectedClasses) {
+          entries.push({
+            exam_type: examType,
+            class_name: cls,
+            subject_name: row.subject_name,
+            exam_date: row.exam_date,
+            start_time: row.start_time,
+            end_time: row.end_time,
+            room_number: row.room_number || '',
+            day,
+            academic_year: academicYear
+          });
+        }
+      }
+      await Promise.all(entries.map(e => base44.entities.ExamTimetable.create(e)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
       setShowForm(false);
-      setFormData({ exam_type: '', selected_classes: [], subject_name: '', exam_date: '', start_time: '', end_time: '', room_number: '' });
-      toast.success('Timetable entries added');
+      setExamType('');
+      setSelectedClasses([]);
+      setRows([emptyRow()]);
+      toast.success('Timetable entries saved');
     }
   });
 
@@ -86,16 +99,19 @@ export default function TimetableManager() {
     }
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.exam_type || formData.selected_classes.length === 0 || !formData.subject_name || !formData.exam_date || !formData.start_time || !formData.end_time) {
-      toast.error('Please fill all required fields and select at least one class');
-      return;
+    if (!examType) { toast.error('Select an exam type'); return; }
+    if (selectedClasses.length === 0) { toast.error('Select at least one class'); return; }
+    for (const row of rows) {
+      if (!row.subject_name || !row.exam_date || !row.start_time || !row.end_time) {
+        toast.error('Fill all required fields in every row');
+        return;
+      }
     }
-    createMutation.mutate(formData);
+    createMutation.mutate({ examType, selectedClasses, rows });
   };
 
-  // Filter displayed timetable
   const displayedTimetable = timetable.filter(entry => {
     if (filterClass && entry.class_name !== filterClass) return false;
     if (filterExamType && entry.exam_type !== filterExamType) return false;
@@ -109,18 +125,20 @@ export default function TimetableManager() {
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <CardTitle>Exam Timetable</CardTitle>
-          <Button onClick={() => setShowForm(!showForm)} className="gap-2">
-            <Plus className="w-4 h-4" /> Add Entry
+          <Button onClick={() => { setShowForm(!showForm); setRows([emptyRow()]); setSelectedClasses([]); setExamType(''); }} className="gap-2">
+            <Plus className="w-4 h-4" /> Add Entries
           </Button>
         </CardHeader>
         <CardContent>
           {showForm && (
-            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-xl border space-y-4">
+              {/* Step 1: Exam Type */}
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-1">Exam Type <span className="text-red-500">*</span></p>
                 <select
-                  value={formData.exam_type}
-                  onChange={(e) => setFormData({ ...formData, exam_type: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  value={examType}
+                  onChange={(e) => setExamType(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
                   required
                 >
                   <option value="">Select Exam Type</option>
@@ -128,82 +146,96 @@ export default function TimetableManager() {
                     <option key={type.id} value={type.id}>{type.name}</option>
                   ))}
                 </select>
-
               </div>
 
-              {/* Multi-class selector */}
+              {/* Step 2: Multi-class selector */}
               <div>
-                <p className="text-xs font-medium text-slate-600 mb-1">Select Classes <span className="text-red-500">*</span></p>
+                <p className="text-xs font-semibold text-slate-600 mb-1">Classes <span className="text-red-500">*</span></p>
                 <div className="flex flex-wrap gap-2">
-                  {CLASSES.map(c => {
-                    const selected = formData.selected_classes.includes(c);
-                    return (
-                      <button
-                        type="button"
-                        key={c}
-                        onClick={() => toggleClass(c)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400'}`}
-                      >
-                        {c}
-                      </button>
-                    );
-                  })}
+                  {CLASSES.map(c => (
+                    <button
+                      type="button"
+                      key={c}
+                      onClick={() => toggleClass(c)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${selectedClasses.includes(c) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400'}`}
+                    >
+                      {c}
+                    </button>
+                  ))}
                 </div>
-                {formData.selected_classes.length > 0 && (
-                  <p className="text-xs text-blue-600 mt-1">Selected: {formData.selected_classes.join(', ')}</p>
-                )}
-              </div>
-              <select
-                value={formData.subject_name}
-                onChange={(e) => setFormData({ ...formData, subject_name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-                disabled={formData.selected_classes.length === 0}
-              >
-                <option value="">{formData.selected_classes.length > 0 ? 'Select Subject' : 'Select class first'}</option>
-                {filteredSubjects.map(s => (
-                  <option key={s.id} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="date"
-                  value={formData.exam_date}
-                  onChange={(e) => setFormData({ ...formData, exam_date: e.target.value })}
-                  required
-                />
-                {formData.exam_date && (
-                  <div className="px-3 py-2 bg-white border rounded-lg text-sm">
-                    {format(parse(formData.exam_date, 'yyyy-MM-dd', new Date()), 'EEEE')}
-                  </div>
+                {selectedClasses.length > 0 && (
+                  <p className="text-xs text-blue-600 mt-1">Selected: {selectedClasses.join(', ')}</p>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="time"
-                  value={formData.start_time}
-                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                  required
-                />
-                <Input
-                  type="time"
-                  value={formData.end_time}
-                  onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                  required
-                />
+              {/* Step 3: Subject rows */}
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-2">Subject Schedule <span className="text-red-500">*</span></p>
+                <div className="space-y-2">
+                  {rows.map((row, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded-lg border">
+                      {/* Subject */}
+                      <div className="col-span-3">
+                        <select
+                          value={row.subject_name}
+                          onChange={(e) => updateRow(idx, 'subject_name', e.target.value)}
+                          className="w-full px-2 py-1.5 border rounded-lg text-sm"
+                          required
+                          disabled={selectedClasses.length === 0}
+                        >
+                          <option value="">{selectedClasses.length > 0 ? 'Subject' : 'Select class first'}</option>
+                          {filteredSubjects.map(s => (
+                            <option key={s.id} value={s.name}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {/* Date */}
+                      <div className="col-span-3">
+                        <Input
+                          type="date"
+                          value={row.exam_date}
+                          onChange={(e) => updateRow(idx, 'exam_date', e.target.value)}
+                          className="text-sm"
+                          required
+                        />
+                      </div>
+                      {/* Day auto-display */}
+                      <div className="col-span-1 text-xs text-slate-500 text-center">
+                        {row.exam_date ? format(parse(row.exam_date, 'yyyy-MM-dd', new Date()), 'EEE') : '—'}
+                      </div>
+                      {/* Start time */}
+                      <div className="col-span-2">
+                        <Input type="time" value={row.start_time} onChange={(e) => updateRow(idx, 'start_time', e.target.value)} className="text-sm" required />
+                      </div>
+                      {/* End time */}
+                      <div className="col-span-2">
+                        <Input type="time" value={row.end_time} onChange={(e) => updateRow(idx, 'end_time', e.target.value)} className="text-sm" required />
+                      </div>
+                      {/* Remove */}
+                      <div className="col-span-1 flex justify-end">
+                        {rows.length > 1 && (
+                          <button type="button" onClick={() => removeRow(idx)} className="text-red-400 hover:text-red-600">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  <PlusCircle className="w-4 h-4" /> Add another subject
+                </button>
               </div>
 
-              <Input
-                type="text"
-                placeholder="Room Number (optional)"
-                value={formData.room_number}
-                onChange={(e) => setFormData({ ...formData, room_number: e.target.value })}
-              />
-
-              <div className="flex gap-2">
-                <Button type="submit" className="bg-blue-600">Add</Button>
+              <div className="flex gap-2 pt-1">
+                <Button type="submit" className="bg-blue-600" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? 'Saving...' : `Save ${rows.length * selectedClasses.length || ''} Entries`}
+                </Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
               </div>
             </form>
@@ -211,19 +243,11 @@ export default function TimetableManager() {
 
           {/* Filters */}
           <div className="flex gap-2 mb-3">
-            <select
-              value={filterClass}
-              onChange={e => setFilterClass(e.target.value)}
-              className="px-3 py-1.5 border rounded-lg text-sm"
-            >
+            <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm">
               <option value="">All Classes</option>
               {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
             </select>
-            <select
-              value={filterExamType}
-              onChange={e => setFilterExamType(e.target.value)}
-              className="px-3 py-1.5 border rounded-lg text-sm"
-            >
+            <select value={filterExamType} onChange={e => setFilterExamType(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm">
               <option value="">All Exam Types</option>
               {examTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
             </select>
