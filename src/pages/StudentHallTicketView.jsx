@@ -15,11 +15,11 @@ export default function StudentHallTicketView() {
     queryKey: ['studentHallTickets', studentSession?.student_id],
     queryFn: async () => {
       const response = await base44.functions.invoke('getStudentHallTickets', {
-        student_id: studentSession.student_id
+        student_id: studentSession.id  // Use DB id, which is what HallTicket stores
       });
       return response.data;
     },
-    enabled: !!studentSession?.student_id
+    enabled: !!studentSession?.id
   });
 
   const hallTickets = data?.hallTickets || [];
