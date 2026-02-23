@@ -1,6 +1,5 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function MarksTable({
   students,
@@ -23,75 +22,69 @@ export default function MarksTable({
     return rollA - rollB;
   });
 
+  if (sortedStudents.length === 0) {
+    return (
+      <div className="py-12 text-center text-slate-400 text-sm border rounded-lg">
+        No students found
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-3">
-      {sortedStudents.length === 0 ? (
-        <div className="py-12 text-center text-slate-400 text-sm border rounded-lg">
-          No students found
-        </div>
-      ) : (
-        <>
-          {sortedStudents.map((student) => {
+    <div className="overflow-x-auto border rounded-lg bg-white">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-slate-800 text-white">
+            <th className="border border-slate-200 px-4 py-3 text-left font-semibold text-sm w-12">Roll</th>
+            <th className="border border-slate-200 px-4 py-3 text-left font-semibold text-sm">Student ID</th>
+            <th className="border border-slate-200 px-4 py-3 text-left font-semibold text-sm">Student Name</th>
+            {subjects.map(subject => (
+              <th key={subject} className="border border-slate-200 px-3 py-3 text-center font-semibold text-sm bg-slate-700 whitespace-nowrap">
+                {subject}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sortedStudents.map((student, idx) => {
             const studentId = student.student_id || student.id;
             return (
-              <div key={studentId} className="bg-white border rounded-lg p-4 hover:shadow-md transition">
-                <div className="grid grid-cols-12 gap-3 items-start">
-                  {/* Student Info */}
-                  <div className="col-span-3 flex items-center gap-3">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={student.photo_url} />
-                      <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
-                        {student.name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-slate-900">{student.name}</p>
-                        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                          Roll {student.roll_no}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{student.student_id}</p>
-                    </div>
-                  </div>
+              <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
+                <td className="border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">{student.roll_no || '—'}</td>
+                <td className="border border-slate-200 px-4 py-3 text-sm text-slate-600">{student.student_id}</td>
+                <td className="border border-slate-200 px-4 py-3 text-sm font-medium text-slate-900">{student.name}</td>
+                {subjects.map(subject => {
+                  const marks = marksData[studentId]?.[subject]?.marks_obtained;
+                  const status = getMarkStatus(marks);
 
-                  {/* Marks Inputs */}
-                  <div className="col-span-9 grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(subjects.length, 6)}, minmax(0, 1fr))` }}>
-                    {subjects.map(subject => {
-                      const marks = marksData[studentId]?.[subject]?.marks_obtained;
-                      const status = getMarkStatus(marks);
-                      
-                      return (
-                        <div key={subject} className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-slate-600">{subject}</label>
-                          <div className={`flex items-center justify-center rounded-lg p-1 ${
-                            status === 'pass' ? 'bg-green-50' : status === 'fail' ? 'bg-red-50' : 'bg-slate-50'
-                          }`}>
-                            <Input
-                              type="number"
-                              inputMode="decimal"
-                              min="0"
-                              max={maxMarks}
-                              step="0.5"
-                              value={marks ?? ''}
-                              onChange={(e) => onMarkChange(studentId, subject, e.target.value)}
-                              className={`w-full text-center text-sm font-medium border-0 bg-transparent px-2 py-2 ${
-                                status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
-                              }`}
-                              placeholder="—"
-                            />
-                          </div>
-                          <p className="text-xs text-slate-500 text-center">/{maxMarks}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+                  return (
+                    <td key={subject} className="border border-slate-200 px-3 py-2 text-center">
+                      <div className={`flex items-center justify-center rounded p-1 ${
+                        status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
+                      }`}>
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          max={maxMarks}
+                          step="0.5"
+                          value={marks ?? ''}
+                          onChange={(e) => onMarkChange(studentId, subject, e.target.value)}
+                          className={`w-14 text-center text-sm font-semibold border-0 bg-transparent px-1 py-1 ${
+                            status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                          }`}
+                          placeholder="—"
+                        />
+                        <span className="text-xs text-slate-500 ml-1">/{maxMarks}</span>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
             );
           })}
-        </>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 }
