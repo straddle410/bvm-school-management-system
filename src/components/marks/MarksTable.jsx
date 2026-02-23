@@ -81,7 +81,12 @@ export default function MarksTable({
                            max={maxMarks}
                            step="0.5"
                            value={marks ?? ''}
-                           onChange={(e) => onMarkChange(studentId, subject, e.target.value)}
+                           onChange={(e) => {
+                             const val = e.target.value;
+                             if (val === '' || parseFloat(val) <= maxMarks) {
+                               onMarkChange(studentId, subject, val);
+                             }
+                           }}
                            onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
                            className={`w-10 md:w-14 text-center text-xs md:text-sm font-semibold border-0 bg-transparent px-0.5 md:px-1 py-0.5 md:py-1 ${
                              status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'

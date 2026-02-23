@@ -89,7 +89,12 @@ export default function MobileMarksEntry({
                   max={maxMarks}
                   step="0.5"
                   value={marks ?? ''}
-                  onChange={(e) => onMarkChange(studentId, currentSubject, e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || parseFloat(val) <= maxMarks) {
+                      onMarkChange(studentId, currentSubject, val);
+                    }
+                  }}
                   onKeyDown={(e) => handleKeyDown(e, idx)}
                   className={`w-full text-center text-lg font-semibold border-0 bg-transparent px-2 py-2 ${
                     status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
