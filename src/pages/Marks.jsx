@@ -71,12 +71,15 @@ export default function Marks() {
 
   const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
-    queryFn: () => base44.entities.Marks.filter({
-      class_name: selectedClass,
-      section: selectedSection,
-      exam_type: selectedExam,
-      academic_year: academicYear
-    }),
+    queryFn: () => {
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+      return base44.entities.Marks.filter({
+        class_name: selectedClass,
+        section: selectedSection,
+        exam_type: selectedExamObj?.id || selectedExam,
+        academic_year: academicYear
+      });
+    },
     enabled: !!(selectedClass && selectedSection && selectedExam),
     staleTime: 2 * 60 * 1000
   });
