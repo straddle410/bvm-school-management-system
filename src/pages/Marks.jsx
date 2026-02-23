@@ -295,30 +295,42 @@ export default function Marks() {
 
                 <Card className="border-0 shadow-sm">
                    <CardContent className="p-4">
-                     {/* Desktop Table View */}
-                     <div className="hidden md:block">
-                       <MarksTable
-                         students={filteredStudents}
-                         subjects={subjectList}
-                         marksData={marksData}
-                         onMarkChange={updateMarks}
-                         maxMarks={maxMarks}
-                         passingMarks={passingMarks}
-                       />
-                     </div>
-                     {/* Mobile Subject Tabs View */}
-                     <div className="md:hidden">
-                       <MobileMarksEntry
-                         students={filteredStudents}
-                         subjects={subjectList}
-                         marksData={marksData}
-                         onMarkChange={updateMarks}
-                         maxMarks={maxMarks}
-                         passingMarks={passingMarks}
-                       />
-                     </div>
-                   </CardContent>
-                 </Card>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-semibold">Subject Columns</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2"
+                          onClick={() => setShowAddSubject(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Subject
+                        </Button>
+                      </div>
+                      {/* Desktop Table View */}
+                      <div className="hidden md:block">
+                        <MarksTable
+                          students={filteredStudents}
+                          subjects={subjectList}
+                          marksData={marksData}
+                          onMarkChange={updateMarks}
+                          maxMarks={maxMarks}
+                          passingMarks={passingMarks}
+                        />
+                      </div>
+                      {/* Mobile Subject Tabs View */}
+                      <div className="md:hidden">
+                        <MobileMarksEntry
+                          students={filteredStudents}
+                          subjects={subjectList}
+                          marksData={marksData}
+                          onMarkChange={updateMarks}
+                          maxMarks={maxMarks}
+                          passingMarks={passingMarks}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
 
                 {filteredStudents.length > 0 && (
                   <div className="flex justify-end gap-3">
@@ -361,6 +373,34 @@ export default function Marks() {
             )}
       </div>
 
+      {/* Add Subject Dialog */}
+      <Dialog open={showAddSubject} onOpenChange={setShowAddSubject}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Subject</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="subjectName">Subject Name</Label>
+              <Input
+                id="subjectName"
+                placeholder="e.g., Computer Science"
+                value={newSubjectName}
+                onChange={(e) => setNewSubjectName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addNewSubject()}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowAddSubject(false)}>
+                Cancel
+              </Button>
+              <Button onClick={addNewSubject}>
+                Add Subject
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
     </LoginRequired>
