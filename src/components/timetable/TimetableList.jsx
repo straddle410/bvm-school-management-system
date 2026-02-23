@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Edit2, Trash2, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function TimetableList({ entries, onEdit, onDelete, onView }) {
+export default function TimetableList({ entries, onEdit, onDelete, onView, canEdit = false }) {
   if (!entries || entries.length === 0) {
     return (
       <Card>
@@ -46,32 +46,38 @@ export default function TimetableList({ entries, onEdit, onDelete, onView }) {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => onView(entry)}
-                    title="View"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => onEdit(entry)}
-                    title="Edit"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => onDelete(entry.id)}
-                    title="Delete"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                   {canEdit && (
+                     <>
+                       <Button
+                         size="icon"
+                         variant="outline"
+                         onClick={() => onEdit(entry)}
+                         title="Edit"
+                       >
+                         <Edit2 className="h-4 w-4" />
+                       </Button>
+                       <Button
+                         size="icon"
+                         variant="outline"
+                         onClick={() => onDelete(entry.id)}
+                         title="Delete"
+                         className="text-red-600 hover:text-red-700"
+                       >
+                         <Trash2 className="h-4 w-4" />
+                       </Button>
+                     </>
+                   )}
+                   {!canEdit && (
+                     <Button
+                       size="icon"
+                       variant="outline"
+                       onClick={() => onView(entry)}
+                       title="View"
+                     >
+                       <Eye className="h-4 w-4" />
+                     </Button>
+                   )}
+                 </div>
               </div>
             </div>
           ))}
