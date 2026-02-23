@@ -87,6 +87,10 @@ export default function Diary() {
   if (filters.subject) {
     visibleDiaries = visibleDiaries.filter(d => d.subject === filters.subject);
   }
+  if (selectedDate) {
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    visibleDiaries = visibleDiaries.filter(d => d.diary_date === dateStr);
+  }
 
   const uniqueClasses = [...new Set(visibleDiaries.map(d => d.class_name))].sort();
   const uniqueSubjects = [...new Set(visibleDiaries.map(d => d.subject))].sort();
