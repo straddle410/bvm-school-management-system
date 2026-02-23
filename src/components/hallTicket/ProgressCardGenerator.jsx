@@ -50,13 +50,13 @@ export default function ProgressCardGenerator() {
     queryKey: ['publishedMarkStats', academicYear],
     queryFn: async () => {
       const marks = await base44.entities.Marks.filter({
-        status: 'Published',
         academic_year: academicYear
       });
+      const approvedOrPublished = marks.filter(m => m.status === 'Published' || m.status === 'Approved');
       const stats = {
-        totalMarks: marks.length,
-        students: new Set(marks.map(m => m.student_id)).size,
-        exams: new Set(marks.map(m => m.exam_type)).size
+        totalMarks: approvedOrPublished.length,
+        students: new Set(approvedOrPublished.map(m => m.student_id)).size,
+        exams: new Set(approvedOrPublished.map(m => m.exam_type)).size
       };
       return stats;
     }
@@ -84,7 +84,7 @@ export default function ProgressCardGenerator() {
 
   const handleGenerate = () => {
     if (publishedMarkStats.students === 0) {
-      toast.error('No published marks found. Please publish marks first.');
+      toast.error('No approved or published marks found. Please approve/publish marks first.');
       return;
     }
     if (window.confirm('Generate progress cards for selected criteria?')) {

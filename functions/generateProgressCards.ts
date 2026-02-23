@@ -15,19 +15,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Academic year is required' }, { status: 400 });
     }
 
-    // Fetch published marks with filters
+    // Fetch published or approved marks with filters
     const marksFilter = {
-      status: 'Published',
       academic_year: academicYear
     };
     if (classNameFilter) marksFilter.class_name = classNameFilter;
     if (sectionFilter) marksFilter.section = sectionFilter;
     if (examTypeIdOrName) marksFilter.exam_type = examTypeIdOrName;
 
-    const publishedMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
+    const allMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
+    const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
 
     if (publishedMarks.length === 0) {
-      return Response.json({ message: 'No published marks found', cardsGenerated: 0 });
+      return Response.json({ message: 'No approved or published marks found', cardsGenerated: 0 });
     }
 
     // Group by student and exam type
