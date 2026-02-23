@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText, Book } from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,6 +87,25 @@ export default function StudentDashboard() {
     subjectMap[m.subject].push(m);
   });
 
+  const { data: unreadDiaryCount = 0 } = useQuery({
+    queryKey: ['unread-diary-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      try {
+        const notifications = await base44.entities.Notification.filter({
+          recipient_student_id: student.student_id,
+          type: 'diary_published',
+          is_read: false
+        });
+        return notifications.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 2000
+  });
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Header */}
@@ -111,6 +131,11 @@ export default function StudentDashboard() {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
                     <item.icon className="h-6 w-6" style={{ color: item.color }} />
                   </div>
+                  {item.label === 'Diary' && unreadDiaryCount > 0 && (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                      {unreadDiaryCount}
+                    </span>
+                  )}
                   <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
                 </div>
               </Link>
