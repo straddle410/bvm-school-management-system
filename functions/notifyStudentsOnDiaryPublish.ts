@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     // Create notifications for each student
     const notifications = students.map(student => ({
-      recipient_student_id: student.student_id,
+      recipient_student_id: student.student_id || student.id,
       recipient_name: student.name,
       type: 'diary_published',
       title: `New Class Activity: ${diary.subject}`,
