@@ -12,6 +12,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
   const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [useCustomName, setUseCustomName] = useState(false);
   const [formData, setFormData] = useState({ 
     name: '', 
     description: '', 
@@ -109,17 +110,44 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
         <CardContent>
           {showForm && hasPermission && (
             <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
-              <select
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              >
-                <option value="">Select Exam Type</option>
-                {['Formative Assessment 1', 'Formative Assessment 2', 'Formative Assessment 3', 'Formative Assessment 4', 'Summative Assessment 1', 'Summative Assessment 2', 'Summative Assessment 3', 'Annual Exam', 'Pre Final Exam 1', 'Pre Final Exam 2'].map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
+              {!useCustomName ? (
+                <div>
+                  <select
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  >
+                    <option value="">Select Exam Type</option>
+                    {['Formative Assessment 1', 'Formative Assessment 2', 'Formative Assessment 3', 'Formative Assessment 4', 'Summative Assessment 1', 'Summative Assessment 2', 'Summative Assessment 3', 'Annual Exam', 'Pre Final Exam 1', 'Pre Final Exam 2'].map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => { setUseCustomName(true); setFormData({ ...formData, name: '' }); }}
+                    className="text-sm text-blue-600 mt-2 hover:underline"
+                  >
+                    + Add Custom Exam Type
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <Input
+                    placeholder="Enter custom exam type name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setUseCustomName(false); setFormData({ ...formData, name: '' }); }}
+                    className="text-sm text-blue-600 mt-2 hover:underline"
+                  >
+                    ← Use Predefined Type
+                  </button>
+                </div>
+              )}
 
               <select
                 value={formData.category}
@@ -165,7 +193,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
 
               <div className="flex gap-2">
                 <Button type="submit" className="bg-blue-600">Save</Button>
-                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); setUseCustomName(false); }}>Cancel</Button>
               </div>
             </form>
           )}
