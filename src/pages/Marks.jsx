@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Plus, Save, Send, Settings, FileText
+  BookOpen, Plus, Save, Send, Settings, FileText, Edit2, Trash2, Power
 } from 'lucide-react';
 import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
@@ -47,7 +47,9 @@ export default function Marks() {
   const [marksData, setMarksData] = useState({});
   const [showExamDialog, setShowExamDialog] = useState(false);
   const [examForm, setExamForm] = useState({ name: '', max_marks: 100, passing_marks: 33 });
+  const [editingExam, setEditingExam] = useState(null);
   const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -121,6 +123,34 @@ export default function Marks() {
       setShowExamDialog(false);
       setExamForm({ name: '', max_marks: 100, passing_marks: 33 });
       toast.success('Exam type created');
+    }
+  });
+
+  const updateExamMutation = useMutation({
+    mutationFn: (data) => base44.entities.ExamType.update(data.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['exam-types']);
+      setShowExamDialog(false);
+      setEditingExam(null);
+      setExamForm({ name: '', max_marks: 100, passing_marks: 33 });
+      toast.success('Exam type updated');
+    }
+  });
+
+  const deleteExamMutation = useMutation({
+    mutationFn: (id) => base44.entities.ExamType.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['exam-types']);
+      setDeleteConfirmId(null);
+      toast.success('Exam type deleted');
+    }
+  });
+
+  const toggleExamStatusMutation = useMutation({
+    mutationFn: (exam) => base44.entities.ExamType.update(exam.id, { is_active: !exam.is_active }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['exam-types']);
+      toast.success('Exam status updated');
     }
   });
 
@@ -381,14 +411,49 @@ export default function Marks() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {examTypes.map(exam => (
                       <Card key={exam.id} className="p-4 bg-slate-50 border-0">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold">{exam.name}</h4>
-                            <p className="text-sm text-slate-500 mt-1">
-                              Max: {exam.max_marks} | Pass: {exam.min_marks_to_pass}
-                            </p>
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold">{exam.name}</h4>
+                              <p className="text-sm text-slate-500 mt-1">
+                                Max: {exam.max_marks} | Pass: {exam.min_marks_to_pass}
+                              </p>
+                            </div>
+                            <StatusBadge status={exam.status} />
                           </div>
-                          <StatusBadge status={exam.status} />
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingExam(exam);
+                                setExamForm({ name: exam.name, max_marks: exam.max_marks, passing_marks: exam.min_marks_to_pass });
+                                setShowExamDialog(true);
+                              }}
+                              className="flex-1 gap-1"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={exam.is_active !== false ? 'default' : 'outline'}
+                              onClick={() => toggleExamStatusMutation.mutate(exam)}
+                              disabled={toggleExamStatusMutation.isPending}
+                              className="gap-1"
+                            >
+                              <Power className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleteConfirmId(exam.id)}
+                              disabled={deleteExamMutation.isPending}
+                              className="gap-1"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     ))}
@@ -403,11 +468,15 @@ export default function Marks() {
       <Dialog open={showExamDialog} onOpenChange={setShowExamDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Exam Type</DialogTitle>
+            <DialogTitle>{editingExam ? 'Edit Exam Type' : 'Add Exam Type'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
-            createExamMutation.mutate({...examForm, status: 'Draft'});
+            if (editingExam) {
+              updateExamMutation.mutate({...editingExam, name: examForm.name, max_marks: examForm.max_marks, min_marks_to_pass: examForm.passing_marks});
+            } else {
+              createExamMutation.mutate({...examForm, status: 'Draft'});
+            }
           }} className="space-y-4">
             <div>
               <Label>Exam Name</Label>
@@ -437,14 +506,44 @@ export default function Marks() {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setShowExamDialog(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                setShowExamDialog(false);
+                setEditingExam(null);
+                setExamForm({ name: '', max_marks: 100, passing_marks: 33 });
+              }}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createExamMutation.isPending}>
-                {createExamMutation.isPending ? 'Creating...' : 'Create Exam Type'}
+              <Button type="submit" disabled={createExamMutation.isPending || updateExamMutation.isPending}>
+                {editingExam 
+                  ? (updateExamMutation.isPending ? 'Updating...' : 'Update Exam Type')
+                  : (createExamMutation.isPending ? 'Creating...' : 'Create Exam Type')
+                }
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Exam Type</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-600 py-4">
+            Are you sure you want to delete this exam type? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => deleteConfirmId && deleteExamMutation.mutate(deleteConfirmId)}
+              disabled={deleteExamMutation.isPending}
+            >
+              {deleteExamMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
