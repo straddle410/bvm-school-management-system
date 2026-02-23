@@ -12,8 +12,20 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
   const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '', category: 'Summative' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    description: '', 
+    category: 'Summative',
+    max_marks: 100,
+    min_marks_to_pass: 40
+  });
   const queryClient = useQueryClient();
+
+  const getDefaultMarks = (category) => {
+    return category === 'Formative' 
+      ? { max_marks: 20, min_marks_to_pass: 10 }
+      : { max_marks: 100, min_marks_to_pass: 40 };
+  };
 
   // Check user role if isAdmin not explicitly passed
   const [user, setUser] = useState(null);
@@ -49,7 +61,8 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['examTypes'] });
       setShowForm(false);
-      setFormData({ name: '', description: '', category: 'Summative' });
+      const defaults = getDefaultMarks('Summative');
+      setFormData({ name: '', description: '', category: 'Summative', ...defaults });
       toast.success('Exam type created');
     }
   });
@@ -59,7 +72,8 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['examTypes'] });
       setEditingId(null);
-      setFormData({ name: '', description: '', category: 'Summative' });
+      const defaults = getDefaultMarks('Summative');
+      setFormData({ name: '', description: '', category: 'Summative', ...defaults });
       toast.success('Exam type updated');
     }
   });
@@ -109,7 +123,11 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
 
               <select
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) => {
+                  const category = e.target.value;
+                  const defaults = getDefaultMarks(category);
+                  setFormData({ ...formData, category, ...defaults });
+                }}
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="Summative">Summative (SA)</option>
@@ -121,6 +139,29 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium text-slate-700">Max Marks</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={formData.max_marks}
+                    onChange={(e) => setFormData({ ...formData, max_marks: Number(e.target.value) })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700">Min Marks to Pass</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.min_marks_to_pass}
+                    onChange={(e) => setFormData({ ...formData, min_marks_to_pass: Number(e.target.value) })}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
 
               <div className="flex gap-2">
                 <Button type="submit" className="bg-blue-600">Save</Button>
@@ -138,13 +179,23 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                   <div className="flex-1">
                     <p className="font-semibold">{type.name}</p>
                     <p className="text-sm text-slate-500">{type.category} Assessment</p>
+                    <div className="flex gap-4 mt-2 text-xs text-slate-600">
+                      <span>Max Marks: <span className="font-semibold text-slate-900">{type.max_marks}</span></span>
+                      <span>Pass: <span className="font-semibold text-slate-900">{type.min_marks_to_pass}</span></span>
+                    </div>
                     {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
                   </div>
                   {hasPermission && (
                     <div className="flex gap-2 ml-4">
                       <Button size="icon" variant="ghost" onClick={() => {
                         setEditingId(type.id);
-                        setFormData({ name: type.name, description: type.description, category: type.category });
+                        setFormData({ 
+                          name: type.name, 
+                          description: type.description, 
+                          category: type.category,
+                          max_marks: type.max_marks,
+                          min_marks_to_pass: type.min_marks_to_pass
+                        });
                         setShowForm(true);
                       }}>
                         <Edit2 className="w-4 h-4" />
