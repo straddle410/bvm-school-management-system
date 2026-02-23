@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { Eye, Download, Trash2 } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import ProgressCardModal from './ProgressCardModal';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
@@ -142,77 +143,12 @@ export default function ProgressCardsList() {
         </CardContent>
       </Card>
 
-      {/* Details Modal */}
-      {selectedCard && (
-        <Card className="border-2 border-blue-200 bg-blue-50">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">{selectedCard.student_name} - Progress Card Details</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Class {selectedCard.class_name} | Section {selectedCard.section}</p>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={() => setSelectedCard(null)}
-              className="text-lg"
-            >
-              ×
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Overall Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-sm text-gray-600">Overall Percentage</div>
-                <div className="text-2xl font-bold text-blue-600">{selectedCard.overall_stats?.overall_percentage?.toFixed(2) || 0}%</div>
-              </div>
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-sm text-gray-600">Overall Grade</div>
-                <div className="text-2xl font-bold text-green-600">{selectedCard.overall_stats?.overall_grade || '-'}</div>
-              </div>
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-sm text-gray-600">Overall Rank</div>
-                <div className="text-2xl font-bold text-purple-600">#{selectedCard.overall_stats?.overall_rank || '-'}</div>
-              </div>
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-sm text-gray-600">Total Marks</div>
-                <div className="text-2xl font-bold text-orange-600">
-                  {selectedCard.overall_stats?.total_marks_obtained || 0}/{selectedCard.overall_stats?.total_possible_marks || 0}
-                </div>
-              </div>
-            </div>
-
-            {/* Exam Performance */}
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Exam Performance</h4>
-              <div className="space-y-2">
-                {selectedCard.exam_performance?.map((exam, idx) => (
-                  <div key={idx} className="bg-white p-3 rounded-lg border">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="font-medium text-gray-900">{exam.exam_name}</h5>
-                      <div className="flex gap-3">
-                        <span className="text-sm text-gray-600">{exam.percentage?.toFixed(2) || 0}%</span>
-                        <span className="font-semibold text-green-600">{exam.grade}</span>
-                        <span className="text-sm text-purple-600">Rank #{exam.rank || '-'}</span>
-                      </div>
-                    </div>
-                    {exam.subject_details?.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-gray-600">
-                        {exam.subject_details.map((sub, sidx) => (
-                          <div key={sidx} className="bg-gray-50 p-2 rounded">
-                            <div className="font-medium text-gray-900">{sub.subject}</div>
-                            <div>{sub.marks_obtained}/{sub.max_marks} ({((sub.marks_obtained/sub.max_marks)*100).toFixed(1)}%)</div>
-                            <div className="text-green-600">Grade: {sub.grade}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Modal */}
+      <ProgressCardModal
+        card={selectedCard}
+        isOpen={!!selectedCard}
+        onClose={() => setSelectedCard(null)}
+      />
     </div>
   );
 }
