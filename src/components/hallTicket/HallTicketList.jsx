@@ -28,8 +28,8 @@ export default function HallTicketList() {
   });
 
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['examTypes', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
+   queryKey: ['examTypes', academicYear],
+   queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
   const { data: hallTickets = [] } = useQuery({
