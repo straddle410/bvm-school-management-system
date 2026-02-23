@@ -105,11 +105,12 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .lbl { font-size: 6px; color: #888; line-height: 1; }
     .val { font-size: 8px; font-weight: 700; color: #222; line-height: 1.2; }
     .val.ht { color: #1a237e; font-size: 9px; }
-    .schedule-col { flex: 1; padding: 4px 5px; }
+    .schedule-col { flex: 1; padding: 4px 5px; display: flex; flex-direction: column; }
     .sec-title { font-size: 8px; font-weight: 700; color: #1a237e; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
-    table { border-collapse: collapse; width: 100%; font-size: 7px; }
+    table { border-collapse: collapse; width: 100%; font-size: 7px; flex: 1; }
+    table tbody { display: table-row-group; }
     th { background: #1a237e; color: white; padding: 2px 3px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
-    td { border: 1px solid #ddd; padding: 2px 3px; }
+    td { border: 1px solid #ddd; padding: 0 3px; }
 
     /* FOOTER */
     .footer-row { display: flex; align-items: flex-end; gap: 4px; padding: 3px 6px 4px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
