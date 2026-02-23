@@ -67,6 +67,25 @@ export default function StudentDashboard() {
     window.location.href = createPageUrl('StudentLogin');
   };
 
+  const { data: unreadDiaryCount = 0 } = useQuery({
+    queryKey: ['unread-diary-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      try {
+        const notifications = await base44.entities.Notification.filter({
+          recipient_student_id: student.student_id,
+          type: 'diary_published',
+          is_read: false
+        });
+        return notifications.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 2000
+  });
+
   if (!student) return null;
 
   const studentQuickAccess = [
@@ -85,25 +104,6 @@ export default function StudentDashboard() {
   marks.forEach(m => {
     if (!subjectMap[m.subject]) subjectMap[m.subject] = [];
     subjectMap[m.subject].push(m);
-  });
-
-  const { data: unreadDiaryCount = 0 } = useQuery({
-    queryKey: ['unread-diary-count', student?.student_id],
-    queryFn: async () => {
-      if (!student?.student_id) return 0;
-      try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_student_id: student.student_id,
-          type: 'diary_published',
-          is_read: false
-        });
-        return notifications.length;
-      } catch {
-        return 0;
-      }
-    },
-    enabled: !!student?.student_id,
-    refetchInterval: 2000
   });
 
   return (
