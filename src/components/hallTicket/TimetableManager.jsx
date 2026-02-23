@@ -136,7 +136,7 @@ export default function TimetableManager() {
   const getExamTypeName = (id) => examTypes.find(e => e.id === id)?.name || id;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20 sm:pb-0">
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <CardTitle>Exam Timetable</CardTitle>
