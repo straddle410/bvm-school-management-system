@@ -1,4 +1,4 @@
-// Utility to generate and print hall tickets in bulk (A5, half A4)
+// Utility to generate and print hall tickets in bulk (3 per A4 sheet)
 export function printHallTickets(tickets, timetableMap, schoolProfile, examTypesMap) {
   const win = window.open('', '_blank');
 
