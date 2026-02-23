@@ -59,7 +59,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
         </div>
       </div>
     </div>`;
-  }).join('');
+  });
 
   // Group into pages of 3
   const pages = [];
@@ -68,7 +68,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
   }
   const pagesHTML = pages.map((group, pi) => `
     <div class="page${pi < pages.length - 1 ? ' page-break' : ''}">
-      ${group.join('<div class="divider"></div>')}
+      ${group.join('<div class="gap"></div>')}
     </div>`).join('');
 
   win.document.write(`<!DOCTYPE html><html><head><title>Hall Tickets</title>
