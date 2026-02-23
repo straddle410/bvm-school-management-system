@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { writeFile, utils } from 'xlsx';
 
 export default function MarksImportExport({ 
   students, 
@@ -13,7 +14,7 @@ export default function MarksImportExport({
   const fileInputRef = useRef(null);
   const [isImporting, setIsImporting] = useState(false);
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (students.length === 0) {
       toast.error('No students to export');
       return;
@@ -29,19 +30,28 @@ export default function MarksImportExport({
       )
     ]);
 
-    const csv = [headers, ...rows]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
+    const wsData = [headers, ...rows];
+    const ws = utils.aoa_to_sheet(wsData);
+    
+    // Set column widths evenly
+    const colWidth = 15;
+    ws['!cols'] = Array(headers.length).fill({ wch: colWidth });
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    // Style header row
+    for (let i = 0; i < headers.length; i++) {
+      const cell = ws[utils.encode_col(i) + '1'];
+      if (cell) {
+        cell.s = {
+          font: { bold: true, color: { rgb: 'FFFFFF' } },
+          fill: { fgColor: { rgb: '1F2937' } },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        };
+      }
+    }
+
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Marks');
+    writeFile(wb, `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.xlsx`);
     toast.success('Marks exported successfully');
   };
 
@@ -113,11 +123,11 @@ export default function MarksImportExport({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleExportCSV}
+        onClick={handleExportExcel}
         className="gap-2"
       >
         <Download className="h-4 w-4" />
-        Export CSV
+        Export Excel
       </Button>
       <input
         ref={fileInputRef}
