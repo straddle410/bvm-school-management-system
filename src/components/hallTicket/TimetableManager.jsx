@@ -281,23 +281,26 @@ export default function TimetableManager() {
           )}
 
           {/* Filters */}
-          <div className="flex gap-2 mb-3 items-center">
-            <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm">
-              <option value="">All Classes</option>
-              {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
-            </select>
-            <select value={filterExamType} onChange={e => setFilterExamType(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm">
-              <option value="">All Exam Types</option>
-              {examTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
-            </select>
+          <div className="flex flex-col sm:flex-row gap-2 mb-3 items-start sm:items-center">
+            <div className="flex gap-2 flex-1">
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none">
+                <option value="">All Classes</option>
+                {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+              </select>
+              <select value={filterExamType} onChange={e => setFilterExamType(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none">
+                <option value="">All Exam Types</option>
+                {examTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
+              </select>
+            </div>
             {selectedEntries.length > 0 && (
-              <div className="ml-auto flex gap-2 items-center">
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                 <span className="text-sm text-slate-600">{selectedEntries.length} selected</span>
                 <Button 
                   size="sm" 
                   variant="destructive" 
                   onClick={() => bulkDeleteMutation.mutate()}
                   disabled={bulkDeleteMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
                   Delete Selected
