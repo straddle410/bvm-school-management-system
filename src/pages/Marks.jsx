@@ -221,7 +221,15 @@ export default function Marks() {
     }
   };
 
-  const subjectList = subjects.length > 0 ? subjects.map(s => s.name) : DEFAULT_SUBJECTS;
+  // Get subjects from timetable for this exam/class, fall back to all subjects if no timetable
+  const timetableSubjects = timetableEntries.length > 0 
+    ? [...new Set(timetableEntries.map(t => t.subject_name))]
+    : [];
+  
+  const subjectList = timetableSubjects.length > 0 
+    ? timetableSubjects 
+    : (subjects.length > 0 ? subjects.map(s => s.name) : DEFAULT_SUBJECTS);
+  
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
 
   return (
