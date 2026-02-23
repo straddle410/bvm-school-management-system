@@ -152,6 +152,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
     /* FOOTER */
     .footer-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 6px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ao-sig { align-self: flex-start; }
     .instr { flex: 1; }
     .instr b { font-size: 8px; color: #92400e; display: block; margin-bottom: 2px; }
     .instr ul { padding-left: 12px; }
