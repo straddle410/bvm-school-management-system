@@ -42,6 +42,7 @@ const adminActions = [
   { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', page: 'HallTicketManagement' },
   { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
   { label: 'Progress Card', icon: Award, color: '#f57c00', page: 'ExamManagement', tab: 'progress-cards' },
+  { label: 'Reports', icon: BarChart3, color: '#0288d1', page: 'ReportsManagement' },
 ];
 
 export default function Dashboard() {
