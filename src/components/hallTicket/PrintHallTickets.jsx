@@ -43,22 +43,22 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
               <div class="field-item"><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
             </div>
           </div>
-          <div class="schedule-col" style="position:relative;">
-              <div class="watermark">
-                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" class="watermark-img"/>
-              </div>
+          <div class="schedule-col">
               <div class="sec-title">Exam Schedule</div>
             ${timetable.length > 0 ? `
-            <table style="height:100%; table-layout:fixed;">
-              <thead><tr>
-                <th style="width:22%">Date</th>
-                <th style="width:13%">Day</th>
-                <th style="width:28%">Subject</th>
-                <th style="width:20%">Time</th>
-                <th style="width:17%">Invigilator Sign</th>
-              </tr></thead>
-              <tbody>${rows}</tbody>
-            </table>` : '<p style="color:#999;font-size:9px;padding:3px 0;">Timetable not yet assigned.</p>'}
+            <div style="position:relative; flex:1; display:flex; flex-direction:column;">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:85%; height:85%; object-fit:contain; opacity:0.25; filter:grayscale(100%); z-index:0; pointer-events:none;"/>
+              <table style="width:100%; height:100%; table-layout:fixed; position:relative; z-index:1;">
+                <thead><tr>
+                  <th style="width:22%">Date</th>
+                  <th style="width:13%">Day</th>
+                  <th style="width:28%">Subject</th>
+                  <th style="width:20%">Time</th>
+                  <th style="width:17%">Invigilator Sign</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>` : '<p style="color:#999;font-size:9px;padding:3px 0;">Timetable not yet assigned.</p>'}
           </div>
         </div>
         <div class="footer-row">
