@@ -32,7 +32,7 @@ export default function HallTicketGenerator() {
     onSuccess: (data) => {
       setGenerating(false);
       toast.success(data.message || 'Hall tickets generated successfully');
-      setFilters({ exam_type: '', class: '', section: 'A', assignment_type: 'sequential' });
+      setFilters({ exam_type: '', classes: [], section: 'A', assignment_type: 'sequential' });
     },
     onError: (error) => {
       setGenerating(false);
