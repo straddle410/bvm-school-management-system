@@ -228,11 +228,15 @@ export default function Dashboard() {
                   >
                     <item.icon className="h-6 w-6" style={{ color: item.color }} />
                   </div>
-                  {item.badge && (
+                  {item.label === 'Diary' && unreadDiaryCount > 0 ? (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                      {unreadDiaryCount}
+                    </span>
+                  ) : item.badge ? (
                     <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
                       {item.badge}
                     </span>
-                  )}
+                  ) : null}
                   <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
                 </div>
               </Link>
