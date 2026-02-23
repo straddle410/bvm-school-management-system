@@ -42,16 +42,46 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
             const printContent = document.getElementById('hall-ticket-print-area');
             const win = window.open('', '_blank');
             win.document.write(`<html><head><title>Hall Ticket</title><style>
-              body { font-family: sans-serif; margin: 0; padding: 0; }
-              table { border-collapse: collapse; width: 100%; }
-              th, td { border: 1px solid #ccc; padding: 6px 10px; font-size: 12px; }
-              th { background: #1a237e; color: white; }
-              tr:nth-child(even) { background: #f5f5f5; }
-              .bg-\\[\\#1a237e\\] { background-color: #1a237e !important; color: white !important; }
-            </style></head><body>${printContent.innerHTML}</body></html>`);
+              @page { size: A5 landscape; margin: 6mm; }
+              @media print { body { width: 148mm; } }
+              * { box-sizing: border-box; }
+              body { font-family: Arial, sans-serif; margin: 0; padding: 0; width: 148mm; font-size: 10px; }
+              .bg-header { background-color: #1a237e !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 6px; text-align: center; }
+              .bg-header h2 { font-size: 12px; font-weight: bold; margin: 2px 0; letter-spacing: 0.1em; text-transform: uppercase; }
+              .bg-header p { font-size: 9px; margin: 1px 0; color: #ccd; }
+              .exam-badge { background: rgba(255,255,255,0.2); display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 3px; }
+              .logo { height: 36px; width: 36px; object-fit: contain; border-radius: 3px; display: block; margin: 0 auto 4px; }
+              .student-section { display: flex; gap: 10px; padding: 6px 8px; border-bottom: 1px solid #ddd; }
+              .student-photo { width: 52px; height: 64px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; flex-shrink: 0; }
+              .student-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; flex: 1; }
+              .field-label { font-size: 8px; color: #888; margin-bottom: 1px; }
+              .field-value { font-size: 10px; font-weight: 600; color: #222; }
+              .field-value.ht-no { color: #1a237e; font-size: 12px; }
+              .schedule-section { padding: 5px 8px; }
+              .schedule-title { font-size: 10px; font-weight: 700; color: #333; margin-bottom: 4px; }
+              table { border-collapse: collapse; width: 100%; font-size: 9px; }
+              th { background-color: #1a237e !important; color: white !important; padding: 3px 5px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              td { border: 1px solid #ccc; padding: 3px 5px; }
+              tr:nth-child(even) td { background: #f7f7f7; }
+              .instructions { margin: 4px 8px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 4px; padding: 4px 6px; }
+              .instructions p { font-size: 8px; font-weight: 700; color: #92400e; margin: 0 0 2px 0; }
+              .instructions ul { margin: 0; padding-left: 12px; }
+              .instructions li { font-size: 8px; color: #78350f; line-height: 1.4; }
+              .signatures { display: flex; justify-content: space-between; padding: 6px 16px 4px; }
+              .sig { text-align: center; font-size: 8px; color: #666; }
+              .sig-line { border-top: 1px solid #999; width: 70px; margin: 20px auto 2px; }
+            </style></head><body>
+              <div class="bg-header">
+                ${printContent.querySelector('img') ? `<img src="${printContent.querySelector('img').src}" class="logo" />` : ''}
+                <h2>${printContent.querySelector('h2')?.innerText || ''}</h2>
+                <p>${printContent.querySelectorAll('p')[0]?.innerText || ''}</p>
+                <div class="exam-badge">${printContent.querySelector('.bg-\\[\\#1a237e\\] .inline-block span')?.innerText || 'HALL TICKET'}</div>
+              </div>
+              ${printContent.innerHTML}
+            </body></html>`);
             win.document.close();
             win.focus();
-            setTimeout(() => { win.print(); win.close(); }, 300);
+            setTimeout(() => { win.print(); win.close(); }, 400);
           }} className="gap-1">
             <Printer className="w-4 h-4" /> Print
           </Button>
