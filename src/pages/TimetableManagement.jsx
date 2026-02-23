@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getStaffSession } from '@/components/useStaffSession';
 import PageHeader from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,11 +18,19 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 export default function TimetableManagement() {
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
   
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [filters, setFilters] = useState({ class: '', section: '', teacher: '' });
   const [viewMode, setViewMode] = useState('class'); // 'class' or 'teacher'
+
+  useEffect(() => {
+    setUser(getStaffSession());
+  }, []);
+
+  // Check if user has edit permissions (admin or principal)
+  const canEdit = user && ['admin', 'principal'].includes(user.role);
 
   const { data: timetables = [], isLoading } = useQuery({
     queryKey: ['timetables', academicYear, filters],
@@ -112,14 +121,14 @@ export default function TimetableManagement() {
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Add Entry Button */}
-        {!showForm && (
-          <Button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" /> Add Timetable Entry
-          </Button>
-        )}
+          {!showForm && canEdit && (
+           <Button
+             onClick={() => setShowForm(true)}
+             className="bg-blue-600 hover:bg-blue-700"
+           >
+             <Plus className="h-4 w-4 mr-2" /> Add Timetable Entry
+           </Button>
+         )}
 
         {/* Form */}
         {showForm && (
@@ -213,6 +222,7 @@ export default function TimetableManagement() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onView={handleEdit}
+                canEdit={canEdit}
               />
             </TabsContent>
 
