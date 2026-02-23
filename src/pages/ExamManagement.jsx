@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import PageHeader from '@/components/ui/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,12 @@ import ProgressCardGenerator from '@/components/hallTicket/ProgressCardGenerator
 export default function ExamManagement() {
   const [user, setUser] = useState(null);
   const { academicYear, isAdmin } = useAcademicYear();
+
+  // Get tab from URL query param
+  const tabFromUrl = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') || 'marks-entry';
+  }, []);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -36,7 +42,7 @@ export default function ExamManagement() {
       />
 
       <div className="mt-6">
-        <Tabs defaultValue="marks-entry" className="w-full">
+        <Tabs defaultValue={tabFromUrl} className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 h-auto">
             {canManageExams && <TabsTrigger value="exam-types">Exam Types</TabsTrigger>}
             <TabsTrigger value="marks-entry">Marks Entry</TabsTrigger>
