@@ -19,12 +19,20 @@ const EXAM_TYPES = [
   'Formative Assessment 4'
 ];
 
-export default function ExamTypeManager() {
+export default function ExamTypeManager({ isAdmin = false }) {
   const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', category: 'Summative' });
   const queryClient = useQueryClient();
+
+  // Check user role if isAdmin not explicitly passed
+  const [user, setUser] = useState(null);
+  React.useEffect(() => {
+    base44.auth.me().then(u => setUser(u)).catch(() => {});
+  }, []);
+  
+  const hasPermission = isAdmin || (user && user.role === 'admin');
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
@@ -73,12 +81,19 @@ export default function ExamTypeManager() {
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <CardTitle>Manage Exam Types</CardTitle>
-          <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }} className="gap-2">
-            <Plus className="w-4 h-4" /> Add Type
-          </Button>
+          {hasPermission && (
+            <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }} className="gap-2">
+              <Plus className="w-4 h-4" /> Add Type
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
-          {showForm && (
+          {!hasPermission && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+              <p>Only administrators can create exam types. You can select from existing exam types below.</p>
+            </div>
+          )}
+          {showForm && hasPermission && (
             <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
               <select
                 value={formData.name}
@@ -121,18 +136,20 @@ export default function ExamTypeManager() {
                   <p className="font-semibold">{type.name}</p>
                   <p className="text-sm text-slate-500">{type.category} Assessment</p>
                 </div>
-                <div className="flex gap-2">
-                  <Button size="icon" variant="ghost" onClick={() => {
-                    setEditingId(type.id);
-                    setFormData({ name: type.name, description: type.description, category: type.category });
-                    setShowForm(true);
-                  }}>
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {hasPermission && (
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="ghost" onClick={() => {
+                      setEditingId(type.id);
+                      setFormData({ name: type.name, description: type.description, category: type.category });
+                      setShowForm(true);
+                    }}>
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

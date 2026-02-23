@@ -78,6 +78,7 @@ import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
+import ExamManagement from './pages/ExamManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +114,7 @@ export const PAGES = {
     "StudentLogin": StudentLogin,
     "Students": Students,
     "Teachers": Teachers,
+    "ExamManagement": ExamManagement,
 }
 
 export const pagesConfig = {
