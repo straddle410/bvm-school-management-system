@@ -19,7 +19,6 @@ export default function HallTicketList() {
   const [filterExamType, setFilterExamType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [previewTicket, setPreviewTicket] = useState(null);
-  const [printCount, setPrintCount] = useState('all');
   const [isPrinting, setIsPrinting] = useState(false);
   const queryClient = useQueryClient();
 
