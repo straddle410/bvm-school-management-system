@@ -58,8 +58,8 @@ export default function Marks() {
   });
 
   const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
-    queryKey: ['exam-types'],
-    queryFn: () => base44.entities.ExamType.list(),
+    queryKey: ['exam-types', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear }),
     staleTime: 5 * 60 * 1000
   });
 
