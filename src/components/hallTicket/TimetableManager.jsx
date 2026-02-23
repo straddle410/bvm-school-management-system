@@ -55,7 +55,11 @@ export default function TimetableManager() {
     setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
   };
 
-  const addRow = () => setRows(prev => [...prev, emptyRow()]);
+  const addRow = () => {
+    // Copy start_time and end_time from the first row
+    const firstRow = rows[0] || emptyRow();
+    setRows(prev => [...prev, { ...emptyRow(), start_time: firstRow.start_time, end_time: firstRow.end_time }]);
+  };
 
   const removeRow = (idx) => setRows(prev => prev.filter((_, i) => i !== idx));
 
