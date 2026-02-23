@@ -264,14 +264,11 @@ export default function SubjectManagement() {
                                 <div className="text-sm text-gray-600">{subject.code ? `Code: ${subject.code}` : 'No code'}</div>
                               </div>
                               <div className="flex flex-wrap gap-1">
-                                {subject.classes?.slice(0, 2).map(cls => (
+                                {subject.classes?.map(cls => (
                                   <span key={cls} className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
                                     {cls}
                                   </span>
                                 ))}
-                                {subject.classes?.length > 2 && (
-                                  <span className="text-xs text-gray-500">+{subject.classes.length - 2}</span>
-                                )}
                               </div>
                               <span className={`inline-block px-2 py-1 rounded text-xs ${subject.is_optional ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
                                 {subject.is_optional ? 'Optional' : 'Mandatory'}
