@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
-  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus, FileText, Award, BookOpen, Palmtree, Calendar as CalendarIcon, Clock
+  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus, FileText, Award, BookOpen, Palmtree, Calendar as CalendarIcon, Clock, Book
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -37,6 +37,7 @@ const adminActions = [
   { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
   { label: 'Daily Attendance', icon: Check, color: '#0d47a1', page: 'AttendanceReport' },
   { label: 'Holidays', icon: Palmtree, color: '#f57f17', page: 'HolidayCalendar' },
+  { label: 'Subjects', icon: Book, color: '#7b1fa2', page: 'SubjectManagement' },
   { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', page: 'HallTicketManagement' },
   { label: 'Progress Card', icon: Award, color: '#f57c00', page: 'ExamManagement', tab: 'progress-cards' },
 ];
