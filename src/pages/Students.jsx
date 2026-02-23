@@ -181,6 +181,22 @@ export default function Students() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate duplicate roll number
+    if (formData.roll_no && formData.class_name && formData.section) {
+      const isDuplicate = students.some(s => 
+        s.class_name === formData.class_name && 
+        s.section === formData.section && 
+        s.roll_no === formData.roll_no &&
+        (!editMode || s.id !== selectedStudent.id) // Allow same student in edit mode
+      );
+      
+      if (isDuplicate) {
+        toast.error(`Roll number ${formData.roll_no} already exists for Class ${formData.class_name}-${formData.section}`);
+        return;
+      }
+    }
+    
     if (editMode && selectedStudent) {
       updateMutation.mutate({ id: selectedStudent.id, data: formData });
     } else {
