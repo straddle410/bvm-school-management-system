@@ -86,6 +86,63 @@ export default function StudentDashboard() {
     refetchInterval: 2000
   });
 
+  const { data: unreadQuizCount = 0 } = useQuery({
+    queryKey: ['unread-quiz-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      try {
+        const notifications = await base44.entities.Notification.filter({
+          recipient_student_id: student.student_id,
+          type: 'quiz_posted',
+          is_read: false
+        });
+        return notifications.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 2000
+  });
+
+  const { data: unreadNoticeCount = 0 } = useQuery({
+    queryKey: ['unread-notice-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      try {
+        const notifications = await base44.entities.Notification.filter({
+          recipient_student_id: student.student_id,
+          type: 'notice_posted',
+          is_read: false
+        });
+        return notifications.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 2000
+  });
+
+  const { data: unreadResultsCount = 0 } = useQuery({
+    queryKey: ['unread-results-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      try {
+        const notifications = await base44.entities.Notification.filter({
+          recipient_student_id: student.student_id,
+          type: 'results_posted',
+          is_read: false
+        });
+        return notifications.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 2000
+  });
+
   if (!student) return null;
 
   const studentQuickAccess = [
@@ -125,21 +182,29 @@ export default function StudentDashboard() {
         <div>
           <h2 className="text-base font-bold text-gray-800 mb-3">Quick Access</h2>
           <div className="grid grid-cols-3 gap-3">
-            {studentQuickAccess.map((item) => (
-              <Link key={item.label} to={createPageUrl(item.page)} className="block">
-                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative h-full">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
-                    <item.icon className="h-6 w-6" style={{ color: item.color }} />
+            {studentQuickAccess.map((item) => {
+              let badgeCount = 0;
+              if (item.label === 'Diary') badgeCount = unreadDiaryCount;
+              else if (item.label === 'Quiz') badgeCount = unreadQuizCount;
+              else if (item.label === 'Notices') badgeCount = unreadNoticeCount;
+              else if (item.label === 'Results') badgeCount = unreadResultsCount;
+
+              return (
+                <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                  <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative h-full">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
+                      <item.icon className="h-6 w-6" style={{ color: item.color }} />
+                    </div>
+                    {badgeCount > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        {badgeCount}
+                      </span>
+                    )}
+                    <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
                   </div>
-                  {item.label === 'Diary' && unreadDiaryCount > 0 && (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                      {unreadDiaryCount}
-                    </span>
-                  )}
-                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
