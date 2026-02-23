@@ -39,45 +39,85 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
         <span className="font-semibold text-slate-700">Hall Ticket Preview</span>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={() => {
-            const printContent = document.getElementById('hall-ticket-print-area');
             const win = window.open('', '_blank');
-            win.document.write(`<html><head><title>Hall Ticket</title><style>
-              @page { size: A5 landscape; margin: 6mm; }
-              @media print { body { width: 148mm; } }
-              * { box-sizing: border-box; }
-              body { font-family: Arial, sans-serif; margin: 0; padding: 0; width: 148mm; font-size: 10px; }
-              .bg-header { background-color: #1a237e !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 6px; text-align: center; }
-              .bg-header h2 { font-size: 12px; font-weight: bold; margin: 2px 0; letter-spacing: 0.1em; text-transform: uppercase; }
-              .bg-header p { font-size: 9px; margin: 1px 0; color: #ccd; }
-              .exam-badge { background: rgba(255,255,255,0.2); display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 3px; }
-              .logo { height: 36px; width: 36px; object-fit: contain; border-radius: 3px; display: block; margin: 0 auto 4px; }
-              .student-section { display: flex; gap: 10px; padding: 6px 8px; border-bottom: 1px solid #ddd; }
-              .student-photo { width: 52px; height: 64px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; flex-shrink: 0; }
-              .student-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; flex: 1; }
-              .field-label { font-size: 8px; color: #888; margin-bottom: 1px; }
-              .field-value { font-size: 10px; font-weight: 600; color: #222; }
-              .field-value.ht-no { color: #1a237e; font-size: 12px; }
-              .schedule-section { padding: 5px 8px; }
-              .schedule-title { font-size: 10px; font-weight: 700; color: #333; margin-bottom: 4px; }
+            const schoolName = `${schoolProfile?.school_name || 'School'}`;
+            const schoolAddr = `${schoolProfile?.address || ''}`;
+            const logoUrl = schoolProfile?.logo_url || '';
+            const photoUrl = ticket.student_photo_url || '';
+            const examName = examTypeName;
+            const rows = timetable.map((entry, idx) => `
+              <tr style="background:${idx%2===0?'#f9f9f9':'#fff'}">
+                <td>${entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+                <td>${entry.day || '—'}</td>
+                <td><b>${entry.subject_name}</b></td>
+                <td>${entry.start_time} – ${entry.end_time}</td>
+                <td>${entry.room_number || '—'}</td>
+              </tr>`).join('');
+            win.document.write(`<!DOCTYPE html><html><head><title>Hall Ticket - ${ticket.hall_ticket_number}</title>
+            <style>
+              @page { size: A5; margin: 5mm; }
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body { font-family: Arial, sans-serif; font-size: 10px; width: 148mm; }
+              .header { background: #1a237e; color: white; text-align: center; padding: 8px 6px 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .header h2 { font-size: 13px; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; }
+              .header p { font-size: 9px; color: #c5cae9; margin-top: 2px; }
+              .badge { display: inline-block; background: rgba(255,255,255,0.18); border-radius: 4px; padding: 2px 10px; font-size: 10px; font-weight: 600; margin-top: 4px; }
+              .logo { height: 36px; width: 36px; object-fit: contain; border-radius: 3px; margin: 0 auto 4px; display: block; }
+              .student-row { display: flex; gap: 10px; padding: 6px 8px; border-bottom: 1px solid #ddd; align-items: flex-start; }
+              .photo { width: 50px; height: 62px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px; flex-shrink: 0; }
+              .no-photo { width: 50px; height: 62px; background: #eee; border: 1px solid #ccc; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #999; }
+              .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; flex: 1; }
+              .lbl { font-size: 8px; color: #888; }
+              .val { font-size: 10px; font-weight: 700; color: #222; }
+              .val.ht { color: #1a237e; font-size: 12px; }
+              .sec { padding: 5px 8px; }
+              .sec-title { font-size: 10px; font-weight: 700; color: #333; margin-bottom: 3px; }
               table { border-collapse: collapse; width: 100%; font-size: 9px; }
-              th { background-color: #1a237e !important; color: white !important; padding: 3px 5px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              th { background: #1a237e; color: white; padding: 3px 5px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
               td { border: 1px solid #ccc; padding: 3px 5px; }
-              tr:nth-child(even) td { background: #f7f7f7; }
-              .instructions { margin: 4px 8px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 4px; padding: 4px 6px; }
-              .instructions p { font-size: 8px; font-weight: 700; color: #92400e; margin: 0 0 2px 0; }
-              .instructions ul { margin: 0; padding-left: 12px; }
-              .instructions li { font-size: 8px; color: #78350f; line-height: 1.4; }
-              .signatures { display: flex; justify-content: space-between; padding: 6px 16px 4px; }
+              .instr { margin: 4px 8px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 3px; padding: 4px 6px; }
+              .instr b { font-size: 8px; color: #92400e; display: block; margin-bottom: 2px; }
+              .instr li { font-size: 8px; color: #78350f; line-height: 1.5; }
+              .sigs { display: flex; justify-content: space-between; padding: 6px 20px 2px; }
               .sig { text-align: center; font-size: 8px; color: #666; }
-              .sig-line { border-top: 1px solid #999; width: 70px; margin: 20px auto 2px; }
+              .sig-line { border-top: 1px solid #999; width: 72px; margin: 18px auto 2px; }
             </style></head><body>
-              <div class="bg-header">
-                ${printContent.querySelector('img') ? `<img src="${printContent.querySelector('img').src}" class="logo" />` : ''}
-                <h2>${printContent.querySelector('h2')?.innerText || ''}</h2>
-                <p>${printContent.querySelectorAll('p')[0]?.innerText || ''}</p>
-                <div class="exam-badge">${printContent.querySelector('.bg-\\[\\#1a237e\\] .inline-block span')?.innerText || 'HALL TICKET'}</div>
+            <div class="header">
+              ${logoUrl ? `<img src="${logoUrl}" class="logo"/>` : ''}
+              <h2>${schoolName}</h2>
+              ${schoolAddr ? `<p>${schoolAddr}</p>` : ''}
+              <div class="badge">HALL TICKET &mdash; ${examName}</div>
+            </div>
+            <div class="student-row">
+              ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
+              <div class="fields">
+                <div><div class="lbl">Student Name</div><div class="val">${ticket.student_name}</div></div>
+                <div><div class="lbl">Hall Ticket No.</div><div class="val ht">${ticket.hall_ticket_number}</div></div>
+                <div><div class="lbl">Class &amp; Section</div><div class="val">${ticket.class_name} – ${ticket.section}</div></div>
+                <div><div class="lbl">Roll Number</div><div class="val">${ticket.roll_number || '—'}</div></div>
+                <div><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
+                <div><div class="lbl">Status</div><div class="val">${ticket.status}</div></div>
               </div>
-              ${printContent.innerHTML}
+            </div>
+            <div class="sec">
+              <div class="sec-title">&#128197; Exam Schedule</div>
+              ${timetable.length > 0 ? `
+              <table><thead><tr><th>Date</th><th>Day</th><th>Subject</th><th>Time</th><th>Room</th></tr></thead>
+              <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:9px;padding:6px 0;">Timetable not yet assigned.</p>'}
+            </div>
+            <div class="instr">
+              <b>Important Instructions:</b>
+              <ul style="padding-left:12px">
+                <li>Carry this hall ticket to every exam.</li>
+                <li>Report 15 minutes before the exam starts.</li>
+                <li>Electronic devices are not permitted in the exam hall.</li>
+                <li>Hall ticket must be produced on demand by the invigilator.</li>
+              </ul>
+            </div>
+            <div class="sigs">
+              <div class="sig"><div class="sig-line"></div>Student Signature</div>
+              <div class="sig"><div class="sig-line"></div>Principal Signature</div>
+            </div>
             </body></html>`);
             win.document.close();
             win.focus();
