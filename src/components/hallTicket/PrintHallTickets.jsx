@@ -102,10 +102,10 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .page-break { page-break-after: always; }
 
     /* Each slot is always exactly 1/3 of A4 height */
-    .ticket-slot { height: calc(289mm / 3); display: flex; flex-direction: column; padding: 1.2mm 0; }
+    .ticket-slot { height: calc(289mm / 3); display: flex; flex-direction: column; padding: 1.2mm 0; flex-shrink: 0; }
     .ticket-slot:first-child { padding-top: 0; }
     .ticket-slot:nth-child(3) { padding-bottom: 0; }
-    .ticket-slot-empty .ticket { visibility: hidden; }
+    .ticket-slot-empty { visibility: hidden; }
     .ticket { flex: 1; display: flex; flex-direction: column; border: 1.5px solid #1a237e; border-radius: 3px; overflow: hidden; }
 
     /* HEADER */
