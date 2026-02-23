@@ -28,7 +28,7 @@ export default function TimetableManager() {
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
   const { data: subjects = [] } = useQuery({
