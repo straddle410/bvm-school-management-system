@@ -14,8 +14,8 @@ export default function HallTicketGenerator() {
   const [generating, setGenerating] = useState(false);
 
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['examTypes'],
-    queryFn: () => base44.entities.ExamType.list()
+    queryKey: ['examTypes', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
   const generateMutation = useMutation({
