@@ -31,20 +31,30 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
       <div class="badge-row">HALL TICKET — ${examName}</div>
       <div class="body-row">
         <div class="student-col">
-          ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
+          <div class="photo-wrap">
+            ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
+          </div>
           <div class="fields">
-            <div><div class="lbl">Student Name</div><div class="val">${ticket.student_name}</div></div>
-            <div><div class="lbl">Hall Ticket No.</div><div class="val ht">${ticket.hall_ticket_number}</div></div>
-            <div><div class="lbl">Class &amp; Section</div><div class="val">${ticket.class_name} – ${ticket.section}</div></div>
-            <div><div class="lbl">Roll No.</div><div class="val">${ticket.roll_number || '—'}</div></div>
-            <div><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
+            <div class="field-item"><div class="lbl">Student Name</div><div class="val">${ticket.student_name}</div></div>
+            <div class="field-item"><div class="lbl">Hall Ticket No.</div><div class="val ht">${ticket.hall_ticket_number}</div></div>
+            <div class="field-item"><div class="lbl">Class &amp; Section</div><div class="val">${ticket.class_name} – ${ticket.section}</div></div>
+            <div class="field-item"><div class="lbl">Roll No.</div><div class="val">${ticket.roll_number || '—'}</div></div>
+            <div class="field-item"><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
           </div>
         </div>
         <div class="schedule-col">
           <div class="sec-title">Exam Schedule</div>
           ${timetable.length > 0 ? `
-          <table style="height:100%; table-layout:fixed;"><thead><tr><th style="width:22%">Date</th><th style="width:13%">Day</th><th style="width:28%">Subject</th><th style="width:20%">Time</th><th style="width:17%">Invigilator Sign</th></tr></thead>
-          <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:9px;padding:3px 0;">Timetable not yet assigned.</p>'}
+          <table style="height:100%; table-layout:fixed;">
+            <thead><tr>
+              <th style="width:22%">Date</th>
+              <th style="width:13%">Day</th>
+              <th style="width:28%">Subject</th>
+              <th style="width:20%">Time</th>
+              <th style="width:17%">Invigilator Sign</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>` : '<p style="color:#999;font-size:9px;padding:3px 0;">Timetable not yet assigned.</p>'}
         </div>
       </div>
       <div class="footer-row">
@@ -92,37 +102,43 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .header { background: #1a237e; color: white; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .header-text { text-align: center; flex: 1; }
     .header h2 { font-size: 13px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; }
-    .header p { font-size: 8.5px; color: #c5cae9; margin-top: 1px; }
+    .header p { font-size: 9px; color: #c5cae9; margin-top: 2px; }
     .logo { height: 34px; width: 34px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
 
     /* BADGE */
-    .badge-row { background: #e8eaf6; color: #1a237e; text-align: center; font-size: 9.5px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #c5cae9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge-row { background: #e8eaf6; color: #1a237e; text-align: center; font-size: 10px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #c5cae9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     /* BODY */
     .body-row { display: flex; flex: 1; min-height: 0; }
-    .student-col { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 5px 6px; border-right: 1px solid #ddd; width: 46mm; flex-shrink: 0; justify-content: flex-start; }
-    .photo { width: 60px; height: 76px; object-fit: cover; border: 1.5px solid #1a237e; border-radius: 3px; flex-shrink: 0; }
-    .no-photo { width: 60px; height: 76px; background: #eee; border: 1.5px solid #1a237e; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; color: #999; text-align: center; }
-    .fields { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-    .lbl { font-size: 7px; color: #888; line-height: 1; }
+
+    /* STUDENT COL */
+    .student-col { display: flex; flex-direction: column; padding: 5px 6px; border-right: 1px solid #ddd; width: 52mm; flex-shrink: 0; gap: 5px; }
+    .photo-wrap { display: flex; justify-content: center; }
+    .photo { width: 60px; height: 75px; object-fit: cover; border: 1.5px solid #1a237e; border-radius: 3px; }
+    .no-photo { width: 60px; height: 75px; background: #eee; border: 1.5px solid #ccc; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #999; text-align: center; }
+    .fields { display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
+    .field-item { line-height: 1; }
+    .lbl { font-size: 7.5px; color: #888; line-height: 1.1; }
     .val { font-size: 10px; font-weight: 700; color: #222; line-height: 1.3; }
     .val.ht { color: #1a237e; font-size: 11px; }
-    .schedule-col { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; }
-    .sec-title { font-size: 9.5px; font-weight: 700; color: #1a237e; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
-    table { border-collapse: collapse; width: 100%; font-size: 8.5px; flex: 1; }
+
+    /* SCHEDULE COL */
+    .schedule-col { flex: 1; padding: 4px 5px; display: flex; flex-direction: column; }
+    .sec-title { font-size: 10px; font-weight: 700; color: #1a237e; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+    table { border-collapse: collapse; width: 100%; font-size: 9px; flex: 1; }
     table tbody { display: table-row-group; }
-    th { background: #1a237e; color: white; padding: 3px 4px; text-align: left; font-size: 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
-    td { border: 1px solid #ddd; padding: 0 4px; font-size: 8.5px; vertical-align: middle; }
+    th { background: #1a237e; color: white; padding: 3px 4px; text-align: left; font-size: 9px; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
+    td { border: 1px solid #ddd; padding: 1px 4px; font-size: 9px; vertical-align: middle; }
 
     /* FOOTER */
-    .footer-row { display: flex; align-items: flex-end; gap: 6px; padding: 4px 7px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer-row { display: flex; align-items: flex-end; gap: 6px; padding: 4px 6px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .instr { flex: 1; }
     .instr b { font-size: 8px; color: #92400e; display: block; margin-bottom: 2px; }
     .instr ul { padding-left: 12px; }
-    .instr li { font-size: 7.5px; color: #555; line-height: 1.6; }
+    .instr li { font-size: 7.5px; color: #555; line-height: 1.5; }
     .sigs { display: flex; gap: 14px; flex-shrink: 0; align-self: flex-end; }
     .sig { text-align: center; font-size: 8px; color: #444; font-weight: 600; }
-    .sig-line { border-top: 1px solid #666; width: 64px; margin: 16px auto 2px; }
+    .sig-line { border-top: 1px solid #666; width: 62px; margin: 16px auto 2px; }
   </style></head><body>${pagesHTML}</body></html>`);
 
   win.document.close();
