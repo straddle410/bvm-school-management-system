@@ -73,12 +73,12 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
   win.document.write(`<!DOCTYPE html><html><head><title>Hall Tickets</title>
   <style>
-    @page { size: A4 portrait; margin: 5mm; }
+    @page { size: A4 portrait; margin: 4mm 4mm 4mm 4mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 9px; background: white; }
-    .page { width: 200mm; display: flex; flex-direction: column; }
+    .page { width: 202mm; display: flex; flex-direction: column; }
     .page-break { page-break-after: always; }
-    .divider { border-top: 1px dashed #bbb; margin: 0; }
+    .gap { height: 4mm; background: white; }
     .ticket { width: 100%; border-left: 1px solid #bbb; border-right: 1px solid #bbb; }
     .ticket:first-child { border-top: 1px solid #bbb; }
     .ticket:last-child { border-bottom: 1px solid #bbb; }
