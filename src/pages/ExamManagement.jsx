@@ -51,9 +51,12 @@ export default function ExamManagement() {
           )}
 
           <TabsContent value="marks-entry" className="mt-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-2xl font-bold mb-4">Marks Entry</h2>
-              <p className="text-slate-600">Marks entry functionality coming soon...</p>
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-2xl font-bold">Exams & Marks</h2>
+                <p className="text-slate-600 text-sm mt-1">Manage exam types and enter marks</p>
+              </div>
+              <ExamTypeManager isAdmin={canManageExams} showAddButton={false} />
             </div>
           </TabsContent>
 
