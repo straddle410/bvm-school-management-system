@@ -1,0 +1,235 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { X, Upload } from 'lucide-react';
+import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+const SECTIONS = ['A', 'B', 'C', 'D'];
+
+export default function DiaryForm({ entry, onSubmit, onCancel, academicYear }) {
+  const [formData, setFormData] = useState(entry || {
+    title: '',
+    description: '',
+    class_name: '',
+    section: 'A',
+    subject: '',
+    attachment_urls: [],
+    academic_year: academicYear,
+    status: 'Draft'
+  });
+
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: async () => {
+      const subs = await base44.entities.Subject.list();
+      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    }
+  });
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedUrls = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        attachment_urls: [...(prev.attachment_urls || []), ...uploadedUrls]
+      }));
+      toast.success(`${files.length} file(s) uploaded`);
+    } catch (error) {
+      toast.error('Failed to upload files');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeAttachment = (url) => {
+    setFormData(prev => ({
+      ...prev,
+      attachment_urls: prev.attachment_urls.filter(u => u !== url)
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast.error('Please fill in title and description');
+      return;
+    }
+    onSubmit(formData);
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{entry ? 'Edit Diary Entry' : 'Create Diary Entry'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Class *</label>
+              <Select
+                value={formData.class_name}
+                onValueChange={(val) => setFormData({ ...formData, class_name: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLASSES.map(cls => (
+                    <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Section *</label>
+              <Select
+                value={formData.section}
+                onValueChange={(val) => setFormData({ ...formData, section: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SECTIONS.map(sec => (
+                    <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Subject *</label>
+              <Select
+                value={formData.subject}
+                onValueChange={(val) => setFormData({ ...formData, subject: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map(sub => (
+                    <SelectItem key={sub.id} value={sub.name}>{sub.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Title *</label>
+            <Input
+              placeholder="e.g., Quadratic Equations Class Notes"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Description *</label>
+            <Textarea
+              placeholder="Write the diary content..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="min-h-32"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Attachments</label>
+            <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50">
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                disabled={uploading}
+                className="hidden"
+                id="file-upload"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+              />
+              <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                <Upload className="h-5 w-5 text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  {uploading ? 'Uploading...' : 'Click to upload files (PDF, Images, Documents)'}
+                </span>
+              </label>
+            </div>
+
+            {formData.attachment_urls && formData.attachment_urls.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <p className="text-sm font-medium">Attached Files:</p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.attachment_urls.map((url, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className="flex items-center gap-1 px-3 py-1"
+                    >
+                      📎 File {idx + 1}
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(url)}
+                        className="ml-1 hover:text-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Status</label>
+            <Select
+              value={formData.status}
+              onValueChange={(val) => setFormData({ ...formData, status: val })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Draft">Draft</SelectItem>
+                <SelectItem value="Published">Published</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4 border-t">
+            <Button variant="outline" onClick={onCancel}>Cancel</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+              {entry ? 'Update' : 'Post'} Diary
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
