@@ -139,16 +139,16 @@ export default function TimetableManager() {
               <div>
                 <p className="text-xs font-semibold text-slate-600 mb-1">Exam Type <span className="text-red-500">*</span></p>
                 <select
-                  value={examType}
-                  onChange={(e) => setExamType(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                  required
-                >
-                  <option value="">Select Exam Type</option>
-                  {examTypes.map(type => (
-                    <option key={type.id} value={type.id}>{type.name}</option>
-                  ))}
-                </select>
+                   value={examType}
+                   onChange={(e) => setExamType(e.target.value)}
+                   className="w-full px-3 py-2 border rounded-lg text-sm"
+                   required
+                 >
+                   <option value="">{examTypes.length === 0 ? 'No exam types available' : 'Select Exam Type'}</option>
+                   {examTypes.map(type => (
+                     <option key={type.id} value={type.name}>{type.name}</option>
+                   ))}
+                 </select>
               </div>
 
               {/* Step 2: Multi-class selector */}
