@@ -43,8 +43,11 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
               <div class="field-item"><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
             </div>
           </div>
-          <div class="schedule-col">
-            <div class="sec-title">Exam Schedule</div>
+          <div class="schedule-col" style="position:relative;">
+              <div class="watermark">
+                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" class="watermark-img"/>
+              </div>
+              <div class="sec-title">Exam Schedule</div>
             ${timetable.length > 0 ? `
             <table style="height:100%; table-layout:fixed;">
               <thead><tr>
