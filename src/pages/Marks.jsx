@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
+import MobileMarksEntry from '@/components/marks/MobileMarksEntry';
 import MarksImportExport from '@/components/marks/MarksImportExport';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -299,17 +300,31 @@ export default function Marks() {
                 </Card>
 
                 <Card className="border-0 shadow-sm">
-                  <CardContent className="p-4">
-                    <MarksTable
-                      students={filteredStudents}
-                      subjects={subjectList}
-                      marksData={marksData}
-                      onMarkChange={updateMarks}
-                      maxMarks={maxMarks}
-                      passingMarks={passingMarks}
-                    />
-                  </CardContent>
-                </Card>
+                   <CardContent className="p-4">
+                     {/* Desktop Table View */}
+                     <div className="hidden md:block">
+                       <MarksTable
+                         students={filteredStudents}
+                         subjects={subjectList}
+                         marksData={marksData}
+                         onMarkChange={updateMarks}
+                         maxMarks={maxMarks}
+                         passingMarks={passingMarks}
+                       />
+                     </div>
+                     {/* Mobile Subject Tabs View */}
+                     <div className="md:hidden">
+                       <MobileMarksEntry
+                         students={filteredStudents}
+                         subjects={subjectList}
+                         marksData={marksData}
+                         onMarkChange={updateMarks}
+                         maxMarks={maxMarks}
+                         passingMarks={passingMarks}
+                       />
+                     </div>
+                   </CardContent>
+                 </Card>
 
                 {filteredStudents.length > 0 && (
                   <div className="flex justify-end gap-3">
