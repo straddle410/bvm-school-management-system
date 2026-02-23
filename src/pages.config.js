@@ -55,6 +55,8 @@ import AttendanceReports from './pages/AttendanceReports';
 import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
+import Diary from './pages/Diary';
+import DiaryManagement from './pages/DiaryManagement';
 import ExamManagement from './pages/ExamManagement';
 import Gallery from './pages/Gallery';
 import HallTicketManagement from './pages/HallTicketManagement';
@@ -69,6 +71,7 @@ import Profile from './pages/Profile';
 import PublicAdmission from './pages/PublicAdmission';
 import Quiz from './pages/Quiz';
 import Reports from './pages/Reports';
+import ReportsManagement from './pages/ReportsManagement';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
 import StaffLogin from './pages/StaffLogin';
@@ -77,14 +80,11 @@ import StudentDashboard from './pages/StudentDashboard';
 import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
+import StudentNotifications from './pages/StudentNotifications';
 import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
-import DiaryManagement from './pages/DiaryManagement';
-import ReportsManagement from './pages/ReportsManagement';
-import Diary from './pages/Diary';
-import StudentNotifications from './pages/StudentNotifications';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +97,8 @@ export const PAGES = {
     "AttendanceSummaryReport": AttendanceSummaryReport,
     "Calendar": Calendar,
     "Dashboard": Dashboard,
+    "Diary": Diary,
+    "DiaryManagement": DiaryManagement,
     "ExamManagement": ExamManagement,
     "Gallery": Gallery,
     "HallTicketManagement": HallTicketManagement,
@@ -111,6 +113,7 @@ export const PAGES = {
     "PublicAdmission": PublicAdmission,
     "Quiz": Quiz,
     "Reports": Reports,
+    "ReportsManagement": ReportsManagement,
     "Results": Results,
     "Settings": Settings,
     "StaffLogin": StaffLogin,
@@ -119,14 +122,11 @@ export const PAGES = {
     "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
     "StudentLogin": StudentLogin,
+    "StudentNotifications": StudentNotifications,
     "Students": Students,
     "SubjectManagement": SubjectManagement,
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
-    "DiaryManagement": DiaryManagement,
-    "ReportsManagement": ReportsManagement,
-    "Diary": Diary,
-    "StudentNotifications": StudentNotifications,
 }
 
 export const pagesConfig = {

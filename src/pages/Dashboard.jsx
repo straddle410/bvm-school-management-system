@@ -48,7 +48,6 @@ const adminActions = [
 export default function Dashboard() {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [user, setUser] = useState(null);
-  const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
     // Check staff session from localStorage (custom login)
@@ -60,13 +59,6 @@ export default function Dashboard() {
       } catch (error) {
         console.debug('Failed to parse session:', error);
       }
-    }
-    // Check student session
-    const studentSess = localStorage.getItem('student_session');
-    if (studentSess) {
-      try {
-        setStudentSession(JSON.parse(studentSess));
-      } catch {}
     }
   }, []);
 
