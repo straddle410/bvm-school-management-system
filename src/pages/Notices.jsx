@@ -49,7 +49,32 @@ export default function Notices() {
 
   useEffect(() => {
     setUser(getStaffSession());
+    
+    // Mark notice notifications as read if student
+    const studentSession = localStorage.getItem('student_session');
+    if (studentSession) {
+      try {
+        const studentData = JSON.parse(studentSession);
+        markNoticeNotificationsAsRead(studentData.student_id);
+      } catch {}
+    }
   }, []);
+
+  const markNoticeNotificationsAsRead = async (studentId) => {
+    try {
+      const unreadNotifications = await base44.entities.Notification.filter({
+        recipient_student_id: studentId,
+        type: 'notice_posted',
+        is_read: false
+      });
+      
+      for (const notif of unreadNotifications) {
+        await base44.entities.Notification.update(notif.id, { is_read: true });
+      }
+    } catch (error) {
+      console.debug('Error marking notifications as read:', error);
+    }
+  };
 
   const isStaff = user && ['Admin', 'Principal', 'Teacher', 'Staff'].includes(user.role);
   const isAdmin = user && ['Admin', 'Principal'].includes(user.role);
