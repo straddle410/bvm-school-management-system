@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
+const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
 export default function HallTicketGenerator() {
   const { academicYear } = useAcademicYear();
-  const [filters, setFilters] = useState({ exam_type: '', class: '', section: 'A', assignment_type: 'sequential' });
+  const [filters, setFilters] = useState({ exam_type: '', classes: [], section: 'A', assignment_type: 'sequential' });
   const [generating, setGenerating] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
