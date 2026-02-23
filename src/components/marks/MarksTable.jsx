@@ -83,7 +83,6 @@ export default function MarksTable({
               return (
                 <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
                   {subjects.map((subject, subjectIdx) => {
-                {subjects.map((subject, subjectIdx) => {
                     const marks = marksData[studentId]?.[subject]?.marks_obtained;
                     const status = getMarkStatus(marks);
 
