@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import PageHeader from '@/components/ui/PageHeader';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import ProgressCardGenerator from '@/components/hallTicket/ProgressCardGenerator';
+import ProgressCardsList from '@/components/hallTicket/ProgressCardsList';
 
 export default function ExamManagement() {
   const [user, setUser] = useState(null);
@@ -33,7 +35,20 @@ export default function ExamManagement() {
       />
 
       <div className="mt-6">
-        <ProgressCardGenerator />
+        <Tabs defaultValue="generate" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="generate">Generate Cards</TabsTrigger>
+            <TabsTrigger value="view">View Cards</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="generate" className="mt-6">
+            <ProgressCardGenerator />
+          </TabsContent>
+
+          <TabsContent value="view" className="mt-6">
+            <ProgressCardsList />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
