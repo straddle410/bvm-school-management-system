@@ -179,20 +179,37 @@ export default function Students() {
     setPhotoFile(null);
   };
 
+  const getNextAvailableRollNumber = (className, section, excludeId = null) => {
+    const classStudents = students.filter(s => 
+      s.class_name === className && 
+      s.section === section &&
+      (!excludeId || s.id !== excludeId)
+    );
+    const usedRollNumbers = new Set(classStudents.map(s => s.roll_no).filter(Boolean));
+    
+    let nextRoll = 1;
+    while (usedRollNumbers.has(nextRoll)) {
+      nextRoll++;
+    }
+    return nextRoll;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validate duplicate roll number
+    // Auto-fix duplicate roll number
     if (formData.roll_no && formData.class_name && formData.section) {
       const isDuplicate = students.some(s => 
         s.class_name === formData.class_name && 
         s.section === formData.section && 
         s.roll_no === formData.roll_no &&
-        (!editMode || s.id !== selectedStudent.id) // Allow same student in edit mode
+        (!editMode || s.id !== selectedStudent.id)
       );
       
       if (isDuplicate) {
-        toast.error(`Roll number ${formData.roll_no} already exists for Class ${formData.class_name}-${formData.section}`);
+        const nextRoll = getNextAvailableRollNumber(formData.class_name, formData.section, editMode ? selectedStudent.id : null);
+        setFormData({...formData, roll_no: nextRoll});
+        toast.info(`Roll number ${formData.roll_no} was taken. Auto-assigned roll number ${nextRoll}`);
         return;
       }
     }
