@@ -22,6 +22,7 @@ export default function TimetableManager() {
   const [examType, setExamType] = useState('');
   const [selectedClasses, setSelectedClasses] = useState([]);
   const [rows, setRows] = useState([emptyRow()]);
+  const [selectedEntries, setSelectedEntries] = useState([]);
   const queryClient = useQueryClient();
 
   const { data: examTypes = [] } = useQuery({
