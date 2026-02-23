@@ -364,6 +364,21 @@ export default function TimetableManager() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Mobile Sticky Delete Button */}
+      {selectedEntries.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 sm:hidden shadow-lg max-w-md mx-auto">
+          <Button 
+            variant="destructive" 
+            onClick={() => bulkDeleteMutation.mutate()}
+            disabled={bulkDeleteMutation.isPending}
+            className="w-full"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete {selectedEntries.length} Selected
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
