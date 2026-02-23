@@ -15,7 +15,10 @@ export default function HallTicketGenerator() {
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
+    queryFn: async () => {
+      const types = await base44.entities.ExamType.filter({ academic_year: academicYear });
+      return types.length > 0 ? types : await base44.entities.ExamType.list();
+    }
   });
 
   const generateMutation = useMutation({
