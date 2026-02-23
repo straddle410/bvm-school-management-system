@@ -41,20 +41,31 @@ export default function HallTicketGenerator() {
     }
   });
 
+  const handleClassToggle = (className) => {
+    setFilters(prev => ({
+      ...prev,
+      classes: prev.classes.includes(className)
+        ? prev.classes.filter(c => c !== className)
+        : [...prev.classes, className]
+    }));
+  };
+
   const handleGenerate = async () => {
-    if (!filters.exam_type || !filters.class) {
-      toast.error('Please select exam type and class');
+    if (!filters.exam_type || filters.classes.length === 0) {
+      toast.error('Please select exam type and at least one class');
       return;
     }
 
     setGenerating(true);
-    generateMutation.mutate({
-      examTypeId: filters.exam_type,
-      classname: filters.class,
-      section: filters.section,
-      academicYear,
-      assignmentType: filters.assignment_type
-    });
+    for (const className of filters.classes) {
+      generateMutation.mutate({
+        examTypeId: filters.exam_type,
+        classname: className,
+        section: filters.section,
+        academicYear,
+        assignmentType: filters.assignment_type
+      });
+    }
   };
 
   return (
