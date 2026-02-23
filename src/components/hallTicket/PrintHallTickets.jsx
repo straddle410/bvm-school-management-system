@@ -31,7 +31,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
         </div>
         <div class="badge-row">HALL TICKET — ${examName}</div>
         <div class="body-row" style="position:relative;">
-          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; height:200px; object-fit:contain; opacity:0.2; filter:grayscale(80%); z-index:5; pointer-events:none;"/>
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; height:200px; object-fit:contain; opacity:0.15; filter:grayscale(80%); z-index:5; pointer-events:none;"/>
           <div class="student-col">
             <div class="photo-wrap">
               ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
