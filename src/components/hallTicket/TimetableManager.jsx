@@ -367,16 +367,18 @@ export default function TimetableManager() {
 
       {/* Mobile Sticky Delete Button */}
       {selectedEntries.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 sm:hidden shadow-lg max-w-md mx-auto">
-          <Button 
-            variant="destructive" 
-            onClick={() => bulkDeleteMutation.mutate()}
-            disabled={bulkDeleteMutation.isPending}
-            className="w-full"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete {selectedEntries.length} Selected
-          </Button>
+        <div className="fixed bottom-24 left-0 right-0 sm:static bg-white border-t border-slate-200 p-3 shadow-lg sm:mt-3 sm:bottom-auto z-40">
+          <div className="max-w-md mx-auto">
+            <Button 
+              variant="destructive" 
+              onClick={() => bulkDeleteMutation.mutate()}
+              disabled={bulkDeleteMutation.isPending}
+              className="w-full"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete {selectedEntries.length} Selected
+            </Button>
+          </div>
         </div>
       )}
     </div>
