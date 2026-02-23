@@ -68,7 +68,10 @@ export default function Marks() {
 
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
     queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list(),
+    queryFn: async () => {
+      const subs = await base44.entities.Subject.list();
+      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    },
     staleTime: 5 * 60 * 1000
   });
 
