@@ -133,28 +133,8 @@ export default function DiaryManagement() {
     .filter(d => d.posted_by === user?.email)
     .filter(d => !filterClass || d.class_name === filterClass);
 
-  const uniqueClasses = [...new Set(userDiaries.map(d => d.class_name))].sort();
+  const uniqueClasses = [...new Set(diaries.filter(d => d.posted_by === user?.email).map(d => d.class_name))].sort();
   const draftEntries = userDiaries.filter(d => d.status === 'Draft');
-
-  const handleSelectEntry = (entryId) => {
-    const newSelected = new Set(selectedEntries);
-    if (newSelected.has(entryId)) {
-      newSelected.delete(entryId);
-    } else {
-      newSelected.add(entryId);
-    }
-    setSelectedEntries(newSelected);
-  };
-
-  const handlePublish = () => {
-    if (selectedEntries.size === 0) {
-      toast.error('Please select entries to publish');
-      return;
-    }
-    if (confirm(`Publish ${selectedEntries.size} diary entry/entries?`)) {
-      publishMutation.mutate(Array.from(selectedEntries));
-    }
-  };
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Diary Management">
