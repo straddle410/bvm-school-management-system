@@ -195,11 +195,12 @@ export default function TimetableManager() {
                       </div>
                       {/* Date */}
                       <div className="col-span-3">
-                        <Input
+                        <input
                           type="date"
                           value={row.exam_date}
                           onChange={(e) => updateRow(idx, 'exam_date', e.target.value)}
-                          className="text-sm"
+                          className="w-full px-2 py-1.5 border rounded-lg text-sm cursor-pointer"
+                          onClick={(e) => e.target.showPicker?.()}
                           required
                         />
                       </div>
