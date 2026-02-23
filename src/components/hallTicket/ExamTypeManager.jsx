@@ -35,7 +35,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExamType.create({ ...data, academic_year: academicYear }),
+    mutationFn: (data) => base44.entities.ExamType.create({ ...data, academic_year: academicYear, is_active: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['examTypes'] });
       setShowForm(false);
