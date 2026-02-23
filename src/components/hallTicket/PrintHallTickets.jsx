@@ -112,5 +112,5 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
   win.document.close();
   win.focus();
-  setTimeout(() => { win.print(); win.close(); }, 500);
+  setTimeout(() => { win.print(); }, 600);
 }
