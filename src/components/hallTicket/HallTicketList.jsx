@@ -19,7 +19,14 @@ export default function HallTicketList() {
   const [filterExamType, setFilterExamType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [previewTicket, setPreviewTicket] = useState(null);
+  const [printCount, setPrintCount] = useState('all');
+  const [isPrinting, setIsPrinting] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: schoolProfile } = useQuery({
+    queryKey: ['schoolProfile'],
+    queryFn: async () => { const p = await base44.entities.SchoolProfile.list(); return p[0] || null; }
+  });
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
