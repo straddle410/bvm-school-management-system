@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Save, Send, Settings, FileText
+  BookOpen, Save, Send, Settings, FileText, Plus
 } from 'lucide-react';
 import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
@@ -45,6 +45,8 @@ export default function Marks() {
   const [selectedExam, setSelectedExam] = useState('');
   const [marksData, setMarksData] = useState({});
   const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
+  const [showAddSubject, setShowAddSubject] = useState(false);
+  const [newSubjectName, setNewSubjectName] = useState('');
   
   const queryClient = useQueryClient();
 
@@ -187,6 +189,23 @@ export default function Marks() {
         [subject]: { ...prev[studentId]?.[subject], marks_obtained: value }
       }
     }));
+  };
+
+  const addNewSubject = async () => {
+    if (!newSubjectName.trim()) {
+      toast.error('Please enter subject name');
+      return;
+    }
+
+    try {
+      await base44.entities.Subject.create({ name: newSubjectName.trim() });
+      queryClient.invalidateQueries(['subjects']);
+      toast.success(`${newSubjectName} added successfully`);
+      setNewSubjectName('');
+      setShowAddSubject(false);
+    } catch (error) {
+      toast.error('Failed to add subject');
+    }
   };
 
   const subjectList = subjects.length > 0 ? subjects.map(s => s.name) : DEFAULT_SUBJECTS;
