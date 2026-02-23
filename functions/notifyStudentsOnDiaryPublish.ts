@@ -5,8 +5,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
-    // Only process Published updates
-    if (event.type !== 'update' || !data || data.status !== 'Published') {
+    // Only process when status is Published (on create or update)
+    if (!data || data.status !== 'Published') {
       return Response.json({ success: false, reason: 'Not a publish event' });
     }
 
