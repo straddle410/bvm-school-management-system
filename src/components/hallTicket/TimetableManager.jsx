@@ -100,7 +100,17 @@ export default function TimetableManager() {
     mutationFn: (id) => base44.entities.ExamTimetable.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
+      setSelectedEntries([]);
       toast.success('Entry deleted');
+    }
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: () => Promise.all(selectedEntries.map(id => base44.entities.ExamTimetable.delete(id))),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timetable'] });
+      setSelectedEntries([]);
+      toast.success('Selected entries deleted');
     }
   });
 
