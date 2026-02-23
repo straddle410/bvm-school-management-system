@@ -50,7 +50,17 @@ export default function HallTicketManagement() {
           </TabsList>
 
           <TabsContent value="exam-types" className="mt-6">
-            <ExamTypeManager />
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Exams & Marks</h2>
+                    <p className="text-slate-600 text-sm mt-1">Manage exam types and enter marks</p>
+                  </div>
+                </div>
+              </div>
+              <ExamTypeManager />
+            </div>
           </TabsContent>
 
           <TabsContent value="timetable" className="mt-6">
