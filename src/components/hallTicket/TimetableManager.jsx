@@ -172,14 +172,46 @@ export default function TimetableManager() {
                 )}
               </div>
 
-              {/* Step 3: Subject rows */}
+              {/* Step 3: Shared exam time */}
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-1">Exam Time <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(applies to all subjects below)</span></p>
+                <div className="flex gap-3 items-center bg-white p-3 rounded-lg border">
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-500 block mb-1">Start Time</label>
+                    <input
+                      type="time"
+                      value={rows[0]?.start_time || ''}
+                      onChange={(e) => setRows(prev => prev.map(r => ({ ...r, start_time: e.target.value })))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white text-slate-800 font-medium"
+                      required
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-500 block mb-1">End Time</label>
+                    <input
+                      type="time"
+                      value={rows[0]?.end_time || ''}
+                      onChange={(e) => setRows(prev => prev.map(r => ({ ...r, end_time: e.target.value })))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white text-slate-800 font-medium"
+                      required
+                    />
+                  </div>
+                  {rows[0]?.start_time && rows[0]?.end_time && (
+                    <div className="text-sm text-blue-700 font-semibold whitespace-nowrap pt-4">
+                      {rows[0].start_time} – {rows[0].end_time}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 4: Subject rows */}
               <div>
                 <p className="text-xs font-semibold text-slate-600 mb-2">Subject Schedule <span className="text-red-500">*</span></p>
                 <div className="space-y-2">
                   {rows.map((row, idx) => (
                     <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded-lg border">
                       {/* Subject */}
-                      <div className="col-span-3">
+                      <div className="col-span-5">
                         <select
                           value={row.subject_name}
                           onChange={(e) => updateRow(idx, 'subject_name', e.target.value)}
@@ -187,34 +219,25 @@ export default function TimetableManager() {
                           required
                           disabled={selectedClasses.length === 0}
                         >
-                          <option value="">{selectedClasses.length > 0 ? 'Subject' : 'Select class first'}</option>
+                          <option value="">{selectedClasses.length > 0 ? 'Select Subject' : 'Select class first'}</option>
                           {filteredSubjects.map(s => (
                             <option key={s.id} value={s.name}>{s.name}</option>
                           ))}
                         </select>
                       </div>
                       {/* Date */}
-                      <div className="col-span-3">
+                      <div className="col-span-4">
                         <input
                           type="date"
                           value={row.exam_date}
                           onChange={(e) => updateRow(idx, 'exam_date', e.target.value)}
-                          className="w-full px-2 py-1.5 border rounded-lg text-sm cursor-pointer"
-
+                          className="w-full px-2 py-1.5 border rounded-lg text-sm"
                           required
                         />
                       </div>
                       {/* Day auto-display */}
-                      <div className="col-span-1 text-xs text-slate-500 text-center">
+                      <div className="col-span-2 text-xs text-slate-500 text-center">
                         {row.exam_date ? format(parse(row.exam_date, 'yyyy-MM-dd', new Date()), 'EEE') : '—'}
-                      </div>
-                      {/* Start time */}
-                      <div className="col-span-2">
-                        <input type="time" value={row.start_time} onChange={(e) => updateRow(idx, 'start_time', e.target.value)} className="w-full px-2 py-1.5 border rounded-lg text-sm" required />
-                      </div>
-                      {/* End time */}
-                      <div className="col-span-2">
-                        <input type="time" value={row.end_time} onChange={(e) => updateRow(idx, 'end_time', e.target.value)} className="w-full px-2 py-1.5 border rounded-lg text-sm" required />
                       </div>
                       {/* Remove */}
                       <div className="col-span-1 flex justify-end">
