@@ -28,6 +28,7 @@ const quickActions = [
   { label: 'Take Attendance', icon: Check, color: '#1e88e5', page: 'Attendance', permission: 'attendance' },
   { label: 'Attendance Summary', icon: BarChart3, color: '#00796b', page: 'AttendanceSummaryReport', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Timetable', icon: Clock, color: '#0288d1', page: 'TimetableManagement', roleRequired: ['Admin', 'Principal', 'teacher'] },
+  { label: 'Diary', icon: Book, color: '#d32f2f', page: 'DiaryManagement', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Homework', icon: BookOpen, color: '#f57c00', page: 'HomeworkManage', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
   { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks', permission: 'marks' },
