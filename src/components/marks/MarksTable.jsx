@@ -31,15 +31,15 @@ export default function MarksTable({
   }
 
   return (
-    <div className="overflow-x-auto border rounded-lg bg-white">
-      <table className="w-full border-collapse">
+    <div className="overflow-x-auto border rounded-lg bg-white w-full">
+      <table className="w-full border-collapse text-sm md:text-base">
         <thead>
-          <tr className="bg-slate-800 text-white">
-            <th className="border border-slate-200 px-4 py-3 text-left font-semibold text-sm w-12">Roll</th>
-            <th className="border border-slate-200 px-4 py-3 text-left font-semibold text-sm">Student ID</th>
-            <th className="border border-slate-200 px-4 py-3 text-left font-semibold text-sm">Student Name</th>
+          <tr className="bg-slate-800 text-white sticky top-0">
+            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold w-8 md:w-12">Roll</th>
+            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold">ID</th>
+            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold">Name</th>
             {subjects.map(subject => (
-              <th key={subject} className="border border-slate-200 px-3 py-3 text-center font-semibold text-sm bg-slate-700 whitespace-nowrap">
+              <th key={subject} className="border border-slate-200 px-2 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-nowrap text-xs md:text-sm">
                 {subject}
               </th>
             ))}
@@ -50,16 +50,16 @@ export default function MarksTable({
             const studentId = student.student_id || student.id;
             return (
               <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                <td className="border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">{student.roll_no || '—'}</td>
-                <td className="border border-slate-200 px-4 py-3 text-sm text-slate-600">{student.student_id}</td>
-                <td className="border border-slate-200 px-4 py-3 text-sm font-medium text-slate-900">{student.name}</td>
+                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-700 text-center">{student.roll_no || '—'}</td>
+                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-slate-600 text-xs md:text-sm">{student.student_id}</td>
+                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-900 text-xs md:text-sm">{student.name}</td>
                 {subjects.map(subject => {
                   const marks = marksData[studentId]?.[subject]?.marks_obtained;
                   const status = getMarkStatus(marks);
 
                   return (
-                    <td key={subject} className="border border-slate-200 px-3 py-2 text-center">
-                      <div className={`flex items-center justify-center rounded p-1 ${
+                    <td key={subject} className="border border-slate-200 px-2 md:px-3 py-1 md:py-2 text-center">
+                      <div className={`flex items-center justify-center rounded p-0.5 md:p-1 ${
                         status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
                       }`}>
                         <Input
@@ -70,7 +70,7 @@ export default function MarksTable({
                           step="0.5"
                           value={marks ?? ''}
                           onChange={(e) => onMarkChange(studentId, subject, e.target.value)}
-                          className={`w-14 text-center text-sm font-semibold border-0 bg-transparent px-1 py-1 ${
+                          className={`w-12 md:w-14 text-center text-xs md:text-sm font-semibold border-0 bg-transparent px-0.5 md:px-1 py-0.5 md:py-1 ${
                             status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
                           }`}
                           placeholder="—"
