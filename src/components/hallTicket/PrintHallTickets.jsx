@@ -30,7 +30,10 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
           ${schoolProfile?.logo_url ? `<img src="${schoolProfile.logo_url}" class="logo" style="visibility:hidden"/>` : ''}
         </div>
         <div class="badge-row">HALL TICKET — ${examName}</div>
-        <div class="body-row">
+        <div class="body-row" style="position:relative;">
+          <div class="watermark">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" class="watermark-img"/>
+          </div>
           <div class="student-col">
             <div class="photo-wrap">
               ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
