@@ -38,7 +38,20 @@ export default function HallTicketGenerator() {
     onError: (error) => {
       setGenerating(false);
       console.error('Generation error:', error);
-      toast.error(error.response?.data?.error || error.message || 'Failed to generate hall tickets');
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to generate hall tickets';
+      const hasDuplicates = error.response?.data?.hasDuplicateRollNumbers;
+      
+      if (hasDuplicates) {
+        toast.error(errorMsg, { 
+          duration: 6000,
+          action: {
+            label: 'Go to Students',
+            onClick: () => window.location.href = '/Students'
+          }
+        });
+      } else {
+        toast.error(errorMsg);
+      }
     }
   });
 
