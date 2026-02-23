@@ -55,7 +55,7 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
               </tr>`).join('');
             win.document.write(`<!DOCTYPE html><html><head><title>Hall Ticket - ${ticket.hall_ticket_number}</title>
             <style>
-              @page { size: A5; margin: 5mm; }
+              @page { size: A5; margin: 3mm; }
               * { box-sizing: border-box; margin: 0; padding: 0; }
               body { font-family: Arial, sans-serif; font-size: 10px; width: 148mm; }
               .header { background: #1a237e; color: white; text-align: center; padding: 8px 6px 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
