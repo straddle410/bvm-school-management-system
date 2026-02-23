@@ -141,13 +141,14 @@ export default function Marks() {
           else if (percentage >= 50) grade = 'C';
           else if (percentage >= passingMarks) grade = 'D';
 
+          const selectedExamObj = examTypes.find(e => e.name === selectedExam);
           const data = {
             student_id: student.student_id || student.id,
             student_name: student.name,
             class_name: selectedClass,
             section: selectedSection,
             subject: subject,
-            exam_type: selectedExam,
+            exam_type: selectedExamObj?.id || selectedExam,
             marks_obtained: marks,
             max_marks: maxMarks,
             grade,
