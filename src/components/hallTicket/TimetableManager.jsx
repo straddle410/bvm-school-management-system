@@ -210,11 +210,11 @@ export default function TimetableManager() {
                       </div>
                       {/* Start time */}
                       <div className="col-span-2">
-                        <input type="time" value={row.start_time} onChange={(e) => updateRow(idx, 'start_time', e.target.value)} onClick={(e) => e.target.showPicker?.()} className="w-full px-2 py-1.5 border rounded-lg text-sm cursor-pointer" required />
+                        <input type="time" value={row.start_time} onChange={(e) => updateRow(idx, 'start_time', e.target.value)} className="w-full px-2 py-1.5 border rounded-lg text-sm" required />
                       </div>
                       {/* End time */}
                       <div className="col-span-2">
-                        <input type="time" value={row.end_time} onChange={(e) => updateRow(idx, 'end_time', e.target.value)} onClick={(e) => e.target.showPicker?.()} className="w-full px-2 py-1.5 border rounded-lg text-sm cursor-pointer" required />
+                        <input type="time" value={row.end_time} onChange={(e) => updateRow(idx, 'end_time', e.target.value)} className="w-full px-2 py-1.5 border rounded-lg text-sm" required />
                       </div>
                       {/* Remove */}
                       <div className="col-span-1 flex justify-end">
