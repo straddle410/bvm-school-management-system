@@ -19,39 +19,44 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     <div class="ticket">
       <div class="header">
         ${schoolProfile?.logo_url ? `<img src="${schoolProfile.logo_url}" class="logo"/>` : ''}
-        <h2>${schoolProfile?.school_name || 'School'}</h2>
-        ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
-        <div class="badge">HALL TICKET — ${examName}</div>
-      </div>
-      <div class="student-row">
-        ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
-        <div class="fields">
-          <div><div class="lbl">Student Name</div><div class="val">${ticket.student_name}</div></div>
-          <div><div class="lbl">Hall Ticket No.</div><div class="val ht">${ticket.hall_ticket_number}</div></div>
-          <div><div class="lbl">Class &amp; Section</div><div class="val">${ticket.class_name} – ${ticket.section}</div></div>
-          <div><div class="lbl">Roll Number</div><div class="val">${ticket.roll_number || '—'}</div></div>
-          <div><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
-          <div><div class="lbl">Status</div><div class="val">${ticket.status}</div></div>
+        <div class="header-text">
+          <h2>${schoolProfile?.school_name || 'School'}</h2>
+          ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
+          <div class="badge">HALL TICKET — ${examName}</div>
         </div>
       </div>
-      <div class="sec">
-        <div class="sec-title">📅 Exam Schedule</div>
-        ${timetable.length > 0 ? `
-        <table><thead><tr><th>Date</th><th>Day</th><th>Subject</th><th>Time</th><th>Room</th></tr></thead>
-        <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:8px;padding:4px 0;">Timetable not yet assigned.</p>'}
+      <div class="body-row">
+        <div class="student-col">
+          ${photoUrl ? `<img src="${photoUrl}" class="photo"/>` : '<div class="no-photo">No Photo</div>'}
+          <div class="fields">
+            <div><div class="lbl">Student Name</div><div class="val">${ticket.student_name}</div></div>
+            <div><div class="lbl">Hall Ticket No.</div><div class="val ht">${ticket.hall_ticket_number}</div></div>
+            <div><div class="lbl">Class &amp; Section</div><div class="val">${ticket.class_name} – ${ticket.section}</div></div>
+            <div><div class="lbl">Roll No.</div><div class="val">${ticket.roll_number || '—'}</div></div>
+            <div><div class="lbl">Academic Year</div><div class="val">${ticket.academic_year}</div></div>
+          </div>
+        </div>
+        <div class="schedule-col">
+          <div class="sec-title">Exam Schedule</div>
+          ${timetable.length > 0 ? `
+          <table><thead><tr><th>Date</th><th>Day</th><th>Subject</th><th>Time</th><th>Room</th></tr></thead>
+          <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:7px;padding:3px 0;">Timetable not yet assigned.</p>'}
+        </div>
       </div>
-      <div class="instr">
-        <b>Important Instructions:</b>
-        <ul style="padding-left:11px">
-          <li>Carry this hall ticket to every exam.</li>
-          <li>Report 15 minutes before the exam starts.</li>
-          <li>Electronic devices are not permitted in the exam hall.</li>
-          <li>Hall ticket must be produced on demand by the invigilator.</li>
-        </ul>
-      </div>
-      <div class="sigs">
-        <div class="sig"><div class="sig-line"></div>Student Signature</div>
-        <div class="sig"><div class="sig-line"></div>Principal Signature</div>
+      <div class="instr-sigs">
+        <div class="instr">
+          <b>Important Instructions:</b>
+          <ul style="padding-left:10px">
+            <li>Carry this hall ticket to every exam.</li>
+            <li>Report 15 minutes before the exam starts.</li>
+            <li>Electronic devices are not permitted in the exam hall.</li>
+            <li>Hall ticket must be produced on demand by the invigilator.</li>
+          </ul>
+        </div>
+        <div class="sigs">
+          <div class="sig"><div class="sig-line"></div>Student Signature</div>
+          <div class="sig"><div class="sig-line"></div>Principal Signature</div>
+        </div>
       </div>
     </div>`;
   }).join('');
