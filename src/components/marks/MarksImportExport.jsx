@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { writeFile, utils } from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export default function MarksImportExport({ 
   students, 
@@ -14,44 +14,55 @@ export default function MarksImportExport({
   const fileInputRef = useRef(null);
   const [isImporting, setIsImporting] = useState(false);
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (students.length === 0) {
       toast.error('No students to export');
       return;
     }
 
-    const headers = ['Student ID', 'Roll No', 'Name', ...subjects];
-    const rows = students.map(student => [
-      student.student_id || student.id,
-      student.roll_no || '',
-      student.name,
-      ...subjects.map(subject => 
-        marksData[student.student_id || student.id]?.[subject]?.marks_obtained || ''
-      )
-    ]);
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Marks');
 
-    const wsData = [headers, ...rows];
-    const ws = utils.aoa_to_sheet(wsData);
-    
-    // Set column widths evenly
-    const colWidth = 15;
-    ws['!cols'] = Array(headers.length).fill({ wch: colWidth });
+    const headers = ['Student ID', 'Roll No', 'Name', ...subjects];
+    worksheet.addRow(headers);
 
     // Style header row
-    for (let i = 0; i < headers.length; i++) {
-      const cell = ws[utils.encode_col(i) + '1'];
-      if (cell) {
-        cell.s = {
-          font: { bold: true, color: { rgb: 'FFFFFF' } },
-          fill: { fgColor: { rgb: '1F2937' } },
-          alignment: { horizontal: 'center', vertical: 'center' }
-        };
-      }
-    }
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
+    headerRow.alignment = { horizontal: 'center', vertical: 'center' };
 
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Marks');
-    writeFile(wb, `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.xlsx`);
+    // Add data rows
+    students.forEach(student => {
+      const row = [
+        student.student_id || student.id,
+        student.roll_no || '',
+        student.name,
+        ...subjects.map(subject => 
+          marksData[student.student_id || student.id]?.[subject]?.marks_obtained || ''
+        )
+      ];
+      worksheet.addRow(row);
+    });
+
+    // Set column widths evenly
+    const colWidth = 15;
+    worksheet.columns.forEach(col => {
+      col.width = colWidth;
+      col.alignment = { horizontal: 'center', vertical: 'center' };
+    });
+
+    // Generate buffer and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
     toast.success('Marks exported successfully');
   };
 
@@ -123,7 +134,7 @@ export default function MarksImportExport({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleExportExcel}
+        onClick={() => handleExportExcel()}
         className="gap-2"
       >
         <Download className="h-4 w-4" />
