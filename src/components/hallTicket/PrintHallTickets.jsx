@@ -44,7 +44,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
         <div class="schedule-col">
           <div class="sec-title">Exam Schedule</div>
           ${timetable.length > 0 ? `
-          <table><thead><tr><th>Date</th><th>Day</th><th>Subject</th><th>Time</th><th>Room</th></tr></thead>
+          <table style="height:100%; table-layout:fixed;"><thead><tr><th style="width:22%">Date</th><th style="width:13%">Day</th><th style="width:28%">Subject</th><th style="width:20%">Time</th><th style="width:17%">Invigilator Sign</th></tr></thead>
           <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:7px;padding:3px 0;">Timetable not yet assigned.</p>'}
         </div>
       </div>
