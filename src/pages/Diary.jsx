@@ -32,8 +32,11 @@ export default function Diary() {
         const studentData = JSON.parse(localStorage.getItem('student_session'));
         if (studentData) {
           setUserStudent(studentData);
+          console.log('Student loaded from session:', studentData);
         }
-      } catch {}
+      } catch (e) {
+        console.error('Failed to parse student session:', e);
+      }
     }
   }, []);
 
@@ -58,7 +61,9 @@ export default function Diary() {
 
   if (userStudent && !user) {
     // Student - see only their class entries
-    visibleDiaries = diaries.filter(d => d.class_name === userStudent.class_name);
+    visibleDiaries = diaries.filter(d => 
+      d.class_name === userStudent.class_name && d.section === userStudent.section
+    );
   } else if (user && !['admin', 'principal'].includes(user.role)) {
     // Teachers - see all published entries
     visibleDiaries = diaries;
