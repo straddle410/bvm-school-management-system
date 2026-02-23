@@ -144,8 +144,8 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     td { border: 1px solid #ddd; padding: 1px 4px; font-size: 9px; vertical-align: middle; }
 
     /* WATERMARK */
-    .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; }
-    .watermark-img { width: 180px; height: 180px; object-fit: contain; opacity: 0.22; filter: grayscale(100%); }
+    .watermark { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .watermark-img { width: 90%; height: 90%; object-fit: contain; opacity: 0.18; filter: grayscale(100%); }
 
     /* Ensure content stays above watermark */
     .schedule-col > *:not(.watermark) { position: relative; z-index: 1; }
