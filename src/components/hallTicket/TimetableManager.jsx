@@ -200,7 +200,7 @@ export default function TimetableManager() {
                           value={row.exam_date}
                           onChange={(e) => updateRow(idx, 'exam_date', e.target.value)}
                           className="w-full px-2 py-1.5 border rounded-lg text-sm cursor-pointer"
-                          onClick={(e) => e.target.showPicker?.()}
+
                           required
                         />
                       </div>
