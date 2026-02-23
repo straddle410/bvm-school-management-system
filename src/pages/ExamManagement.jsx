@@ -7,6 +7,7 @@ import ExamTypeManager from '@/components/hallTicket/ExamTypeManager';
 import TimetableManager from '@/components/hallTicket/TimetableManager';
 import HallTicketGenerator from '@/components/hallTicket/HallTicketGenerator';
 import HallTicketList from '@/components/hallTicket/HallTicketList';
+import ProgressCardGenerator from '@/components/hallTicket/ProgressCardGenerator';
 
 export default function ExamManagement() {
   const [user, setUser] = useState(null);
@@ -69,10 +70,7 @@ export default function ExamManagement() {
           </TabsContent>
 
           <TabsContent value="progress-cards" className="mt-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-2xl font-bold mb-4">Progress Cards</h2>
-              <p className="text-slate-600">Progress cards functionality coming soon...</p>
-            </div>
+            <ProgressCardGenerator />
           </TabsContent>
         </Tabs>
       </div>
