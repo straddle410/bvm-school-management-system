@@ -146,7 +146,21 @@ export default function SubjectManagement() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-3">Applicable Classes</label>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium">Applicable Classes</label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({
+                        ...formData,
+                        classes: formData.classes.length === CLASSES.length ? [] : CLASSES
+                      })}
+                      className="text-xs h-7"
+                    >
+                      {formData.classes.length === CLASSES.length ? 'Deselect All' : 'Select All'}
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {CLASSES.map(cls => (
                       <label key={cls} className="flex items-center gap-2">
