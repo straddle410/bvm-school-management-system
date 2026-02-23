@@ -17,13 +17,23 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
 
   // Check user role if isAdmin not explicitly passed
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   React.useEffect(() => {
+    // Check staff session first (custom login)
+    try {
+      const session = localStorage.getItem('staff_session');
+      if (session) {
+        const parsed = JSON.parse(session);
+        if (parsed?.role === 'Admin' || parsed?.role === 'admin' || parsed?.role === 'Principal') {
+          setUser({ role: 'admin' });
+          return;
+        }
+      }
+    } catch {}
+    // Fallback: check base44 auth
     base44.auth.me().then(u => {
       setUser(u);
-      setLoading(false);
     }).catch(() => {
-      setLoading(false);
+      setUser(null);
     });
   }, []);
   
