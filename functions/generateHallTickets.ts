@@ -50,8 +50,8 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // Fetch students
-    const query = { class_name: classname, academic_year: academicYear, status: 'Published' };
+    // Fetch students - get all students in the class regardless of status
+    const query = { class_name: classname, academic_year: academicYear };
     if (section) query.section = section;
     
     const students = await base44.asServiceRole.entities.Student.filter(query, '-roll_no');
