@@ -19,9 +19,9 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
   });
 
   const { data: timetable = [] } = useQuery({
-    queryKey: ['timetablePreview', ticket?.exam_type, ticket?.academic_year],
+    queryKey: ['timetablePreview', ticket?.exam_type, ticket?.academic_year, ticket?.class_name],
     queryFn: () => base44.entities.ExamTimetable.filter(
-      { exam_type: ticket.exam_type, academic_year: ticket.academic_year },
+      { exam_type: ticket.exam_type, academic_year: ticket.academic_year, class_name: ticket.class_name },
       'exam_date'
     ),
     enabled: !!ticket
