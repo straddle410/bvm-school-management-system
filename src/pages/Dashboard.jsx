@@ -38,7 +38,7 @@ const adminActions = [
   { label: 'Daily Attendance', icon: Check, color: '#0d47a1', page: 'AttendanceReport' },
   { label: 'Holidays', icon: Palmtree, color: '#f57f17', page: 'HolidayCalendar' },
   { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', page: 'HallTicketManagement' },
-  { label: 'Progress Card', icon: Award, color: '#f57c00', action: 'generateProgressCard' },
+  { label: 'Progress Card', icon: Award, color: '#f57c00', page: 'ExamManagement', tab: 'progress-cards' },
 ];
 
 export default function Dashboard() {
@@ -141,11 +141,7 @@ export default function Dashboard() {
     return map[type] || '#78909c';
   };
 
-  const handleAdminAction = (action) => {
-    if (action === 'generateProgressCard') {
-      alert('Progress Card generation feature coming soon');
-    }
-  };
+
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -255,23 +251,17 @@ export default function Dashboard() {
             <div className="grid grid-cols-3 gap-3">
               {adminActions.map((item) => {
                 const content = (
-                  <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm border-2 border-blue-100">
-                    <item.icon className="h-7 w-7" style={{ color: item.color }} />
-                    <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
-                  </div>
-                );
-                if (item.action) {
-                  return (
-                    <button key={item.label} onClick={() => handleAdminAction(item.action)}>
-                      {content}
-                    </button>
-                  );
-                }
-                return (
-                  <Link key={item.label} to={createPageUrl(item.page)}>
-                    {content}
-                  </Link>
-                );
+                   <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm border-2 border-blue-100">
+                     <item.icon className="h-7 w-7" style={{ color: item.color }} />
+                     <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
+                   </div>
+                 );
+                 const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
+                 return (
+                   <Link key={item.label} to={url}>
+                     {content}
+                   </Link>
+                 );
               })}
             </div>
           </div>
