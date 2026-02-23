@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
-import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText, Book } from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -74,7 +74,7 @@ export default function StudentDashboard() {
     { label: 'Gallery', page: 'Gallery', icon: Image, bg: '#fce4ec', color: '#c62828' },
     { label: 'Calendar', page: 'Calendar', icon: Calendar, bg: '#fff3e0', color: '#e65100' },
     { label: 'Quiz', page: 'Quiz', icon: Brain, bg: '#f3e5f5', color: '#6a1b9a' },
-    { label: 'Hall Ticket', page: 'StudentHallTicketView', icon: FileText, bg: '#fce4ec', color: '#d32f2f' },
+    { label: 'Diary', page: 'Diary', icon: Book, bg: '#fce4ec', color: '#c2185b' },
   ];
 
   const presentCount = attendance.filter(a => a.is_present).length;
