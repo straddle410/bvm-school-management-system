@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Zap } from 'lucide-react';
+import { Loader2, Zap, AlertCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
@@ -13,7 +13,31 @@ const SECTIONS = ['A', 'B', 'C', 'D'];
 export default function ProgressCardGenerator() {
   const { academicYear } = useAcademicYear();
   const [filters, setFilters] = useState({ class: '', section: '', exam_type: '' });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const queryClient = useQueryClient();
+
+  // Check authentication - staff session or platform login
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthLoading(true);
+      try {
+        const session = localStorage.getItem('staff_session');
+        if (session) {
+          setIsAuthenticated(true);
+          setAuthLoading(false);
+          return;
+        }
+        const isAuth = await base44.auth.isAuthenticated();
+        setIsAuthenticated(isAuth);
+      } catch (e) {
+        setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
@@ -65,6 +89,38 @@ export default function ProgressCardGenerator() {
       generateMutation.mutate();
     }
   };
+
+  if (authLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            Authentication Required
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600 mb-4">You must be logged in to generate progress cards.</p>
+          <Button 
+            onClick={() => window.location.href = '/StaffLogin'}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            Go to Staff Login
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
