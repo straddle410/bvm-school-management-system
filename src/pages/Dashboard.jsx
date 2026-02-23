@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
-  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus, FileText, Award, BookOpen, Palmtree, Calendar as CalendarIcon
+  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus, FileText, Award, BookOpen, Palmtree, Calendar as CalendarIcon, Clock
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -27,7 +27,7 @@ const quickAccess = [
 const quickActions = [
   { label: 'Take Attendance', icon: Check, color: '#1e88e5', page: 'Attendance', permission: 'attendance' },
   { label: 'Attendance Summary', icon: BarChart3, color: '#00796b', page: 'AttendanceSummaryReport', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
-  { label: 'Post Quiz', icon: Brain, color: '#7e57c2', page: 'Quiz', permission: 'quiz' },
+  { label: 'Timetable', icon: Clock, color: '#0288d1', page: 'TimetableManagement', roleRequired: ['Admin', 'Principal', 'teacher'] },
   { label: 'Homework', icon: BookOpen, color: '#f57c00', page: 'HomeworkManage', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
   { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
   { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks', permission: 'marks' },
