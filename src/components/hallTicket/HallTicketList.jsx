@@ -119,29 +119,20 @@ export default function HallTicketList() {
               </Button>
             </div>
           </div>
-          {/* Bulk Print Row */}
+          {/* Print Selected Row */}
           <div className="flex items-center gap-2 flex-wrap bg-blue-50 rounded-lg p-2 border border-blue-100">
             <Printer className="w-4 h-4 text-blue-600 flex-shrink-0" />
-            <span className="text-sm text-blue-800 font-medium">Print:</span>
-            <select
-              value={printCount}
-              onChange={e => setPrintCount(e.target.value)}
-              className="px-2 py-1 border border-blue-200 rounded text-sm bg-white"
-            >
-              <option value="all">All ({hallTickets.length})</option>
-              {[5, 10, 15, 20, 25, 30, 40, 50].filter(n => n <= hallTickets.length).map(n => (
-                <option key={n} value={n}>First {n}</option>
-              ))}
-            </select>
-            <span className="text-xs text-blue-600">hall tickets</span>
+            <span className="text-sm text-blue-800 font-medium">
+              {selected.length > 0 ? `${selected.length} ticket(s) selected` : 'Select tickets to print'}
+            </span>
             <Button
               size="sm"
               onClick={handleBulkPrint}
-              disabled={isPrinting || hallTickets.length === 0}
+              disabled={isPrinting || selected.length === 0}
               className="gap-2 bg-blue-600 hover:bg-blue-700 ml-auto"
             >
               <Printer className="w-4 h-4" />
-              {isPrinting ? 'Preparing...' : `Print ${printCount === 'all' ? 'All' : `First ${printCount}`}`}
+              {isPrinting ? 'Preparing...' : `Print Selected (${selected.length})`}
             </Button>
           </div>
         </CardHeader>
