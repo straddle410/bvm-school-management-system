@@ -102,17 +102,17 @@ export default function MarksReview() {
    }, [submittedMarks]);
 
   const publishMutation = useMutation({
-     mutationFn: async (marksIds) => {
-       const promises = marksIds.map(id =>
-         base44.entities.Marks.update(id, { status: 'Published' })
-       );
-       return Promise.all(promises);
-     },
-     onSuccess: () => {
-       queryClient.invalidateQueries(['marks-submitted']);
-       toast.success('Results published successfully');
-     }
-   });
+      mutationFn: async (marksIds) => {
+        const promises = marksIds.map(id =>
+          base44.entities.Marks.update(id, { status: 'Published', verified_by: user?.email, approved_by: user?.email })
+        );
+        return Promise.all(promises);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(['marks-submitted']);
+        toast.success('Results published successfully');
+      }
+    });
 
    const handleDownloadExcel = async (examType) => {
      try {
