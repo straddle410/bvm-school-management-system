@@ -3,22 +3,35 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Eye, Lock, CheckCircle } from 'lucide-react';
+import { Eye, Lock } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import HallTicketPreviewModal from './HallTicketPreviewModal';
 
-export default function HallTicketList({ examTypeId, classFilter }) {
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+export default function HallTicketList() {
   const { academicYear } = useAcademicYear();
   const [selected, setSelected] = useState([]);
+  const [filterClass, setFilterClass] = useState('');
+  const [filterExamType, setFilterExamType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [previewTicket, setPreviewTicket] = useState(null);
   const queryClient = useQueryClient();
 
+  const { data: examTypes = [] } = useQuery({
+    queryKey: ['examTypes', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
+  });
+
   const { data: hallTickets = [] } = useQuery({
-    queryKey: ['hallTickets', examTypeId, classFilter, academicYear],
+    queryKey: ['hallTickets', filterExamType, filterClass, filterStatus, academicYear],
     queryFn: async () => {
       const query = { academic_year: academicYear, status: { $ne: 'Draft' } };
-      if (examTypeId) query.exam_type = examTypeId;
-      if (classFilter) query.class_name = classFilter;
+      if (filterExamType) query.exam_type = filterExamType;
+      if (filterClass) query.class_name = filterClass;
+      if (filterStatus) query.status = filterStatus;
       return base44.entities.HallTicket.filter(query, '-created_date');
     }
   });
@@ -49,77 +62,124 @@ export default function HallTicketList({ examTypeId, classFilter }) {
     }
   });
 
-
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle>Hall Tickets</CardTitle>
-        <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0} className="gap-2 bg-green-600">
-              <Lock className="w-4 h-4" /> Approve & Lock
+    <>
+      <Card>
+        <CardHeader className="flex flex-row justify-between items-center flex-wrap gap-2">
+          <CardTitle>Hall Tickets ({hallTickets.length})</CardTitle>
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0 || approveMutation.isPending} className="gap-2 bg-green-600">
+              <Lock className="w-4 h-4" /> Approve & Lock ({selected.length})
             </Button>
             <Button onClick={() => {
               if (confirm('Delete selected hall tickets? This cannot be undone.')) {
                 deleteMutation.mutate(selected);
               }
-            }} disabled={selected.length === 0} className="gap-2 bg-red-600 hover:bg-red-700">
-              Delete
+            }} disabled={selected.length === 0 || deleteMutation.isPending} className="gap-2 bg-red-600 hover:bg-red-700">
+              Delete ({selected.length})
             </Button>
           </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-100">
-                <th className="p-2 text-left">
-                  <Checkbox
-                    checked={selected.length === hallTickets.length && hallTickets.length > 0}
-                    onCheckedChange={(checked) => setSelected(checked ? hallTickets.map(t => t.id) : [])}
-                  />
-                </th>
-                <th className="p-2 text-left">Hall Ticket No</th>
-                <th className="p-2 text-left">Student Name</th>
-                <th className="p-2 text-left">Roll No</th>
-                <th className="p-2 text-left">Class</th>
-                <th className="p-2 text-left">Status</th>
-                <th className="p-2 text-left">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hallTickets.map(ticket => (
-                <tr key={ticket.id} className="border-b hover:bg-slate-50">
-                  <td className="p-2">
+        </CardHeader>
+        <CardContent>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select
+              value={filterClass}
+              onChange={e => { setFilterClass(e.target.value); setSelected([]); }}
+              className="px-3 py-1.5 border rounded-lg text-sm"
+            >
+              <option value="">All Classes</option>
+              {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+            </select>
+            <select
+              value={filterExamType}
+              onChange={e => { setFilterExamType(e.target.value); setSelected([]); }}
+              className="px-3 py-1.5 border rounded-lg text-sm"
+            >
+              <option value="">All Exam Types</option>
+              {examTypes.map(et => <option key={et.id} value={et.id}>{et.name}</option>)}
+            </select>
+            <select
+              value={filterStatus}
+              onChange={e => { setFilterStatus(e.target.value); setSelected([]); }}
+              className="px-3 py-1.5 border rounded-lg text-sm"
+            >
+              <option value="">All Statuses</option>
+              <option value="Generated">Generated</option>
+              <option value="Approved">Approved</option>
+              <option value="Published">Published</option>
+            </select>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="p-2 text-left">
                     <Checkbox
-                      checked={selected.includes(ticket.id)}
-                      onCheckedChange={(checked) => {
-                        setSelected(checked ? [...selected, ticket.id] : selected.filter(id => id !== ticket.id));
-                      }}
+                      checked={selected.length === hallTickets.length && hallTickets.length > 0}
+                      onCheckedChange={(checked) => setSelected(checked ? hallTickets.map(t => t.id) : [])}
                     />
-                  </td>
-                  <td className="p-2 font-semibold">{ticket.hall_ticket_number}</td>
-                  <td className="p-2">{ticket.student_name}</td>
-                  <td className="p-2">{ticket.roll_number}</td>
-                  <td className="p-2">{ticket.class_name}-{ticket.section}</td>
-                  <td className="p-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      ticket.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {ticket.status}
-                    </span>
-                  </td>
-                  <td className="p-2 flex gap-1">
-                    <Button size="icon" variant="ghost" className="text-blue-600">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </td>
+                  </th>
+                  <th className="p-2 text-left">Hall Ticket No</th>
+                  <th className="p-2 text-left">Student Name</th>
+                  <th className="p-2 text-left">Roll No</th>
+                  <th className="p-2 text-left">Class</th>
+                  <th className="p-2 text-left">Status</th>
+                  <th className="p-2 text-left">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+              </thead>
+              <tbody>
+                {hallTickets.map(ticket => (
+                  <tr key={ticket.id} className="border-b hover:bg-slate-50">
+                    <td className="p-2">
+                      <Checkbox
+                        checked={selected.includes(ticket.id)}
+                        onCheckedChange={(checked) => {
+                          setSelected(checked ? [...selected, ticket.id] : selected.filter(id => id !== ticket.id));
+                        }}
+                      />
+                    </td>
+                    <td className="p-2 font-semibold">{ticket.hall_ticket_number}</td>
+                    <td className="p-2">{ticket.student_name}</td>
+                    <td className="p-2">{ticket.roll_number}</td>
+                    <td className="p-2">{ticket.class_name}-{ticket.section}</td>
+                    <td className="p-2">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        ticket.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                        ticket.status === 'Published' ? 'bg-blue-100 text-blue-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {ticket.status}
+                      </span>
+                    </td>
+                    <td className="p-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        onClick={() => setPreviewTicket(ticket)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {hallTickets.length === 0 && (
+                  <tr><td colSpan={7} className="p-6 text-center text-slate-400">No hall tickets found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {previewTicket && (
+        <HallTicketPreviewModal
+          ticket={previewTicket}
+          onClose={() => setPreviewTicket(null)}
+        />
+      )}
+    </>
   );
 }
