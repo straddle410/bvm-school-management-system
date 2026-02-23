@@ -21,6 +21,7 @@ const quickAccess = [
   { label: 'Calendar', icon: Calendar, color: '#26a69a', bg: '#e0f2f1', page: 'Calendar' },
   { label: 'Quiz', icon: Brain, color: '#7e57c2', bg: '#ede7f6', page: 'Quiz' },
   { label: 'Notices', icon: Bell, color: '#26c6da', bg: '#e0f7fa', page: 'Notices' },
+  { label: 'Diary', icon: Book, color: '#c2185b', bg: '#fce4ec', page: 'Diary' },
   { label: 'Student Login', icon: User, color: '#e91e63', bg: '#fce4ec', page: 'StudentLogin' },
 ];
 
