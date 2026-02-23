@@ -75,7 +75,6 @@ export default function MarksTable({
                           }`}
                           placeholder="—"
                         />
-                        <span className="text-xs text-slate-500 ml-1">/{maxMarks}</span>
                       </div>
                     </td>
                   );
