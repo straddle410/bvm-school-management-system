@@ -42,13 +42,30 @@ export default function Diary() {
         const studentData = JSON.parse(localStorage.getItem('student_session'));
         if (studentData) {
           setUserStudent(studentData);
-          console.log('Student loaded from session:', studentData);
+          // Mark diary notifications as read
+          markDiaryNotificationsAsRead(studentData.student_id);
         }
       } catch (e) {
         console.error('Failed to parse student session:', e);
       }
     }
   }, []);
+
+  const markDiaryNotificationsAsRead = async (studentId) => {
+    try {
+      const unreadNotifications = await base44.entities.Notification.filter({
+        recipient_student_id: studentId,
+        type: 'diary_published',
+        is_read: false
+      });
+      
+      for (const notif of unreadNotifications) {
+        await base44.entities.Notification.update(notif.id, { is_read: true });
+      }
+    } catch (error) {
+      console.debug('Error marking notifications as read:', error);
+    }
+  };
 
   const { data: diaries = [] } = useQuery({
     queryKey: ['diaries', academicYear],
