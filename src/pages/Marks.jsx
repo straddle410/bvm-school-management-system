@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Plus, Save, Send, Settings, FileText, Edit2, Trash2, Power
+  BookOpen, Save, Send, Settings, FileText
 } from 'lucide-react';
 import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
@@ -40,16 +40,11 @@ const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social 
 export default function Marks() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('entry');
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('A');
   const [selectedExam, setSelectedExam] = useState('');
   const [marksData, setMarksData] = useState({});
-  const [showExamDialog, setShowExamDialog] = useState(false);
-  const [examForm, setExamForm] = useState({ name: '', max_marks: 100, passing_marks: 33 });
-  const [editingExam, setEditingExam] = useState(null);
   const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -115,44 +110,6 @@ export default function Marks() {
   const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
-
-  const createExamMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExamType.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['exam-types']);
-      setShowExamDialog(false);
-      setExamForm({ name: '', max_marks: 100, passing_marks: 33 });
-      toast.success('Exam type created');
-    }
-  });
-
-  const updateExamMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExamType.update(data.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['exam-types']);
-      setShowExamDialog(false);
-      setEditingExam(null);
-      setExamForm({ name: '', max_marks: 100, passing_marks: 33 });
-      toast.success('Exam type updated');
-    }
-  });
-
-  const deleteExamMutation = useMutation({
-    mutationFn: (id) => base44.entities.ExamType.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['exam-types']);
-      setDeleteConfirmId(null);
-      toast.success('Exam type deleted');
-    }
-  });
-
-  const toggleExamStatusMutation = useMutation({
-    mutationFn: (exam) => base44.entities.ExamType.update(exam.id, { is_active: !exam.is_active }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['exam-types']);
-      toast.success('Exam status updated');
-    }
-  });
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -239,23 +196,11 @@ export default function Marks() {
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Exams & Marks">
       <div className="min-h-screen bg-slate-50">
       <PageHeader 
-        title="Exams & Marks"
-        subtitle="Manage exam types and enter marks"
-        actions={
-          <Button onClick={() => setShowExamDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Exam Type
-          </Button>
-        }
+        title="Enter Marks"
+        subtitle="Enter and manage student marks"
       />
 
       <div className="p-4 lg:p-8 space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-white border shadow-sm">
-            <TabsTrigger value="entry">Enter Marks</TabsTrigger>
-            <TabsTrigger value="exams">Exam Types</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="entry" className="mt-6 space-y-6">
             {/* Selection */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4">
@@ -395,157 +340,9 @@ export default function Marks() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="exams" className="mt-6">
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Exam Types</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {examTypes.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400">
-                    No exam types created yet
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {examTypes.map(exam => (
-                      <Card key={exam.id} className="p-4 bg-slate-50 border-0">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{exam.name}</h4>
-                              <p className="text-sm text-slate-500 mt-1">
-                                Max: {exam.max_marks} | Pass: {exam.min_marks_to_pass}
-                              </p>
-                            </div>
-                            <StatusBadge status={exam.status} />
-                          </div>
-                          <div className="flex gap-2 pt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingExam(exam);
-                                setExamForm({ name: exam.name, max_marks: exam.max_marks, passing_marks: exam.min_marks_to_pass });
-                                setShowExamDialog(true);
-                              }}
-                              className="flex-1 gap-1"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={exam.is_active !== false ? 'default' : 'outline'}
-                              onClick={() => toggleExamStatusMutation.mutate(exam)}
-                              disabled={toggleExamStatusMutation.isPending}
-                              className="gap-1"
-                            >
-                              <Power className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setDeleteConfirmId(exam.id)}
-                              disabled={deleteExamMutation.isPending}
-                              className="gap-1"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
 
-      <Dialog open={showExamDialog} onOpenChange={setShowExamDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingExam ? 'Edit Exam Type' : 'Add Exam Type'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            if (editingExam) {
-              updateExamMutation.mutate({...editingExam, name: examForm.name, max_marks: examForm.max_marks, min_marks_to_pass: examForm.passing_marks});
-            } else {
-              createExamMutation.mutate({...examForm, status: 'Draft'});
-            }
-          }} className="space-y-4">
-            <div>
-              <Label>Exam Name</Label>
-              <Input
-                value={examForm.name}
-                onChange={(e) => setExamForm({...examForm, name: e.target.value})}
-                placeholder="e.g., Unit Test 1"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Maximum Marks</Label>
-                <Input
-                  type="number"
-                  value={examForm.max_marks}
-                  onChange={(e) => setExamForm({...examForm, max_marks: parseInt(e.target.value)})}
-                />
-              </div>
-              <div>
-                <Label>Passing Marks</Label>
-                <Input
-                  type="number"
-                  value={examForm.passing_marks}
-                  onChange={(e) => setExamForm({...examForm, passing_marks: parseInt(e.target.value)})}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => {
-                setShowExamDialog(false);
-                setEditingExam(null);
-                setExamForm({ name: '', max_marks: 100, passing_marks: 33 });
-              }}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createExamMutation.isPending || updateExamMutation.isPending}>
-                {editingExam 
-                  ? (updateExamMutation.isPending ? 'Updating...' : 'Update Exam Type')
-                  : (createExamMutation.isPending ? 'Creating...' : 'Create Exam Type')
-                }
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Exam Type</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-slate-600 py-4">
-            Are you sure you want to delete this exam type? This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={() => deleteConfirmId && deleteExamMutation.mutate(deleteConfirmId)}
-              disabled={deleteExamMutation.isPending}
-            >
-              {deleteExamMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
     </LoginRequired>
   );
