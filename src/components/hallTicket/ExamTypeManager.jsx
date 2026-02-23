@@ -74,10 +74,50 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Exam Types</CardTitle>
+        <CardHeader className="flex flex-row justify-between items-center">
+          <CardTitle>Manage Exam Types</CardTitle>
+          {hasPermission && showAddButton && (
+            <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }} className="gap-2">
+              <Plus className="w-4 h-4" /> Add Type
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
+          {showForm && hasPermission && (
+            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
+              <select
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+                required
+              >
+                <option value="">Select Exam Type</option>
+                {['Formative Assessment 1', 'Formative Assessment 2', 'Formative Assessment 3', 'Formative Assessment 4', 'Summative Assessment 1', 'Summative Assessment 2', 'Summative Assessment 3', 'Annual Exam', 'Pre Final Exam 1', 'Pre Final Exam 2'].map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="Summative">Summative (SA)</option>
+                <option value="Formative">Formative (FA)</option>
+              </select>
+
+              <Input
+                placeholder="Description (optional)"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+
+              <div className="flex gap-2">
+                <Button type="submit" className="bg-blue-600">Save</Button>
+                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</Button>
+              </div>
+            </form>
+          )}
 
           <div className="grid gap-2">
             {examTypes.map(type => (
