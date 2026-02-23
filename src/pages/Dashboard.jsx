@@ -35,10 +35,8 @@ const quickActions = [
 
 const adminActions = [
   { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
-  { label: 'Daily Attendance', icon: Check, color: '#0d47a1', page: 'AttendanceReport' },
-  { label: 'Holidays', icon: Palmtree, color: '#f57f17', page: 'HolidayCalendar' },
   { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', page: 'HallTicketManagement' },
-  { label: 'Progress Card', icon: Award, color: '#f57c00', action: 'generateProgressCard' },
+  { label: 'Progress Card', icon: Award, color: '#f57c00', page: 'ExamManagement' },
 ];
 
 export default function Dashboard() {
