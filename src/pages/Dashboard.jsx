@@ -110,7 +110,7 @@ export default function Dashboard() {
     }
   });
 
-  const { data: unreadDiaryCount = 0 } = useQuery({
+  const { data: unreadDiaryCount = 0, refetch: refetchDiaryCount } = useQuery({
     queryKey: ['unread-diary-count', user?.student_id],
     queryFn: async () => {
       if (!user?.student_id) return 0;
@@ -125,7 +125,8 @@ export default function Dashboard() {
         return 0;
       }
     },
-    enabled: !!user?.student_id
+    enabled: !!user?.student_id,
+    refetchInterval: 2000
   });
 
   const upcomingEvents = events
