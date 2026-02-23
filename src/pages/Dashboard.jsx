@@ -198,7 +198,7 @@ export default function Dashboard() {
         {/* Quick Access */}
         <div>
           <h2 className="text-base font-bold text-gray-800 mb-3">Quick Access</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 auto-rows-max">
             {quickAccess
               .filter(item => !(item.page === 'StudentLogin' && user))
               .map((item) => (
