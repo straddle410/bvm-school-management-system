@@ -53,11 +53,25 @@ Deno.serve(async (req) => {
     // Fetch students - get all students in the class regardless of status
     const query = { class_name: classname, academic_year: academicYear };
     if (section) query.section = section;
-    
+
     const students = await base44.asServiceRole.entities.Student.filter(query, '-roll_no');
 
     if (students.length === 0) {
       return Response.json({ error: 'No students found', count: 0 }, { status: 200 });
+    }
+
+    // Check for duplicate roll numbers
+    const rollNumbers = students.map(s => s.roll_no).filter(Boolean);
+    const uniqueRollNumbers = new Set(rollNumbers);
+    const hasDuplicates = rollNumbers.length !== uniqueRollNumbers.size;
+
+    if (hasDuplicates) {
+      const duplicates = rollNumbers.filter((rn, idx) => rollNumbers.indexOf(rn) !== idx);
+      return Response.json({
+        error: `Duplicate roll numbers found in Class ${classname}-${section || 'A'}: ${[...new Set(duplicates)].join(', ')}. Please fix roll numbers before generating hall tickets.`,
+        hasDuplicateRollNumbers: true,
+        duplicateRollNumbers: [...new Set(duplicates)]
+      }, { status: 400 });
     }
 
     // Generate hall ticket numbers
