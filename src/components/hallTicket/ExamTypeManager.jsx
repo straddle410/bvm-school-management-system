@@ -8,20 +8,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
-const EXAM_TYPES = [
-  'Summative Assessment 1',
-  'Summative Assessment 2',
-  'Summative Assessment 3',
-  'Annual Exam',
-  'Formative Assessment 1',
-  'Formative Assessment 2',
-  'Formative Assessment 3',
-  'Formative Assessment 4'
-];
-
 export default function ExamTypeManager({ isAdmin = false }) {
   const { academicYear } = useAcademicYear();
-  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', category: 'Summative' });
   const queryClient = useQueryClient();
@@ -43,16 +31,6 @@ export default function ExamTypeManager({ isAdmin = false }) {
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
     queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExamType.create({ ...data, academic_year: academicYear }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['examTypes'] });
-      setShowForm(false);
-      setFormData({ name: '', description: '', category: 'Summative' });
-      toast.success('Exam type created');
-    }
   });
 
   const updateMutation = useMutation({
@@ -77,8 +55,6 @@ export default function ExamTypeManager({ isAdmin = false }) {
     e.preventDefault();
     if (editingId) {
       updateMutation.mutate(formData);
-    } else {
-      createMutation.mutate(formData);
     }
   };
 
