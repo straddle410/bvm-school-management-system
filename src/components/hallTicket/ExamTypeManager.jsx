@@ -3,25 +3,16 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
-import ExamTypeDetailedConfig from './ExamTypeDetailedConfig';
 
 export default function ExamTypeManager({ isAdmin = false, showAddButton = true }) {
   const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    description: '', 
-    category: 'Summative',
-    weight: 0,
-    grading_scale: [],
-    subject_max_marks: {}
-  });
+  const [formData, setFormData] = useState({ name: '', description: '', category: 'Summative' });
   const queryClient = useQueryClient();
 
   // Check user role if isAdmin not explicitly passed
@@ -90,19 +81,6 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     }
   };
 
-  const handleEdit = (type) => {
-    setEditingId(type.id);
-    setFormData({
-      name: type.name,
-      description: type.description,
-      category: type.category,
-      weight: type.weight || 0,
-      grading_scale: type.grading_scale || [],
-      subject_max_marks: type.subject_max_marks || {}
-    });
-    setShowForm(true);
-  };
-
   return (
     <div className="space-y-4">
       <Card>
@@ -144,12 +122,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
 
-              <div className="border-t pt-4">
-                <p className="text-sm font-medium text-slate-700 mb-3">Advanced Configuration</p>
-                <ExamTypeDetailedConfig examType={formData} onChange={setFormData} />
-              </div>
-
-              <div className="flex gap-2 mt-4 border-t pt-4">
+              <div className="flex gap-2">
                 <Button type="submit" className="bg-blue-600">Save</Button>
                 <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</Button>
               </div>
@@ -161,67 +134,24 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
               <p className="text-center text-slate-500 py-4">No exam types created yet</p>
             ) : (
               examTypes.map(type => (
-                <div key={type.id} className="bg-slate-50 rounded-lg border overflow-hidden">
-                  <div className="flex items-center justify-between p-3">
-                    <div 
-                      className="flex-1 cursor-pointer"
-                      onClick={() => setExpandedId(expandedId === type.id ? null : type.id)}
-                    >
-                      <div className="flex items-center gap-2">
-                        {expandedId === type.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        <div>
-                          <p className="font-semibold">{type.name}</p>
-                          <p className="text-sm text-slate-500">{type.category} Assessment</p>
-                          {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
-                        </div>
-                      </div>
-                    </div>
-                    {hasPermission && (
-                      <div className="flex gap-2 ml-4">
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(type)}>
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
+                <div key={type.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                  <div className="flex-1">
+                    <p className="font-semibold">{type.name}</p>
+                    <p className="text-sm text-slate-500">{type.category} Assessment</p>
+                    {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
                   </div>
-
-                  {expandedId === type.id && (
-                    <div className="border-t bg-white p-4 space-y-3">
-                      {type.weight > 0 && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-slate-600">Weight:</span>
-                          <span className="font-semibold">{type.weight}%</span>
-                        </div>
-                      )}
-                      
-                      {type.grading_scale && type.grading_scale.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-slate-700 mb-2">Grading Scale:</p>
-                          <div className="space-y-1">
-                            {type.grading_scale.map((g, idx) => (
-                              <div key={idx} className="text-xs text-slate-600 bg-slate-50 p-2 rounded">
-                                <span className="font-semibold">{g.grade}</span> ({g.min_percentage}-{g.max_percentage}%)
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {type.subject_max_marks && Object.keys(type.subject_max_marks).length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-slate-700 mb-2">Subject Max Marks:</p>
-                          <div className="grid grid-cols-2 gap-2">
-                            {Object.entries(type.subject_max_marks).map(([subject, marks], idx) => (
-                              <div key={idx} className="text-xs text-slate-600 bg-slate-50 p-2 rounded">
-                                <span className="font-medium">{subject}:</span> {marks}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                  {hasPermission && (
+                    <div className="flex gap-2 ml-4">
+                      <Button size="icon" variant="ghost" onClick={() => {
+                        setEditingId(type.id);
+                        setFormData({ name: type.name, description: type.description, category: type.category });
+                        setShowForm(true);
+                      }}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   )}
                 </div>
