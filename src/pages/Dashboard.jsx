@@ -50,8 +50,12 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check staff session from localStorage (custom login)
-    const session = localStorage.getItem('staff_session');
+    // Check staff session first
+    let session = localStorage.getItem('staff_session');
+    if (!session) {
+      // Check student session if no staff session
+      session = localStorage.getItem('student_session');
+    }
     if (session) {
       try {
         const parsed = JSON.parse(session);
