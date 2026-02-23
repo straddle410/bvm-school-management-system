@@ -106,6 +106,24 @@ export default function Dashboard() {
     }
   });
 
+  const { data: unreadDiaryCount = 0 } = useQuery({
+    queryKey: ['unread-diary-count', user?.student_id],
+    queryFn: async () => {
+      if (!user?.student_id) return 0;
+      try {
+        const notifications = await base44.entities.Notification.filter({
+          recipient_student_id: user.student_id,
+          type: 'diary_published',
+          is_read: false
+        });
+        return notifications.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!user?.student_id
+  });
+
   const upcomingEvents = events
     .filter(e => new Date(e.start_date) >= new Date())
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
