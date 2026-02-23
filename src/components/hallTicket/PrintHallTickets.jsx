@@ -145,10 +145,10 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
     /* WATERMARK */
     .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; }
-    .watermark-img { width: 150px; height: 150px; object-fit: contain; opacity: 0.18; filter: grayscale(100%); }
+    .watermark-img { width: 180px; height: 180px; object-fit: contain; opacity: 0.22; filter: grayscale(100%); }
 
     /* Ensure content stays above watermark */
-    .student-col, .schedule-col { position: relative; z-index: 1; }
+    .schedule-col > *:not(.watermark) { position: relative; z-index: 1; }
 
     /* FOOTER */
     .footer-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 6px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
