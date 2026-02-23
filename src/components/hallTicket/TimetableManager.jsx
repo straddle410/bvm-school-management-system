@@ -158,8 +158,8 @@ export default function TimetableManager() {
                  >
                    <option value="">{examTypes.length === 0 ? 'No exam types available' : 'Select Exam Type'}</option>
                    {examTypes.map(type => (
-                     <option key={type.id} value={type.name}>{type.name}</option>
-                   ))}
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
                  </select>
               </div>
 
