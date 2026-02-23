@@ -62,7 +62,6 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
           </div>
         </div>
         <div class="footer-row">
-          <div class="sig ao-sig"><div class="sig-line"></div>AO Signature</div>
           <div class="instr">
             <b>Important Instructions:</b>
             <ul>
@@ -72,6 +71,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
               <li>Hall ticket must be produced on demand by the invigilator.</li>
             </ul>
           </div>
+          <div class="sig ao-sig"><div class="sig-line"></div>AO Signature</div>
           <div class="sig"><div class="sig-line"></div>Principal Signature</div>
         </div>
       </div>
