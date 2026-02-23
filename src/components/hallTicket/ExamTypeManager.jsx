@@ -61,55 +61,10 @@ export default function ExamTypeManager({ isAdmin = false }) {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row justify-between items-center">
-          <CardTitle>Manage Exam Types</CardTitle>
-          {hasPermission && (
-            <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }} className="gap-2">
-              <Plus className="w-4 h-4" /> Add Type
-            </Button>
-          )}
+        <CardHeader>
+          <CardTitle>Exam Types</CardTitle>
         </CardHeader>
         <CardContent>
-          {!hasPermission && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-              <p>Only administrators can create exam types. You can select from existing exam types below.</p>
-            </div>
-          )}
-          {showForm && hasPermission && (
-            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
-              <select
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              >
-                <option value="">Select Exam Type</option>
-                {EXAM_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-              >
-                <option value="Summative">Summative (SA)</option>
-                <option value="Formative">Formative (FA)</option>
-              </select>
-
-              <Input
-                placeholder="Description (optional)"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-
-              <div className="flex gap-2">
-                <Button type="submit" className="bg-blue-600">Save</Button>
-                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</Button>
-              </div>
-            </form>
-          )}
 
           <div className="grid gap-2">
             {examTypes.map(type => (
