@@ -28,11 +28,17 @@ export default function ExamTypeManager({ isAdmin = false }) {
 
   // Check user role if isAdmin not explicitly passed
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   React.useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
   
-  const hasPermission = isAdmin || (user && user.role === 'admin');
+  const hasPermission = isAdmin || (user?.role === 'admin');
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
