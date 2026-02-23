@@ -11,6 +11,11 @@ export default function ExamManagement() {
   useEffect(() => {
     const loadUser = async () => {
       try {
+        const session = localStorage.getItem('staff_session');
+        if (session) {
+          setUser(JSON.parse(session));
+          return;
+        }
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (e) {

@@ -24,6 +24,7 @@ export default function ProgressCardGenerator() {
       try {
         const session = localStorage.getItem('staff_session');
         if (session) {
+          const parsed = JSON.parse(session);
           setIsAuthenticated(true);
           setAuthLoading(false);
           return;
@@ -31,6 +32,7 @@ export default function ProgressCardGenerator() {
         const isAuth = await base44.auth.isAuthenticated();
         setIsAuthenticated(isAuth);
       } catch (e) {
+        console.error('Auth check failed:', e);
         setIsAuthenticated(false);
       } finally {
         setAuthLoading(false);
