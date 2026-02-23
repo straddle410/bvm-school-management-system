@@ -70,10 +70,8 @@ export default function HallTicketList() {
   });
 
   const handleBulkPrint = async () => {
-    const ticketsToPrint = printCount === 'all'
-      ? hallTickets
-      : hallTickets.slice(0, parseInt(printCount));
-    if (!ticketsToPrint.length) { toast.error('No tickets to print'); return; }
+    const ticketsToPrint = hallTickets.filter(t => selected.includes(t.id));
+    if (!ticketsToPrint.length) { toast.error('No tickets selected to print'); return; }
     setIsPrinting(true);
     toast.info(`Fetching timetables for ${ticketsToPrint.length} ticket(s)...`);
     try {
