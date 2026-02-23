@@ -9,19 +9,31 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Create SDK and authenticate user
+    // Create SDK using service role (staff session auth via payload)
     const base44 = createClientFromRequest(req);
-    let user;
 
-    try {
-      user = await base44.auth.me();
-    } catch (e) {
-      return Response.json({ error: 'Unauthorized - please log in' }, { status: 401 });
+    // Parse staff session from payload for auth
+    let staffUser = null;
+    if (staffSession) {
+      try {
+        staffUser = typeof staffSession === 'string' ? JSON.parse(staffSession) : staffSession;
+      } catch {}
     }
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Only admins can generate hall tickets' }, { status: 403 });
+    // Fall back to platform auth if no staff session
+    if (!staffUser) {
+      try {
+        const platformUser = await base44.auth.me();
+        if (platformUser?.role !== 'admin') {
+          return Response.json({ error: 'Only admins can generate hall tickets' }, { status: 403 });
+        }
+        staffUser = platformUser;
+      } catch (e) {
+        return Response.json({ error: 'Unauthorized - please log in' }, { status: 401 });
+      }
     }
+
+    const user = staffUser;
 
     // Check if hall tickets already exist for this class/exam/year
     const existingTickets = await base44.asServiceRole.entities.HallTicket.filter({
