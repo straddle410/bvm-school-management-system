@@ -70,6 +70,39 @@ export default function HallTicketList() {
     }
   });
 
+  const handleBulkPrint = async () => {
+    const ticketsToPrint = printCount === 'all'
+      ? hallTickets
+      : hallTickets.slice(0, parseInt(printCount));
+    if (!ticketsToPrint.length) { toast.error('No tickets to print'); return; }
+    setIsPrinting(true);
+    toast.info(`Fetching timetables for ${ticketsToPrint.length} ticket(s)...`);
+    try {
+      // Group by class + exam_type to minimize queries
+      const groups = {};
+      for (const t of ticketsToPrint) {
+        const key = `${t.exam_type}__${t.class_name}__${t.academic_year}`;
+        if (!groups[key]) groups[key] = { exam_type: t.exam_type, class_name: t.class_name, academic_year: t.academic_year, tickets: [] };
+        groups[key].tickets.push(t);
+      }
+      const timetableMap = {};
+      await Promise.all(Object.values(groups).map(async (g) => {
+        const tt = await base44.entities.ExamTimetable.filter(
+          { exam_type: g.exam_type, class_name: g.class_name, academic_year: g.academic_year },
+          'exam_date'
+        );
+        for (const t of g.tickets) timetableMap[t.id] = tt;
+      }));
+      const examTypesMap = {};
+      for (const et of examTypes) examTypesMap[et.id] = et.name;
+      printHallTickets(ticketsToPrint, timetableMap, schoolProfile, examTypesMap);
+    } catch (e) {
+      toast.error('Failed to fetch timetables: ' + e.message);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
   return (
     <>
       <Card>
