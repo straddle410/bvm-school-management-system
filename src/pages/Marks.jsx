@@ -72,6 +72,19 @@ export default function Marks() {
     staleTime: 5 * 60 * 1000
   });
 
+  const { data: timetableEntries = [] } = useQuery({
+    queryKey: ['timetable', selectedClass, selectedExam, academicYear],
+    queryFn: () => {
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+      return base44.entities.ExamTimetable.filter({
+        class_name: selectedClass,
+        exam_type: selectedExamObj?.id || selectedExam,
+        academic_year: academicYear
+      });
+    },
+    enabled: !!(selectedClass && selectedExam && academicYear)
+  });
+
   const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
