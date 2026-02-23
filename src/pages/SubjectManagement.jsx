@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { toast } from 'sonner';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -22,7 +23,21 @@ export default function SubjectManagement() {
 
   const { data: subjects = [], isLoading } = useQuery({
     queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list()
+    queryFn: async () => {
+      const subs = await base44.entities.Subject.list();
+      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    }
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (updates) => {
+      await Promise.all(updates.map(({ id, sort_order }) => 
+        base44.entities.Subject.update(id, { sort_order })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subjects'] });
+    }
   });
 
   const createMutation = useMutation({
@@ -88,6 +103,23 @@ export default function SubjectManagement() {
     if (confirm('Are you sure you want to delete this subject?')) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleDragEnd = (result) => {
+    const { source, destination } = result;
+    if (!destination) return;
+    if (source.index === destination.index) return;
+
+    const items = Array.from(subjects);
+    const [reorderedItem] = items.splice(source.index, 1);
+    items.splice(destination.index, 0, reorderedItem);
+
+    const updates = items.map((item, index) => ({
+      id: item.id,
+      sort_order: index
+    }));
+
+    reorderMutation.mutate(updates);
   };
 
   const toggleClass = (className) => {
@@ -208,65 +240,69 @@ export default function SubjectManagement() {
             ) : subjects.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No subjects found</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Code</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Classes</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Type</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {subjects.map(subject => (
-                      <tr key={subject.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{subject.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{subject.code || '-'}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <div className="flex flex-wrap gap-1">
-                            {subject.classes?.length > 0 ? (
-                              subject.classes.map(cls => (
-                                <span key={cls} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                                  {cls}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          <span className={`inline-block px-2 py-1 rounded text-xs ${subject.is_optional ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
-                            {subject.is_optional ? 'Optional' : 'Mandatory'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex gap-2 justify-end">
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => handleEdit(subject)}
-                              className="h-8 w-8"
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="subjects">
+                  {(provided, snapshot) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className={`space-y-2 ${snapshot.isDraggingOver ? 'bg-blue-50 rounded p-2' : ''}`}
+                    >
+                      {subjects.map((subject, index) => (
+                        <Draggable key={subject.id} draggableId={subject.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`flex items-center gap-3 p-3 bg-white border rounded-lg ${snapshot.isDragging ? 'shadow-lg bg-blue-50' : 'hover:bg-gray-50'}`}
                             >
-                              <Edit2 className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => handleDelete(subject.id)}
-                              className="h-8 w-8 text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                              <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                <GripVertical className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium">{subject.name}</div>
+                                <div className="text-sm text-gray-600">{subject.code ? `Code: ${subject.code}` : 'No code'}</div>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {subject.classes?.slice(0, 2).map(cls => (
+                                  <span key={cls} className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
+                                    {cls}
+                                  </span>
+                                ))}
+                                {subject.classes?.length > 2 && (
+                                  <span className="text-xs text-gray-500">+{subject.classes.length - 2}</span>
+                                )}
+                              </div>
+                              <span className={`inline-block px-2 py-1 rounded text-xs ${subject.is_optional ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
+                                {subject.is_optional ? 'Optional' : 'Mandatory'}
+                              </span>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => handleEdit(subject)}
+                                  className="h-8 w-8"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => handleDelete(subject.id)}
+                                  className="h-8 w-8 text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </CardContent>
         </Card>
