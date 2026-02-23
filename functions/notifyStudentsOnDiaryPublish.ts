@@ -38,18 +38,6 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.Notification.bulkCreate(notifications);
 
-    // Send emails to parents
-    const emailPromises = students.map(student => {
-      const email = student.parent_email || student.username;
-      return base44.integrations.Core.SendEmail({
-        to: email,
-        subject: `New Class Activity: ${diary.subject}`,
-        body: `Dear ${student.parent_name || student.name},\n\n${diary.posted_by_name} has posted a new class activity for ${diary.subject}:\n\n"${diary.title}"\n\nPlease log in to the school portal to view details.\n\nBest regards,\nSchool Management System`
-      });
-    });
-
-    await Promise.all(emailPromises);
-
     return Response.json({ success: true, notified: students.length });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
