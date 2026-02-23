@@ -5,14 +5,29 @@ import { X, Printer } from 'lucide-react';
 
 export default function ProgressCardModal({ card, isOpen, onClose }) {
   const handlePrint = () => {
-    window.print();
+    // Add print styles temporarily
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        body * { display: none; }
+        [role="dialog"] { display: block !important; }
+        [role="dialog"] * { display: block !important; }
+        .print-content { display: block !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    setTimeout(() => {
+      window.print();
+      document.head.removeChild(style);
+    }, 100);
   };
 
   if (!card) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>Progress Card - {card.student_name}</DialogTitle>
           <Button
@@ -26,7 +41,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           </Button>
         </DialogHeader>
 
-        <div className="print:p-8 space-y-6">
+        <div className="print-content print:p-8 space-y-6">
           {/* Header */}
           <div className="text-center border-b-2 border-gray-300 pb-4">
             <h1 className="text-2xl font-bold text-gray-900">PROGRESS CARD</h1>
