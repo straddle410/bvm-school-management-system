@@ -71,7 +71,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
               <li>Hall ticket must be produced on demand by the invigilator.</li>
             </ul>
           </div>
-          <div class="sig" style="align-self:flex-start; margin-top:0;"><div class="sig-line"></div>AO Signature</div>
+          <div class="sig ao-sig"><div class="sig-line"></div>AO Signature</div>
           <div class="sig"><div class="sig-line"></div>Principal Signature</div>
         </div>
       </div>
