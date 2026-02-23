@@ -310,6 +310,14 @@ export default function TimetableManager() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-100">
+                  <th className="p-2 text-left w-8">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedEntries.length === displayedTimetable.length && displayedTimetable.length > 0}
+                      onChange={(e) => setSelectedEntries(e.target.checked ? displayedTimetable.map(t => t.id) : [])}
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                  </th>
                   <th className="p-2 text-left">Class</th>
                   <th className="p-2 text-left">Subject</th>
                   <th className="p-2 text-left">Exam Type</th>
@@ -322,7 +330,15 @@ export default function TimetableManager() {
               </thead>
               <tbody>
                 {displayedTimetable.map(entry => (
-                  <tr key={entry.id} className="border-b hover:bg-slate-50">
+                  <tr key={entry.id} className={`border-b hover:bg-slate-50 ${selectedEntries.includes(entry.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="p-2 w-8">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedEntries.includes(entry.id)}
+                        onChange={(e) => setSelectedEntries(e.target.checked ? [...selectedEntries, entry.id] : selectedEntries.filter(id => id !== entry.id))}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                    </td>
                     <td className="p-2 font-medium">{entry.class_name}</td>
                     <td className="p-2">{entry.subject_name}</td>
                     <td className="p-2 text-xs text-slate-500">{getExamTypeName(entry.exam_type)}</td>
@@ -338,7 +354,7 @@ export default function TimetableManager() {
                   </tr>
                 ))}
                 {displayedTimetable.length === 0 && (
-                  <tr><td colSpan={8} className="p-4 text-center text-slate-400">No entries found</td></tr>
+                  <tr><td colSpan={9} className="p-4 text-center text-slate-400">No entries found</td></tr>
                 )}
               </tbody>
             </table>
