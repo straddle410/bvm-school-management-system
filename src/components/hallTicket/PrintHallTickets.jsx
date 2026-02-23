@@ -56,37 +56,54 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     </div>`;
   }).join('');
 
+  // Group into pages of 3
+  const pages = [];
+  for (let i = 0; i < ticketHTML.length; i += 3) {
+    pages.push(ticketHTML.slice(i, i + 3));
+  }
+  const pagesHTML = pages.map((group, pi) => `
+    <div class="page${pi < pages.length - 1 ? ' page-break' : ''}">
+      ${group.join('<div class="divider"></div>')}
+    </div>`).join('');
+
   win.document.write(`<!DOCTYPE html><html><head><title>Hall Tickets</title>
   <style>
-    @page { size: A5; margin: 3mm; }
+    @page { size: A4 portrait; margin: 5mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 10px; background: white; }
-    .ticket { width: 148mm; page-break-after: always; border: 1px solid #bbb; }
-    .ticket:last-child { page-break-after: auto; }
-    .header { background: #1a237e; color: white; text-align: center; padding: 6px 4px 5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .header h2 { font-size: 12px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; }
-    .header p { font-size: 8px; color: #c5cae9; margin-top: 1px; }
-    .badge { display: inline-block; background: rgba(255,255,255,0.18); border-radius: 3px; padding: 2px 8px; font-size: 9px; font-weight: 600; margin-top: 3px; }
-    .logo { height: 32px; width: 32px; object-fit: contain; border-radius: 3px; margin: 0 auto 3px; display: block; }
-    .student-row { display: flex; gap: 8px; padding: 5px 7px; border-bottom: 1px solid #ddd; align-items: flex-start; }
-    .photo { width: 46px; height: 58px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px; flex-shrink: 0; }
-    .no-photo { width: 46px; height: 58px; background: #eee; border: 1px solid #ccc; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; color: #999; text-align: center; }
-    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; flex: 1; }
-    .lbl { font-size: 7px; color: #888; }
-    .val { font-size: 9px; font-weight: 700; color: #222; }
-    .val.ht { color: #1a237e; font-size: 11px; }
-    .sec { padding: 4px 7px; }
-    .sec-title { font-size: 9px; font-weight: 700; color: #333; margin-bottom: 2px; }
-    table { border-collapse: collapse; width: 100%; font-size: 8px; }
-    th { background: #1a237e; color: white; padding: 2px 4px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
-    td { border: 1px solid #ccc; padding: 2px 4px; }
-    .instr { margin: 3px 7px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 3px; padding: 3px 5px; }
-    .instr b { font-size: 7px; color: #92400e; display: block; margin-bottom: 1px; }
-    .instr li { font-size: 7px; color: #78350f; line-height: 1.5; }
-    .sigs { display: flex; justify-content: space-between; padding: 4px 16px 3px; }
-    .sig { text-align: center; font-size: 7px; color: #666; }
-    .sig-line { border-top: 1px solid #999; width: 65px; margin: 14px auto 2px; }
-  </style></head><body>${ticketHTML}</body></html>`);
+    body { font-family: Arial, sans-serif; font-size: 9px; background: white; }
+    .page { width: 200mm; display: flex; flex-direction: column; }
+    .page-break { page-break-after: always; }
+    .divider { border-top: 1px dashed #bbb; margin: 0; }
+    .ticket { width: 100%; border-left: 1px solid #bbb; border-right: 1px solid #bbb; }
+    .ticket:first-child { border-top: 1px solid #bbb; }
+    .ticket:last-child { border-bottom: 1px solid #bbb; }
+    .header { background: #1a237e; color: white; text-align: center; padding: 4px 4px 3px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; gap: 6px; justify-content: center; }
+    .header-text { text-align: center; }
+    .header h2 { font-size: 10px; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; }
+    .header p { font-size: 7px; color: #c5cae9; margin-top: 1px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.18); border-radius: 3px; padding: 1px 7px; font-size: 8px; font-weight: 600; margin-top: 2px; }
+    .logo { height: 28px; width: 28px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+    .body-row { display: flex; gap: 0; }
+    .student-col { display: flex; gap: 6px; padding: 4px 6px; border-right: 1px solid #eee; align-items: flex-start; width: 52mm; flex-shrink: 0; border-bottom: 1px solid #eee; }
+    .photo { width: 38px; height: 48px; object-fit: cover; border: 1px solid #ccc; border-radius: 2px; flex-shrink: 0; }
+    .no-photo { width: 38px; height: 48px; background: #eee; border: 1px solid #ccc; border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 6px; color: #999; text-align: center; }
+    .fields { display: grid; grid-template-columns: 1fr; gap: 2px; flex: 1; }
+    .lbl { font-size: 6px; color: #888; line-height: 1; }
+    .val { font-size: 8px; font-weight: 700; color: #222; line-height: 1.2; }
+    .val.ht { color: #1a237e; font-size: 9px; }
+    .schedule-col { flex: 1; padding: 4px 5px; border-bottom: 1px solid #eee; }
+    .sec-title { font-size: 8px; font-weight: 700; color: #333; margin-bottom: 2px; }
+    table { border-collapse: collapse; width: 100%; font-size: 7px; }
+    th { background: #1a237e; color: white; padding: 2px 3px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
+    td { border: 1px solid #ccc; padding: 1px 3px; }
+    .instr-sigs { display: flex; gap: 4px; padding: 3px 6px; align-items: flex-start; }
+    .instr { flex: 1; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 2px; padding: 2px 4px; }
+    .instr b { font-size: 6px; color: #92400e; display: block; margin-bottom: 1px; }
+    .instr li { font-size: 6px; color: #78350f; line-height: 1.4; }
+    .sigs { display: flex; gap: 10px; flex-shrink: 0; align-items: flex-end; padding-bottom: 2px; }
+    .sig { text-align: center; font-size: 6px; color: #666; }
+    .sig-line { border-top: 1px solid #999; width: 55px; margin: 12px auto 2px; }
+  </style></head><body>${pagesHTML}</body></html>`);
 
   win.document.close();
   win.focus();
