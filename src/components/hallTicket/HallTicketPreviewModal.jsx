@@ -36,11 +36,25 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Modal Controls */}
         <div className="flex justify-between items-center px-4 py-3 border-b print:hidden">
-          <span className="font-semibold text-slate-700">Hall Ticket Preview</span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => window.print()} className="gap-1">
-              <Printer className="w-4 h-4" /> Print
-            </Button>
+        <span className="font-semibold text-slate-700">Hall Ticket Preview</span>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => {
+            const printContent = document.getElementById('hall-ticket-print-area');
+            const win = window.open('', '_blank');
+            win.document.write(`<html><head><title>Hall Ticket</title><style>
+              body { font-family: sans-serif; margin: 0; padding: 0; }
+              table { border-collapse: collapse; width: 100%; }
+              th, td { border: 1px solid #ccc; padding: 6px 10px; font-size: 12px; }
+              th { background: #1a237e; color: white; }
+              tr:nth-child(even) { background: #f5f5f5; }
+              .bg-\\[\\#1a237e\\] { background-color: #1a237e !important; color: white !important; }
+            </style></head><body>${printContent.innerHTML}</body></html>`);
+            win.document.close();
+            win.focus();
+            setTimeout(() => { win.print(); win.close(); }, 300);
+          }} className="gap-1">
+            <Printer className="w-4 h-4" /> Print
+          </Button>
             <Button size="icon" variant="ghost" onClick={onClose}>
               <X className="w-4 h-4" />
             </Button>
