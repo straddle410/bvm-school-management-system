@@ -26,6 +26,7 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear }) {
     class_name: '',
     section: 'A',
     subject: '',
+    diary_date: '',
     attachment_urls: [],
     academic_year: academicYear,
     status: 'Draft'
@@ -141,6 +142,16 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear }) {
           </div>
 
           <div>
+            <label className="block text-sm font-medium mb-2">Diary Date *</label>
+            <Input
+              type="date"
+              value={formData.diary_date}
+              onChange={(e) => setFormData({ ...formData, diary_date: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium mb-2">Title *</label>
             <Input
               placeholder="e.g., Quadratic Equations Class Notes"
