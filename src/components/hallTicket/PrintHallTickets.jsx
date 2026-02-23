@@ -6,13 +6,16 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     const timetable = timetableMap[ticket.id] || [];
     const examName = examTypesMap[ticket.exam_type] || ticket.exam_type;
     const photoUrl = ticket.student_photo_url || '';
+    const MAX_ROWS = 9;
+    const rowCount = Math.max(timetable.length, 1);
+    const rowH = Math.floor(100 / MAX_ROWS); // percentage height per row for up to 9
     const rows = timetable.map((entry, idx) => `
-      <tr style="background:${idx % 2 === 0 ? '#f0f4ff' : '#fff'}">
+      <tr style="background:${idx % 2 === 0 ? '#f0f4ff' : '#fff'}; height:${rowH}%">
         <td>${entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
         <td>${entry.day || '—'}</td>
         <td><b>${entry.subject_name}</b></td>
         <td>${entry.start_time} – ${entry.end_time}</td>
-        <td>${entry.room_number || '—'}</td>
+        <td></td>
       </tr>`).join('');
 
     return `
