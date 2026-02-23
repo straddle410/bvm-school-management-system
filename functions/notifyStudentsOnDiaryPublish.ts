@@ -26,15 +26,17 @@ Deno.serve(async (req) => {
     }
 
     // Create notifications for each student
-    const notifications = students.map(student => ({
-      recipient_student_id: student.student_id || student.id,
-      recipient_name: student.name,
-      type: 'diary_published',
-      title: `New Class Activity: ${diary.subject}`,
-      message: `${diary.posted_by_name} posted a class activity "${diary.title}" for ${diary.subject}. Check the class diary for details.`,
-      related_entity_id: diaryId,
-      academic_year: diary.academic_year
-    }));
+    const notifications = students
+      .filter(student => student.student_id) // Only include students with student_id
+      .map(student => ({
+        recipient_student_id: student.student_id,
+        recipient_name: student.name,
+        type: 'diary_published',
+        title: `New Class Activity: ${diary.subject}`,
+        message: `${diary.posted_by_name} posted a class activity "${diary.title}" for ${diary.subject}. Check the class diary for details.`,
+        related_entity_id: diaryId,
+        academic_year: diary.academic_year
+      }));
 
     await base44.asServiceRole.entities.Notification.bulkCreate(notifications);
 
