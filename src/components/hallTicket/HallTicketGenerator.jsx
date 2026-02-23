@@ -164,7 +164,7 @@ export default function HallTicketGenerator() {
 
         <Button
           onClick={handleGenerate}
-          disabled={generating || !filters.exam_type || !filters.class}
+          disabled={generating || !filters.exam_type || filters.classes.length === 0}
           className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
         >
           {generating && <Loader2 className="w-4 h-4 animate-spin" />}
