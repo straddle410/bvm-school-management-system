@@ -83,6 +83,7 @@ import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import DiaryManagement from './pages/DiaryManagement';
 import Diary from './pages/Diary';
+import ReportsManagement from './pages/ReportsManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +124,7 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "DiaryManagement": DiaryManagement,
     "Diary": Diary,
+    "ReportsManagement": ReportsManagement,
 }
 
 export const pagesConfig = {
