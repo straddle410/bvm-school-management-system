@@ -7,8 +7,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     const examName = examTypesMap[ticket.exam_type] || ticket.exam_type;
     const photoUrl = ticket.student_photo_url || '';
     const MAX_ROWS = 9;
-    const rowCount = Math.max(timetable.length, 1);
-    const rowH = Math.floor(100 / MAX_ROWS); // percentage height per row for up to 9
+    const rowH = Math.floor(100 / MAX_ROWS);
     const rows = timetable.map((entry, idx) => `
       <tr style="background:${idx % 2 === 0 ? '#f0f4ff' : '#fff'}; height:${rowH}%">
         <td>${entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
@@ -45,7 +44,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
           <div class="sec-title">Exam Schedule</div>
           ${timetable.length > 0 ? `
           <table style="height:100%; table-layout:fixed;"><thead><tr><th style="width:22%">Date</th><th style="width:13%">Day</th><th style="width:28%">Subject</th><th style="width:20%">Time</th><th style="width:17%">Invigilator Sign</th></tr></thead>
-          <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:7px;padding:3px 0;">Timetable not yet assigned.</p>'}
+          <tbody>${rows}</tbody></table>` : '<p style="color:#999;font-size:9px;padding:3px 0;">Timetable not yet assigned.</p>'}
         </div>
       </div>
       <div class="footer-row">
@@ -81,49 +80,49 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
   <style>
     @page { size: A4 portrait; margin: 4mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 9px; background: white; }
+    body { font-family: Arial, sans-serif; font-size: 10px; background: white; }
     .page { width: 202mm; height: 289mm; display: flex; flex-direction: column; justify-content: space-between; }
     .page-break { page-break-after: always; }
-    .ticket-outer { flex: 1; display: flex; flex-direction: column; padding: 2mm 0; }
+    .ticket-outer { flex: 1; display: flex; flex-direction: column; padding: 1.5mm 0; }
     .ticket-outer:first-child { padding-top: 0; }
     .ticket-outer:last-child { padding-bottom: 0; }
     .ticket { flex: 1; display: flex; flex-direction: column; border: 1.5px solid #1a237e; border-radius: 3px; overflow: hidden; }
 
     /* HEADER */
-    .header { background: #1a237e; color: white; padding: 4px 8px 3px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .header { background: #1a237e; color: white; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .header-text { text-align: center; flex: 1; }
-    .header h2 { font-size: 11px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; }
-    .header p { font-size: 7px; color: #c5cae9; margin-top: 1px; }
-    .logo { height: 30px; width: 30px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+    .header h2 { font-size: 13px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; }
+    .header p { font-size: 8.5px; color: #c5cae9; margin-top: 1px; }
+    .logo { height: 34px; width: 34px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
 
     /* BADGE */
-    .badge-row { background: #e8eaf6; color: #1a237e; text-align: center; font-size: 8px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #c5cae9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge-row { background: #e8eaf6; color: #1a237e; text-align: center; font-size: 9.5px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #c5cae9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     /* BODY */
     .body-row { display: flex; flex: 1; min-height: 0; }
-    .student-col { display: flex; gap: 5px; padding: 4px 6px; border-right: 1px solid #ddd; align-items: flex-start; width: 54mm; flex-shrink: 0; }
-    .photo { width: 40px; height: 50px; object-fit: cover; border: 1px solid #ccc; border-radius: 2px; flex-shrink: 0; }
-    .no-photo { width: 40px; height: 50px; background: #eee; border: 1px solid #ccc; border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 6px; color: #999; text-align: center; }
-    .fields { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-    .lbl { font-size: 6px; color: #888; line-height: 1; }
-    .val { font-size: 8px; font-weight: 700; color: #222; line-height: 1.2; }
-    .val.ht { color: #1a237e; font-size: 9px; }
-    .schedule-col { flex: 1; padding: 4px 5px; display: flex; flex-direction: column; }
-    .sec-title { font-size: 8px; font-weight: 700; color: #1a237e; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
-    table { border-collapse: collapse; width: 100%; font-size: 7px; flex: 1; }
+    .student-col { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 5px 6px; border-right: 1px solid #ddd; width: 46mm; flex-shrink: 0; justify-content: flex-start; }
+    .photo { width: 60px; height: 76px; object-fit: cover; border: 1.5px solid #1a237e; border-radius: 3px; flex-shrink: 0; }
+    .no-photo { width: 60px; height: 76px; background: #eee; border: 1.5px solid #1a237e; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; color: #999; text-align: center; }
+    .fields { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+    .lbl { font-size: 7px; color: #888; line-height: 1; }
+    .val { font-size: 10px; font-weight: 700; color: #222; line-height: 1.3; }
+    .val.ht { color: #1a237e; font-size: 11px; }
+    .schedule-col { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; }
+    .sec-title { font-size: 9.5px; font-weight: 700; color: #1a237e; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+    table { border-collapse: collapse; width: 100%; font-size: 8.5px; flex: 1; }
     table tbody { display: table-row-group; }
-    th { background: #1a237e; color: white; padding: 2px 3px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
-    td { border: 1px solid #ddd; padding: 0 3px; }
+    th { background: #1a237e; color: white; padding: 3px 4px; text-align: left; font-size: 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
+    td { border: 1px solid #ddd; padding: 0 4px; font-size: 8.5px; vertical-align: middle; }
 
     /* FOOTER */
-    .footer-row { display: flex; align-items: flex-end; gap: 4px; padding: 3px 6px 4px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer-row { display: flex; align-items: flex-end; gap: 6px; padding: 4px 7px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .instr { flex: 1; }
-    .instr b { font-size: 6.5px; color: #92400e; display: block; margin-bottom: 1px; }
-    .instr ul { padding-left: 10px; }
-    .instr li { font-size: 6px; color: #555; line-height: 1.5; }
-    .sigs { display: flex; gap: 12px; flex-shrink: 0; align-self: flex-end; }
-    .sig { text-align: center; font-size: 6.5px; color: #444; font-weight: 600; }
-    .sig-line { border-top: 1px solid #666; width: 58px; margin: 14px auto 2px; }
+    .instr b { font-size: 8px; color: #92400e; display: block; margin-bottom: 2px; }
+    .instr ul { padding-left: 12px; }
+    .instr li { font-size: 7.5px; color: #555; line-height: 1.6; }
+    .sigs { display: flex; gap: 14px; flex-shrink: 0; align-self: flex-end; }
+    .sig { text-align: center; font-size: 8px; color: #444; font-weight: 600; }
+    .sig-line { border-top: 1px solid #666; width: 64px; margin: 16px auto 2px; }
   </style></head><body>${pagesHTML}</body></html>`);
 
   win.document.close();
