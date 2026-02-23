@@ -233,7 +233,7 @@ export default function Marks() {
                       <SelectValue placeholder="Select Exam" />
                     </SelectTrigger>
                     <SelectContent>
-                      {examTypes.filter(e => e.status === 'Published').map(e => (
+                      {examTypes.filter(e => e.is_active !== false).map(e => (
                         <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
                       ))}
                     </SelectContent>
