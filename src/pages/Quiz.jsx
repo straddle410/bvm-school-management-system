@@ -65,6 +65,8 @@ export default function Quiz() {
           const parsed = JSON.parse(studentSess);
           setStudentSession(parsed);
           setUser({ id: parsed.id, full_name: parsed.name, role: 'student' });
+          // Mark quiz notifications as read
+          markQuizNotificationsAsRead(parsed.student_id);
         } catch {}
         setSessionLoaded(true);
         return;
@@ -166,6 +168,22 @@ export default function Quiz() {
        setAnsweredQuestions({});
       }
   });
+
+  const markQuizNotificationsAsRead = async (studentId) => {
+    try {
+      const unreadNotifications = await base44.entities.Notification.filter({
+        recipient_student_id: studentId,
+        type: 'quiz_posted',
+        is_read: false
+      });
+
+      for (const notif of unreadNotifications) {
+        await base44.entities.Notification.update(notif.id, { is_read: true });
+      }
+    } catch (error) {
+      console.debug('Error marking notifications as read:', error);
+    }
+  };
 
   const resetQuizForm = () => {
     setQuizForm({
