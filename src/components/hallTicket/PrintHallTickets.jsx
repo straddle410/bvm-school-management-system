@@ -73,6 +73,9 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
             <div class="sig"><div class="sig-line"></div>Principal Signature</div>
           </div>
         </div>
+        <div class="ao-row">
+          <div class="sig ao-sig"><div class="sig-line"></div>AO Signature</div>
+        </div>
       </div>
     </div>`;
   });
