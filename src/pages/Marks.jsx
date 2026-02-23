@@ -26,9 +26,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Plus, Save, Send, Settings
+  BookOpen, Plus, Save, Send, Settings, FileText
 } from 'lucide-react';
 import { toast } from "sonner";
+import MarksTable from '@/components/marks/MarksTable';
+import MarksImportExport from '@/components/marks/MarksImportExport';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const SECTIONS = ['A'];
@@ -44,6 +46,7 @@ export default function Marks() {
   const [marksData, setMarksData] = useState({});
   const [showExamDialog, setShowExamDialog] = useState(false);
   const [examForm, setExamForm] = useState({ name: '', max_marks: 100, passing_marks: 33 });
+  const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
   
   const queryClient = useQueryClient();
 
@@ -108,7 +111,7 @@ export default function Marks() {
 
   const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;
-  const passingMarks = selectedExamType?.passing_marks || 33;
+  const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const createExamMutation = useMutation({
     mutationFn: (data) => base44.entities.ExamType.create(data),
@@ -123,14 +126,17 @@ export default function Marks() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       const promises = [];
+      let enteredCount = 0;
+
       filteredStudents.forEach(student => {
         const studentMarks = marksData[student.student_id || student.id];
         if (!studentMarks) return;
         
         subjectList.forEach(subject => {
           const existing = studentMarks[subject];
-          if (existing?.marks_obtained === undefined) return;
+          if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
           
+          enteredCount++;
           const marks = parseFloat(existing.marks_obtained);
           const percentage = (marks / maxMarks) * 100;
           let grade = 'F';
@@ -139,7 +145,7 @@ export default function Marks() {
           else if (percentage >= 70) grade = 'B+';
           else if (percentage >= 60) grade = 'B';
           else if (percentage >= 50) grade = 'C';
-          else if (percentage >= passingMarks) grade = 'D';
+          else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
           const selectedExamObj = examTypes.find(e => e.name === selectedExam);
           const data = {
@@ -154,7 +160,7 @@ export default function Marks() {
             grade,
             academic_year: academicYear,
             entered_by: user?.email,
-            status: 'Submitted',
+            status: saveMode === 'submit' ? 'Submitted' : 'Draft',
             remarks: existing.remarks
           };
           
@@ -165,11 +171,23 @@ export default function Marks() {
           }
         });
       });
+
+      if (enteredCount === 0) {
+        throw new Error('No marks entered');
+      }
+
       return Promise.all(promises);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['marks']);
-      toast.success('Marks saved successfully');
+      const message = saveMode === 'submit' 
+        ? 'Marks submitted successfully' 
+        : 'Marks saved as draft';
+      toast.success(message);
+      setSaveMode('draft');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to save marks');
     }
   });
 
@@ -248,94 +266,75 @@ export default function Marks() {
 
             {selectedClass && selectedSection && selectedExam && (
               <>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <h3 className="font-semibold text-lg">
-                      {selectedExam} - All Subjects
-                    </h3>
-                    <span className="text-slate-500">Max: {maxMarks} | Pass: {passingMarks}</span>
-                    <StatusBadge status={currentStatus} />
-                  </div>
-                </div>
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <h3 className="font-semibold text-base">{selectedExam}</h3>
+                          <p className="text-xs text-slate-500">
+                            Max Marks: <span className="font-semibold">{maxMarks}</span> | 
+                            Pass: <span className="font-semibold">{passingMarks}</span>
+                          </p>
+                        </div>
+                        <StatusBadge status={currentStatus} />
+                      </div>
+                      <MarksImportExport
+                        students={filteredStudents}
+                        subjects={subjectList}
+                        marksData={marksData}
+                        onImport={(importedData) => {
+                          setMarksData(prev => ({
+                            ...prev,
+                            ...Object.entries(importedData).reduce((acc, [stdId, subjectMarks]) => {
+                              acc[stdId] = { ...prev[stdId], ...subjectMarks };
+                              return acc;
+                            }, {})
+                          }));
+                        }}
+                        examInfo={{ exam: selectedExam }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <Card className="border-0 shadow-sm overflow-x-auto">
-                  <CardContent className="p-0">
-                    {filteredStudents.length === 0 ? (
-                      <div className="py-12 text-center text-slate-400">
-                        No students found in this class
-                      </div>
-                    ) : (
-                      <div className="min-w-max">
-                        {/* Header */}
-                        <div className="flex bg-slate-100 border-b sticky left-0 z-10">
-                          <div className="w-16 px-4 py-3 flex items-center text-sm font-semibold text-slate-600">Roll</div>
-                          <div className="w-48 px-4 py-3 flex items-center text-sm font-semibold text-slate-600">Name</div>
-                          {subjectList.map(subject => (
-                            <div key={subject} className="w-28 px-2 py-3 text-center text-sm font-semibold text-slate-600">
-                              {subject}
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {/* Student Rows */}
-                        <div className="divide-y">
-                          {filteredStudents.map((student, index) => (
-                            <div key={student.id} className="flex">
-                              <div className="w-16 px-4 py-3 text-sm text-slate-400">
-                                {student.roll_no || index + 1}
-                              </div>
-                              <div className="w-48 px-4 py-3 flex items-center gap-2 text-sm">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={student.photo_url} />
-                                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
-                                    {student.name?.[0]}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="min-w-0">
-                                  <p className="font-medium text-slate-900 truncate">{student.name}</p>
-                                  <p className="text-xs text-slate-500">{student.student_id}</p>
-                                </div>
-                              </div>
-                              {subjectList.map(subject => {
-                                const marks = marksData[student.student_id || student.id]?.[subject]?.marks_obtained;
-                                const isPassing = marks !== undefined && marks >= passingMarks;
-                                return (
-                                  <div 
-                                    key={subject}
-                                    className={`w-28 px-2 py-3 flex items-center justify-center ${
-                                      marks !== undefined ? (isPassing ? 'bg-green-50/50' : 'bg-red-50/50') : ''
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        max={maxMarks}
-                                        value={marks ?? ''}
-                                        onChange={(e) => updateMarks(student.student_id || student.id, subject, e.target.value)}
-                                        className="w-16 text-center text-sm h-8"
-                                        placeholder="0"
-                                      />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-4">
+                    <MarksTable
+                      students={filteredStudents}
+                      subjects={subjectList}
+                      marksData={marksData}
+                      onMarkChange={updateMarks}
+                      maxMarks={maxMarks}
+                      passingMarks={passingMarks}
+                    />
                   </CardContent>
                 </Card>
 
                 {filteredStudents.length > 0 && (
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-3">
                     <Button 
-                      onClick={() => saveMutation.mutate()}
+                      variant="outline"
+                      onClick={() => {
+                        setSaveMode('draft');
+                        saveMutation.mutate();
+                      }}
                       disabled={saveMutation.isPending}
+                      className="gap-2"
                     >
-                      <Save className="mr-2 h-4 w-4" />
-                      {saveMutation.isPending ? 'Saving...' : 'Save & Submit'}
+                      <FileText className="h-4 w-4" />
+                      {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setSaveMode('submit');
+                        saveMutation.mutate();
+                      }}
+                      disabled={saveMutation.isPending}
+                      className="gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
                     </Button>
                   </div>
                 )}
@@ -371,7 +370,7 @@ export default function Marks() {
                           <div>
                             <h4 className="font-semibold">{exam.name}</h4>
                             <p className="text-sm text-slate-500 mt-1">
-                              Max: {exam.max_marks} | Pass: {exam.passing_marks}
+                              Max: {exam.max_marks} | Pass: {exam.min_marks_to_pass}
                             </p>
                           </div>
                           <StatusBadge status={exam.status} />
