@@ -120,28 +120,33 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
           )}
 
           <div className="grid gap-2">
-            {examTypes.map(type => (
-              <div key={type.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="font-semibold">{type.name}</p>
-                  <p className="text-sm text-slate-500">{type.category} Assessment</p>
-                </div>
-                {hasPermission && (
-                  <div className="flex gap-2">
-                    <Button size="icon" variant="ghost" onClick={() => {
-                      setEditingId(type.id);
-                      setFormData({ name: type.name, description: type.description, category: type.category });
-                      setShowForm(true);
-                    }}>
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+            {examTypes.length === 0 ? (
+              <p className="text-center text-slate-500 py-4">No exam types created yet</p>
+            ) : (
+              examTypes.map(type => (
+                <div key={type.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                  <div className="flex-1">
+                    <p className="font-semibold">{type.name}</p>
+                    <p className="text-sm text-slate-500">{type.category} Assessment</p>
+                    {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
                   </div>
-                )}
-              </div>
-            ))}
+                  {hasPermission && (
+                    <div className="flex gap-2 ml-4">
+                      <Button size="icon" variant="ghost" onClick={() => {
+                        setEditingId(type.id);
+                        setFormData({ name: type.name, description: type.description, category: type.category });
+                        setShowForm(true);
+                      }}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
