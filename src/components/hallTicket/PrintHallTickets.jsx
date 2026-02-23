@@ -62,17 +62,15 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
           </div>
         </div>
         <div class="footer-row">
-          <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-            <div class="instr">
-              <b>Important Instructions:</b>
-              <ul>
-                <li>Carry this hall ticket to every exam.</li>
-                <li>Report 15 minutes before the exam starts.</li>
-                <li>Electronic devices are not permitted in the exam hall.</li>
-                <li>Hall ticket must be produced on demand by the invigilator.</li>
-              </ul>
-            </div>
-            <div class="sig" style="text-align:left;"><div class="sig-line" style="margin-left:0;"></div>AO Signature</div>
+          <div class="sig ao-sig"><div class="sig-line"></div>AO Signature</div>
+          <div class="instr">
+            <b>Important Instructions:</b>
+            <ul>
+              <li>Carry this hall ticket to every exam.</li>
+              <li>Report 15 minutes before the exam starts.</li>
+              <li>Electronic devices are not permitted in the exam hall.</li>
+              <li>Hall ticket must be produced on demand by the invigilator.</li>
+            </ul>
           </div>
           <div class="sig"><div class="sig-line"></div>Principal Signature</div>
         </div>
@@ -154,7 +152,6 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
     /* FOOTER */
     .footer-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 6px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .ao-sig { align-self: flex-start; }
     .instr { flex: 1; }
     .instr b { font-size: 8px; color: #92400e; display: block; margin-bottom: 2px; }
     .instr ul { padding-left: 12px; }
