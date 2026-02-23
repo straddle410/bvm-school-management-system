@@ -48,7 +48,6 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
               <div class="sec-title">Exam Schedule</div>
             ${timetable.length > 0 ? `
             <div style="position:relative; flex:1; display:flex; flex-direction:column;">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/72e6b22e9_lOGO.jpeg" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:85%; height:85%; object-fit:contain; opacity:0.25; filter:grayscale(100%); z-index:0; pointer-events:none;"/>
               <table style="width:100%; height:100%; table-layout:fixed; position:relative; z-index:1;">
                 <thead><tr>
                   <th style="width:22%">Date</th>
