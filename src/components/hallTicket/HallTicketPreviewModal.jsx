@@ -62,7 +62,7 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
         </div>
 
         {/* Hall Ticket Content */}
-        <div className="print-area">
+        <div className="print-area" id="hall-ticket-print-area">
           {/* Header */}
           <div className="bg-[#1a237e] text-white p-4 text-center">
             {schoolProfile?.logo_url && (
