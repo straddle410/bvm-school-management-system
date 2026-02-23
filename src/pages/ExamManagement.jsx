@@ -36,7 +36,7 @@ export default function ExamManagement() {
 
       <div className="mt-6">
         <Tabs defaultValue="marks-entry" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 h-auto">
             {canManageExams && <TabsTrigger value="exam-types">Exam Types</TabsTrigger>}
             <TabsTrigger value="marks-entry">Marks Entry</TabsTrigger>
             <TabsTrigger value="review-marks">Review Marks</TabsTrigger>
