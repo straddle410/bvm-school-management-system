@@ -143,6 +143,13 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     th { background: #1a237e; color: white; padding: 3px 4px; text-align: left; font-size: 9px; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #3949ab; }
     td { border: 1px solid #ddd; padding: 1px 4px; font-size: 9px; vertical-align: middle; }
 
+    /* WATERMARK */
+    .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; }
+    .watermark-img { width: 130px; height: 130px; object-fit: contain; opacity: 0.10; mix-blend-mode: multiply; filter: grayscale(100%); }
+
+    /* Ensure content stays above watermark */
+    .student-col, .schedule-col { position: relative; z-index: 1; }
+
     /* FOOTER */
     .footer-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 6px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .instr { flex: 1; }
