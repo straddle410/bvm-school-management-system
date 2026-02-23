@@ -73,8 +73,8 @@ export default function Diary() {
     visibleDiaries = visibleDiaries.filter(d => d.subject === filters.subject);
   }
 
-  const uniqueClasses = [...new Set(visibleDiaries.map(d => d.class_name))].sort();
-  const uniqueSubjects = [...new Set(visibleDiaries.map(d => d.subject))].sort();
+  const uniqueClasses = CLASSES;
+  const uniqueSubjects = [...new Set(diaries.map(d => d.subject))].sort();
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
