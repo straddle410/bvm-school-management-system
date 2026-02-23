@@ -43,12 +43,12 @@ export default function MarksTable({
 
   return (
     <div className="overflow-x-auto border rounded-lg bg-white w-full">
-      <table className="w-full border-collapse text-sm md:text-base">
+      <table className="w-full border-collapse text-sm md:text-base" style={{ tableLayout: 'fixed' }}>
         <thead>
           <tr className="bg-slate-800 text-white sticky top-0">
-            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold w-8 md:w-12">Roll</th>
-            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold">ID</th>
-            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold">Name</th>
+            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold w-8 md:w-12 sticky left-0 bg-slate-800 z-20">Roll</th>
+            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold sticky left-12 md:left-16 bg-slate-800 z-20">ID</th>
+            <th className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-left font-semibold sticky left-28 md:left-40 bg-slate-800 z-20">Name</th>
             {subjects.map(subject => (
               <th key={subject} className="border border-slate-200 px-2 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-nowrap text-xs md:text-sm">
                 {subject}
@@ -61,9 +61,9 @@ export default function MarksTable({
             const studentId = student.student_id || student.id;
             return (
               <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-700 text-center">{student.roll_no || '—'}</td>
-                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-slate-600 text-xs md:text-sm">{student.student_id}</td>
-                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-900 text-xs md:text-sm">{student.name}</td>
+                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-700 text-center sticky left-0 z-10" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>{student.roll_no || '—'}</td>
+                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-slate-600 text-xs md:text-sm sticky left-12 md:left-16 z-10" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>{student.student_id}</td>
+                <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-900 text-xs md:text-sm sticky left-28 md:left-40 z-10" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>{student.name}</td>
                 {subjects.map((subject, subjectIdx) => {
                   const marks = marksData[studentId]?.[subject]?.marks_obtained;
                   const status = getMarkStatus(marks);
