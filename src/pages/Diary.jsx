@@ -5,6 +5,7 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getStaffSession } from '@/components/useStaffSession';
 import PageHeader from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
+import { Calendar } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -12,6 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 import DiaryList from '@/components/diary/DiaryList';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
