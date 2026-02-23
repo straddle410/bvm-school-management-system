@@ -22,6 +22,17 @@ export default function MarksTable({
     return rollA - rollB;
   });
 
+  const handleKeyDown = (e, studentIdx, subjectIdx) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Navigate to next student, same subject
+      if (studentIdx < sortedStudents.length - 1) {
+        const nextInputId = `marks-${studentIdx + 1}-${subjectIdx}`;
+        document.getElementById(nextInputId)?.focus();
+      }
+    }
+  };
+
   if (sortedStudents.length === 0) {
     return (
       <div className="py-12 text-center text-slate-400 text-sm border rounded-lg">
@@ -53,7 +64,7 @@ export default function MarksTable({
                 <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-700 text-center">{student.roll_no || '—'}</td>
                 <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 text-slate-600 text-xs md:text-sm">{student.student_id}</td>
                 <td className="border border-slate-200 px-2 md:px-4 py-2 md:py-3 font-medium text-slate-900 text-xs md:text-sm">{student.name}</td>
-                {subjects.map(subject => {
+                {subjects.map((subject, subjectIdx) => {
                   const marks = marksData[studentId]?.[subject]?.marks_obtained;
                   const status = getMarkStatus(marks);
 
@@ -63,6 +74,7 @@ export default function MarksTable({
                         status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
                       }`}>
                         <Input
+                          id={`marks-${idx}-${subjectIdx}`}
                           type="number"
                           inputMode="decimal"
                           min="0"
@@ -70,6 +82,7 @@ export default function MarksTable({
                           step="0.5"
                           value={marks ?? ''}
                           onChange={(e) => onMarkChange(studentId, subject, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
                           className={`w-12 md:w-14 text-center text-xs md:text-sm font-semibold border-0 bg-transparent px-0.5 md:px-1 py-0.5 md:py-1 ${
                             status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
                           }`}
