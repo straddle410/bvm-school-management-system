@@ -55,8 +55,8 @@ export default function StaffLogin() {
         return;
       }
 
-      // Only admin requires OTP (if enabled)
-      if (staff.role === 'Admin' && staff.enable_otp_login !== false) {
+      // Only admin requires OTP
+      if (staff.role === 'Admin') {
         try {
           const response = await base44.functions.invoke('sendStaffOtp', {
             email: staff.email,
