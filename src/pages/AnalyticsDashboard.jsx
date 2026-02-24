@@ -123,6 +123,26 @@ export default function AnalyticsDashboard() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-white/70 block mb-1">From Date</label>
+                  <input 
+                    type="date" 
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full h-8 text-xs bg-white/10 border border-white/20 text-white rounded px-2 placeholder-white/50"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/70 block mb-1">To Date</label>
+                  <input 
+                    type="date" 
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full h-8 text-xs bg-white/10 border border-white/20 text-white rounded px-2 placeholder-white/50"
+                  />
+                </div>
+              </div>
             </>
           ) : (
             <p className="text-xs text-white/70">Academic Year: {academicYear}</p>
