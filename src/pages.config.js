@@ -68,7 +68,6 @@ import MarksReview from './pages/MarksReview';
 import Messaging from './pages/Messaging';
 import More from './pages/More';
 import Notices from './pages/Notices';
-import Profile from './pages/Profile';
 import PublicAdmission from './pages/PublicAdmission';
 import Quiz from './pages/Quiz';
 import Reports from './pages/Reports';
@@ -113,7 +112,6 @@ export const PAGES = {
     "Messaging": Messaging,
     "More": More,
     "Notices": Notices,
-    "Profile": Profile,
     "PublicAdmission": PublicAdmission,
     "Quiz": Quiz,
     "Reports": Reports,
