@@ -131,7 +131,7 @@ export default function Profile() {
         backTo="Dashboard"
       />
 
-      <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-6 mt-6">
+      <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-6 pt-24">
         {/* Profile Card */}
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
