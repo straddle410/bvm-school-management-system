@@ -246,8 +246,8 @@ export default function Marks() {
       <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
             {/* Selection */}
             <Card className="border-0 shadow-sm">
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <CardContent className="p-3 sm:p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <Select value={selectedClass} onValueChange={setSelectedClass}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Class" />
