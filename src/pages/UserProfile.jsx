@@ -317,6 +317,10 @@ export default function UserProfile() {
           <NotificationSettingsSection />
         )}
 
+        {sessionType === 'student' && (
+          <StudentNotificationSettings studentId={session?.student_id} />
+        )}
+
         {/* Change Password */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="font-bold text-gray-800 mb-3">Security</h3>
