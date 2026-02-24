@@ -124,14 +124,14 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20">
+    <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="My Profile"
         subtitle="Manage your account settings"
         backTo="Dashboard"
       />
 
-      <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-6 -mt-16">
+      <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-6 mt-6">
         {/* Profile Card */}
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
