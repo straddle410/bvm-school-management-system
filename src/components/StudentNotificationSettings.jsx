@@ -112,11 +112,14 @@ export default function StudentNotificationSettings({ studentId }) {
             browser_push_enabled: true,
             push_subscription: JSON.stringify(subscriptionJson)
           });
+          // Update permission state
+          checkPushPermission();
         }
       } catch (err) {
         console.warn('Service Worker registration fallback:', err);
         // Still allow notifications to work in foreground
         await handleUpdatePreference({ browser_push_enabled: true });
+        checkPushPermission();
       }
     }
   };
