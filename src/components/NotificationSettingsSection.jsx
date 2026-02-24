@@ -40,6 +40,8 @@ export default function NotificationSettingsSection() {
     setSaving(true);
     try {
       await notificationService.savePreferences(preferences);
+      // Reload preferences to verify persistence
+      await loadPreferences();
       toast.success('Notification settings saved');
     } catch (error) {
       toast.error('Failed to save settings');
@@ -50,20 +52,27 @@ export default function NotificationSettingsSection() {
   };
 
   const handleEnablePushNotifications = async () => {
+    setSaving(true);
     try {
       const hasPermission = await notificationService.requestPermission();
       if (hasPermission) {
         // Register service worker (if available)
         await notificationService.registerServiceWorker();
-        setPreferences({ ...preferences, browser_push_enabled: true });
+        const updated = { ...preferences, browser_push_enabled: true };
+        setPreferences(updated);
+        toast.success('Enabling push notifications...');
+        // Save and reload to verify persistence
+        await notificationService.savePreferences(updated);
+        await loadPreferences();
         toast.success('Push notifications enabled');
-        await handleSave();
       } else {
         toast.error('Permission denied for notifications');
       }
     } catch (error) {
       toast.error('Failed to enable push notifications');
       console.error(error);
+    } finally {
+      setSaving(false);
     }
   };
 
