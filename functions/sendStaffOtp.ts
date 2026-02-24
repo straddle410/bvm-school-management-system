@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
 
     // Send via Resend
     const result = await resend.emails.send({
-      from: 'noreply@bvmschool.com',
+      from: 'onboarding@resend.dev',
       to: email,
       subject: 'Your BVM School Admin Login OTP',
       html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
