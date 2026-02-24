@@ -11,6 +11,7 @@ import StudentAnalyticsModal from '@/components/analytics/StudentAnalyticsModal.
 
 export default function AnalyticsDashboard() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
