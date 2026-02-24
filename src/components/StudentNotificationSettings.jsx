@@ -119,14 +119,28 @@ export default function StudentNotificationSettings({ studentId }) {
       return;
     }
 
-    if (Notification.permission === 'granted') {
-      toast.success('Notification permission already granted');
-      setPushPermission('granted');
-      return;
-    }
-
     try {
+      // Always re-check the current permission state
+      const currentPermission = Notification.permission;
+      console.log('Current permission before request:', currentPermission);
+      
+      if (currentPermission === 'granted') {
+        // Permission already granted - register service worker
+        await registerServiceWorker();
+        setPushPermission('granted');
+        toast.success('Notification permission already granted');
+        return;
+      }
+
+      if (currentPermission === 'denied') {
+        // User has denied - they need to manually enable in Chrome
+        toast.error('Please enable notifications in Chrome settings (lock icon → Allow → refresh)');
+        return;
+      }
+
+      // Permission is 'default' - ask user
       const permission = await Notification.requestPermission();
+      console.log('Permission result after request:', permission);
       setPushPermission(permission);
 
       if (permission === 'granted') {
