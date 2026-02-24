@@ -13,9 +13,26 @@ export default function NotificationSettingsSection() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'saved'
   const [preferences, setPreferences] = useState(null);
+  const [authError, setAuthError] = useState(false);
 
   useEffect(() => {
-    loadPreferences();
+    const checkAuthAndLoad = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (!user) {
+          setAuthError(true);
+          setLoading(false);
+          return;
+        }
+        setAuthError(false);
+        await loadPreferences();
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setAuthError(true);
+        setLoading(false);
+      }
+    };
+    checkAuthAndLoad();
   }, []);
 
   const loadPreferences = async () => {
