@@ -264,11 +264,19 @@ export default function StudentNotificationSettings({ studentId }) {
                 )}
               </div>
               {pushPermission === 'denied' && (
-                <div className="mt-3 bg-red-50 rounded-lg p-2 flex gap-2 text-xs text-red-700">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  <p>
-                    Enable in browser settings to receive notifications.
-                  </p>
+                <div className="mt-3 bg-red-50 rounded-lg p-3 space-y-2 border border-red-200">
+                  <div className="flex gap-2 text-xs text-red-700">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium mb-2">Notifications are blocked. Re-enable in Chrome:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-red-600">
+                        <li>Click the lock icon in the address bar</li>
+                        <li>Find "Notifications" and select "Allow"</li>
+                        <li>Refresh the page</li>
+                        <li>Click "Enable" button again</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
