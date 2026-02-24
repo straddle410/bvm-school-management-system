@@ -28,11 +28,11 @@ export default function StudentBottomNav({ currentPage }) {
     
     const fetchUnread = async () => {
       try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_email: studentSession.username,
+        const messages = await base44.entities.Message.filter({
+          recipient_id: studentSession.student_id,
           is_read: false
         });
-        setUnreadCount(notifications.length);
+        setUnreadCount(messages.length);
       } catch {}
     };
 
