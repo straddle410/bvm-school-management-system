@@ -264,10 +264,14 @@ export default function StudentNotificationSettings({ studentId }) {
                 )}
               </div>
               {pushPermission === 'default' && (
-                <div className="mt-3 bg-blue-50 rounded-lg p-3 border border-blue-200">
-                  <p className="text-xs text-blue-700">
-                    <span className="font-medium">Chrome will ask:</span> A pop-up will appear asking permission to show notifications. Click "Allow" to enable.
-                  </p>
+                <div className="mt-3 bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+                  <div className="flex gap-2 text-xs text-blue-700">
+                    <Bell className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium mb-2">Get instant notifications from school</p>
+                      <p className="text-blue-600">Chrome will ask for permission when you click "Enable" – just allow it to receive notices, messages, and updates.</p>
+                    </div>
+                  </div>
                 </div>
               )}
               {pushPermission === 'denied' && (
