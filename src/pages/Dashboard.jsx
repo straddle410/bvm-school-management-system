@@ -375,9 +375,9 @@ export default function Dashboard() {
             const isActive = false;
             return (
               <Link key={item.page} to={createPageUrl(item.page)}
-                className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-gray-400">
-                <item.icon className="h-6 w-6" />
-                <span className="text-[10px] font-medium">{item.name}</span>
+                 className="flex flex-col items-center gap-0.5 px-2 sm:px-3 py-1 rounded-xl transition-all text-gray-400 flex-1 max-w-[80px] sm:max-w-none">
+                 <item.icon className="h-5 sm:h-6 w-5 sm:w-6" />
+                 <span className="text-[9px] sm:text-[10px] font-medium text-center leading-tight">{item.name}</span>
               </Link>
             );
           })}
