@@ -519,19 +519,22 @@ export default function Attendance() {
 
             {/* Action Buttons */}
             {(filteredStudents.length > 0 || isHoliday) && (
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
                 {isHoliday && !hasHolidayOverride ? (
-                  <Button disabled className="opacity-50 cursor-not-allowed">
-                    <Palmtree className="mr-2 h-4 w-4" />
-                    Attendance Disabled (Holiday)
+                  <Button disabled className="opacity-50 cursor-not-allowed text-xs sm:text-sm">
+                    <Palmtree className="mr-1 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Attendance Disabled (Holiday)</span>
+                    <span className="sm:hidden">Holiday</span>
                   </Button>
                 ) : (
                   <Button 
                     onClick={() => saveMutation.mutate()}
                     disabled={saveMutation.isPending}
+                    size="sm"
+                    className="text-xs sm:text-sm"
                   >
-                    <Save className="mr-2 h-4 w-4" />
-                    {saveMutation.isPending ? 'Saving...' : 'Save Attendance'}
+                    <Save className="mr-1 sm:mr-2 h-4 w-4" />
+                    {saveMutation.isPending ? 'Saving...' : <span className="hidden sm:inline">Save Attendance</span> || 'Save'}
                   </Button>
                 )}
               </div>
