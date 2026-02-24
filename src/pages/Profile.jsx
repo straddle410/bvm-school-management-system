@@ -222,7 +222,7 @@ export default function Profile() {
             <CardTitle>Security</CardTitle>
             <CardDescription>Manage your password and security settings</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {!showPasswordForm ? (
               <Button 
                 variant="outline" 
