@@ -223,6 +223,30 @@ export default function Profile() {
             <CardDescription>Manage your password and security settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* OTP Login Setting - Admin Only */}
+            {(user?.role === 'Admin' || user?.role === 'admin') && (
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-3">
+                  {enableOtp ? (
+                    <Bell className="h-5 w-5 text-blue-600" />
+                  ) : (
+                    <BellOff className="h-5 w-5 text-slate-400" />
+                  )}
+                  <div>
+                    <p className="font-medium text-slate-900">Email OTP Verification</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {enableOtp ? 'OTP verification required for login' : 'OTP verification disabled'}
+                    </p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={enableOtp}
+                  onCheckedChange={updateOtpSetting}
+                  disabled={!staffData}
+                />
+              </div>
+            )}
+
             {!showPasswordForm ? (
               <Button 
                 variant="outline" 
