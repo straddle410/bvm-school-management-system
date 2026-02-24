@@ -149,8 +149,8 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden relative">
 
       {/* Header */}
-      <header className="sticky top-0 z-50">
-        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-5 shadow-lg">
+      <header className="sticky top-0 z-50 w-full">
+        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-3 sm:px-4 pt-4 pb-5 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-blue-200" />
