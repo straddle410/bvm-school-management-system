@@ -54,16 +54,16 @@ export default function NotificationSettingsSection() {
     setSaveStatus('saving');
     setSaving(true);
     try {
-      await notificationService.savePreferences(preferences);
-      // Reload preferences to verify persistence
-      await loadPreferences();
+      console.log('Saving preferences:', preferences);
+      const saved = await notificationService.savePreferences(preferences);
+      console.log('Preferences saved:', saved);
       setSaveStatus('saved');
       toast.success('Notification settings saved');
       // Revert to idle after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
-      toast.error('Failed to save settings');
-      console.error(error);
+      console.error('Failed to save settings:', error);
+      toast.error('Failed to save settings: ' + error.message);
       setSaveStatus('idle');
     } finally {
       setSaving(false);
