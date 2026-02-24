@@ -12,6 +12,8 @@ import StudentBottomNav from '@/components/StudentBottomNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import StudentChangePassword from '@/components/StudentChangePassword';
+import StudentMessageNotificationListener from '@/components/StudentMessageNotificationListener';
+import StudentQuizNotificationListener from '@/components/StudentQuizNotificationListener';
 
 function getStudentSession() {
   try {
@@ -108,6 +110,10 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
+      {/* Notification Listeners */}
+      <StudentMessageNotificationListener studentSession={student} />
+      <StudentQuizNotificationListener studentSession={student} />
+
       {/* Header */}
       <header className="sticky top-0 z-50">
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-5 shadow-lg">
