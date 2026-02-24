@@ -6,6 +6,7 @@ import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
+import StudentNotificationSettings from '@/components/StudentNotificationSettings';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
