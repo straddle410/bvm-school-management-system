@@ -83,6 +83,9 @@ export default function UserProfile() {
     }
   }, [record, sessionType]);
 
+  // Student record doesn't need to be fetched—it's in session
+  const studentLoading = false;
+
   const updateStaffMutation = useMutation({
     mutationFn: async () => {
       const data = {
