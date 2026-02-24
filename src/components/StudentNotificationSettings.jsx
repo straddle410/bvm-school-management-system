@@ -141,18 +141,23 @@ export default function StudentNotificationSettings({ studentId }) {
         
         if (subscription) {
           const subscriptionJson = subscription.toJSON();
+          console.log('Subscription created:', subscriptionJson);
           await handleUpdatePreference({ 
             browser_push_enabled: true,
             push_subscription: JSON.stringify(subscriptionJson)
           });
-          // Update permission state
-          checkPushPermission();
+          // Ensure permission state updates
+          setTimeout(() => {
+            checkPushPermission();
+          }, 500);
         }
       } catch (err) {
         console.warn('Service Worker registration fallback:', err);
         // Still allow notifications to work in foreground
         await handleUpdatePreference({ browser_push_enabled: true });
-        checkPushPermission();
+        setTimeout(() => {
+          checkPushPermission();
+        }, 500);
       }
     }
   };
