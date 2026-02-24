@@ -85,6 +85,8 @@ import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
+import Messaging from './pages/Messaging';
+import StudentMessaging from './pages/StudentMessaging';
 import __Layout from './Layout.jsx';
 
 
@@ -127,6 +129,8 @@ export const PAGES = {
     "SubjectManagement": SubjectManagement,
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
+    "Messaging": Messaging,
+    "StudentMessaging": StudentMessaging,
 }
 
 export const pagesConfig = {
