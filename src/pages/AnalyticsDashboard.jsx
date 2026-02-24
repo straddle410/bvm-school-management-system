@@ -15,6 +15,8 @@ export default function AnalyticsDashboard() {
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [academicYear, setAcademicYear] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
