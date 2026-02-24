@@ -187,13 +187,30 @@ export default function Diary() {
           </Card>
         )}
 
-        {/* For students: show the date of entries being viewed */}
-        {userStudent && selectedDate && (
-          <div className="flex items-center gap-2 px-1">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-600">
-              Diary for {format(selectedDate, 'MMMM d, yyyy')}
-            </span>
+        {/* For students: date picker to browse previous diaries */}
+        {userStudent && (
+          <div className="flex items-center gap-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start text-left font-normal">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date > new Date()}
+                />
+              </PopoverContent>
+            </Popover>
+            {selectedDate && (
+              <span className="text-sm text-gray-500">
+                Showing diary for {format(selectedDate, 'MMM d, yyyy')}
+              </span>
+            )}
           </div>
         )}
 
