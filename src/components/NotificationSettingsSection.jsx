@@ -27,7 +27,10 @@ export default function NotificationSettingsSection() {
     try {
       const prefs = await notificationService.getPreferences();
       if (prefs) {
+        console.log('Setting preferences from database:', prefs);
         setPreferences(prefs);
+      } else {
+        console.log('No preferences found, using defaults');
       }
     } catch (error) {
       console.error('Failed to load preferences:', error);

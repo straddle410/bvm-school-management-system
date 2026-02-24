@@ -49,11 +49,16 @@ export const notificationService = {
       const user = await base44.auth.me();
       if (!user) return null;
 
+      // Fetch with explicit force-refresh
       const prefs = await base44.entities.NotificationPreference.filter({
         user_email: user.email,
-      }).catch(() => []);
+      });
 
-      return prefs[0] || null;
+      if (prefs && prefs.length > 0) {
+        console.log('Loaded preferences:', prefs[0]);
+        return prefs[0];
+      }
+      return null;
     } catch (error) {
       console.error('Failed to fetch preferences:', error);
       return null;
@@ -69,15 +74,23 @@ export const notificationService = {
       const existing = await this.getPreferences();
 
       if (existing) {
-        return await base44.entities.NotificationPreference.update(
+        // Update existing preferences
+        await base44.entities.NotificationPreference.update(
           existing.id,
           { ...preferences }
         );
+        // Immediately refetch to verify persistence
+        const updated = await base44.entities.NotificationPreference.filter({
+          user_email: user.email,
+        });
+        return updated[0] || null;
       } else {
-        return await base44.entities.NotificationPreference.create({
+        // Create new preferences
+        const created = await base44.entities.NotificationPreference.create({
           user_email: user.email,
           ...preferences,
         });
+        return created;
       }
     } catch (error) {
       console.error('Failed to save preferences:', error);
