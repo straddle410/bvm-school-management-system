@@ -7,7 +7,7 @@ import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
   FileText, Award, BookOpen, Palmtree, Clock, Book, LogOut,
-  CheckCircle, AlertCircle, MessageSquare, Trophy
+  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail
 } from 'lucide-react';
 import { format } from 'date-fns';
 
