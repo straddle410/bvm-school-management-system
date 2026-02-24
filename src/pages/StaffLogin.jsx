@@ -109,12 +109,46 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
-      // Verify OTP against sent OTP
-      if (otp !== sentOtp) {
+      // Check if OTP expired (10 minutes = 600 seconds)
+      if (otpTimer <= 0) {
+        setError('OTP has expired. Please request a new OTP.');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch latest staff data to verify OTP server-side
+      const allStaff = await base44.entities.StaffAccount.list();
+      const latestStaff = allStaff.find(s => s.id === staffForOtp.id);
+
+      if (!latestStaff || !latestStaff.otp_code || !latestStaff.otp_generated_at) {
+        setError('OTP not found. Please request a new OTP.');
+        setLoading(false);
+        return;
+      }
+
+      // Verify OTP matches
+      if (otp !== latestStaff.otp_code) {
         setError('Invalid OTP. Please try again.');
         setLoading(false);
         return;
       }
+
+      // Verify OTP hasn't expired (10 minutes)
+      const generatedTime = new Date(latestStaff.otp_generated_at).getTime();
+      const currentTime = new Date().getTime();
+      const elapsedSeconds = (currentTime - generatedTime) / 1000;
+
+      if (elapsedSeconds > 600) {
+        setError('OTP has expired. Please request a new OTP.');
+        setLoading(false);
+        return;
+      }
+
+      // Clear OTP from database
+      await base44.entities.StaffAccount.update(staffForOtp.id, {
+        otp_code: null,
+        otp_generated_at: null
+      });
 
       // Store staff session in localStorage
       localStorage.setItem('staff_session', JSON.stringify({

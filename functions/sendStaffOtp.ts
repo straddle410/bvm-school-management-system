@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
     const { email, staffName } = await req.json();
 
     if (!email) {
@@ -10,6 +11,18 @@ Deno.serve(async (req) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const generatedAt = new Date().toISOString();
+
+    // Update StaffAccount with OTP and timestamp
+    const allStaff = await base44.entities.StaffAccount.list();
+    const staff = allStaff.find(s => s.email === email);
+    
+    if (staff) {
+      await base44.entities.StaffAccount.update(staff.id, {
+        otp_code: otp,
+        otp_generated_at: generatedAt
+      });
+    }
 
     // Send via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
@@ -36,7 +49,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: error.message || 'Failed to send email' }, { status: 500 });
     }
 
-    return Response.json({ otp, success: true });
+    return Response.json({ success: true });
   } catch (error) {
     console.error('OTP Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
