@@ -124,7 +124,7 @@ export default function StudentDashboard() {
             </button>
           </div>
           {/* Profile inline */}
-          <div className="flex items-center gap-3">
+          <Link to={createPageUrl('UserProfile')} className="flex items-center gap-3 group">
             <div className="relative">
               <Avatar className="h-14 w-14 border-2 border-white/50 shadow-md">
                 <AvatarImage src={student.photo_url} />
@@ -136,14 +136,8 @@ export default function StudentDashboard() {
               <p className="text-blue-200 text-xs">Class {student.class_name}-{student.section} · Roll #{student.roll_no}</p>
               <p className="text-blue-300 text-xs">{student.academic_year}</p>
             </div>
-            <button
-              onClick={() => setShowChangePassword(true)}
-              className="bg-white/15 hover:bg-white/25 text-white rounded-full p-2 transition-all"
-              title="Change Password"
-            >
-              <Lock className="h-4 w-4" />
-            </button>
-          </div>
+            <ChevronRight className="h-4 w-4 text-white/50 flex-shrink-0" />
+          </Link>
         </div>
       </header>
 
