@@ -128,7 +128,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
           <h2 className="font-bold text-base sm:text-lg">{replyTo ? 'Reply' : 'New Message'}</h2>
           <button onClick={onClose} className="flex-shrink-0"><X className="h-5 w-5" /></button>
         </div>
-        <div className="p-4 sm:p-5 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-5 space-y-3 sm:space-y-4 overflow-y-auto flex-1 min-h-[150px]">
           {!replyTo && !isStudent && (
             <div className="flex gap-2">
               {['individual', 'class', 'section'].map(t => (
