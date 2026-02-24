@@ -7,7 +7,6 @@ import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
-import StudentNotificationSettings from '@/components/StudentNotificationSettings';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -326,10 +325,6 @@ export default function UserProfile() {
         {/* Notification Settings */}
         {sessionType === 'staff' && (
           <NotificationSettingsSection />
-        )}
-
-        {sessionType === 'student' && (
-          <StudentNotificationSettings studentId={session?.student_id} />
         )}
 
         {/* Change Password */}

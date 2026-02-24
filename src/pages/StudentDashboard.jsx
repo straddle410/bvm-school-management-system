@@ -9,6 +9,7 @@ import {
   MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock
 } from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
+import StudentSimpleNotificationListener from '@/components/StudentSimpleNotificationListener';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import StudentChangePassword from '@/components/StudentChangePassword';
