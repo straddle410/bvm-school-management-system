@@ -6,8 +6,6 @@ import { ArrowLeft, BookOpen, User, Phone, Calendar, Award, TrendingUp, Clock } 
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import LoginRequired from '@/components/LoginRequired';
-
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
