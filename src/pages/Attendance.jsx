@@ -284,7 +284,7 @@ export default function Attendance() {
 
             {/* Holiday Toggle - Admin Only */}
             {canManageHolidays && (
-              <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
+              <div className={`flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
                 <Palmtree className="h-4 w-4 flex-shrink-0" />
                 <span className="text-sm font-medium flex-1">
                   {isSunday ? '🔴 Sunday — Auto Holiday' : isMarkedHoliday ? `📌 Marked Holiday: ${holidays[0]?.title || 'Holiday'}` : 'Mark as Holiday'}
