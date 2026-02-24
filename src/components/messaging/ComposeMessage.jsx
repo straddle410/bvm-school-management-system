@@ -23,15 +23,15 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
   const [sending, setSending] = useState(false);
   const [subjects, setSubjects] = useState([]);
 
+  // If sender is a student, only search teachers/admin; otherwise search all
+  const isStudent = sender?.role === 'student';
+
   useEffect(() => {
     base44.entities.Subject.list().then(s => setSubjects(s)).catch(() => {});
     if (isStudent) {
       base44.entities.Teacher.list().then(t => setAllTeachers(t)).catch(() => {});
     }
   }, [isStudent]);
-
-  // If sender is a student, only search teachers/admin; otherwise search all
-  const isStudent = sender?.role === 'student';
 
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2 || recipientType !== 'individual') {
