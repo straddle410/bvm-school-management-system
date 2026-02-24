@@ -189,9 +189,9 @@ export default function UserProfile() {
         </div>
       </div>
 
-      <div className="px-4 -mt-8 space-y-4">
+      <div className="px-4 -mt-12 space-y-4">
         {/* Name Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
+        <div className="bg-white rounded-2xl shadow-sm p-5 pt-12 text-center">
           <h2 className="text-xl font-bold text-gray-900">{record?.name || record?.full_name || session?.full_name}</h2>
           {sessionType === 'staff' && (
             <p className="text-sm text-indigo-600 font-semibold mt-1">{record?.role || session?.role}</p>
