@@ -143,6 +143,24 @@ export default function StudentDashboard() {
     refetchInterval: 2000
   });
 
+  const { data: unreadMessageCount = 0 } = useQuery({
+    queryKey: ['unread-message-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      try {
+        const messages = await base44.entities.Message.filter({
+          recipient_id: student.student_id,
+          is_read: false
+        });
+        return messages.length;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 15000
+  });
+
   if (!student) return null;
 
   const studentQuickAccess = [

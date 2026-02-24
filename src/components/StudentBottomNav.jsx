@@ -24,7 +24,7 @@ export default function StudentBottomNav({ currentPage }) {
   }, []);
 
   useEffect(() => {
-    if (!studentSession?.username) return;
+    if (!studentSession?.student_id) return;
     
     const fetchUnread = async () => {
       try {
@@ -37,7 +37,7 @@ export default function StudentBottomNav({ currentPage }) {
     };
 
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
+    const interval = setInterval(fetchUnread, 15000);
     return () => clearInterval(interval);
   }, [studentSession]);
 
