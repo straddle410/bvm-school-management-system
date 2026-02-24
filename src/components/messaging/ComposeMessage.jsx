@@ -69,9 +69,9 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
   }, [searchQuery, recipientType, isStudent]);
 
   const handleSend = async () => {
-    if (!body.trim()) return;
+    if (!body.trim() || !sender) return;
     setSending(true);
-    const academicYear = sender.academic_year || '2024-25';
+    const academicYear = sender?.academic_year || '2024-25';
     const threadId = replyTo?.thread_id || replyTo?.id || `thread_${Date.now()}`;
 
     if (recipientType === 'individual') {
