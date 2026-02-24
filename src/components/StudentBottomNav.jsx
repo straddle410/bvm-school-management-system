@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { GraduationCap, Bell, Brain, Trophy, BookOpen, MessageSquare } from 'lucide-react';
+import { GraduationCap, BookOpen, Brain, Trophy, MessageSquare } from 'lucide-react';
 
 const navItems = [
-  { label: 'Home', icon: GraduationCap, page: 'StudentDashboard' },
-  { label: 'Homework', icon: BookOpen, page: 'StudentHomework' },
-  { label: 'Quiz', icon: Brain, page: 'Quiz' },
-  { label: 'Results', icon: Trophy, page: 'Results' },
-  { label: 'Messages', icon: MessageSquare, page: 'StudentMessaging', badge: true },
+  { label: 'Home',     icon: GraduationCap, page: 'StudentDashboard' },
+  { label: 'Homework', icon: BookOpen,       page: 'StudentHomework' },
+  { label: 'Quiz',     icon: Brain,          page: 'Quiz' },
+  { label: 'Results',  icon: Trophy,         page: 'Results' },
+  { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', badge: true },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
@@ -25,48 +25,48 @@ export default function StudentBottomNav({ currentPage }) {
 
   useEffect(() => {
     if (!studentSession?.student_id) return;
-    
     const fetchUnread = async () => {
       try {
-        const messages = await base44.entities.Message.filter({
-          recipient_id: studentSession.student_id,
-          is_read: false
-        });
+        const messages = await base44.entities.Message.filter({ recipient_id: studentSession.student_id, is_read: false });
         setUnreadCount(messages.length);
       } catch {}
     };
-
     fetchUnread();
     const interval = setInterval(fetchUnread, 15000);
     return () => clearInterval(interval);
   }, [studentSession]);
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 z-50 shadow-lg">
-      <div className="flex items-center justify-around py-2">
-        {navItems.map((item) => {
-          const isActive = currentPage === item.page;
-          return (
-            <Link
-              key={item.page}
-              to={createPageUrl(item.page)}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all relative ${
-                isActive ? 'text-[#1a237e]' : 'text-gray-400'
-              }`}
-            >
-              <item.icon className={`h-6 w-6 ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
-              {item.badge && unreadCount > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50">
+      {/* glass effect bar */}
+      <div className="mx-3 mb-3 bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-white/60">
+        <div className="flex items-center justify-around px-2 py-2">
+          {navItems.map((item) => {
+            const isActive = currentPage === item.page;
+            return (
+              <Link
+                key={item.page}
+                to={createPageUrl(item.page)}
+                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 transition-all"
+              >
+                {isActive && (
+                  <span className="absolute inset-0 bg-indigo-50 rounded-2xl" />
+                )}
+                <div className={`relative z-10 p-1.5 rounded-xl transition-all ${isActive ? 'bg-gradient-to-br from-[#1a237e] to-[#3949ab] shadow-md' : ''}`}>
+                  <item.icon className={`h-5 w-5 transition-all ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                  {item.badge && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 shadow-sm">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] font-semibold relative z-10 transition-all ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  {item.label}
                 </span>
-              )}
-              <span className={`text-[10px] font-medium ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                {item.label}
-              </span>
-              {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
-            </Link>
-          );
-        })}
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

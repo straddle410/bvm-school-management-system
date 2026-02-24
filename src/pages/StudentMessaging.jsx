@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { PenSquare, Inbox, Send, RefreshCw, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { PenSquare, Inbox, Send, RefreshCw, MessageSquare, ArrowLeft } from 'lucide-react';
 import ComposeMessage from '@/components/messaging/ComposeMessage';
 import MessageList from '@/components/messaging/MessageList';
 import MessageThread from '@/components/messaging/MessageThread';
@@ -68,7 +67,7 @@ export default function StudentMessaging() {
 
   if (selectedThread) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto">
+      <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto">
         <MessageThread
           messages={selectedThread}
           currentUserId={student.student_id}
@@ -92,64 +91,86 @@ export default function StudentMessaging() {
     );
   }
 
+  const activeMessages = tab === 'inbox'
+    ? [...inbox].sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+    : [...sent].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto pb-20">
-      <div className="bg-[#1a237e] text-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-6 w-6" />
-          <h1 className="font-bold text-lg">Messages</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] })}>
-            <RefreshCw className="h-5 w-5 text-blue-200 hover:text-white" />
-          </button>
-          <Button onClick={() => setShowCompose(true)} size="sm" className="bg-white text-[#1a237e] hover:bg-blue-50 gap-1 text-xs">
-            <PenSquare className="h-3.5 w-3.5" /> New
-          </Button>
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto pb-24">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-blue-200" />
+            <h1 className="font-bold text-lg">Messages</h1>
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{unreadCount}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] })}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setShowCompose(true)}
+              className="flex items-center gap-1.5 bg-white text-[#1a237e] hover:bg-blue-50 px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-all"
+            >
+              <PenSquare className="h-3.5 w-3.5" /> New Message
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex border-b border-gray-200 bg-white sticky top-[60px] z-30">
-        <button
-          onClick={() => setTab('inbox')}
-          className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${
-            tab === 'inbox' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500'
-          }`}
-        >
-          <Inbox className="h-4 w-4" /> Inbox
-          {unreadCount > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{unreadCount}</span>
-          )}
-        </button>
-        <button
-          onClick={() => setTab('sent')}
-          className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${
-            tab === 'sent' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500'
-          }`}
-        >
-          <Send className="h-4 w-4" /> Sent
-        </button>
+      {/* Tabs — pill style */}
+      <div className="px-4 -mt-3 z-30 relative">
+        <div className="bg-white rounded-2xl shadow-sm p-1 flex gap-1">
+          {[
+            { key: 'inbox', label: 'Inbox', icon: Inbox },
+            { key: 'sent',  label: 'Sent',  icon: Send },
+          ].map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                tab === t.key
+                  ? 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white shadow-md'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <t.icon className="h-4 w-4" />
+              {t.label}
+              {t.key === 'inbox' && unreadCount > 0 && (
+                <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 ${tab === 'inbox' ? 'bg-white/20 text-white' : 'bg-red-500 text-white'}`}>
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="bg-white flex-1">
-        {tab === 'inbox' ? (
-          loadingInbox ? <div className="text-center py-12 text-gray-400 text-sm">Loading...</div> : (
-            <MessageList
-              messages={[...inbox].sort((a, b) => new Date(b.created_date) - new Date(a.created_date))}
-              currentUserId={student.student_id}
-              onSelect={handleSelectMessage}
-              emptyText="No messages yet"
-            />
-          )
+      {/* Message list */}
+      <div className="mt-3 mx-4 bg-white rounded-2xl shadow-sm overflow-hidden flex-1">
+        {(tab === 'inbox' ? loadingInbox : loadingSent) ? (
+          <div className="space-y-3 p-4">
+            {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />)}
+          </div>
+        ) : activeMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <MessageSquare className="h-10 w-10 mb-3 opacity-30" />
+            <p className="text-sm font-medium">{tab === 'inbox' ? 'No messages yet' : 'No sent messages'}</p>
+            {tab === 'inbox' && <p className="text-xs mt-1 text-gray-300">Messages from teachers will appear here</p>}
+          </div>
         ) : (
-          loadingSent ? <div className="text-center py-12 text-gray-400 text-sm">Loading...</div> : (
-            <MessageList
-              messages={[...sent].sort((a, b) => new Date(b.created_date) - new Date(a.created_date))}
-              currentUserId={student.student_id}
-              onSelect={handleSelectMessage}
-              emptyText="No sent messages"
-            />
-          )
+          <MessageList
+            messages={activeMessages}
+            currentUserId={student.student_id}
+            onSelect={handleSelectMessage}
+            emptyText=""
+          />
         )}
       </div>
 

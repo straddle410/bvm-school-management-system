@@ -3,15 +3,15 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText, Book, MessageSquare } from 'lucide-react';
+import {
+  GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy,
+  ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
+  MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock
+} from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import StudentChangePassword from '@/components/StudentChangePassword';
-
-
 
 function getStudentSession() {
   try {
@@ -19,6 +19,16 @@ function getStudentSession() {
     return s ? JSON.parse(s) : null;
   } catch { return null; }
 }
+
+const QUICK_ACCESS = [
+  { label: 'Results',  page: 'Results',          icon: Trophy,        gradient: 'from-emerald-400 to-teal-500',   notifKey: 'Results' },
+  { label: 'Notices',  page: 'Notices',           icon: Bell,          gradient: 'from-blue-400 to-indigo-500',    notifKey: 'Notices' },
+  { label: 'Gallery',  page: 'Gallery',           icon: Image,         gradient: 'from-pink-400 to-rose-500',      notifKey: null },
+  { label: 'Calendar', page: 'Calendar',          icon: Calendar,      gradient: 'from-orange-400 to-amber-500',   notifKey: null },
+  { label: 'Quiz',     page: 'Quiz',              icon: Brain,         gradient: 'from-purple-400 to-violet-500',  notifKey: 'Quiz' },
+  { label: 'Diary',    page: 'Diary',             icon: Book,          gradient: 'from-fuchsia-400 to-pink-500',   notifKey: 'Diary' },
+  { label: 'Messages', page: 'StudentMessaging',  icon: MessageSquare, gradient: 'from-sky-400 to-blue-600',       notifKey: 'Messages' },
+];
 
 export default function StudentDashboard() {
   const [student, setStudent] = useState(null);
@@ -29,14 +39,10 @@ export default function StudentDashboard() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
 
   useEffect(() => {
     const session = getStudentSession();
-    if (!session) {
-      window.location.href = createPageUrl('StudentLogin');
-      return;
-    }
+    if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
     loadData(session);
   }, []);
@@ -44,21 +50,17 @@ export default function StudentDashboard() {
   const loadData = async (session) => {
     setLoading(true);
     try {
-      const [marksData, attendanceData, noticesData, homeworkData, submissionsData] = await Promise.all([
-        base44.functions.invoke('getStudentData', { student_id: session.student_id, academic_year: session.academic_year, class_name: session.class_name }).then(r => ({
-          marks: r.data?.marks || [],
-          attendance: r.data?.attendance || [],
-          notices: r.data?.notices || [],
-          homework: r.data?.homework || [],
-          submissions: r.data?.submissions || []
-        }))
-      ]);
-      setMarks(marksData.marks);
-      setAttendance(marksData.attendance);
-      setNotices(marksData.notices);
-      setHomework(marksData.homework);
-      setSubmissions(marksData.submissions);
-    } catch (e) {}
+      const r = await base44.functions.invoke('getStudentData', {
+        student_id: session.student_id,
+        academic_year: session.academic_year,
+        class_name: session.class_name
+      });
+      setMarks(r.data?.marks || []);
+      setAttendance(r.data?.attendance || []);
+      setNotices(r.data?.notices || []);
+      setHomework(r.data?.homework || []);
+      setSubmissions(r.data?.submissions || []);
+    } catch {}
     setLoading(false);
   };
 
@@ -67,346 +69,263 @@ export default function StudentDashboard() {
     window.location.href = createPageUrl('StudentLogin');
   };
 
-  const { data: unreadDiaryCount = 0 } = useQuery({
-    queryKey: ['unread-diary-count', student?.student_id],
+  const makeNotifQuery = (type, key) => useQuery({
+    queryKey: [key, student?.student_id],
     queryFn: async () => {
       if (!student?.student_id) return 0;
-      try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_student_id: student.student_id,
-          type: 'diary_published',
-          is_read: false
-        });
-        return notifications.length;
-      } catch {
-        return 0;
-      }
+      const n = await base44.entities.Notification.filter({ recipient_student_id: student.student_id, type, is_read: false }).catch(() => []);
+      return n.length;
     },
     enabled: !!student?.student_id,
-    refetchInterval: 2000
+    refetchInterval: 30000,
   });
 
-  const { data: unreadQuizCount = 0 } = useQuery({
-    queryKey: ['unread-quiz-count', student?.student_id],
-    queryFn: async () => {
-      if (!student?.student_id) return 0;
-      try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_student_id: student.student_id,
-          type: 'quiz_posted',
-          is_read: false
-        });
-        return notifications.length;
-      } catch {
-        return 0;
-      }
-    },
-    enabled: !!student?.student_id,
-    refetchInterval: 2000
-  });
+  const { data: unreadDiary = 0 }    = makeNotifQuery('diary_published',  'unread-diary-count');
+  const { data: unreadQuiz = 0 }     = makeNotifQuery('quiz_posted',      'unread-quiz-count');
+  const { data: unreadNotice = 0 }   = makeNotifQuery('notice_posted',    'unread-notice-count');
+  const { data: unreadResults = 0 }  = makeNotifQuery('results_posted',   'unread-results-count');
 
-  const { data: unreadNoticeCount = 0 } = useQuery({
-    queryKey: ['unread-notice-count', student?.student_id],
-    queryFn: async () => {
-      if (!student?.student_id) return 0;
-      try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_student_id: student.student_id,
-          type: 'notice_posted',
-          is_read: false
-        });
-        return notifications.length;
-      } catch {
-        return 0;
-      }
-    },
-    enabled: !!student?.student_id,
-    refetchInterval: 2000
-  });
-
-  const { data: unreadResultsCount = 0 } = useQuery({
-    queryKey: ['unread-results-count', student?.student_id],
-    queryFn: async () => {
-      if (!student?.student_id) return 0;
-      try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_student_id: student.student_id,
-          type: 'results_posted',
-          is_read: false
-        });
-        return notifications.length;
-      } catch {
-        return 0;
-      }
-    },
-    enabled: !!student?.student_id,
-    refetchInterval: 2000
-  });
-
-  const { data: unreadMessageCount = 0 } = useQuery({
+  const { data: unreadMessages = 0 } = useQuery({
     queryKey: ['unread-message-count', student?.student_id],
     queryFn: async () => {
       if (!student?.student_id) return 0;
-      try {
-        const messages = await base44.entities.Message.filter({
-          recipient_id: student.student_id,
-          is_read: false
-        });
-        return messages.length;
-      } catch {
-        return 0;
-      }
+      const m = await base44.entities.Message.filter({ recipient_id: student.student_id, is_read: false }).catch(() => []);
+      return m.length;
     },
     enabled: !!student?.student_id,
-    refetchInterval: 15000
+    refetchInterval: 15000,
   });
 
-  if (!student) return null;
-
-  const studentQuickAccess = [
-    { label: 'Results', page: 'Results', icon: Trophy, bg: '#e8f5e9', color: '#388e3c' },
-    { label: 'Notices', page: 'Notices', icon: Bell, bg: '#e3f2fd', color: '#1565c0' },
-    { label: 'Gallery', page: 'Gallery', icon: Image, bg: '#fce4ec', color: '#c62828' },
-    { label: 'Calendar', page: 'Calendar', icon: Calendar, bg: '#fff3e0', color: '#e65100' },
-    { label: 'Quiz', page: 'Quiz', icon: Brain, bg: '#f3e5f5', color: '#6a1b9a' },
-    { label: 'Diary', page: 'Diary', icon: Book, bg: '#fce4ec', color: '#c2185b' },
-    { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, bg: '#e8eaf6', color: '#1a237e' },
-  ];
+  const notifMap = { Diary: unreadDiary, Quiz: unreadQuiz, Notices: unreadNotice, Results: unreadResults, Messages: unreadMessages };
 
   const presentCount = attendance.filter(a => a.is_present).length;
   const attendancePct = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
+  const pendingHw = homework.filter(hw => !submissions.some(s => s.homework_id === hw.id)).length;
 
-  const subjectMap = {};
-  marks.forEach(m => {
-    if (!subjectMap[m.subject]) subjectMap[m.subject] = [];
-    subjectMap[m.subject].push(m);
-  });
+  if (!student) return null;
+
+  const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
       {/* Header */}
-      <header className="bg-[#1a237e] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-3">
-          <GraduationCap className="h-7 w-7" />
-          <span className="font-bold text-lg">Student Portal</span>
+      <header className="sticky top-0 z-50">
+        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-16 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-6 w-6 text-blue-200" />
+              <span className="font-bold text-white text-base tracking-wide">Student Portal</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Logout
+            </button>
+          </div>
+          {/* Profile inline */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Avatar className="h-14 w-14 border-2 border-white/50 shadow-md">
+                <AvatarImage src={student.photo_url} />
+                <AvatarFallback className="bg-indigo-300 text-white font-bold text-lg">{initials}</AvatarFallback>
+              </Avatar>
+            </div>
+            <div className="flex-1">
+              <h2 className="text-white font-bold text-lg leading-tight">{student.name}</h2>
+              <p className="text-blue-200 text-xs">Class {student.class_name}-{student.section} · Roll #{student.roll_no}</p>
+              <p className="text-blue-300 text-xs">{student.academic_year}</p>
+            </div>
+            <button
+              onClick={() => setShowChangePassword(true)}
+              className="bg-white/15 hover:bg-white/25 text-white rounded-full p-2 transition-all"
+              title="Change Password"
+            >
+              <Lock className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-        <button onClick={handleLogout} className="flex items-center gap-1 text-blue-200 hover:text-white text-sm">
-          <LogOut className="h-5 w-5" />
-        </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-20 p-4 space-y-4">
+      {/* Stats floating cards */}
+      <div className="px-4 -mt-8 mb-4 z-10 relative">
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: 'Attendance', value: `${attendancePct}%`, icon: ClipboardList, color: attendancePct >= 75 ? 'text-emerald-600' : 'text-red-500', bg: attendancePct >= 75 ? 'bg-emerald-50' : 'bg-red-50' },
+            { label: 'Results',    value: marks.length,        icon: Trophy,         color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'Pending HW', value: pendingHw,           icon: BookOpen,       color: 'text-orange-600', bg: 'bg-orange-50' },
+          ].map(s => (
+            <div key={s.label} className="bg-white rounded-2xl shadow-sm p-3 flex flex-col items-center gap-1">
+              <div className={`${s.bg} rounded-xl p-1.5`}>
+                <s.icon className={`h-4 w-4 ${s.color}`} />
+              </div>
+              <span className={`text-xl font-bold ${s.color}`}>{s.value}</span>
+              <span className="text-[10px] text-gray-400 font-medium text-center">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <main className="flex-1 overflow-y-auto pb-24 px-4 space-y-5">
 
         {/* Quick Access */}
-        <div>
-          <h2 className="text-base font-bold text-gray-800 mb-3">Quick Access</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {studentQuickAccess.map((item) => {
-              let badgeCount = 0;
-              if (item.label === 'Diary') badgeCount = unreadDiaryCount;
-              else if (item.label === 'Quiz') badgeCount = unreadQuizCount;
-              else if (item.label === 'Notices') badgeCount = unreadNoticeCount;
-              else if (item.label === 'Results') badgeCount = unreadResultsCount;
-              else if (item.label === 'Messages') badgeCount = unreadMessageCount;
-
+        <section>
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Access</h2>
+          <div className="grid grid-cols-4 gap-3">
+            {QUICK_ACCESS.map((item) => {
+              const badge = item.notifKey ? (notifMap[item.notifKey] || 0) : 0;
               return (
                 <Link key={item.label} to={createPageUrl(item.page)} className="block">
-                  <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative h-full">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
-                      <item.icon className="h-6 w-6" style={{ color: item.color }} />
+                  <div className="flex flex-col items-center gap-1.5 relative">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md`}>
+                      <item.icon className="h-6 w-6 text-white" />
                     </div>
-                    {badgeCount > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                        {badgeCount}
+                    {badge > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
+                        {badge > 9 ? '9+' : badge}
                       </span>
                     )}
-                    <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
+                    <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                   </div>
                 </Link>
               );
             })}
           </div>
-        </div>
+        </section>
 
-        {/* Profile Card */}
-        <Card className="border-0 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] p-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-white">
-                <AvatarImage src={student.photo_url} />
-                <AvatarFallback className="bg-blue-300 text-white text-xl font-bold">
-                  {student.name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-white">
-                <h2 className="font-bold text-lg">{student.name}</h2>
-                <p className="text-blue-200 text-sm">Class {student.class_name}-{student.section} | Roll #{student.roll_no}</p>
-                <p className="text-blue-300 text-xs mt-0.5">{student.username} • {student.academic_year}</p>
-              </div>
-            </div>
+        {/* Attendance */}
+        <section className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-indigo-500" /> Attendance
+            </h3>
+            <span className={`text-xs font-bold px-2 py-1 rounded-full ${attendancePct >= 75 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+              {attendancePct}%
+            </span>
           </div>
-          <CardContent className="p-3 flex gap-3">
-            <button
-              onClick={() => setShowChangePassword(true)}
-              className="flex-1 flex items-center justify-center gap-2 text-sm text-[#1a237e] font-medium py-2 rounded-lg border border-[#1a237e] hover:bg-blue-50 transition-colors"
-            >
-              <Lock className="h-4 w-4" /> Change Password
-            </button>
-          </CardContent>
-        </Card>
+          <div className="bg-gray-100 rounded-full h-2.5 mb-3">
+            <div
+              className={`h-2.5 rounded-full transition-all ${attendancePct >= 75 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-red-400 to-red-500'}`}
+              style={{ width: `${attendancePct}%` }}
+            />
+          </div>
+          <div className="flex gap-4 text-xs text-gray-500">
+            <span className="flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5 text-emerald-500" /> Present: <b className="text-emerald-600">{presentCount}</b></span>
+            <span className="flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5 text-red-400" /> Absent: <b className="text-red-500">{attendance.length - presentCount}</b></span>
+          </div>
+          {attendancePct < 75 && (
+            <div className="mt-3 text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 flex items-center gap-1.5">
+              ⚠️ Attendance below 75%. Please regularise attendance.
+            </div>
+          )}
+        </section>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="border-0 shadow-sm text-center">
-            <CardContent className="p-3">
-              <p className="text-2xl font-bold text-[#1a237e]">{attendancePct}%</p>
-              <p className="text-xs text-gray-500 mt-0.5">Attendance</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm text-center">
-            <CardContent className="p-3">
-              <p className="text-2xl font-bold text-green-600">{marks.length}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Results</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm text-center">
-            <CardContent className="p-3">
-              <p className="text-2xl font-bold text-amber-500">{notices.length}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Notices</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Homework / Assignments */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-orange-500" /> Homework & Assignments
+        {/* Homework */}
+        <section className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-orange-500" /> Homework
             </h3>
-            {loading ? (
-              <div className="text-center py-4 text-gray-400 text-sm">Loading...</div>
-            ) : homework.length === 0 ? (
-              <div className="text-center py-4 text-gray-400 text-sm">No homework assigned yet.</div>
-            ) : (
-              <div className="space-y-2">
-                {homework.map((hw) => {
-                  const isSubmitted = submissions.some(s => s.homework_id === hw.id);
-                  const isOverdue = hw.due_date && new Date(hw.due_date) < new Date();
-                  return (
-                    <div key={hw.id} className="p-3 bg-orange-50 rounded-xl border border-orange-100">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-800 text-sm">{hw.title}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{hw.subject} {hw.assigned_by ? `• ${hw.assigned_by}` : ''}</p>
-                          {hw.description && <p className="text-xs text-slate-600 mt-1 line-clamp-2">{hw.description}</p>}
-                        </div>
-                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                          {isSubmitted ? (
-                            <Badge className="text-[10px] bg-blue-100 text-blue-700 border-0">Submitted</Badge>
-                          ) : (
-                            <Badge className={`text-[10px] ${isOverdue ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'} border-0`}>
-                              {isOverdue ? 'Overdue' : 'Pending'}
-                            </Badge>
-                          )}
-                          {hw.due_date && (
-                            <span className="text-[10px] text-slate-500">Due: {format(new Date(hw.due_date), 'dd MMM')}</span>
-                          )}
-                        </div>
+            <Link to={createPageUrl('StudentHomework')} className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5">
+              View all <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {loading ? (
+            <div className="space-y-2">{[1,2].map(i => <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+          ) : homework.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 text-sm">No homework assigned yet 🎉</div>
+          ) : (
+            <div className="space-y-2">
+              {homework.slice(0, 4).map((hw) => {
+                const isSubmitted = submissions.some(s => s.homework_id === hw.id);
+                const isOverdue = hw.due_date && new Date(hw.due_date) < new Date();
+                return (
+                  <div key={hw.id} className={`p-3 rounded-xl border-l-4 ${isSubmitted ? 'bg-green-50 border-green-400' : isOverdue ? 'bg-red-50 border-red-400' : 'bg-orange-50 border-orange-400'}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 text-sm truncate">{hw.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{hw.subject}</p>
                       </div>
-                      {hw.attachment_url && (
-                        <a href={hw.attachment_url} target="_blank" rel="noopener noreferrer"
-                          className="mt-2 flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                          <FileText className="h-3 w-3" /> View Attachment
-                        </a>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Attendance Summary */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-[#1a237e]" /> Attendance (Last 30 Days)
-            </h3>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full ${attendancePct >= 75 ? 'bg-green-500' : 'bg-red-500'}`}
-                  style={{ width: `${attendancePct}%` }}
-                />
-              </div>
-              <span className={`text-sm font-bold ${attendancePct >= 75 ? 'text-green-600' : 'text-red-600'}`}>{attendancePct}%</span>
-            </div>
-            <div className="flex gap-4 text-sm text-gray-500">
-              <span>Present: <strong className="text-green-600">{presentCount}</strong></span>
-              <span>Absent: <strong className="text-red-600">{attendance.length - presentCount}</strong></span>
-              <span>Total: <strong>{attendance.length}</strong></span>
-            </div>
-            {attendancePct < 75 && (
-              <div className="mt-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
-                ⚠️ Attendance below 75%. Please regularise.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Marks */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-500" /> My Results
-            </h3>
-            {loading ? (
-              <div className="text-center py-4 text-gray-400 text-sm">Loading...</div>
-            ) : marks.length === 0 ? (
-              <div className="text-center py-4 text-gray-400 text-sm">No published results yet.</div>
-            ) : (
-              <div className="space-y-2">
-                {marks.slice(0, 10).map((m) => (
-                  <div key={m.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                    <div>
-                      <p className="font-medium text-slate-800 text-sm">{m.subject}</p>
-                      <p className="text-xs text-slate-500">{m.exam_type}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-[#1a237e]">{m.marks_obtained}/{m.max_marks}</p>
-                      {m.grade && <Badge className="text-xs bg-green-100 text-green-700 border-0">{m.grade}</Badge>}
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isSubmitted ? 'bg-green-200 text-green-700' : isOverdue ? 'bg-red-200 text-red-700' : 'bg-orange-200 text-orange-700'}`}>
+                          {isSubmitted ? '✓ Done' : isOverdue ? 'Overdue' : 'Pending'}
+                        </span>
+                        {hw.due_date && (
+                          <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                            <Clock className="h-2.5 w-2.5" /> {format(new Date(hw.due_date), 'dd MMM')}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Results */}
+        <section className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-amber-500" /> My Results
+            </h3>
+            <Link to={createPageUrl('Results')} className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5">
+              View all <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {loading ? (
+            <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+          ) : marks.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 text-sm">No published results yet.</div>
+          ) : (
+            <div className="space-y-2">
+              {marks.slice(0, 5).map((m) => {
+                const pct = m.max_marks > 0 ? Math.round((m.marks_obtained / m.max_marks) * 100) : 0;
+                return (
+                  <div key={m.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-800 text-sm truncate">{m.subject}</p>
+                      <p className="text-xs text-gray-400">{m.exam_type}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-indigo-700 text-sm">{m.marks_obtained}/{m.max_marks}</p>
+                      {m.grade && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${pct >= 75 ? 'bg-green-100 text-green-700' : pct >= 50 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-600'}`}>{m.grade}</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         {/* Notices */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <Bell className="h-5 w-5 text-blue-500" /> Latest Notices
+        <section className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <Bell className="h-4 w-4 text-blue-500" /> Latest Notices
             </h3>
-            {notices.length === 0 ? (
-              <div className="text-center py-4 text-gray-400 text-sm">No notices.</div>
-            ) : (
-              <div className="space-y-2">
-                {notices.slice(0, 5).map((n) => (
-                  <div key={n.id} className="p-3 bg-slate-50 rounded-xl">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-medium text-slate-800 text-sm">{n.title}</p>
-                      <Badge className="text-xs shrink-0 bg-blue-100 text-blue-700 border-0">{n.notice_type}</Badge>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{n.content}</p>
+            <Link to={createPageUrl('Notices')} className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5">
+              View all <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {notices.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 text-sm">No notices available.</div>
+          ) : (
+            <div className="space-y-2">
+              {notices.slice(0, 4).map((n) => (
+                <div key={n.id} className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-gray-800 text-sm leading-snug">{n.title}</p>
+                    <span className="text-[10px] font-bold bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full shrink-0">{n.notice_type}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  {n.content && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{n.content}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
       </main>
 
       <StudentBottomNav currentPage="StudentDashboard" />
@@ -417,8 +336,7 @@ export default function StudentDashboard() {
           onClose={() => setShowChangePassword(false)}
           onSuccess={() => {
             setShowChangePassword(false);
-            const session = getStudentSession();
-            setStudent(session);
+            setStudent(getStudentSession());
           }}
         />
       )}
