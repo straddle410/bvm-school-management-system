@@ -296,6 +296,20 @@ export default function UserProfile() {
           </div>
         )}
 
+        {/* OTP Setting - Admin Only */}
+        {sessionType === 'staff' && isAdmin && (
+          <div className="bg-white rounded-2xl shadow-sm p-5">
+            <h3 className="font-bold text-gray-800 mb-3">Email OTP Verification</h3>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">Require OTP for login verification</p>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#1a237e] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a237e]"></div>
+              </label>
+            </div>
+          </div>
+        )}
+
         {/* Change Password */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="font-bold text-gray-800 mb-3">Security</h3>
