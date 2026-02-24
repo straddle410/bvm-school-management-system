@@ -122,8 +122,8 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col my-auto" style={{ maxHeight: 'calc(100vh - 32px)' }}>
         <div className="bg-[#1a237e] text-white px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between flex-shrink-0">
           <h2 className="font-bold text-base sm:text-lg">{replyTo ? 'Reply' : 'New Message'}</h2>
           <button onClick={onClose} className="flex-shrink-0"><X className="h-5 w-5" /></button>
