@@ -147,6 +147,14 @@ export default function UserProfile() {
   const initials = (record?.name || record?.full_name || session?.full_name || '?')
     .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
+  const handleBack = () => {
+    if (sessionType === 'student') {
+      window.location.href = createPageUrl('StudentDashboard');
+    } else {
+      window.history.back();
+    }
+  };
+
   const backPage = sessionType === 'student' ? 'StudentDashboard' : 'Dashboard';
 
   if (isLoading || !session) {
@@ -162,7 +170,7 @@ export default function UserProfile() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-20 relative">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => window.history.back()} className="text-white/80 hover:text-white">
+          <button onClick={handleBack} className="text-white/80 hover:text-white">
             <ArrowLeft className="h-6 w-6" />
           </button>
           <span className="text-white font-bold text-base">My Profile</span>
