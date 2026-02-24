@@ -24,6 +24,7 @@ Deno.serve(async (req) => {
     const prefMap = new Map(prefs.map(p => [p.student_id, p]));
 
     let notified = 0;
+    const duplicateCheck = new Set();
 
     // Send push notifications to eligible students
     for (const student of students) {
@@ -34,17 +35,31 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Create notification record
-      await base44.asServiceRole.entities.Notification.create({
-        recipient_student_id: student.student_id,
-        type: 'quiz_posted',
-        title: 'New Quiz Posted',
-        message: `${title} - Check it out now!`,
-        related_entity_id: quiz_id,
-        is_read: false
-      });
+      // Prevent duplicate notifications
+      const duplicateKey = `quiz_${quiz_id}_${student.student_id}`;
+      if (duplicateCheck.has(duplicateKey)) {
+        console.warn(`Skipping duplicate notification for ${student.student_id}`);
+        continue;
+      }
+      duplicateCheck.add(duplicateKey);
 
-      notified++;
+      try {
+        // Create notification record with deduplication key and action URL
+        await base44.asServiceRole.entities.Notification.create({
+          recipient_student_id: student.student_id,
+          type: 'quiz_posted',
+          title: 'New Quiz Posted',
+          message: `${title} - Check it out now!`,
+          related_entity_id: quiz_id,
+          action_url: '/Quiz',
+          is_read: false,
+          duplicate_key: duplicateKey
+        });
+
+        notified++;
+      } catch (err) {
+        console.error(`Failed to create notification for student ${student.student_id}:`, err);
+      }
     }
 
     return Response.json({ success: true, notified });
