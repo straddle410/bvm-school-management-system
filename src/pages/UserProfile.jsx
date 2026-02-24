@@ -55,9 +55,12 @@ export default function UserProfile() {
 
   const { data: staffRecord, isLoading: staffLoading } = useQuery({
     queryKey: ['staff-profile', session?.id],
-    queryFn: () => base44.entities.StaffAccount.filter({ id: session.id }),
+    queryFn: async () => {
+      if (!session?.id) return null;
+      const data = await base44.entities.StaffAccount.filter({ id: session.id });
+      return data[0] || null;
+    },
     enabled: sessionType === 'staff' && !!session?.id,
-    select: (data) => data[0] || null,
   });
 
   const { data: studentRecord, isLoading: studentLoading } = useQuery({
