@@ -146,94 +146,88 @@ export default function StudentNotificationSettings({ studentId }) {
     return <div className="text-gray-400 text-sm">Loading notification settings...</div>;
   }
 
+  const renderToggleRow = (label, description, checked, onChange, showFlexShrink = false) => (
+    <div className={`flex items-center justify-between gap-3 py-3 px-0 border-b border-gray-100 last:border-0 ${showFlexShrink ? 'flex-wrap' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-800">{label}</p>
+        {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
+      </div>
+      <div className="flex-shrink-0">
+        <Switch checked={checked} onCheckedChange={onChange} disabled={saving} />
+      </div>
+    </div>
+  );
+
   return (
-    <Card className="bg-white rounded-2xl shadow-sm p-5">
+    <Card className="bg-white rounded-2xl shadow-sm p-4 sm:p-5">
       <CardHeader className="border-0 p-0 mb-4">
         <CardTitle className="font-bold text-gray-800 flex items-center gap-2">
           <Bell className="h-5 w-5 text-blue-600" /> Notifications
         </CardTitle>
-        <CardDescription>Manage how you receive notifications</CardDescription>
+        <CardDescription className="text-xs">Manage how you receive notifications</CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4 p-0">
+      <CardContent className="space-y-0 p-0">
         {/* Master Enable/Disable */}
-        <div className="flex items-center justify-between py-3 border-b border-gray-100">
-          <div>
-            <p className="text-sm font-medium text-gray-800">All Notifications</p>
-            <p className="text-xs text-gray-500 mt-0.5">Enable or disable all notifications</p>
-          </div>
-          <Switch
-            checked={prefs.notifications_enabled}
-            onCheckedChange={(val) =>
-              handleUpdatePreference({ notifications_enabled: val })
-            }
-            disabled={saving}
-          />
-        </div>
+        {renderToggleRow(
+          'All Notifications',
+          'Enable or disable all notifications',
+          prefs.notifications_enabled,
+          (val) => handleUpdatePreference({ notifications_enabled: val })
+        )}
 
         {prefs.notifications_enabled && (
           <>
             {/* Message Notifications */}
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <div>
-                <p className="text-sm font-medium text-gray-800">Class Messages</p>
-                <p className="text-xs text-gray-500 mt-0.5">Get notified of new class messages</p>
-              </div>
-              <Switch
-                checked={prefs.message_notifications}
-                onCheckedChange={(val) =>
-                  handleUpdatePreference({ message_notifications: val })
-                }
-                disabled={saving}
-              />
-            </div>
+            {renderToggleRow(
+              'Class Messages',
+              'Get notified of new class messages',
+              prefs.message_notifications,
+              (val) => handleUpdatePreference({ message_notifications: val })
+            )}
 
             {/* Quiz Notifications */}
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <div>
-                <p className="text-sm font-medium text-gray-800">Quiz Alerts</p>
-                <p className="text-xs text-gray-500 mt-0.5">Get notified when quizzes are posted</p>
-              </div>
-              <Switch
-                checked={prefs.quiz_notifications}
-                onCheckedChange={(val) =>
-                  handleUpdatePreference({ quiz_notifications: val })
-                }
-                disabled={saving}
-              />
-            </div>
+            {renderToggleRow(
+              'Quiz Alerts',
+              'Get notified when quizzes are posted',
+              prefs.quiz_notifications,
+              (val) => handleUpdatePreference({ quiz_notifications: val })
+            )}
 
             {/* Sound Settings */}
-            <div className="py-3 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-3">
-                <div>
+            <div className="py-3 px-0 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-800">Notification Sound</p>
                 </div>
-                <Switch
-                  checked={prefs.sound_enabled}
-                  onCheckedChange={(val) =>
-                    handleUpdatePreference({ sound_enabled: val })
-                  }
-                  disabled={saving}
-                />
+                <div className="flex-shrink-0">
+                  <Switch
+                    checked={prefs.sound_enabled}
+                    onCheckedChange={(val) =>
+                      handleUpdatePreference({ sound_enabled: val })
+                    }
+                    disabled={saving}
+                  />
+                </div>
               </div>
               {prefs.sound_enabled && (
-                <div className="space-y-2">
+                <div className="space-y-2 mt-3">
                   <div className="flex items-center gap-2">
-                    <Slider
-                      value={[prefs.sound_volume]}
-                      onValueChange={(val) =>
-                        handleUpdatePreference({ sound_volume: val[0] })
-                      }
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      className="flex-1"
-                      disabled={saving}
-                    />
+                    <div className="flex-1 min-w-0">
+                      <Slider
+                        value={[prefs.sound_volume]}
+                        onValueChange={(val) =>
+                          handleUpdatePreference({ sound_volume: val[0] })
+                        }
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        disabled={saving}
+                      />
+                    </div>
                     <button
                       onClick={playTestSound}
-                      className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-medium"
+                      className="flex-shrink-0 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-medium"
                     >
                       Test
                     </button>
@@ -244,23 +238,23 @@ export default function StudentNotificationSettings({ studentId }) {
             </div>
 
             {/* Browser Push Notifications */}
-            <div className="py-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+            <div className="py-3 px-0">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800">Browser Notifications</p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {pushPermission === 'granted'
-                      ? '✓ Enabled - You will receive browser notifications'
+                      ? '✓ Enabled'
                       : pushPermission === 'denied'
-                      ? '✗ Blocked - Enable in browser settings'
-                      : 'Click to enable browser notifications'}
+                      ? '✗ Blocked in settings'
+                      : 'Enable notifications'}
                   </p>
                 </div>
                 {pushPermission !== 'granted' && (
                   <button
                     onClick={handleRequestPushPermission}
                     disabled={saving}
-                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap ml-2"
+                    className="flex-shrink-0 text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
                   >
                     Enable
                   </button>
@@ -270,10 +264,10 @@ export default function StudentNotificationSettings({ studentId }) {
                 )}
               </div>
               {pushPermission === 'denied' && (
-                <div className="mt-2 bg-red-50 rounded-lg p-2 flex gap-2 text-xs text-red-700">
+                <div className="mt-3 bg-red-50 rounded-lg p-2 flex gap-2 text-xs text-red-700">
                   <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   <p>
-                    Notification permission is blocked. Check your browser settings to enable notifications for this site.
+                    Enable in browser settings to receive notifications.
                   </p>
                 </div>
               )}
