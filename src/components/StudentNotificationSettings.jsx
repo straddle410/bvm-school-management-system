@@ -15,11 +15,26 @@ export default function StudentNotificationSettings({ studentId }) {
   useEffect(() => {
     loadPreferences();
     checkPushPermission();
-    // Auto-subscribe if permission already granted
-    if ('Notification' in window && Notification.permission === 'granted') {
-      autoSubscribeIfNeeded();
-    }
+    // Auto-enable notifications immediately
+    autoEnableNotifications();
   }, [studentId]);
+
+  const autoEnableNotifications = async () => {
+    if (!('Notification' in window)) return;
+    
+    try {
+      if (Notification.permission === 'granted') {
+        await autoSubscribeIfNeeded();
+      } else if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          await registerServiceWorker();
+        }
+      }
+    } catch (err) {
+      console.warn('Auto-enable notifications failed:', err);
+    }
+  };
 
   const autoSubscribeIfNeeded = async () => {
     if ('serviceWorker' in navigator) {
