@@ -228,8 +228,8 @@ export default function Attendance() {
       <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
        {/* Filters */}
        <Card className="border-0 shadow-sm">
-         <CardContent className="p-4 space-y-3">
-           <div className="flex flex-col sm:flex-row gap-4">
+         <CardContent className="p-3 sm:p-4 space-y-3">
+           <div className="flex flex-col gap-3 sm:gap-4">
              <div className="flex items-center gap-2">
                <Calendar className="h-5 w-5 text-slate-400" />
                <input
