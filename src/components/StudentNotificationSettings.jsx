@@ -108,9 +108,26 @@ export default function StudentNotificationSettings({ studentId }) {
   const checkPushPermission = () => {
     if ('Notification' in window) {
       const permission = Notification.permission;
+      console.log('Current Notification.permission:', permission);
       setPushPermission(permission);
-      console.log('Push permission state:', permission);
     }
+  };
+
+  const refreshPermissionStatus = async () => {
+    // Force re-check of Chrome permission
+    checkPushPermission();
+    
+    // Small delay, then try to register if granted
+    setTimeout(async () => {
+      if (Notification.permission === 'granted') {
+        try {
+          await registerServiceWorker();
+          toast.success('Notifications enabled!');
+        } catch (err) {
+          console.error('Service worker registration failed:', err);
+        }
+      }
+    }, 100);
   };
 
   const handleRequestPushPermission = async () => {
