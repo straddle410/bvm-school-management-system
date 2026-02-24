@@ -108,6 +108,7 @@ export default function StudentDashboard() {
       {/* Notification Listeners */}
       <StudentMessageNotificationListener studentSession={student} />
       <StudentQuizNotificationListener studentSession={student} />
+      <StudentNoticeNotificationListener studentSession={student} />
 
       {/* Header */}
       <header className="sticky top-0 z-50">
