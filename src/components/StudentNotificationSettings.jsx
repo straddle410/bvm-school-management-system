@@ -395,24 +395,36 @@ export default function StudentNotificationSettings({ studentId }) {
                       : 'Enable notifications'}
                   </p>
                 </div>
-                {pushPermission === 'granted' && (
-                  <button
-                    onClick={handleDisablePushNotifications}
-                    disabled={saving}
-                    className="flex-shrink-0 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
-                  >
-                    Disable
-                  </button>
-                )}
-                {pushPermission !== 'granted' && (
-                  <button
-                    onClick={handleRequestPushPermission}
-                    disabled={saving}
-                    className="flex-shrink-0 text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
-                  >
-                    Enable
-                  </button>
-                )}
+                <div className="flex gap-2 flex-shrink-0">
+                  {pushPermission !== 'granted' && (
+                    <button
+                      onClick={refreshPermissionStatus}
+                      disabled={saving}
+                      className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1.5 rounded-lg font-medium"
+                      title="Refresh to check if you've enabled notifications in Chrome"
+                    >
+                      Refresh
+                    </button>
+                  )}
+                  {pushPermission === 'granted' && (
+                    <button
+                      onClick={handleDisablePushNotifications}
+                      disabled={saving}
+                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
+                    >
+                      Disable
+                    </button>
+                  )}
+                  {pushPermission !== 'granted' && (
+                    <button
+                      onClick={handleRequestPushPermission}
+                      disabled={saving}
+                      className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
+                    >
+                      Enable
+                    </button>
+                  )}
+                </div>
               </div>
               {pushPermission === 'default' && (
                 <div className="mt-3 bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
