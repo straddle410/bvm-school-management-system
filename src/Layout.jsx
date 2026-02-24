@@ -100,9 +100,9 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <AcademicYearProvider>
-    <div className="min-h-screen bg-gray-100 flex flex-col md:max-w-none mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col md:max-w-none mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
-      <header className="bg-[#1a237e] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-3">
           {schoolProfile?.logo_url && (
             <img src={schoolProfile.logo_url} alt="Logo" className="h-8 w-8 object-contain rounded" />
