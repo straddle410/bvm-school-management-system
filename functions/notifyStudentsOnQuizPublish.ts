@@ -5,26 +5,28 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
-    if (event?.type !== 'update' || data?.status !== 'Published') {
+    // Trigger on both create and update when status is Published
+    if (!data || data.status !== 'Published') {
       return Response.json({ success: false, message: 'Not a publish event' });
     }
 
     const quiz = data;
-    if (!quiz.id) {
-      return Response.json({ success: false, message: 'No quiz ID' });
-    }
+    const quizId = event.entity_id;
 
+    // Get all students (quiz goes to everyone)
     const students = await base44.asServiceRole.entities.Student.list();
-    const notifications = students.map(student => ({
-      recipient_student_id: student.student_id,
-      recipient_name: student.name,
-      type: 'quiz_posted',
-      title: quiz.title,
-      message: `New quiz: ${quiz.title}`,
-      related_entity_id: quiz.id,
-      is_read: false,
-      academic_year: student.academic_year
-    }));
+    const notifications = students
+      .filter(student => student.student_id)
+      .map(student => ({
+        recipient_student_id: student.student_id,
+        recipient_name: student.name,
+        type: 'quiz_posted',
+        title: quiz.title,
+        message: `New quiz posted: ${quiz.title}`,
+        related_entity_id: quizId,
+        is_read: false,
+        academic_year: student.academic_year
+      }));
 
     if (notifications.length > 0) {
       await base44.asServiceRole.entities.Notification.bulkCreate(notifications);
