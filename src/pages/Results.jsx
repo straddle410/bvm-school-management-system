@@ -56,15 +56,34 @@ export default function Results() {
         setFilterClass(parsed.class_name || '');
         setFilterSection(parsed.section || '');
         setSelectedStudentId(parsed.student_id || '');
-        // Mark results notifications as read
         markResultsNotificationsAsRead(parsed.student_id);
+        // Auto-search for student's own results
+        autoSearchStudent(parsed);
       } catch {}
     } else if (staffSess) {
-      // Staff/admin also allowed — treat as authorized
       setStudentSession({ isStaff: true });
     }
     setSessionLoaded(true);
   }, []);
+
+  const autoSearchStudent = async (parsed) => {
+    setIsSearching(true);
+    const filter = { status: 'Published', student_id: parsed.student_id };
+    const marks = await base44.entities.Marks.filter(filter).catch(() => []);
+    setIsSearching(false);
+    setSearched(true);
+    if (marks.length > 0) {
+      const m = marks[0];
+      const grouped = {};
+      marks.forEach(mark => {
+        if (!grouped[mark.exam_type]) grouped[mark.exam_type] = [];
+        grouped[mark.exam_type].push(mark);
+      });
+      setResultsByExam(grouped);
+      setAllMarks(marks);
+      setStudentResult({ student_id: m.student_id, student_name: m.student_name, class_name: m.class_name, section: m.section });
+    }
+  };
 
   const markResultsNotificationsAsRead = async (studentId) => {
     try {
