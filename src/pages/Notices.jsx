@@ -236,7 +236,7 @@ export default function Notices() {
 
       {/* Create Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl">
            <DialogHeader>
              <DialogTitle>{editingNotice ? 'Edit Notice' : 'Create Notice'}</DialogTitle>
            </DialogHeader>
