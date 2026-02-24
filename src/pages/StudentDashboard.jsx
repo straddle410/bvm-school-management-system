@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import StudentChangePassword from '@/components/StudentChangePassword';
 import StudentMessageNotificationListener from '@/components/StudentMessageNotificationListener';
 import StudentQuizNotificationListener from '@/components/StudentQuizNotificationListener';
+import StudentNoticeNotificationListener from '@/components/StudentNoticeNotificationListener';
 
 function getStudentSession() {
   try {
