@@ -23,13 +23,16 @@ export default function StudentNotificationSettings({ studentId }) {
     if (!('Notification' in window)) return;
     
     try {
-      if (Notification.permission === 'granted') {
-        await autoSubscribeIfNeeded();
-      } else if (Notification.permission !== 'denied') {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          await registerServiceWorker();
-        }
+      // Always try to request permission (will silently fail if denied, will prompt if default)
+      const permission = await Notification.requestPermission();
+      console.log('Permission result:', permission);
+      
+      if (permission === 'granted') {
+        await registerServiceWorker();
+        setPushPermission('granted');
+        setTimeout(() => checkPushPermission(), 500);
+      } else {
+        setPushPermission(permission);
       }
     } catch (err) {
       console.warn('Auto-enable notifications failed:', err);
