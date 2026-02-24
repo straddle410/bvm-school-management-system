@@ -237,13 +237,13 @@ export default function Marks() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Exams & Marks">
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
       <PageHeader 
         title="Enter Marks"
         subtitle="Enter and manage student marks"
       />
 
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
             {/* Selection */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4">
