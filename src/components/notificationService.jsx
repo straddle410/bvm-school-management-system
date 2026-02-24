@@ -28,13 +28,17 @@ export const notificationService = {
     }
 
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-      });
+      // Try to register the service worker from functions
+      const reg = await navigator.serviceWorker.register(
+        new URL('/functions/swWorker.js', import.meta.url),
+        { scope: '/' }
+      );
       console.log('Service Worker registered');
       return reg;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
+      // Fall back to simple notification support without service worker
+      console.warn('Will use foreground notifications only');
       return null;
     }
   },
