@@ -23,8 +23,6 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import DiaryList from '@/components/diary/DiaryList';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-
 export default function Diary() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
@@ -36,54 +34,33 @@ export default function Diary() {
   useEffect(() => {
     const session = getStaffSession();
     setUser(session);
-    
     if (!session) {
-      // Try to get student from local storage (student session)
       try {
         const studentData = JSON.parse(localStorage.getItem('student_session'));
         if (studentData) {
           setUserStudent(studentData);
-          // Mark diary notifications as read
           markDiaryNotificationsAsRead(studentData.student_id);
         }
-      } catch (e) {
-        console.error('Failed to parse student session:', e);
-      }
+      } catch (e) {}
     }
   }, []);
 
   const markDiaryNotificationsAsRead = async (studentId) => {
     try {
-      const unreadNotifications = await base44.entities.Notification.filter({
+      const unread = await base44.entities.Notification.filter({
         recipient_student_id: studentId,
         type: 'diary_published',
         is_read: false
       });
-      
-      for (const notif of unreadNotifications) {
+      for (const notif of unread) {
         await base44.entities.Notification.update(notif.id, { is_read: true });
       }
-    } catch (error) {
-      console.debug('Error marking notifications as read:', error);
-    }
+    } catch {}
   };
-
-  // Auto-set to latest diary date when diaries load (for students)
-  useEffect(() => {
-    if (!initialized && userStudent && diaries.length > 0) {
-      const sorted = [...diaries]
-        .filter(d => d.class_name === userStudent.class_name && d.section === userStudent.section)
-        .sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date));
-      if (sorted.length > 0 && sorted[0].diary_date) {
-        setSelectedDate(new Date(sorted[0].diary_date));
-      }
-      setInitialized(true);
-    }
-  }, [diaries, userStudent, initialized]);
 
   const { data: diaries = [] } = useQuery({
     queryKey: ['diaries', academicYear],
-    queryFn: () => base44.entities.Diary.filter({ 
+    queryFn: () => base44.entities.Diary.filter({
       academic_year: academicYear,
       status: 'Published'
     }),
@@ -97,34 +74,43 @@ export default function Diary() {
     }
   });
 
-  // Filter based on user role
-  let visibleDiaries = diaries;
+  // For students: auto-select the latest diary_date on first load
+  useEffect(() => {
+    if (!initialized && userStudent && diaries.length > 0) {
+      const studentDiaries = diaries
+        .filter(d => d.class_name === userStudent.class_name && d.section === userStudent.section)
+        .sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date));
+      if (studentDiaries.length > 0 && studentDiaries[0].diary_date) {
+        setSelectedDate(new Date(studentDiaries[0].diary_date + 'T00:00:00'));
+      }
+      setInitialized(true);
+    }
+  }, [diaries, userStudent, initialized]);
 
+  // Filter by role
+  let visibleDiaries = diaries;
   if (userStudent && !user) {
-    // Student - see only their class entries
-    visibleDiaries = diaries.filter(d => 
+    visibleDiaries = diaries.filter(d =>
       d.class_name === userStudent.class_name && d.section === userStudent.section
     );
-  } else if (user && !['admin', 'principal'].includes(user.role)) {
-    // Teachers - see all published entries
-    visibleDiaries = diaries;
   }
-  // Admin/Principal can see all
 
-  // Apply filters
-  if (filters.class) {
-    visibleDiaries = visibleDiaries.filter(d => d.class_name === filters.class);
-  }
-  if (filters.subject) {
-    visibleDiaries = visibleDiaries.filter(d => d.subject === filters.subject);
-  }
+  // Apply staff filters
+  if (filters.class) visibleDiaries = visibleDiaries.filter(d => d.class_name === filters.class);
+  if (filters.subject) visibleDiaries = visibleDiaries.filter(d => d.subject === filters.subject);
+
+  // Apply date filter (for students: always active; for staff: optional)
   if (selectedDate) {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     visibleDiaries = visibleDiaries.filter(d => d.diary_date === dateStr);
   }
 
-  const uniqueClasses = [...new Set(visibleDiaries.map(d => d.class_name))].sort();
-  const uniqueSubjects = [...new Set(visibleDiaries.map(d => d.subject))].sort();
+  const uniqueClasses = [...new Set(diaries.map(d => d.class_name))].sort();
+  const uniqueSubjects = [...new Set(diaries.map(d => d.subject))].sort();
+
+  const sortedEntries = [...visibleDiaries].sort(
+    (a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date)
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -134,7 +120,7 @@ export default function Diary() {
       />
 
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Filters — only for staff/admin, not students */}
+        {/* Filters — only for staff/admin */}
         {!userStudent && (
           <Card>
             <CardContent className="pt-6">
@@ -201,8 +187,18 @@ export default function Diary() {
           </Card>
         )}
 
+        {/* For students: show the date of entries being viewed */}
+        {userStudent && selectedDate && (
+          <div className="flex items-center gap-2 px-1">
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-600">
+              Diary for {format(selectedDate, 'MMMM d, yyyy')}
+            </span>
+          </div>
+        )}
+
         <DiaryList
-          entries={visibleDiaries.sort((a, b) => new Date(b.diary_date) - new Date(a.diary_date) || new Date(b.created_date) - new Date(a.created_date))}
+          entries={sortedEntries}
           canEdit={false}
         />
       </div>
