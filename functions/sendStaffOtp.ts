@@ -26,30 +26,34 @@ Deno.serve(async (req) => {
 
     // Send via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendApiKey) {
-      return Response.json({ error: 'Email service not configured' }, { status: 500 });
+    let emailSent = false;
+    
+    if (resendApiKey) {
+      try {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'onboarding@resend.dev',
+            to: email,
+            subject: 'Your BVM School Admin Login OTP',
+            html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
+          })
+        });
+
+        if (response.ok) {
+          emailSent = true;
+        }
+      } catch (emailError) {
+        console.warn('Email delivery failed, but OTP saved:', emailError.message);
+      }
     }
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'onboarding@resend.dev',
-        to: email,
-        subject: 'Your BVM School Admin Login OTP',
-        html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      return Response.json({ error: error.message || 'Failed to send email' }, { status: 500 });
-    }
-
-    return Response.json({ success: true });
+    // Return success even if email fails - OTP is saved in database
+    return Response.json({ success: true, emailSent });
   } catch (error) {
     console.error('OTP Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
