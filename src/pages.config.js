@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Admissions from './pages/Admissions';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import Approvals from './pages/Approvals';
 import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
@@ -87,12 +88,12 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admissions": Admissions,
+    "AnalyticsDashboard": AnalyticsDashboard,
     "Approvals": Approvals,
     "Attendance": Attendance,
     "AttendanceReport": AttendanceReport,
@@ -132,7 +133,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "AnalyticsDashboard": AnalyticsDashboard,
 }
 
 export const pagesConfig = {
