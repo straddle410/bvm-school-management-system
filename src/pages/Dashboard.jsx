@@ -5,7 +5,9 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
-  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check, Plus, FileText, Award, BookOpen, Palmtree, Calendar as CalendarIcon, Clock, Book
+  ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
+  FileText, Award, BookOpen, Palmtree, Clock, Book, LogOut,
+  CheckCircle, AlertCircle, MessageSquare, Trophy
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -16,64 +18,60 @@ const DEFAULT_BANNERS = [
 ];
 
 const quickAccess = [
-  { label: 'Results', icon: GraduationCap, color: '#5c6bc0', bg: '#e8eaf6', page: 'Results' },
-  { label: 'Gallery', icon: Image, color: '#ab47bc', bg: '#f3e5f5', page: 'Gallery' },
-  { label: 'Calendar', icon: Calendar, color: '#26a69a', bg: '#e0f2f1', page: 'Calendar' },
-  { label: 'Quiz', icon: Brain, color: '#7e57c2', bg: '#ede7f6', page: 'Quiz' },
-  { label: 'Notices', icon: Bell, color: '#26c6da', bg: '#e0f7fa', page: 'Notices' },
-  { label: 'Diary', icon: Book, color: '#c2185b', bg: '#fce4ec', page: 'Diary' },
-  { label: 'Student Login', icon: User, color: '#e91e63', bg: '#fce4ec', page: 'StudentLogin' },
+  { label: 'Results',       icon: GraduationCap, gradient: 'from-indigo-400 to-indigo-600',   page: 'Results' },
+  { label: 'Gallery',       icon: Image,         gradient: 'from-fuchsia-400 to-pink-500',    page: 'Gallery' },
+  { label: 'Calendar',      icon: Calendar,      gradient: 'from-teal-400 to-emerald-500',    page: 'Calendar' },
+  { label: 'Quiz',          icon: Brain,         gradient: 'from-purple-400 to-violet-600',   page: 'Quiz' },
+  { label: 'Notices',       icon: Bell,          gradient: 'from-sky-400 to-blue-500',        page: 'Notices' },
+  { label: 'Diary',         icon: Book,          gradient: 'from-pink-400 to-rose-500',       page: 'Diary' },
+  { label: 'Student Login', icon: User,          gradient: 'from-orange-400 to-amber-500',    page: 'StudentLogin', guestOnly: true },
 ];
 
 const quickActions = [
-  { label: 'Take Attendance', icon: Check, color: '#1e88e5', page: 'Attendance', permission: 'attendance' },
-  { label: 'Attendance Summary', icon: BarChart3, color: '#00796b', page: 'AttendanceSummaryReport', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
-  { label: 'Timetable', icon: Clock, color: '#0288d1', page: 'TimetableManagement', roleRequired: ['Admin', 'Principal', 'teacher'] },
-  { label: 'Diary', icon: Book, color: '#d32f2f', page: 'DiaryManagement', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
-  { label: 'Homework', icon: BookOpen, color: '#f57c00', page: 'HomeworkManage', roleRequired: ['Admin', 'Principal', 'Teacher', 'teacher', 'admin'] },
-  { label: 'Post Notice', icon: Megaphone, color: '#ef6c00', page: 'Notices', permission: 'post_notices' },
-  { label: 'Marks Entry', icon: ClipboardList, color: '#26a69a', page: 'Marks', permission: 'marks' },
+  { label: 'Take Attendance',     icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Attendance Summary',  icon: BarChart3,      gradient: 'from-teal-400 to-green-600',    page: 'AttendanceSummaryReport', roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Diary',               icon: Book,          gradient: 'from-rose-400 to-pink-600',     page: 'DiaryManagement',         roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Homework',            icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',  page: 'HomeworkManage',          roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Post Notice',         icon: Megaphone,     gradient: 'from-yellow-400 to-orange-500', page: 'Notices',                 roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                   roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',     roleRequired: ['Admin', 'admin', 'Principal', 'principal'] },
 ];
 
 const adminActions = [
-  { label: 'Daily Attendance', icon: Check, color: '#0d47a1', page: 'AttendanceReport' },
-  { label: 'Subjects', icon: Book, color: '#7b1fa2', page: 'SubjectManagement' },
-  { label: 'Holidays', icon: Palmtree, color: '#f57f17', page: 'HolidayCalendar' },
-  { label: 'Hall Ticket', icon: FileText, color: '#d32f2f', page: 'HallTicketManagement' },
-  { label: 'Review Marks', icon: ClipboardList, color: '#1a237e', page: 'MarksReview' },
-  { label: 'Progress Card', icon: Award, color: '#f57c00', page: 'ExamManagement', tab: 'progress-cards' },
-  { label: 'Reports', icon: BarChart3, color: '#0288d1', page: 'ReportsManagement' },
+  { label: 'Daily Attendance', icon: Check,         gradient: 'from-blue-500 to-indigo-600',   page: 'AttendanceReport' },
+  { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
+  { label: 'Holidays',         icon: Palmtree,      gradient: 'from-yellow-400 to-orange-500', page: 'HolidayCalendar' },
+  { label: 'Hall Ticket',      icon: FileText,      gradient: 'from-red-400 to-rose-600',      page: 'HallTicketManagement' },
+  { label: 'Review Marks',     icon: ClipboardList, gradient: 'from-indigo-400 to-blue-600',   page: 'MarksReview' },
+  { label: 'Progress Card',    icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
+  { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
 ];
+
+function GradientIcon({ gradient, icon: Icon, size = 'md' }) {
+  const s = size === 'sm' ? 'w-12 h-12' : 'w-14 h-14';
+  const i = size === 'sm' ? 'h-5 w-5' : 'h-6 w-6';
+  return (
+    <div className={`${s} rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md`}>
+      <Icon className={`${i} text-white`} />
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check staff session first
-    let session = localStorage.getItem('staff_session');
-    if (!session) {
-      // Check student session if no staff session
-      session = localStorage.getItem('student_session');
-    }
+    let session = localStorage.getItem('staff_session') || localStorage.getItem('student_session');
     if (session) {
-      try {
-        const parsed = JSON.parse(session);
-        setUser(parsed);
-      } catch (error) {
-        console.debug('Failed to parse session:', error);
-      }
+      try { setUser(JSON.parse(session)); } catch {}
     }
   }, []);
 
   const { data: bannerSlides = [] } = useQuery({
     queryKey: ['banner-slides'],
     queryFn: async () => {
-      try {
-        return await base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order');
-      } catch {
-        return [];
-      }
+      try { return await base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order'); } catch { return []; }
     }
   });
 
@@ -82,31 +80,21 @@ export default function Dashboard() {
     : DEFAULT_BANNERS;
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setBannerIndex(i => (i + 1) % (banners.length || 1));
-    }, 3500);
+    const timer = setInterval(() => setBannerIndex(i => (i + 1) % (banners.length || 1)), 3500);
     return () => clearInterval(timer);
   }, [banners.length]);
-
-  const { data: events = [] } = useQuery({
-    queryKey: ['calendar-events-published'],
-    queryFn: async () => {
-      try {
-        return await base44.entities.CalendarEvent.filter({ status: 'Published' });
-      } catch {
-        return [];
-      }
-    }
-  });
 
   const { data: notices = [] } = useQuery({
     queryKey: ['notices-published'],
     queryFn: async () => {
-      try {
-        return await base44.entities.Notice.filter({ status: 'Published' });
-      } catch {
-        return [];
-      }
+      try { return await base44.entities.Notice.filter({ status: 'Published' }); } catch { return []; }
+    }
+  });
+
+  const { data: events = [] } = useQuery({
+    queryKey: ['calendar-events-published'],
+    queryFn: async () => {
+      try { return await base44.entities.CalendarEvent.filter({ status: 'Published' }); } catch { return []; }
     }
   });
 
@@ -115,15 +103,9 @@ export default function Dashboard() {
     queryFn: async () => {
       if (!user?.student_id) return 0;
       try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_student_id: user.student_id,
-          type: 'diary_published',
-          is_read: false
-        });
-        return notifications.length;
-      } catch {
-        return 0;
-      }
+        const n = await base44.entities.Notification.filter({ recipient_student_id: user.student_id, type: 'diary_published', is_read: false });
+        return n.length;
+      } catch { return 0; }
     },
     enabled: !!user?.student_id,
     refetchInterval: 2000
@@ -137,209 +119,175 @@ export default function Dashboard() {
         return diaries
           .sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date))
           .slice(0, 3);
-      } catch {
-        return [];
-      }
+      } catch { return []; }
     },
   });
 
-  // For students: filter by their class
-  const latestDiary = user?.class_name
-    ? latestDiaries.find(d => d.class_name === user.class_name && d.section === (user.section || 'A')) || latestDiaries[0]
-    : latestDiaries[0];
+  const recentNotices = [...notices]
+    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+    .slice(0, 4);
 
   const upcomingEvents = events
     .filter(e => new Date(e.start_date) >= new Date())
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
     .slice(0, 3);
 
-  const recentNotices = notices
-    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-    .slice(0, 3);
-
-  const announcements = [
-    ...recentNotices.map(n => ({
-      id: n.id,
-      title: n.title,
-      date: n.publish_date || n.created_date,
-      type: n.notice_type || 'Notice'
-    })),
-    ...upcomingEvents.map(e => ({
-      id: e.id,
-      title: e.title,
-      date: e.start_date,
-      type: e.event_type
-    }))
-  ].slice(0, 5);
+  const isAdmin = user?.role === 'Admin' || user?.role === 'admin' || user?.role === 'Principal' || user?.role === 'principal';
+  const isStaff = user && (isAdmin || user?.role === 'Teacher' || user?.role === 'teacher' || user?.role === 'Staff');
 
   const eventTypeColor = (type) => {
-    const map = {
-      Holiday: '#e53935',
-      Exam: '#7e57c2',
-      PTM: '#1e88e5',
-      Event: '#43a047',
-      Meeting: '#f9a825',
-      General: '#26a69a',
-      Urgent: '#d32f2f',
-      Fee: '#f9a825',
-      Notice: '#1e88e5',
-    };
+    const map = { Holiday: '#e53935', Exam: '#7e57c2', PTM: '#1e88e5', Event: '#43a047', Meeting: '#f9a825', General: '#26a69a', Urgent: '#d32f2f', Fee: '#f9a825', Notice: '#1e88e5' };
     return map[type] || '#78909c';
   };
 
-
+  const initials = user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?';
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      {/* Banner Slider */}
-      <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
+
+      {/* Header */}
+      <header className="sticky top-0 z-50">
+        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-5 shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-6 w-6 text-blue-200" />
+              <span className="font-bold text-white text-base tracking-wide">School Portal</span>
+            </div>
+            {user && (
+              <button
+                onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
+                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Logout
+              </button>
+            )}
+          </div>
+
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center flex-shrink-0 shadow">
+                <span className="text-white font-bold text-lg">{initials}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-white font-bold text-base leading-tight truncate">{user.full_name || user.name || user.email}</h2>
+                <p className="text-blue-200 text-xs capitalize">{user.role || 'Staff'}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center">
+                <User className="h-6 w-6 text-white/70" />
+              </div>
+              <div>
+                <h2 className="text-white font-bold text-base">Welcome!</h2>
+                <p className="text-blue-200 text-xs">Explore school portal</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Banner */}
+      <div className="relative w-full overflow-hidden" style={{ height: 180 }}>
         {banners.map((img, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ opacity: i === bannerIndex ? 1 : 0 }}
-          >
+          <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === bannerIndex ? 1 : 0 }}>
             <img src={img.url} alt="" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <p className="absolute bottom-4 left-4 right-4 text-white font-bold text-base leading-tight">
-              {img.caption}
-            </p>
+            <p className="absolute bottom-3 left-4 right-4 text-white font-semibold text-sm leading-tight">{img.caption}</p>
           </div>
         ))}
-        {/* Dots */}
-        <div className="absolute bottom-2 right-4 flex gap-1.5">
+        <div className="absolute bottom-2 right-3 flex gap-1.5">
           {banners.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setBannerIndex(i)}
-              className={`rounded-full transition-all ${i === bannerIndex ? 'w-5 h-2 bg-yellow-400' : 'w-2 h-2 bg-white/60'}`}
-            />
+            <button key={i} onClick={() => setBannerIndex(i)}
+              className={`rounded-full transition-all ${i === bannerIndex ? 'w-5 h-2 bg-yellow-400' : 'w-2 h-2 bg-white/60'}`} />
           ))}
         </div>
       </div>
 
-      {/* User Bar (only when logged in) */}
-      {user && (
-        <div className="px-4 pt-3">
-          <Link to={createPageUrl('Profile')}>
-            <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
-              <div className="h-9 w-9 rounded-full bg-[#e8eaf6] flex items-center justify-center flex-shrink-0">
-                <User className="h-5 w-5 text-[#1a237e]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name || user.email}</p>
-                <p className="text-xs text-gray-500 capitalize">{user.role || 'User'}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400" />
-            </div>
-          </Link>
-        </div>
-      )}
+      <main className="flex-1 overflow-y-auto pb-24 px-4 py-5 space-y-6">
 
-      <div className="px-4 py-4 space-y-6">
         {/* Quick Access */}
-        <div>
-          <h2 className="text-base font-bold text-gray-800 mb-3">Quick Access</h2>
-          <div className="grid grid-cols-3 gap-3 auto-rows-max">
+        <section>
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Access</h2>
+          <div className="grid grid-cols-4 gap-3">
             {quickAccess
-              .filter(item => !(item.page === 'StudentLogin' && user))
+              .filter(item => !(item.guestOnly && user))
               .map((item) => (
-              <Link key={item.label} to={createPageUrl(item.page)} className="block">
-                <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm relative h-full">
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: item.bg }}
-                  >
-                    <item.icon className="h-6 w-6" style={{ color: item.color }} />
+                <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                  <div className="flex flex-col items-center gap-1.5 relative">
+                    <GradientIcon gradient={item.gradient} icon={item.icon} />
+                    {item.label === 'Diary' && unreadDiaryCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
+                        {unreadDiaryCount > 9 ? '9+' : unreadDiaryCount}
+                      </span>
+                    )}
+                    <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                   </div>
-                  {item.label === 'Diary' && unreadDiaryCount > 0 ? (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                      {unreadDiaryCount}
-                    </span>
-                  ) : item.badge ? (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                      {item.badge}
-                    </span>
-                  ) : null}
-                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">{item.label}</span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
           </div>
-        </div>
+        </section>
 
         {/* Quick Actions - staff only */}
-        {user && (
-          <div>
-            <h2 className="text-base font-bold text-gray-800 mb-3">Quick Actions</h2>
-            <div className="grid grid-cols-3 gap-3">
-              {quickActions.map((item) => {
-                const isAdmin = user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal';
-                const isTeacher = user.role === 'Teacher' || user.role === 'teacher';
-                const isStaff = user.role === 'Staff' || user.role === 'staff';
-                const hasRolePermission = !item.roleRequired || item.roleRequired.includes(user.role);
-                const hasPermission = (isAdmin || isTeacher || isStaff) || !item.permission || (user.permissions?.[item.permission] === true);
-                const shouldShow = (item.roleRequired && hasRolePermission) || (!item.roleRequired && hasPermission);
-                if (!shouldShow) return null;
+        {isStaff && (
+          <section>
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {quickActions
+                .filter(item => !item.roleRequired || item.roleRequired.includes(user?.role))
+                .map((item) => (
+                  <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        )}
+
+        {/* Admin Tools */}
+        {isAdmin && (
+          <section>
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Admin Tools</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {adminActions.map((item) => {
+                const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
                 return (
-                  <Link key={item.label} to={createPageUrl(item.page)}>
-                    <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm">
-                      <item.icon className="h-7 w-7" style={{ color: item.color }} />
-                      <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
+                  <Link key={item.label} to={url} className="block">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                     </div>
                   </Link>
                 );
               })}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Admin Actions - admin/principal only */}
-        {user && (user.role === 'Admin' || user.role === 'admin' || user.role === 'Principal' || user.role === 'principal') && (
-          <div>
-            <h2 className="text-base font-bold text-gray-800 mb-3">Admin Tools</h2>
-            <div className="grid grid-cols-3 gap-3">
-              {adminActions.map((item) => {
-                const content = (
-                   <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm border-2 border-blue-100">
-                     <item.icon className="h-7 w-7" style={{ color: item.color }} />
-                     <span className="text-xs font-medium text-gray-700 text-center">{item.label}</span>
-                   </div>
-                 );
-                 const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
-                 return (
-                   <Link key={item.label} to={url}>
-                     {content}
-                   </Link>
-                 );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Latest Diary - visible to all */}
-        {latestDiary && (
-          <div>
+        {/* Latest Diary */}
+        {latestDiaries.length > 0 && (
+          <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-gray-800">Latest Diary</h2>
-              <Link to={createPageUrl('Diary')} className="flex items-center text-xs text-blue-600 font-medium">
+              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Latest Diary</h2>
+              <Link to={createPageUrl('Diary')} className="flex items-center text-xs text-indigo-600 font-semibold">
                 View All <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
             <div className="space-y-2">
               {latestDiaries.map((diary, idx) => (
                 <Link to={createPageUrl('Diary')} key={diary.id}>
-                  <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-[#c2185b]">
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-pink-500">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="text-sm font-semibold text-gray-900">{diary.title}</p>
                       {idx === 0 && unreadDiaryCount > 0 && (
-                        <span className="bg-red-500 text-white text-[10px] rounded-full px-2 py-0.5 font-bold flex-shrink-0">
-                          {unreadDiaryCount} new
-                        </span>
+                        <span className="bg-red-500 text-white text-[10px] rounded-full px-2 py-0.5 font-bold flex-shrink-0">{unreadDiaryCount} new</span>
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mb-1">
-                      Class {diary.class_name}-{diary.section} &bull; {diary.subject} &bull;{' '}
+                      Class {diary.class_name}-{diary.section} · {diary.subject} ·{' '}
                       {diary.diary_date ? format(new Date(diary.diary_date + 'T00:00:00'), 'MMM d, yyyy') : ''}
                     </p>
                     <p className="text-xs text-gray-600 line-clamp-2">{diary.description}</p>
@@ -347,45 +295,91 @@ export default function Dashboard() {
                 </Link>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Announcements */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-gray-800">Announcements</h2>
-            <Link to={createPageUrl('Notices')} className="flex items-center text-xs text-blue-600 font-medium">
-              View All <ChevronRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {announcements.length > 0 ? announcements.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm">
-                <div
-                  className="w-2 h-10 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: eventTypeColor(item.type) }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {item.date ? format(new Date(item.date), 'MMM d, yyyy') : ''}
-                  </p>
+        {/* Notices */}
+        {recentNotices.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Notices</h2>
+              <Link to={createPageUrl('Notices')} className="flex items-center text-xs text-indigo-600 font-semibold">
+                View All <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {recentNotices.map((n) => (
+                <div key={n.id} className="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                  <div className="w-1.5 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: eventTypeColor(n.notice_type) }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{n.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{n.publish_date ? format(new Date(n.publish_date), 'MMM d, yyyy') : ''}</p>
+                  </div>
+                  <span className="text-[10px] font-semibold px-2 py-1 rounded-full flex-shrink-0"
+                    style={{ color: eventTypeColor(n.notice_type), backgroundColor: eventTypeColor(n.notice_type) + '20' }}>
+                    {n.notice_type}
+                  </span>
                 </div>
-                <span
-                  className="text-[10px] font-semibold px-2 py-1 rounded-full"
-                  style={{ color: eventTypeColor(item.type), backgroundColor: eventTypeColor(item.type) + '20' }}
-                >
-                  {item.type}
-                </span>
-              </div>
-            )) : (
-              <div className="bg-white rounded-2xl p-6 text-center text-gray-400 shadow-sm">
-                No announcements yet
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Upcoming Events */}
+        {upcomingEvents.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Upcoming Events</h2>
+              <Link to={createPageUrl('Calendar')} className="flex items-center text-xs text-indigo-600 font-semibold">
+                View All <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {upcomingEvents.map((e) => (
+                <div key={e.id} className="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: eventTypeColor(e.event_type) + '20' }}>
+                    <span className="text-[10px] font-bold" style={{ color: eventTypeColor(e.event_type) }}>
+                      {e.start_date ? format(new Date(e.start_date), 'MMM') : ''}
+                    </span>
+                    <span className="text-sm font-bold" style={{ color: eventTypeColor(e.event_type) }}>
+                      {e.start_date ? format(new Date(e.start_date), 'd') : ''}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{e.title}</p>
+                    <p className="text-xs text-gray-400">{e.event_type}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+      </main>
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 z-50 shadow-lg">
+        <div className="flex items-center justify-around py-2">
+          {[
+            { name: 'Home', icon: MoreHorizontal, page: 'Dashboard' },
+            { name: 'Notices', icon: Bell, page: 'Notices' },
+            { name: 'Gallery', icon: Image, page: 'Gallery' },
+            { name: 'Calendar', icon: Calendar, page: 'Calendar' },
+            { name: 'More', icon: MoreHorizontal, page: 'More' },
+          ].map((item) => {
+            const isActive = false;
+            return (
+              <Link key={item.page} to={createPageUrl(item.page)}
+                className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-gray-400">
+                <item.icon className="h-6 w-6" />
+                <span className="text-[10px] font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
-      </div>
+      </nav>
+
     </div>
   );
 }
