@@ -38,6 +38,7 @@ export default function Profile() {
 
   const loadUser = async () => {
     const session = getStaffSession();
+    console.log('Staff Session:', session);
     if (session) {
       setUser(session);
       setFormData({
@@ -45,7 +46,9 @@ export default function Profile() {
         phone: session.phone || ''
       });
       // For staff session, use session data directly for OTP
+      console.log('Session Role:', session.role, 'Lowercase:', session.role?.toLowerCase());
       if (session.role?.toLowerCase() === 'admin') {
+        console.log('Setting staffData for admin');
         setStaffData(session);
         setEnableOtp(true);
       }
