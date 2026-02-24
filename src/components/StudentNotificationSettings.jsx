@@ -65,17 +65,23 @@ export default function StudentNotificationSettings({ studentId }) {
 
     if (Notification.permission === 'granted') {
       toast.success('Notification permission already granted');
+      setPushPermission('granted');
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    setPushPermission(permission);
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermission(permission);
 
-    if (permission === 'granted') {
-      await registerServiceWorker();
-      toast.success('Notifications enabled successfully');
-    } else {
-      toast.error('Notification permission denied');
+      if (permission === 'granted') {
+        await registerServiceWorker();
+        toast.success('Notifications enabled successfully');
+      } else if (permission === 'denied') {
+        toast.error('Please enable notifications in Chrome settings');
+      }
+    } catch (err) {
+      console.error('Permission request error:', err);
+      toast.error('Failed to request notification permission');
     }
   };
 
