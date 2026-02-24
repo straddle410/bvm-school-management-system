@@ -470,25 +470,25 @@ export default function Attendance() {
                           const attendanceDisabled = isHoliday && !hasHolidayOverride;
                           return (
                             <div 
-                              key={student.id}
-                              className={`flex items-center gap-4 p-4 transition-colors ${
-                                attendanceDisabled ? 'bg-slate-50 opacity-60' : isPresent ? 'bg-white' : 'bg-red-50'
-                              }`}
-                            >
-                          <span className="text-sm text-slate-400 w-8">
-                            {student.roll_no || index + 1}
-                          </span>
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={student.photo_url} />
-                            <AvatarFallback className="bg-blue-100 text-blue-700">
-                              {student.name?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 truncate">{student.name}</p>
-                            <p className="text-sm text-slate-500">{student.student_id}</p>
-                          </div>
-                          <div className="flex gap-2">
+                                key={student.id}
+                                className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${
+                                  attendanceDisabled ? 'bg-slate-50 opacity-60' : isPresent ? 'bg-white' : 'bg-red-50'
+                                }`}
+                              >
+                            <span className="text-xs sm:text-sm text-slate-400 w-6 sm:w-8 flex-shrink-0">
+                              {student.roll_no || index + 1}
+                            </span>
+                            <Avatar className="h-8 sm:h-10 w-8 sm:w-10 flex-shrink-0">
+                              <AvatarImage src={student.photo_url} />
+                              <AvatarFallback className="bg-blue-100 text-blue-700 text-xs sm:text-sm">
+                                {student.name?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-slate-900 truncate text-sm">{student.name}</p>
+                              <p className="text-xs text-slate-500">{student.student_id}</p>
+                            </div>
+                            <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                             <Button
                               size="sm"
                               variant={isPresent ? 'default' : 'outline'}
