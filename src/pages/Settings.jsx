@@ -27,9 +27,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   School, Save, Upload, Image as ImageIcon, Calendar, 
-  Users, Shield, Database, Clock, Plus, Trash2, Layers
+  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell
 } from 'lucide-react';
 import { toast } from "sonner";
+import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('school');
