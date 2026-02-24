@@ -84,7 +84,9 @@ export default function StudentNotificationSettings({ studentId }) {
 
   const checkPushPermission = () => {
     if ('Notification' in window) {
-      setPushPermission(Notification.permission);
+      const permission = Notification.permission;
+      setPushPermission(permission);
+      console.log('Push permission state:', permission);
     }
   };
 
