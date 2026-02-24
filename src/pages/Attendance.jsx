@@ -441,13 +441,13 @@ export default function Attendance() {
 
             {/* Student List */}
             <Card className="border-0 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <CardTitle className="text-lg">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
+                <CardTitle className="text-base sm:text-lg">
                   Class {selectedClass}-{selectedSection}
-                  {isHoliday && <span className="ml-2 text-sm font-normal text-amber-600">🌴 Holiday</span>}
+                  {isHoliday && <span className="ml-2 text-xs sm:text-sm font-normal text-amber-600">🌴 Holiday</span>}
                 </CardTitle>
                 {!isHoliday && (
-                  <Button variant="outline" size="sm" onClick={markAllPresent}>
+                  <Button variant="outline" size="sm" onClick={markAllPresent} className="w-full sm:w-auto text-xs sm:text-sm">
                     Mark All Present
                   </Button>
                 )}
