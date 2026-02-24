@@ -122,13 +122,13 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-        <div className="bg-[#1a237e] text-white px-5 py-4 flex items-center justify-between">
-          <h2 className="font-bold text-lg">{replyTo ? 'Reply' : 'New Message'}</h2>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="bg-[#1a237e] text-white px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between flex-shrink-0">
+          <h2 className="font-bold text-base sm:text-lg">{replyTo ? 'Reply' : 'New Message'}</h2>
+          <button onClick={onClose} className="flex-shrink-0"><X className="h-5 w-5" /></button>
         </div>
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="p-4 sm:p-5 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
           {!replyTo && !isStudent && (
             <div className="flex gap-2">
               {['individual', 'class', 'section'].map(t => (
