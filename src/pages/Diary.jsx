@@ -31,6 +31,7 @@ export default function Diary() {
   const [userStudent, setUserStudent] = useState(null);
   const [filters, setFilters] = useState({ class: '', subject: '' });
   const [selectedDate, setSelectedDate] = useState(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const session = getStaffSession();
