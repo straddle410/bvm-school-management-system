@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import PushNotificationManager from '@/components/PushNotificationManager';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
@@ -148,6 +149,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden relative">
+      <PushNotificationManager />
 
       {/* Header */}
       <header className="sticky top-0 z-50 w-full">

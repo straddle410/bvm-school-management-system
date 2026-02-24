@@ -83,12 +83,12 @@ import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
 import StudentMessaging from './pages/StudentMessaging';
 import StudentNotifications from './pages/StudentNotifications';
+import StudentProfile from './pages/StudentProfile';
 import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import StudentProfile from './pages/StudentProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -129,12 +129,12 @@ export const PAGES = {
     "StudentLogin": StudentLogin,
     "StudentMessaging": StudentMessaging,
     "StudentNotifications": StudentNotifications,
+    "StudentProfile": StudentProfile,
     "Students": Students,
     "SubjectManagement": SubjectManagement,
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "StudentProfile": StudentProfile,
 }
 
 export const pagesConfig = {
