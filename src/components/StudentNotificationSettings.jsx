@@ -122,7 +122,7 @@ export default function StudentNotificationSettings({ studentId }) {
     if ('serviceWorker' in navigator) {
       try {
         // Register service worker for background notifications
-        const reg = await navigator.serviceWorker.register('/functions/swWorkerScript.js', { 
+        const reg = await navigator.serviceWorker.register('/sw.js', { 
           scope: '/' 
         });
         console.log('Service Worker registered successfully');

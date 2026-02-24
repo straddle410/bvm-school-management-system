@@ -10,7 +10,7 @@ import MessageNotificationListener from '@/components/messaging/MessageNotificat
 
 // Register Service Worker for push notifications
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/functions/swWorkerScript.js', { scope: '/' })
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
     .then(reg => console.log('Service Worker registered'))
     .catch(err => console.error('Service Worker registration failed:', err));
 }
