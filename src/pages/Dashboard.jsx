@@ -110,7 +110,7 @@ export default function Dashboard() {
     }
   });
 
-  const { data: unreadDiaryCount = 0, refetch: refetchDiaryCount } = useQuery({
+  const { data: unreadDiaryCount = 0 } = useQuery({
     queryKey: ['unread-diary-count', user?.student_id],
     queryFn: async () => {
       if (!user?.student_id) return 0;
@@ -127,6 +127,25 @@ export default function Dashboard() {
     },
     enabled: !!user?.student_id,
     refetchInterval: 2000
+  });
+
+  const { data: latestDiary = null } = useQuery({
+    queryKey: ['latest-diary', user?.student_id, user?.class_name],
+    queryFn: async () => {
+      if (!user?.class_name) return null;
+      try {
+        const diaries = await base44.entities.Diary.filter({
+          class_name: user.class_name,
+          section: user.section || 'A',
+          status: 'Published'
+        });
+        if (!diaries.length) return null;
+        return diaries.sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date))[0];
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!user?.class_name,
   });
 
   const upcomingEvents = events
