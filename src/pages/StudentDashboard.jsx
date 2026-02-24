@@ -207,6 +207,7 @@ export default function StudentDashboard() {
               else if (item.label === 'Quiz') badgeCount = unreadQuizCount;
               else if (item.label === 'Notices') badgeCount = unreadNoticeCount;
               else if (item.label === 'Results') badgeCount = unreadResultsCount;
+              else if (item.label === 'Messages') badgeCount = unreadMessageCount;
 
               return (
                 <Link key={item.label} to={createPageUrl(item.page)} className="block">
