@@ -46,10 +46,11 @@ export default function Profile() {
       });
       // Load staff account data for OTP setting
       if (session.role === 'Admin' || session.role === 'admin') {
-        const allStaff = await base44.entities.StaffAccount.filter({ username: session.username });
-        if (allStaff.length > 0) {
-          setStaffData(allStaff[0]);
-          setEnableOtp(allStaff[0].enable_otp_login !== false);
+        const allStaff = await base44.entities.StaffAccount.list();
+        const admin = allStaff.find(s => s.username === session.username);
+        if (admin) {
+          setStaffData(admin);
+          setEnableOtp(admin.enable_otp_login !== false);
         }
       }
       return;
