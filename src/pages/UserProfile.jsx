@@ -150,9 +150,9 @@ export default function UserProfile() {
 
   const handleBack = () => {
     if (sessionType === 'student') {
-      window.location.href = createPageUrl('StudentDashboard');
+      navigate(createPageUrl('StudentDashboard'));
     } else {
-      window.history.back();
+      navigate(-1);
     }
   };
 
