@@ -2,7 +2,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
     const { email, staffName } = await req.json();
 
     if (!email) {
@@ -12,13 +11,30 @@ Deno.serve(async (req) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send via Base44 email integration using service role
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      from_name: 'BVM School of Excellence',
-      to: email,
-      subject: 'Your BVM School Admin Login OTP',
-      body: `Dear ${staffName || 'Admin'},\n\nYour OTP for login is: ${otp}\n\nThis OTP is valid for 10 minutes.\n\nDo not share this OTP with anyone.\n\nBest regards,\nBVM School of Excellence`
+    // Send via Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      return Response.json({ error: 'Email service not configured' }, { status: 500 });
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'noreply@bvmschool.com',
+        to: email,
+        subject: 'Your BVM School Admin Login OTP',
+        html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
+      })
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return Response.json({ error: error.message || 'Failed to send email' }, { status: 500 });
+    }
 
     return Response.json({ otp, success: true });
   } catch (error) {
