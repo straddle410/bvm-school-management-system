@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import { notificationService } from './notificationService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Bell, Volume2, Loader2 } from 'lucide-react';
+import { Bell, Volume2, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from "sonner";
 
 export default function NotificationSettingsSection() {
