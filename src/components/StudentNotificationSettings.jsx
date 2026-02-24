@@ -15,7 +15,38 @@ export default function StudentNotificationSettings({ studentId }) {
   useEffect(() => {
     loadPreferences();
     checkPushPermission();
+    // Auto-subscribe if permission already granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      autoSubscribeIfNeeded();
+    }
   }, [studentId]);
+
+  const autoSubscribeIfNeeded = async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        let subscription = await reg.pushManager.getSubscription();
+        
+        if (!subscription) {
+          const vapidPublicKey = 'BJ0I5_CkKt4tB_5gVLWH3oXz1_-35i-jqr0H5wJXnJhCYzCXAzWBDBqk1wYKCn_FhhZHvUKMxNVccQ0V6vJoJ2A';
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: vapidPublicKey,
+          });
+          
+          if (subscription && prefs?.id) {
+            const subscriptionJson = subscription.toJSON();
+            await base44.entities.StudentNotificationPreference.update(prefs.id, { 
+              browser_push_enabled: true,
+              push_subscription: JSON.stringify(subscriptionJson)
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Auto-subscribe failed:', err);
+      }
+    }
+  };
 
   const loadPreferences = async () => {
     try {
