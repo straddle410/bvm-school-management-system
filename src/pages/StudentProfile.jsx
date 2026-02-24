@@ -31,7 +31,18 @@ export default function StudentProfile() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    // Check for student session first
+    let session = null;
+    try {
+      const stored = localStorage.getItem('student_session');
+      if (stored) session = JSON.parse(stored);
+    } catch {}
+    
+    if (session) {
+      setUser(session);
+    } else {
+      base44.auth.me().then(setUser).catch(() => {});
+    }
   }, []);
 
   const { data: student, isLoading: studentLoading } = useQuery({
