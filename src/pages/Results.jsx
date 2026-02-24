@@ -232,8 +232,8 @@ export default function Results() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Search Form */}
-        <Card className="border-0 shadow-sm">
+        {/* Search Form — visible to staff only */}
+        {studentSession?.isStaff && <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Search className="h-5 w-5 text-[#1a237e]" />
