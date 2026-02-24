@@ -22,12 +22,18 @@ export default function AnalyticsDashboard() {
   // Get current academic year
   const { data: academicYears } = useQuery({
     queryKey: ['academicYears'],
-    queryFn: () => base44.entities.AcademicYear.filter({ is_current: true }),
-    select: (data) => data[0],
+    queryFn: async () => {
+      const years = await base44.entities.AcademicYear.filter({ is_current: true });
+      if (years.length === 0) {
+        const allYears = await base44.entities.AcademicYear.list();
+        return allYears.length > 0 ? allYears[0] : { year: '2024-25' };
+      }
+      return years[0];
+    },
   });
 
   useEffect(() => {
-    if (academicYears) setAcademicYear(academicYears.year);
+    if (academicYears?.year) setAcademicYear(academicYears.year);
   }, [academicYears]);
 
   // Get classes and subjects for filters
