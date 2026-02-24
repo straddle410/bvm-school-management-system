@@ -23,6 +23,7 @@ const quickAccess = [
   { label: 'Calendar',      icon: Calendar,      gradient: 'from-teal-400 to-emerald-500',    page: 'Calendar' },
   { label: 'Quiz',          icon: Brain,         gradient: 'from-purple-400 to-violet-600',   page: 'Quiz' },
   { label: 'Notices',       icon: Bell,          gradient: 'from-sky-400 to-blue-500',        page: 'Notices' },
+  { label: 'Messages',      icon: Mail,          gradient: 'from-green-400 to-emerald-500',   page: 'Messaging', staffOnly: true },
   { label: 'Diary',         icon: Book,          gradient: 'from-pink-400 to-rose-500',       page: 'Diary' },
   { label: 'Student Login', icon: User,          gradient: 'from-orange-400 to-amber-500',    page: 'StudentLogin', guestOnly: true },
 ];
