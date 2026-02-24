@@ -23,6 +23,7 @@ export default function StudentNotificationSettings({ studentId }) {
       if (records.length > 0) {
         setPrefs(records[0]);
       } else {
+        // Create default preferences
         const newPrefs = {
           student_id: studentId,
           notifications_enabled: true,
@@ -30,12 +31,22 @@ export default function StudentNotificationSettings({ studentId }) {
           quiz_notifications: true,
           sound_enabled: true,
           sound_volume: 0.7,
-          browser_push_enabled: true,
+          browser_push_enabled: false, // Default to false, user must explicitly enable
         };
-        setPrefs(newPrefs);
+        const created = await base44.entities.StudentNotificationPreference.create(newPrefs);
+        setPrefs(created);
       }
     } catch (err) {
       console.error('Failed to load preferences:', err);
+      setPrefs({
+        student_id: studentId,
+        notifications_enabled: true,
+        message_notifications: true,
+        quiz_notifications: true,
+        sound_enabled: true,
+        sound_volume: 0.7,
+        browser_push_enabled: false,
+      });
     }
     setLoading(false);
   };
@@ -71,20 +82,20 @@ export default function StudentNotificationSettings({ studentId }) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-        if (reg.active) {
-          const sub = await reg.pushManager.getSubscription();
-          if (!sub) {
-            // Subscribe if not already subscribed
-            const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY';
-            await reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: vapidPublicKey,
-            });
-          }
+        // Register service worker for background notifications
+        const reg = await navigator.serviceWorker.register('/functions/swWorkerScript.js', { 
+          scope: '/' 
+        });
+        console.log('Service Worker registered successfully');
+        
+        // Store preference immediately
+        if (prefs && prefs.id) {
+          await handleUpdatePreference({ browser_push_enabled: true });
         }
       } catch (err) {
-        console.error('Service Worker registration failed:', err);
+        console.warn('Service Worker registration fallback:', err);
+        // Still allow notifications to work in foreground
+        await handleUpdatePreference({ browser_push_enabled: true });
       }
     }
   };
@@ -94,11 +105,17 @@ export default function StudentNotificationSettings({ studentId }) {
     try {
       const updated = { ...prefs, ...updates };
       if (prefs.id) {
+        // Explicitly update in database to ensure persistence
         await base44.entities.StudentNotificationPreference.update(prefs.id, updates);
+        // Reload to verify persistence
+        const refreshed = await base44.entities.StudentNotificationPreference.filter({ student_id: studentId });
+        if (refreshed.length > 0) {
+          setPrefs(refreshed[0]);
+        }
       } else {
-        await base44.entities.StudentNotificationPreference.create(updated);
+        const created = await base44.entities.StudentNotificationPreference.create(updated);
+        setPrefs(created);
       }
-      setPrefs(updated);
       toast.success('Preferences saved');
     } catch (err) {
       toast.error('Failed to save preferences');
