@@ -129,8 +129,8 @@ export default function Dashboard() {
   });
 
   const recentNotices = [...notices]
-    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-    .slice(0, 4);
+   .sort((a, b) => new Date(b.publish_date || b.created_date) - new Date(a.publish_date || a.created_date))
+   .slice(0, 4);
 
   const upcomingEvents = events
     .filter(e => new Date(e.start_date) >= new Date())
