@@ -72,10 +72,20 @@ export default function AnalyticsDashboard() {
     select: (data) => data.map(s => s.name).sort(),
   });
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'Admin';
-  const isTeacher = user?.role === 'teacher' || user?.role === 'Teacher';
-  const isPrincipal = user?.role === 'Principal' || user?.role === 'principal';
-  const hasAccess = isAdmin || isPrincipal || isTeacher || user?.role === 'Admin' || user?.role === 'Principal';
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isTeacher = user?.role?.toLowerCase() === 'teacher';
+  const isPrincipal = user?.role?.toLowerCase() === 'principal';
+  const hasAccess = isAdmin || isPrincipal || isTeacher;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center max-w-md mx-auto">
+        <div className="text-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!hasAccess) {
     return (
