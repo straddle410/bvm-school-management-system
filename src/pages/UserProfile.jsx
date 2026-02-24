@@ -5,6 +5,7 @@ import { ArrowLeft, User, Mail, Phone, Shield, Calendar, Lock, Save, Eye, EyeOff
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
