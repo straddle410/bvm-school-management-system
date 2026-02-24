@@ -25,7 +25,10 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
 
   useEffect(() => {
     base44.entities.Subject.list().then(s => setSubjects(s)).catch(() => {});
-  }, []);
+    if (isStudent) {
+      base44.entities.Teacher.list().then(t => setAllTeachers(t)).catch(() => {});
+    }
+  }, [isStudent]);
 
   // If sender is a student, only search teachers/admin; otherwise search all
   const isStudent = sender?.role === 'student';
