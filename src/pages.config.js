@@ -65,6 +65,7 @@ import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
 import MarksReview from './pages/MarksReview';
+import Messaging from './pages/Messaging';
 import More from './pages/More';
 import Notices from './pages/Notices';
 import Profile from './pages/Profile';
@@ -80,13 +81,12 @@ import StudentDashboard from './pages/StudentDashboard';
 import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
+import StudentMessaging from './pages/StudentMessaging';
 import StudentNotifications from './pages/StudentNotifications';
 import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
-import Messaging from './pages/Messaging';
-import StudentMessaging from './pages/StudentMessaging';
 import __Layout from './Layout.jsx';
 
 
@@ -109,6 +109,7 @@ export const PAGES = {
     "IDCards": IDCards,
     "Marks": Marks,
     "MarksReview": MarksReview,
+    "Messaging": Messaging,
     "More": More,
     "Notices": Notices,
     "Profile": Profile,
@@ -124,13 +125,12 @@ export const PAGES = {
     "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
     "StudentLogin": StudentLogin,
+    "StudentMessaging": StudentMessaging,
     "StudentNotifications": StudentNotifications,
     "Students": Students,
     "SubjectManagement": SubjectManagement,
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
-    "Messaging": Messaging,
-    "StudentMessaging": StudentMessaging,
 }
 
 export const pagesConfig = {

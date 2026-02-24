@@ -21,13 +21,13 @@ function getStudentSession() {
 }
 
 const QUICK_ACCESS = [
-  { label: 'Results',  page: 'Results',          icon: Trophy,        gradient: 'from-emerald-400 to-teal-500',   notifKey: 'Results' },
-  { label: 'Notices',  page: 'Notices',           icon: Bell,          gradient: 'from-blue-400 to-indigo-500',    notifKey: 'Notices' },
-  { label: 'Gallery',  page: 'Gallery',           icon: Image,         gradient: 'from-pink-400 to-rose-500',      notifKey: null },
-  { label: 'Calendar', page: 'Calendar',          icon: Calendar,      gradient: 'from-orange-400 to-amber-500',   notifKey: null },
-  { label: 'Quiz',     page: 'Quiz',              icon: Brain,         gradient: 'from-purple-400 to-violet-500',  notifKey: 'Quiz' },
-  { label: 'Diary',    page: 'Diary',             icon: Book,          gradient: 'from-fuchsia-400 to-pink-500',   notifKey: 'Diary' },
   { label: 'Messages', page: 'StudentMessaging',  icon: MessageSquare, gradient: 'from-sky-400 to-blue-600',       notifKey: 'Messages' },
+  { label: 'Diary',    page: 'Diary',             icon: Book,          gradient: 'from-fuchsia-400 to-pink-500',   notifKey: 'Diary' },
+  { label: 'Quiz',     page: 'Quiz',              icon: Brain,         gradient: 'from-purple-400 to-violet-500',  notifKey: 'Quiz' },
+  { label: 'Gallery',  page: 'Gallery',           icon: Image,         gradient: 'from-pink-400 to-rose-500',      notifKey: null },
+  { label: 'Notices',  page: 'Notices',           icon: Bell,          gradient: 'from-blue-400 to-indigo-500',    notifKey: 'Notices' },
+  { label: 'Calendar', page: 'Calendar',          icon: Calendar,      gradient: 'from-orange-400 to-amber-500',   notifKey: null },
+  { label: 'Results',  page: 'Results',           icon: Trophy,        gradient: 'from-emerald-400 to-teal-500',   notifKey: 'Results' },
 ];
 
 export default function StudentDashboard() {
