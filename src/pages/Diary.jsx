@@ -68,6 +68,19 @@ export default function Diary() {
     }
   };
 
+  // Auto-set to latest diary date when diaries load (for students)
+  useEffect(() => {
+    if (!initialized && userStudent && diaries.length > 0) {
+      const sorted = [...diaries]
+        .filter(d => d.class_name === userStudent.class_name && d.section === userStudent.section)
+        .sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date));
+      if (sorted.length > 0 && sorted[0].diary_date) {
+        setSelectedDate(new Date(sorted[0].diary_date));
+      }
+      setInitialized(true);
+    }
+  }, [diaries, userStudent, initialized]);
+
   const { data: diaries = [] } = useQuery({
     queryKey: ['diaries', academicYear],
     queryFn: () => base44.entities.Diary.filter({ 
