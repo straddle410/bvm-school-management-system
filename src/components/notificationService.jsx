@@ -46,22 +46,32 @@ export const notificationService = {
   // Get notification preferences for current user
   async getPreferences() {
     try {
-      const user = await base44.auth.me();
-      if (!user) {
-        console.error('No user authenticated');
-        return null;
+      // Check for staff session first
+      const staffSession = localStorage.getItem('staff_session');
+      const staffData = staffSession ? JSON.parse(staffSession) : null;
+      
+      let userEmail = staffData?.email;
+      
+      // If no staff session, try regular auth
+      if (!userEmail) {
+        const user = await base44.auth.me();
+        if (!user) {
+          console.error('No user authenticated');
+          return null;
+        }
+        userEmail = user.email;
       }
 
-      console.log('Getting preferences for user:', user.email);
+      console.log('Getting preferences for user:', userEmail);
       const prefs = await base44.entities.NotificationPreference.filter({
-        user_email: user.email,
+        user_email: userEmail,
       });
 
       if (prefs && prefs.length > 0) {
         console.log('Loaded preferences from DB:', prefs[0]);
         return prefs[0];
       }
-      console.log('No preferences found in DB for:', user.email);
+      console.log('No preferences found in DB for:', userEmail);
       return null;
     } catch (error) {
       console.error('Failed to fetch preferences:', error.message, error);
