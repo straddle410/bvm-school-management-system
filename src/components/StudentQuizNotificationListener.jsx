@@ -61,6 +61,11 @@ export default function StudentQuizNotificationListener({ studentSession }) {
         badge: '/notification-badge.png',
         tag: `quiz-${quiz.id}`,
         requireInteraction: false,
+        data: {
+          action_url: '/Quiz',
+          notificationId: quiz.id,
+        },
+        vibrate: [200, 100, 200],
       });
     }
   };

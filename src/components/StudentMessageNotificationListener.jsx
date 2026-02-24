@@ -65,6 +65,11 @@ export default function StudentMessageNotificationListener({ studentSession }) {
         badge: '/notification-badge.png',
         tag: `message-${msg.id}`,
         requireInteraction: false,
+        data: {
+          action_url: '/StudentMessaging',
+          notificationId: msg.id,
+        },
+        vibrate: [200, 100, 200],
       });
     }
   };
