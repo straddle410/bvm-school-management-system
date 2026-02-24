@@ -53,8 +53,8 @@ export default function AnalyticsDashboard() {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin';
   const isTeacher = user?.role === 'teacher' || user?.role === 'Teacher';
-  const isPrincipal = user?.role === 'Principal';
-  const hasAccess = isAdmin || isPrincipal || isTeacher;
+  const isPrincipal = user?.role === 'Principal' || user?.role === 'principal';
+  const hasAccess = isAdmin || isPrincipal || isTeacher || user?.role === 'Admin' || user?.role === 'Principal';
 
   if (!hasAccess) {
     return (
