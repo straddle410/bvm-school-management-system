@@ -19,6 +19,15 @@ export default function NotificationSettingsSection() {
   useEffect(() => {
     const checkAuthAndLoad = async () => {
       try {
+        // Check for staff session first
+        const staffSession = localStorage.getItem('staff_session');
+        if (staffSession) {
+          setAuthError(false);
+          await loadPreferences();
+          return;
+        }
+        
+        // Check for regular user authentication
         const user = await base44.auth.me();
         if (!user) {
           setAuthError(true);
