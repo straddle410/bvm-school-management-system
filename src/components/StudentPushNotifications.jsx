@@ -26,7 +26,7 @@ export default function StudentPushNotifications({ studentId }) {
     }
 
     if (Notification.permission === 'denied') {
-      toast.error('Notifications blocked in browser settings. Re-enable them to continue.');
+      toast.error('Notifications are blocked. Go to browser settings (site settings → notifications) and allow this site, then try again.');
       return;
     }
 
@@ -47,7 +47,7 @@ export default function StudentPushNotifications({ studentId }) {
           toast.success('Push notifications enabled!');
         }
       } else {
-        toast.error('You blocked push notifications');
+        toast.error('You blocked push notifications. Allow them in browser settings to continue.');
       }
     } catch (err) {
       console.error('Error enabling push notifications:', err);
