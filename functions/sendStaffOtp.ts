@@ -12,8 +12,8 @@ Deno.serve(async (req) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send via Base44 email integration
-    await base44.integrations.Core.SendEmail({
+    // Send via Base44 email integration using service role
+    await base44.asServiceRole.integrations.Core.SendEmail({
       from_name: 'BVM School of Excellence',
       to: email,
       subject: 'Your BVM School Admin Login OTP',
