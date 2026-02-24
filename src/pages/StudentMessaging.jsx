@@ -60,6 +60,7 @@ export default function StudentMessaging() {
     if (!msg.is_read && msg.recipient_id === student?.student_id) {
       await base44.entities.Message.update(msg.id, { is_read: true });
       queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
     }
   };
 
