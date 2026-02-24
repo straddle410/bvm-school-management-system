@@ -110,7 +110,7 @@ export default function StudentDashboard() {
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
       {/* Header */}
       <header className="sticky top-0 z-50">
-        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-16 shadow-lg">
+        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-5 shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-blue-200" />
