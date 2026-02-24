@@ -16,10 +16,6 @@ export default function StudentNotificationSettings({ studentId }) {
     loadPreferences();
     // Check permission every time - Edge caches it
     checkPushPermission();
-    // Auto-enable only if permission is default
-    if (Notification.permission === 'default') {
-      autoEnableNotifications();
-    }
   }, [studentId]);
 
   const autoEnableNotifications = async () => {
@@ -294,149 +290,137 @@ export default function StudentNotificationSettings({ studentId }) {
       </CardHeader>
 
       <CardContent className="space-y-0 p-0">
-        {/* Master Enable/Disable */}
+        {/* Message Notifications */}
         {renderToggleRow(
-          'All Notifications',
-          'Enable or disable all notifications',
-          prefs.notifications_enabled,
-          (val) => handleUpdatePreference({ notifications_enabled: val })
+          'Class Messages',
+          'Get notified of new class messages',
+          prefs.message_notifications,
+          (val) => handleUpdatePreference({ message_notifications: val })
         )}
 
-        {prefs.notifications_enabled && (
-          <>
-            {/* Message Notifications */}
-            {renderToggleRow(
-              'Class Messages',
-              'Get notified of new class messages',
-              prefs.message_notifications,
-              (val) => handleUpdatePreference({ message_notifications: val })
-            )}
+        {/* Quiz Notifications */}
+        {renderToggleRow(
+          'Quiz Alerts',
+          'Get notified when quizzes are posted',
+          prefs.quiz_notifications,
+          (val) => handleUpdatePreference({ quiz_notifications: val })
+        )}
 
-            {/* Quiz Notifications */}
-            {renderToggleRow(
-              'Quiz Alerts',
-              'Get notified when quizzes are posted',
-              prefs.quiz_notifications,
-              (val) => handleUpdatePreference({ quiz_notifications: val })
-            )}
-
-            {/* Sound Settings */}
-            <div className="py-3 px-0 border-b border-gray-100">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">Notification Sound</p>
-                </div>
-                <div className="flex-shrink-0">
-                  <Switch
-                    checked={prefs.sound_enabled}
-                    onCheckedChange={(val) =>
-                      handleUpdatePreference({ sound_enabled: val })
+        {/* Sound Settings */}
+        <div className="py-3 px-0 border-b border-gray-100">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-800">Notification Sound</p>
+            </div>
+            <div className="flex-shrink-0">
+              <Switch
+                checked={prefs.sound_enabled}
+                onCheckedChange={(val) =>
+                  handleUpdatePreference({ sound_enabled: val })
+                }
+                disabled={saving}
+              />
+            </div>
+          </div>
+          {prefs.sound_enabled && (
+            <div className="space-y-2 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <Slider
+                    value={[prefs.sound_volume]}
+                    onValueChange={(val) =>
+                      handleUpdatePreference({ sound_volume: val[0] })
                     }
+                    min={0}
+                    max={1}
+                    step={0.1}
                     disabled={saving}
                   />
                 </div>
+                <button
+                  onClick={playTestSound}
+                  className="flex-shrink-0 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-medium"
+                >
+                  Test
+                </button>
               </div>
-              {prefs.sound_enabled && (
-                <div className="space-y-2 mt-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Slider
-                        value={[prefs.sound_volume]}
-                        onValueChange={(val) =>
-                          handleUpdatePreference({ sound_volume: val[0] })
-                        }
-                        min={0}
-                        max={1}
-                        step={0.1}
-                        disabled={saving}
-                      />
-                    </div>
-                    <button
-                      onClick={playTestSound}
-                      className="flex-shrink-0 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-medium"
-                    >
-                      Test
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-400">Volume: {Math.round(prefs.sound_volume * 100)}%</p>
-                </div>
-              )}
+              <p className="text-xs text-gray-400">Volume: {Math.round(prefs.sound_volume * 100)}%</p>
             </div>
+          )}
+        </div>
 
-            {/* Browser Push Notifications */}
-            <div className="py-3 px-0">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800">Browser Notifications</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {pushPermission === 'granted'
-                      ? '✓ Enabled'
-                      : pushPermission === 'denied'
-                      ? '✗ Blocked in settings'
-                      : 'Enable notifications'}
-                  </p>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  {pushPermission !== 'granted' && (
-                    <button
-                      onClick={refreshPermissionStatus}
-                      disabled={saving}
-                      className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1.5 rounded-lg font-medium"
-                      title="Refresh to check if you've enabled notifications in Chrome"
-                    >
-                      Refresh
-                    </button>
-                  )}
-                  {pushPermission === 'granted' && (
-                    <button
-                      onClick={handleDisablePushNotifications}
-                      disabled={saving}
-                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
-                    >
-                      Disable
-                    </button>
-                  )}
-                  {pushPermission !== 'granted' && (
-                    <button
-                      onClick={handleRequestPushPermission}
-                      disabled={saving}
-                      className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
-                    >
-                      Enable
-                    </button>
-                  )}
-                </div>
-              </div>
-              {pushPermission === 'default' && (
-                <div className="mt-3 bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
-                  <div className="flex gap-2 text-xs text-blue-700">
-                    <Bell className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium mb-2">Get instant notifications from school</p>
-                      <p className="text-blue-600">Chrome will ask for permission when you click "Enable" – just allow it to receive notices, messages, and updates.</p>
-                    </div>
-                  </div>
-                </div>
+        {/* Browser Push Notifications */}
+        <div className="py-3 px-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800">Browser Notifications</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {pushPermission === 'granted'
+                  ? '✓ Enabled'
+                  : pushPermission === 'denied'
+                  ? '✗ Blocked in settings'
+                  : 'Enable notifications'}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              {pushPermission !== 'granted' && (
+                <button
+                  onClick={refreshPermissionStatus}
+                  disabled={saving}
+                  className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1.5 rounded-lg font-medium"
+                  title="Refresh to check if you've enabled notifications in Chrome"
+                >
+                  Refresh
+                </button>
               )}
-              {pushPermission === 'denied' && (
-                <div className="mt-3 bg-red-50 rounded-lg p-3 space-y-2 border border-red-200">
-                  <div className="flex gap-2 text-xs text-red-700">
-                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium mb-2">Notifications are blocked. Re-enable in Chrome:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-red-600">
-                        <li>Click the lock icon in the address bar</li>
-                        <li>Find "Notifications" and select "Allow"</li>
-                        <li>Refresh the page</li>
-                        <li>Click "Enable" button again</li>
-                      </ol>
-                    </div>
-                  </div>
-                </div>
+              {pushPermission === 'granted' && (
+                <button
+                  onClick={handleDisablePushNotifications}
+                  disabled={saving}
+                  className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
+                >
+                  Disable
+                </button>
+              )}
+              {pushPermission !== 'granted' && (
+                <button
+                  onClick={handleRequestPushPermission}
+                  disabled={saving}
+                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
+                >
+                  Enable
+                </button>
               )}
             </div>
-          </>
-        )}
+          </div>
+          {pushPermission === 'default' && (
+            <div className="mt-3 bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+              <div className="flex gap-2 text-xs text-blue-700">
+                <Bell className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium mb-2">Get instant notifications from school</p>
+                  <p className="text-blue-600">Chrome will ask for permission when you click "Enable" – just allow it to receive notices, messages, and updates.</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {pushPermission === 'denied' && (
+            <div className="mt-3 bg-red-50 rounded-lg p-3 space-y-2 border border-red-200">
+              <div className="flex gap-2 text-xs text-red-700">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium mb-2">Notifications are blocked. Re-enable in Chrome:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-red-600">
+                    <li>Click the lock icon in the address bar</li>
+                    <li>Find "Notifications" and select "Allow"</li>
+                    <li>Refresh the page</li>
+                    <li>Click "Enable" button again</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
