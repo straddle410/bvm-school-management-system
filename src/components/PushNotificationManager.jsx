@@ -6,7 +6,7 @@ export default function PushNotificationManager() {
     const initPushNotifications = async () => {
       try {
         // Check if user is authenticated
-        const user = await base44.auth.me();
+        const user = await base44.auth.me().catch(() => null);
         if (!user) return;
 
         // Get user preferences
