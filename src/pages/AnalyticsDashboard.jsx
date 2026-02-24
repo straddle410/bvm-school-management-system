@@ -33,6 +33,8 @@ export default function AnalyticsDashboard() {
       } catch (err) {
         console.log('Auth error:', err);
         base44.auth.redirectToLogin(createPageUrl('AnalyticsDashboard'));
+      } finally {
+        setLoading(false);
       }
     };
     checkAuth();
