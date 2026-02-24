@@ -72,28 +72,22 @@ export default function StudentDashboard() {
     window.location.href = createPageUrl('StudentLogin');
   };
 
-  const makeNotifQuery = (type, key) => useQuery({
-    queryKey: [key, student?.student_id],
+  const { data: unreadNotice = 0 } = useQuery({
+    queryKey: ['unread-notice-count', student?.student_id],
     queryFn: async () => {
-      return 0; // Skip notification queries for student sessions
+      if (!student?.student_id) return 0;
+      const notifs = await base44.entities.Notification.filter({
+        recipient_student_id: student.student_id,
+        type: 'notice_posted',
+        is_read: false
+      });
+      return notifs.length;
     },
-    enabled: false,
+    enabled: !!student?.student_id,
+    refetchInterval: 5000, // Update every 5 seconds
   });
 
-  const { data: unreadDiary = 0 }    = makeNotifQuery('diary_published',  'unread-diary-count');
-  const { data: unreadQuiz = 0 }     = makeNotifQuery('quiz_posted',      'unread-quiz-count');
-  const { data: unreadNotice = 0 }   = makeNotifQuery('notice_posted',    'unread-notice-count');
-  const { data: unreadResults = 0 }  = makeNotifQuery('results_posted',   'unread-results-count');
-
-  const { data: unreadMessages = 0 } = useQuery({
-    queryKey: ['unread-message-count', student?.student_id],
-    queryFn: async () => {
-      return 0; // Skip message queries for student sessions
-    },
-    enabled: false,
-  });
-
-  const notifMap = { Diary: unreadDiary, Quiz: unreadQuiz, Notices: unreadNotice, Results: unreadResults, Messages: unreadMessages };
+  const notifMap = { Diary: 0, Quiz: 0, Notices: unreadNotice, Results: 0, Messages: 0 };
 
   const presentCount = attendance.filter(a => a.is_present).length;
   const attendancePct = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
