@@ -146,9 +146,11 @@ export default function StaffLogin() {
 
       {/* Logo / Branding */}
       <div className="flex flex-col items-center mb-8">
-        <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
-          <GraduationCap className="h-9 w-9 text-[#1a237e]" />
-        </div>
+        <img
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg"
+          alt="BVM Logo"
+          className="h-20 w-20 rounded-full object-contain bg-white p-1 shadow-lg mb-4"
+        />
         <h1 className="text-white text-2xl font-bold tracking-tight">BVM School of Excellence</h1>
         <p className="text-blue-200 text-sm mt-1">Staff & Teacher Portal</p>
       </div>
