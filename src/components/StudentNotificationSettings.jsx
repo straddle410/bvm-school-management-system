@@ -186,6 +186,35 @@ export default function StudentNotificationSettings({ studentId }) {
     setSaving(false);
   };
 
+  const handleDisablePushNotifications = async () => {
+    setSaving(true);
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        const subscription = await reg.pushManager.getSubscription();
+        
+        // Unsubscribe from push notifications
+        if (subscription) {
+          await subscription.unsubscribe();
+          console.log('Push subscription removed');
+        }
+      }
+      
+      // Update preferences
+      await handleUpdatePreference({ 
+        browser_push_enabled: false,
+        push_subscription: null
+      });
+      
+      toast.success('Push notifications disabled');
+    } catch (err) {
+      console.error('Error disabling push notifications:', err);
+      toast.error('Failed to disable notifications');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const playTestSound = () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
