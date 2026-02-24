@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 export default function ComposeMessage({ sender, onClose, onSent, replyTo = null }) {
-  const [recipientType, setRecipientType] = useState(replyTo ? 'individual' : 'individual');
+  const [recipientType, setRecipientType] = useState('individual');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [allTeachers, setAllTeachers] = useState([]);
   const [selectedRecipient, setSelectedRecipient] = useState(
     replyTo ? { id: replyTo.sender_id, name: replyTo.sender_name, role: replyTo.sender_role } : null
   );
