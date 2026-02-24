@@ -63,8 +63,8 @@ export default function DataTable({
 
   return (
     <Card className="border-0 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="overflow-x-auto w-full">
+        <Table className="w-full">
           <TableHeader>
             <TableRow className="bg-slate-50 hover:bg-slate-50">
               {columns.map((col, i) => (
