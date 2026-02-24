@@ -238,8 +238,8 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
             onChange={e => setBody(e.target.value)}
           />
         </div>
-        <div className="px-5 pb-5">
-          <Button onClick={handleSend} disabled={sending || !body.trim()} className="w-full bg-[#1a237e] hover:bg-[#283593] gap-2">
+        <div className="px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+          <Button onClick={handleSend} disabled={sending || !body.trim()} className="w-full bg-[#1a237e] hover:bg-[#283593] gap-2 text-sm sm:text-base">
             <Send className="h-4 w-4" /> {sending ? 'Sending...' : 'Send Message'}
           </Button>
         </div>
