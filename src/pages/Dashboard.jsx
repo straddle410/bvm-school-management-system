@@ -7,7 +7,7 @@ import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
   FileText, Award, BookOpen, Palmtree, Clock, Book, LogOut,
-  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail
+  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -40,6 +40,7 @@ const quickActions = [
 ];
 
 const adminActions = [
+  { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
   { label: 'Daily Attendance', icon: Check,         gradient: 'from-blue-500 to-indigo-600',   page: 'AttendanceReport' },
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
   { label: 'Holidays',         icon: Palmtree,      gradient: 'from-yellow-400 to-orange-500', page: 'HolidayCalendar' },
