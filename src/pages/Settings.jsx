@@ -197,6 +197,9 @@ export default function Settings() {
             <TabsTrigger value="banners">
               <Layers className="h-4 w-4 mr-2" /> Banners
             </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="h-4 w-4 mr-2" /> Notifications
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="school" className="mt-6">
