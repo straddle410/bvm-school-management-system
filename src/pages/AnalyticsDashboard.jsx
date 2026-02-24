@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Filter } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AttendanceAnalytics from '@/components/analytics/AttendanceAnalytics';
-import PerformanceAnalytics from '@/components/analytics/PerformanceAnalytics';
-import StudentAnalyticsModal from '@/components/analytics/StudentAnalyticsModal';
+import AttendanceAnalytics from '@/components/analytics/AttendanceAnalytics.jsx';
+import PerformanceAnalytics from '@/components/analytics/PerformanceAnalytics.jsx';
+import StudentAnalyticsModal from '@/components/analytics/StudentAnalyticsModal.jsx';
 
 export default function AnalyticsDashboard() {
   const [user, setUser] = useState(null);
