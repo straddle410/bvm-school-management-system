@@ -343,7 +343,7 @@ export default function StudentNotificationSettings({ studentId }) {
                 </div>
                 {pushPermission === 'granted' && (
                   <button
-                    onClick={() => handleUpdatePreference({ browser_push_enabled: false })}
+                    onClick={handleDisablePushNotifications}
                     disabled={saving}
                     className="flex-shrink-0 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
                   >
