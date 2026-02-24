@@ -68,6 +68,16 @@ export default function Dashboard() {
     }
   }, []);
 
+  const { data: schoolProfile } = useQuery({
+    queryKey: ['school-profile-dashboard'],
+    queryFn: async () => {
+      try {
+        const profiles = await base44.entities.SchoolProfile.list();
+        return profiles[0] || null;
+      } catch { return null; }
+    }
+  });
+
   const { data: bannerSlides = [] } = useQuery({
     queryKey: ['banner-slides'],
     queryFn: async () => {
