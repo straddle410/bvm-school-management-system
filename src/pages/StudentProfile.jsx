@@ -59,31 +59,25 @@ export default function StudentProfile() {
 
   if (!studentId) {
     return (
-      <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="StudentProfile">
-        <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
-          <p className="text-gray-400">Student not found</p>
-        </div>
-      </LoginRequired>
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
+        <p className="text-gray-400">Student not found</p>
+      </div>
     );
   }
 
   if (studentLoading) {
     return (
-      <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="StudentProfile">
-        <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
-        </div>
-      </LoginRequired>
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
+      </div>
     );
   }
 
   if (!student) {
     return (
-      <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="StudentProfile">
-        <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
-          <p className="text-gray-400">Student not found</p>
-        </div>
-      </LoginRequired>
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
+        <p className="text-gray-400">Student not found</p>
+      </div>
     );
   }
 
@@ -98,8 +92,7 @@ export default function StudentProfile() {
     : null;
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="StudentProfile">
-      <div className="min-h-screen bg-[#f0f4ff]">
+    <div className="min-h-screen bg-[#f0f4ff]">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white">
           <div className="max-w-4xl mx-auto px-4 py-6">
@@ -265,6 +258,5 @@ export default function StudentProfile() {
           )}
         </div>
       </div>
-    </LoginRequired>
-  );
+    );
 }
