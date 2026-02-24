@@ -285,7 +285,7 @@ export default function Notices() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <Label>Publish Date</Label>
                 <Input type="date" value={form.publish_date} onChange={e => setForm({...form, publish_date: e.target.value})} />
