@@ -22,6 +22,17 @@ export default function AnalyticsDashboard() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Check for staff session first
+        const staffSession = localStorage.getItem('staff_session');
+        if (staffSession) {
+          const staffData = JSON.parse(staffSession);
+          console.log('Staff session:', staffData);
+          setUser(staffData);
+          setLoading(false);
+          return;
+        }
+
+        // Fallback to base44 auth
         const isAuth = await base44.auth.isAuthenticated();
         if (!isAuth) {
           base44.auth.redirectToLogin(createPageUrl('AnalyticsDashboard'));
