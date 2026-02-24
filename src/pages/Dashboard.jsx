@@ -208,7 +208,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="flex-1 overflow-y-auto pb-24 px-4 py-5 space-y-6">
+      <main className="flex-1 overflow-y-auto pb-24 px-3 sm:px-4 py-5 space-y-4 sm:space-y-6 w-full">
 
         {/* Quick Access */}
         <section>
