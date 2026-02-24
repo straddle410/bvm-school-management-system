@@ -171,7 +171,14 @@ export default function StudentNotificationSettings({ studentId }) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        const reg = await navigator.serviceWorker.register('/functions/serviceworker');
+        const response = await fetch('/functions/serviceworker');
+        const swCode = await response.text();
+        
+        // Create a blob URL for the service worker code
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        
+        const reg = await navigator.serviceWorker.register(swUrl);
         console.log('Service Worker registered');
         
         let subscription = await reg.pushManager.getSubscription();
