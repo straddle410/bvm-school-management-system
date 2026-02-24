@@ -60,17 +60,8 @@ export default function UserProfile() {
 
   const { data: studentRecord, isLoading: studentLoading } = useQuery({
     queryKey: ['student-profile', session?.student_id],
-    queryFn: async () => {
-      try {
-        const data = await base44.entities.Student.filter({ student_id: session.student_id });
-        return data[0] || null;
-      } catch (err) {
-        // If auth fails for students, return session data as fallback
-        return session || null;
-      }
-    },
+    queryFn: async () => session || null,
     enabled: sessionType === 'student' && !!session?.student_id,
-    select: (data) => data || null,
   });
 
   const record = sessionType === 'staff' ? staffRecord : studentRecord;
