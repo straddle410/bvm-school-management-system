@@ -47,9 +47,11 @@ self.addEventListener('activate', (event) => {
 `;
 
   return new Response(swCode, {
+    status: 200,
     headers: {
-      'Content-Type': 'application/javascript; charset=utf-8',
+      'Content-Type': 'application/javascript',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Access-Control-Allow-Origin': '*',
     },
   });
 });
