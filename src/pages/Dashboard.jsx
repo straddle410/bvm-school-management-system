@@ -167,7 +167,7 @@ export default function Dashboard() {
           </div>
 
           {user ? (
-            <Link to={createPageUrl('UserProfile')} className="flex items-center gap-3 group">
+            <Link to={createPageUrl('UserProfile')} className="flex items-center gap-3 group -mx-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-all">
               <div className="h-12 w-12 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center flex-shrink-0 shadow group-hover:bg-white/30 transition-all">
                 <span className="text-white font-bold text-lg">{initials}</span>
               </div>
