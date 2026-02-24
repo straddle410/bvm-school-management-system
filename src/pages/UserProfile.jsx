@@ -158,7 +158,7 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-[#f0f4ff] max-w-md mx-auto pb-10">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-40 relative">
+      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-20 relative">
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => window.history.back()} className="text-white/80 hover:text-white">
             <ArrowLeft className="h-6 w-6" />
