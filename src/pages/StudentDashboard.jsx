@@ -152,6 +152,7 @@ export default function StudentDashboard() {
     { label: 'Calendar', page: 'Calendar', icon: Calendar, bg: '#fff3e0', color: '#e65100' },
     { label: 'Quiz', page: 'Quiz', icon: Brain, bg: '#f3e5f5', color: '#6a1b9a' },
     { label: 'Diary', page: 'Diary', icon: Book, bg: '#fce4ec', color: '#c2185b' },
+    { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, bg: '#e8eaf6', color: '#1a237e' },
   ];
 
   const presentCount = attendance.filter(a => a.is_present).length;
