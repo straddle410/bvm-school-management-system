@@ -265,9 +265,9 @@ export default function Notices() {
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Type</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+               <div>
+                 <Label>Type</Label>
                 <Select value={form.notice_type} onValueChange={v => setForm({...form, notice_type: v})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
