@@ -120,76 +120,75 @@ export default function Diary() {
       />
 
       <div className="max-w-4xl mx-auto space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {!userStudent && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Class</label>
-                    <Select value={filters.class} onValueChange={(val) => setFilters({ ...filters, class: val })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Classes" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>All Classes</SelectItem>
-                        {uniqueClasses.map(cls => (
-                          <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Subject</label>
-                    <Select value={filters.subject} onValueChange={(val) => setFilters({ ...filters, subject: val })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Subjects" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>All Subjects</SelectItem>
-                        {uniqueSubjects.map(sub => (
-                          <SelectItem key={sub} value={sub}>{sub}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-              <div>
-                <label className="block text-sm font-medium mb-2">Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, 'MMM d, yyyy') : 'Select date'}
+        {/* Filters — only for staff/admin, not students */}
+        {!userStudent && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Class</label>
+                  <Select value={filters.class} onValueChange={(val) => setFilters({ ...filters, class: val })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>All Classes</SelectItem>
+                      {uniqueClasses.map(cls => (
+                        <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Subject</label>
+                  <Select value={filters.subject} onValueChange={(val) => setFilters({ ...filters, subject: val })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Subjects" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>All Subjects</SelectItem>
+                      {uniqueSubjects.map(sub => (
+                        <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, 'MMM d, yyyy') : 'Select date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => date > new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {selectedDate && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedDate(null)}
+                      className="mt-2 text-xs w-full"
+                    >
+                      Clear Date Filter
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      disabled={(date) => date > new Date()}
-                    />
-                  </PopoverContent>
-                </Popover>
-                {selectedDate && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedDate(null)}
-                    className="mt-2 text-xs w-full"
-                  >
-                    Clear Date Filter
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <DiaryList
-          entries={visibleDiaries.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))}
+          entries={visibleDiaries.sort((a, b) => new Date(b.diary_date) - new Date(a.diary_date) || new Date(b.created_date) - new Date(a.created_date))}
           canEdit={false}
         />
       </div>
