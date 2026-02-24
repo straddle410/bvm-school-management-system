@@ -87,16 +87,9 @@ export default function StudentDashboard() {
   const { data: unreadMessages = 0 } = useQuery({
     queryKey: ['unread-message-count', student?.student_id],
     queryFn: async () => {
-      if (!student?.student_id) return 0;
-      try {
-        const m = await base44.entities.Message.filter({ recipient_id: student.student_id, is_read: false });
-        return m.length;
-      } catch {
-        return 0;
-      }
+      return 0; // Skip message queries for student sessions
     },
-    enabled: !!student?.student_id,
-    refetchInterval: 15000,
+    enabled: false,
   });
 
   const notifMap = { Diary: unreadDiary, Quiz: unreadQuiz, Notices: unreadNotice, Results: unreadResults, Messages: unreadMessages };
