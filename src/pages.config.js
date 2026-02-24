@@ -54,7 +54,6 @@ import AttendanceReport from './pages/AttendanceReport';
 import AttendanceReports from './pages/AttendanceReports';
 import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
-import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
 import DiaryManagement from './pages/DiaryManagement';
 import ExamManagement from './pages/ExamManagement';
@@ -87,6 +86,7 @@ import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -98,7 +98,6 @@ export const PAGES = {
     "AttendanceReports": AttendanceReports,
     "AttendanceSummaryReport": AttendanceSummaryReport,
     "Calendar": Calendar,
-    "Dashboard": Dashboard,
     "Diary": Diary,
     "DiaryManagement": DiaryManagement,
     "ExamManagement": ExamManagement,
@@ -131,6 +130,7 @@ export const PAGES = {
     "SubjectManagement": SubjectManagement,
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

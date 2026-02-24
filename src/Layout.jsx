@@ -103,11 +103,13 @@ export default function Layout({ children, currentPageName }) {
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col md:max-w-none mx-auto relative" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-3">
-          {schoolProfile?.logo_url && (
-            <img src={schoolProfile.logo_url} alt="Logo" className="h-8 w-8 object-contain rounded" />
-          )}
-          <span className="font-bold text-lg tracking-tight">
+        <div className="flex items-center gap-2">
+          <img
+            src={schoolProfile?.logo_url || 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg'}
+            alt="Logo"
+            className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow"
+          />
+          <span className="font-bold text-base tracking-tight leading-tight">
             {schoolProfile?.school_name || 'BVM School of Excellence'}
           </span>
         </div>
