@@ -354,7 +354,7 @@ export default function Results() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </Card>}
 
         {/* Result */}
          {searched && (
