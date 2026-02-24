@@ -20,6 +20,7 @@ function InfoRow({ label, value }) {
 }
 
 export default function UserProfile() {
+  const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [sessionType, setSessionType] = useState(null); // 'staff' | 'student'
   const [staffData, setStaffData] = useState(null);
