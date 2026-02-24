@@ -1,742 +1,256 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import LoginRequired from '@/components/LoginRequired';
-import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getStaffSession } from '@/components/useStaffSession';
+import LoginRequired from '@/components/LoginRequired';
 import PageHeader from '@/components/ui/PageHeader';
-import StatusBadge from '@/components/ui/StatusBadge';
-import DataTable from '@/components/ui/DataTable';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, Search, Filter, Upload, Download, 
-  MoreVertical, Eye, Pencil, Trash2, CheckCircle, XCircle,
-  FileSpreadsheet, Image as ImageIcon
-} from 'lucide-react';
 import PromoteStudents from '@/components/PromoteStudents';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import StudentFilters from '@/components/students/StudentFilters';
+import StudentCard from '@/components/students/StudentCard';
+import StudentForm from '@/components/students/StudentForm';
+import StudentProfileSheet from '@/components/students/StudentProfileSheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus, Users, FileSpreadsheet } from 'lucide-react';
+import { toast } from 'sonner';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
+const EMPTY_FORM = {
+  student_id: '', username: '', password: 'BVM123',
+  name: '', class_name: '', section: 'A', roll_no: '',
+  parent_name: '', parent_phone: '', parent_email: '',
+  dob: '', gender: 'Male', address: '', blood_group: '',
+  admission_date: '', academic_year: '', status: 'Pending', photo_url: ''
+};
 
 export default function Students() {
   const { academicYear, setAcademicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('all');
   const [filterSection, setFilterSection] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showDetailsSheet, setShowDetailsSheet] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [editMode, setEditMode] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [photoFile, setPhotoFile] = useState(null);
-  
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const session = getStaffSession();
     if (session) setUser(session);
     else base44.auth.me().then(setUser).catch(() => {});
-    // Check URL params for action=add
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('action') === 'add') {
-      setShowAddDialog(true);
-    }
   }, []);
 
-  const [formData, setFormData] = useState({
-    student_id: '',
-    username: '',
-    password: 'BVM123',
-    name: '',
-    class_name: '',
-    section: 'A',
-    roll_no: '',
-    parent_name: '',
-    parent_phone: '',
-    parent_email: '',
-    dob: '',
-    gender: 'Male',
-    address: '',
-    blood_group: '',
-    admission_date: '',
-    academic_year: academicYear,
-    status: 'Pending'
+  const isAdmin = user?.role === 'Admin' || user?.role === 'admin' ||
+                  user?.role === 'Principal' || user?.role === 'principal';
+
+  const { data: students = [], isLoading } = useQuery({
+    queryKey: ['students', academicYear],
+    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear }, '-created_date'),
+    enabled: !!academicYear
   });
 
-  // Generate next unique student ID like S0001
   const generateStudentId = async () => {
     const all = await base44.entities.Student.list('-created_date', 1000);
-    const ids = all
-      .map(s => s.student_id)
-      .filter(id => id && /^S\d+$/.test(id))
-      .map(id => parseInt(id.slice(1)));
+    const ids = all.map(s => s.student_id).filter(id => id && /^S\d+$/.test(id)).map(id => parseInt(id.slice(1)));
     const max = ids.length > 0 ? Math.max(...ids) : 0;
     return `S${String(max + 1).padStart(4, '0')}`;
   };
 
-  const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students', academicYear],
-    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear }, '-created_date')
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data) => {
+  const saveMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
       let photo_url = data.photo_url;
       if (photoFile) {
-        const result = await base44.integrations.Core.UploadFile({ file: photoFile });
-        photo_url = result.file_url;
+        const r = await base44.integrations.Core.UploadFile({ file: photoFile });
+        photo_url = r.file_url;
       }
+      if (id) return base44.entities.Student.update(id, { ...data, photo_url });
       return base44.entities.Student.create({ ...data, photo_url });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['students']);
-      setShowAddDialog(false);
-      resetForm();
-      toast.success('Student added successfully');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      let photo_url = data.photo_url;
-      if (photoFile) {
-        const result = await base44.integrations.Core.UploadFile({ file: photoFile });
-        photo_url = result.file_url;
-      }
-      return base44.entities.Student.update(id, { ...data, photo_url });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['students']);
-      setShowDetailsSheet(false);
-      setEditMode(false);
-      resetForm();
-      toast.success('Student updated successfully');
+      setShowForm(false);
+      setPhotoFile(null);
+      toast.success(isEdit ? 'Student updated' : 'Student added');
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Student.delete(id),
+    mutationFn: id => base44.entities.Student.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['students']);
-      setShowDetailsSheet(false);
-      toast.success('Student deleted successfully');
+      setShowProfile(false);
+      toast.success('Student deleted');
     }
   });
 
-  const resetForm = () => {
-    setFormData({
-      student_id: '',
-      username: '',
-      password: 'BVM123',
-      name: '',
-      class_name: '',
-      section: 'A',
-      roll_no: '',
-      parent_name: '',
-      parent_phone: '',
-      parent_email: '',
-      dob: '',
-      gender: 'Male',
-      address: '',
-      blood_group: '',
-      admission_date: '',
-      academic_year: academicYear,
-      status: 'Pending'
-    });
-    setPhotoFile(null);
-  };
-
-  const getNextAvailableRollNumber = (className, section, excludeId = null) => {
-    const classStudents = students.filter(s => 
-      s.class_name === className && 
-      s.section === section &&
-      (!excludeId || s.id !== excludeId)
-    );
-    const usedRollNumbers = new Set(classStudents.map(s => s.roll_no).filter(Boolean));
-    
-    let nextRoll = 1;
-    while (usedRollNumbers.has(nextRoll)) {
-      nextRoll++;
-    }
-    return nextRoll;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
-    
-    // Auto-fix duplicate roll number
-    if (formData.roll_no && formData.class_name && formData.section) {
-      const isDuplicate = students.some(s => 
-        s.class_name === formData.class_name && 
-        s.section === formData.section && 
-        s.roll_no === formData.roll_no &&
-        (!editMode || s.id !== selectedStudent.id)
-      );
-      
-      if (isDuplicate) {
-        const nextRoll = getNextAvailableRollNumber(formData.class_name, formData.section, editMode ? selectedStudent.id : null);
-        setFormData({...formData, roll_no: nextRoll});
-        toast.info(`Roll number ${formData.roll_no} was taken. Auto-assigned roll number ${nextRoll}`);
-        return;
-      }
-    }
-    
-    if (editMode && selectedStudent) {
-      updateMutation.mutate({ id: selectedStudent.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
-    }
+    saveMutation.mutate({ id: isEdit ? selectedStudent.id : null, data: formData });
   };
 
-  const handleStatusChange = async (student, newStatus) => {
-    await base44.entities.Student.update(student.id, { 
-      status: newStatus,
-      [`${newStatus.toLowerCase()}_by`]: user?.email 
-    });
+  const openAdd = async () => {
+    const newId = await generateStudentId();
+    setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
+    setIsEdit(false);
+    setPhotoFile(null);
+    setShowForm(true);
+  };
+
+  const openEdit = student => {
+    setFormData({ ...student });
+    setSelectedStudent(student);
+    setIsEdit(true);
+    setPhotoFile(null);
+    setShowProfile(false);
+    setShowForm(true);
+  };
+
+  const openProfile = student => {
+    setSelectedStudent(student);
+    setShowProfile(true);
+  };
+
+  const handleArchive = async student => {
+    const isArchived = student.status === 'Passed Out' || student.status === 'Transferred';
+    const newStatus = isArchived ? 'Published' : 'Passed Out';
+    await base44.entities.Student.update(student.id, { status: newStatus });
     queryClient.invalidateQueries(['students']);
-    toast.success(`Student ${newStatus.toLowerCase()}`);
+    setShowProfile(false);
+    toast.success(isArchived ? 'Student reactivated' : 'Student archived');
   };
 
-  const openEditMode = (student) => {
-    setFormData(student);
-    setSelectedStudent(student);
-    setEditMode(true);
-    setShowDetailsSheet(true);
+  const handleDelete = student => {
+    if (!window.confirm(`Delete ${student.name}? This cannot be undone.`)) return;
+    deleteMutation.mutate(student.id);
   };
 
-  const viewDetails = (student) => {
-    setSelectedStudent(student);
-    setEditMode(false);
-    setShowDetailsSheet(true);
-  };
-
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         student.student_id?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesClass = filterClass === 'all' || student.class_name === filterClass;
-    const matchesSection = filterSection === 'all' || student.section === filterSection;
-    const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
-    return matchesSearch && matchesClass && matchesSection && matchesStatus;
+  const filtered = students.filter(s => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q) || s.parent_name?.toLowerCase().includes(q);
+    const matchClass = filterClass === 'all' || s.class_name === filterClass;
+    const matchSection = filterSection === 'all' || s.section === filterSection;
+    const matchStatus = filterStatus === 'all' || s.status === filterStatus;
+    return matchSearch && matchClass && matchSection && matchStatus;
   });
 
-  const columns = [
-    {
-      header: 'Student',
-      cell: (row) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={row.photo_url} />
-            <AvatarFallback className="bg-blue-100 text-blue-700">
-              {row.name?.[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-slate-900">{row.name}</p>
-            <p className="text-sm text-slate-500">{row.student_id}</p>
-          </div>
-        </div>
-      )
-    },
-    {
-      header: 'Class',
-      cell: (row) => (
-        <span className="font-medium">{row.class_name}-{row.section}</span>
-      )
-    },
-    {
-      header: 'Roll No',
-      accessor: 'roll_no'
-    },
-    {
-      header: 'Parent Contact',
-      cell: (row) => (
-        <div>
-          <p className="text-sm text-slate-900">{row.parent_name}</p>
-          <p className="text-sm text-slate-500">{row.parent_phone}</p>
-        </div>
-      )
-    },
-    {
-      header: 'Status',
-      cell: (row) => <StatusBadge status={row.status} />
-    },
-    {
-      header: 'Actions',
-      width: '80px',
-      cell: (row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => viewDetails(row)}>
-              <Eye className="mr-2 h-4 w-4" /> View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openEditMode(row)}>
-              <Pencil className="mr-2 h-4 w-4" /> Edit
-            </DropdownMenuItem>
-            {row.status === 'Pending' && (
-              <DropdownMenuItem onClick={() => handleStatusChange(row, 'Verified')}>
-                <CheckCircle className="mr-2 h-4 w-4 text-blue-600" /> Verify
-              </DropdownMenuItem>
-            )}
-            {row.status === 'Verified' && (
-              <DropdownMenuItem onClick={() => handleStatusChange(row, 'Approved')}>
-                <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" /> Approve
-              </DropdownMenuItem>
-            )}
-            {row.status === 'Approved' && (
-              <DropdownMenuItem onClick={() => handleStatusChange(row, 'Published')}>
-                <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Publish
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem 
-              onClick={() => deleteMutation.mutate(row.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    }
-  ];
-
-  const StudentForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex justify-center">
-        <div className="relative">
-          <Avatar className="h-24 w-24">
-            <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : formData.photo_url} />
-            <AvatarFallback className="bg-blue-100 text-blue-700 text-2xl">
-              {formData.name?.[0] || 'S'}
-            </AvatarFallback>
-          </Avatar>
-          <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors">
-            <ImageIcon className="h-4 w-4 text-white" />
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => setPhotoFile(e.target.files[0])}
-            />
-          </label>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>Student ID (Auto-generated)</Label>
-          <Input
-            value={formData.student_id}
-            onChange={(e) => setFormData({...formData, student_id: e.target.value})}
-            placeholder="S0001"
-          />
-        </div>
-        <div>
-          <Label>Login Username</Label>
-          <Input
-            value={formData.username}
-            onChange={(e) => setFormData({...formData, username: e.target.value})}
-            placeholder="e.g. S0001 or custom"
-          />
-        </div>
-        <div>
-          <Label>Login Password</Label>
-          <Input
-            value={formData.password}
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-            placeholder="Default: BVM123"
-          />
-        </div>
-        <div>
-          <Label>Full Name *</Label>
-          <Input
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
-            placeholder="Enter full name"
-            required
-          />
-        </div>
-        <div>
-          <Label>Class *</Label>
-          <Select
-            value={formData.class_name}
-            onValueChange={(v) => setFormData({...formData, class_name: v})}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select class" />
-            </SelectTrigger>
-            <SelectContent>
-              {CLASSES.map(c => (
-                <SelectItem key={c} value={c}>Class {c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Section *</Label>
-          <Select
-            value={formData.section}
-            onValueChange={(v) => setFormData({...formData, section: v})}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select section" />
-            </SelectTrigger>
-            <SelectContent>
-              {SECTIONS.map(s => (
-                <SelectItem key={s} value={s}>Section {s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Roll No</Label>
-          <Input
-            type="number"
-            value={formData.roll_no}
-            onChange={(e) => setFormData({...formData, roll_no: parseInt(e.target.value)})}
-            placeholder="1"
-          />
-        </div>
-        <div>
-          <Label>Date of Birth</Label>
-          <Input
-            type="date"
-            value={formData.dob}
-            onChange={(e) => setFormData({...formData, dob: e.target.value})}
-          />
-        </div>
-        <div>
-          <Label>Gender</Label>
-          <Select
-            value={formData.gender}
-            onValueChange={(v) => setFormData({...formData, gender: v})}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Male">Male</SelectItem>
-              <SelectItem value="Female">Female</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Blood Group</Label>
-          <Select
-            value={formData.blood_group}
-            onValueChange={(v) => setFormData({...formData, blood_group: v})}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select blood group" />
-            </SelectTrigger>
-            <SelectContent>
-              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
-                <SelectItem key={bg} value={bg}>{bg}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Parent/Guardian Name</Label>
-          <Input
-            value={formData.parent_name}
-            onChange={(e) => setFormData({...formData, parent_name: e.target.value})}
-            placeholder="Enter parent name"
-          />
-        </div>
-        <div>
-          <Label>Parent Phone</Label>
-          <Input
-            value={formData.parent_phone}
-            onChange={(e) => setFormData({...formData, parent_phone: e.target.value})}
-            placeholder="+91 9876543210"
-          />
-        </div>
-        <div>
-          <Label>Parent Email</Label>
-          <Input
-            type="email"
-            value={formData.parent_email}
-            onChange={(e) => setFormData({...formData, parent_email: e.target.value})}
-            placeholder="parent@email.com"
-          />
-        </div>
-        <div>
-          <Label>Admission Date</Label>
-          <Input
-            type="date"
-            value={formData.admission_date}
-            onChange={(e) => setFormData({...formData, admission_date: e.target.value})}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label>Address</Label>
-        <Textarea
-          value={formData.address}
-          onChange={(e) => setFormData({...formData, address: e.target.value})}
-          placeholder="Enter complete address"
-          rows={3}
-        />
-      </div>
-
-      <div className="flex justify-end gap-3">
-        <Button 
-          type="button" 
-          variant="outline"
-          onClick={() => {
-            setShowAddDialog(false);
-            setShowDetailsSheet(false);
-            setEditMode(false);
-            resetForm();
-          }}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-          {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editMode ? 'Update Student' : 'Add Student')}
-        </Button>
-      </div>
-    </form>
-  );
+  // Stats
+  const totalActive = students.filter(s => s.status === 'Published').length;
+  const totalPending = students.filter(s => s.status === 'Pending').length;
+  const totalArchived = students.filter(s => s.status === 'Passed Out' || s.status === 'Transferred').length;
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Students">
-      <div className="min-h-screen bg-slate-50">
-      <PageHeader 
-        title={`Students — ${academicYear}`}
-        subtitle={`${filteredStudents.length} students`}
-        actions={
-        <div className="flex gap-2">
-          {(user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'principal') && (
-            <PromoteStudents
-              academicYear={academicYear}
-              onPromoted={(nextYear) => {
-                setAcademicYear(nextYear);
-                queryClient.invalidateQueries(['students']);
-              }}
-            />
-          )}
-          <Button 
-            variant="outline" 
-            className="hidden sm:flex"
-              onClick={async () => {
-                const response = await base44.functions.invoke('generateStudentTemplate');
-                const binaryString = atob(response.data.file);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  bytes[i] = binaryString.charCodeAt(i);
-                }
-                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'student_import_template.xlsx';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
-                toast.success('Template downloaded');
-              }}
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Template
-            </Button>
-            <Button variant="outline" className="hidden sm:flex">
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
-            <Button onClick={async () => {
-              const newId = await generateStudentId();
-              setFormData(f => ({ ...f, student_id: newId, username: newId, password: 'BVM123' }));
-              setShowAddDialog(true);
-            }}>
-              <Plus className="mr-2 h-4 w-4" /> Add Student
-            </Button>
-          </div>
-        }
-      />
-
-      <div className="p-4 lg:p-8 space-y-6">
-        {/* Filters */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search by name or ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+      <div className="min-h-screen bg-[#f0f4ff]">
+        <PageHeader
+          title={`Students — ${academicYear}`}
+          subtitle={`${filtered.length} of ${students.length} students`}
+          backTo="Dashboard"
+          actions={
+            <div className="flex gap-2">
+              {isAdmin && (
+                <PromoteStudents
+                  academicYear={academicYear}
+                  onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
                 />
-              </div>
-              <Select value={filterClass} onValueChange={setFilterClass}>
-                <SelectTrigger className="w-full sm:w-36">
-                  <SelectValue placeholder="Class" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Classes</SelectItem>
-                  {CLASSES.map(c => (
-                    <SelectItem key={c} value={c}>Class {c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterSection} onValueChange={setFilterSection}>
-                <SelectTrigger className="w-full sm:w-36">
-                  <SelectValue placeholder="Section" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sections</SelectItem>
-                  {SECTIONS.map(s => (
-                    <SelectItem key={s} value={s}>Section {s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full sm:w-36">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Verified">Verified</SelectItem>
-                  <SelectItem value="Approved">Approved</SelectItem>
-                  <SelectItem value="Published">Published</SelectItem>
-                </SelectContent>
-              </Select>
+              )}
+              {isAdmin && (
+                <Button onClick={openAdd} className="bg-[#1a237e] hover:bg-[#283593] rounded-xl">
+                  <Plus className="h-4 w-4 mr-1" /> Add Student
+                </Button>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          }
+        />
 
-        {/* Data Table */}
-        <DataTable
-          columns={columns}
-          data={filteredStudents}
-          loading={isLoading}
-          emptyMessage="No students found. Add your first student to get started."
+        <div className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Active', value: totalActive, color: 'text-green-600', bg: 'bg-green-50' },
+              { label: 'Pending', value: totalPending, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+              { label: 'Archived', value: totalArchived, color: 'text-gray-500', bg: 'bg-gray-50' },
+            ].map(s => (
+              <div key={s.label} className="bg-white rounded-2xl shadow-sm p-3 text-center">
+                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <StudentFilters
+            search={search} onSearch={setSearch}
+            filterClass={filterClass} onFilterClass={setFilterClass}
+            filterSection={filterSection} onFilterSection={setFilterSection}
+            filterStatus={filterStatus} onFilterStatus={setFilterStatus}
+          />
+
+          {/* List */}
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white rounded-2xl animate-pulse" />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+              <Users className="h-10 w-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">No students found.</p>
+              {isAdmin && (
+                <button onClick={openAdd} className="mt-4 text-[#1a237e] font-semibold text-sm hover:underline">
+                  + Add first student
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map(student => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  onView={() => openProfile(student)}
+                  onEdit={() => openEdit(student)}
+                  onArchive={() => handleArchive(student)}
+                  isAdmin={isAdmin}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Add / Edit Form Dialog */}
+        <Dialog open={showForm} onOpenChange={v => { if (!v) { setShowForm(false); setPhotoFile(null); } }}>
+          <DialogContent className="max-w-lg max-h-[92vh] overflow-y-auto rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>{isEdit ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+            </DialogHeader>
+            <StudentForm
+              formData={formData}
+              onChange={setFormData}
+              onPhotoChange={setPhotoFile}
+              photoFile={photoFile}
+              isEdit={isEdit}
+              onSubmit={handleSubmit}
+              onCancel={() => setShowForm(false)}
+              loading={saveMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Profile Sheet */}
+        <StudentProfileSheet
+          student={selectedStudent}
+          open={showProfile}
+          onClose={() => setShowProfile(false)}
+          onEdit={() => openEdit(selectedStudent)}
+          onArchive={() => handleArchive(selectedStudent)}
+          onDelete={() => handleDelete(selectedStudent)}
+          isAdmin={isAdmin}
         />
       </div>
-
-      {/* Add Student Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Student</DialogTitle>
-          </DialogHeader>
-          <StudentForm />
-        </DialogContent>
-      </Dialog>
-
-      {/* Student Details Sheet */}
-      <Sheet open={showDetailsSheet} onOpenChange={setShowDetailsSheet}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{editMode ? 'Edit Student' : 'Student Details'}</SheetTitle>
-          </SheetHeader>
-          
-          {editMode ? (
-            <div className="mt-6">
-              <StudentForm />
-            </div>
-          ) : selectedStudent && (
-            <div className="mt-6 space-y-6">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={selectedStudent.photo_url} />
-                  <AvatarFallback className="bg-blue-100 text-blue-700 text-2xl">
-                    {selectedStudent.name?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">{selectedStudent.name}</h3>
-                  <p className="text-slate-500">{selectedStudent.student_id}</p>
-                  <StatusBadge status={selectedStudent.status} className="mt-2" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500">Class</p>
-                  <p className="font-semibold">{selectedStudent.class_name}-{selectedStudent.section}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500">Roll No</p>
-                  <p className="font-semibold">{selectedStudent.roll_no || '-'}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500">Date of Birth</p>
-                  <p className="font-semibold">{selectedStudent.dob || '-'}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500">Gender</p>
-                  <p className="font-semibold">{selectedStudent.gender}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl col-span-2">
-                  <p className="text-sm text-slate-500">Parent/Guardian</p>
-                  <p className="font-semibold">{selectedStudent.parent_name}</p>
-                  <p className="text-sm text-slate-600">{selectedStudent.parent_phone}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl col-span-2">
-                  <p className="text-sm text-slate-500">Address</p>
-                  <p className="font-semibold">{selectedStudent.address || '-'}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => openEditMode(selectedStudent)}>
-                  <Pencil className="mr-2 h-4 w-4" /> Edit
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  className="flex-1"
-                  onClick={() => deleteMutation.mutate(selectedStudent.id)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </Button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
-    </div>
     </LoginRequired>
   );
 }
