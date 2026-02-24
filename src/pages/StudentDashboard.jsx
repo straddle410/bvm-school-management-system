@@ -148,7 +148,7 @@ export default function StudentDashboard() {
       </header>
 
       {/* Stats floating cards */}
-      <div className="px-4 -mt-8 mb-4 z-10 relative">
+      <div className="px-4 mt-4 mb-4 z-10 relative">
         <div className="grid grid-cols-3 gap-2">
           {[
             { label: 'Attendance', value: `${attendancePct}%`, icon: ClipboardList, color: attendancePct >= 75 ? 'text-emerald-600' : 'text-red-500', bg: attendancePct >= 75 ? 'bg-emerald-50' : 'bg-red-50' },
