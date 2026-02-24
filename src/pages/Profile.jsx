@@ -224,7 +224,7 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* OTP Login Setting - Admin Only */}
-            {(user?.role === 'Admin' || user?.role === 'admin') && (
+            {(user?.role === 'Admin' || user?.role === 'admin' || staffData?.role === 'Admin') && (
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex items-center gap-3">
                   {enableOtp ? (
