@@ -6,6 +6,7 @@ import { Home, Bell, Image, Calendar, MoreHorizontal } from 'lucide-react';
 import { AcademicYearProvider } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
+import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 
 const bottomNav = [
   { name: 'Home', icon: Home, page: 'Dashboard' },
