@@ -156,6 +156,8 @@ export default function AnalyticsDashboard() {
         <AttendanceAnalytics 
           classFilter={selectedClass} 
           academicYear={academicYear}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
         />
 
         {/* Performance Analytics */}
