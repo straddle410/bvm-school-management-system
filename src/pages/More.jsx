@@ -6,7 +6,7 @@ import { getStaffSession, clearStaffSession } from '@/components/useStaffSession
 import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
-  Phone, Globe, Shield, HelpCircle, Info, LogIn
+  Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare
 } from 'lucide-react';
 
 export default function More() {
