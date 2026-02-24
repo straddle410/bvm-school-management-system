@@ -125,7 +125,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
           <button onClick={onClose}><X className="h-5 w-5" /></button>
         </div>
         <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          {!replyTo && (
+          {!replyTo && !isStudent && (
             <div className="flex gap-2">
               {['individual', 'class', 'section'].map(t => (
                 <button
