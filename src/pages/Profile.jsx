@@ -103,6 +103,17 @@ export default function Profile() {
     }
   });
 
+  const updateOtpSetting = async (enabled) => {
+    if (!staffData) return;
+    try {
+      await base44.entities.StaffAccount.update(staffData.id, { enable_otp_login: enabled });
+      setEnableOtp(enabled);
+      toast.success(`OTP login ${enabled ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error('Failed to update OTP setting');
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
