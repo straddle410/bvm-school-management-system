@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export default function NotificationSettingsSection() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'saved'
   const [preferences, setPreferences] = useState(null);
 
   useEffect(() => {
@@ -50,15 +51,20 @@ export default function NotificationSettingsSection() {
   };
 
   const handleSave = async () => {
+    setSaveStatus('saving');
     setSaving(true);
     try {
       await notificationService.savePreferences(preferences);
       // Reload preferences to verify persistence
       await loadPreferences();
+      setSaveStatus('saved');
       toast.success('Notification settings saved');
+      // Revert to idle after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
       toast.error('Failed to save settings');
       console.error(error);
+      setSaveStatus('idle');
     } finally {
       setSaving(false);
     }
@@ -224,9 +230,13 @@ export default function NotificationSettingsSection() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-[#1a237e] hover:bg-[#283593]"
+            className={`${
+              saveStatus === 'saved'
+                ? 'bg-green-600 hover:bg-green-700'
+                : 'bg-[#1a237e] hover:bg-[#283593]'
+            }`}
           >
-            {saving ? 'Saving...' : 'Save Notification Settings'}
+            {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved ✓' : 'Save Notification Settings'}
           </Button>
         </div>
       </CardContent>
