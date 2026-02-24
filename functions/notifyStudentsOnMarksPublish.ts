@@ -5,30 +5,51 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
-    if (event?.type !== 'update' || data?.status !== 'Published') {
-      return Response.json({ success: false, message: 'Not a publish event' });
+    if (event.type !== 'update' || !data || data.status !== 'Published') {
+      return Response.json({ success: true, notified: 0 });
     }
 
     const marks = data;
-    if (!marks.id || !marks.student_id) {
-      return Response.json({ success: false, message: 'Missing student or marks ID' });
+    const student_id = marks.student_id;
+
+    if (!student_id) {
+      return Response.json({ error: 'Missing student_id' }, { status: 400 });
     }
 
-    const notification = {
-      recipient_student_id: marks.student_id,
-      recipient_name: marks.student_name,
-      type: 'results_posted',
-      title: `Results Published - ${marks.subject}`,
-      message: `Your results for ${marks.subject} (${marks.exam_type}) have been published`,
-      related_entity_id: marks.id,
-      is_read: false,
-      academic_year: marks.academic_year
-    };
+    // Get student notification preferences
+    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
+      student_id: student_id
+    });
 
-    await base44.asServiceRole.entities.Notification.create(notification);
+    const pref = prefs[0];
 
-    return Response.json({ success: true, created: 1 });
+    // Check if notifications are enabled
+    if (!pref || !pref.notifications_enabled) {
+      return Response.json({ success: true, notified: 0 });
+    }
+
+    const duplicateKey = `marks_${marks.id}_${student_id}`;
+
+    try {
+      // Create notification record
+      await base44.asServiceRole.entities.Notification.create({
+        recipient_student_id: student_id,
+        type: 'results_posted',
+        title: 'Your Results Are Published',
+        message: `${marks.subject} - ${marks.exam_type}`,
+        related_entity_id: marks.id,
+        action_url: '/Results',
+        is_read: false,
+        duplicate_key: duplicateKey
+      });
+
+      return Response.json({ success: true, notified: 1 });
+    } catch (err) {
+      console.error('Failed to create notification:', err);
+      return Response.json({ success: true, notified: 0 });
+    }
   } catch (error) {
+    console.error('Error in notifyStudentsOnMarksPublish:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

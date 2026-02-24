@@ -5,35 +5,66 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
-    // Trigger on both create and update when status is Published
     if (!data || data.status !== 'Published') {
-      return Response.json({ success: false, message: 'Not a publish event' });
+      return Response.json({ success: true, notified: 0 });
     }
 
     const notice = data;
-    const noticeId = event.entity_id;
+    const target_audience = notice.target_audience || 'All';
 
-    // Get all students (notice goes to everyone)
-    const students = await base44.asServiceRole.entities.Student.list();
-    const notifications = students
-      .filter(student => student.student_id)
-      .map(student => ({
-        recipient_student_id: student.student_id,
-        recipient_name: student.name,
-        type: 'notice_posted',
-        title: notice.title,
-        message: `New notice: ${notice.title}`,
-        related_entity_id: noticeId,
-        is_read: false,
-        academic_year: student.academic_year
-      }));
-
-    if (notifications.length > 0) {
-      await base44.asServiceRole.entities.Notification.bulkCreate(notifications);
+    // Get all students or filter by target audience
+    let students = [];
+    if (target_audience === 'Students' || target_audience === 'All') {
+      students = await base44.asServiceRole.entities.Student.filter({
+        status: 'Approved'
+      });
     }
 
-    return Response.json({ success: true, created: notifications.length });
+    if (students.length === 0) {
+      return Response.json({ success: true, notified: 0 });
+    }
+
+    // Get notification preferences for all students
+    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
+    const prefMap = new Map(prefs.map(p => [p.student_id, p]));
+
+    let notified = 0;
+    const duplicateCheck = new Set();
+
+    for (const student of students) {
+      const pref = prefMap.get(student.student_id);
+
+      if (!pref || !pref.notifications_enabled) {
+        continue;
+      }
+
+      const duplicateKey = `notice_${notice.id}_${student.student_id}`;
+      if (duplicateCheck.has(duplicateKey)) {
+        continue;
+      }
+      duplicateCheck.add(duplicateKey);
+
+      try {
+        await base44.asServiceRole.entities.Notification.create({
+          recipient_student_id: student.student_id,
+          type: 'notice_posted',
+          title: notice.title,
+          message: notice.content.substring(0, 100),
+          related_entity_id: notice.id,
+          action_url: '/Notices',
+          is_read: false,
+          duplicate_key: duplicateKey
+        });
+
+        notified++;
+      } catch (err) {
+        console.error(`Failed to create notification for ${student.student_id}:`, err);
+      }
+    }
+
+    return Response.json({ success: true, notified });
   } catch (error) {
+    console.error('Error in notifyStudentsOnNoticePublish:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

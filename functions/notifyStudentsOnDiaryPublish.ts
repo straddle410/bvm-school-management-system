@@ -5,43 +5,66 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
-    // Only process when status is Published (on create or update)
     if (!data || data.status !== 'Published') {
-      return Response.json({ success: false, reason: 'Not a publish event' });
+      return Response.json({ success: true, notified: 0 });
     }
 
-    const diaryId = event.entity_id;
     const diary = data;
+    const class_name = diary.class_name;
+    const section = diary.section || 'A';
 
-    // Get all students in the same class and section
+    // Get all students in the class
     const students = await base44.asServiceRole.entities.Student.filter({
-      class_name: diary.class_name,
-      section: diary.section
+      class_name: class_name,
+      section: section,
+      status: 'Approved'
     });
 
     if (students.length === 0) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    const notifications = students
-      .filter(student => student.student_id)
-      .map(student => ({
-        recipient_student_id: student.student_id,
-        recipient_name: student.name,
-        type: 'diary_published',
-        title: `New Class Activity: ${diary.subject}`,
-        message: `${diary.posted_by_name || 'Teacher'} posted "${diary.title}" for ${diary.subject}.`,
-        related_entity_id: diaryId,
-        is_read: false,
-        academic_year: diary.academic_year || student.academic_year
-      }));
+    // Get notification preferences
+    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
+    const prefMap = new Map(prefs.map(p => [p.student_id, p]));
 
-    if (notifications.length > 0) {
-      await base44.asServiceRole.entities.Notification.bulkCreate(notifications);
+    let notified = 0;
+    const duplicateCheck = new Set();
+
+    for (const student of students) {
+      const pref = prefMap.get(student.student_id);
+
+      if (!pref || !pref.notifications_enabled) {
+        continue;
+      }
+
+      const duplicateKey = `diary_${diary.id}_${student.student_id}`;
+      if (duplicateCheck.has(duplicateKey)) {
+        continue;
+      }
+      duplicateCheck.add(duplicateKey);
+
+      try {
+        await base44.asServiceRole.entities.Notification.create({
+          recipient_student_id: student.student_id,
+          type: 'diary_published',
+          title: 'Class Diary Published',
+          message: diary.title || `Class diary for ${diary.date}`,
+          related_entity_id: diary.id,
+          action_url: '/Diary',
+          is_read: false,
+          duplicate_key: duplicateKey
+        });
+
+        notified++;
+      } catch (err) {
+        console.error(`Failed to create notification for ${student.student_id}:`, err);
+      }
     }
 
-    return Response.json({ success: true, notified: notifications.length });
+    return Response.json({ success: true, notified });
   } catch (error) {
+    console.error('Error in notifyStudentsOnDiaryPublish:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
