@@ -91,8 +91,12 @@ export default function StudentDashboard() {
     queryKey: ['unread-message-count', student?.student_id],
     queryFn: async () => {
       if (!student?.student_id) return 0;
-      const m = await base44.entities.Message.filter({ recipient_id: student.student_id, is_read: false }).catch(() => []);
-      return m.length;
+      try {
+        const m = await base44.entities.Message.filter({ recipient_id: student.student_id, is_read: false });
+        return m.length;
+      } catch {
+        return 0;
+      }
     },
     enabled: !!student?.student_id,
     refetchInterval: 15000,
