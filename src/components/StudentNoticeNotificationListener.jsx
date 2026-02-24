@@ -6,52 +6,54 @@ export default function StudentNoticeNotificationListener({ studentSession }) {
   useEffect(() => {
     if (!studentSession?.student_id) return;
 
-    let prefs = null;
+    let unsubscribe;
 
-    const loadPrefsAndSubscribe = async () => {
+    const setup = async () => {
       try {
         // Load notification preferences
         const prefRecords = await base44.entities.StudentNotificationPreference.filter({
           student_id: studentSession.student_id,
         });
-        prefs = prefRecords.length > 0 ? prefRecords[0] : null;
+        const prefs = prefRecords.length > 0 ? prefRecords[0] : { notifications_enabled: true, sound_enabled: true };
 
-        // Subscribe to notifications
-        const unsubscribe = base44.entities.Notification.subscribe((event) => {
+        // Subscribe to all new notifications
+        unsubscribe = base44.entities.Notification.subscribe((event) => {
+          // Only handle create events
           if (event.type !== 'create') return;
-          if (event.data.type !== 'notice_posted') return;
-          if (event.data.recipient_student_id !== studentSession.student_id) return;
+          
+          // Only handle notice_posted type
+          if (event.data?.type !== 'notice_posted') return;
+          
+          // Only handle notifications for this student
+          if (event.data?.recipient_student_id !== studentSession.student_id) return;
 
           // Check if notifications are enabled
-          if (!prefs?.notifications_enabled) return;
+          if (prefs?.notifications_enabled === false) return;
+
+          console.log('Notice notification received:', event.data.title);
 
           // Show toast
           toast.info(event.data.title, { description: event.data.message });
 
           // Play sound if enabled
-          if (prefs.sound_enabled) {
-            playNotificationSound(prefs.sound_volume);
+          if (prefs?.sound_enabled) {
+            playNotificationSound(prefs?.sound_volume || 0.7);
           }
 
           // Send browser push if enabled
-          if (prefs.browser_push_enabled && 'Notification' in window && Notification.permission === 'granted') {
+          if (prefs?.browser_push_enabled && 'Notification' in window && Notification.permission === 'granted') {
             new Notification(event.data.title, {
               body: event.data.message,
               icon: '/logo.png',
             });
           }
         });
-
-        return unsubscribe;
       } catch (err) {
-        console.error('Notice notification listener error:', err);
+        console.error('Notice listener setup error:', err);
       }
     };
 
-    let unsubscribe;
-    loadPrefsAndSubscribe().then((unsub) => {
-      unsubscribe = unsub;
-    });
+    setup();
 
     return () => {
       if (unsubscribe) unsubscribe();
