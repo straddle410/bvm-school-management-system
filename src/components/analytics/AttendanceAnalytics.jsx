@@ -6,13 +6,28 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 
 const COLORS = ['#10b981', '#ef4444', '#f59e0b'];
 
-export default function AttendanceAnalytics({ classFilter, academicYear }) {
+export default function AttendanceAnalytics({ classFilter, academicYear, dateFrom, dateTo }) {
   const { data: attendanceData = [] } = useQuery({
-    queryKey: ['attendance', classFilter, academicYear],
+    queryKey: ['attendance', classFilter, academicYear, dateFrom, dateTo],
     queryFn: async () => {
       let filter = { academic_year: academicYear };
       if (classFilter !== 'all') filter.class_name = classFilter;
-      return base44.entities.Attendance.filter(filter);
+      const allData = await base44.entities.Attendance.filter(filter);
+      
+      // Filter by date range if provided
+      if (dateFrom || dateTo) {
+        return allData.filter(record => {
+          const recordDate = new Date(record.date);
+          const fromDate = dateFrom ? new Date(dateFrom) : null;
+          const toDate = dateTo ? new Date(dateTo) : null;
+          
+          if (fromDate && recordDate < fromDate) return false;
+          if (toDate && recordDate > toDate) return false;
+          return true;
+        });
+      }
+      
+      return allData;
     },
   });
 
