@@ -165,7 +165,7 @@ export default function Dashboard() {
                 : <GraduationCap className="h-6 w-6 text-blue-200" />
               }
               <span className="font-bold text-white text-base tracking-wide">
-                {schoolProfile?.school_name || 'School Portal'}
+                {schoolProfile?.school_name || 'BVM School of Excellence'}
               </span>
             </div>
             {user && (
