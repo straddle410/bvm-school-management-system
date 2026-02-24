@@ -45,6 +45,7 @@ const adminActions = [
   { label: 'Review Marks',     icon: ClipboardList, gradient: 'from-indigo-400 to-blue-600',   page: 'MarksReview' },
   { label: 'Progress Card',    icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
   { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
+  { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'AnalyticsDashboard' },
 ];
 
 function GradientIcon({ gradient, icon: Icon, size = 'md' }) {
