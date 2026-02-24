@@ -53,6 +53,8 @@ export default function UserProfile() {
 
   const queryClient = useQueryClient();
 
+  // For student sessions, use session data directly (no API calls)
+  // For staff sessions, fetch from API
   const { data: staffRecord, isLoading: staffLoading } = useQuery({
     queryKey: ['staff-profile', session?.id],
     queryFn: async () => {
@@ -63,15 +65,9 @@ export default function UserProfile() {
     enabled: sessionType === 'staff' && !!session?.id,
   });
 
-  const { data: studentRecord, isLoading: studentLoading } = useQuery({
-    queryKey: ['student-profile', session?.student_id],
-    queryFn: async () => session || null,
-    enabled: sessionType === 'student' && !!session?.student_id,
-  });
-
-  const record = sessionType === 'staff' ? staffRecord : studentRecord;
+  const record = sessionType === 'staff' ? staffRecord : session;
   const isAdmin = session?.role === 'Admin' || session?.role === 'admin' || session?.role === 'Principal' || session?.role === 'principal';
-  const isLoading = staffLoading || studentLoading;
+  const isLoading = staffLoading && sessionType === 'staff';
 
   useEffect(() => {
     if (record && sessionType === 'staff') {
