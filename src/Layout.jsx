@@ -8,6 +8,13 @@ import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 
+// Register Service Worker for push notifications
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then(reg => console.log('Service Worker registered'))
+    .catch(err => console.error('Service Worker registration failed:', err));
+}
+
 const bottomNav = [
   { name: 'Home', icon: Home, page: 'Dashboard' },
   { name: 'Notices', icon: Bell, page: 'Notices' },
