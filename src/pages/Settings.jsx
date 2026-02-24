@@ -509,10 +509,14 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </div>
 
-      {/* Add Year Dialog */}
+          <TabsContent value="notifications" className="mt-6">
+            <NotificationSettingsSection />
+          </TabsContent>
+          </Tabs>
+          </div>
+
+          {/* Add Year Dialog */}
       <Dialog open={showYearDialog} onOpenChange={setShowYearDialog}>
         <DialogContent>
           <DialogHeader>
