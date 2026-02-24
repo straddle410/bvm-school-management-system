@@ -114,11 +114,11 @@ export default function StudentNotificationSettings({ studentId }) {
   };
 
   const refreshPermissionStatus = async () => {
+    checkPushPermission();
     if (Notification.permission === 'granted') {
       await registerServiceWorker();
       toast.success('Notifications enabled!');
     } else {
-      setPushPermission(Notification.permission);
       toast.error('Notifications still blocked. Enable in Chrome settings first.');
     }
   };
