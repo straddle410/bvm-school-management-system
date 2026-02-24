@@ -151,10 +151,30 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
                 <User className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-800">{replyTo.sender_name}</span>
               </div>
+            ) : isStudent ? (
+              // Students get a dropdown of all teachers
+              <Select
+                value={selectedRecipient?.id || ''}
+                onValueChange={val => {
+                  const t = allTeachers.find(t => t.email === val);
+                  if (t) setSelectedRecipient({ id: t.email, name: t.name, role: 'teacher', sub: t.role || 'Teacher' });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select teacher / admin..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTeachers.map(t => (
+                    <SelectItem key={t.email} value={t.email}>
+                      {t.name} — {t.role || 'Teacher'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <div className="relative">
                 <Input
-                  placeholder={isStudent ? "Search teacher or admin..." : "Search student or teacher..."}
+                  placeholder="Search student or teacher..."
                   value={searchQuery}
                   onChange={e => { setSearchQuery(e.target.value); setSelectedRecipient(null); }}
                 />
