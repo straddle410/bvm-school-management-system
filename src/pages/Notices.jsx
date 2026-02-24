@@ -152,10 +152,10 @@ export default function Notices() {
   const regular = visibleNotices.filter(n => !n.is_pinned);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-6">
+    <div className="min-h-screen bg-gray-50 pb-6 w-full overflow-x-hidden">
       {/* Header */}
-      <div className="bg-[#1a237e] text-white px-4 py-6">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
+      <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-6">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Bell className="h-6 w-6 text-yellow-400" />
             <div>
