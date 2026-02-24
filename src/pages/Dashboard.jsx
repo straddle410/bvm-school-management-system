@@ -129,24 +129,24 @@ export default function Dashboard() {
     refetchInterval: 2000
   });
 
-  const { data: latestDiary = null } = useQuery({
-    queryKey: ['latest-diary', user?.student_id, user?.class_name],
+  const { data: latestDiaries = [] } = useQuery({
+    queryKey: ['latest-diaries-dashboard'],
     queryFn: async () => {
-      if (!user?.class_name) return null;
       try {
-        const diaries = await base44.entities.Diary.filter({
-          class_name: user.class_name,
-          section: user.section || 'A',
-          status: 'Published'
-        });
-        if (!diaries.length) return null;
-        return diaries.sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date))[0];
+        const diaries = await base44.entities.Diary.filter({ status: 'Published' });
+        return diaries
+          .sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date))
+          .slice(0, 3);
       } catch {
-        return null;
+        return [];
       }
     },
-    enabled: !!user?.class_name,
   });
+
+  // For students: filter by their class
+  const latestDiary = user?.class_name
+    ? latestDiaries.find(d => d.class_name === user.class_name && d.section === (user.section || 'A')) || latestDiaries[0]
+    : latestDiaries[0];
 
   const upcomingEvents = events
     .filter(e => new Date(e.start_date) >= new Date())
