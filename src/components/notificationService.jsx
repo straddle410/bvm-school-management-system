@@ -82,28 +82,42 @@ export const notificationService = {
   // Save/update notification preferences
   async savePreferences(preferences) {
     try {
-      const user = await base44.auth.me();
-      if (!user) return null;
+      // Check for staff session first
+      const staffSession = localStorage.getItem('staff_session');
+      const staffData = staffSession ? JSON.parse(staffSession) : null;
+      
+      let userEmail = staffData?.email;
+      
+      // If no staff session, try regular auth
+      if (!userEmail) {
+        const user = await base44.auth.me();
+        if (!user) return null;
+        userEmail = user.email;
+      }
 
       const existing = await this.getPreferences();
 
       if (existing) {
         // Update existing preferences
+        console.log('Updating existing preference:', existing.id);
         await base44.entities.NotificationPreference.update(
           existing.id,
           { ...preferences }
         );
         // Immediately refetch to verify persistence
         const updated = await base44.entities.NotificationPreference.filter({
-          user_email: user.email,
+          user_email: userEmail,
         });
+        console.log('Updated preferences:', updated[0]);
         return updated[0] || null;
       } else {
         // Create new preferences
+        console.log('Creating new preference for:', userEmail);
         const created = await base44.entities.NotificationPreference.create({
-          user_email: user.email,
+          user_email: userEmail,
           ...preferences,
         });
+        console.log('Created preference:', created);
         return created;
       }
     } catch (error) {
