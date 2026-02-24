@@ -18,11 +18,13 @@ import { toast } from "sonner";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+  const [staffData, setStaffData] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [formData, setFormData] = useState({
     display_name: '',
     phone: ''
   });
+  const [enableOtp, setEnableOtp] = useState(true);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
