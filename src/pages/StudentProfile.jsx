@@ -36,9 +36,12 @@ export default function StudentProfile() {
 
   const { data: student, isLoading: studentLoading } = useQuery({
     queryKey: ['student-detail', studentId],
-    queryFn: () => base44.entities.Student.filter({ id: studentId }),
+    queryFn: async () => {
+      if (!studentId) return null;
+      const results = await base44.entities.Student.filter({ id: studentId });
+      return results[0] || null;
+    },
     enabled: !!studentId,
-    select: (data) => data[0] || null,
   });
 
   const { data: attendance = [] } = useQuery({
