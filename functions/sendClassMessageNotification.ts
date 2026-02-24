@@ -24,6 +24,7 @@ Deno.serve(async (req) => {
     const prefMap = new Map(prefs.map(p => [p.student_id, p]));
 
     let notified = 0;
+    const duplicateCheck = new Set();
 
     // Send push notifications to eligible students
     for (const student of students) {
@@ -34,26 +35,30 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Create notification record
-      await base44.asServiceRole.entities.Notification.create({
-        recipient_student_id: student.student_id,
-        type: 'class_message',
-        title: `Message from ${sender_name}`,
-        message: subject || body.substring(0, 100),
-        related_entity_id: message_id,
-        is_read: false
-      });
+      // Prevent duplicate notifications
+      const duplicateKey = `message_${message_id}_${student.student_id}`;
+      if (duplicateCheck.has(duplicateKey)) {
+        console.warn(`Skipping duplicate notification for ${student.student_id}`);
+        continue;
+      }
+      duplicateCheck.add(duplicateKey);
 
-      notified++;
+      try {
+        // Create notification record with deduplication key and action URL
+        await base44.asServiceRole.entities.Notification.create({
+          recipient_student_id: student.student_id,
+          type: 'class_message',
+          title: `Message from ${sender_name}`,
+          message: subject || body.substring(0, 100),
+          related_entity_id: message_id,
+          action_url: '/StudentMessaging',
+          is_read: false,
+          duplicate_key: duplicateKey
+        });
 
-      // Send browser push if token exists and enabled
-      if (pref.browser_push_token && pref.browser_push_enabled) {
-        try {
-          // Browser notification will be handled by service worker on client
-          // This is just for logging/tracking
-        } catch (err) {
-          console.error(`Failed to send push to student ${student.student_id}:`, err);
-        }
+        notified++;
+      } catch (err) {
+        console.error(`Failed to create notification for student ${student.student_id}:`, err);
       }
     }
 
