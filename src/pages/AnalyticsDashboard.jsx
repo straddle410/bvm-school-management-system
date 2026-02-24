@@ -16,7 +16,12 @@ export default function AnalyticsDashboard() {
   const [academicYear, setAcademicYear] = useState('');
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => {
+      console.log('User:', u);
+      setUser(u);
+    }).catch(err => {
+      console.log('Auth error:', err);
+    });
   }, []);
 
   // Get current academic year
