@@ -14,9 +14,12 @@ export default function StudentNotificationSettings({ studentId }) {
 
   useEffect(() => {
     loadPreferences();
+    // Check permission every time - Edge caches it
     checkPushPermission();
-    // Auto-enable notifications immediately
-    autoEnableNotifications();
+    // Auto-enable only if permission is default
+    if (Notification.permission === 'default') {
+      autoEnableNotifications();
+    }
   }, [studentId]);
 
   const autoEnableNotifications = async () => {
@@ -115,16 +118,19 @@ export default function StudentNotificationSettings({ studentId }) {
 
   const refreshPermissionStatus = async () => {
     if (!('Notification' in window)) return;
+    
+    // Force recheck by clearing any cached state
     const currentPerm = Notification.permission;
+    console.log('Refreshing permission, current:', currentPerm);
     setPushPermission(currentPerm);
     
     if (currentPerm === 'granted') {
       await registerServiceWorker();
       toast.success('Notifications enabled!');
     } else if (currentPerm === 'denied') {
-      toast.error('Notifications blocked in Chrome. Click lock icon → Notifications → Allow → Refresh.');
+      toast.error('Still blocked - Edge cached it. Try: Settings → Privacy → Notifications → Remove this site, then refresh.');
     } else {
-      toast.info('Click Enable button to request permission');
+      toast.info('Permission pending - click Enable to proceed');
     }
   };
 
@@ -145,19 +151,20 @@ export default function StudentNotificationSettings({ studentId }) {
       }
 
       if (currentPermission === 'denied') {
-        toast.error('Blocked: Click Chrome lock icon → Notifications → Allow, then click Refresh');
+        toast.error('Still blocked. Go to Edge Settings → Privacy → Notifications → find this site → Remove it. Then refresh and try again.');
         return;
       }
 
       // Permission is 'default' - request permission
       const permission = await Notification.requestPermission();
+      console.log('Permission after request:', permission);
       setPushPermission(permission);
 
       if (permission === 'granted') {
         await registerServiceWorker();
         toast.success('Notifications enabled!');
-      } else {
-        toast.error('Permission denied. Try again or enable in Chrome settings.');
+      } else if (permission === 'denied') {
+        toast.error('You blocked it. Remove site from Settings → Privacy → Notifications.');
       }
     } catch (err) {
       console.error('Permission request error:', err);
