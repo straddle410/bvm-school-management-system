@@ -71,54 +71,59 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
   const handleSend = async () => {
     if (!body.trim() || !sender) return;
     setSending(true);
-    const academicYear = sender?.academic_year || '2024-25';
-    const threadId = replyTo?.thread_id || replyTo?.id || `thread_${Date.now()}`;
+    try {
+      const academicYear = sender.academic_year || '2024-25';
+      const threadId = replyTo?.thread_id || replyTo?.id || `thread_${Date.now()}`;
 
-    if (recipientType === 'individual') {
-      if (!selectedRecipient) return setSending(false);
-      await base44.entities.Message.create({
-        sender_id: sender.id,
-        sender_name: sender.name,
-        sender_role: sender.role,
-        recipient_type: 'individual',
-        recipient_id: selectedRecipient.id,
-        recipient_name: selectedRecipient.name,
-        subject: subject.trim(),
-        body: body.trim(),
-        is_read: false,
-        thread_id: threadId,
-        parent_message_id: replyTo?.id || null,
-        academic_year: academicYear,
-        subject_area: subjectArea || null,
-      });
-    } else {
-      // Send to all students in class/section
-      const filter = { class_name: targetClass, status: 'Published' };
-      if (recipientType === 'section') filter.section = targetSection;
-      const students = await base44.entities.Student.filter(filter).catch(() => []);
-      if (students.length === 0) return setSending(false);
-      await base44.entities.Message.bulkCreate(
-        students.map(s => ({
+      if (recipientType === 'individual') {
+        if (!selectedRecipient) { setSending(false); return; }
+        await base44.entities.Message.create({
           sender_id: sender.id,
           sender_name: sender.name,
           sender_role: sender.role,
-          recipient_type: recipientType,
-          recipient_id: s.student_id,
-          recipient_name: s.name,
-          recipient_class: targetClass,
-          recipient_section: s.section,
+          recipient_type: 'individual',
+          recipient_id: selectedRecipient.id,
+          recipient_name: selectedRecipient.name,
           subject: subject.trim(),
           body: body.trim(),
           is_read: false,
           thread_id: threadId,
+          parent_message_id: replyTo?.id || null,
           academic_year: academicYear,
           subject_area: subjectArea || null,
-        }))
-      );
+        });
+      } else {
+        if (!targetClass) { setSending(false); return; }
+        const filter = { class_name: targetClass, status: 'Published' };
+        if (recipientType === 'section') filter.section = targetSection;
+        const students = await base44.entities.Student.filter(filter).catch(() => []);
+        if (students.length === 0) { setSending(false); return; }
+        await base44.entities.Message.bulkCreate(
+          students.map(s => ({
+            sender_id: sender.id,
+            sender_name: sender.name,
+            sender_role: sender.role,
+            recipient_type: recipientType,
+            recipient_id: s.student_id,
+            recipient_name: s.name,
+            recipient_class: targetClass,
+            recipient_section: s.section,
+            subject: subject.trim(),
+            body: body.trim(),
+            is_read: false,
+            thread_id: threadId,
+            academic_year: academicYear,
+            subject_area: subjectArea || null,
+          }))
+        );
+      }
+      onSent?.();
+      onClose();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      setSending(false);
     }
-    setSending(false);
-    onSent?.();
-    onClose();
   };
 
   return (
