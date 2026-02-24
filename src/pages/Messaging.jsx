@@ -78,15 +78,15 @@ export default function Messaging() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-[#1a237e] text-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
-        <h1 className="font-bold text-xl">Messages</h1>
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
+      <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md gap-2">
+        <h1 className="font-bold text-lg sm:text-xl truncate">Messages</h1>
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <button onClick={() => queryClient.invalidateQueries({ queryKey: ['messages-inbox'] })}>
             <RefreshCw className="h-5 w-5 text-blue-200 hover:text-white" />
           </button>
-          <Button onClick={() => setShowCompose(true)} size="sm" className="bg-white text-[#1a237e] hover:bg-blue-50 gap-1">
-            <PenSquare className="h-4 w-4" /> Compose
+          <Button onClick={() => setShowCompose(true)} size="sm" className="bg-white text-[#1a237e] hover:bg-blue-50 gap-1 text-xs sm:text-sm">
+            <PenSquare className="h-4 w-4" /> <span className="hidden sm:inline">Compose</span>
           </Button>
         </div>
       </div>
