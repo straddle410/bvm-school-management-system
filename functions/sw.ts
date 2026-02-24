@@ -1,5 +1,5 @@
-// Service Worker for Push Notifications
-
+Deno.serve(async (req) => {
+  const swCode = `
 self.addEventListener('push', (event) => {
   let notificationData = {
     title: 'New Notification',
@@ -43,4 +43,13 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
+});
+`;
+
+  return new Response(swCode, {
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    },
+  });
 });
