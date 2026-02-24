@@ -64,10 +64,9 @@ export default function StaffLogin() {
           });
 
           const responseData = response.data || response;
-          
-          if (responseData.otp) {
+
+          if (responseData.success) {
             setStaffForOtp(staff);
-            setSentOtp(responseData.otp);
             setStep('otp');
             setOtpTimer(600); // 10 minutes
             setOtp('');
