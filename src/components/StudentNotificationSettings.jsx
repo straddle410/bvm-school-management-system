@@ -168,7 +168,7 @@ export default function StudentNotificationSettings({ studentId }) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        const reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+        const reg = await navigator.serviceWorker.register('/functions/sw');
         console.log('Service Worker registered');
         
         let subscription = await reg.pushManager.getSubscription();
