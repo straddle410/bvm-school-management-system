@@ -55,7 +55,7 @@ export default function Layout({ children, currentPageName }) {
     }
     try {
       const [currentUser, profiles] = await Promise.all([
-        base44.auth.me(),
+        base44.auth.me().catch(() => null),
         base44.entities.SchoolProfile.list()
       ]);
       setUser(currentUser);
