@@ -44,6 +44,14 @@ export default function Profile() {
         display_name: session.full_name || '',
         phone: session.phone || ''
       });
+      // Load staff account data for OTP setting
+      if (session.role === 'Admin' || session.role === 'admin') {
+        const allStaff = await base44.entities.StaffAccount.filter({ username: session.username });
+        if (allStaff.length > 0) {
+          setStaffData(allStaff[0]);
+          setEnableOtp(allStaff[0].enable_otp_login !== false);
+        }
+      }
       return;
     }
     const currentUser = await base44.auth.me();
