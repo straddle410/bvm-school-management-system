@@ -53,10 +53,11 @@ export default function NotificationSettingsSection() {
     try {
       const hasPermission = await notificationService.requestPermission();
       if (hasPermission) {
-        // Register service worker
+        // Register service worker (if available)
         await notificationService.registerServiceWorker();
         setPreferences({ ...preferences, browser_push_enabled: true });
         toast.success('Push notifications enabled');
+        await handleSave();
       } else {
         toast.error('Permission denied for notifications');
       }
