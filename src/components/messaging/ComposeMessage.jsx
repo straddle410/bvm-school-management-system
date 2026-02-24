@@ -150,7 +150,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
             ) : (
               <div className="relative">
                 <Input
-                  placeholder="Search student or teacher..."
+                  placeholder={isStudent ? "Search teacher or admin..." : "Search student or teacher..."}
                   value={searchQuery}
                   onChange={e => { setSearchQuery(e.target.value); setSelectedRecipient(null); }}
                 />
