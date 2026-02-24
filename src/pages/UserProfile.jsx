@@ -158,7 +158,7 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-[#f0f4ff] max-w-md mx-auto pb-10">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-32 relative">
+      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-40 relative">
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => window.history.back()} className="text-white/80 hover:text-white">
             <ArrowLeft className="h-6 w-6" />
@@ -189,9 +189,9 @@ export default function UserProfile() {
         </div>
       </div>
 
-      <div className="px-4 -mt-12 space-y-4">
+      <div className="px-4 space-y-4">
         {/* Name Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 pt-12 text-center">
+        <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
           <h2 className="text-xl font-bold text-gray-900">{record?.name || record?.full_name || session?.full_name}</h2>
           {sessionType === 'staff' && (
             <p className="text-sm text-indigo-600 font-semibold mt-1">{record?.role || session?.role}</p>
