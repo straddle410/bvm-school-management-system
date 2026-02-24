@@ -26,6 +26,9 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
     base44.entities.Subject.list().then(s => setSubjects(s)).catch(() => {});
   }, []);
 
+  // If sender is a student, only search teachers/admin; otherwise search all
+  const isStudent = sender?.role === 'student';
+
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2 || recipientType !== 'individual') {
       setSearchResults([]);
@@ -33,23 +36,33 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
     }
     const search = async () => {
       const q = searchQuery.toLowerCase();
-      const [students, teachers] = await Promise.all([
-        base44.entities.Student.list().catch(() => []),
-        base44.entities.Teacher.list().catch(() => []),
-      ]);
-      const studentResults = students
-        .filter(s => s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q))
-        .slice(0, 5)
-        .map(s => ({ id: s.student_id, name: s.name, role: 'student', sub: `Class ${s.class_name}-${s.section}` }));
-      const teacherResults = teachers
-        .filter(t => t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q))
-        .slice(0, 5)
-        .map(t => ({ id: t.email, name: t.name, role: 'teacher', sub: t.role }));
-      setSearchResults([...studentResults, ...teacherResults]);
+      if (isStudent) {
+        // Students can only message teachers/admin
+        const teachers = await base44.entities.Teacher.list().catch(() => []);
+        const teacherResults = teachers
+          .filter(t => t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q))
+          .slice(0, 8)
+          .map(t => ({ id: t.email, name: t.name, role: 'teacher', sub: t.role || 'Teacher' }));
+        setSearchResults(teacherResults);
+      } else {
+        const [students, teachers] = await Promise.all([
+          base44.entities.Student.list().catch(() => []),
+          base44.entities.Teacher.list().catch(() => []),
+        ]);
+        const studentResults = students
+          .filter(s => s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q))
+          .slice(0, 5)
+          .map(s => ({ id: s.student_id, name: s.name, role: 'student', sub: `Class ${s.class_name}-${s.section}` }));
+        const teacherResults = teachers
+          .filter(t => t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q))
+          .slice(0, 5)
+          .map(t => ({ id: t.email, name: t.name, role: 'teacher', sub: t.role }));
+        setSearchResults([...studentResults, ...teacherResults]);
+      }
     };
     const t = setTimeout(search, 300);
     return () => clearTimeout(t);
-  }, [searchQuery, recipientType]);
+  }, [searchQuery, recipientType, isStudent]);
 
   const handleSend = async () => {
     if (!body.trim()) return;
