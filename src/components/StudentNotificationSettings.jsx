@@ -113,10 +113,9 @@ export default function StudentNotificationSettings({ studentId }) {
     }
   };
 
-  const refreshPermissionStatus = () => {
+  const refreshPermissionStatus = async () => {
     if (Notification.permission === 'granted') {
-      registerServiceWorker();
-      setPushPermission('granted');
+      await registerServiceWorker();
       toast.success('Notifications enabled!');
     } else {
       setPushPermission(Notification.permission);
