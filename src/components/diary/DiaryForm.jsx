@@ -20,13 +20,15 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
 export default function DiaryForm({ entry, onSubmit, onCancel, academicYear }) {
+  const todayDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+
   const [formData, setFormData] = useState(entry || {
     title: '',
     description: '',
     class_name: '',
     section: 'A',
     subject: '',
-    diary_date: '',
+    diary_date: todayDate,
     attachment_urls: [],
     academic_year: academicYear,
     status: 'Draft'
