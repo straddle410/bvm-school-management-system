@@ -219,13 +219,13 @@ export default function Attendance() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Attendance">
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
       <PageHeader 
         title="Attendance"
         subtitle="Mark and manage daily attendance"
       />
 
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
        {/* Filters */}
        <Card className="border-0 shadow-sm">
          <CardContent className="p-4 space-y-3">
