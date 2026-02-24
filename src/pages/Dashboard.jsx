@@ -317,6 +317,34 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Latest Diary - for students */}
+        {user?.class_name && latestDiary && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-gray-800">Latest Diary</h2>
+              <Link to={createPageUrl('Diary')} className="flex items-center text-xs text-blue-600 font-medium">
+                View All <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <Link to={createPageUrl('Diary')}>
+              <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-[#c2185b]">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="text-sm font-semibold text-gray-900">{latestDiary.title}</p>
+                  {unreadDiaryCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] rounded-full px-2 py-0.5 font-bold flex-shrink-0">
+                      {unreadDiaryCount} new
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mb-2">
+                  {latestDiary.subject} &bull; {latestDiary.diary_date ? format(new Date(latestDiary.diary_date + 'T00:00:00'), 'MMM d, yyyy') : ''}
+                </p>
+                <p className="text-xs text-gray-600 line-clamp-2">{latestDiary.description}</p>
+              </div>
+            </Link>
+          </div>
+        )}
+
         {/* Announcements */}
         <div>
           <div className="flex items-center justify-between mb-3">
