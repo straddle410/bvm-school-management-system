@@ -54,7 +54,7 @@ export default function Messaging() {
 
   if (selectedThread) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50">
+      <div className="flex flex-col h-screen bg-gray-50 w-full overflow-x-hidden">
         <MessageThread
           messages={selectedThread}
           currentUserId={user?.email}
