@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText, Book } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy, User, ChevronRight, Lock, Image, Calendar, Brain, FileText, Book, MessageSquare } from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

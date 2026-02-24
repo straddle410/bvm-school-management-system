@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { GraduationCap, Bell, Brain, Trophy, BookOpen } from 'lucide-react';
+import { GraduationCap, Bell, Brain, Trophy, BookOpen, MessageSquare } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', icon: GraduationCap, page: 'StudentDashboard' },
   { label: 'Homework', icon: BookOpen, page: 'StudentHomework' },
   { label: 'Quiz', icon: Brain, page: 'Quiz' },
   { label: 'Results', icon: Trophy, page: 'Results' },
-  { label: 'Notices', icon: Bell, page: 'Notices', badge: true },
+  { label: 'Messages', icon: MessageSquare, page: 'StudentMessaging', badge: true },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
