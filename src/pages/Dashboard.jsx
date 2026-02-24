@@ -34,6 +34,7 @@ const quickActions = [
   { label: 'Homework',            icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',  page: 'HomeworkManage',          roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Post Notice',         icon: Megaphone,     gradient: 'from-yellow-400 to-orange-500', page: 'Notices',                 roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                   roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Messages',            icon: Mail,          gradient: 'from-green-400 to-emerald-500', page: 'Messaging',               roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',     roleRequired: ['Admin', 'admin', 'Principal', 'principal'] },
 ];
 
