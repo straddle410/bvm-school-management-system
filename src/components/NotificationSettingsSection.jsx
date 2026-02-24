@@ -11,13 +11,7 @@ import { toast } from "sonner";
 export default function NotificationSettingsSection() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [preferences, setPreferences] = useState({
-    notifications_enabled: true,
-    message_notifications: true,
-    sound_enabled: true,
-    sound_volume: 0.7,
-    browser_push_enabled: false,
-  });
+  const [preferences, setPreferences] = useState(null);
 
   useEffect(() => {
     loadPreferences();
@@ -30,10 +24,26 @@ export default function NotificationSettingsSection() {
         console.log('Setting preferences from database:', prefs);
         setPreferences(prefs);
       } else {
-        console.log('No preferences found, using defaults');
+        // Create defaults only if nothing exists in DB
+        console.log('No preferences found, creating defaults');
+        const defaults = {
+          notifications_enabled: true,
+          message_notifications: true,
+          sound_enabled: true,
+          sound_volume: 0.7,
+          browser_push_enabled: false,
+        };
+        setPreferences(defaults);
       }
     } catch (error) {
       console.error('Failed to load preferences:', error);
+      setPreferences({
+        notifications_enabled: true,
+        message_notifications: true,
+        sound_enabled: true,
+        sound_volume: 0.7,
+        browser_push_enabled: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -83,7 +93,7 @@ export default function NotificationSettingsSection() {
     notificationService.playSound(preferences.sound_volume);
   };
 
-  if (loading) {
+  if (loading || !preferences) {
     return (
       <Card className="border-0 shadow-sm">
         <CardContent className="flex items-center justify-center py-12">
