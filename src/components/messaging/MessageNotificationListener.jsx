@@ -43,7 +43,7 @@ export default function MessageNotificationListener() {
     // Get user's notification preferences
     const prefs = await notificationService.getPreferences();
 
-    if (!prefs || !prefs.notifications_enabled || !prefs.message_notifications) {
+    if (!prefs || !prefs.message_notifications) {
       return;
     }
 

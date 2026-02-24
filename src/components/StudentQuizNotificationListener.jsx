@@ -14,8 +14,8 @@ export default function StudentQuizNotificationListener({ studentSession }) {
         });
         const prefRecord = prefs[0];
 
-        if (!prefRecord || !prefRecord.notifications_enabled || !prefRecord.quiz_notifications) {
-          return; // Notifications disabled
+        if (!prefRecord || !prefRecord.quiz_notifications) {
+          return; // Quiz notifications disabled
         }
 
         // Subscribe to quiz updates

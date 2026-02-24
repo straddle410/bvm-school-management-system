@@ -27,8 +27,7 @@ export default function StudentNoticeNotificationListener({ studentSession }) {
           // Only handle notifications for this student
           if (event.data?.recipient_student_id !== studentSession.student_id) return;
 
-          // Check if notifications are enabled
-          if (prefs?.notifications_enabled === false) return;
+
 
           console.log('Notice notification received:', event.data.title);
 
