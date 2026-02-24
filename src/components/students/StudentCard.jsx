@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Eye, Pencil, Archive, MoreVertical, RotateCcw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { createPageUrl } from '@/utils';
 
 const STATUS_COLORS = {
   Pending: 'bg-yellow-100 text-yellow-700',
@@ -13,12 +15,17 @@ const STATUS_COLORS = {
 };
 
 export default function StudentCard({ student, onView, onEdit, onArchive, isAdmin }) {
+  const navigate = useNavigate();
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const isArchived = student.status === 'Passed Out' || student.status === 'Transferred';
 
+  const handleViewProfile = () => {
+    navigate(createPageUrl('StudentProfile') + `?id=${student.id}`);
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
-      <button onClick={onView} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+    <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow cursor-pointer group">
+      <button onClick={handleViewProfile} className="flex items-center gap-3 flex-1 min-w-0 text-left group-hover:opacity-80">
         <Avatar className="h-11 w-11 flex-shrink-0">
           <AvatarImage src={student.photo_url} />
           <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold">{initials}</AvatarFallback>
