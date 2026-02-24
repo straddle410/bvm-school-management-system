@@ -174,9 +174,9 @@ export default function Notices() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="w-full px-3 sm:px-4 py-4 space-y-4">
+         {/* Filter */}
+         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {['all', 'General', 'Exam', 'Holiday', 'PTM', 'Fee', 'Urgent', 'Event'].map(type => (
             <button
               key={type}
