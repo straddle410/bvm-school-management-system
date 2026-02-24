@@ -94,9 +94,24 @@ export default function StudentNotificationSettings({ studentId }) {
         });
         console.log('Service Worker registered successfully');
         
-        // Store preference immediately
-        if (prefs && prefs.id) {
-          await handleUpdatePreference({ browser_push_enabled: true });
+        // Get push subscription
+        let subscription = await reg.pushManager.getSubscription();
+        
+        // If no subscription exists, create one
+        if (!subscription) {
+          const vapidPublicKey = 'BJ0I5_CkKt4tB_5gVLWH3oXz1_-35i-jqr0H5wJXnJhCYzCXAzWBDBqk1wYKCn_FhhZHvUKMxNVccQ0V6vJoJ2A';
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: vapidPublicKey,
+          });
+        }
+        
+        if (subscription) {
+          const subscriptionJson = subscription.toJSON();
+          await handleUpdatePreference({ 
+            browser_push_enabled: true,
+            push_subscription: JSON.stringify(subscriptionJson)
+          });
         }
       } catch (err) {
         console.warn('Service Worker registration fallback:', err);
