@@ -47,21 +47,25 @@ export const notificationService = {
   async getPreferences() {
     try {
       const user = await base44.auth.me();
-      if (!user) return null;
+      if (!user) {
+        console.error('No user authenticated');
+        return null;
+      }
 
-      // Fetch with explicit force-refresh
+      console.log('Getting preferences for user:', user.email);
       const prefs = await base44.entities.NotificationPreference.filter({
         user_email: user.email,
       });
 
       if (prefs && prefs.length > 0) {
-        console.log('Loaded preferences:', prefs[0]);
+        console.log('Loaded preferences from DB:', prefs[0]);
         return prefs[0];
       }
+      console.log('No preferences found in DB for:', user.email);
       return null;
     } catch (error) {
-      console.error('Failed to fetch preferences:', error);
-      return null;
+      console.error('Failed to fetch preferences:', error.message, error);
+      throw error;
     }
   },
 
