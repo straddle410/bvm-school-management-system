@@ -146,7 +146,7 @@ export default function Dashboard() {
   const initials = user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?';
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden relative">
 
       {/* Header */}
       <header className="sticky top-0 z-50">
