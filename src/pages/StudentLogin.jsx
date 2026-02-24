@@ -20,7 +20,7 @@ export default function StudentLogin() {
       const allStudents = await base44.entities.Student.list();
       const student = allStudents.find(s =>
         (s.username && s.username.toLowerCase() === searchTerm.toLowerCase()) ||
-        (s.student_id && s.student_id === searchTerm)
+        (s.student_id && s.student_id.toLowerCase() === searchTerm.toLowerCase())
       );
       if (!student) { setError('Invalid username or password'); setLoading(false); return; }
       const storedPassword = student.password || 'BVM123';
