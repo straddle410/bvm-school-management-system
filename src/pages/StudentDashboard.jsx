@@ -74,12 +74,9 @@ export default function StudentDashboard() {
   const makeNotifQuery = (type, key) => useQuery({
     queryKey: [key, student?.student_id],
     queryFn: async () => {
-      if (!student?.student_id) return 0;
-      const n = await base44.entities.Notification.filter({ recipient_student_id: student.student_id, type, is_read: false }).catch(() => []);
-      return n.length;
+      return 0; // Skip notification queries for student sessions
     },
-    enabled: !!student?.student_id,
-    refetchInterval: 30000,
+    enabled: false,
   });
 
   const { data: unreadDiary = 0 }    = makeNotifQuery('diary_published',  'unread-diary-count');
