@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Save, Image as ImageIcon, Mail, Phone, Shield, Calendar, Lock
+  Save, Image as ImageIcon, Mail, Phone, Shield, Calendar, Lock, Bell, BellOff
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { toast } from "sonner";
 
