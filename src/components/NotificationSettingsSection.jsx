@@ -117,6 +117,20 @@ export default function NotificationSettingsSection() {
     notificationService.playSound(preferences.sound_volume);
   };
 
+  if (authError) {
+    return (
+      <Card className="border-0 shadow-sm border-l-4 border-red-500">
+        <CardContent className="flex items-center gap-3 py-6">
+          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+          <div>
+            <p className="font-medium text-red-900">Not Authenticated</p>
+            <p className="text-sm text-red-700">Please log in to manage notification settings.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (loading || !preferences) {
     return (
       <Card className="border-0 shadow-sm">
