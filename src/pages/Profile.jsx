@@ -44,14 +44,10 @@ export default function Profile() {
         display_name: session.full_name || '',
         phone: session.phone || ''
       });
-      // Load staff account data for OTP setting
-      if (session.role === 'Admin' || session.role === 'admin') {
-        const allStaff = await base44.entities.StaffAccount.list();
-        const admin = allStaff.find(s => s.username === session.username);
-        if (admin) {
-          setStaffData(admin);
-          setEnableOtp(admin.enable_otp_login !== false);
-        }
+      // For staff session, use session data directly for OTP
+      if (session.role?.toLowerCase() === 'admin') {
+        setStaffData(session);
+        setEnableOtp(true);
       }
       return;
     }
