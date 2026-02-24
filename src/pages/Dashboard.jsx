@@ -160,11 +160,12 @@ export default function Dashboard() {
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-5 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              {schoolProfile?.logo_url
-                ? <img src={schoolProfile.logo_url} alt="Logo" className="h-7 w-7 object-contain rounded" />
-                : <GraduationCap className="h-6 w-6 text-blue-200" />
-              }
-              <span className="font-bold text-white text-base tracking-wide">
+              <img
+                src={schoolProfile?.logo_url || 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/33b938ffc_lOGO.jpeg'}
+                alt="Logo"
+                className="h-10 w-10 object-contain rounded-full bg-white p-0.5 flex-shrink-0"
+              />
+              <span className="font-extrabold text-white text-lg tracking-wide leading-tight">
                 {schoolProfile?.school_name || 'BVM School of Excellence'}
               </span>
             </div>
