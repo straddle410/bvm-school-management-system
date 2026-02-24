@@ -168,16 +168,10 @@ export default function StudentNotificationSettings({ studentId }) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        // Register service worker for background notifications
-        const reg = await navigator.serviceWorker.register('/sw.js', { 
-          scope: '/' 
-        });
-        console.log('Service Worker registered successfully');
+        const reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+        console.log('Service Worker registered');
         
-        // Get push subscription
         let subscription = await reg.pushManager.getSubscription();
-        
-        // If no subscription exists, create one
         if (!subscription) {
           const vapidPublicKey = 'BJ0I5_CkKt4tB_5gVLWH3oXz1_-35i-jqr0H5wJXnJhCYzCXAzWBDBqk1wYKCn_FhhZHvUKMxNVccQ0V6vJoJ2A';
           subscription = await reg.pushManager.subscribe({
@@ -187,24 +181,11 @@ export default function StudentNotificationSettings({ studentId }) {
         }
         
         if (subscription) {
-          const subscriptionJson = subscription.toJSON();
-          console.log('Subscription created:', subscriptionJson);
-          await handleUpdatePreference({ 
-            browser_push_enabled: true,
-            push_subscription: JSON.stringify(subscriptionJson)
-          });
-          // Ensure permission state updates
-          setTimeout(() => {
-            checkPushPermission();
-          }, 500);
+          await handleUpdatePreference({ browser_push_enabled: true });
         }
       } catch (err) {
-        console.warn('Service Worker registration fallback:', err);
-        // Still allow notifications to work in foreground
+        console.warn('Service Worker failed:', err);
         await handleUpdatePreference({ browser_push_enabled: true });
-        setTimeout(() => {
-          checkPushPermission();
-        }, 500);
       }
     }
   };
