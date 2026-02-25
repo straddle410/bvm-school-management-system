@@ -84,7 +84,8 @@ export default function Dashboard() {
     queryKey: ['banner-slides'],
     queryFn: async () => {
       try { return await base44.entities.BannerSlide.filter({ is_active: true }, 'sort_order'); } catch { return []; }
-    }
+    },
+    staleTime: 10 * 60 * 1000,
   });
 
   const banners = bannerSlides.length > 0
