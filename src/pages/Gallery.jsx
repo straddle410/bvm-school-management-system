@@ -452,7 +452,7 @@ export default function Gallery() {
           {albums.length > 1 && (
             <div className="grid grid-cols-2 gap-3">
               {albums.slice(1).map(album => {
-                const thumbs = allAlbumPhotos.filter(p => p.album_id === album.id).slice(0, 3);
+                const thumbs = allAlbumPhotos.filter(p => p.album_id === album.id && p.photo_url?.trim()).slice(0, 3);
                 const coverUrl = album.cover_photo_url?.trim() || thumbs[0]?.photo_url;
                 return (
                   <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
