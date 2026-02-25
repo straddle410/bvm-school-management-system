@@ -60,13 +60,15 @@ export default function UploadDialog({
           throw new Error('Upload service did not return a valid URL');
         }
 
+        console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${file_url}`);
+
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
 
-        // Step 3: Validate URL (lightweight - only reject empty/legacy URLs)
+        // Step 3: Clean and accept URL (frontend GalleryImage handles broken links)
         const validUrl = cleanPhotoUrl(file_url);
         if (!validUrl) {
-          throw new Error(`Invalid photo URL: ${file_url}`);
+          throw new Error(`Upload returned empty URL`);
         }
 
         // Step 4: Save to database

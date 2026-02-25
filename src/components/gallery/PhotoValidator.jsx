@@ -1,6 +1,6 @@
 /**
  * Validates photo URLs - lightweight check after upload completes
- * Only rejects empty/null and legacy base44.app URLs
+ * Accepts any URL from trusted upload service - frontend handles broken images
  */
 export function isValidPhotoUrl(url) {
   if (!url || typeof url !== 'string') return false;
@@ -8,11 +8,7 @@ export function isValidPhotoUrl(url) {
   const trimmed = url.trim();
   if (trimmed.length === 0) return false;
   
-  // Reject ONLY legacy base44.app URLs - accept everything else from trusted upload service
-  if (trimmed.includes('base44.app/api/apps')) {
-    return false;
-  }
-  
+  // Accept any URL from upload service - GalleryImage component handles broken links gracefully
   return true;
 }
 
