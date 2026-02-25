@@ -15,15 +15,21 @@ Deno.serve(async (req) => {
              return Response.json({ error: 'Invalid user email. Upload not allowed.' }, { status: 403 });
         }
 
+        // Validate URL before saving
+        if (!reqData.photo_url || reqData.photo_url.length < 10) {
+            return Response.json({ error: 'Invalid photo URL provided' }, { status: 400 });
+        }
+
         // Use service role to bypass RLS and create the photo record
         const record = await base44.asServiceRole.entities.GalleryPhoto.create({
             album_id: reqData.album_id,
-            photo_url: reqData.photo_url,
+            photo_url: reqData.photo_url.trim(),
             caption: reqData.caption,
             uploaded_by: reqData.uploaded_by,
             status: reqData.status
         });
 
+        console.log('Created photo record:', record);
         return Response.json({ success: true, record });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
