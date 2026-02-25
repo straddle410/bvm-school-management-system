@@ -115,23 +115,28 @@ export default function Layout({ children, currentPageName }) {
       <MessageNotificationListener />
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
-      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md w-full">
-        <div className="flex items-center gap-2">
-          <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
-          <span className="font-bold text-base tracking-tight leading-tight">
-            {schoolProfile?.school_name || 'BVM School of Excellence'}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <AcademicYearSelector />
-          {user && (
-            <button
-              onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
-              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
-            >
-              <LogOut className="h-3.5 w-3.5" /> Logout
-            </button>
-          )}
+      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 py-3 sticky top-0 z-50 shadow-md w-full">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
+            <div>
+              <span className="font-bold text-base tracking-tight leading-tight block">
+                {schoolProfile?.school_name || 'BVM School of Excellence'}
+              </span>
+              {user && <span className="text-xs text-blue-100">{user.full_name || user.name || user.email}</span>}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <AcademicYearSelector />
+            {user && (
+              <button
+                onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
+                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2 py-1.5 rounded-full transition-all"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
