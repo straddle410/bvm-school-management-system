@@ -23,13 +23,19 @@ export default function StudentMessageNotificationListener({ studentSession }) {
           if (event.type !== 'create') return;
 
           const msg = event.data;
-          
-          // Check if message is for this student's class
-          if (msg.recipient_type === 'class' && msg.recipient_class === studentSession.class_name) {
+
+          // Direct message to this student
+          if (msg.recipient_type === 'individual' && msg.recipient_id === studentSession.student_id) {
             showNotification(msg, prefRecord);
-          } else if (msg.recipient_type === 'section' && 
-                     msg.recipient_class === studentSession.class_name &&
-                     msg.recipient_section === studentSession.section) {
+          }
+          // Class-wide broadcast
+          else if (msg.recipient_type === 'class' && msg.recipient_class === studentSession.class_name) {
+            showNotification(msg, prefRecord);
+          }
+          // Section-specific broadcast
+          else if (msg.recipient_type === 'section' &&
+                   msg.recipient_class === studentSession.class_name &&
+                   msg.recipient_section === studentSession.section) {
             showNotification(msg, prefRecord);
           }
         });
