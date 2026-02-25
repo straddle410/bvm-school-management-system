@@ -24,7 +24,6 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       className={className}
       onClick={onClick}
       onError={() => setHasError(true)}
-      crossOrigin="anonymous"
     />
   );
 }
