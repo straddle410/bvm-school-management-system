@@ -59,7 +59,6 @@ import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
 import DiaryManagement from './pages/DiaryManagement';
 import ExamManagement from './pages/ExamManagement';
-import Gallery from './pages/Gallery';
 import HallTicketManagement from './pages/HallTicketManagement';
 import HolidayCalendar from './pages/HolidayCalendar';
 import HomeworkManage from './pages/HomeworkManage';
@@ -105,7 +104,6 @@ export const PAGES = {
     "Diary": Diary,
     "DiaryManagement": DiaryManagement,
     "ExamManagement": ExamManagement,
-    "Gallery": Gallery,
     "HallTicketManagement": HallTicketManagement,
     "HolidayCalendar": HolidayCalendar,
     "HomeworkManage": HomeworkManage,
