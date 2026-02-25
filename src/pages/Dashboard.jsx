@@ -185,7 +185,7 @@ export default function Dashboard() {
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-3 sm:px-4 pt-4 pb-5 shadow-lg">
           {user && (
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-semibold text-sm">Welcome back</h3>
+              <h3 className="text-white font-semibold text-lg">Welcome back</h3>
               <button
                 onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
                 className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
