@@ -41,13 +41,11 @@ export default function UserProfile() {
     const staff = localStorage.getItem('staff_session');
     const student = localStorage.getItem('student_session');
     if (staff) {
-      const s = JSON.parse(staff);
-      setSession(s);
-      setSessionType('staff');
+      try { const s = JSON.parse(staff); setSession(s); setSessionType('staff'); } catch { setSessionType('none'); }
     } else if (student) {
-      const s = JSON.parse(student);
-      setSession(s);
-      setSessionType('student');
+      try { const s = JSON.parse(student); setSession(s); setSessionType('student'); } catch { setSessionType('none'); }
+    } else {
+      setSessionType('none');
     }
   }, []);
 
