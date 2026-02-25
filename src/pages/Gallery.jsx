@@ -47,7 +47,14 @@ export default function Gallery() {
 
   const { data: albumPhotos = [] } = useQuery({
     queryKey: ['albumPhotos', selectedAlbum?.id],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100),
+    queryFn: async () => {
+      try {
+        return await base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100);
+      } catch (e) {
+        console.log('Error fetching photos:', e);
+        return [];
+      }
+    },
     enabled: !!selectedAlbum,
     staleTime: 5 * 60 * 1000,
   });
