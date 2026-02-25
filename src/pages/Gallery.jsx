@@ -240,7 +240,8 @@ export default function Gallery() {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen pb-6">
+    <div className="bg-[#f8f9fa] min-h-screen pb-6">
+      {/* Header */}
       <div className="bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <h2 className="font-bold text-gray-900 text-lg">Gallery</h2>
         {canCreateAlbum && (
@@ -250,30 +251,53 @@ export default function Gallery() {
         )}
       </div>
 
-      <div className="p-4 grid grid-cols-2 gap-3">
-        {albums.map(album => (
-          <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <div className="aspect-video bg-gray-200 relative">
-                {album.cover_photo_url
-                  ? <img src={album.cover_photo_url} alt={album.name} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center"><Image className="h-8 w-8 text-gray-300" /></div>
+      {albums.length === 0 ? (
+        <div className="py-24 flex flex-col items-center text-gray-400 gap-3">
+          <Image className="h-16 w-16 opacity-20" />
+          <p className="text-base font-medium">No albums yet</p>
+          {canCreateAlbum && <p className="text-sm text-gray-400">Create your first album to get started</p>}
+        </div>
+      ) : (
+        <div className="p-3 space-y-3">
+          {/* Hero Album — first album large */}
+          {albums[0] && (
+            <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
+              <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
+                {albums[0].cover_photo_url
+                  ? <img src={albums[0].cover_photo_url} alt={albums[0].name} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
                 }
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
+                  {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
+                </div>
               </div>
-              <div className="p-3">
-                <p className="font-semibold text-gray-900 text-sm truncate">{album.name}</p>
-                {album.event_date && <p className="text-xs text-gray-400 mt-0.5">{album.event_date}</p>}
-              </div>
+            </button>
+          )}
+
+          {/* Remaining albums in 2-col grid */}
+          {albums.length > 1 && (
+            <div className="grid grid-cols-2 gap-3">
+              {albums.slice(1).map(album => (
+                <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
+                  <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
+                    {album.cover_photo_url
+                      ? <img src={album.cover_photo_url} alt={album.name} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
+                    }
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+                      <p className="text-white font-semibold text-xs leading-tight truncate">{album.name}</p>
+                      {album.event_date && <p className="text-white/60 text-[10px] mt-0.5">{album.event_date}</p>}
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
-          </button>
-        ))}
-        {albums.length === 0 && (
-          <div className="col-span-2 py-16 flex flex-col items-center text-gray-400 gap-2">
-            <Image className="h-12 w-12 opacity-30" />
-            <p className="text-sm">No albums yet</p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Create Album Dialog */}
       <Dialog open={showCreateAlbum} onOpenChange={setShowCreateAlbum}>
