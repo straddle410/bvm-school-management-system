@@ -142,7 +142,16 @@ export default function Dashboard() {
     .slice(0, 3);
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' || user?.role === 'Principal' || user?.role === 'principal';
-  const isStaff = user && (isAdmin || user?.role === 'Teacher' || user?.role === 'teacher' || user?.role === 'Staff');
+  const isStaff = user && (isAdmin || ['Teacher', 'teacher', 'Staff', 'staff', 'Librarian', 'Accountant'].includes(user?.role));
+  const userPermissions = user?.permissions || {};
+
+  // For non-admin staff, filter quick actions based on their permissions
+  const visibleQuickActions = quickActions.filter(item => {
+    if (!item.roleRequired || !item.roleRequired.includes(user?.role)) return false;
+    if (isAdmin) return true; // Admins see everything
+    if (!item.permKey) return true; // No permission key = always visible to staff
+    return !!userPermissions[item.permKey]; // Check specific permission
+  });
 
   const eventTypeColor = (type) => {
     const map = { Holiday: '#e53935', Exam: '#7e57c2', PTM: '#1e88e5', Event: '#43a047', Meeting: '#f9a825', General: '#26a69a', Urgent: '#d32f2f', Fee: '#f9a825', Notice: '#1e88e5' };
