@@ -48,25 +48,24 @@ export default function UploadDialog({
       try {
         // Step 1: Compress image
          const compressed = await compressImage(updated[i].file);
-         updated[i] = { ...updated[i], progress: 40 };
+         updated[i] = { ...updated[i], progress: 50 };
          setUploadFiles([...updated]);
 
-         // Step 2: Convert to base64 for transmission
-         const reader = new FileReader();
-         const fileBase64 = await new Promise((resolve, reject) => {
-           reader.onload = () => resolve(reader.result);
-           reader.onerror = reject;
-           reader.readAsDataURL(compressed);
-         });
+         // Step 2: Upload compressed image directly to Base44 public storage
+         const uploadRes = await base44.integrations.Core.UploadFile({ file: compressed });
+
+         if (!uploadRes?.file_url) {
+           throw new Error('Failed to get URL from storage');
+         }
 
          updated[i] = { ...updated[i], progress: 80 };
          setUploadFiles([...updated]);
 
-         // Step 3: Save to database via backend function with file data
+         // Step 3: Save to database via backend function
          try {
            const createRes = await base44.functions.invoke('uploadGalleryPhoto', {
              album_id: selectedAlbum.id,
-             file_data: fileBase64,
+             photo_url: uploadRes.file_url,
              caption: caption || '',
              uploaded_by: user?.email || 'unknown',
              status: needsApproval ? 'Pending' : 'Published'
