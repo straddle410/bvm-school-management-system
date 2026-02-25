@@ -436,7 +436,7 @@ export default function Gallery() {
                     <div className="absolute top-2 right-2 flex gap-1">
                       {heroPhotos.filter(p => p.photo_url?.trim()).map(p => (
                         <div key={p.id} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white/60 shadow">
-                          <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                          <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
                         </div>
                       ))}
                     </div>
