@@ -34,7 +34,14 @@ export default function Gallery() {
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums'],
-    queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' }),
+    queryFn: async () => {
+      try {
+        return await base44.entities.EventAlbum.filter({ status: 'Published' });
+      } catch (e) {
+        console.log('Error fetching albums:', e);
+        return [];
+      }
+    },
     staleTime: 10 * 60 * 1000,
   });
 
