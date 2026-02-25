@@ -20,7 +20,7 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
-  const finalSrc = src.trim();
+  const finalSrc = src?.trim() || '';
 
   return (
     <img
@@ -29,7 +29,6 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       loading={loading}
       className={className}
       onClick={onClick}
-      crossOrigin="anonymous"
       onError={(e) => {
         console.error('Image failed to load:', src);
         setHasError(true);
