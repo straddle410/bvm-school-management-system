@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, LogOut, Settings, User } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2 } from 'lucide-react';
 import { AcademicYearProvider } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
@@ -40,7 +39,6 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [studentSession, setStudentSession] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Check student session first
@@ -49,31 +47,31 @@ export default function Layout({ children, currentPageName }) {
         const raw = localStorage.getItem('student_session');
         if (raw) { ss = JSON.parse(raw); setStudentSession(ss); }
       } catch {}
-      // Check staff session too
-      try {
-        const raw = localStorage.getItem('staff_session');
-        if (raw && !ss) { ss = JSON.parse(raw); }
-      } catch {}
-      loadData(!!ss, ss);
+      loadData(!!ss);
   }, []);
 
-  const loadData = async (hasSession, session) => {
-    // If any session exists (student or staff), use it to set user
-    if (hasSession && session) {
-      setUser(session);
-    } else {
-      // Try auth.me() only if no local session
+  const loadData = async (hasStudentSession) => {
+    // If student session exists, don't call auth.me() - just load school profile
+    if (hasStudentSession) {
       try {
-        const currentUser = await base44.auth.me().catch(() => null);
-        if (currentUser) setUser(currentUser);
+        const profiles = await base44.entities.SchoolProfile.list();
+        if (profiles.length > 0) setSchoolProfile(profiles[0]);
+      } catch {}
+      return;
+    }
+    try {
+      const [currentUser, profiles] = await Promise.all([
+        base44.auth.me().catch(() => null),
+        base44.entities.SchoolProfile.list()
+      ]);
+      setUser(currentUser);
+      if (profiles.length > 0) setSchoolProfile(profiles[0]);
+    } catch (e) {
+      try {
+        const profiles = await base44.entities.SchoolProfile.list();
+        if (profiles.length > 0) setSchoolProfile(profiles[0]);
       } catch {}
     }
-    
-    // Always load school profile
-    try {
-      const profiles = await base44.entities.SchoolProfile.list();
-      if (profiles.length > 0) setSchoolProfile(profiles[0]);
-    } catch {}
   };
 
   if (NO_LAYOUT_PAGES.includes(currentPageName)) {
@@ -117,45 +115,14 @@ export default function Layout({ children, currentPageName }) {
       <MessageNotificationListener />
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
-      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 py-3 sticky top-0 z-50 shadow-md w-full">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
-            <div>
-              <span className="font-bold text-base tracking-tight leading-tight block">
-                {schoolProfile?.school_name || 'BVM School of Excellence'}
-              </span>
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="text-xs text-blue-100 hover:text-white cursor-pointer transition-colors">
-                      {user.full_name || user.name || user.email}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => navigate(createPageUrl('UserProfile'))}>
-                      <User className="h-4 w-4 mr-2" /> Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate(createPageUrl('Settings'))}>
-                      <Settings className="h-4 w-4 mr-2" /> Settings
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <AcademicYearSelector />
-            {user && (
-              <button
-                onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
-                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2 py-1.5 rounded-full transition-all"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md w-full">
+        <div className="flex items-center gap-2">
+          <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
+          <span className="font-bold text-base tracking-tight leading-tight">
+            {schoolProfile?.school_name || 'BVM School of Excellence'}
+          </span>
         </div>
+        <AcademicYearSelector />
       </header>
 
       {/* Main Content */}

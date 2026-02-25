@@ -180,6 +180,52 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden relative">
       <PushNotificationManager />
 
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full">
+        <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-3 sm:px-4 pt-4 pb-5 shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {schoolProfile?.logo_url && schoolProfile.logo_url.trim()
+                ? <LogoImageWithFallback src={schoolProfile.logo_url} alt="Logo" />
+                : <GraduationCap className="h-6 w-6 text-blue-200" />
+              }
+              <span className="font-bold text-white text-base tracking-wide">{schoolProfile?.school_name || 'School Portal'}</span>
+            </div>
+            {user && (
+              <button
+                onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
+                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Logout
+              </button>
+            )}
+          </div>
+
+          {user ? (
+            <Link to={createPageUrl('UserProfile')} className="flex items-center gap-3 group -mx-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-all">
+              <div className="h-12 w-12 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center flex-shrink-0 shadow group-hover:bg-white/30 transition-all">
+                <span className="text-white font-bold text-lg">{initials}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-white font-bold text-base leading-tight truncate">{user.full_name || user.name || user.email}</h2>
+                <p className="text-blue-200 text-xs capitalize">{user.role || 'Staff'}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-white/50 flex-shrink-0" />
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center">
+                <User className="h-6 w-6 text-white/70" />
+              </div>
+              <div>
+                <h2 className="text-white font-bold text-base">Welcome!</h2>
+                <p className="text-blue-200 text-xs">Explore school portal</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
       {/* Banner */}
       <div className="relative w-full overflow-hidden" style={{ height: 180 }}>
         {banners.map((img, i) => (
