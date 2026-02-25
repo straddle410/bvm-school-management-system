@@ -7,26 +7,11 @@ export function isValidPhotoUrl(url) {
 }
 
 /**
- * Fixes known broken URL patterns from the upload service.
- * The UploadFile service sometimes returns base44.app/api/apps/... URLs
- * which don't resolve. This maps them to the correct Supabase storage URLs.
+ * Returns the trimmed URL as-is. Both base44.app proxy URLs and 
+ * direct Supabase URLs are valid and serve files correctly.
  */
 export function cleanPhotoUrl(url) {
-  if (!url) return null;
-  
-  let trimmed = url.trim();
-  if (!trimmed) return null;
-
-  // Fix base44.app/api/apps URLs → Supabase storage URLs
-  const base44Pattern = /^https?:\/\/base44\.app\/api\/apps\/([^/]+)\/files\/public\/([^/]+)\/(.+)$/;
-  const match = trimmed.match(base44Pattern);
-  if (match) {
-    const appId = match[1];
-    const folder = match[2];
-    const filename = match[3];
-    trimmed = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/${folder}/${filename}`;
-    console.log('[PhotoValidator] Fixed URL:', url, '->', trimmed);
-  }
-  
-  return trimmed;
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }

@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, X, CheckCircle2, AlertCircle, Loader2, Plus } from 'lucide-react';
 import { compressImage } from './ImageCompressor';
-import { cleanPhotoUrl } from './PhotoValidator';
 import GalleryImage from '@/components/GalleryImage';
 
 export default function UploadDialog({
@@ -67,8 +66,8 @@ export default function UploadDialog({
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
 
-        // Clean/fix URL if needed (maps base44.app URLs to Supabase)
-        const validUrl = cleanPhotoUrl(file_url);
+        // Use the URL exactly as returned by UploadFile (both formats are valid)
+        const validUrl = file_url.trim();
         if (!validUrl) {
           throw new Error(`Upload returned empty URL.`);
         }

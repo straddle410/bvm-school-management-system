@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Upload, X, Check, ChevronLeft, Image, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
-import { cleanPhotoUrl } from '@/components/gallery/PhotoValidator';
 
 
 export default function Gallery() {
