@@ -229,8 +229,8 @@ export default function Gallery() {
                     style={{ height: 100 }}
                     onClick={() => handlePhotoClick(photo, idx + 1)}
                   >
-                    {photo.photo_url?.trim() ? (
-                      <img src={photo.photo_url} alt={photo.caption} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                    {photo.photo_url?.trim() && !brokenImages.has(photo.id) ? (
+                      <img src={photo.photo_url} alt={photo.caption} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onError={() => setBrokenImages(s => new Set([...s, photo.id]))} />
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Image className="h-6 w-6 text-gray-400" /></div>
                     )}
