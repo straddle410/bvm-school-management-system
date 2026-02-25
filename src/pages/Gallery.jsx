@@ -294,9 +294,6 @@ export default function Gallery() {
         )}
       </div>
 
-      {/* Recent Photos Strip */}
-      <RecentPhotosStrip onPhotoClick={(photo, photos, idx) => { setSelectedAlbum({ id: photo.album_id, name: '' }); setSelectedPhoto(photo); setSelectedPhotoIndex(idx); }} />
-
       {albums.length === 0 ? (
         <div className="py-24 flex flex-col items-center text-gray-400 gap-3">
           <Image className="h-16 w-16 opacity-20" />
