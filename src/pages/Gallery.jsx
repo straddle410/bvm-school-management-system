@@ -23,6 +23,7 @@ export default function Gallery() {
   const [newAlbum, setNewAlbum] = useState({ name: '', description: '', event_date: '', visibility: ['Public'] });
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [photoLimit, setPhotoLimit] = useState(200);
   const queryClient = useQueryClient();
 
   useEffect(() => {
