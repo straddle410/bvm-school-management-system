@@ -329,9 +329,12 @@ export default function Gallery() {
                   : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
                 }
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
-                  {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
+                <div className="absolute bottom-0 left-0 right-0">
+                  <AlbumPhotoStrip albumId={albums[0].id} />
+                  <div className="px-4 pb-3">
+                    <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
+                    {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
+                  </div>
                 </div>
               </div>
             </button>
