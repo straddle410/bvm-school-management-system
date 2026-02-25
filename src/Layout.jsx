@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2 } from 'lucide-react';
+import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, LogOut } from 'lucide-react';
 import { AcademicYearProvider } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
