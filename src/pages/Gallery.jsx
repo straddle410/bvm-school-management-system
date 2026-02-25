@@ -59,9 +59,13 @@ export default function Gallery() {
 
   const { data: allPhotos = [], isLoading: isLoadingPhotos } = useQuery({
     queryKey: ['photos', selectedAlbum?.id, photoLimit],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', photoLimit),
+    queryFn: async () => {
+      const photos = await base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', photoLimit);
+      console.log('[Gallery] Loaded photos:', photos.length, photos.map(p => ({ id: p.id, url: p.photo_url?.substring(0, 80), status: p.status })));
+      return photos;
+    },
     enabled: !!selectedAlbum,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Always fetch fresh data
   });
 
   const visiblePhotos = isAdmin
