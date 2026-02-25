@@ -1,23 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
-
-function toProxyUrl(url) {
-  if (!url) return '';
-  const trimmed = url.trim();
-  try {
-    const encodedUrl = encodeURIComponent(trimmed);
-    return `/api/imageProxy?url=${encodedUrl}`;
-  } catch {
-    return trimmed;
-  }
-}
+import { base44 } from '@/api/base44Client';
 
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
   const [hasError, setHasError] = useState(false);
+  const [proxiedUrl, setProxiedUrl] = useState(null);
   
-  const finalSrc = toProxyUrl(src);
+  useEffect(() => {
+    if (!src) {
+      setHasError(true);
+      return;
+    }
 
-  if (!finalSrc || hasError) {
+    const getProxiedImage = async () => {
+      try {
+        const response = await base44.functions.invoke('imageProxy', { url: src });
+        if (response?.data?.url) {
+          setProxiedUrl(response.data.url);
+        } else {
+          setHasError(true);
+        }
+      } catch (error) {
+        console.error('[GalleryImage] Proxy error:', error);
+        setHasError(true);
+      }
+    };
+
+    getProxiedImage();
+  }, [src]);
+
+  if (!src || hasError || !proxiedUrl) {
     return (
       <div className={`${className} bg-gray-200 flex items-center justify-center`} onClick={onClick}>
         <ImageIcon className="h-12 w-12 text-gray-400" />
@@ -27,15 +39,15 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
 
   return (
     <img
-      src={finalSrc}
+      src={proxiedUrl}
       alt={alt || ''}
       loading={loading}
       className={className}
       onClick={onClick}
       crossOrigin="anonymous"
-      onLoad={() => console.log('[GalleryImage] Loaded:', finalSrc)}
+      onLoad={() => console.log('[GalleryImage] Loaded:', proxiedUrl)}
       onError={(e) => {
-        console.error('[GalleryImage] Failed to load:', finalSrc, e);
+        console.error('[GalleryImage] Failed to load:', proxiedUrl, e);
         setHasError(true);
       }}
     />
