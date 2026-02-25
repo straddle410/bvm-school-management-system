@@ -19,11 +19,8 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
         setIsLoading(true);
         const response = await base44.functions.invoke('imageProxy', { url: src });
         
-        if (response?.data) {
-          // Function returns binary blob, create object URL
-          const blob = new Blob([response.data], { type: 'image/jpeg' });
-          const blobUrl = URL.createObjectURL(blob);
-          setProxiedUrl(blobUrl);
+        if (response?.data?.dataUrl) {
+          setProxiedUrl(response.data.dataUrl);
         } else {
           setHasError(true);
         }
@@ -36,12 +33,6 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     };
 
     getProxiedImage();
-
-    return () => {
-      if (proxiedUrl?.startsWith('blob:')) {
-        URL.revokeObjectURL(proxiedUrl);
-      }
-    };
   }, [src]);
 
   if (!src || hasError || (isLoading && !proxiedUrl)) {
