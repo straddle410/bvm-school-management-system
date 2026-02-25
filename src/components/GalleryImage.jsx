@@ -20,9 +20,12 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
+  // Bypass cached errors and prevent referer blocks
+  const finalSrc = src.trim().includes('?') ? `${src.trim()}&t=2` : `${src.trim()}?t=2`;
+
   return (
     <img
-      src={src.trim()}
+      src={finalSrc}
       alt={alt || ''}
       loading={loading}
       className={className}
