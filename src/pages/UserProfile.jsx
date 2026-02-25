@@ -160,7 +160,22 @@ export default function UserProfile() {
 
   const backPage = sessionType === 'student' ? 'StudentDashboard' : 'Dashboard';
 
-  if (isLoading || !session) {
+  // If no session at all, redirect to dashboard
+  if (!session && sessionType === null) {
+    // Still loading from localStorage
+    return (
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    window.location.replace(createPageUrl('Dashboard'));
+    return null;
+  }
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
