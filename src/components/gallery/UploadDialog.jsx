@@ -54,13 +54,12 @@ export default function UploadDialog({
 
         // Step 2: Upload to storage service
         const response = await base44.integrations.Core.UploadFile({ file: compressed });
+        console.log(`[Gallery Upload] Raw response:`, JSON.stringify(response));
+        
         const file_url = response?.file_url;
         
-        if (!file_url) {
-          if (response?.error) {
-            throw new Error(`Upload Service Error: ${response.error.message || JSON.stringify(response.error)}`);
-          }
-          throw new Error('Upload service did not return a valid URL.');
+        if (!file_url || typeof file_url !== 'string' || file_url.trim().length === 0) {
+          throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
         }
 
         console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${file_url}`);
@@ -68,11 +67,8 @@ export default function UploadDialog({
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
 
-        // Step 3: Clean and accept URL (frontend GalleryImage handles broken links)
-        const validUrl = cleanPhotoUrl(file_url);
-        if (!validUrl) {
-          throw new Error(`Upload returned empty URL or mapping failed.`);
-        }
+        // Use URL directly from upload service - no transformation needed
+        const validUrl = file_url.trim();
 
         // Step 4: Save to database via backend function (bypasses RLS)
         try {
