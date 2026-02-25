@@ -31,7 +31,11 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       console.log('[GalleryImage] Proxy response status:', response.status);
       const dataUrl = response?.data?.dataUrl || response?.dataUrl;
       if (dataUrl) {
-        console.log('[GalleryImage] Setting dataUrl, length:', dataUrl.length);
+        console.log('[GalleryImage] ✓ Got dataUrl');
+        console.log('[GalleryImage] DataUrl first 100 chars:', dataUrl.substring(0, 100));
+        console.log('[GalleryImage] DataUrl total length:', dataUrl.length);
+        console.log('[GalleryImage] Starts with "data:":', dataUrl.startsWith('data:'));
+        console.log('[GalleryImage] Contains ";base64,":', dataUrl.includes(';base64,'));
         setDisplayUrl(dataUrl);
         setIsLoading(false);
       } else {
