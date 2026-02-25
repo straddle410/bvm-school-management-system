@@ -52,26 +52,34 @@ export default function UploadDialog({
         setUploadFiles([...updated]);
 
         // Step 2: Upload to storage service
-        const response = await base44.integrations.Core.UploadFile({ file: compressed });
-        console.log(`[Gallery Upload] Raw response:`, JSON.stringify(response));
-        
-        const file_url = response?.file_url;
-        
-        if (!file_url || typeof file_url !== 'string' || file_url.trim().length === 0) {
-          throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
-        }
+         const response = await base44.integrations.Core.UploadFile({ file: compressed });
+         console.log(`[Gallery Upload] Raw response:`, JSON.stringify(response));
 
-        console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${file_url}`);
+         let file_url = response?.file_url;
 
-        updated[i] = { ...updated[i], progress: 80 };
-        setUploadFiles([...updated]);
+         if (!file_url || typeof file_url !== 'string' || file_url.trim().length === 0) {
+           throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
+         }
 
-        // Use the URL exactly as returned by UploadFile (both formats are valid)
-        const validUrl = file_url.trim();
-        if (!validUrl) {
-          throw new Error(`Upload returned empty URL.`);
-        }
-        console.log(`[Gallery Upload] Final URL: ${validUrl}`);
+         console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${file_url}`);
+
+         updated[i] = { ...updated[i], progress: 80 };
+         setUploadFiles([...updated]);
+
+         // Ensure full base44.app URL - if truncated, reconstruct it
+         let validUrl = file_url.trim();
+
+         // If URL is suspiciously short or truncated, it's an error
+         if (validUrl.length < 30) {
+           throw new Error(`Upload returned truncated URL: "${validUrl}". URL too short to be valid.`);
+         }
+
+         // Make sure it's a full HTTPS URL
+         if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+           throw new Error(`Invalid URL format: URL must start with http:// or https://`);
+         }
+
+         console.log(`[Gallery Upload] Final URL length: ${validUrl.length}, URL: ${validUrl}`);
 
         // Step 4: Save to database via backend function (bypasses RLS)
         try {
