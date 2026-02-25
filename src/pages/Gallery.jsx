@@ -410,7 +410,7 @@ export default function Gallery() {
         <div className="p-3 space-y-3">
           {/* Hero Album — first album large */}
           {albums[0] && (() => {
-            const heroPhotos = allAlbumPhotos.filter(p => p.album_id === albums[0].id).slice(0, 4);
+            const heroPhotos = albums[0].cover_photo_url ? [] : (albumCovers[albums[0].id] || []).slice(0, 4);
             const coverUrl = albums[0].cover_photo_url?.trim() || heroPhotos[0]?.photo_url;
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
