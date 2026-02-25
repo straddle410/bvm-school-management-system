@@ -131,12 +131,10 @@ export default function Dashboard() {
     queryKey: ['latest-diaries-dashboard'],
     queryFn: async () => {
       try {
-        const diaries = await base44.entities.Diary.filter({ status: 'Published' });
-        return diaries
-          .sort((a, b) => new Date(b.diary_date || b.created_date) - new Date(a.diary_date || a.created_date))
-          .slice(0, 3);
+        return await base44.entities.Diary.filter({ status: 'Published' }, '-diary_date', 3);
       } catch { return []; }
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const recentNotices = [...notices]
