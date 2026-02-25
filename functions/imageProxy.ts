@@ -40,7 +40,17 @@ Deno.serve(async (req) => {
     const base64 = globalThis.btoa(String.fromCharCode(...uint8Array));
     const dataUrl = `data:${contentType};base64,${base64}`;
 
-    console.error('[imageProxy] Success. URL:', imageUrl, 'Base64 length:', base64.length);
+    // Detailed logging
+    const first100 = dataUrl.substring(0, 100);
+    const isValidDataUrl = dataUrl.startsWith('data:') && dataUrl.includes(';base64,');
+    console.error('[imageProxy] ✓ Success. URL:', imageUrl);
+    console.error('[imageProxy] Base64 length:', base64.length);
+    console.error('[imageProxy] DataUrl first 100 chars:', first100);
+    console.error('[imageProxy] DataUrl total length:', dataUrl.length);
+    console.error('[imageProxy] MIME type:', contentType);
+    console.error('[imageProxy] Is valid dataUrl format:', isValidDataUrl);
+    console.error('[imageProxy] Buffer size (bytes):', buffer.byteLength);
+    
     return Response.json({ dataUrl }, {
       headers: {
         'Access-Control-Allow-Origin': '*',
