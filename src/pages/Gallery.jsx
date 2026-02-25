@@ -85,12 +85,13 @@ export default function Gallery() {
       setUploadFiles([...updated]);
       const formData = new FormData();
       formData.append('file', updated[i].file);
-      const { data } = await base44.functions.invoke('uploadGalleryPhoto', {}, formData);
-        updated[i] = { ...updated[i], progress: 80 };
-        setUploadFiles([...updated]);
-        await base44.entities.GalleryPhoto.create({
-          album_id: selectedAlbum.id,
-          photo_url: file_url,
+      const { data } = await base44.functions.invoke('uploadGalleryPhoto', formData);
+      const file_url = data.file_url;
+      updated[i] = { ...updated[i], progress: 80 };
+      setUploadFiles([...updated]);
+      await base44.entities.GalleryPhoto.create({
+        album_id: selectedAlbum.id,
+        photo_url: file_url,
           caption,
           uploaded_by: user?.email || '',
           status: needsApproval ? 'Pending' : 'Published'
