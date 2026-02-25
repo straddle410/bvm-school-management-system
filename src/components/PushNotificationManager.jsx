@@ -5,6 +5,11 @@ export default function PushNotificationManager() {
   useEffect(() => {
     const initPushNotifications = async () => {
       try {
+        // Only run for base44-authenticated users (not student/staff custom sessions)
+        const hasStudentSession = !!localStorage.getItem('student_session');
+        const hasStaffSession = !!localStorage.getItem('staff_session');
+        if (hasStudentSession || hasStaffSession) return;
+
         // Check if user is authenticated
         const user = await base44.auth.me().catch(() => null);
         if (!user) return;
