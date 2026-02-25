@@ -54,6 +54,9 @@ export default function MarksTable({
                 {subject}
               </th>
             ))}
+            <th className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-600 text-xs md:text-sm min-w-16">
+              Total
+            </th>
           </tr>
         </thead>
         <tbody>
