@@ -25,6 +25,7 @@ export default function Gallery() {
   const [newAlbum, setNewAlbum] = useState({ name: '', description: '', event_date: '', visibility: ['Public'] });
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [brokenImages, setBrokenImages] = useState(new Set());
   const queryClient = useQueryClient();
 
   useEffect(() => {
