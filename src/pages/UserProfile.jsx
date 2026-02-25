@@ -114,17 +114,20 @@ export default function UserProfile() {
     setPwLoading(true);
     try {
       if (sessionType === 'student') {
-        // Verify current password against stored password
-        if (!studentRecord) { setPwError('Student record not found'); setPwLoading(false); return; }
-        if (studentRecord.password !== pwForm.current && pwForm.current !== 'BVM123') {
-          // also allow default
-          if (studentRecord.password && studentRecord.password !== pwForm.current) {
-            setPwError('Current password is incorrect');
-            setPwLoading(false);
-            return;
-          }
+        // Verify current password against stored password from session
+        const storedPw = session?.password || 'BVM123';
+        if (storedPw && storedPw !== pwForm.current) {
+          setPwError('Current password is incorrect');
+          setPwLoading(false);
+          return;
         }
-        await base44.entities.Student.update(studentRecord.id, { password: pwForm.newPw });
+        // Find actual student record to update
+        const stuRecords = await base44.entities.Student.filter({ student_id: session.student_id }).catch(() => []);
+        if (!stuRecords || stuRecords.length === 0) { setPwError('Student record not found'); setPwLoading(false); return; }
+        await base44.entities.Student.update(stuRecords[0].id, { password: pwForm.newPw });
+        // Update local session
+        const updatedSession = { ...session, password: pwForm.newPw };
+        localStorage.setItem('student_session', JSON.stringify(updatedSession));
       } else {
         // Staff - verify against temp_password
         if (!staffRecord) { setPwError('Staff record not found'); setPwLoading(false); return; }

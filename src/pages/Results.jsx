@@ -105,7 +105,7 @@ export default function Results() {
   const examTypeOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
   const { data: examTypes = [] } = useQuery({
     queryKey: ['exam-types-published'],
-    queryFn: () => base44.entities.ExamType.filter({ status: 'Published' })
+    queryFn: () => base44.entities.ExamType.filter({ is_active: true })
   });
 
   // Load students when class+section is selected

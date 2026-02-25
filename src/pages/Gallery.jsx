@@ -31,12 +31,7 @@ export default function Gallery() {
     }
   }, []);
 
-  useEffect(() => {
-    console.log('User:', user);
-    console.log('canCreateAlbum:', canCreateAlbum);
-    console.log('isAdmin:', isAdmin);
-    console.log('hasGalleryPermission:', hasGalleryPermission);
-  }, [user]);
+
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal';
   const hasGalleryPermission = user?.permissions?.gallery === true;
