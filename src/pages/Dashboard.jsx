@@ -183,23 +183,16 @@ export default function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full">
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-3 sm:px-4 pt-4 pb-5 shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              {schoolProfile?.logo_url && schoolProfile.logo_url.trim()
-                ? <LogoImageWithFallback src={schoolProfile.logo_url} alt="Logo" />
-                : <GraduationCap className="h-6 w-6 text-blue-200" />
-              }
-              <span className="font-bold text-white text-base tracking-wide">{schoolProfile?.school_name || 'School Portal'}</span>
-            </div>
-            {user && (
+          {user && (
+            <div className="flex justify-end mb-3">
               <button
                 onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
                 className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
               >
                 <LogOut className="h-3.5 w-3.5" /> Logout
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {user ? (
             <Link to={createPageUrl('UserProfile')} className="flex items-center gap-3 group -mx-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-all">
