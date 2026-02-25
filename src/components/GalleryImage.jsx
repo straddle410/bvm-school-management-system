@@ -5,31 +5,46 @@ import { base44 } from '@/api/base44Client';
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
   const [hasError, setHasError] = useState(false);
   const [proxiedUrl, setProxiedUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     if (!src) {
       setHasError(true);
+      setIsLoading(false);
       return;
     }
 
     const getProxiedImage = async () => {
       try {
+        setIsLoading(true);
         const response = await base44.functions.invoke('imageProxy', { url: src });
-        if (response?.data?.url) {
-          setProxiedUrl(response.data.url);
+        
+        if (response?.data) {
+          // Function returns binary blob, create object URL
+          const blob = new Blob([response.data], { type: 'image/jpeg' });
+          const blobUrl = URL.createObjectURL(blob);
+          setProxiedUrl(blobUrl);
         } else {
           setHasError(true);
         }
       } catch (error) {
         console.error('[GalleryImage] Proxy error:', error);
         setHasError(true);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getProxiedImage();
+
+    return () => {
+      if (proxiedUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(proxiedUrl);
+      }
+    };
   }, [src]);
 
-  if (!src || hasError || !proxiedUrl) {
+  if (!src || hasError || (isLoading && !proxiedUrl)) {
     return (
       <div className={`${className} bg-gray-200 flex items-center justify-center`} onClick={onClick}>
         <ImageIcon className="h-12 w-12 text-gray-400" />
