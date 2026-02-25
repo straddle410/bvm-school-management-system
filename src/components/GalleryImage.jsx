@@ -17,10 +17,9 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       return;
     }
 
-    // In PWA mode, use direct URL only - skip proxy
+    // In PWA mode, use fetch blob strategy to bypass service worker caching
     if (isPWA()) {
-      setDisplayUrl(src);
-      setIsLoading(false);
+      loadImageViaBlobUrl();
       return;
     }
 
@@ -36,6 +35,21 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     };
     img.src = src;
   }, [src]);
+
+  const loadImageViaBlobUrl = async () => {
+    try {
+      const response = await fetch(src, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to fetch image');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setDisplayUrl(blobUrl);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('[GalleryImage] Blob load failed:', error);
+      // Fallback to proxy
+      getProxiedImage();
+    }
+  };
 
   const getProxiedImage = async () => {
     try {
