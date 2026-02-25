@@ -46,14 +46,13 @@ export default function MessageNotificationListener() {
   }, []);
 
   const handleNewMessage = async (message, currentUser) => {
-    // Only notify if message is for current user
-    if (
-      message.recipient_id !== currentUser.email &&
-      message.recipient_id !== currentUser.id &&
-      message.recipient_type === 'individual'
-    ) {
+    // Only notify if message is addressed to current user (by email)
+    const myEmail = currentUser.email;
+    if (message.recipient_type === 'individual' && message.recipient_id !== myEmail) {
       return;
     }
+    // Don't self-notify
+    if (message.sender_id === myEmail) return;
 
     // Get user's notification preferences
     const prefs = await notificationService.getPreferences();
