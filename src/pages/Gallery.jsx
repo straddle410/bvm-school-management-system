@@ -89,24 +89,51 @@ export default function Gallery() {
     ? allPhotos
     : allPhotos.filter(p => p.status === 'Published' || p.status === 'Approved' || (canUpload && p.uploaded_by === user?.email));
 
-  const uploadMutation = useMutation({
-    mutationFn: async () => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: uploadFile });
-      return base44.entities.GalleryPhoto.create({
-        album_id: selectedAlbum.id,
-        photo_url: file_url,
-        caption,
-        uploaded_by: user?.email || '',
-        status: needsApproval ? 'Pending' : 'Published'
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
-      setShowUpload(false);
-      setUploadFile(null);
-      setCaption('');
+  const handleFilesSelected = async (files) => {
+    const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
+    setUploadFiles(arr.map(file => ({ file, status: 'pending', progress: 0, preview: URL.createObjectURL(file) })));
+  };
+
+  const handleUploadAll = async () => {
+    if (!uploadFiles.length || isUploading) return;
+    setIsUploading(true);
+    const updated = [...uploadFiles];
+    for (let i = 0; i < updated.length; i++) {
+      if (updated[i].status === 'done') continue;
+      updated[i] = { ...updated[i], status: 'uploading', progress: 10 };
+      setUploadFiles([...updated]);
+      try {
+        const compressed = await compressImage(updated[i].file);
+        updated[i] = { ...updated[i], progress: 40 };
+        setUploadFiles([...updated]);
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+        updated[i] = { ...updated[i], progress: 80 };
+        setUploadFiles([...updated]);
+        await base44.entities.GalleryPhoto.create({
+          album_id: selectedAlbum.id,
+          photo_url: file_url,
+          caption,
+          uploaded_by: user?.email || '',
+          status: needsApproval ? 'Pending' : 'Published'
+        });
+        updated[i] = { ...updated[i], status: 'done', progress: 100 };
+        setUploadFiles([...updated]);
+      } catch {
+        updated[i] = { ...updated[i], status: 'error', progress: 0 };
+        setUploadFiles([...updated]);
+      }
     }
-  });
+    setIsUploading(false);
+    const allDone = updated.every(f => f.status === 'done' || f.status === 'error');
+    if (allDone) {
+      queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
+      setTimeout(() => {
+        setShowUpload(false);
+        setUploadFiles([]);
+        setCaption('');
+      }, 800);
+    }
+  };
 
   const approveMutation = useMutation({
     mutationFn: (id) => base44.entities.GalleryPhoto.update(id, { status: 'Published' }),
