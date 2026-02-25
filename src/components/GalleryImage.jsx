@@ -20,9 +20,12 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
+  // Bypass previously cached CORS errors with a static version string
+  const finalSrc = src.trim().includes('?') ? `${src.trim()}&v=1` : `${src.trim()}?v=1`;
+
   return (
     <img
-      src={src.trim()}
+      src={finalSrc}
       alt={alt || ''}
       loading={loading}
       className={className}
