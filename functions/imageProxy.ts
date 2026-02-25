@@ -7,9 +7,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing url' }, { status: 400 });
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const imageRes = await fetch(imageUrl, { 
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': '*/*',
+        'Referer': 'https://base44.app/'
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     if (!imageRes.ok) {
       return Response.json({ error: `Failed to fetch: ${imageRes.statusText}` }, { status: imageRes.status });
