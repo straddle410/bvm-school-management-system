@@ -51,43 +51,21 @@ export default function UploadDialog({
         updated[i] = { ...updated[i], progress: 40 };
         setUploadFiles([...updated]);
 
-        // Step 2: Upload to storage service
-         const response = await base44.integrations.Core.UploadFile({ file: compressed });
-         console.log(`[Gallery Upload] Raw response:`, JSON.stringify(response));
+        // Step 2: Upload to Base44 public storage (returns public URL)
+        const response = await base44.integrations.Core.UploadFile({ file: compressed });
+        console.log(`[Gallery Upload] Storage response:`, JSON.stringify(response));
 
-         let file_url = response?.file_url;
+        const file_url = response?.file_url;
 
-         if (!file_url || typeof file_url !== 'string' || file_url.trim().length === 0) {
-           throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
-         }
+        if (!file_url || typeof file_url !== 'string' || file_url.trim().length === 0) {
+          throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
+        }
 
-         console.log(`[Gallery Upload] File: ${updated[i].file.name}, Original URL: ${file_url}`);
+        const validUrl = file_url.trim();
+        console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${validUrl}`);
 
-         updated[i] = { ...updated[i], progress: 80 };
-         setUploadFiles([...updated]);
-
-         // Convert Supabase direct URL to base44.app proxy URL (required for VPN-less access)
-         let validUrl = file_url.trim();
-
-         if (validUrl.includes('supabase.co/storage/v1/object/public/')) {
-           const parts = validUrl.split('/public/');
-           if (parts.length === 2) {
-             const appPath = parts[1];
-             const appId = appPath.split('/')[0];
-             validUrl = `https://base44.app/api/apps/${appId}/files/public/${appPath}`;
-             console.log(`[Gallery Upload] Converted to proxy URL: ${validUrl}`);
-           }
-         }
-
-         if (validUrl.length < 30) {
-           throw new Error(`URL too short to be valid.`);
-         }
-
-         if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
-           throw new Error(`Invalid URL format.`);
-         }
-
-         console.log(`[Gallery Upload] Final URL: ${validUrl}`);
+        updated[i] = { ...updated[i], progress: 80 };
+        setUploadFiles([...updated]);
 
         // Step 4: Save to database via backend function (bypasses RLS)
         try {
