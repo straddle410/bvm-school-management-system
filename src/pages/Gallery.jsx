@@ -453,11 +453,12 @@ export default function Gallery() {
             <div className="grid grid-cols-2 gap-3">
               {albums.slice(1).map(album => {
                 const thumbs = allAlbumPhotos.filter(p => p.album_id === album.id).slice(0, 3);
+                const coverUrl = album.cover_photo_url?.trim() || thumbs[0]?.photo_url;
                 return (
                   <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
                     <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
-                      {album.cover_photo_url && album.cover_photo_url.trim()
-                        ? <img src={album.cover_photo_url} alt={album.name} loading="lazy" className="w-full h-full object-cover" />
+                      {coverUrl
+                        ? <img src={coverUrl} alt={album.name} loading="lazy" className="w-full h-full object-cover" />
                         : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
                       }
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
