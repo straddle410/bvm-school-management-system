@@ -29,7 +29,10 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
   useEffect(() => {
     base44.entities.Subject.list().then(s => setSubjects(s)).catch(() => {});
     if (isStudent) {
-      base44.entities.Teacher.list().then(t => setAllTeachers(t)).catch(() => {});
+      // Use StaffAccount so recipient_id matches teacher login email
+      base44.entities.StaffAccount.list()
+        .then(list => setAllTeachers(list.filter(s => s.is_active !== false)))
+        .catch(() => {});
     }
   }, [isStudent]);
 
