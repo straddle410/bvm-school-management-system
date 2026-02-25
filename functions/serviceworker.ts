@@ -52,6 +52,7 @@ self.addEventListener('activate', (event) => {
       'Content-Type': 'application/javascript; charset=utf-8',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Access-Control-Allow-Origin': '*',
+      'Service-Worker-Allowed': '/',
     },
   });
 });
