@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
-  const [hasError, setHasError] = useState(!src?.trim());
+  const [hasError, setHasError] = useState(false);
 
   if (hasError) {
     return (
