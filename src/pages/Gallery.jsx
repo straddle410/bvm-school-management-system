@@ -86,7 +86,7 @@ export default function Gallery() {
         const toUpload = await prepareImage(updated[i].file);
         updated[i] = { ...updated[i], progress: 40 };
         setUploadFiles([...updated]);
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: toUpload });
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
         await base44.entities.GalleryPhoto.create({
