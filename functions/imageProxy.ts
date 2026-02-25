@@ -20,11 +20,7 @@ Deno.serve(async (req) => {
     
     // Convert to base64 for reliable mobile support
     const uint8Array = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < uint8Array.length; i++) {
-      binary += String.fromCharCode(uint8Array[i]);
-    }
-    const base64 = btoa(binary);
+    const base64 = globalThis.btoa(String.fromCharCode(...uint8Array));
     const dataUrl = `data:${contentType};base64,${base64}`;
 
     console.error('[imageProxy] Success. URL:', imageUrl, 'Base64 length:', base64.length);
