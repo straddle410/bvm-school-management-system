@@ -74,32 +74,14 @@ export default function Gallery() {
 
   const { data: allAlbumPhotos = [] } = useQuery({
     queryKey: ['allAlbumPhotos'],
-    queryFn: async () => {
-      const photos = await base44.entities.GalleryPhoto.filter({ status: 'Published' }, '-created_date', 50);
-      // Convert old base44.app URLs to Supabase CDN format
-      return photos.map(p => ({
-        ...p,
-        photo_url: p.photo_url?.includes('base44.app') 
-          ? p.photo_url.replace('https://base44.app/api/apps/', 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/')
-          : p.photo_url
-      }));
-    },
+    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'Published' }, '-created_date', 50),
     enabled: albums.length > 0,
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
-    queryFn: async () => {
-      const photos = await base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100);
-      // Convert old base44.app URLs to Supabase CDN format
-      return photos.map(p => ({
-        ...p,
-        photo_url: p.photo_url?.includes('base44.app')
-          ? p.photo_url.replace('https://base44.app/api/apps/', 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/')
-          : p.photo_url
-      }));
-    },
+    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100),
     enabled: !!selectedAlbum,
     staleTime: 5 * 60 * 1000,
   });
