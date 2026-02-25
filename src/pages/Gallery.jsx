@@ -423,7 +423,7 @@ export default function Gallery() {
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
                 <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                  {albums[0].cover_photo_url
+                  {albums[0].cover_photo_url && albums[0].cover_photo_url.trim()
                     ? <img src={albums[0].cover_photo_url} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" />
                     : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
                   }
