@@ -75,12 +75,12 @@ export default function Gallery() {
 
   const approveMutation = useMutation({
     mutationFn: (id) => base44.entities.GalleryPhoto.update(id, { status: 'Published' }),
-    onSuccess: () => queryClient.invalidateQueries(['photos', selectedAlbum?.id])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] })
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.GalleryPhoto.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['photos', selectedAlbum?.id])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] })
   });
 
   const handlePhotoClick = (photo, index) => {
