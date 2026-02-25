@@ -12,37 +12,30 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing album_id or file_data' }, { status: 400 });
     }
 
-    // Upload file to private storage and get signed URL
-    const uploadRes = await base44.asServiceRole.integrations.Core.UploadPrivateFile({
+    // Upload file to public storage (returns public URL directly)
+    const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({
       file: file_data
     });
 
-    if (!uploadRes || !uploadRes.file_uri) {
-      throw new Error('Failed to upload file to storage');
+    if (!uploadRes || !uploadRes.file_url) {
+      throw new Error(`Failed to upload file to storage: ${JSON.stringify(uploadRes)}`);
     }
 
-    // Create signed URL for accessing the file
-    const signedUrlRes = await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({
-      file_uri: uploadRes.file_uri,
-      expires_in: 31536000 // 1 year
-    });
+    const publicUrl = uploadRes.file_url;
 
-    if (!signedUrlRes || !signedUrlRes.signed_url) {
-      throw new Error('Failed to create signed URL');
-    }
-
-    // Create photo record in database with signed URL
+    // Create photo record in database with public URL
     const photoRecord = await base44.asServiceRole.entities.GalleryPhoto.create({
       album_id,
-      photo_url: signedUrlRes.signed_url,
+      photo_url: publicUrl,
       caption: caption || '',
       uploaded_by: uploaded_by || (user?.email || 'unknown'),
       status: status || 'Published'
     });
 
-    return Response.json({ success: true, photo_id: photoRecord.id, photo_url: signedUrlRes.signed_url });
+    console.log(`[uploadGalleryPhoto] Success: ID=${photoRecord.id}, URL=${publicUrl}`);
+    return Response.json({ success: true, photo_id: photoRecord.id, photo_url: publicUrl });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('[uploadGalleryPhoto] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
