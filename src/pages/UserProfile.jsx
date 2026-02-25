@@ -161,9 +161,8 @@ export default function UserProfile() {
 
   const backPage = sessionType === 'student' ? 'StudentDashboard' : 'Dashboard';
 
-  // If no session at all, redirect to dashboard
-  if (!session && sessionType === null) {
-    // Still loading from localStorage
+  // Still loading session from localStorage
+  if (sessionType === null) {
     return (
       <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
@@ -171,7 +170,8 @@ export default function UserProfile() {
     );
   }
 
-  if (!session) {
+  // No session found - redirect
+  if (!session || sessionType === 'none') {
     window.location.replace(createPageUrl('Dashboard'));
     return null;
   }
