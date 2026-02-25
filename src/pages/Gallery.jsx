@@ -210,7 +210,7 @@ export default function Gallery() {
               onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
             >
               {visiblePhotos[0].photo_url?.trim() ? (
-                <img src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} loading="lazy" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.style.display = 'flex'; }} />
+                <img src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} loading="lazy" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" onError={(e) => { e.currentTarget.style.display = 'none'; if (e.currentTarget.nextElementSibling) e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
               ) : null}
               <div className="w-full h-full bg-gray-200 flex items-center justify-center" style={{ display: visiblePhotos[0].photo_url?.trim() ? 'none' : 'flex' }}><Image className="h-12 w-12 text-gray-400" /></div>
               {visiblePhotos[0].status === 'Pending' && (
