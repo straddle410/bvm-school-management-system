@@ -13,10 +13,21 @@ import MessageNotificationListener from '@/components/messaging/MessageNotificat
 const bottomNav = [
   { name: 'Home', icon: Home, page: 'Dashboard' },
   { name: 'Notices', icon: Bell, page: 'Notices' },
-  { name: 'Gallery', icon: Image, page: 'Gallery' },
+  { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
   { name: 'Calendar', icon: Calendar, page: 'Calendar' },
   { name: 'More', icon: MoreHorizontal, page: 'More' },
 ];
+
+const LogoWithFallback = ({ src, alt }) => {
+  const [imgError, setImgError] = useState(false);
+  return imgError || !src ? (
+    <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow">
+      <Building2 className="h-5 w-5 text-[#1a237e]" />
+    </div>
+  ) : (
+    <img src={src} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />
+  );
+};
 
 // Pages that don't use the app shell
 const NO_LAYOUT_PAGES = ['PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentHallTicketView', 'StudentMessaging', 'StudentProfile', 'UserProfile'];
