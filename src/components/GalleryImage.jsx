@@ -17,9 +17,9 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       return;
     }
 
-    // In PWA mode, use fetch blob strategy to bypass service worker caching
+    // On iOS PWA, use proxy directly - service worker/fetch restrictions
     if (isPWA()) {
-      loadImageViaBlobUrl();
+      getProxiedImage();
       return;
     }
 
@@ -35,27 +35,6 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     };
     img.src = src;
   }, [src]);
-
-  const loadImageViaBlobUrl = async () => {
-    try {
-      // Add timestamp to bust any caching on iOS PWA
-      const cacheBustUrl = src + (src.includes('?') ? '&' : '?') + 't=' + Date.now();
-      const response = await fetch(cacheBustUrl, { 
-        cache: 'no-store',
-        credentials: 'include',
-        mode: 'cors'
-      });
-      if (!response.ok) throw new Error('Failed to fetch image');
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      setDisplayUrl(blobUrl);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('[GalleryImage] Blob load failed:', error);
-      // Fallback to proxy for iOS PWA
-      getProxiedImage();
-    }
-  };
 
   const getProxiedImage = async () => {
     try {
