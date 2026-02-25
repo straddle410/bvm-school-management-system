@@ -31,6 +31,7 @@ export default function Gallery() {
     if (session) {
       setUser(session);
     } else {
+      // Only try base44.auth.me() if no staff session exists
       base44.auth.me().then(setUser).catch(() => setUser(null));
     }
   }, []);
