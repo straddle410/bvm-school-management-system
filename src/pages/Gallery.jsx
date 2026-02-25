@@ -16,7 +16,7 @@ export default function Gallery() {
   const [showCreateAlbum, setShowCreateAlbum] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [caption, setCaption] = useState('');
-  const [newAlbum, setNewAlbum] = useState({ name: '', description: '', event_date: '', visibility: 'Public' });
+  const [newAlbum, setNewAlbum] = useState({ name: '', description: '', event_date: '', visibility: ['Public'] });
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const queryClient = useQueryClient();
