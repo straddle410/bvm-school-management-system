@@ -39,8 +39,9 @@ export default function Gallery() {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateAlbum, setShowCreateAlbum] = useState(false);
-  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadFiles, setUploadFiles] = useState([]); // [{file, status: 'pending'|'uploading'|'done'|'error', progress}]
   const [caption, setCaption] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [newAlbum, setNewAlbum] = useState({ name: '', description: '', event_date: '', visibility: ['Public'] });
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
