@@ -20,9 +20,12 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
+  // Bust cache to bypass any previous CORS errors
+  const finalSrc = src.trim().includes('?') ? `${src.trim()}&cb=${Date.now()}` : `${src.trim()}?cb=${Date.now()}`;
+
   return (
     <img
-      src={src.trim()}
+      src={finalSrc}
       alt={alt || ''}
       loading={loading}
       className={className}
