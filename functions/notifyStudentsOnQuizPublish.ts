@@ -64,6 +64,29 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Also send push notifications
+    if (notified > 0) {
+      try {
+        const studentIds = students
+          .filter(s => {
+            const p = prefMap.get(s.student_id);
+            return p && p.notifications_enabled && p.quiz_notifications && p.browser_push_enabled && p.browser_push_token;
+          })
+          .map(s => s.student_id);
+
+        if (studentIds.length > 0) {
+          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+            student_ids: studentIds,
+            title: 'New Quiz Posted',
+            message: `${quiz.title} - ${quiz.subject || ''}`,
+            url: '/Quiz',
+          });
+        }
+      } catch (pushErr) {
+        console.error('Push send error (non-fatal):', pushErr.message);
+      }
+    }
+
     return Response.json({ success: true, notified });
   } catch (error) {
     console.error('Error in notifyStudentsOnQuizPublish:', error);

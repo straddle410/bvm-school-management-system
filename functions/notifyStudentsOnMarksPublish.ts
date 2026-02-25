@@ -43,6 +43,21 @@ Deno.serve(async (req) => {
         duplicate_key: duplicateKey
       });
 
+      // Also send push notification if enabled
+      try {
+        const pushPref = prefs[0];
+        if (pushPref && pushPref.browser_push_enabled && pushPref.browser_push_token) {
+          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+            student_ids: [student_id],
+            title: 'Your Results Are Published',
+            message: `${marks.subject} - ${marks.exam_type}`,
+            url: '/Results',
+          });
+        }
+      } catch (pushErr) {
+        console.error('Push send error (non-fatal):', pushErr.message);
+      }
+
       return Response.json({ success: true, notified: 1 });
     } catch (err) {
       console.error('Failed to create notification:', err);
