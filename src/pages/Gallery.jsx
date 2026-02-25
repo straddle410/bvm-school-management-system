@@ -8,29 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Plus, Upload, X, Check, ChevronLeft, Image, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-// Compress an image file using canvas
-async function compressImage(file, maxWidth = 1600, quality = 0.82) {
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      let { width, height } = img;
-      if (width > maxWidth) {
-        height = Math.round((height * maxWidth) / width);
-        width = maxWidth;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      canvas.toBlob((blob) => {
-        resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-      }, 'image/jpeg', quality);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-    img.src = url;
-  });
+// Upload image directly without compression (canvas compression was creating blank images)
+async function prepareImage(file) {
+  return file;
 }
 
 
