@@ -1,3 +1,5 @@
+import { encodeBase64 } from 'jsr:@std/encoding@1.32.1/base64';
+
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
@@ -18,12 +20,11 @@ Deno.serve(async (req) => {
     const buffer = await imageRes.arrayBuffer();
     const contentType = imageRes.headers.get('content-type') || 'image/jpeg';
     
-    // Convert to base64 for reliable mobile support
+    // Convert to base64 using Deno stdlib
     const uint8Array = new Uint8Array(buffer);
-    const base64 = globalThis.btoa(String.fromCharCode(...uint8Array));
+    const base64 = encodeBase64(uint8Array);
     const dataUrl = `data:${contentType};base64,${base64}`;
 
-    console.error('[imageProxy] Success. URL:', imageUrl, 'Base64 length:', base64.length);
     return Response.json({ dataUrl });
   } catch (error) {
     console.error('[imageProxy] Error:', error.message);
