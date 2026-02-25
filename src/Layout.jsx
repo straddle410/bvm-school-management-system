@@ -57,28 +57,23 @@ export default function Layout({ children, currentPageName }) {
       loadData(!!ss, ss);
   }, []);
 
-  const loadData = async (hasStudentSession) => {
-    // If student session exists, don't call auth.me() - just load school profile
-    if (hasStudentSession) {
+  const loadData = async (hasSession, session) => {
+    // If any session exists (student or staff), use it to set user
+    if (hasSession && session) {
+      setUser(session);
+    } else {
+      // Try auth.me() only if no local session
       try {
-        const profiles = await base44.entities.SchoolProfile.list();
-        if (profiles.length > 0) setSchoolProfile(profiles[0]);
+        const currentUser = await base44.auth.me().catch(() => null);
+        if (currentUser) setUser(currentUser);
       } catch {}
-      return;
     }
+    
+    // Always load school profile
     try {
-      const [currentUser, profiles] = await Promise.all([
-        base44.auth.me().catch(() => null),
-        base44.entities.SchoolProfile.list()
-      ]);
-      setUser(currentUser);
+      const profiles = await base44.entities.SchoolProfile.list();
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
-    } catch (e) {
-      try {
-        const profiles = await base44.entities.SchoolProfile.list();
-        if (profiles.length > 0) setSchoolProfile(profiles[0]);
-      } catch {}
-    }
+    } catch {}
   };
 
   if (NO_LAYOUT_PAGES.includes(currentPageName)) {
