@@ -100,15 +100,17 @@ export default function Dashboard() {
   const { data: notices = [] } = useQuery({
     queryKey: ['notices-published'],
     queryFn: async () => {
-      try { return await base44.entities.Notice.filter({ status: 'Published' }); } catch { return []; }
-    }
+      try { return await base44.entities.Notice.filter({ status: 'Published' }, '-created_date', 10); } catch { return []; }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ['calendar-events-published'],
     queryFn: async () => {
-      try { return await base44.entities.CalendarEvent.filter({ status: 'Published' }); } catch { return []; }
-    }
+      try { return await base44.entities.CalendarEvent.filter({ status: 'Published' }, 'start_date', 20); } catch { return []; }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: unreadDiaryCount = 0 } = useQuery({
