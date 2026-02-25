@@ -23,7 +23,7 @@ export default function Gallery() {
     if (session) {
       setUser(session);
     } else {
-      base44.auth.me().then(setUser).catch(() => {});
+      base44.auth.me().then(u => u && setUser(u)).catch(() => setUser(null));
     }
   }, []);
 
