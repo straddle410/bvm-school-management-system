@@ -24,8 +24,7 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
   const getProxiedImage = async () => {
     try {
       console.log('[GalleryImage] Calling imageProxy for:', src);
-      const cacheKey = src + '?cb=' + Date.now();
-      const response = await base44.functions.invoke('imageProxy', { url: cacheKey });
+      const response = await base44.functions.invoke('imageProxy', { url: src });
       console.log('[GalleryImage] Proxy response status:', response.status);
       const dataUrl = response?.data?.dataUrl || response?.dataUrl;
       if (dataUrl) {
