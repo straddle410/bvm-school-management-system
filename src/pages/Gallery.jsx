@@ -309,40 +309,66 @@ export default function Gallery() {
       ) : (
         <div className="p-3 space-y-3">
           {/* Hero Album — first album large */}
-          {albums[0] && (
-            <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
-              <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                {albums[0].cover_photo_url
-                  ? <img src={albums[0].cover_photo_url} alt={albums[0].name} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
-                }
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
-                  {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
+          {albums[0] && (() => {
+            const heroPhotos = allAlbumPhotos.filter(p => p.album_id === albums[0].id).slice(0, 4);
+            return (
+              <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
+                <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
+                  {albums[0].cover_photo_url
+                    ? <img src={albums[0].cover_photo_url} alt={albums[0].name} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
+                  }
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  {/* Small photo strip inside hero */}
+                  {heroPhotos.length > 0 && (
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {heroPhotos.map(p => (
+                        <div key={p.id} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white/60 shadow">
+                          <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
+                    {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
+                  </div>
                 </div>
-              </div>
-            </button>
-          )}
+              </button>
+            );
+          })()}
 
           {/* Remaining albums in 2-col grid */}
           {albums.length > 1 && (
             <div className="grid grid-cols-2 gap-3">
-              {albums.slice(1).map(album => (
-                <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
-                  <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
-                    {album.cover_photo_url
-                      ? <img src={album.cover_photo_url} alt={album.name} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
-                    }
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
-                      <p className="text-white font-semibold text-xs leading-tight truncate">{album.name}</p>
-                      {album.event_date && <p className="text-white/60 text-[10px] mt-0.5">{album.event_date}</p>}
+              {albums.slice(1).map(album => {
+                const thumbs = allAlbumPhotos.filter(p => p.album_id === album.id).slice(0, 3);
+                return (
+                  <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
+                    <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
+                      {album.cover_photo_url
+                        ? <img src={album.cover_photo_url} alt={album.name} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
+                      }
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                      {/* Small thumbnails top-right */}
+                      {thumbs.length > 0 && (
+                        <div className="absolute top-1.5 right-1.5 flex gap-0.5">
+                          {thumbs.map(p => (
+                            <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
+                              <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+                        <p className="text-white font-semibold text-xs leading-tight truncate">{album.name}</p>
+                        {album.event_date && <p className="text-white/60 text-[10px] mt-0.5">{album.event_date}</p>}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
