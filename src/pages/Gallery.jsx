@@ -214,7 +214,6 @@ export default function Gallery() {
                 src={visiblePhotos[0].photo_url}
                 alt={visiblePhotos[0].caption}
                 className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
-                onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
                 loading="lazy"
               />
               {visiblePhotos[0].status === 'Pending' && (
