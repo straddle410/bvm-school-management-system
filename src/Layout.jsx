@@ -18,14 +18,15 @@ const bottomNav = [
   { name: 'More', icon: MoreHorizontal, page: 'More' },
 ];
 
-const LogoWithFallback = ({ src, alt }) => {
+const LogoWithFallback = ({ src, alt, schoolProfile }) => {
   const [imgError, setImgError] = useState(false);
-  return imgError || !src ? (
+  const logoUrl = src || schoolProfile?.logo_url;
+  return imgError || !logoUrl ? (
     <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow">
       <Building2 className="h-5 w-5 text-[#1a237e]" />
     </div>
   ) : (
-    <img src={src} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />
+    <img src={logoUrl} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />
   );
 };
 
