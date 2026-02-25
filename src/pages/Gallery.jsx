@@ -47,8 +47,9 @@ export default function Gallery() {
 
   const { data: allAlbumPhotos = [] } = useQuery({
     queryKey: ['allAlbumPhotos'],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'Published' }),
-    enabled: albums.length > 0
+    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'Published' }, '-created_date', 50),
+    enabled: albums.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: allPhotos = [] } = useQuery({
