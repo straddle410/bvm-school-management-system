@@ -422,7 +422,7 @@ export default function Gallery() {
         <div className="p-3 space-y-3">
           {/* Hero Album — first album large */}
           {albums[0] && (() => {
-            const heroPhotos = allAlbumPhotos.filter(p => p.album_id === albums[0].id).slice(0, 4);
+            const heroPhotos = allAlbumPhotos.filter(p => p.album_id === albums[0].id && p.photo_url?.trim()).slice(0, 4);
             const coverUrl = albums[0].cover_photo_url?.trim() || heroPhotos[0]?.photo_url;
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
@@ -460,9 +460,9 @@ export default function Gallery() {
                       <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                       {/* Small thumbnails top-right */}
-                      {thumbs.length > 0 && (
+                      {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
                         <div className="absolute top-1.5 right-1.5 flex gap-0.5">
-                          {thumbs.map(p => (
+                          {thumbs.filter(p => p.photo_url?.trim()).map(p => (
                             <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
                               <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
                             </div>
