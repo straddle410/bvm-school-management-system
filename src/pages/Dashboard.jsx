@@ -8,9 +8,20 @@ import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
   FileText, Award, BookOpen, Palmtree, Clock, Book, LogOut,
-  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users
+  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
+
+const LogoImageWithFallback = ({ src, alt }) => {
+  const [imgError, setImgError] = useState(false);
+  return imgError || !src ? (
+    <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow">
+      <Building2 className="h-5 w-5 text-[#1a237e]" />
+    </div>
+  ) : (
+    <img src={src} alt={alt} className="h-8 w-8 rounded-full object-contain bg-white p-0.5 shadow" onError={() => setImgError(true)} />
+  );
+};
 
 const DEFAULT_BANNERS = [
   { url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80', caption: 'Science Exhibition Winners - Proud Moments' },
