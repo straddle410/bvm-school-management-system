@@ -157,7 +157,7 @@ export default function Gallery() {
               style={{ height: 240 }}
               onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
             >
-              <img src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
+              <img src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} loading="lazy" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
               {visiblePhotos[0].status === 'Pending' && (
                 <div className="absolute top-2 left-2">
                   <span className="text-white text-[10px] font-bold bg-yellow-500 px-2 py-0.5 rounded-full">Pending</span>
