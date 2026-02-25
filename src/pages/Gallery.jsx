@@ -83,7 +83,14 @@ export default function Gallery() {
       try {
       updated[i] = { ...updated[i], progress: 40 };
       setUploadFiles([...updated]);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: updated[i].file });
+      const formData = new FormData();
+      formData.append('file', updated[i].file);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      const { file_url } = await response.json();
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
         await base44.entities.GalleryPhoto.create({
