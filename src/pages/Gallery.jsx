@@ -80,7 +80,21 @@ export default function Gallery() {
 
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100),
+    queryFn: async () => {
+      const photos = await base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100);
+      // Generate signed URLs for private storage files
+      return Promise.all(photos.map(async (photo) => {
+        if (photo.photo_url?.includes('/storage/v1/object')) {
+          try {
+            const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: photo.photo_url });
+            return { ...photo, photo_url: signed_url };
+          } catch {
+            return photo;
+          }
+        }
+        return photo;
+      }));
+    },
     enabled: !!selectedAlbum,
     staleTime: 5 * 60 * 1000,
   });
