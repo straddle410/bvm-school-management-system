@@ -65,10 +65,19 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     }
   };
 
-  if (!src || hasError || (isLoading && !displayUrl)) {
+  if (!src || hasError) {
     return (
       <div className={`${className} bg-gray-200 flex items-center justify-center`} onClick={onClick}>
         <ImageIcon className="h-12 w-12 text-gray-400" />
+      </div>
+    );
+  }
+
+  // Show placeholder while loading
+  if (isLoading && !displayUrl) {
+    return (
+      <div className={`${className} bg-gray-100 flex items-center justify-center animate-pulse`} onClick={onClick}>
+        <div className="h-8 w-8 bg-gray-300 rounded" />
       </div>
     );
   }
@@ -84,6 +93,7 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
         console.error('[GalleryImage] Failed to load:', displayUrl);
         setHasError(true);
       }}
+      style={{ display: 'block' }}
     />
   );
 }
