@@ -15,10 +15,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    const subscriptionStr = typeof subscription === 'string' ? subscription : JSON.stringify(subscription);
-
     // Find or create preference
     const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ student_id });
+
+    // Handle disable (null subscription)
+    if (!subscription) {
+      if (prefs.length > 0) {
+        await base44.asServiceRole.entities.StudentNotificationPreference.update(prefs[0].id, {
+          browser_push_enabled: false,
+          browser_push_token: null,
+        });
+      }
+      return Response.json({ success: true });
+    }
+
+    const subscriptionStr = typeof subscription === 'string' ? subscription : JSON.stringify(subscription);
 
     if (prefs.length > 0) {
       await base44.asServiceRole.entities.StudentNotificationPreference.update(prefs[0].id, {
