@@ -290,14 +290,25 @@ export default function Gallery() {
             </div>
             <div>
               <Label>Visibility</Label>
-              <Select value={newAlbum.visibility} onValueChange={v => setNewAlbum({ ...newAlbum, visibility: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Public">Public</SelectItem>
-                  <SelectItem value="Staff Only">Staff Only</SelectItem>
-                  <SelectItem value="Students & Parents">Students & Parents</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="mt-1 space-y-2 border border-gray-200 rounded-lg p-3">
+                {['Public', 'Staff Only', 'Students & Parents'].map(opt => (
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(newAlbum.visibility || []).includes(opt)}
+                      onChange={e => {
+                        const current = newAlbum.visibility || [];
+                        const updated = e.target.checked
+                          ? [...current, opt]
+                          : current.filter(v => v !== opt);
+                        setNewAlbum({ ...newAlbum, visibility: updated });
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm text-gray-700">{opt}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <Button
               className="w-full bg-[#1a237e] hover:bg-[#283593]"
