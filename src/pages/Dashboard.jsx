@@ -253,8 +253,7 @@ export default function Dashboard() {
           <section>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
             <div className="grid grid-cols-4 gap-3">
-              {visibleQuickActions
-                .map((item) => (
+              {visibleQuickActions.map((item) => (
                   <Link key={item.label} to={createPageUrl(item.page)} className="block">
                     <div className="flex flex-col items-center gap-1.5">
                       <GradientIcon gradient={item.gradient} icon={item.icon} />
