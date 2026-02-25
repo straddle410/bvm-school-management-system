@@ -29,15 +29,16 @@ const quickAccess = [
   { label: 'Student Login', icon: User,          gradient: 'from-orange-400 to-amber-500',    page: 'StudentLogin', guestOnly: true },
 ];
 
+// quickActions now uses permission-aware filtering in the component
 const quickActions = [
-  { label: 'Take Attendance',     icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Attendance Summary',  icon: BarChart3,      gradient: 'from-teal-400 to-green-600',    page: 'AttendanceSummaryReport', roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Diary',               icon: Book,          gradient: 'from-rose-400 to-pink-600',     page: 'DiaryManagement',         roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Homework',            icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',  page: 'HomeworkManage',          roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Post Notice',         icon: Megaphone,     gradient: 'from-yellow-400 to-orange-500', page: 'Notices',                 roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                   roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Messages',            icon: Mail,          gradient: 'from-green-400 to-emerald-500', page: 'Messaging',               roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',     roleRequired: ['Admin', 'admin', 'Principal', 'principal'] },
+  { label: 'Take Attendance',     icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Attendance Summary',  icon: BarChart3,      gradient: 'from-teal-400 to-green-600',    page: 'AttendanceSummaryReport', permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Diary',               icon: Book,          gradient: 'from-rose-400 to-pink-600',     page: 'DiaryManagement',         permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Homework',            icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',  page: 'HomeworkManage',          permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Post Notice',         icon: Megaphone,     gradient: 'from-yellow-400 to-orange-500', page: 'Notices',                 permKey: 'post_notices',    roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                   permKey: 'marks',           roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Messages',            icon: Mail,          gradient: 'from-green-400 to-emerald-500', page: 'Messaging',               permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',     permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal'] },
 ];
 
 const adminActions = [
