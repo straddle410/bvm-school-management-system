@@ -443,9 +443,9 @@ export default function Gallery() {
                       {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
                         <div className="absolute top-1.5 right-1.5 flex gap-0.5">
                           {thumbs.filter(p => p.photo_url?.trim()).map(p => (
-                            <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
-                              <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
-                            </div>
+                           <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
+                             <img src={p.photo_url} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
+                           </div>
                           ))}
                         </div>
                       )}
