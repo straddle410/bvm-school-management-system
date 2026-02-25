@@ -49,18 +49,28 @@ export default function Gallery() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: allAlbumPhotos = [] } = useQuery({
-    queryKey: ['allAlbumPhotos'],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'Published' }, '-created_date', 50),
-    enabled: albums.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
-
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
     queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100),
     enabled: !!selectedAlbum,
     staleTime: 5 * 60 * 1000,
+  });
+
+  // Get cover photos for each album (one per album for gallery list)
+  const { data: albumCovers = {} } = useQuery({
+    queryKey: ['albumCovers', albums.map(a => a.id).join(',')],
+    queryFn: async () => {
+      const covers = {};
+      for (const album of albums) {
+        if (!album.cover_photo_url) {
+          const photos = await base44.entities.GalleryPhoto.filter({ album_id: album.id, status: 'Published' }, '-created_date', 4);
+          covers[album.id] = photos;
+        }
+      }
+      return covers;
+    },
+    enabled: albums.length > 0,
+    staleTime: 10 * 60 * 1000,
   });
 
   const visiblePhotos = isAdmin
