@@ -20,16 +20,14 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
-  // Bypass previously cached CORS errors with a static version string
-  const finalSrc = src.trim().includes('?') ? `${src.trim()}&v=1` : `${src.trim()}?v=1`;
-
   return (
     <img
-      src={finalSrc}
+      src={src.trim()}
       alt={alt || ''}
       loading={loading}
       className={className}
       onClick={onClick}
+      referrerPolicy="no-referrer"
       onError={(e) => {
         console.error('Image failed to load:', src);
         setHasError(true);
