@@ -9,19 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Upload, X, Check, Trash2, ChevronLeft, Image } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-function AlbumPhotoStrip({ albumId }) {
-  const { data: photos = [] } = useQuery({
-    queryKey: ['albumStrip', albumId],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: albumId }),
-    staleTime: 60000,
-  });
+// Receives pre-fetched photos to avoid N+1 API calls
+function AlbumPhotoStrip({ photos = [] }) {
   const published = photos.filter(p => p.status === 'Published' || p.status === 'Approved').slice(0, 4);
   if (published.length === 0) return null;
   return (
     <div className="flex gap-1 px-2 pb-2">
       {published.map(photo => (
         <div key={photo.id} className="flex-1 rounded-md overflow-hidden" style={{ height: 36 }}>
-          <img src={photo.photo_url} alt="" className="w-full h-full object-cover" />
+          <img src={photo.photo_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
         </div>
       ))}
     </div>
