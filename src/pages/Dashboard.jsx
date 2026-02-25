@@ -117,7 +117,8 @@ export default function Dashboard() {
       } catch { return 0; }
     },
     enabled: !!user?.student_id,
-    refetchInterval: 2000
+    staleTime: 60000,
+    refetchInterval: 60000
   });
 
   const { data: latestDiaries = [] } = useQuery({
