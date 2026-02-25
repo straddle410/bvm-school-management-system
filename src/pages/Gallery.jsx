@@ -9,30 +9,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Upload, X, Check, Trash2, ChevronLeft, Image } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-function RecentPhotosStrip({ onPhotoClick }) {
-  const { data: recentPhotos = [] } = useQuery({
-    queryKey: ['recentPhotos'],
-    queryFn: () => base44.entities.GalleryPhoto.list('-created_date', 20),
+function AlbumPhotoStrip({ albumId }) {
+  const { data: photos = [] } = useQuery({
+    queryKey: ['albumStrip', albumId],
+    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: albumId }),
+    staleTime: 60000,
   });
-
-  const published = recentPhotos.filter(p => p.status === 'Published' || p.status === 'Approved');
+  const published = photos.filter(p => p.status === 'Published' || p.status === 'Approved').slice(0, 4);
   if (published.length === 0) return null;
-
   return (
-    <div className="px-3 pt-3 pb-1">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recent Photos</p>
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {published.map((photo, idx) => (
-          <button
-            key={photo.id}
-            onClick={() => onPhotoClick(photo, published, idx)}
-            className="flex-shrink-0 rounded-xl overflow-hidden shadow-sm"
-            style={{ width: 72, height: 72 }}
-          >
-            <img src={photo.photo_url} alt={photo.caption} className="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
-          </button>
-        ))}
-      </div>
+    <div className="flex gap-1 px-2 pb-2">
+      {published.map(photo => (
+        <div key={photo.id} className="flex-1 rounded-md overflow-hidden" style={{ height: 36 }}>
+          <img src={photo.photo_url} alt="" className="w-full h-full object-cover" />
+        </div>
+      ))}
     </div>
   );
 }
