@@ -55,8 +55,9 @@ export default function Gallery() {
 
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }),
-    enabled: !!selectedAlbum
+    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100),
+    enabled: !!selectedAlbum,
+    staleTime: 5 * 60 * 1000,
   });
 
   const visiblePhotos = isAdmin
