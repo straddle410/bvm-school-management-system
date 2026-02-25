@@ -57,9 +57,9 @@ export default function Gallery() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: allPhotos = [] } = useQuery({
-    queryKey: ['photos', selectedAlbum?.id],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', 100),
+  const { data: allPhotos = [], isLoading: isLoadingPhotos } = useQuery({
+    queryKey: ['photos', selectedAlbum?.id, photoLimit],
+    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', photoLimit),
     enabled: !!selectedAlbum,
     staleTime: 5 * 60 * 1000,
   });
