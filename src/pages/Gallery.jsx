@@ -420,11 +420,12 @@ export default function Gallery() {
           {/* Hero Album — first album large */}
           {albums[0] && (() => {
             const heroPhotos = allAlbumPhotos.filter(p => p.album_id === albums[0].id).slice(0, 4);
+            const coverUrl = albums[0].cover_photo_url?.trim() || heroPhotos[0]?.photo_url;
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
                 <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                  {albums[0].cover_photo_url && albums[0].cover_photo_url.trim()
-                    ? <img src={albums[0].cover_photo_url} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" />
+                  {coverUrl
+                    ? <img src={coverUrl} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" />
                     : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
                   }
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
