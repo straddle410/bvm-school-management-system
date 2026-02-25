@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import GalleryImage from '@/components/GalleryImage';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -210,12 +209,11 @@ export default function Gallery() {
               style={{ height: 240 }}
               onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
             >
-              <GalleryImage
-                src={visiblePhotos[0].photo_url}
-                alt={visiblePhotos[0].caption}
-                className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
-                loading="lazy"
-              />
+              {visiblePhotos[0].photo_url?.trim() ? (
+                <GalleryImage src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" onClick={() => handlePhotoClick(visiblePhotos[0], 0)} />
+              ) : (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Image className="h-12 w-12 text-gray-400" /></div>
+              )}
               {visiblePhotos[0].status === 'Pending' && (
                 <div className="absolute top-2 left-2">
                   <span className="text-white text-[10px] font-bold bg-yellow-500 px-2 py-0.5 rounded-full">Pending</span>
@@ -250,13 +248,11 @@ export default function Gallery() {
                     style={{ height: 100 }}
                     onClick={() => handlePhotoClick(photo, idx + 1)}
                   >
-                    <GalleryImage
-                       src={photo.photo_url}
-                       alt={photo.caption}
-                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                       onClick={() => handlePhotoClick(photo, idx + 1)}
-                       loading="lazy"
-                     />
+                    {photo.photo_url?.trim() ? (
+                      <img src={photo.photo_url} alt={photo.caption} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Image className="h-6 w-6 text-gray-400" /></div>
+                    )}
                     {photo.status === 'Pending' && (
                       <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-1">
                         <span className="text-white text-[9px] font-bold bg-yellow-500 px-1.5 py-0.5 rounded-full">Pending</span>
@@ -285,7 +281,7 @@ export default function Gallery() {
         <Dialog open={!!selectedPhoto && selectedPhoto?.photo_url?.trim()} onOpenChange={() => setSelectedPhoto(null)}>
           <DialogContent className="max-w-2xl w-full bg-black border-0 p-0">
             <div className="relative">
-              {selectedPhoto?.photo_url?.trim() && <GalleryImage src={selectedPhoto.photo_url} alt={selectedPhoto?.caption} className="w-full h-auto max-h-[80vh] object-contain" />}
+              {selectedPhoto?.photo_url?.trim() && <img src={selectedPhoto.photo_url} alt={selectedPhoto?.caption} className="w-full h-auto max-h-[80vh] object-contain" />}
               {selectedPhoto?.caption && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 text-white text-sm">
                   {selectedPhoto.caption}
@@ -338,7 +334,7 @@ export default function Gallery() {
                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {uploadFiles.map((item, i) => (
                     <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-2.5">
-                      <GalleryImage src={item.preview} alt="" className="h-10 w-10 rounded-lg object-cover flex-shrink-0" />
+                      <img src={item.preview} alt="" className="h-10 w-10 rounded-lg object-cover flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-gray-700 truncate">{item.file.name}</p>
                         <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -428,14 +424,17 @@ export default function Gallery() {
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
                 <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                  <GalleryImage src={coverUrl} alt={albums[0].name} className="w-full h-full object-cover" loading="eager" />
+                  {coverUrl
+                    ? <img src={coverUrl} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
+                  }
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   {/* Small photo strip inside hero */}
                   {heroPhotos.filter(p => p.photo_url?.trim()).length > 0 && (
                     <div className="absolute top-2 right-2 flex gap-1">
                       {heroPhotos.filter(p => p.photo_url?.trim()).map(p => (
                         <div key={p.id} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white/60 shadow">
-                          <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                          <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                         </div>
                       ))}
                     </div>
@@ -458,14 +457,17 @@ export default function Gallery() {
                 return (
                   <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
                     <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
-                      <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
+                      {coverUrl
+                        ? <img src={coverUrl} alt={album.name} loading="lazy" className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
+                      }
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                       {/* Small thumbnails top-right */}
                       {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
                         <div className="absolute top-1.5 right-1.5 flex gap-0.5">
                           {thumbs.filter(p => p.photo_url?.trim()).map(p => (
                             <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
-                              <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                              <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                             </div>
                           ))}
                         </div>
