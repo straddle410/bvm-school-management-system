@@ -3,7 +3,13 @@ import { Image as ImageIcon } from 'lucide-react';
 
 function toProxyUrl(url) {
   if (!url) return '';
-  return url.trim();
+  const trimmed = url.trim();
+  try {
+    const encodedUrl = encodeURIComponent(trimmed);
+    return `/api/imageProxy?url=${encodedUrl}`;
+  } catch {
+    return trimmed;
+  }
 }
 
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
