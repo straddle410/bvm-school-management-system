@@ -49,7 +49,12 @@ export default function Layout({ children, currentPageName }) {
         const raw = localStorage.getItem('student_session');
         if (raw) { ss = JSON.parse(raw); setStudentSession(ss); }
       } catch {}
-      loadData(!!ss);
+      // Check staff session too
+      try {
+        const raw = localStorage.getItem('staff_session');
+        if (raw && !ss) { ss = JSON.parse(raw); }
+      } catch {}
+      loadData(!!ss, ss);
   }, []);
 
   const loadData = async (hasStudentSession) => {
