@@ -11,13 +11,16 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
   const isPWA = () => window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
   
   useEffect(() => {
+    console.log('[GalleryImage] useEffect running. src:', src);
     if (!src) {
+      console.log('[GalleryImage] No src, setting error');
       setHasError(true);
       setIsLoading(false);
       return;
     }
 
     // Always use proxy to handle VPN/network restrictions
+    console.log('[GalleryImage] About to call getProxiedImage');
     getProxiedImage();
   }, [src]);
 
