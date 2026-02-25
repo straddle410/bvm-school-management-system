@@ -41,7 +41,7 @@ export default function Messaging() {
     id: user.email,
     name: user.full_name,
     role: (user.role === 'admin' || user.role === 'Admin') ? 'admin' : 'teacher',
-    academic_year: '2024-25'
+    academic_year: user?.academic_year || '2024-25'
   } : null;
 
   const { data: inbox = [], isLoading: loadingInbox } = useQuery({
