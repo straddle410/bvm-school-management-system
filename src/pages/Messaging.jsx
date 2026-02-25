@@ -7,6 +7,18 @@ import ComposeMessage from '@/components/messaging/ComposeMessage';
 import MessageList from '@/components/messaging/MessageList';
 import MessageThread from '@/components/messaging/MessageThread';
 
+function getCurrentUser() {
+  // First check staff_session (custom teacher/staff login)
+  try {
+    const ss = localStorage.getItem('staff_session');
+    if (ss) {
+      const staff = JSON.parse(ss);
+      if (staff?.email) return { email: staff.email, full_name: staff.full_name, role: staff.role, isStaffSession: true };
+    }
+  } catch {}
+  return null;
+}
+
 export default function Messaging() {
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState('inbox');
@@ -16,10 +28,21 @@ export default function Messaging() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    // Try staff_session first, then base44 auth
+    const staffUser = getCurrentUser();
+    if (staffUser) {
+      setUser(staffUser);
+    } else {
+      base44.auth.me().then(u => setUser(u)).catch(() => {});
+    }
   }, []);
 
-  const sender = user ? { id: user.email, name: user.full_name, role: user.role === 'admin' ? 'admin' : 'teacher', academic_year: '2024-25' } : null;
+  const sender = user ? {
+    id: user.email,
+    name: user.full_name,
+    role: (user.role === 'admin' || user.role === 'Admin') ? 'admin' : 'teacher',
+    academic_year: '2024-25'
+  } : null;
 
   const { data: inbox = [], isLoading: loadingInbox } = useQuery({
     queryKey: ['messages-inbox', user?.email],
