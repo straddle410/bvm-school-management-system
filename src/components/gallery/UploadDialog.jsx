@@ -67,8 +67,12 @@ export default function UploadDialog({
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
 
-        // Use URL directly from upload service - no transformation needed
-        const validUrl = file_url.trim();
+        // Clean/fix URL if needed (maps base44.app URLs to Supabase)
+        const validUrl = cleanPhotoUrl(file_url);
+        if (!validUrl) {
+          throw new Error(`Upload returned empty URL.`);
+        }
+        console.log(`[Gallery Upload] Final URL: ${validUrl}`);
 
         // Step 4: Save to database via backend function (bypasses RLS)
         try {
