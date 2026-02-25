@@ -1,10 +1,25 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 
+function toProxyUrl(url) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  // Convert Supabase direct URLs to base44 proxy URLs (which work reliably)
+  if (trimmed.includes('supabase.co/storage/v1/object/public/base44-prod/public/')) {
+    const parts = trimmed.split('/public/base44-prod/public/');
+    if (parts.length === 2) {
+      const appPath = parts[1]; // e.g. "appId/filename.png"
+      const appId = appPath.split('/')[0];
+      return `https://base44.app/api/apps/${appId}/files/public/${appPath}`;
+    }
+  }
+  return trimmed;
+}
+
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
   const [hasError, setHasError] = useState(false);
   
-  const finalSrc = src && typeof src === 'string' ? src.trim() : '';
+  const finalSrc = toProxyUrl(src);
 
   if (!finalSrc || hasError) {
     return (
