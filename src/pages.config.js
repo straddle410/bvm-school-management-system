@@ -87,8 +87,8 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -133,8 +133,8 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "Dashboard": Dashboard,
     "Gallery": Gallery,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

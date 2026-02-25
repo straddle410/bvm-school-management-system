@@ -200,7 +200,7 @@ export default function Dashboard() {
                 <span className="text-white font-bold text-lg">{initials}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-white font-bold text-base leading-tight truncate">Welcome Back, {user.full_name || user.name || user.email}</h2>
+                <h2 className="text-white font-bold text-base leading-tight truncate">{user.full_name || user.name || user.email}</h2>
                 <p className="text-blue-200 text-xs capitalize">{user.role || 'Staff'}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-white/50 flex-shrink-0" />
