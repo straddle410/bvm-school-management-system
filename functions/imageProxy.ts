@@ -47,7 +47,9 @@ Deno.serve(async (req) => {
       }
     });
   } catch (error) {
-    console.error('[imageProxy] Error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[imageProxy] Error fetching image:', error.message);
+    console.error('[imageProxy] URL attempted:', imageUrl);
+    console.error('[imageProxy] Error type:', error.name);
+    return Response.json({ error: error.message, url: imageUrl }, { status: 500 });
   }
 });
