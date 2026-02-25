@@ -463,9 +463,9 @@ export default function Gallery() {
                       }
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                       {/* Small thumbnails top-right */}
-                      {thumbs.length > 0 && (
+                      {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
                         <div className="absolute top-1.5 right-1.5 flex gap-0.5">
-                          {thumbs.map(p => (
+                          {thumbs.filter(p => p.photo_url?.trim()).map(p => (
                             <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
                               <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                             </div>
