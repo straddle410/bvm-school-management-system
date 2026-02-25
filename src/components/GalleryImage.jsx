@@ -12,19 +12,16 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
-  const proxiedUrl = src ? `/api/imageProxy?url=${encodeURIComponent(src)}` : '';
-
   return (
     <img
-      src={proxiedUrl}
+      src={src}
       alt={alt || ''}
       loading={loading}
       className={className}
       onClick={onClick}
-      crossOrigin="anonymous"
-      onLoad={() => console.log('[GalleryImage] Loaded:', proxiedUrl)}
+      onLoad={() => console.log('[GalleryImage] Loaded:', src)}
       onError={(e) => {
-        console.error('[GalleryImage] Failed to load:', proxiedUrl, e);
+        console.error('[GalleryImage] Failed to load:', src, e);
         setHasError(true);
       }}
     />
