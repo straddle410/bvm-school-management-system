@@ -61,25 +61,33 @@ export default function UploadDialog({
            throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
          }
 
-         console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${file_url}`);
+         console.log(`[Gallery Upload] File: ${updated[i].file.name}, Original URL: ${file_url}`);
 
          updated[i] = { ...updated[i], progress: 80 };
          setUploadFiles([...updated]);
 
-         // Ensure full base44.app URL - if truncated, reconstruct it
+         // Convert Supabase direct URL to base44.app proxy URL (required for VPN-less access)
          let validUrl = file_url.trim();
 
-         // If URL is suspiciously short or truncated, it's an error
+         if (validUrl.includes('supabase.co/storage/v1/object/public/')) {
+           const parts = validUrl.split('/public/');
+           if (parts.length === 2) {
+             const appPath = parts[1];
+             const appId = appPath.split('/')[0];
+             validUrl = `https://base44.app/api/apps/${appId}/files/public/${appPath}`;
+             console.log(`[Gallery Upload] Converted to proxy URL: ${validUrl}`);
+           }
+         }
+
          if (validUrl.length < 30) {
-           throw new Error(`Upload returned truncated URL: "${validUrl}". URL too short to be valid.`);
+           throw new Error(`URL too short to be valid.`);
          }
 
-         // Make sure it's a full HTTPS URL
          if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
-           throw new Error(`Invalid URL format: URL must start with http:// or https://`);
+           throw new Error(`Invalid URL format.`);
          }
 
-         console.log(`[Gallery Upload] Final URL length: ${validUrl.length}, URL: ${validUrl}`);
+         console.log(`[Gallery Upload] Final URL: ${validUrl}`);
 
         // Step 4: Save to database via backend function (bypasses RLS)
         try {
