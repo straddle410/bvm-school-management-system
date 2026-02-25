@@ -24,7 +24,12 @@ Deno.serve(async (req) => {
     const dataUrl = `data:${contentType};base64,${base64}`;
 
     console.error('[imageProxy] Success. URL:', imageUrl, 'Base64 length:', base64.length);
-    return Response.json({ dataUrl });
+    return Response.json({ dataUrl }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+      }
+    });
   } catch (error) {
     console.error('[imageProxy] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
