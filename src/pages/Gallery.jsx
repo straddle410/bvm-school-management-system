@@ -56,8 +56,25 @@ export default function Gallery() {
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums'],
-    queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' })
+    queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' }),
+    staleTime: 120000,
   });
+
+  // Fetch all cover-strip photos in ONE query (not per-album)
+  const albumIds = albums.map(a => a.id);
+  const { data: allAlbumStripPhotos = [] } = useQuery({
+    queryKey: ['albumStripAll', albumIds.join(',')],
+    queryFn: () => base44.entities.GalleryPhoto.list('-created_date', 100),
+    enabled: albumIds.length > 0,
+    staleTime: 120000,
+  });
+
+  // Group strip photos by album_id
+  const photosByAlbum = allAlbumStripPhotos.reduce((acc, p) => {
+    if (!acc[p.album_id]) acc[p.album_id] = [];
+    acc[p.album_id].push(p);
+    return acc;
+  }, {});
 
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
