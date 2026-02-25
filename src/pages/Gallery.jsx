@@ -37,7 +37,7 @@ export default function Gallery() {
 
 
 
-  const isAdmin = user?.role === 'Admin' || user?.role === 'Principal';
+  const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin';
   const hasGalleryPermission = user?.permissions?.gallery === true;
   const canUpload = isAdmin || hasGalleryPermission;
   const canCreateAlbum = isAdmin || hasGalleryPermission;
