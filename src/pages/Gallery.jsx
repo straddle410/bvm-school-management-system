@@ -12,7 +12,7 @@ import { getStaffSession } from '@/components/useStaffSession';
 
 
 export default function Gallery() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // undefined = loading, null = not authenticated
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateAlbum, setShowCreateAlbum] = useState(false);
@@ -31,7 +31,7 @@ export default function Gallery() {
     if (session) {
       setUser(session);
     } else {
-      base44.auth.me().then(setUser).catch(() => {});
+      base44.auth.me().then(setUser).catch(() => setUser(null));
     }
   }, []);
 
