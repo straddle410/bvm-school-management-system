@@ -405,8 +405,8 @@ export default function Gallery() {
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
                 <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                  {coverUrl
-                    ? <img src={coverUrl} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" />
+                  {coverUrl && !brokenImages.has(albums[0].id)
+                    ? <img src={coverUrl} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" onError={() => setBrokenImages(s => new Set([...s, albums[0].id]))} />
                     : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
                   }
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
