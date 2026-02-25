@@ -69,7 +69,7 @@ export default function UploadDialog({
 
         // Step 4: Save to database via backend function (bypasses RLS)
         try {
-          const createRes = await base44.functions.invoke('uploadPhotoRecord', {
+          const createRes = await base44.functions.invoke('uploadGalleryPhoto', {
             album_id: selectedAlbum.id,
             photo_url: validUrl,
             caption: caption || '',
