@@ -430,9 +430,9 @@ export default function Gallery() {
                   }
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   {/* Small photo strip inside hero */}
-                  {heroPhotos.length > 0 && (
+                  {heroPhotos.filter(p => p.photo_url?.trim()).length > 0 && (
                     <div className="absolute top-2 right-2 flex gap-1">
-                      {heroPhotos.map(p => (
+                      {heroPhotos.filter(p => p.photo_url?.trim()).map(p => (
                         <div key={p.id} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white/60 shadow">
                           <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                         </div>
