@@ -255,10 +255,14 @@ export default function Gallery() {
         )}
 
         {/* Photo Lightbox Dialog */}
-        <Dialog open={!!selectedPhoto && selectedPhoto?.photo_url?.trim()} onOpenChange={() => setSelectedPhoto(null)}>
+        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
           <DialogContent className="max-w-2xl w-full bg-black border-0 p-0">
             <div className="relative">
-              {selectedPhoto?.photo_url?.trim() && <img src={selectedPhoto.photo_url} alt={selectedPhoto?.caption} crossOrigin="anonymous" className="w-full h-auto max-h-[80vh] object-contain" />}
+              {selectedPhoto?.photo_url?.trim() ? (
+                <img src={selectedPhoto.photo_url} alt={selectedPhoto?.caption} crossOrigin="anonymous" className="w-full h-auto max-h-[80vh] object-contain" />
+              ) : (
+                <div className="w-full h-[80vh] flex items-center justify-center"><div className="text-gray-400">Unable to load image</div></div>
+              )}
               {selectedPhoto?.caption && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 text-white text-sm">
                   {selectedPhoto.caption}
