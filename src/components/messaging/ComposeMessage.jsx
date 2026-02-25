@@ -165,7 +165,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
                 value={selectedRecipient?.id || ''}
                 onValueChange={val => {
                   const t = allTeachers.find(t => t.email === val);
-                  if (t) setSelectedRecipient({ id: t.email, name: t.name, role: 'teacher', sub: t.role || 'Teacher' });
+                  if (t) setSelectedRecipient({ id: t.email, name: t.full_name || t.name, role: 'teacher', sub: t.role || 'Teacher' });
                 }}
               >
                 <SelectTrigger>
@@ -174,7 +174,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
                 <SelectContent>
                   {allTeachers.map(t => (
                     <SelectItem key={t.email} value={t.email}>
-                      {t.name} — {t.role || 'Teacher'}
+                      {t.full_name || t.name} — {t.role || 'Teacher'}
                     </SelectItem>
                   ))}
                 </SelectContent>
