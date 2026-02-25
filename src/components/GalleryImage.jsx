@@ -17,23 +17,8 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       return;
     }
 
-    // Try direct URL first (works in browser and most cases)
-    const img = new Image();
-    img.onload = () => {
-      setDisplayUrl(src);
-      setIsLoading(false);
-    };
-    img.onerror = () => {
-      // Only use proxy as fallback on iOS PWA
-      if (isPWA()) {
-        console.log('[GalleryImage] Direct load failed, trying proxy on iOS PWA');
-        getProxiedImage();
-      } else {
-        setHasError(true);
-        setIsLoading(false);
-      }
-    };
-    img.src = src;
+    // Always use proxy to handle VPN/network restrictions
+    getProxiedImage();
   }, [src]);
 
   const getProxiedImage = async () => {
