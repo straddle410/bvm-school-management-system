@@ -125,7 +125,23 @@ export default function Layout({ children, currentPageName }) {
               <span className="font-bold text-base tracking-tight leading-tight block">
                 {schoolProfile?.school_name || 'BVM School of Excellence'}
               </span>
-              {user && <span className="text-xs text-blue-100">{user.full_name || user.name || user.email}</span>}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="text-xs text-blue-100 hover:text-white cursor-pointer transition-colors">
+                      {user.full_name || user.name || user.email}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => navigate(createPageUrl('UserProfile'))}>
+                      <User className="h-4 w-4 mr-2" /> Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(createPageUrl('Settings'))}>
+                      <Settings className="h-4 w-4 mr-2" /> Settings
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
