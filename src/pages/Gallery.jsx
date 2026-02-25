@@ -111,6 +111,34 @@ export default function Gallery() {
     }
   });
 
+  // Show login prompt if not authenticated
+  if (user === null) {
+    return (
+      <div className="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <Image className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Login Required</h2>
+          <p className="text-gray-600 text-sm mb-6">Please login to view the gallery.</p>
+          <Button 
+            className="bg-[#1a237e] hover:bg-[#283593] w-full"
+            onClick={() => base44.auth.redirectToLogin(window.location.href)}
+          >
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while authenticating
+  if (user === undefined) {
+    return (
+      <div className="bg-gray-100 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a237e]"></div>
+      </div>
+    );
+  }
+
   if (selectedAlbum) {
     return (
       <div className="bg-gray-100 min-h-screen pb-6">
