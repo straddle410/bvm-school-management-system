@@ -8,17 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Plus, Upload, X, Check, ChevronLeft, Image, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-// Convert file to blob for upload
+// Upload file directly
 async function prepareImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const blob = new Blob([e.target.result], { type: file.type });
-      resolve(blob);
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
+  return file;
 }
 
 
