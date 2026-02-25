@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 
+function fixPhotoUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  const trimmed = url.trim();
+  
+  // Fix base44.app/api/apps URLs → Supabase storage URLs
+  const base44Pattern = /^https?:\/\/base44\.app\/api\/apps\/([^/]+)\/files\/public\/([^/]+)\/(.+)$/;
+  const match = trimmed.match(base44Pattern);
+  if (match) {
+    return `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/${match[2]}/${match[3]}`;
+  }
+  
+  return trimmed;
+}
+
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
   const [hasError, setHasError] = useState(false);
   
+  const fixedSrc = fixPhotoUrl(src);
+  
   React.useEffect(() => {
     setHasError(false);
-  }, [src]);
+  }, [fixedSrc]);
   
-  // Validate URL - check if src exists and is a valid string
-  const isValidUrl = src && typeof src === 'string' && src.trim().length > 0;
+  const isValidUrl = fixedSrc && fixedSrc.length > 0;
 
-  // Show placeholder if URL is invalid or missing
   if (!isValidUrl || hasError) {
     return (
       <div className={`${className} bg-gray-200 flex items-center justify-center`} onClick={onClick}>
@@ -20,17 +34,15 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
-  const finalSrc = src?.trim() || '';
-
   return (
     <img
-      src={finalSrc}
+      src={fixedSrc}
       alt={alt || ''}
       loading={loading}
       className={className}
       onClick={onClick}
       onError={(e) => {
-        console.error('Image failed to load:', src);
+        console.error('Image failed to load:', fixedSrc);
         setHasError(true);
       }}
     />
