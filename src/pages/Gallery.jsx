@@ -339,7 +339,7 @@ export default function Gallery() {
                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {uploadFiles.map((item, i) => (
                     <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-2.5">
-                      <img src={item.preview} alt="" className="h-10 w-10 rounded-lg object-cover flex-shrink-0" />
+                      <GalleryImage src={item.preview} alt="" className="h-10 w-10 rounded-lg object-cover flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-gray-700 truncate">{item.file.name}</p>
                         <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
