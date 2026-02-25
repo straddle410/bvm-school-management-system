@@ -155,7 +155,7 @@ export default function UserProfile() {
     if (sessionType === 'student') {
       navigate(createPageUrl('StudentDashboard'));
     } else {
-      navigate(-1);
+      navigate(createPageUrl('Dashboard'));
     }
   };
 
