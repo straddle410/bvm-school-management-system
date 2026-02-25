@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import GalleryImage from '@/components/GalleryImage';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -209,11 +210,13 @@ export default function Gallery() {
               style={{ height: 240 }}
               onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
             >
-              {visiblePhotos[0].photo_url?.trim() ? (
-                <GalleryImage src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" onClick={() => handlePhotoClick(visiblePhotos[0], 0)} />
-              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Image className="h-12 w-12 text-gray-400" /></div>
-              )}
+              <GalleryImage
+                src={visiblePhotos[0].photo_url}
+                alt={visiblePhotos[0].caption}
+                className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
+                onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
+                loading="lazy"
+              />
               {visiblePhotos[0].status === 'Pending' && (
                 <div className="absolute top-2 left-2">
                   <span className="text-white text-[10px] font-bold bg-yellow-500 px-2 py-0.5 rounded-full">Pending</span>
@@ -248,11 +251,13 @@ export default function Gallery() {
                     style={{ height: 100 }}
                     onClick={() => handlePhotoClick(photo, idx + 1)}
                   >
-                    {photo.photo_url?.trim() ? (
-                      <img src={photo.photo_url} alt={photo.caption} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Image className="h-6 w-6 text-gray-400" /></div>
-                    )}
+                    <GalleryImage
+                       src={photo.photo_url}
+                       alt={photo.caption}
+                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                       onClick={() => handlePhotoClick(photo, idx + 1)}
+                       loading="lazy"
+                     />
                     {photo.status === 'Pending' && (
                       <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-1">
                         <span className="text-white text-[9px] font-bold bg-yellow-500 px-1.5 py-0.5 rounded-full">Pending</span>
@@ -424,10 +429,7 @@ export default function Gallery() {
             return (
               <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
                 <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                  {coverUrl
-                    ? <img src={coverUrl} alt={albums[0].name} loading="eager" className="w-full h-full object-cover" />
-                    : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
-                  }
+                  <GalleryImage src={coverUrl} alt={albums[0].name} className="w-full h-full object-cover" loading="eager" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   {/* Small photo strip inside hero */}
                   {heroPhotos.filter(p => p.photo_url?.trim()).length > 0 && (
