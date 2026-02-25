@@ -17,9 +17,18 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       return;
     }
 
-    // On iOS PWA, use proxy directly - service worker/fetch restrictions
+    // On iOS PWA, try direct URL first, then proxy
     if (isPWA()) {
-      getProxiedImage();
+      const img = new Image();
+      img.onload = () => {
+        setDisplayUrl(src);
+        setIsLoading(false);
+      };
+      img.onerror = () => {
+        console.log('[GalleryImage] Direct load failed on iOS PWA, trying proxy');
+        getProxiedImage();
+      };
+      img.src = src;
       return;
     }
 
@@ -30,7 +39,6 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       setIsLoading(false);
     };
     img.onerror = () => {
-      // If direct URL fails, try proxy
       getProxiedImage();
     };
     img.src = src;
@@ -38,17 +46,19 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
 
   const getProxiedImage = async () => {
     try {
+      console.log('[GalleryImage] Calling imageProxy for:', src);
       const response = await base44.functions.invoke('imageProxy', { url: src });
       console.log('[GalleryImage] Proxy response:', response);
       const dataUrl = response?.data?.dataUrl || response?.dataUrl;
       if (dataUrl) {
+        console.log('[GalleryImage] Setting dataUrl');
         setDisplayUrl(dataUrl);
       } else {
-        console.error('[GalleryImage] No dataUrl in response');
+        console.error('[GalleryImage] No dataUrl in response', response);
         setHasError(true);
       }
     } catch (error) {
-      console.error('[GalleryImage] Proxy error:', error);
+      console.error('[GalleryImage] Proxy error:', error.message || error);
       setHasError(true);
     } finally {
       setIsLoading(false);
