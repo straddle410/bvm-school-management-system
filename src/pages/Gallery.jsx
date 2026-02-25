@@ -66,7 +66,7 @@ export default function Gallery() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['photos', selectedAlbum?.id]);
+      queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
       setShowUpload(false);
       setUploadFile(null);
       setCaption('');
