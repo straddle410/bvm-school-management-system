@@ -122,7 +122,17 @@ export default function Layout({ children, currentPageName }) {
             {schoolProfile?.school_name || 'BVM School of Excellence'}
           </span>
         </div>
-        <AcademicYearSelector />
+        <div className="flex items-center gap-3">
+          <AcademicYearSelector />
+          {user && (
+            <button
+              onClick={() => { localStorage.removeItem('staff_session'); localStorage.removeItem('student_session'); window.location.reload(); }}
+              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-full transition-all"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Logout
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}
