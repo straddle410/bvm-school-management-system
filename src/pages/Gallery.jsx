@@ -9,17 +9,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Upload, X, Check, Trash2, ChevronLeft, Image } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-// Receives pre-fetched photos to avoid N+1 API calls
-function AlbumPhotoStrip({ photos = [] }) {
-  const published = photos.filter(p => p.status === 'Published' || p.status === 'Approved').slice(0, 4);
+function RecentPhotosStrip({ onPhotoClick }) {
+  const { data: recentPhotos = [] } = useQuery({
+    queryKey: ['recentPhotos'],
+    queryFn: () => base44.entities.GalleryPhoto.list('-created_date', 20),
+  });
+
+  const published = recentPhotos.filter(p => p.status === 'Published' || p.status === 'Approved');
   if (published.length === 0) return null;
+
   return (
-    <div className="flex gap-1 px-2 pb-2">
-      {published.map(photo => (
-        <div key={photo.id} className="flex-1 rounded-md overflow-hidden" style={{ height: 36 }}>
-          <img src={photo.photo_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-        </div>
-      ))}
+    <div className="px-3 pt-3 pb-1">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recent Photos</p>
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {published.map((photo, idx) => (
+          <button
+            key={photo.id}
+            onClick={() => onPhotoClick(photo, published, idx)}
+            className="flex-shrink-0 rounded-xl overflow-hidden shadow-sm"
+            style={{ width: 72, height: 72 }}
+          >
+            <img src={photo.photo_url} alt={photo.caption} className="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -56,25 +69,8 @@ export default function Gallery() {
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums'],
-    queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' }),
-    staleTime: 120000,
+    queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' })
   });
-
-  // Fetch all cover-strip photos in ONE query (not per-album)
-  const albumIds = albums.map(a => a.id);
-  const { data: allAlbumStripPhotos = [] } = useQuery({
-    queryKey: ['albumStripAll', albumIds.join(',')],
-    queryFn: () => base44.entities.GalleryPhoto.list('-created_date', 100),
-    enabled: albumIds.length > 0,
-    staleTime: 120000,
-  });
-
-  // Group strip photos by album_id
-  const photosByAlbum = allAlbumStripPhotos.reduce((acc, p) => {
-    if (!acc[p.album_id]) acc[p.album_id] = [];
-    acc[p.album_id].push(p);
-    return acc;
-  }, {});
 
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
@@ -325,6 +321,9 @@ export default function Gallery() {
         )}
       </div>
 
+      {/* Recent Photos Strip */}
+      <RecentPhotosStrip onPhotoClick={(photo, photos, idx) => { setSelectedAlbum({ id: photo.album_id, name: '' }); setSelectedPhoto(photo); setSelectedPhotoIndex(idx); }} />
+
       {albums.length === 0 ? (
         <div className="py-24 flex flex-col items-center text-gray-400 gap-3">
           <Image className="h-16 w-16 opacity-20" />
@@ -342,12 +341,9 @@ export default function Gallery() {
                   : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center"><Image className="h-14 w-14 text-white/30" /></div>
                 }
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0">
-                  <AlbumPhotoStrip photos={photosByAlbum[albums[0].id] || []} />
-                  <div className="px-4 pb-3">
-                    <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
-                    {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
-                  </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
+                  {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
                 </div>
               </div>
             </button>
@@ -364,12 +360,9 @@ export default function Gallery() {
                       : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
                     }
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0">
-                      <AlbumPhotoStrip albumId={album.id} />
-                      <div className="px-2.5 pb-2">
-                        <p className="text-white font-semibold text-xs leading-tight truncate">{album.name}</p>
-                        {album.event_date && <p className="text-white/60 text-[10px] mt-0.5">{album.event_date}</p>}
-                      </div>
+                    <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+                      <p className="text-white font-semibold text-xs leading-tight truncate">{album.name}</p>
+                      {album.event_date && <p className="text-white/60 text-[10px] mt-0.5">{album.event_date}</p>}
                     </div>
                   </div>
                 </button>
