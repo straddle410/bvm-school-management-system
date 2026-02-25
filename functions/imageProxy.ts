@@ -17,17 +17,17 @@ Deno.serve(async (req) => {
 
     const buffer = await imageRes.arrayBuffer();
     const contentType = imageRes.headers.get('content-type') || 'image/jpeg';
+    
+    // Convert to base64 for reliable mobile support
+    const uint8Array = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const base64 = btoa(binary);
+    const dataUrl = `data:${contentType};base64,${base64}`;
 
-    return new Response(buffer, {
-      status: 200,
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=86400',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    });
+    return Response.json({ dataUrl });
   } catch (error) {
     console.error('[imageProxy] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
