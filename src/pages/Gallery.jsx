@@ -459,10 +459,7 @@ export default function Gallery() {
                 return (
                   <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
                     <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
-                      {coverUrl
-                        ? <img src={coverUrl} alt={album.name} loading="lazy" className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-gradient-to-br from-[#283593] to-[#5c6bc0] flex items-center justify-center"><Image className="h-8 w-8 text-white/30" /></div>
-                      }
+                      <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                       {/* Small thumbnails top-right */}
                       {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
