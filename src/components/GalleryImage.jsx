@@ -20,8 +20,7 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
     );
   }
 
-  // Bypass cached errors and prevent referer blocks
-  const finalSrc = src.trim().includes('?') ? `${src.trim()}&t=2` : `${src.trim()}?t=2`;
+  const finalSrc = src.trim();
 
   return (
     <img
@@ -30,7 +29,7 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       loading={loading}
       className={className}
       onClick={onClick}
-      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
       onError={(e) => {
         console.error('Image failed to load:', src);
         setHasError(true);
