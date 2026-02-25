@@ -45,6 +45,12 @@ export default function Gallery() {
     queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' })
   });
 
+  const { data: allAlbumPhotos = [] } = useQuery({
+    queryKey: ['allAlbumPhotos'],
+    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'Published' }),
+    enabled: albums.length > 0
+  });
+
   const { data: allPhotos = [] } = useQuery({
     queryKey: ['photos', selectedAlbum?.id],
     queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }),
