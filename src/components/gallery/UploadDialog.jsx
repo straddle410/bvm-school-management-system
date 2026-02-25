@@ -47,35 +47,30 @@ export default function UploadDialog({
 
       try {
         // Step 1: Compress image
-        const compressed = await compressImage(updated[i].file);
-        updated[i] = { ...updated[i], progress: 40 };
-        setUploadFiles([...updated]);
+         const compressed = await compressImage(updated[i].file);
+         updated[i] = { ...updated[i], progress: 40 };
+         setUploadFiles([...updated]);
 
-        // Step 2: Upload to Base44 public storage (returns public URL)
-        const response = await base44.integrations.Core.UploadFile({ file: compressed });
-        console.log(`[Gallery Upload] Storage response:`, JSON.stringify(response));
+         // Step 2: Convert to base64 for transmission
+         const reader = new FileReader();
+         const fileBase64 = await new Promise((resolve, reject) => {
+           reader.onload = () => resolve(reader.result);
+           reader.onerror = reject;
+           reader.readAsDataURL(compressed);
+         });
 
-        const file_url = response?.file_url;
+         updated[i] = { ...updated[i], progress: 80 };
+         setUploadFiles([...updated]);
 
-        if (!file_url || typeof file_url !== 'string' || file_url.trim().length === 0) {
-          throw new Error(`Upload service did not return a valid URL. Response: ${JSON.stringify(response)}`);
-        }
-
-        const validUrl = file_url.trim();
-        console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${validUrl}`);
-
-        updated[i] = { ...updated[i], progress: 80 };
-        setUploadFiles([...updated]);
-
-        // Step 4: Save to database via backend function (bypasses RLS)
-        try {
-          const createRes = await base44.functions.invoke('uploadGalleryPhoto', {
-            album_id: selectedAlbum.id,
-            photo_url: validUrl,
-            caption: caption || '',
-            uploaded_by: user?.email || 'unknown',
-            status: needsApproval ? 'Pending' : 'Published'
-          });
+         // Step 3: Save to database via backend function with file data
+         try {
+           const createRes = await base44.functions.invoke('uploadGalleryPhoto', {
+             album_id: selectedAlbum.id,
+             file_data: fileBase64,
+             caption: caption || '',
+             uploaded_by: user?.email || 'unknown',
+             status: needsApproval ? 'Pending' : 'Published'
+           });
           
           if (!createRes.data || !createRes.data.success) {
             throw new Error(createRes.data?.error || 'Failed to save record to database.');
