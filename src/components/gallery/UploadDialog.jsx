@@ -103,7 +103,7 @@ export default function UploadDialog({
     if (successCount > 0) {
       setTimeout(() => {
         onUploadSuccess();
-        setShowUpload(false);
+        onOpenChange(false);
         setUploadFiles([]);
         setCaption('');
       }, 800);
