@@ -52,12 +52,15 @@ export default function UploadDialog({
         updated[i] = { ...updated[i], progress: 40 };
         setUploadFiles([...updated]);
 
-        // Step 2: Upload to storage service (Supabase)
+        // Step 2: Upload to storage service
         const response = await base44.integrations.Core.UploadFile({ file: compressed });
         const file_url = response?.file_url;
         
         if (!file_url) {
-          throw new Error('Upload service did not return a valid URL');
+          if (response?.error) {
+            throw new Error(`Upload Service Error: ${response.error.message || JSON.stringify(response.error)}`);
+          }
+          throw new Error('Upload service did not return a valid URL.');
         }
 
         console.log(`[Gallery Upload] File: ${updated[i].file.name}, URL: ${file_url}`);
@@ -68,23 +71,37 @@ export default function UploadDialog({
         // Step 3: Clean and accept URL (frontend GalleryImage handles broken links)
         const validUrl = cleanPhotoUrl(file_url);
         if (!validUrl) {
-          throw new Error(`Upload returned empty URL`);
+          throw new Error(`Upload returned empty URL or mapping failed.`);
         }
 
         // Step 4: Save to database
-        await base44.entities.GalleryPhoto.create({
-          album_id: selectedAlbum.id,
-          photo_url: validUrl,
-          caption,
-          uploaded_by: user?.email || 'unknown',
-          status: needsApproval ? 'Pending' : 'Published'
-        });
+        try {
+          await base44.entities.GalleryPhoto.create({
+            album_id: selectedAlbum.id,
+            photo_url: validUrl,
+            caption,
+            uploaded_by: user?.email || 'unknown',
+            status: needsApproval ? 'Pending' : 'Published'
+          });
+        } catch (dbError) {
+           console.error('Database insertion error:', dbError);
+           // Handle specific database errors (like RLS/403/500)
+           if (dbError?.response) {
+               throw new Error(`Database Error (${dbError.response.status}): ${dbError.response.data?.message || dbError.response.statusText}. Check RLS permissions.`);
+           } else {
+               throw new Error(`Database Error: ${dbError.message}`);
+           }
+        }
 
         updated[i] = { ...updated[i], status: 'done', progress: 100 };
         successCount++;
       } catch (error) {
-        const errorMsg = error?.message || 'Upload failed - please try again';
-        console.error('Upload error:', error);
+        let errorMsg = error?.message || 'Unknown upload error';
+        if (error?.response) {
+            errorMsg = `Server Error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+        }
+        
+        console.error('Upload error details:', error);
         errorMessages.push(`${updated[i].file.name}: ${errorMsg}`);
         updated[i] = { ...updated[i], status: 'error', progress: 0 };
       }
