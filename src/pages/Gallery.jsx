@@ -8,9 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Plus, Upload, X, Check, ChevronLeft, Image, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-// Upload file directly without compression
+// Convert file to base64 for upload
 async function prepareImage(file) {
-  return file;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 
