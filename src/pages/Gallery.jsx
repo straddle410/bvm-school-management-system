@@ -105,7 +105,7 @@ export default function Gallery() {
     onSuccess: () => {
       queryClient.invalidateQueries(['albums']);
       setShowCreateAlbum(false);
-      setNewAlbum({ name: '', description: '', event_date: '', visibility: 'Public' });
+      setNewAlbum({ name: '', description: '', event_date: '', visibility: ['Public'] });
     }
   });
 
