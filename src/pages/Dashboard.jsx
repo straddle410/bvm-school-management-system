@@ -174,8 +174,8 @@ export default function Dashboard() {
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-3 sm:px-4 pt-4 pb-5 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              {schoolProfile?.logo_url
-                ? <img src={schoolProfile.logo_url} alt="Logo" className="h-8 w-8 rounded-full object-contain bg-white p-0.5 shadow" />
+              {schoolProfile?.logo_url && schoolProfile.logo_url.trim()
+                ? <LogoImageWithFallback src={schoolProfile.logo_url} alt="Logo" />
                 : <GraduationCap className="h-6 w-6 text-blue-200" />
               }
               <span className="font-bold text-white text-base tracking-wide">{schoolProfile?.school_name || 'School Portal'}</span>
