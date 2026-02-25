@@ -100,6 +100,24 @@ export default function MarksTable({
                      </td>
                   );
                 })}
+                {/* Total column */}
+                {(() => {
+                  const total = subjects.reduce((sum, subject) => {
+                    const m = marksData[studentId]?.[subject]?.marks_obtained;
+                    return m !== undefined && m !== '' ? sum + parseFloat(m) : sum;
+                  }, 0);
+                  const hasAny = subjects.some(subject => {
+                    const m = marksData[studentId]?.[subject]?.marks_obtained;
+                    return m !== undefined && m !== '';
+                  });
+                  return (
+                    <td className="border border-slate-200 px-1 md:px-3 py-1 md:py-2 text-center min-w-16 bg-slate-100">
+                      <span className="text-xs md:text-sm font-bold text-slate-800">
+                        {hasAny ? total : '—'}
+                      </span>
+                    </td>
+                  );
+                })()}
               </tr>
             );
           })}
