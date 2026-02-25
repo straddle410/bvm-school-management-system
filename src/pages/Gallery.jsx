@@ -307,34 +307,80 @@ export default function Gallery() {
         </Dialog>
 
         {/* Upload Dialog */}
-        <Dialog open={showUpload} onOpenChange={setShowUpload}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Upload Photo</DialogTitle></DialogHeader>
+        <Dialog open={showUpload} onOpenChange={open => { if (!isUploading) { setShowUpload(open); if (!open) { setUploadFiles([]); setCaption(''); } } }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Upload Photos</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label>Photo</Label>
-                <label className="mt-1 flex items-center gap-3 cursor-pointer">
-                  <span className="px-4 py-2 bg-[#1a237e] text-white rounded-lg text-sm font-medium">
-                    {uploadFile ? uploadFile.name : 'Choose Photo'}
-                  </span>
-                  <input type="file" accept="image/*" className="hidden" onChange={e => setUploadFile(e.target.files[0])} />
+              {/* Drop zone */}
+              {uploadFiles.length === 0 && (
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-8 cursor-pointer hover:border-[#1a237e] hover:bg-blue-50/40 transition-all">
+                  <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm font-medium text-gray-600">Tap to select photos</p>
+                  <p className="text-xs text-gray-400 mt-1">Multiple files supported • Auto-compressed</p>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => handleFilesSelected(e.target.files)} />
                 </label>
-              </div>
+              )}
+
+              {/* File list with progress */}
+              {uploadFiles.length > 0 && (
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {uploadFiles.map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-2.5">
+                      <img src={item.preview} alt="" className="h-10 w-10 rounded-lg object-cover flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-700 truncate">{item.file.name}</p>
+                        <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${item.status === 'error' ? 'bg-red-500' : item.status === 'done' ? 'bg-green-500' : 'bg-[#1a237e]'}`}
+                            style={{ width: `${item.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {item.status === 'done' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                        {item.status === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                        {item.status === 'uploading' && <Loader2 className="h-4 w-4 text-[#1a237e] animate-spin" />}
+                        {item.status === 'pending' && !isUploading && (
+                          <button onClick={() => setUploadFiles(f => f.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-400">
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add more button */}
+              {uploadFiles.length > 0 && !isUploading && (
+                <label className="flex items-center gap-2 text-sm text-[#1a237e] font-medium cursor-pointer hover:underline">
+                  <Plus className="h-4 w-4" /> Add more photos
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                    const more = Array.from(e.target.files).filter(f => f.type.startsWith('image/')).map(file => ({ file, status: 'pending', progress: 0, preview: URL.createObjectURL(file) }));
+                    setUploadFiles(prev => [...prev, ...more]);
+                  }} />
+                </label>
+              )}
+
               <div>
                 <Label>Caption (optional)</Label>
-                <Input value={caption} onChange={e => setCaption(e.target.value)} placeholder="Add a caption..." />
+                <Input value={caption} onChange={e => setCaption(e.target.value)} placeholder="Add a caption for all photos..." className="mt-1" />
               </div>
+
               {needsApproval && (
                 <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-                  Your photo will be visible after admin approval.
+                  Photos will be visible after admin approval.
                 </p>
               )}
+
               <Button
                 className="w-full bg-[#1a237e] hover:bg-[#283593]"
-                disabled={!uploadFile || uploadMutation.isPending}
-                onClick={() => uploadMutation.mutate()}
+                disabled={!uploadFiles.length || isUploading}
+                onClick={handleUploadAll}
               >
-                {uploadMutation.isPending ? 'Uploading...' : 'Upload Photo'}
+                {isUploading
+                  ? `Uploading ${uploadFiles.filter(f => f.status === 'done').length}/${uploadFiles.length}...`
+                  : `Upload ${uploadFiles.length} Photo${uploadFiles.length !== 1 ? 's' : ''}`}
               </Button>
             </div>
           </DialogContent>
