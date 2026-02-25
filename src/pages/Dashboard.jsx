@@ -66,6 +66,7 @@ function GradientIcon({ gradient, icon: Icon, size = 'md' }) {
 export default function Dashboard() {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [user, setUser] = useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
 
   useEffect(() => {
     const staffRaw = localStorage.getItem('staff_session');
@@ -75,6 +76,8 @@ export default function Dashboard() {
     } else if (studentRaw) {
       try { setUser(JSON.parse(studentRaw)); } catch {}
     }
+    // Load school profile for logo
+    base44.entities.SchoolProfile.list().then(p => { if (p.length > 0) setSchoolProfile(p[0]); }).catch(() => {});
   }, []);
 
   const { data: bannerSlides = [] } = useQuery({
