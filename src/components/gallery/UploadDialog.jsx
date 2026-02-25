@@ -74,23 +74,22 @@ export default function UploadDialog({
           throw new Error(`Upload returned empty URL or mapping failed.`);
         }
 
-        // Step 4: Save to database
+        // Step 4: Save to database via backend function (bypasses RLS)
         try {
-          await base44.entities.GalleryPhoto.create({
+          const createRes = await base44.functions.invoke('uploadPhotoRecord', {
             album_id: selectedAlbum.id,
             photo_url: validUrl,
-            caption,
+            caption: caption || '',
             uploaded_by: user?.email || 'unknown',
             status: needsApproval ? 'Pending' : 'Published'
           });
+          
+          if (!createRes.data || !createRes.data.success) {
+            throw new Error(createRes.data?.error || 'Failed to save record to database.');
+          }
         } catch (dbError) {
            console.error('Database insertion error:', dbError);
-           // Handle specific database errors (like RLS/403/500)
-           if (dbError?.response) {
-               throw new Error(`Database Error (${dbError.response.status}): ${dbError.response.data?.message || dbError.response.statusText}. Check RLS permissions.`);
-           } else {
-               throw new Error(`Database Error: ${dbError.message}`);
-           }
+           throw new Error(`Database Error: ${dbError.message || dbError}`);
         }
 
         updated[i] = { ...updated[i], status: 'done', progress: 100 };
