@@ -27,7 +27,10 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       loading={loading}
       className={className}
       onClick={onClick}
-      onError={() => setHasError(true)}
+      onError={(e) => {
+        console.error('Image failed to load:', src);
+        setHasError(true);
+      }}
     />
   );
 }
