@@ -38,6 +38,7 @@ export default function UploadDialog({
     setIsUploading(true);
     const updated = [...uploadFiles];
     let successCount = 0;
+    let errorMessages = [];
 
     for (let i = 0; i < updated.length; i++) {
       if (updated[i].status === 'done') continue;
@@ -46,20 +47,29 @@ export default function UploadDialog({
       setUploadFiles([...updated]);
 
       try {
+        // Step 1: Compress image
         const compressed = await compressImage(updated[i].file);
         updated[i] = { ...updated[i], progress: 40 };
         setUploadFiles([...updated]);
 
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+        // Step 2: Upload to storage service (Supabase)
+        const response = await base44.integrations.Core.UploadFile({ file: compressed });
+        const file_url = response?.file_url;
+        
+        if (!file_url) {
+          throw new Error('Upload service did not return a valid URL');
+        }
+
         updated[i] = { ...updated[i], progress: 80 };
         setUploadFiles([...updated]);
 
-        // Validate URL before saving
+        // Step 3: Validate URL (lightweight - only reject empty/legacy URLs)
         const validUrl = cleanPhotoUrl(file_url);
         if (!validUrl) {
-          throw new Error('Invalid URL returned from upload service');
+          throw new Error(`Invalid photo URL: ${file_url}`);
         }
 
+        // Step 4: Save to database
         await base44.entities.GalleryPhoto.create({
           album_id: selectedAlbum.id,
           photo_url: validUrl,
@@ -71,7 +81,9 @@ export default function UploadDialog({
         updated[i] = { ...updated[i], status: 'done', progress: 100 };
         successCount++;
       } catch (error) {
+        const errorMsg = error?.message || 'Upload failed - please try again';
         console.error('Upload error:', error);
+        errorMessages.push(`${updated[i].file.name}: ${errorMsg}`);
         updated[i] = { ...updated[i], status: 'error', progress: 0 };
       }
       
@@ -79,6 +91,12 @@ export default function UploadDialog({
     }
 
     setIsUploading(false);
+
+    // Show results to user
+    if (errorMessages.length > 0) {
+      const errorText = errorMessages.join('\n');
+      alert(`Some uploads failed:\n\n${errorText}`);
+    }
 
     if (successCount > 0) {
       setTimeout(() => {

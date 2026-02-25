@@ -1,5 +1,6 @@
 /**
- * Validates photo URLs before saving to database
+ * Validates photo URLs - lightweight check after upload completes
+ * Only rejects empty/null and legacy base44.app URLs
  */
 export function isValidPhotoUrl(url) {
   if (!url || typeof url !== 'string') return false;
@@ -7,26 +8,16 @@ export function isValidPhotoUrl(url) {
   const trimmed = url.trim();
   if (trimmed.length === 0) return false;
   
-  // Must start with https or http
-  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
-    return false;
-  }
-  
-  // Reject legacy base44.app URLs
+  // Reject ONLY legacy base44.app URLs - accept everything else from trusted upload service
   if (trimmed.includes('base44.app/api/apps')) {
     return false;
   }
   
-  try {
-    new URL(trimmed);
-    return true;
-  } catch {
-    return false;
-  }
+  return true;
 }
 
 /**
- * Validates and cleans photo URL
+ * Cleans and validates photo URL after upload
  */
 export function cleanPhotoUrl(url) {
   if (!url) return null;
