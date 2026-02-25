@@ -370,8 +370,8 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit }) {
                 Publish
               </Button>
             )}
-            {isAdmin && (
-              <Button size="sm" variant="destructive" className={!canEdit ? 'w-full' : 'flex-1'} onClick={() => {
+            {(isAdmin || canEdit) && (
+              <Button size="sm" variant="destructive" className="flex-1" onClick={() => {
                 if (confirm('Delete this notice?')) onDelete(notice.id);
               }}>
                 Delete
