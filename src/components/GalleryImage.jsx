@@ -4,6 +4,10 @@ import { Image as ImageIcon } from 'lucide-react';
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
   const [hasError, setHasError] = useState(false);
   
+  React.useEffect(() => {
+    setHasError(false);
+  }, [src]);
+  
   // Validate URL - check if src exists and is a valid string
   const isValidUrl = src && typeof src === 'string' && src.trim().length > 0;
 
