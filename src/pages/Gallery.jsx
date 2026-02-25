@@ -213,6 +213,20 @@ export default function Gallery() {
                 ))}
               </div>
             )}
+            
+            {/* Load More Pagination */}
+            {allPhotos.length >= photoLimit && (
+              <div className="flex justify-center mt-4 mb-8">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPhotoLimit(prev => prev + 200)}
+                  disabled={isLoadingPhotos}
+                  className="w-full sm:w-auto"
+                >
+                  {isLoadingPhotos ? 'Loading...' : 'Load More Photos'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
