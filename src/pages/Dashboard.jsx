@@ -249,12 +249,11 @@ export default function Dashboard() {
         </section>
 
         {/* Quick Actions - staff only */}
-        {isStaff && (
+        {isStaff && visibleQuickActions.length > 0 && (
           <section>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
             <div className="grid grid-cols-4 gap-3">
-              {quickActions
-                .filter(item => !item.roleRequired || item.roleRequired.includes(user?.role))
+              {visibleQuickActions
                 .map((item) => (
                   <Link key={item.label} to={createPageUrl(item.page)} className="block">
                     <div className="flex flex-col items-center gap-1.5">
