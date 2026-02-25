@@ -103,7 +103,7 @@ export default function Gallery() {
   const createAlbumMutation = useMutation({
     mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, status: 'Published' }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['albums']);
+      queryClient.invalidateQueries({ queryKey: ['albums'] });
       setShowCreateAlbum(false);
       setNewAlbum({ name: '', description: '', event_date: '', visibility: ['Public'] });
     }
