@@ -134,36 +134,78 @@ export default function Gallery() {
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-0.5 mt-0.5">
-          {visiblePhotos.map((photo, index) => (
-            <div key={photo.id} className="relative aspect-square cursor-pointer" onClick={() => handlePhotoClick(photo, index)}>
-              <img src={photo.photo_url} alt={photo.caption} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
-              {photo.status === 'Pending' && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+        {visiblePhotos.length === 0 ? (
+          <div className="py-20 flex flex-col items-center text-gray-400 gap-2">
+            <Image className="h-12 w-12 opacity-30" />
+            <p className="text-sm">No photos yet</p>
+          </div>
+        ) : (
+          <div className="p-2 space-y-2">
+            {/* Hero photo */}
+            <div
+              className="relative w-full rounded-2xl overflow-hidden cursor-pointer shadow-md"
+              style={{ height: 240 }}
+              onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
+            >
+              <img src={visiblePhotos[0].photo_url} alt={visiblePhotos[0].caption} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
+              {visiblePhotos[0].status === 'Pending' && (
+                <div className="absolute top-2 left-2">
                   <span className="text-white text-[10px] font-bold bg-yellow-500 px-2 py-0.5 rounded-full">Pending</span>
                 </div>
               )}
               {isAdmin && (
-                <div className="absolute top-1 right-1 flex gap-1">
-                  {photo.status === 'Pending' && (
-                    <button onClick={() => approveMutation.mutate(photo.id)} className="bg-green-500 text-white rounded-full p-1">
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {visiblePhotos[0].status === 'Pending' && (
+                    <button onClick={e => { e.stopPropagation(); approveMutation.mutate(visiblePhotos[0].id); }} className="bg-green-500 text-white rounded-full p-1.5 shadow">
                       <Check className="h-3 w-3" />
                     </button>
                   )}
-                  <button onClick={() => deleteMutation.mutate(photo.id)} className="bg-red-500 text-white rounded-full p-1">
+                  <button onClick={e => { e.stopPropagation(); deleteMutation.mutate(visiblePhotos[0].id); }} className="bg-red-500 text-white rounded-full p-1.5 shadow">
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               )}
+              {visiblePhotos[0].caption && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                  <p className="text-white text-xs">{visiblePhotos[0].caption}</p>
+                </div>
+              )}
             </div>
-          ))}
-          {visiblePhotos.length === 0 && (
-            <div className="col-span-3 py-16 flex flex-col items-center text-gray-400 gap-2">
-              <Image className="h-12 w-12 opacity-30" />
-              <p className="text-sm">No photos yet</p>
-            </div>
-          )}
-        </div>
+
+            {/* Rest in 3-col grid */}
+            {visiblePhotos.length > 1 && (
+              <div className="grid grid-cols-3 gap-1.5">
+                {visiblePhotos.slice(1).map((photo, idx) => (
+                  <div
+                    key={photo.id}
+                    className="relative rounded-xl overflow-hidden cursor-pointer shadow-sm"
+                    style={{ height: 100 }}
+                    onClick={() => handlePhotoClick(photo, idx + 1)}
+                  >
+                    <img src={photo.photo_url} alt={photo.caption} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                    {photo.status === 'Pending' && (
+                      <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-1">
+                        <span className="text-white text-[9px] font-bold bg-yellow-500 px-1.5 py-0.5 rounded-full">Pending</span>
+                      </div>
+                    )}
+                    {isAdmin && (
+                      <div className="absolute top-1 right-1 flex gap-0.5">
+                        {photo.status === 'Pending' && (
+                          <button onClick={e => { e.stopPropagation(); approveMutation.mutate(photo.id); }} className="bg-green-500 text-white rounded-full p-1 shadow">
+                            <Check className="h-2.5 w-2.5" />
+                          </button>
+                        )}
+                        <button onClick={e => { e.stopPropagation(); deleteMutation.mutate(photo.id); }} className="bg-red-500 text-white rounded-full p-1 shadow">
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Photo Lightbox Dialog */}
         <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
