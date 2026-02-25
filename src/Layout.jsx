@@ -40,6 +40,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [studentSession, setStudentSession] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check student session first
