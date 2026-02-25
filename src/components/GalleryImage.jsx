@@ -39,9 +39,12 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
   const getProxiedImage = async () => {
     try {
       const response = await base44.functions.invoke('imageProxy', { url: src });
-      if (response?.data?.dataUrl) {
-        setDisplayUrl(response.data.dataUrl);
+      console.log('[GalleryImage] Proxy response:', response);
+      const dataUrl = response?.data?.dataUrl || response?.dataUrl;
+      if (dataUrl) {
+        setDisplayUrl(dataUrl);
       } else {
+        console.error('[GalleryImage] No dataUrl in response');
         setHasError(true);
       }
     } catch (error) {
