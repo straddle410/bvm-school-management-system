@@ -68,9 +68,12 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    let session = localStorage.getItem('staff_session') || localStorage.getItem('student_session');
-    if (session) {
-      try { setUser(JSON.parse(session)); } catch {}
+    const staffRaw = localStorage.getItem('staff_session');
+    const studentRaw = localStorage.getItem('student_session');
+    if (staffRaw) {
+      try { setUser(JSON.parse(staffRaw)); } catch {}
+    } else if (studentRaw) {
+      try { setUser(JSON.parse(studentRaw)); } catch {}
     }
   }, []);
 
