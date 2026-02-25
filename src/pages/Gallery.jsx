@@ -460,9 +460,9 @@ export default function Gallery() {
                       <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                       {/* Small thumbnails top-right */}
-                      {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
+                      {thumbs.length > 0 && (
                         <div className="absolute top-1.5 right-1.5 flex gap-0.5">
-                          {thumbs.filter(p => p.photo_url?.trim()).map(p => (
+                          {thumbs.map(p => (
                             <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
                               <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
                             </div>
