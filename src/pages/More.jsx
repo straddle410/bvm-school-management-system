@@ -32,12 +32,20 @@ export default function More() {
   const isAdmin = ['Admin', 'Principal'].includes(role);
   const isTeacher = ['Admin', 'Principal', 'Teacher', 'Staff'].includes(role);
 
-  const contentItems = [
-    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices' },
-    { label: 'Marks Entry', sub: 'Enter class-wise marks', icon: ClipboardList, color: '#1e88e5', bg: '#e3f2fd', page: 'Marks' },
-    { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance' },
-    { label: 'Messages', sub: 'Inbox & send messages', icon: MessageSquare, color: '#1a237e', bg: '#e8eaf6', page: 'Messaging' },
+  const permissions = user?.permissions || {};
+
+  const allContentItems = [
+    { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance', permKey: 'attendance' },
+    { label: 'Marks Entry', sub: 'Enter class-wise marks', icon: ClipboardList, color: '#1e88e5', bg: '#e3f2fd', page: 'Marks', permKey: 'marks' },
+    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices', permKey: 'post_notices' },
+    { label: 'Messages', sub: 'Inbox & send messages', icon: MessageSquare, color: '#1a237e', bg: '#e8eaf6', page: 'Messaging', permKey: null },
+    { label: 'Diary', sub: 'Post class diary entries', icon: BookOpen, color: '#e91e63', bg: '#fce4ec', page: 'DiaryManagement', permKey: null },
+    { label: 'Homework', sub: 'Assign homework', icon: ClipboardList, color: '#f57c00', bg: '#fff3e0', page: 'HomeworkManage', permKey: null },
   ];
+
+  const contentItems = isAdmin
+    ? allContentItems
+    : allContentItems.filter(item => !item.permKey || !!permissions[item.permKey]);
 
   const adminItems = [
     { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
