@@ -62,7 +62,7 @@ export default function TemplateUploader({ onTemplateUpload }) {
             <div className="space-y-4">
               <div className="bg-gray-100 rounded-lg p-4">
                 <img 
-                  src={templateUrl} 
+                  src={templateUrl.includes('base44.app') ? `https://images.weserv.nl/?url=${encodeURIComponent(templateUrl)}` : templateUrl} 
                   alt="Uploaded template" 
                   className="max-h-96 mx-auto rounded"
                   onError={() => (
