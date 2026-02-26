@@ -164,26 +164,142 @@ Deno.serve(async (req) => {
       }));
     });
 
-    // Helper: Call shared attendance summary function
-    const getAttendanceSummary = async (studentId, className, section) => {
-      const result = await base44.asServiceRole.functions.invoke('calculateAttendanceSummaryForStudent', {
-        studentId,
-        classname: className,
-        section,
-        academicYear,
-        startDate: attendanceRangeStart,
-        endDate: attendanceRangeEnd
+    // Helper: Calculate attendance for a date range (using Set deduplication)
+    const calculateAttendanceForRange = (records, startDate, endDate) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      start.setUTCHours(0, 0, 0, 0);
+      end.setUTCHours(23, 59, 59, 999);
+
+      const allInRange = records.filter(a => {
+        const attDate = new Date(a.date);
+        attDate.setUTCHours(0, 0, 0, 0);
+        return attDate >= start && attDate <= end;
       });
-      return result;
+
+      const uniqueWorkingDates = new Set();
+      allInRange.forEach(a => {
+        if (!a.is_holiday && a.attendance_type !== 'holiday') {
+          uniqueWorkingDates.add(a.date);
+        }
+      });
+      const workingDays = uniqueWorkingDates.size;
+
+      const fullDayDates = new Set();
+      const halfDayDates = new Set();
+      
+      allInRange.forEach(a => {
+        if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+          if (a.attendance_type === 'full_day') {
+            fullDayDates.add(a.date);
+          } else if (a.attendance_type === 'half_day') {
+            halfDayDates.add(a.date);
+          }
+        }
+      });
+
+      const fullDays = fullDayDates.size;
+      const halfDays = halfDayDates.size;
+      const totalPresent = fullDays + (halfDays * 0.5);
+
+      const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+
+      return {
+        working_days: workingDays,
+        full_days_present: fullDays,
+        half_days_present: halfDays,
+        total_present_days: Math.round(totalPresent * 100) / 100,
+        attendance_percentage: percentage
+      };
+    };
+
+    // Helper: Get month-wise breakdown
+    const getMonthWiseBreakdown = (records, startDate, endDate) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      start.setUTCHours(0, 0, 0, 0);
+      end.setUTCHours(23, 59, 59, 999);
+      const months = [];
+
+      let current = new Date(start);
+      while (current <= end) {
+        const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
+        const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+        monthStart.setUTCHours(0, 0, 0, 0);
+        monthEnd.setUTCHours(23, 59, 59, 999);
+
+        const periodStart = monthStart < start ? start : monthStart;
+        const periodEnd = monthEnd > end ? end : monthEnd;
+
+        const allMonthRecords = records.filter(a => {
+          const attDate = new Date(a.date);
+          attDate.setUTCHours(0, 0, 0, 0);
+          return attDate >= periodStart && attDate <= periodEnd;
+        });
+
+        const uniqueMonthWorkingDates = new Set();
+        allMonthRecords.forEach(a => {
+          if (!a.is_holiday && a.attendance_type !== 'holiday') {
+            uniqueMonthWorkingDates.add(a.date);
+          }
+        });
+        const workingDays = uniqueMonthWorkingDates.size;
+
+        const monthFullDayDates = new Set();
+        const monthHalfDayDates = new Set();
+        
+        allMonthRecords.forEach(a => {
+          if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+            if (a.attendance_type === 'full_day') {
+              monthFullDayDates.add(a.date);
+            } else if (a.attendance_type === 'half_day') {
+              monthHalfDayDates.add(a.date);
+            }
+          }
+        });
+
+        const fullDays = monthFullDayDates.size;
+        const halfDays = monthHalfDayDates.size;
+        const totalPresent = fullDays + (halfDays * 0.5);
+
+        const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthName = monthNames[current.getMonth()];
+        let displayText = monthName;
+
+        if (periodStart.getMonth() === periodEnd.getMonth()) {
+          if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
+            displayText = `${monthName} (${periodStart.getDate()}–${periodEnd.getDate()})`;
+          }
+        }
+
+        months.push({
+          month: monthName,
+          year: current.getFullYear(),
+          month_display: displayText,
+          period_start: periodStart.toISOString().split('T')[0],
+          period_end: periodEnd.toISOString().split('T')[0],
+          working_days: workingDays,
+          full_days_present: fullDays,
+          half_days_present: halfDays,
+          total_present: Math.round(totalPresent * 100) / 100,
+          attendance_percentage: percentage
+        });
+
+        current.setMonth(current.getMonth() + 1);
+      }
+
+      return months;
     };
 
     // Generate progress cards
     const progressCards = [];
     const uniqueStudents = new Map();
 
-    for (const studentMarks of Object.values(studentMarksMap)) {
+    Object.values(studentMarksMap).forEach(studentMarks => {
       const studentKey = `${studentMarks.student_id}__${studentMarks.class_name}__${studentMarks.section}__${academicYear}`;
-      if (uniqueStudents.has(studentKey)) continue;
+      if (uniqueStudents.has(studentKey)) return;
       uniqueStudents.set(studentKey, true);
 
       const percentage = studentMarks.max_marks > 0 
@@ -194,14 +310,36 @@ Deno.serve(async (req) => {
       const rankKey = `${studentMarks.class_name}__${studentMarks.section}`;
       const rankData = rankMap[rankKey]?.find(r => r.student_id === studentMarks.student_id);
 
-      // Fetch attendance summary from shared function - ensures exact match with attendance module
-      const attendanceSummary = await getAttendanceSummary(
-        studentMarks.student_id,
-        studentMarks.class_name,
-        studentMarks.section
+      // Fetch attendance for this student
+      const studentAttendance = attendanceInRange.filter(a =>
+        a.student_id === studentMarks.student_id &&
+        a.class_name === studentMarks.class_name &&
+        a.section === studentMarks.section
       );
 
-      console.log(`[ATTENDANCE-SUMMARY] Student ${studentMarks.student_name} (${studentMarks.student_id}): working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
+      const studentRecordsInRange = studentAttendance.filter(a => {
+        const attDate = new Date(a.date);
+        attDate.setUTCHours(0, 0, 0, 0);
+        const rangeStart = new Date(attendanceRangeStart);
+        const rangeEnd = new Date(attendanceRangeEnd);
+        rangeStart.setUTCHours(0, 0, 0, 0);
+        rangeEnd.setUTCHours(23, 59, 59, 999);
+        return attDate >= rangeStart && attDate <= rangeEnd;
+      });
+
+      if (studentRecordsInRange.length === 0) {
+        throw new Error(`Student ${studentMarks.student_name} (${studentMarks.student_id}) has no attendance records in range ${attendanceRangeStart} to ${attendanceRangeEnd}.`);
+      }
+
+      const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceRangeStart, attendanceRangeEnd);
+      const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceRangeStart, attendanceRangeEnd);
+
+      const attendanceSummary = {
+        range_start: attendanceRangeStart,
+        range_end: attendanceRangeEnd,
+        ...rangeAttendance,
+        month_wise_breakdown: monthWiseBreakdown
+      };
 
       // FAIL-FAST: Validate attendance_summary is fully populated
       if (!attendanceSummary.range_start || !attendanceSummary.range_end || attendanceSummary.working_days === undefined) {
@@ -246,7 +384,7 @@ Deno.serve(async (req) => {
         generated_at: new Date().toISOString(),
         status: 'Generated'
       });
-    }
+    });
 
     // Delete existing progress cards for this exam type
     const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
