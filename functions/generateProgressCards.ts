@@ -136,6 +136,7 @@ Deno.serve(async (req) => {
     // Determine attendance range once - use the exam with the latest END date (most comprehensive range)
     let globalAttendanceStartDate = null;
     let globalAttendanceEndDate = null;
+    let rangeExamType = null;
 
     const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
     if (examTypesWithRange.length > 0) {
@@ -143,9 +144,39 @@ Deno.serve(async (req) => {
       const sorted = examTypesWithRange.sort((a, b) => new Date(b.attendance_range_end) - new Date(a.attendance_range_end));
       globalAttendanceStartDate = sorted[0].attendance_range_start;
       globalAttendanceEndDate = sorted[0].attendance_range_end;
-      console.log(`[RANGE FOUND] Exam: ${sorted[0].name}, Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
+      rangeExamType = sorted[0].name;
+      console.log(`[RANGE FOUND] Exam: ${rangeExamType}, Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
     } else {
-      console.log(`[NO RANGE FOUND] exam types: ${examTypeRecords.length}, with range: ${examTypesWithRange.length}`);
+      return Response.json(
+        { error: `No exam types with attendance date ranges found for academic year ${academicYear}. Please configure attendance_range_start and attendance_range_end in at least one ExamType.` },
+        { status: 400 }
+      );
+    }
+
+    // VALIDATION: Check if attendance records exist within the selected range
+    const attendanceInRange = await base44.asServiceRole.entities.Attendance.filter({
+      academic_year: academicYear
+    });
+
+    const recordsInRange = attendanceInRange.filter(a => {
+      const attDate = new Date(a.date);
+      attDate.setUTCHours(0, 0, 0, 0);
+      const rangeStart = new Date(globalAttendanceStartDate);
+      const rangeEnd = new Date(globalAttendanceEndDate);
+      rangeStart.setUTCHours(0, 0, 0, 0);
+      rangeEnd.setUTCHours(23, 59, 59, 999);
+      return attDate >= rangeStart && attDate <= rangeEnd;
+    });
+
+    if (recordsInRange.length === 0) {
+      return Response.json(
+        { 
+          error: `No attendance records found within the selected date range (${globalAttendanceStartDate} to ${globalAttendanceEndDate}) from ExamType "${rangeExamType}". Please update the attendance date range in ExamType or verify attendance records exist.`,
+          rangeExamType,
+          requestedRange: { start: globalAttendanceStartDate, end: globalAttendanceEndDate }
+        },
+        { status: 400 }
+      );
     }
 
     // Calculate overall statistics and generate progress cards
