@@ -104,9 +104,14 @@ export default function AttendanceSummaryReport() {
 
     return students.map(student => {
       const studentAttendance = attendanceRecords.filter(a => a.student_id === student.student_id || a.student_id === student.id);
-      const presentDays = studentAttendance.filter(a => a.is_present && !a.is_holiday).length;
-      const absentDays = studentAttendance.filter(a => !a.is_present && !a.is_holiday).length;
-      const attendancePercent = workingDays > 0 ? ((presentDays / workingDays) * 100).toFixed(2) : 0;
+      
+      // Use new attendance_type field (full_day, half_day, absent, holiday)
+      const fullDays = studentAttendance.filter(a => a.attendance_type === 'full_day').length;
+      const halfDays = studentAttendance.filter(a => a.attendance_type === 'half_day').length;
+      const totalPresentDays = fullDays + (halfDays * 0.5);
+      const absentDays = studentAttendance.filter(a => a.attendance_type === 'absent').length;
+      
+      const attendancePercent = workingDays > 0 ? ((totalPresentDays / workingDays) * 100).toFixed(2) : 0;
 
       return {
         id: student.id,
@@ -117,7 +122,7 @@ export default function AttendanceSummaryReport() {
         section: student.section,
         totalWorkingDays: workingDays,
         totalHolidays: daysBetween.filter(d => holidaySet.has(d)).length,
-        presentDays,
+        presentDays: Math.round(totalPresentDays * 100) / 100,
         absentDays,
         attendancePercent: parseFloat(attendancePercent)
       };
