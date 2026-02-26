@@ -345,22 +345,37 @@ Deno.serve(async (req) => {
       };
 
       // Calculate attendance summary
-      let attendanceSummary = null;
-      console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${attendanceStartDate}, endDate: ${attendanceEndDate}, records: ${studentAttendance.length}`);
-      if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
-        const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
-        const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
+       let attendanceSummary = null;
+       console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${attendanceStartDate}, endDate: ${attendanceEndDate}, records: ${studentAttendance.length}`);
+       if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
+         // VALIDATION: Ensure attendance records exist within the range for this student
+         const studentRecordsInRange = studentAttendance.filter(a => {
+           const attDate = new Date(a.date);
+           attDate.setUTCHours(0, 0, 0, 0);
+           const rangeStart = new Date(attendanceStartDate);
+           const rangeEnd = new Date(attendanceEndDate);
+           rangeStart.setUTCHours(0, 0, 0, 0);
+           rangeEnd.setUTCHours(23, 59, 59, 999);
+           return attDate >= rangeStart && attDate <= rangeEnd;
+         });
 
-        attendanceSummary = {
-          range_start: attendanceStartDate,
-          range_end: attendanceEndDate,
-          ...rangeAttendance,
-          month_wise_breakdown: monthWiseBreakdown
-        };
-        console.log(`[CALC-DONE] Summary created: working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
-      } else {
-        console.log(`[CALC-SKIP] Condition failed: start=${!!attendanceStartDate}, end=${!!attendanceEndDate}, records=${studentAttendance.length > 0}`);
-      }
+         if (studentRecordsInRange.length === 0) {
+           throw new Error(`Student ${student.student_name} (${student.student_id}) has no attendance records in range ${attendanceStartDate} to ${attendanceEndDate}. Cannot generate progress card without attendance data.`);
+         }
+
+         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
+         const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
+
+         attendanceSummary = {
+           range_start: attendanceStartDate,
+           range_end: attendanceEndDate,
+           ...rangeAttendance,
+           month_wise_breakdown: monthWiseBreakdown
+         };
+         console.log(`[CALC-DONE] Summary created: working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
+       } else {
+         throw new Error(`Cannot generate progress card for ${student.student_name}: Missing attendance date range or no attendance records found.`);
+       }
 
       // Calculate overall rank (per class/section)
       const classStudents = Object.values(studentData).filter(s => 
