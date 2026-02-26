@@ -5,7 +5,7 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getStaffSession } from '@/components/useStaffSession';
 import PageHeader from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar } from 'lucide-react';
+import { Calendar, CheckCheck } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -236,9 +236,21 @@ export default function Diary() {
           </div>
         )}
 
+        {userStudent && Object.keys(unreadDiaryNotifMap).length > 0 && (
+          <div className="flex justify-end">
+            <button
+              onClick={markAllDiaryRead}
+              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> Mark All as Read
+            </button>
+          </div>
+        )}
         <DiaryList
           entries={sortedEntries}
           canEdit={false}
+          unreadIds={unreadDiaryNotifMap}
+          onItemRead={markDiaryRead}
         />
       </div>
     </div>
