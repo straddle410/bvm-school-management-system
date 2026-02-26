@@ -518,12 +518,10 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
 
       {/* Exam Schedule Table - with watermark container */}
       <div className="p-4 relative bg-white print:bg-white">
-        {/* Watermark - light, behind table, visible in print */}
-        {schoolProfile?.logo_url && (
-          <div className="timetable-watermark">
-            <img src={schoolProfile.logo_url} alt="Watermark" className="w-full h-auto object-contain" />
-          </div>
-        )}
+        {/* Watermark - circular seal, behind table, visible in print */}
+        <div className="timetable-watermark">
+          <WatermarkSeal schoolName={schoolProfile?.school_name} />
+        </div>
 
         {/* Table content above watermark */}
         <div className="timetable-content">
