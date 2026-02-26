@@ -12,7 +12,7 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 
 export default function ProgressCardsList() {
   const { academicYear } = useAcademicYear();
-  const [filters, setFilters] = useState({ class: '', student_name: '' });
+  const [filters, setFilters] = useState({ class: '', student_name: '', exam_type: '' });
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedCards, setSelectedCards] = useState(new Set());
 
