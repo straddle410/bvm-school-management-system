@@ -124,6 +124,21 @@ export default function Marks() {
     staleTime: 2 * 60 * 1000
   });
 
+  // For review mode - fetch all submitted marks for the class/section
+  const { data: reviewMarks = [] } = useQuery({
+    queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
+    queryFn: () => {
+      return base44.entities.Marks.filter({
+        class_name: selectedClass,
+        section: selectedSection,
+        academic_year: academicYear,
+        status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] }
+      });
+    },
+    enabled: !!(selectedClass && selectedSection && viewMode === 'review'),
+    staleTime: 2 * 60 * 1000
+  });
+
   useEffect(() => {
     if (existingMarks.length > 0) {
       const data = {};
