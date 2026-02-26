@@ -168,23 +168,144 @@ Deno.serve(async (req) => {
       const overallPercentage = totalPossibleMarks > 0 ? (totalMarksObtained / totalPossibleMarks) * 100 : 0;
       const overallGrade = calculateGrade(overallPercentage);
 
-      // Calculate attendance summary (half days count as 0.5)
-      const attendanceRecords = await base44.asServiceRole.entities.Attendance.filter({
+      // Get exam type details (for attendance range)
+      const examTypeRecords = await base44.asServiceRole.entities.ExamType.filter({
+        academic_year: academicYear
+      });
+
+      // Fetch all attendance records for the student
+      const allAttendanceRecords = await base44.asServiceRole.entities.Attendance.filter({
         student_id: student.student_id,
         class_name: student.class_name,
         section: student.section,
         academic_year: academicYear
       });
 
-      const validAttendance = attendanceRecords.filter(a => 
-        a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday'
-      );
+      // Helper function to calculate attendance for a date range
+      const calculateAttendanceForRange = (records, startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        const filtered = records.filter(a => {
+          const attDate = new Date(a.date);
+          return attDate >= start && attDate <= end && 
+                 a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday';
+        });
 
-      const workingDays = validAttendance.length;
-      const fullDayCount = validAttendance.filter(a => a.attendance_type === 'full_day').length;
-      const halfDayCount = validAttendance.filter(a => a.attendance_type === 'half_day').length;
-      const totalPresentDays = fullDayCount + (halfDayCount * 0.5);
-      const attendancePercentage = workingDays > 0 ? Math.round((totalPresentDays / workingDays) * 100) : 0;
+        const fullDays = filtered.filter(a => a.attendance_type === 'full_day').length;
+        const halfDays = filtered.filter(a => a.attendance_type === 'half_day').length;
+        const totalPresent = fullDays + (halfDays * 0.5);
+        const percentage = filtered.length > 0 ? Math.round((totalPresent / filtered.length) * 100) : 0;
+
+        return {
+          working_days: filtered.length,
+          full_days_present: fullDays,
+          half_days_present: halfDays,
+          total_present_days: Math.round(totalPresent * 100) / 100,
+          attendance_percentage: percentage
+        };
+      };
+
+      // Helper to get month-wise breakdown
+      const getMonthWiseBreakdown = (records, startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const months = [];
+        
+        let current = new Date(start);
+        while (current <= end) {
+          const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
+          const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+          
+          const periodStart = monthStart < start ? start : monthStart;
+          const periodEnd = monthEnd > end ? end : monthEnd;
+          
+          const monthRecords = records.filter(a => {
+            const attDate = new Date(a.date);
+            return attDate >= periodStart && attDate <= periodEnd && 
+                   a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday';
+          });
+
+          const fullDays = monthRecords.filter(a => a.attendance_type === 'full_day').length;
+          const halfDays = monthRecords.filter(a => a.attendance_type === 'half_day').length;
+          const totalPresent = fullDays + (halfDays * 0.5);
+          const percentage = monthRecords.length > 0 ? Math.round((totalPresent / monthRecords.length) * 100) : 0;
+
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthName = monthNames[current.getMonth()];
+          let displayText = monthName;
+          
+          if (periodStart.getMonth() === periodEnd.getMonth()) {
+            if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
+              displayText = `${monthName} (${periodStart.getDate()}–${periodEnd.getDate()})`;
+            }
+          }
+
+          months.push({
+            month: monthName,
+            year: current.getFullYear(),
+            month_display: displayText,
+            period_start: periodStart.toISOString().split('T')[0],
+            period_end: periodEnd.toISOString().split('T')[0],
+            working_days: monthRecords.length,
+            full_days_present: fullDays,
+            half_days_present: halfDays,
+            total_present: Math.round(totalPresent * 100) / 100,
+            attendance_percentage: percentage
+          });
+
+          current.setMonth(current.getMonth() + 1);
+        }
+        
+        return months;
+      };
+
+      // Use the attendance range from most recent exam type (if available)
+      let attendanceStartDate = null;
+      let attendanceEndDate = null;
+      
+      const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
+      if (examTypesWithRange.length > 0) {
+        // Sort by creation date descending and use the most recent one
+        examTypesWithRange.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+        attendanceStartDate = examTypesWithRange[0].attendance_range_start;
+        attendanceEndDate = examTypesWithRange[0].attendance_range_end;
+      }
+
+      // Calculate attendance based on range or full academic year
+      let attendanceSummary = {};
+      let monthWiseBreakdown = [];
+
+      if (attendanceStartDate && attendanceEndDate) {
+        const rangeAttendance = calculateAttendanceForRange(allAttendanceRecords, attendanceStartDate, attendanceEndDate);
+        monthWiseBreakdown = getMonthWiseBreakdown(allAttendanceRecords, attendanceStartDate, attendanceEndDate);
+        
+        attendanceSummary = {
+          range_start: attendanceStartDate,
+          range_end: attendanceEndDate,
+          ...rangeAttendance,
+          month_wise_breakdown: monthWiseBreakdown
+        };
+      } else {
+        // Fallback to full academic year
+        const validAttendance = allAttendanceRecords.filter(a => 
+          a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday'
+        );
+        const workingDays = validAttendance.length;
+        const fullDayCount = validAttendance.filter(a => a.attendance_type === 'full_day').length;
+        const halfDayCount = validAttendance.filter(a => a.attendance_type === 'half_day').length;
+        const totalPresentDays = fullDayCount + (halfDayCount * 0.5);
+        const attendancePercentage = workingDays > 0 ? Math.round((totalPresentDays / workingDays) * 100) : 0;
+
+        attendanceSummary = {
+          working_days: workingDays,
+          full_days_present: fullDayCount,
+          half_days_present: halfDayCount,
+          total_present_days: Math.round(totalPresentDays * 100) / 100,
+          attendance_percentage: attendancePercentage,
+          month_wise_breakdown: []
+        };
+      }
 
       // Calculate overall rank (per class/section)
       const classStudents = Object.values(studentData).filter(s => 
