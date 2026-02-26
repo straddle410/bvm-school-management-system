@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Pin, Plus, Megaphone, Calendar, Users } from 'lucide-react';
+import { Bell, Pin, Plus, Megaphone, Calendar, Users, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import TableBuilder from '@/components/TableBuilder';
