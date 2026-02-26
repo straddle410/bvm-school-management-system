@@ -315,7 +315,7 @@ Deno.serve(async (req) => {
       let attendanceStartDate = globalAttendanceStartDate;
       let attendanceEndDate = globalAttendanceEndDate;
 
-      console.log(`[BEFORE FALLBACK] ${student.student_name}: startDate=${attendanceStartDate}, endDate=${attendanceEndDate}`);
+      console.log(`[STEP3] Before fallback: startDate=${attendanceStartDate}, endDate=${attendanceEndDate}`);
 
       // If no exam type range found, use student's actual attendance dates
       if (!attendanceStartDate || !attendanceEndDate) {
@@ -325,7 +325,9 @@ Deno.serve(async (req) => {
             .sort((a, b) => a - b);
           attendanceStartDate = dates[0].toISOString().split('T')[0];
           attendanceEndDate = dates[dates.length - 1].toISOString().split('T')[0];
-          console.log(`[FALLBACK] ${student.student_name}: Using attendance dates ${attendanceStartDate} to ${attendanceEndDate}`);
+          console.log(`[STEP4-FALLBACK] Using actual dates: ${attendanceStartDate} to ${attendanceEndDate}`);
+        } else {
+          console.log(`[STEP4-NO-FALLBACK] No attendance records found`);
         }
       }
 
