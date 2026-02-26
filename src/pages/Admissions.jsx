@@ -121,13 +121,13 @@ export default function Admissions() {
     {
       header: 'Application',
       cell: (row) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={row.photo_url} />
-            <AvatarFallback className="bg-purple-100 text-purple-700">
-              {row.student_name?.[0]}
-            </AvatarFallback>
-          </Avatar>
+         <div className="flex items-center gap-3">
+           <Avatar className="h-10 w-10">
+             <AvatarImage src={getProxiedImageUrl(row.photo_url)} />
+             <AvatarFallback className="bg-purple-100 text-purple-700">
+               {row.student_name?.[0]}
+             </AvatarFallback>
+           </Avatar>
           <div>
             <p className="font-medium text-slate-900">{row.student_name}</p>
             <p className="text-sm text-slate-500">{row.application_no || `APP-${row.id?.slice(0,6)}`}</p>
