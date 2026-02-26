@@ -276,17 +276,11 @@ Deno.serve(async (req) => {
         return months;
       };
 
-      // Use the attendance range from most recent exam type or default to full academic year
-      let attendanceStartDate = null;
-      let attendanceEndDate = null;
-      
-      const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
-      if (examTypesWithRange.length > 0) {
-        // Sort by creation date descending and use the most recent one
-        examTypesWithRange.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-        attendanceStartDate = examTypesWithRange[0].attendance_range_start;
-        attendanceEndDate = examTypesWithRange[0].attendance_range_end;
-      } else {
+      // Use global attendance range or default to student attendance dates
+      let attendanceStartDate = globalAttendanceStartDate;
+      let attendanceEndDate = globalAttendanceEndDate;
+
+      if (!attendanceStartDate || !attendanceEndDate) {
         // Default: use the first attendance date as start and last as end
         if (studentAttendance.length > 0) {
           const dates = studentAttendance
