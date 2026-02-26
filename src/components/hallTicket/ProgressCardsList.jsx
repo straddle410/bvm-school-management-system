@@ -16,11 +16,17 @@ export default function ProgressCardsList() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedCards, setSelectedCards] = useState(new Set());
 
+  const { data: examTypes = [] } = useQuery({
+    queryKey: ['examTypes', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
+  });
+
   const { data: progressCards = [], isLoading } = useQuery({
     queryKey: ['progressCards', academicYear, filters],
     queryFn: async () => {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
+      if (filters.exam_type) query.exam_type = filters.exam_type;
       
       const allCards = await base44.entities.ProgressCard.filter(query);
       
