@@ -157,18 +157,26 @@ export default function Results() {
     if (marks.length > 0) {
       const m = marks[0];
 
-      // Group marks by exam type using exam type names (not IDs)
-        const grouped = {};
-        marks.forEach(mark => {
-          const examTypeObj = examTypes.find(e => e.id === mark.exam_type || e.name === mark.exam_type);
-          const examName = examTypeObj?.name || mark.exam_type;
-          if (!grouped[examName]) {
-            grouped[examName] = [];
-          }
-          grouped[examName].push(mark);
-        });
+      // Group marks by exam type preserving order of first appearance
+      const grouped = {};
+      const examOrder = [];
+      marks.forEach(mark => {
+        const examTypeObj = examTypes.find(e => e.id === mark.exam_type || e.name === mark.exam_type);
+        const examName = examTypeObj?.name || mark.exam_type;
+        if (!grouped[examName]) {
+          grouped[examName] = [];
+          examOrder.push(examName);
+        }
+        grouped[examName].push(mark);
+      });
 
-      setResultsByExam(grouped);
+      // Reorder grouped object to match exam order
+      const orderedGrouped = {};
+      examOrder.forEach(examName => {
+        orderedGrouped[examName] = grouped[examName];
+      });
+
+      setResultsByExam(orderedGrouped);
       setAllMarks(marks);
       setStudentResult({
         student_id: m.student_id,
