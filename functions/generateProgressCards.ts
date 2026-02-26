@@ -315,6 +315,8 @@ Deno.serve(async (req) => {
       let attendanceStartDate = globalAttendanceStartDate;
       let attendanceEndDate = globalAttendanceEndDate;
 
+      console.log(`[BEFORE FALLBACK] ${student.student_name}: startDate=${attendanceStartDate}, endDate=${attendanceEndDate}`);
+
       // If no exam type range found, use student's actual attendance dates
       if (!attendanceStartDate || !attendanceEndDate) {
         if (studentAttendance.length > 0) {
@@ -330,6 +332,8 @@ Deno.serve(async (req) => {
       // Calculate attendance summary
       let attendanceSummary = null;
       let monthWiseBreakdown = [];
+
+      console.log(`[BEFORE CALC] ${student.student_name}: startDate=${attendanceStartDate}, endDate=${attendanceEndDate}, recordsCount=${studentAttendance.length}`);
 
       if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
