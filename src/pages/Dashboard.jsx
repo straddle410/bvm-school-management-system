@@ -69,7 +69,6 @@ const adminActions = [
 const examModuleActions = [
   { label: 'Hall Tickets',     icon: FileText,      gradient: 'from-red-400 to-rose-600',      page: 'HallTicketManagement' },
   { label: 'Marks Entry',      icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks' },
-  { label: 'Review Marks',     icon: ClipboardList, gradient: 'from-indigo-400 to-blue-600',   page: 'MarksReview' },
   { label: 'Results',          icon: TrendingUp,    gradient: 'from-orange-400 to-red-600',    modal: 'examResults' },
   { label: 'Progress Cards',   icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
 ];
