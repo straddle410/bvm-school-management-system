@@ -306,8 +306,14 @@ Deno.serve(async (req) => {
         throw new Error(`Student ${studentMarks.student_name} (${studentMarks.student_id}) has no attendance records in range ${attendanceRangeStart} to ${attendanceRangeEnd}.`);
       }
 
+      console.log(`[DEBUG-ATTENDANCE-FETCH] Student ${studentMarks.student_name} (${studentMarks.student_id}): Found ${studentAttendance.length} total attendance records`);
+      console.log(`[DEBUG-ATTENDANCE-IN-RANGE] Same student: ${studentRecordsInRange.length} records in range ${attendanceRangeStart} to ${attendanceRangeEnd}`);
+
       const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceRangeStart, attendanceRangeEnd);
+      console.log(`[DEBUG-RANGE-CALC] Student ${studentMarks.student_name}: Range result = ${JSON.stringify(rangeAttendance)}`);
+
       const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceRangeStart, attendanceRangeEnd);
+      console.log(`[DEBUG-MONTH-BREAKDOWN] Student ${studentMarks.student_name}: Monthly breakdown = ${JSON.stringify(monthWiseBreakdown)}`);
 
       const attendanceSummary = {
         range_start: attendanceRangeStart,
