@@ -192,14 +192,15 @@ Deno.serve(async (req) => {
       let attendanceStartDate = globalAttendanceStartDate;
       let attendanceEndDate = globalAttendanceEndDate;
 
+      // Fetch attendance records for this student
+      const studentAttendance = await base44.asServiceRole.entities.Attendance.filter({
+        student_id: student.student_id,
+        class_name: student.class_name,
+        section: student.section
+      });
+
       // If no exam type range found, determine from student's actual attendance
       if (!attendanceStartDate || !attendanceEndDate) {
-        const studentAttendance = await base44.asServiceRole.entities.Attendance.filter({
-          student_id: student.student_id,
-          class_name: student.class_name,
-          section: student.section
-        });
-
         if (studentAttendance.length > 0) {
           const dates = studentAttendance
             .map(a => new Date(a.date))
@@ -209,24 +210,121 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Calculate attendance summary using the centralized function
-      let attendanceSummary = null;
-      if (attendanceStartDate && attendanceEndDate) {
-        try {
-          console.log(`[INVOKE] Calling calculateAttendanceSummary for ${student.student_name} (${student.student_id}), class=${student.class_name}, range=${attendanceStartDate} to ${attendanceEndDate}`);
-          const result = await base44.asServiceRole.functions.invoke('calculateAttendanceSummary', {
-            student_id: student.student_id,
-            class_name: student.class_name,
-            section: student.section,
-            start_date: attendanceStartDate,
-            end_date: attendanceEndDate
+      // Helper to calculate attendance for a date range
+      const calculateAttendanceForRange = (records, startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        start.setUTCHours(0, 0, 0, 0);
+        end.setUTCHours(23, 59, 59, 999);
+
+        const allInRange = records.filter(a => {
+          const attDate = new Date(a.date);
+          attDate.setUTCHours(0, 0, 0, 0);
+          return attDate >= start && attDate <= end;
+        });
+
+        const presentRecords = allInRange.filter(a => 
+          !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
+        );
+
+        const fullDays = presentRecords.filter(a => a.attendance_type === 'full_day').length;
+        const halfDays = presentRecords.filter(a => a.attendance_type === 'half_day').length;
+        const totalPresent = fullDays + (halfDays * 0.5);
+
+        const workingDays = allInRange.filter(a => 
+          !a.is_holiday && a.attendance_type !== 'holiday'
+        ).length;
+
+        const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+
+        return {
+          working_days: workingDays,
+          full_days_present: fullDays,
+          half_days_present: halfDays,
+          total_present_days: Math.round(totalPresent * 100) / 100,
+          attendance_percentage: percentage
+        };
+      };
+
+      // Helper to get month-wise breakdown
+      const getMonthWiseBreakdown = (records, startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        start.setUTCHours(0, 0, 0, 0);
+        end.setUTCHours(23, 59, 59, 999);
+        const months = [];
+
+        let current = new Date(start);
+        while (current <= end) {
+          const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
+          const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+          monthStart.setUTCHours(0, 0, 0, 0);
+          monthEnd.setUTCHours(23, 59, 59, 999);
+
+          const periodStart = monthStart < start ? start : monthStart;
+          const periodEnd = monthEnd > end ? end : monthEnd;
+
+          const allMonthRecords = records.filter(a => {
+            const attDate = new Date(a.date);
+            attDate.setUTCHours(0, 0, 0, 0);
+            return attDate >= periodStart && attDate <= periodEnd;
           });
-          console.log(`[INVOKE-RESULT] Raw result type: ${typeof result}, keys: ${Object.keys(result).join(', ')}`);
-          attendanceSummary = result?.data?.attendance_summary || result?.attendance_summary;
-          console.log(`[INVOKE-SUMMARY] Got attendance_summary: ${attendanceSummary ? 'YES' : 'NO'}`);
-        } catch (err) {
-          console.log(`[ATTENDANCE-ERROR] ${student.student_name}: ${err.message}`);
+
+          const presentMonthRecords = allMonthRecords.filter(a => 
+            !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
+          );
+
+          const fullDays = presentMonthRecords.filter(a => a.attendance_type === 'full_day').length;
+          const halfDays = presentMonthRecords.filter(a => a.attendance_type === 'half_day').length;
+          const totalPresent = fullDays + (halfDays * 0.5);
+
+          const workingDays = allMonthRecords.filter(a => 
+            !a.is_holiday && a.attendance_type !== 'holiday'
+          ).length;
+
+          const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthName = monthNames[current.getMonth()];
+          let displayText = monthName;
+
+          if (periodStart.getMonth() === periodEnd.getMonth()) {
+            if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
+              displayText = `${monthName} (${periodStart.getDate()}–${periodEnd.getDate()})`;
+            }
+          }
+
+          months.push({
+            month: monthName,
+            year: current.getFullYear(),
+            month_display: displayText,
+            period_start: periodStart.toISOString().split('T')[0],
+            period_end: periodEnd.toISOString().split('T')[0],
+            working_days: workingDays,
+            full_days_present: fullDays,
+            half_days_present: halfDays,
+            total_present: Math.round(totalPresent * 100) / 100,
+            attendance_percentage: percentage
+          });
+
+          current.setMonth(current.getMonth() + 1);
         }
+
+        return months;
+      };
+
+      // Calculate attendance summary
+      let attendanceSummary = null;
+      if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
+        const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
+        const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
+
+        attendanceSummary = {
+          range_start: attendanceStartDate,
+          range_end: attendanceEndDate,
+          ...rangeAttendance,
+          month_wise_breakdown: monthWiseBreakdown
+        };
       }
 
       // Calculate overall rank (per class/section)
