@@ -233,31 +233,19 @@ export default function Marks() {
             remarks: existing.remarks
           };
           
-          // Server-side uniqueness check before save
-          const validationPromise = (async () => {
-            const validation = await base44.functions.invoke('validateMarksUniqueness', {
-              markData: {
-                student_id: data.student_id,
-                subject: data.subject,
-                exam_type: data.exam_type,
-                academic_year: data.academic_year,
-                class_name: data.class_name
-              },
-              markId: existing?.id
-            });
-            
-            if (validation.status >= 400) {
-              throw new Error(validation.data?.error || 'Duplicate mark record exists');
+          // Route exclusively through backend function (server-side validation + create/update)
+          const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
+            markData: data,
+            markId: existing?.id,
+            operation: existing?.id ? 'update' : 'create'
+          }).then(res => {
+            if (res.status >= 400) {
+              throw new Error(res.data?.error || 'Failed to save mark');
             }
-            
-            if (existing?.id) {
-              return base44.entities.Marks.update(existing.id, data);
-            } else {
-              return base44.entities.Marks.create(data);
-            }
-          })();
+            return res.data;
+          });
           
-          promises.push(validationPromise);
+          promises.push(backendPromise);
         });
       });
 
@@ -318,10 +306,13 @@ export default function Marks() {
 
   const unlockMutation = useMutation({
     mutationFn: async () => {
-      const promises = existingMarks.map(mark => 
-        base44.entities.Marks.update(mark.id, { status: 'Draft' })
-      );
-      return Promise.all(promises);
+      const res = await base44.functions.invoke('unlockMarksForEditing', {
+        marksIds: existingMarks.map(m => m.id)
+      });
+      if (res.status >= 400) {
+        throw new Error(res.data?.error || 'Failed to unlock marks');
+      }
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['marks']);
@@ -335,10 +326,13 @@ export default function Marks() {
   const revokePublicationMutation = useMutation({
     mutationFn: async (examTypeId) => {
       const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId || m.exam_type === revokeExamType);
-      const promises = marksToRevoke.map(mark => 
-        base44.entities.Marks.update(mark.id, { status: 'Verified' })
-      );
-      return Promise.all(promises);
+      const res = await base44.functions.invoke('revokeMarksPublication', {
+        marksIds: marksToRevoke.map(m => m.id)
+      });
+      if (res.status >= 400) {
+        throw new Error(res.data?.error || 'Failed to revoke publication');
+      }
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['reviewMarks']);
@@ -415,28 +409,22 @@ export default function Marks() {
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
-      // First, create immutable audit log entry
+      // Route exclusively through backend function (includes audit log creation)
       const groupData = reviewGroupedData.find(g => g.students.flatMap(s => Object.values(s.subjects).map(m => m.id)).some(id => marksIds.includes(id)));
       
-      if (groupData) {
-        const previousStatus = groupData.students[0]?.subjects[Object.keys(groupData.students[0].subjects)[0]]?.status || 'Verified';
-        
-        await base44.functions.invoke('logMarksPublish', {
-          marksIds,
-          examType: groupData.exam_name || groupData.exam_type,
-          className: selectedClass,
-          section: selectedSection,
-          academicYear: academicYear,
-          previousStatus,
-          recordCount: marksIds.length
-        });
+      const res = await base44.functions.invoke('publishMarksWithValidation', {
+        marksIds,
+        examType: groupData?.exam_name || groupData?.exam_type,
+        className: selectedClass,
+        section: selectedSection,
+        academicYear: academicYear
+      });
+
+      if (res.status >= 400) {
+        throw new Error(res.data?.error || 'Failed to publish marks');
       }
       
-      // Then publish the marks
-      const promises = marksIds.map(id =>
-        base44.entities.Marks.update(id, { status: 'Published', verified_by: user?.email, approved_by: user?.email })
-      );
-      return Promise.all(promises);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['marks']);
