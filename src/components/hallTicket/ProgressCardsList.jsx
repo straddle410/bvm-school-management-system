@@ -79,30 +79,64 @@ export default function ProgressCardsList() {
 
   const handlePrintSelected = () => {
     const cardsToPrint = progressCards.filter(c => selectedCards.has(c.id));
-    if (cardsToprint.length === 0) {
+    if (cardsToPrint.length === 0) {
       toast.error('Please select at least one progress card to print');
       return;
     }
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><style>');
-    printWindow.document.write('@media print { body { margin: 0; padding: 20px; } .page-break { page-break-after: always; } }');
-    printWindow.document.write('</style></head><body>');
-
-    cardsToprint.forEach((card, idx) => {
-      printWindow.document.write(`
-        <div class="page-break">
-          <div style="border: 1px solid #ccc; padding: 20px; min-height: 280mm;">
-            <h2>${card.student_name}</h2>
-            <p>Class ${card.class_name} - Section ${card.section} | Roll: ${card.roll_number}</p>
-            <hr/>
-            <pre>${JSON.stringify(card.overall_stats, null, 2)}</pre>
+    const htmlContent = `
+      <html>
+      <head>
+        <style>
+          * { margin: 0; padding: 0; }
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .page { page-break-after: always; border: 1px solid #ccc; padding: 40px; min-height: 297mm; margin-bottom: 20px; }
+          .header { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 20px; margin: -40px -40px 20px -40px; }
+          .header h2 { font-size: 24px; margin-bottom: 5px; }
+          .info { margin: 20px 0; }
+          .info-row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
+          .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
+          .stat-box { background: #f5f5f5; padding: 15px; text-align: center; border-left: 4px solid #1a237e; }
+          .stat-value { font-size: 28px; font-weight: bold; color: #1a237e; }
+          .stat-label { font-size: 11px; color: #666; margin-top: 5px; }
+          @media print { body { padding: 0; } .page { page-break-after: always; margin: 0; } }
+        </style>
+      </head>
+      <body>
+        ${cardsToPrint.map(card => `
+          <div class="page">
+            <div class="header">
+              <h2>${card.student_name}</h2>
+              <p style="font-size: 12px;">Progress Card</p>
+            </div>
+            <div class="info">
+              <div class="info-row">
+                <span><strong>Class:</strong> ${card.class_name}</span>
+                <span><strong>Section:</strong> ${card.section}</span>
+                <span><strong>Roll:</strong> ${card.roll_number}</span>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat-box">
+                <div class="stat-value">${(card.overall_stats?.overall_percentage || 0).toFixed(1)}%</div>
+                <div class="stat-label">Overall %</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value">${card.overall_stats?.overall_grade || '-'}</div>
+                <div class="stat-label">Grade</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value">#${card.overall_stats?.overall_rank || '-'}</div>
+                <div class="stat-label">Rank</div>
+              </div>
+            </div>
           </div>
-        </div>
-      `);
-    });
-
-    printWindow.document.write('</body></html>');
+        `).join('')}
+      </body>
+      </html>
+    `;
+    printWindow.document.write(htmlContent);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 500);
   };
