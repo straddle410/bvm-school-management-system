@@ -124,7 +124,7 @@ export default function Marks() {
     staleTime: 2 * 60 * 1000
   });
 
-  // For review mode - fetch all marks for the class/section
+  // For review mode - fetch all marks for the class/section (including Draft to show all entered marks)
   const { data: reviewMarks = [] } = useQuery({
     queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
     queryFn: async () => {
@@ -132,8 +132,7 @@ export default function Marks() {
       return allMarks.filter(m => 
         m.class_name === selectedClass && 
         m.section === selectedSection && 
-        m.academic_year === academicYear &&
-        ['Submitted', 'Verified', 'Approved', 'Published'].includes(m.status)
+        m.academic_year === academicYear
       );
     },
     enabled: !!(selectedClass && selectedSection && viewMode === 'review'),
