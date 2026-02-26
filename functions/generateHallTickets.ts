@@ -50,6 +50,24 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
+    // Validate exam type exists and is active
+    const examTypes = await base44.asServiceRole.entities.ExamType.filter({ id: examTypeId });
+    if (examTypes.length === 0) {
+      return Response.json({ error: 'Exam type not found' }, { status: 400 });
+    }
+    const examType = examTypes[0];
+    if (!examType.is_active) {
+      return Response.json({ error: 'Cannot generate tickets for inactive exam type' }, { status: 400 });
+    }
+
+    // Validate academic year is configured
+    const yearConfig = await base44.asServiceRole.entities.AcademicYear.filter({ 
+      year: academicYear 
+    });
+    if (yearConfig.length === 0) {
+      return Response.json({ error: 'Academic year not configured in system' }, { status: 400 });
+    }
+
     // Fetch students - get all students in the class regardless of status
     const query = { class_name: classname, academic_year: academicYear };
     if (section) query.section = section;
