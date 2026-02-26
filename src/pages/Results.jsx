@@ -73,6 +73,8 @@ export default function Results() {
     const marks = await base44.entities.Marks.filter(filter).catch(() => []);
     setIsSearching(false);
     setSearched(true);
+    // Mark results notifications as read when results are loaded/viewed
+    markResultsNotificationsAsRead(parsed.student_id);
     if (marks.length > 0) {
       const m = marks[0];
       const grouped = {};
