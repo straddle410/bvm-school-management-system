@@ -7,7 +7,8 @@ export default function MarksTable({
   marksData,
   onMarkChange,
   maxMarks,
-  passingMarks
+  passingMarks,
+  isLocked = false
 }) {
   const getMarkStatus = (marks) => {
     if (marks === undefined || marks === null) return '';
