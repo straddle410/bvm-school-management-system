@@ -229,7 +229,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                 )}
 
                 {/* Fallback if no date range set */}
-                {!card.attendance_summary.month_wise_breakdown || card.attendance_summary.month_wise_breakdown.length === 0 && (
+                {(!card.attendance_summary.month_wise_breakdown || card.attendance_summary.month_wise_breakdown.length === 0) && (
                   <div className="p-4 bg-gray-50">
                     <div className="grid grid-cols-4 gap-4">
                       <div>
