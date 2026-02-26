@@ -596,7 +596,104 @@ export default function Marks() {
               </>
             )}
 
-            {(!selectedClass || !selectedSection || !selectedExam) && (
+            {viewMode === 'review' && selectedClass && selectedSection ? (
+              reviewGroupedData.length > 0 ? (
+                <div className="space-y-4">
+                  {reviewGroupedData.map((group, idx) => {
+                    const allMarkIds = group.students.flatMap(s => 
+                      Object.values(s.subjects).map(m => m.id)
+                    );
+                    return (
+                      <Card key={idx} className="border-0 shadow-sm overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
+                          <h3 className="text-white font-semibold flex items-center justify-between">
+                            <span>{group.exam_type}</span>
+                            <span className="text-sm">({group.students.length} students)</span>
+                          </h3>
+                        </div>
+                        <CardContent className="p-4 space-y-4">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b border-slate-200 bg-slate-50">
+                                  <th className="text-left p-2 font-semibold text-slate-700 w-16">Rank</th>
+                                  <th className="text-left p-2 font-semibold text-slate-700 min-w-40">Student Name</th>
+                                  {group.subjects.map(subject => (
+                                    <th key={subject} className="text-center p-2 font-semibold text-slate-700 min-w-24">
+                                      {subject}
+                                    </th>
+                                  ))}
+                                  <th className="text-center p-2 font-semibold text-slate-700 w-20">Total</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {group.students.map((student) => (
+                                  <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
+                                    <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
+                                    <td className="p-2">{student.student_name}</td>
+                                    {group.subjects.map(subject => {
+                                      const mark = student.subjects[subject];
+                                      return (
+                                        <td key={subject} className="text-center p-2">
+                                          {mark ? mark.marks_obtained : '-'}
+                                        </td>
+                                      );
+                                    })}
+                                    <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div className="flex flex-wrap gap-2 pt-2 items-center">
+                            {group.students.length > 0 && Object.values(group.students[0].subjects).length > 0 && Object.values(group.students[0].subjects)[0].status === 'Published' ? (
+                              <StatusBadge status="Published" />
+                            ) : (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDownloadExcel(group.exam_type)}
+                                  className="gap-2"
+                                >
+                                  <Download className="h-4 w-4" />
+                                  Export to Excel
+                                </Button>
+                                <Button
+                                  onClick={() => handlePublish(allMarkIds)}
+                                  disabled={publishMutation.isPending}
+                                  className="bg-green-600 hover:bg-green-700 gap-2"
+                                  size="sm"
+                                >
+                                  <Check className="h-4 w-4" />
+                                  {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="py-16 text-center">
+                    <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700">No marks to review</h3>
+                    <p className="text-slate-500 mt-2">No submitted marks for this class and section</p>
+                  </CardContent>
+                </Card>
+              )
+            ) : viewMode === 'review' ? (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-16 text-center">
+                  <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-slate-700">Select Class & Section</h3>
+                  <p className="text-slate-500 mt-2">Choose a class and section to review marks</p>
+                </CardContent>
+              </Card>
+            ) : (!selectedClass || !selectedSection || !selectedExam) && (
               <Card className="border-0 shadow-sm">
                 <CardContent className="py-16 text-center">
                   <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
