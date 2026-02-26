@@ -198,16 +198,20 @@ Deno.serve(async (req) => {
 
       // Helper function to calculate attendance for a date range
       const calculateAttendanceForRange = (records, startDate, endDate) => {
-        const start = new Date(startDate + 'T00:00:00Z');
-        const end = new Date(endDate + 'T23:59:59Z');
+        // Parse dates properly (YYYY-MM-DD format)
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        start.setUTCHours(0, 0, 0, 0);
+        end.setUTCHours(23, 59, 59, 999);
 
         // Include ALL records in range (holidays, absents, present) to calculate working days
         const allInRange = records.filter(a => {
-          const attDate = new Date(a.date + 'T00:00:00Z');
+          const attDate = new Date(a.date);
+          attDate.setUTCHours(0, 0, 0, 0);
           return attDate >= start && attDate <= end;
         });
 
-        console.log(`[CALC] Range: ${startDate} to ${endDate}, Records in range: ${allInRange.length}`);
+        console.log(`[CALC] Range: ${startDate} to ${endDate} (${start.toISOString()} to ${end.toISOString()}), Records in range: ${allInRange.length}, Total records: ${records.length}`);
 
         // Only non-holiday, non-absent records count toward attendance
         const presentRecords = allInRange.filter(a => 
