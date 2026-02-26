@@ -58,11 +58,16 @@ const adminActions = [
   { label: 'Daily Attendance', icon: Check,         gradient: 'from-blue-500 to-indigo-600',   page: 'AttendanceReport' },
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
   { label: 'Holidays',         icon: Palmtree,      gradient: 'from-yellow-400 to-orange-500', page: 'HolidayCalendar' },
-  { label: 'Hall Ticket',      icon: FileText,      gradient: 'from-red-400 to-rose-600',      page: 'HallTicketManagement' },
-  { label: 'Review Marks',     icon: ClipboardList, gradient: 'from-indigo-400 to-blue-600',   page: 'MarksReview' },
-  { label: 'Progress Card',    icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
   { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
   { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'AnalyticsDashboard' },
+];
+
+const examModuleActions = [
+  { label: 'Hall Tickets',     icon: FileText,      gradient: 'from-red-400 to-rose-600',      page: 'HallTicketManagement' },
+  { label: 'Marks Entry',      icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks' },
+  { label: 'Review Marks',     icon: ClipboardList, gradient: 'from-indigo-400 to-blue-600',   page: 'MarksReview' },
+  { label: 'Results',          icon: TrendingUp,    gradient: 'from-orange-400 to-red-600',    page: 'ExamManagement', tab: 'results' },
+  { label: 'Progress Cards',   icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
 ];
 
 function GradientIcon({ gradient, icon: Icon, size = 'md' }) {
@@ -295,6 +300,26 @@ export default function Dashboard() {
                     </div>
                   </Link>
                 ))}
+            </div>
+          </section>
+        )}
+
+        {/* Exam Module */}
+        {isAdmin && (
+          <section>
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Exam Module</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {examModuleActions.map((item) => {
+                const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
+                return (
+                  <Link key={item.label} to={url} className="block">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}

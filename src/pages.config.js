@@ -78,6 +78,7 @@ import Settings from './pages/Settings';
 import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
 import StudentLogin from './pages/StudentLogin';
 import StudentMessaging from './pages/StudentMessaging';
@@ -88,7 +89,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import StudentHallTicketView from './pages/StudentHallTicketView';
 import __Layout from './Layout.jsx';
 
 
@@ -124,6 +124,7 @@ export const PAGES = {
     "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
     "StudentDashboard": StudentDashboard,
+    "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
     "StudentLogin": StudentLogin,
     "StudentMessaging": StudentMessaging,
@@ -134,7 +135,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "StudentHallTicketView": StudentHallTicketView,
 }
 
 export const pagesConfig = {
