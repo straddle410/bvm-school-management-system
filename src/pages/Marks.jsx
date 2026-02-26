@@ -298,11 +298,7 @@ export default function Marks() {
 
   // Group marks by exam type for review
   const reviewGroupedData = React.useMemo(() => {
-    const marks = existingMarks.filter(m => 
-      m.status !== 'Draft' && 
-      m.class_name === selectedClass && 
-      m.section === selectedSection
-    );
+    const marks = reviewMarks;
 
     const grouped = {};
     marks.forEach(mark => {
@@ -348,7 +344,7 @@ export default function Marks() {
 
       return { ...group, subjects, students: studentsWithRanks };
     });
-  }, [existingMarks, selectedClass, selectedSection, filteredStudents, subjectList]);
+  }, [reviewMarks, filteredStudents, subjectList]);
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
