@@ -67,7 +67,9 @@ export default function Messaging() {
     }
   }, [user?.email, tab]);
 
-  const unreadCount = inbox.filter(m => !m.is_read).length + (staffBadges.Messages > inbox.filter(m => !m.is_read).length ? staffBadges.Messages - inbox.filter(m => !m.is_read).length : 0);
+  const directUnread = inbox.filter(m => !m.is_read).length;
+  // staffBadges.Messages includes both direct unread + student_message notifs — use whichever is higher
+  const unreadCount = Math.max(directUnread, staffBadges.Messages || 0);
 
   const handleSelectMessage = async (msg) => {
     // Group by thread
