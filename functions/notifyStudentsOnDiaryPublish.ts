@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
+    // IDEMPOTENCY STRATEGY: Option A - Second verification inside creation
     // Check for existing notifications to avoid duplicates
     const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
       type: 'diary_published',
@@ -37,24 +38,46 @@ Deno.serve(async (req) => {
 
     let notified = 0;
 
-    for (const student of students) {
-      if (alreadyNotified.has(student.student_id)) continue;
+    // Convert to parallel creation with race window closure
+    const notificationPromises = students
+      .filter(s => !alreadyNotified.has(s.student_id))
+      .map(async (student) => {
+        try {
+          // IDEMPOTENCY: Second micro-check right before create
+          const existsNow = await base44.asServiceRole.entities.Notification.filter({
+            type: 'diary_published',
+            related_entity_id: diary.id,
+            recipient_student_id: student.student_id,
+          });
+          
+          if (existsNow.length > 0) {
+            return null;
+          }
 
-      try {
-        await base44.asServiceRole.entities.Notification.create({
-          recipient_student_id: student.student_id,
-          type: 'diary_published',
-          title: 'Class Diary Published',
-          message: diary.title || `Class diary for Class ${class_name}`,
-          related_entity_id: diary.id,
-          action_url: '/Diary',
-          is_read: false,
-        });
-        notified++;
-      } catch (err) {
-        console.error(`Failed to notify ${student.student_id}:`, err.message);
-      }
-    }
+          const created = await base44.asServiceRole.entities.Notification.create({
+            recipient_student_id: student.student_id,
+            type: 'diary_published',
+            title: 'Class Diary Published',
+            message: diary.title || `Class diary for Class ${class_name}`,
+            related_entity_id: diary.id,
+            action_url: '/Diary',
+            is_read: false,
+            duplicate_key: `diary_${diary.id}_${student.student_id}`,
+          });
+          
+          return created;
+        } catch (err) {
+          if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
+            console.warn(`Duplicate diary notification for ${student.student_id}, ignoring`);
+            return null;
+          }
+          console.error(`Failed to notify ${student.student_id}:`, err.message);
+          return null;
+        }
+      });
+    
+    const results = await Promise.all(notificationPromises);
+    notified = results.filter(r => r !== null).length;
 
     // Send push notifications to students with push tokens
     if (notified > 0) {
