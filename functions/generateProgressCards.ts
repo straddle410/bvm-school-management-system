@@ -380,7 +380,7 @@ Deno.serve(async (req) => {
           overall_rank: overallRank,
           overall_grade: overallGrade
         },
-        attendance_summary: Object.keys(attendanceSummary).length > 0 ? attendanceSummary : null,
+        attendance_summary: attendanceSummary && Object.keys(attendanceSummary).length > 0 ? attendanceSummary : null,
         generated_at: new Date().toISOString(),
         status: 'Generated'
       });
