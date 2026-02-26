@@ -83,7 +83,10 @@ export default function HallTicketManagement() {
           </TabsContent>
 
           <TabsContent value="progress-cards" className="mt-6">
-            <ProgressCardsList />
+            <div className="space-y-6">
+              <ExamTypeProgressCardGenerator />
+              <ProgressCardsList />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
