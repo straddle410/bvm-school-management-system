@@ -296,7 +296,7 @@ export default function Marks() {
     }
   });
 
-  // Group marks by exam type for review - filter by selected exam when available
+  // Group marks by exam type for review - get exam name from examTypes
   const reviewGroupedData = React.useMemo(() => {
     let marksToUse = reviewMarks;
     
@@ -311,9 +311,10 @@ export default function Marks() {
     marksToUse.forEach(mark => {
       const examTypeId = mark.exam_type;
       if (!grouped[examTypeId]) {
+        const examObj = examTypes.find(e => e.id === examTypeId);
         grouped[examTypeId] = {
           exam_type: examTypeId,
-          exam_name: mark.exam_type,
+          exam_name: examObj?.name || mark.exam_type,
           studentMarks: {}
         };
       }
@@ -333,7 +334,7 @@ export default function Marks() {
       const studentArray = Object.values(group.studentMarks);
       const groupMarks = marksToUse.filter(m => m.exam_type === group.exam_type);
       
-      // Get subjects in exact same order as subjectList
+      // Get subjects in exact same order as subjectList (entry order)
       const subjects = subjectList.filter(s => 
         groupMarks.some(m => m.subject === s)
       );
