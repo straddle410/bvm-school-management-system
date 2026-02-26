@@ -504,15 +504,17 @@ export default function Marks() {
                    <CardContent className="p-4">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="font-semibold">Subject Columns</h3>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="gap-2"
-                          onClick={() => setShowAddSubject(true)}
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add Subject
-                        </Button>
+                        {viewMode === 'entry' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={() => setShowAddSubject(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add Subject
+                          </Button>
+                        )}
                       </div>
                       {isSubmitted && !isAdmin && (
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 text-center">
