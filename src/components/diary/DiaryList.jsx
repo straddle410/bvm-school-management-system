@@ -29,14 +29,15 @@ export default function DiaryList({ entries, canEdit, onEdit, onDelete, unreadId
                 <div className="flex-1">
                 <CardTitle className={`text-lg ${isUnread ? 'font-extrabold' : ''}`}>{entry.title}</CardTitle>
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <Badge variant="outline">Class {entry.class_name}-{entry.section}</Badge>
-                  <Badge variant="outline">{entry.subject}</Badge>
-                  <Badge variant={entry.status === 'Published' ? 'default' : 'secondary'}>
-                    {entry.status}
-                  </Badge>
+                   <Badge variant="outline">Class {entry.class_name}-{entry.section}</Badge>
+                   <Badge variant="outline">{entry.subject}</Badge>
+                   <Badge variant={entry.status === 'Published' ? 'default' : 'secondary'}>
+                     {entry.status}
+                   </Badge>
+                 </div>
                 </div>
-              </div>
-              {canEdit && (
+                </div>
+                {canEdit && (
                 <div className="flex gap-2">
                   <Button
                     size="icon"
