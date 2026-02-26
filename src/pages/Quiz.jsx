@@ -515,7 +515,7 @@ export default function Quiz() {
                             <Button 
                               className="flex-1"
                               disabled={attempted}
-                              onClick={() => setSelectedQuiz(quiz)}
+                              onClick={() => { setSelectedQuiz(quiz); markQuizRead(quiz.id); }}
                             >
                               {attempted ? 'Already Answered' : 'Start Quiz'}
                             </Button>
