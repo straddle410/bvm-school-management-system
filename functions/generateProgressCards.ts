@@ -315,6 +315,7 @@ Deno.serve(async (req) => {
 
       // Calculate attendance summary
       let attendanceSummary = null;
+      console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${attendanceStartDate}, endDate: ${attendanceEndDate}, records: ${studentAttendance.length}`);
       if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
         const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
@@ -325,6 +326,9 @@ Deno.serve(async (req) => {
           ...rangeAttendance,
           month_wise_breakdown: monthWiseBreakdown
         };
+        console.log(`[CALC-DONE] Summary created: working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
+      } else {
+        console.log(`[CALC-SKIP] Condition failed: start=${!!attendanceStartDate}, end=${!!attendanceEndDate}, records=${studentAttendance.length > 0}`);
       }
 
       // Calculate overall rank (per class/section)
