@@ -111,10 +111,11 @@ export default function Results() {
   };
 
   // Fetch exam types from master source
-  const { academicYear } = useAcademicYear();
   const { data: examTypes = [] } = useQuery({
     queryKey: ['exam-types-published', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true }),
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000
   });
 
   // Load students when class+section is selected
