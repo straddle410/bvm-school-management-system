@@ -7,18 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Upload, X, Check, ChevronLeft, Image, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Upload, X, Check, ChevronLeft, Image, ChevronRight } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
 
-
 export default function Gallery() {
-  const [user, setUser] = useState(undefined); // undefined = loading, null = not authenticated
+  const [user, setUser] = useState(undefined);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateAlbum, setShowCreateAlbum] = useState(false);
-  const [uploadFiles, setUploadFiles] = useState([]); // [{file, status: 'pending'|'uploading'|'done'|'error', progress}]
-  const [caption, setCaption] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
   const [newAlbum, setNewAlbum] = useState({ name: '', description: '', event_date: '', visibility: ['Public'] });
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
@@ -27,16 +23,12 @@ export default function Gallery() {
 
   useEffect(() => {
     const session = getStaffSession();
-    console.log('Staff session:', session);
     if (session) {
       setUser(session);
     } else {
-      // Only try base44.auth.me() if no staff session exists
       base44.auth.me().then(setUser).catch(() => setUser(null));
     }
   }, []);
-
-
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin';
   const hasGalleryPermission = user?.permissions?.gallery === true;
@@ -59,13 +51,9 @@ export default function Gallery() {
 
   const { data: allPhotos = [], isLoading: isLoadingPhotos } = useQuery({
     queryKey: ['photos', selectedAlbum?.id, photoLimit],
-    queryFn: async () => {
-      const photos = await base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', photoLimit);
-      console.log('[Gallery] Loaded photos:', photos.length, photos.map(p => ({ id: p.id, url: p.photo_url?.substring(0, 80), status: p.status })));
-      return photos;
-    },
+    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', photoLimit),
     enabled: !!selectedAlbum,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
   });
 
   const visiblePhotos = isAdmin
@@ -83,7 +71,19 @@ export default function Gallery() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.GalleryPhoto.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
+      setSelectedPhoto(null);
+    }
+  });
+
+  const createAlbumMutation = useMutation({
+    mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, status: 'Published' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['albums'] });
+      setShowCreateAlbum(false);
+      setNewAlbum({ name: '', description: '', event_date: '', visibility: ['Public'] });
+    }
   });
 
   const handlePhotoClick = (photo, index) => {
@@ -103,27 +103,14 @@ export default function Gallery() {
     setSelectedPhoto(visiblePhotos[newIndex]);
   };
 
-  const createAlbumMutation = useMutation({
-    mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, status: 'Published' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['albums'] });
-      setShowCreateAlbum(false);
-      setNewAlbum({ name: '', description: '', event_date: '', visibility: ['Public'] });
-    }
-  });
-
-  // Show login prompt if not authenticated
   if (user === null) {
     return (
-      <div className="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+      <div className="bg-white min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <Image className="h-16 w-16 mx-auto mb-4 text-gray-300" />
           <h2 className="text-lg font-bold text-gray-900 mb-2">Login Required</h2>
-          <p className="text-gray-600 text-sm mb-6">Please login to view the gallery.</p>
-          <Button 
-            className="bg-[#1a237e] hover:bg-[#283593] w-full"
-            onClick={() => base44.auth.redirectToLogin(window.location.href)}
-          >
+          <p className="text-gray-500 text-sm mb-6">Please login to view the gallery.</p>
+          <Button className="bg-[#1a237e] hover:bg-[#283593] w-full" onClick={() => base44.auth.redirectToLogin(window.location.href)}>
             Go to Login
           </Button>
         </div>
@@ -131,175 +118,136 @@ export default function Gallery() {
     );
   }
 
-  // Show loading state while authenticating
   if (user === undefined) {
     return (
-      <div className="bg-gray-100 min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a237e]"></div>
+      <div className="bg-white min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
       </div>
     );
   }
 
+  // ── Album Photo Grid ──────────────────────────────────────────────────────
   if (selectedAlbum) {
+    const pendingCount = allPhotos.filter(p => p.status === 'Pending').length;
+
     return (
-      <div className="bg-gray-100 min-h-screen pb-6">
-        <div className="bg-white px-4 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
-          <button onClick={() => setSelectedAlbum(null)} className="text-gray-600">
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-gray-900 truncate">{selectedAlbum.name}</h2>
-            <p className="text-xs text-gray-500">{visiblePhotos.length} photos</p>
+      <div className="bg-white min-h-screen">
+        {/* Album header */}
+        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">{selectedAlbum.name}</h2>
+            <p className="text-sm text-gray-400 mt-0.5">{visiblePhotos.length} Photos</p>
           </div>
           {canUpload && (
-            <Button size="sm" className="bg-[#1a237e] hover:bg-[#283593]" onClick={() => setShowUpload(true)}>
-              <Upload className="h-4 w-4 mr-1" /> Upload
-            </Button>
+            <button
+              onClick={() => setShowUpload(true)}
+              className="bg-[#1a237e] text-white rounded-full px-4 py-1.5 text-sm font-medium flex items-center gap-1.5"
+            >
+              <Plus className="h-4 w-4" /> Add
+            </button>
           )}
         </div>
 
-        {/* Pending badge for admins */}
-        {isAdmin && allPhotos.some(p => p.status === 'Pending') && (
-          <div className="mx-4 mt-3 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2 text-sm text-yellow-800 font-medium">
-            {allPhotos.filter(p => p.status === 'Pending').length} photo(s) pending approval
+        {isAdmin && pendingCount > 0 && (
+          <div className="mx-4 mb-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-700 font-medium">
+            {pendingCount} photo{pendingCount > 1 ? 's' : ''} pending approval
           </div>
         )}
 
         {visiblePhotos.length === 0 ? (
-          <div className="py-20 flex flex-col items-center text-gray-400 gap-2">
-            <Image className="h-12 w-12 opacity-30" />
-            <p className="text-sm">No photos yet</p>
+          <div className="py-32 flex flex-col items-center text-gray-300 gap-3">
+            <Image className="h-14 w-14" />
+            <p className="text-sm text-gray-400">No photos yet</p>
           </div>
         ) : (
-          <div className="p-2 space-y-2">
-            {/* Hero photo */}
-            <div
-              className="relative w-full rounded-2xl overflow-hidden cursor-pointer shadow-md"
-              style={{ height: 240 }}
-              onClick={() => handlePhotoClick(visiblePhotos[0], 0)}
-            >
-              <GalleryImage
-                src={visiblePhotos[0].photo_url}
-                alt={visiblePhotos[0].caption}
-                className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
-                loading="lazy"
-              />
-              {visiblePhotos[0].status === 'Pending' && (
-                <div className="absolute top-2 left-2">
-                  <span className="text-white text-[10px] font-bold bg-yellow-500 px-2 py-0.5 rounded-full">Pending</span>
-                </div>
-              )}
-              {isAdmin && (
-                <div className="absolute top-2 right-2 flex gap-1">
-                  {visiblePhotos[0].status === 'Pending' && (
-                    <button onClick={e => { e.stopPropagation(); approveMutation.mutate(visiblePhotos[0].id); }} className="bg-green-500 text-white rounded-full p-1.5 shadow">
-                      <Check className="h-3 w-3" />
-                    </button>
+          <>
+            {/* Dense square grid — iOS Photos style */}
+            <div className="grid grid-cols-3 gap-[1.5px]">
+              {visiblePhotos.map((photo, idx) => (
+                <div
+                  key={photo.id}
+                  className="relative aspect-square cursor-pointer overflow-hidden"
+                  onClick={() => handlePhotoClick(photo, idx)}
+                >
+                  <GalleryImage
+                    src={photo.photo_url}
+                    alt={photo.caption}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  {photo.status === 'Pending' && (
+                    <div className="absolute inset-0 bg-black/30 flex items-end p-1">
+                      <span className="text-white text-[8px] font-bold bg-amber-500 px-1.5 py-0.5 rounded-full">Pending</span>
+                    </div>
                   )}
-                  <button onClick={e => { e.stopPropagation(); deleteMutation.mutate(visiblePhotos[0].id); }} className="bg-red-500 text-white rounded-full p-1.5 shadow">
-                    <X className="h-3 w-3" />
-                  </button>
+                  {isAdmin && (
+                    <div className="absolute top-1 right-1 flex gap-0.5">
+                      {photo.status === 'Pending' && (
+                        <button
+                          onClick={e => { e.stopPropagation(); approveMutation.mutate(photo.id); }}
+                          className="bg-green-500 text-white rounded-full p-1 shadow"
+                        >
+                          <Check className="h-2.5 w-2.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={e => { e.stopPropagation(); deleteMutation.mutate(photo.id); }}
+                        className="bg-red-500 text-white rounded-full p-1 shadow"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-              {visiblePhotos[0].caption && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                  <p className="text-white text-xs">{visiblePhotos[0].caption}</p>
-                </div>
-              )}
+              ))}
             </div>
 
-            {/* Rest in 3-col grid */}
-            {visiblePhotos.length > 1 && (
-              <div className="grid grid-cols-3 gap-1.5">
-                {visiblePhotos.slice(1).map((photo, idx) => (
-                  <div
-                    key={photo.id}
-                    className="relative rounded-xl overflow-hidden cursor-pointer shadow-sm"
-                    style={{ height: 100 }}
-                    onClick={() => handlePhotoClick(photo, idx + 1)}
-                  >
-                    <GalleryImage
-                       src={photo.photo_url}
-                       alt={photo.caption}
-                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                       loading="lazy"
-                     />
-                    {photo.status === 'Pending' && (
-                      <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-1">
-                        <span className="text-white text-[9px] font-bold bg-yellow-500 px-1.5 py-0.5 rounded-full">Pending</span>
-                      </div>
-                    )}
-                    {isAdmin && (
-                      <div className="absolute top-1 right-1 flex gap-0.5">
-                        {photo.status === 'Pending' && (
-                          <button onClick={e => { e.stopPropagation(); approveMutation.mutate(photo.id); }} className="bg-green-500 text-white rounded-full p-1 shadow">
-                            <Check className="h-2.5 w-2.5" />
-                          </button>
-                        )}
-                        <button onClick={e => { e.stopPropagation(); deleteMutation.mutate(photo.id); }} className="bg-red-500 text-white rounded-full p-1 shadow">
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {/* Load More Pagination */}
             {allPhotos.length >= photoLimit && (
-              <div className="flex justify-center mt-4 mb-8">
-                <Button 
-                  variant="outline" 
+              <div className="flex justify-center py-6">
+                <button
                   onClick={() => setPhotoLimit(prev => prev + 200)}
                   disabled={isLoadingPhotos}
-                  className="w-full sm:w-auto"
+                  className="text-[#1a237e] text-sm font-medium"
                 >
-                  {isLoadingPhotos ? 'Loading...' : 'Load More Photos'}
-                </Button>
+                  {isLoadingPhotos ? 'Loading…' : 'Load More'}
+                </button>
               </div>
             )}
-          </div>
+          </>
         )}
 
-        {/* Photo Lightbox Dialog */}
-        <Dialog open={!!selectedPhoto && selectedPhoto?.photo_url?.trim()} onOpenChange={() => setSelectedPhoto(null)}>
-          <DialogContent className="max-w-2xl w-full bg-black border-0 p-0">
-            <div className="relative">
-              {selectedPhoto?.photo_url?.trim() && <GalleryImage src={selectedPhoto.photo_url} alt={selectedPhoto?.caption} className="w-full h-auto max-h-[80vh] object-contain" />}
+        {/* Lightbox */}
+        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
+          <DialogContent className="max-w-full w-full h-full bg-black border-0 p-0 flex items-center justify-center">
+            <div className="relative w-full flex items-center justify-center">
+              {selectedPhoto?.photo_url && (
+                <GalleryImage
+                  src={selectedPhoto.photo_url}
+                  alt={selectedPhoto?.caption}
+                  className="w-full max-h-[85vh] object-contain"
+                />
+              )}
               {selectedPhoto?.caption && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 text-white text-sm">
+                <div className="absolute bottom-4 left-0 right-0 text-center text-white text-sm px-4">
                   {selectedPhoto.caption}
                 </div>
               )}
-              <button
-                onClick={goToPrevPhoto}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
-              >
-                <ChevronLeft className="h-6 w-6" />
+              <button onClick={goToPrevPhoto} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2">
+                <ChevronLeft className="h-5 w-5" />
               </button>
-              <button
-                onClick={goToNextPhoto}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
-              >
-                <ChevronLeft className="h-6 w-6 rotate-180" />
+              <button onClick={goToNextPhoto} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2">
+                <ChevronRight className="h-5 w-5" />
               </button>
-              <div className="absolute top-2 right-2">
-                <button
-                  onClick={() => setSelectedPhoto(null)}
-                  className="bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+              <button onClick={() => setSelectedPhoto(null)} className="absolute top-3 right-3 bg-black/40 text-white rounded-full p-2">
+                <X className="h-5 w-5" />
+              </button>
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 text-white/70 text-xs bg-black/40 px-3 py-1 rounded-full">
                 {selectedPhotoIndex + 1} / {visiblePhotos.length}
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Upload Dialog */}
         <UploadDialog
           open={showUpload}
           onOpenChange={setShowUpload}
@@ -312,92 +260,64 @@ export default function Gallery() {
     );
   }
 
+  // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
   return (
-    <div className="bg-[#f8f9fa] min-h-screen pb-6">
+    <div className="bg-white min-h-screen">
       {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        <h2 className="font-bold text-gray-900 text-lg">Gallery</h2>
+      <div className="px-4 pt-5 pb-3 flex items-end justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Albums</h1>
         {canCreateAlbum && (
-          <Button size="sm" className="bg-[#1a237e] hover:bg-[#283593]" onClick={() => setShowCreateAlbum(true)}>
-            <Plus className="h-4 w-4 mr-1" /> New Album
-          </Button>
+          <button
+            onClick={() => setShowCreateAlbum(true)}
+            className="text-[#1a237e] font-medium text-sm flex items-center gap-1"
+          >
+            <Plus className="h-4 w-4" /> New
+          </button>
         )}
       </div>
 
+      <div className="h-px bg-gray-100 mx-4" />
+
       {albums.length === 0 ? (
-        <div className="py-24 flex flex-col items-center text-gray-400 gap-3">
-          <Image className="h-16 w-16 opacity-20" />
-          <p className="text-base font-medium">No albums yet</p>
-          {canCreateAlbum && <p className="text-sm text-gray-400">Create your first album to get started</p>}
+        <div className="py-32 flex flex-col items-center gap-3">
+          <Image className="h-14 w-14 text-gray-200" />
+          <p className="text-sm text-gray-400">No albums yet</p>
+          {canCreateAlbum && <p className="text-xs text-gray-300">Tap "New" to create your first album</p>}
         </div>
       ) : (
-        <div className="p-3 space-y-3">
-          {/* Hero Album — first album large */}
-          {albums[0] && (() => {
-            const heroPhotos = allAlbumPhotos.filter(p => p.album_id === albums[0].id && p.photo_url?.trim()).slice(0, 4);
-            const coverUrl = albums[0].cover_photo_url?.trim() || heroPhotos[0]?.photo_url;
+        <div className="px-4 pt-4 pb-8 grid grid-cols-2 gap-x-4 gap-y-6">
+          {albums.map(album => {
+            const thumbs = allAlbumPhotos.filter(p => p.album_id === album.id && p.photo_url?.trim());
+            const coverUrl = album.cover_photo_url?.trim() || thumbs[0]?.photo_url;
+            const photoCount = allAlbumPhotos.filter(p => p.album_id === album.id).length;
+
             return (
-              <button className="w-full text-left" onClick={() => setSelectedAlbum(albums[0])}>
-                <div className="relative w-full rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
-                  <GalleryImage src={coverUrl} alt={albums[0].name} className="w-full h-full object-cover" loading="eager" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  {/* Small photo strip inside hero */}
-                   {heroPhotos.length > 0 && (
-                     <div className="absolute top-2 right-2 flex gap-1">
-                       {heroPhotos.map(p => (
-                        <div key={p.id} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white/60 shadow">
-                          <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
+              <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
+                {/* Square cover */}
+                <div className="aspect-square w-full rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
+                  {coverUrl ? (
+                    <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Image className="h-10 w-10 text-gray-300" />
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-bold text-lg leading-tight">{albums[0].name}</p>
-                    {albums[0].event_date && <p className="text-white/70 text-xs mt-0.5">{albums[0].event_date}</p>}
-                  </div>
+                </div>
+                {/* Title below — iOS style */}
+                <div className="mt-2 px-0.5">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{album.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{photoCount > 0 ? `${photoCount} items` : album.event_date || ''}</p>
                 </div>
               </button>
             );
-          })()}
-
-          {/* Remaining albums in 2-col grid */}
-          {albums.length > 1 && (
-            <div className="grid grid-cols-2 gap-3">
-              {albums.slice(1).map(album => {
-                const thumbs = allAlbumPhotos.filter(p => p.album_id === album.id && p.photo_url?.trim()).slice(0, 3);
-                const coverUrl = album.cover_photo_url?.trim() || thumbs[0]?.photo_url;
-                return (
-                  <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
-                    <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ height: 130 }}>
-                      <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                      {/* Small thumbnails top-right */}
-                      {thumbs.filter(p => p.photo_url?.trim()).length > 0 && (
-                        <div className="absolute top-1.5 right-1.5 flex gap-0.5">
-                          {thumbs.filter(p => p.photo_url?.trim()).map(p => (
-                            <div key={p.id} className="w-7 h-7 rounded-md overflow-hidden border border-white/50 shadow">
-                              <GalleryImage src={p.photo_url} alt="" className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
-                        <p className="text-white font-semibold text-xs leading-tight truncate">{album.name}</p>
-                        {album.event_date && <p className="text-white/60 text-[10px] mt-0.5">{album.event_date}</p>}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          })}
         </div>
       )}
 
       {/* Create Album Dialog */}
       <Dialog open={showCreateAlbum} onOpenChange={setShowCreateAlbum}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Create Album</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>New Album</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>Album Name</Label>
@@ -417,9 +337,7 @@ export default function Gallery() {
                       checked={(newAlbum.visibility || []).includes(opt)}
                       onChange={e => {
                         const current = newAlbum.visibility || [];
-                        const updated = e.target.checked
-                          ? [...current, opt]
-                          : current.filter(v => v !== opt);
+                        const updated = e.target.checked ? [...current, opt] : current.filter(v => v !== opt);
                         setNewAlbum({ ...newAlbum, visibility: updated });
                       }}
                       className="rounded"
@@ -434,7 +352,7 @@ export default function Gallery() {
               disabled={!newAlbum.name || createAlbumMutation.isPending}
               onClick={() => createAlbumMutation.mutate()}
             >
-              {createAlbumMutation.isPending ? 'Creating...' : 'Create Album'}
+              {createAlbumMutation.isPending ? 'Creating…' : 'Create Album'}
             </Button>
           </div>
         </DialogContent>
