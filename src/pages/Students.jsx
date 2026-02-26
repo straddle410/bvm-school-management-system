@@ -10,9 +10,11 @@ import StudentFilters from '@/components/students/StudentFilters';
 import StudentCard from '@/components/students/StudentCard';
 import StudentForm from '@/components/students/StudentForm';
 import StudentProfileSheet from '@/components/students/StudentProfileSheet';
+import StudentBulkUpload from '@/components/students/StudentBulkUpload';
+import StudentExport from '@/components/students/StudentExport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, FileSpreadsheet } from 'lucide-react';
+import { Plus, Users, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 const EMPTY_FORM = {
@@ -36,6 +38,7 @@ export default function Students() {
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [photoFile, setPhotoFile] = useState(null);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -158,6 +161,12 @@ export default function Students() {
                   onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
                 />
               )}
+              {isAdmin && <StudentExport students={students} academicYear={academicYear} />}
+              {isAdmin && (
+                <Button onClick={() => setShowBulkUpload(true)} variant="outline" className="rounded-xl">
+                  <Upload className="h-4 w-4 mr-1" /> Bulk Upload
+                </Button>
+              )}
               {isAdmin && (
                 <Button onClick={openAdd} className="bg-[#1a237e] hover:bg-[#283593] rounded-xl">
                   <Plus className="h-4 w-4 mr-1" /> Add Student
@@ -249,6 +258,14 @@ export default function Students() {
           onArchive={() => handleArchive(selectedStudent)}
           onDelete={() => handleDelete(selectedStudent)}
           isAdmin={isAdmin}
+        />
+
+        {/* Bulk Upload Dialog */}
+        <StudentBulkUpload
+          open={showBulkUpload}
+          onClose={() => setShowBulkUpload(false)}
+          academicYear={academicYear}
+          onSuccess={() => queryClient.invalidateQueries(['students'])}
         />
       </div>
     </LoginRequired>
