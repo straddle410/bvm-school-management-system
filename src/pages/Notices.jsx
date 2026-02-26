@@ -193,6 +193,7 @@ export default function Notices() {
 
   const pinned = visibleNotices.filter(n => n.is_pinned);
   const regular = visibleNotices.filter(n => !n.is_pinned);
+  const totalUnread = Object.keys(unreadNotifMap).length;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-6 w-full overflow-x-hidden">
