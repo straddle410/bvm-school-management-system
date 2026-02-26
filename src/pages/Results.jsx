@@ -62,7 +62,12 @@ export default function Results() {
         autoSearchStudent(parsed);
       } catch {}
     } else if (staffSess) {
-      setStudentSession({ isStaff: true });
+      try {
+        const staffData = JSON.parse(staffSess);
+        setStudentSession({ isStaff: true, role: staffData.role });
+      } catch {
+        setStudentSession({ isStaff: true });
+      }
     }
     setSessionLoaded(true);
   }, []);
