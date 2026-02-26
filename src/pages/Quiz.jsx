@@ -78,6 +78,10 @@ export default function Quiz() {
           const parsed = JSON.parse(staffSess);
           setUser(parsed);
           setUserPermissions(parsed.permissions || {});
+          // Mark quiz submission notifications as read for staff
+          if (parsed.email) {
+            markStaffNotificationsRead(parsed.email, 'quiz_submitted');
+          }
         } catch {}
         setSessionLoaded(true);
         return;
