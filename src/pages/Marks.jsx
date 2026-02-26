@@ -280,6 +280,118 @@ export default function Marks() {
     }
   });
 
+  // Group marks by exam type for review
+  const reviewGroupedData = React.useMemo(() => {
+    const filter = {
+      status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] },
+      academic_year: academicYear,
+      class_name: selectedClass,
+      section: selectedSection
+    };
+    if (selectedExam) {
+      const examObj = examTypes.find(e => e.name === selectedExam);
+      filter.exam_type = examObj?.id || selectedExam;
+    }
+    
+    const marks = existingMarks.filter(m => 
+      m.status !== 'Draft' && 
+      m.class_name === selectedClass && 
+      m.section === selectedSection &&
+      (!selectedExam || m.exam_type === selectedExam)
+    );
+
+    const grouped = {};
+    marks.forEach(mark => {
+      if (!grouped[mark.exam_type]) {
+        grouped[mark.exam_type] = {
+          exam_type: mark.exam_type,
+          studentMarks: {}
+        };
+      }
+      if (!grouped[mark.exam_type].studentMarks[mark.student_id]) {
+        grouped[mark.exam_type].studentMarks[mark.student_id] = {
+          student_id: mark.student_id,
+          student_name: mark.student_name,
+          subjects: {}
+        };
+      }
+      grouped[mark.exam_type].studentMarks[mark.student_id].subjects[mark.subject] = mark;
+    });
+
+    return Object.values(grouped).map(group => {
+      const studentArray = Object.values(group.studentMarks);
+      const subjects = [...new Set(marks.filter(m => m.exam_type === group.exam_type).map(m => m.subject))];
+
+      const studentsWithTotals = studentArray.map(student => {
+        const total = Object.values(student.subjects).reduce((sum, mark) => sum + mark.marks_obtained, 0);
+        return { ...student, total };
+      });
+
+      studentsWithTotals.sort((a, b) => b.total - a.total);
+      const studentsWithRanks = studentsWithTotals.map((student, idx) => ({
+        ...student,
+        rank: idx + 1
+      }));
+
+      return { ...group, subjects, students: studentsWithRanks };
+    });
+  }, [existingMarks, selectedClass, selectedSection, selectedExam, examTypes, academicYear]);
+
+  const publishMutation = useMutation({
+    mutationFn: async (marksIds) => {
+      const promises = marksIds.map(id =>
+        base44.entities.Marks.update(id, { status: 'Published', verified_by: user?.email, approved_by: user?.email })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['marks']);
+      toast.success('Results published successfully');
+    }
+  });
+
+  const handlePublish = (marksIds) => {
+    if (window.confirm('Publish these results? Students will be able to see them.')) {
+      publishMutation.mutate(marksIds);
+    }
+  };
+
+  const handleDownloadExcel = async (examType) => {
+    try {
+      const group = reviewGroupedData.find(g => g.exam_type === examType);
+      if (!group) return;
+
+      const marks = group.students.flatMap(student =>
+        Object.values(student.subjects).map(mark => ({
+          ...mark,
+          student_name: student.student_name,
+          rank: student.rank
+        }))
+      );
+
+      const response = await base44.functions.invoke('exportMarksToExcel', {
+        marks,
+        className: selectedClass,
+        section: selectedSection,
+        examType
+      });
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Marks_${selectedClass}_${selectedSection}_${examType}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      toast.error('Failed to download Excel');
+    }
+  };
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Exams & Marks">
       <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
