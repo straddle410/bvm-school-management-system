@@ -22,54 +22,67 @@ Deno.serve(async (req) => {
       return /^[0-9]$/.test(str) || ['Nursery', 'LKG', 'UKG'].includes(str) ? str : str.replace(/^Class\s*/i, '');
     };
 
-    // Fetch published or approved marks with filters
-    const marksFilter = {
-      academic_year: academicYear
-    };
-    if (classNameFilter) marksFilter.class_name = normalizeClassName(classNameFilter);
-    if (sectionFilter) marksFilter.section = sectionFilter;
+    // Fetch subjects for sorting
+     const allSubjects = await base44.asServiceRole.entities.Subject.list();
+     const subjectSortMap = {};
+     allSubjects.forEach(s => {
+       subjectSortMap[s.name] = s.sort_order || 0;
+     });
 
-    const allMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
-    const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
+     // Fetch published or approved marks with filters
+     const marksFilter = {
+       academic_year: academicYear
+     };
+     if (classNameFilter) marksFilter.class_name = normalizeClassName(classNameFilter);
+     if (sectionFilter) marksFilter.section = sectionFilter;
 
-    if (publishedMarks.length === 0) {
-      return Response.json({ message: 'No approved or published marks found', cardsGenerated: 0 });
-    }
+     const allMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
+     const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
 
-    // Group by student and exam type, deduplicate marks
-    const studentExamData = {};
-    const seenMarks = new Set(); // Track seen marks to prevent duplicates
+     if (publishedMarks.length === 0) {
+       return Response.json({ message: 'No approved or published marks found', cardsGenerated: 0 });
+     }
 
-    publishedMarks.forEach(mark => {
-      // Create a unique identifier for this mark entry
-      const markId = `${mark.student_id}__${mark.exam_type}__${mark.subject}`;
-      if (seenMarks.has(markId)) return; // Skip duplicate marks
-      seenMarks.add(markId);
+     // Group by student and exam type, deduplicate marks
+     const studentExamData = {};
+     const seenMarks = new Set(); // Track seen marks to prevent duplicates
 
-      const key = `${mark.student_id}__${mark.exam_type}`;
-      if (!studentExamData[key]) {
-        studentExamData[key] = {
-          student_id: mark.student_id,
-          student_name: mark.student_name,
-          class_name: normalizeClassName(mark.class_name),
-          section: mark.section,
-          roll_number: mark.roll_number,
-          exam_type: mark.exam_type,
-          exam_name: mark.exam_type,
-          subjects: [],
-          total_marks: 0,
-          max_marks: 0
-        };
-      }
-      studentExamData[key].subjects.push({
-        subject: mark.subject,
-        marks_obtained: mark.marks_obtained,
-        max_marks: mark.max_marks,
-        grade: mark.grade
-      });
-      studentExamData[key].total_marks += mark.marks_obtained;
-      studentExamData[key].max_marks += mark.max_marks;
-    });
+     publishedMarks.forEach(mark => {
+       // Create a unique identifier for this mark entry
+       const markId = `${mark.student_id}__${mark.exam_type}__${mark.subject}`;
+       if (seenMarks.has(markId)) return; // Skip duplicate marks
+       seenMarks.add(markId);
+
+       const key = `${mark.student_id}__${mark.exam_type}`;
+       if (!studentExamData[key]) {
+         studentExamData[key] = {
+           student_id: mark.student_id,
+           student_name: mark.student_name,
+           class_name: normalizeClassName(mark.class_name),
+           section: mark.section,
+           roll_number: mark.roll_number,
+           exam_type: mark.exam_type,
+           exam_name: mark.exam_type,
+           subjects: [],
+           total_marks: 0,
+           max_marks: 0
+         };
+       }
+       studentExamData[key].subjects.push({
+         subject: mark.subject,
+         marks_obtained: mark.marks_obtained,
+         max_marks: mark.max_marks,
+         grade: mark.grade,
+         sort_order: subjectSortMap[mark.subject] || 0
+       });
+       studentExamData[key].total_marks += mark.marks_obtained;
+       studentExamData[key].max_marks += mark.max_marks;
+     });
+
+     // Sort subjects by sort_order in all exam data
+     Object.values(studentExamData).forEach(examData => {
+       examData.subjects.sort((a, b) => a.sort_order - b.sort_order);
+     });
 
     // Get exam type names to display
     const examTypes = await base44.asServiceRole.entities.ExamType.list();
