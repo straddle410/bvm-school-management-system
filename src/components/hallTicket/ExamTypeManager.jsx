@@ -18,7 +18,9 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     description: '', 
     category: 'Summative',
     max_marks: 100,
-    min_marks_to_pass: 40
+    min_marks_to_pass: 40,
+    attendance_range_start: '',
+    attendance_range_end: ''
   });
   const queryClient = useQueryClient();
 
@@ -63,7 +65,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
       queryClient.invalidateQueries({ queryKey: ['examTypes'] });
       setShowForm(false);
       const defaults = getDefaultMarks('Summative');
-      setFormData({ name: '', description: '', category: 'Summative', ...defaults });
+      setFormData({ name: '', description: '', category: 'Summative', ...defaults, attendance_range_start: '', attendance_range_end: '' });
       toast.success('Exam type created');
     }
   });
@@ -74,7 +76,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
       queryClient.invalidateQueries({ queryKey: ['examTypes'] });
       setEditingId(null);
       const defaults = getDefaultMarks('Summative');
-      setFormData({ name: '', description: '', category: 'Summative', ...defaults });
+      setFormData({ name: '', description: '', category: 'Summative', ...defaults, attendance_range_start: '', attendance_range_end: '' });
       toast.success('Exam type updated');
     }
   });
