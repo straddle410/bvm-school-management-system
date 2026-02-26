@@ -75,7 +75,7 @@ export default function Results() {
 
   const autoSearchStudent = async (parsed) => {
    setIsSearching(true);
-   const filter = { status: 'Published', student_id: parsed.student_id };
+   const filter = { status: 'Published', student_id: parsed.student_id, academic_year: academicYear };
    const marks = await base44.entities.Marks.filter(filter).catch(() => []);
    setIsSearching(false);
    setSearched(true);
@@ -143,11 +143,12 @@ export default function Results() {
     }
 
     // Build filter - admins see all statuses, students see only published
-    const isAdmin = studentSession?.role === 'Admin';
-    const filter = isAdmin ? { status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] } } : { status: 'Published' };
-    if (studentId) filter.student_id = studentId;
-    if (filterExam && filterExam !== 'ALL') filter.exam_type = filterExam;
-    if (filterClass) filter.class_name = filterClass;
+     const isAdmin = studentSession?.role === 'Admin';
+     const filter = isAdmin ? { status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] } } : { status: 'Published' };
+     if (studentId) filter.student_id = studentId;
+     if (filterExam && filterExam !== 'ALL') filter.exam_type = filterExam;
+     if (filterClass) filter.class_name = filterClass;
+     filter.academic_year = academicYear;
 
     const marks = await base44.entities.Marks.filter(filter);
     setSearched(true);
