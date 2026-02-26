@@ -423,7 +423,7 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
       {/* Header - Logo left aligned, white background */}
       <div className="print-header bg-white text-black p-3 border-b border-gray-300 flex items-start gap-3 print:bg-white print:text-black print:border-b-2">
         {schoolProfile?.logo_url && (
-          <img src={schoolProfile.logo_url} alt="Logo" className="h-9 w-9 object-contain flex-shrink-0 print:h-[35px] print:w-[35px]" />
+          <img src={schoolProfile.logo_url} alt="Logo" style={{ minHeight: '35px', minWidth: '35px' }} className="h-9 w-9 object-contain flex-shrink-0 print:h-[35px] print:w-[35px] block visible" />
         )}
         <div className="print-header-text flex-1">
           <h2 className="print-school-name text-base font-bold uppercase tracking-wider">{schoolProfile?.school_name || 'BVM School of Excellence'}</h2>
