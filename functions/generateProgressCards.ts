@@ -197,23 +197,6 @@ Deno.serve(async (req) => {
       console.log(`[DEBUG] Student: ${student.student_name}, Total Attendance Records: ${studentAttendance.length}`);
       console.log(`[DEBUG] Global Attendance Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
 
-      // Debug: Check what's happening with attendance summary
-      const beforeFilter = studentAttendance.length;
-      const afterFilter = studentAttendance.filter(a => !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent').length;
-      console.log(`[DEBUG] Before filter: ${beforeFilter}, After filter (excluding holidays/absents): ${afterFilter}`);
-
-      // Log all dates  
-      if (studentAttendance.length > 0) {
-        console.log(`[DEBUG] RANGE: ${attendanceStartDate} to ${attendanceEndDate}`);
-        const withinRange = studentAttendance.filter(a => {
-          const d = new Date(a.date);
-          const s = new Date(attendanceStartDate);
-          const e = new Date(attendanceEndDate);
-          return d >= s && d <= e;
-        });
-        console.log(`[DEBUG] Records within range for ${student.student_name}: ${withinRange.length} out of ${studentAttendance.length}`);
-      }
-
       // Helper function to calculate attendance for a date range
       const calculateAttendanceForRange = (records, startDate, endDate) => {
         const start = new Date(startDate);
