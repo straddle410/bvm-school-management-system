@@ -164,137 +164,17 @@ Deno.serve(async (req) => {
       }));
     });
 
-    // Helper: Calculate attendance for a date range
-    const calculateAttendanceForRange = (records, startDate, endDate) => {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      start.setUTCHours(0, 0, 0, 0);
-      end.setUTCHours(23, 59, 59, 999);
-
-      const allInRange = records.filter(a => {
-        const attDate = new Date(a.date);
-        attDate.setUTCHours(0, 0, 0, 0);
-        return attDate >= start && attDate <= end;
+    // Helper: Call shared attendance summary function
+    const getAttendanceSummary = async (studentId, className, section) => {
+      const result = await base44.asServiceRole.functions.invoke('calculateAttendanceSummaryForStudent', {
+        studentId,
+        classname: className,
+        section,
+        academicYear,
+        startDate: attendanceRangeStart,
+        endDate: attendanceRangeEnd
       });
-
-      // Get unique working days (excluding holidays)
-      const uniqueWorkingDates = new Set();
-      allInRange.forEach(a => {
-        if (!a.is_holiday && a.attendance_type !== 'holiday') {
-          uniqueWorkingDates.add(a.date);
-        }
-      });
-      const workingDays = uniqueWorkingDates.size;
-
-      // Count unique dates for full days and half days (deduplicate by date)
-      const fullDayDates = new Set();
-      const halfDayDates = new Set();
-      
-      allInRange.forEach(a => {
-        if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
-          if (a.attendance_type === 'full_day') {
-            fullDayDates.add(a.date);
-          } else if (a.attendance_type === 'half_day') {
-            halfDayDates.add(a.date);
-          }
-        }
-      });
-
-      const fullDays = fullDayDates.size;
-      const halfDays = halfDayDates.size;
-      const totalPresent = fullDays + (halfDays * 0.5);
-
-      const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
-
-      return {
-        working_days: workingDays,
-        full_days_present: fullDays,
-        half_days_present: halfDays,
-        total_present_days: Math.round(totalPresent * 100) / 100,
-        attendance_percentage: percentage
-      };
-    };
-
-    // Helper: Get month-wise breakdown
-    const getMonthWiseBreakdown = (records, startDate, endDate) => {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      start.setUTCHours(0, 0, 0, 0);
-      end.setUTCHours(23, 59, 59, 999);
-      const months = [];
-
-      let current = new Date(start);
-      while (current <= end) {
-        const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-        const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
-        monthStart.setUTCHours(0, 0, 0, 0);
-        monthEnd.setUTCHours(23, 59, 59, 999);
-
-        const periodStart = monthStart < start ? start : monthStart;
-        const periodEnd = monthEnd > end ? end : monthEnd;
-
-        const allMonthRecords = records.filter(a => {
-          const attDate = new Date(a.date);
-          attDate.setUTCHours(0, 0, 0, 0);
-          return attDate >= periodStart && attDate <= periodEnd;
-        });
-
-        // Get unique working days (excluding holidays)
-        const uniqueMonthWorkingDates = new Set();
-        allMonthRecords.forEach(a => {
-          if (!a.is_holiday && a.attendance_type !== 'holiday') {
-            uniqueMonthWorkingDates.add(a.date);
-          }
-        });
-        const workingDays = uniqueMonthWorkingDates.size;
-
-        // Count unique dates for full days and half days (deduplicate by date)
-        const monthFullDayDates = new Set();
-        const monthHalfDayDates = new Set();
-        
-        allMonthRecords.forEach(a => {
-          if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
-            if (a.attendance_type === 'full_day') {
-              monthFullDayDates.add(a.date);
-            } else if (a.attendance_type === 'half_day') {
-              monthHalfDayDates.add(a.date);
-            }
-          }
-        });
-
-        const fullDays = monthFullDayDates.size;
-        const halfDays = monthHalfDayDates.size;
-        const totalPresent = fullDays + (halfDays * 0.5);
-
-        const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
-
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const monthName = monthNames[current.getMonth()];
-        let displayText = monthName;
-
-        if (periodStart.getMonth() === periodEnd.getMonth()) {
-          if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
-            displayText = `${monthName} (${periodStart.getDate()}–${periodEnd.getDate()})`;
-          }
-        }
-
-        months.push({
-          month: monthName,
-          year: current.getFullYear(),
-          month_display: displayText,
-          period_start: periodStart.toISOString().split('T')[0],
-          period_end: periodEnd.toISOString().split('T')[0],
-          working_days: workingDays,
-          full_days_present: fullDays,
-          half_days_present: halfDays,
-          total_present: Math.round(totalPresent * 100) / 100,
-          attendance_percentage: percentage
-        });
-
-        current.setMonth(current.getMonth() + 1);
-      }
-
-      return months;
+      return result;
     };
 
     // Generate progress cards
