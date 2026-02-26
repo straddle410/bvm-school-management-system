@@ -238,24 +238,24 @@ Deno.serve(async (req) => {
       };
 
       // Helper to get month-wise breakdown
-       const getMonthWiseBreakdown = (records, startDate, endDate) => {
-         const start = new Date(startDate);
-         const end = new Date(endDate);
-         const months = [];
+      const getMonthWiseBreakdown = (records, startDate, endDate) => {
+        const start = new Date(startDate + 'T00:00:00Z');
+        const end = new Date(endDate + 'T23:59:59Z');
+        const months = [];
 
-         let current = new Date(start);
-         while (current <= end) {
-           const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-           const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+        let current = new Date(start);
+        while (current <= end) {
+          const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
+          const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
 
-           const periodStart = monthStart < start ? start : monthStart;
-           const periodEnd = monthEnd > end ? end : monthEnd;
+          const periodStart = monthStart < start ? start : monthStart;
+          const periodEnd = monthEnd > end ? end : monthEnd;
 
-           // Include ALL records in period to count working days
-           const allMonthRecords = records.filter(a => {
-             const attDate = new Date(a.date);
-             return attDate >= periodStart && attDate <= periodEnd;
-           });
+          // Include ALL records in period to count working days
+          const allMonthRecords = records.filter(a => {
+            const attDate = new Date(a.date + 'T00:00:00Z');
+            return attDate >= periodStart && attDate <= periodEnd;
+          });
 
            // Only non-holiday, non-absent records count toward attendance
            const presentMonthRecords = allMonthRecords.filter(a => 
