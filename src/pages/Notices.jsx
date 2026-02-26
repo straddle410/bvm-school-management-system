@@ -395,6 +395,9 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit }) {
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   {notice.target_audience}
+                  {notice.target_audience === 'Students' && notice.target_classes?.length > 0
+                    ? ` (Class ${notice.target_classes.join(', ')})`
+                    : notice.target_audience === 'Students' ? ' (All Classes)' : ''}
                 </span>
               )}
             </div>
