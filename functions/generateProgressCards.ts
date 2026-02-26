@@ -261,8 +261,8 @@ Deno.serve(async (req) => {
       };
 
       // Use the attendance range from most recent exam type (if available)
-      let attendanceStartDate = null;
-      let attendanceEndDate = null;
+      let attendanceStartDate = '2024-06-01';
+      let attendanceEndDate = '2025-05-31';
       
       const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
       if (examTypesWithRange.length > 0) {
