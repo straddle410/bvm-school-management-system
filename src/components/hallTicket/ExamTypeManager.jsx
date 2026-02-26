@@ -243,8 +243,13 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                        className="mt-1"
                      />
                    </div>
-                 </div>
-               </div>
+                   </div>
+                   {validateDateRange().length > 0 && (
+                   <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                     <strong>⚠️ Warning:</strong> {validateDateRange()[0]}
+                   </div>
+                   )}
+                   </div>
 
                <div className="flex gap-2">
                 <Button type="submit" className="bg-blue-600">Save</Button>
