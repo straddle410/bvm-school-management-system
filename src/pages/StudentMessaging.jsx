@@ -24,22 +24,8 @@ export default function StudentMessaging() {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
-    // Mark all message notifications as read when opening this page
-    if (session?.student_id) {
-      markMessageNotifsRead(session.student_id);
-    }
+    // Do NOT auto-mark all as read on page mount — only mark when message is opened
   }, []);
-
-  const markMessageNotifsRead = async (studentId) => {
-    try {
-      const unread = await base44.entities.Notification.filter({
-        recipient_student_id: studentId,
-        type: 'class_message',
-        is_read: false
-      });
-      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
-    } catch {}
-  };
 
   const sender = student ? {
     id: student.student_id,
