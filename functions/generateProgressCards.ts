@@ -301,45 +301,38 @@ Deno.serve(async (req) => {
         return months;
       };
 
-      // Use global attendance range from exam types
+      // Use global attendance range - fall back to student's actual attendance range if needed
       let attendanceStartDate = globalAttendanceStartDate;
       let attendanceEndDate = globalAttendanceEndDate;
 
-      // Calculate attendance based on range or full academic year
-      let attendanceSummary = null;
-      let monthWiseBreakdown = [];
-
-      // If we have a range (from exam type or from attendance records), calculate attendance
+      // If no exam type range found, use student's actual attendance dates
       if (!attendanceStartDate || !attendanceEndDate) {
-        // Default: use the first and last attendance date as range
         if (studentAttendance.length > 0) {
           const dates = studentAttendance
             .map(a => new Date(a.date))
             .sort((a, b) => a - b);
           attendanceStartDate = dates[0].toISOString().split('T')[0];
           attendanceEndDate = dates[dates.length - 1].toISOString().split('T')[0];
+          console.log(`[FALLBACK] ${student.student_name}: Using attendance dates ${attendanceStartDate} to ${attendanceEndDate}`);
         }
       }
 
-      // Now calculate if we have both start and end dates
-      if (attendanceStartDate && attendanceEndDate) {
-        if (studentAttendance.length > 0) {
-          const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
-          monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
+      // Calculate attendance summary
+      let attendanceSummary = null;
+      let monthWiseBreakdown = [];
 
-          console.log(`[FINAL] ${student.student_name}: working_days: ${rangeAttendance.working_days}, percentage: ${rangeAttendance.attendance_percentage}`);
+      if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
+        const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
+        monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
 
-          attendanceSummary = {
-            range_start: attendanceStartDate,
-            range_end: attendanceEndDate,
-            ...rangeAttendance,
-            month_wise_breakdown: monthWiseBreakdown
-          };
-        } else {
-          console.log(`[FINAL] ${student.student_name}: No attendance records found`);
-        }
-      } else {
-        console.log(`[FINAL] ${student.student_name}: No attendance date range available`);
+        console.log(`[FINAL] ${student.student_name}: working_days: ${rangeAttendance.working_days}, percentage: ${rangeAttendance.attendance_percentage}`);
+
+        attendanceSummary = {
+          range_start: attendanceStartDate,
+          range_end: attendanceEndDate,
+          ...rangeAttendance,
+          month_wise_breakdown: monthWiseBreakdown
+        };
       }
 
       // Calculate overall rank (per class/section)
