@@ -105,11 +105,35 @@ export default function AttendanceSummaryReport() {
     return students.map(student => {
       const studentAttendance = attendanceRecords.filter(a => a.student_id === student.student_id || a.student_id === student.id);
       
-      // Use new attendance_type field (full_day, half_day, absent, holiday)
-      const fullDays = studentAttendance.filter(a => a.attendance_type === 'full_day').length;
-      const halfDays = studentAttendance.filter(a => a.attendance_type === 'half_day').length;
+      // Validate we have attendance records
+      if (studentAttendance.length === 0) {
+        return {
+          id: student.id,
+          student_id: student.student_id,
+          name: student.name,
+          rollNo: student.roll_no || '-',
+          class: student.class_name,
+          section: student.section,
+          totalWorkingDays: workingDays,
+          totalHolidays: daysBetween.filter(d => holidaySet.has(d)).length,
+          presentDays: 0,
+          absentDays: 0,
+          attendancePercent: 0
+        };
+      }
+      
+      // Only count each date once - use attendance_type field which is the source of truth
+      const dateMap = {};
+      studentAttendance.forEach(a => {
+        if (!dateMap[a.date]) {
+          dateMap[a.date] = a.attendance_type;
+        }
+      });
+      
+      const fullDays = Object.values(dateMap).filter(type => type === 'full_day').length;
+      const halfDays = Object.values(dateMap).filter(type => type === 'half_day').length;
       const totalPresentDays = fullDays + (halfDays * 0.5);
-      const absentDays = studentAttendance.filter(a => a.attendance_type === 'absent').length;
+      const absentDays = Object.values(dateMap).filter(type => type === 'absent').length;
       
       const attendancePercent = workingDays > 0 ? ((totalPresentDays / workingDays) * 100).toFixed(2) : 0;
 
