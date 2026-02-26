@@ -50,9 +50,11 @@ Deno.serve(async (req) => {
     }
 
     // VALIDATION: Check if attendance records exist within the range
+    console.log(`[ATTENDANCE] Fetching attendance records for academic year: ${academicYear}`);
     const attendanceInRange = await base44.asServiceRole.entities.Attendance.filter({
       academic_year: academicYear
     });
+    console.log(`[ATTENDANCE] Total attendance records fetched: ${attendanceInRange.length}`);
 
     const recordsInRange = attendanceInRange.filter(a => {
       const attDate = new Date(a.date);
@@ -63,6 +65,8 @@ Deno.serve(async (req) => {
       rangeEnd.setUTCHours(23, 59, 59, 999);
       return attDate >= rangeStart && attDate <= rangeEnd;
     });
+
+    console.log(`[ATTENDANCE] Records in range (${attendanceRangeStart} to ${attendanceRangeEnd}): ${recordsInRange.length}`);
 
     if (recordsInRange.length === 0) {
       return Response.json({
