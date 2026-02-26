@@ -85,6 +85,7 @@ export default function Dashboard() {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
+  const [examResultsModalOpen, setExamResultsModalOpen] = useState(false);
 
   useEffect(() => {
     const staffRaw = localStorage.getItem('staff_session');
