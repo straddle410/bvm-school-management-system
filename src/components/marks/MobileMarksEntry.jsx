@@ -9,7 +9,8 @@ export default function MobileMarksEntry({
   marksData,
   onMarkChange,
   maxMarks,
-  passingMarks
+  passingMarks,
+  isLocked = false
 }) {
   const [currentSubjectIdx, setCurrentSubjectIdx] = useState(0);
   const currentSubject = subjects[currentSubjectIdx];
