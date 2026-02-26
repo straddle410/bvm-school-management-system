@@ -22,12 +22,13 @@ const bottomNav = [
 const LogoWithFallback = ({ src, alt, schoolProfile }) => {
   const [imgError, setImgError] = useState(false);
   const logoUrl = src || schoolProfile?.logo_url;
+  const proxiedLogoUrl = getProxiedImageUrl(logoUrl);
   return imgError || !logoUrl ?
   <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow">
       <Building2 className="h-5 w-5 text-[#1a237e]" />
     </div> :
 
-  <img src={logoUrl} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />;
+  <img src={proxiedLogoUrl} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />;
 
 };
 
