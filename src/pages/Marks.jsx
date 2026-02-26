@@ -144,9 +144,16 @@ export default function Marks() {
     s.class_name === selectedClass && s.section === selectedSection
   ).sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
 
-  // Get subjects from timetable for this exam/class, fall back to all subjects if no timetable
+  // Get subjects from timetable ordered by exam date, fall back to all subjects if no timetable
   const timetableSubjects = timetableEntries.length > 0 
-    ? [...new Set(timetableEntries.map(t => t.subject_name))]
+    ? timetableEntries
+        .sort((a, b) => new Date(a.exam_date) - new Date(b.exam_date))
+        .reduce((acc, t) => {
+          if (!acc.includes(t.subject_name)) {
+            acc.push(t.subject_name);
+          }
+          return acc;
+        }, [])
     : [];
   
   const subjectList = timetableSubjects.length > 0 
