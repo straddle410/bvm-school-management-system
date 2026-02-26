@@ -125,6 +125,15 @@ export default function Marks() {
     s.class_name === selectedClass && s.section === selectedSection
   ).sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
 
+  // Get subjects from timetable for this exam/class, fall back to all subjects if no timetable
+  const timetableSubjects = timetableEntries.length > 0 
+    ? [...new Set(timetableEntries.map(t => t.subject_name))]
+    : [];
+  
+  const subjectList = timetableSubjects.length > 0 
+    ? timetableSubjects 
+    : (subjects.length > 0 ? subjects.map(s => s.name) : DEFAULT_SUBJECTS);
+
   const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
@@ -153,7 +162,6 @@ export default function Marks() {
           else if (percentage >= 50) grade = 'C';
           else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
-          const selectedExamObj = examTypes.find(e => e.name === selectedExam);
           const data = {
             student_id: student.student_id || student.id,
             student_name: student.name,
@@ -224,15 +232,6 @@ export default function Marks() {
     }
   };
 
-  // Get subjects from timetable for this exam/class, fall back to all subjects if no timetable
-  const timetableSubjects = timetableEntries.length > 0 
-    ? [...new Set(timetableEntries.map(t => t.subject_name))]
-    : [];
-  
-  const subjectList = timetableSubjects.length > 0 
-    ? timetableSubjects 
-    : (subjects.length > 0 ? subjects.map(s => s.name) : DEFAULT_SUBJECTS);
-  
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
 
   return (
