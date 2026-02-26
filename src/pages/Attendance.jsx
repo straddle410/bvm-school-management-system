@@ -127,7 +127,7 @@ export default function Attendance() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!academicYear) throw new Error('Academic year not configured');
-      const promises = filteredStudents.map(student => {
+      const promises = filteredStudents.map(async (student) => {
         const existing = attendanceData[student.student_id];
         const attType = existing?.attendance_type || 'full_day';
 
@@ -149,7 +149,12 @@ export default function Attendance() {
         };
 
         if (existing?.id) {
-          return base44.entities.Attendance.update(existing.id, data);
+          // Use validation function for updates (enforces lock check + audit logging)
+          const response = await base44.functions.invoke('updateAttendanceWithValidation', {
+            attendanceId: existing.id,
+            data
+          });
+          return response.data;
         }
         return base44.entities.Attendance.create(data);
       });
@@ -158,6 +163,13 @@ export default function Attendance() {
     onSuccess: () => {
       queryClient.invalidateQueries(['attendance']);
       toast.success(isHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
+    },
+    onError: (err) => {
+      if (err?.response?.status === 403) {
+        toast.error('❌ This record is locked. Only admin can unlock and edit.');
+      } else {
+        toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
+      }
     }
   });
 
