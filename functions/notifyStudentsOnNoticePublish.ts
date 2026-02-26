@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get all approved students
-    let students = await base44.asServiceRole.entities.Student.filter({ status: 'Approved' });
+    // Get all active students (Published = active in this school's workflow)
+    let students = await base44.asServiceRole.entities.Student.filter({ status: 'Published' });
 
     // Filter by target_classes if specified
     if (target_classes.length > 0) {
