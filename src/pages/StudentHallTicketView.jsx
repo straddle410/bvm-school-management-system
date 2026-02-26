@@ -308,13 +308,13 @@ export default function StudentHallTicketView() {
            }
 
            .timetable-watermark svg {
-             width: 120% !important;
-             height: 120% !important;
-             opacity: 0.5 !important;
-             filter: grayscale(100%);
-             -webkit-print-color-adjust: exact;
-             print-color-adjust: exact;
-           }
+              width: 250% !important;
+              height: 250% !important;
+              opacity: 0.35 !important;
+              filter: grayscale(100%);
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
 
            /* Table content above watermark */
            .timetable-content {
