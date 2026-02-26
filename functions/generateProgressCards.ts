@@ -313,10 +313,23 @@ Deno.serve(async (req) => {
       }
 
       // Calculate attendance based on range or full academic year
-      let attendanceSummary = {};
+      let attendanceSummary = null;
       let monthWiseBreakdown = [];
 
-      if (attendanceStartDate && attendanceEndDate) {
+      // If we have a range (from exam type or from attendance records), calculate attendance
+      if (!attendanceStartDate || !attendanceEndDate) {
+        // Default: use the first and last attendance date as range
+        if (studentAttendance.length > 0) {
+          const dates = studentAttendance
+            .map(a => new Date(a.date))
+            .sort((a, b) => a - b);
+          attendanceStartDate = dates[0].toISOString().split('T')[0];
+          attendanceEndDate = dates[dates.length - 1].toISOString().split('T')[0];
+        }
+      }
+
+      // Now calculate if we have both start and end dates
+      if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
         monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
 
@@ -325,23 +338,6 @@ Deno.serve(async (req) => {
         attendanceSummary = {
           range_start: attendanceStartDate,
           range_end: attendanceEndDate,
-          ...rangeAttendance,
-          month_wise_breakdown: monthWiseBreakdown
-        };
-      } else if (studentAttendance.length > 0) {
-        // Fallback: use the actual range from attendance records
-        const dates = studentAttendance
-          .map(a => new Date(a.date))
-          .sort((a, b) => a - b);
-        const fallbackStart = dates[0].toISOString().split('T')[0];
-        const fallbackEnd = dates[dates.length - 1].toISOString().split('T')[0];
-
-        const rangeAttendance = calculateAttendanceForRange(studentAttendance, fallbackStart, fallbackEnd);
-        monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, fallbackStart, fallbackEnd);
-
-        attendanceSummary = {
-          range_start: fallbackStart,
-          range_end: fallbackEnd,
           ...rangeAttendance,
           month_wise_breakdown: monthWiseBreakdown
         };
