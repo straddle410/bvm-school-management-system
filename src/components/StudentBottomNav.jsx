@@ -45,7 +45,8 @@ export default function StudentBottomNav({ currentPage }) {
           else if (n.type === 'results_posted' || n.type === 'marks_published') counts.results_posted++;
           else if (n.type === 'class_message') counts.messages++;
         }
-        counts.messages += unreadMsgs.length;
+        // FIX #2: Only count message notifications, don't double-count with unreadMsgs
+        // Message notifications already captured in class_message count above
         setBadges(counts);
       } catch {}
     };

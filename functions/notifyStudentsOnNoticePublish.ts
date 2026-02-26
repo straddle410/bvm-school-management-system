@@ -18,12 +18,18 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get all approved students
-    let students = await base44.asServiceRole.entities.Student.filter({ status: 'Approved' });
+    // Get current academic year (should be available in notice or config)
+    const currentAcademicYear = notice.academic_year || '2024-25';
+
+    // FIX #1a: Add academic year filter to prevent multi-year notifications
+    let students = await base44.asServiceRole.entities.Student.filter({ 
+     status: 'Approved',
+     academic_year: currentAcademicYear,
+    });
 
     // Filter by target classes if specified
     if (target_audience === 'Students' && target_classes.length > 0) {
-      students = students.filter(s => target_classes.includes(s.class_name));
+     students = students.filter(s => target_classes.includes(s.class_name));
     }
 
     if (students.length === 0) {
@@ -39,12 +45,11 @@ Deno.serve(async (req) => {
 
     let notified = 0;
 
-    for (const student of students) {
-      // Skip if already notified
-      if (alreadyNotified.has(student.student_id)) continue;
-
-      try {
-        await base44.asServiceRole.entities.Notification.create({
+    // FIX #1b: Use Promise.all for parallel creation (faster than serial loop)
+    const notificationPromises = students
+      .filter(s => !alreadyNotified.has(s.student_id))
+      .map(student => 
+        base44.asServiceRole.entities.Notification.create({
           recipient_student_id: student.student_id,
           type: 'notice_posted',
           title: notice.title,
@@ -52,12 +57,15 @@ Deno.serve(async (req) => {
           related_entity_id: notice.id,
           action_url: '/Notices',
           is_read: false,
-        });
-        notified++;
-      } catch (err) {
-        console.error(`Failed to notify ${student.student_id}:`, err.message);
-      }
-    }
+          duplicate_key: `notice_${notice.id}_${student.student_id}`, // For future DB constraint
+        }).catch(err => {
+          console.error(`Failed to notify ${student.student_id}:`, err.message);
+          return null;
+        })
+      );
+    
+    const results = await Promise.all(notificationPromises);
+    notified = results.filter(r => r !== null).length;
 
     // Send push notifications to students with push tokens
     if (notified > 0) {

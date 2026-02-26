@@ -37,10 +37,11 @@ Deno.serve(async (req) => {
 
     let notified = 0;
 
-    for (const email of staffEmails) {
-      if (alreadyNotified.has(email)) continue;
-      try {
-        await base44.asServiceRole.entities.Notification.create({
+    // Use Promise.all for parallel creation (faster)
+    const notificationPromises = staffEmails
+      .filter(email => !alreadyNotified.has(email))
+      .map(email => 
+        base44.asServiceRole.entities.Notification.create({
           recipient_staff_id: email,
           type: 'notice_posted_staff',
           title: notice.title,
@@ -48,10 +49,39 @@ Deno.serve(async (req) => {
           related_entity_id: noticeId,
           action_url: '/Notices',
           is_read: false,
-        });
-        notified++;
-      } catch (err) {
-        console.error(`Failed to notify staff ${email}:`, err.message);
+        }).catch(err => {
+          console.error(`Failed to notify staff ${email}:`, err.message);
+          return null;
+        })
+      );
+    
+    const results = await Promise.all(notificationPromises);
+    notified = results.filter(r => r !== null).length;
+
+    // FIX #4: Send push notifications to staff with enabled push
+    if (notified > 0) {
+      try {
+        const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
+        const prefMap = new Map(prefs.map(p => [p.staff_email, p]));
+
+        const pushStaffEmails = staffEmails
+          .filter(email => {
+            const p = prefMap.get(email);
+            return p && p.browser_push_enabled && p.browser_push_token;
+          });
+
+        if (pushStaffEmails.length > 0) {
+          await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
+            staff_emails: pushStaffEmails,
+            title: `Notice: ${notice.title}`,
+            message: (notice.content || '').substring(0, 100),
+            url: '/Notices',
+          }).catch(pushErr => {
+            console.error('Staff push send error (non-fatal):', pushErr.message);
+          });
+        }
+      } catch (pushErr) {
+        console.error('Staff push delivery error (non-fatal):', pushErr.message);
       }
     }
 

@@ -51,7 +51,24 @@ export default function StudentMessaging() {
 
   const markAllInboxRead = async () => {
     const unreadMsgs = inbox.filter(m => !m.is_read && m.recipient_id === student?.student_id);
+    
+    // FIX #3: Update BOTH Message and linked Notification entities
     await Promise.all(unreadMsgs.map(m => base44.entities.Message.update(m.id, { is_read: true })));
+    
+    // Also mark linked notifications as read so badge updates correctly
+    await Promise.all(unreadMsgs.map(async (m) => {
+      try {
+        const linkedNotif = await base44.entities.Notification.filter({
+          type: 'class_message',
+          related_entity_id: m.id,
+          recipient_student_id: student.student_id,
+        });
+        if (linkedNotif.length > 0) {
+          await base44.entities.Notification.update(linkedNotif[0].id, { is_read: true });
+        }
+      } catch {}
+    }));
+    
     queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
     queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
   };
@@ -66,6 +83,19 @@ export default function StudentMessaging() {
 
     if (!msg.is_read && msg.recipient_id === student?.student_id) {
       await base44.entities.Message.update(msg.id, { is_read: true });
+      
+      // FIX #3: Also mark linked notification as read
+      try {
+        const linkedNotif = await base44.entities.Notification.filter({
+          type: 'class_message',
+          related_entity_id: msg.id,
+          recipient_student_id: student.student_id,
+        });
+        if (linkedNotif.length > 0) {
+          await base44.entities.Notification.update(linkedNotif[0].id, { is_read: true });
+        }
+      } catch {}
+      
       queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
       queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
     }
