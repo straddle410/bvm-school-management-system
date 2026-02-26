@@ -39,8 +39,8 @@ export default function MarksReview() {
 
   // Fetch exam types
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['exam-types'],
-    queryFn: () => base44.entities.ExamType.list()
+    queryKey: ['exam-types', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear })
   });
 
   // Fetch submitted and published marks

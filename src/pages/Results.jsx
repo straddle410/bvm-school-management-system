@@ -110,11 +110,11 @@ export default function Results() {
     }
   };
 
-  // Fetch exam types in correct order
-  const examTypeOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
+  // Fetch exam types from master source
+  const { academicYear } = useAcademicYear();
   const { data: examTypes = [] } = useQuery({
-    queryKey: ['exam-types-published'],
-    queryFn: () => base44.entities.ExamType.filter({ is_active: true })
+    queryKey: ['exam-types-published', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
   // Load students when class+section is selected
@@ -154,11 +154,10 @@ export default function Results() {
     if (marks.length > 0) {
       const m = marks[0];
 
-      // Group marks by exam type in correct order
+      // Group marks by exam type - maintain order from ExamType entity
       const grouped = {};
-      const examOrder = ['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'];
-      examOrder.forEach(exam => {
-        grouped[exam] = [];
+      examTypes.forEach(exam => {
+        grouped[exam.id] = [];
       });
 
       marks.forEach(mark => {
@@ -168,12 +167,16 @@ export default function Results() {
         grouped[mark.exam_type].push(mark);
       });
 
-      // Remove empty exam types
+      // Remove empty exam types and replace IDs with names
+      const groupedByName = {};
       Object.keys(grouped).forEach(key => {
-        if (grouped[key].length === 0) {
-          delete grouped[key];
+        if (grouped[key].length > 0) {
+          const examTypeObj = examTypes.find(e => e.id === key);
+          const displayName = examTypeObj?.name || key;
+          groupedByName[displayName] = grouped[key];
         }
       });
+      const grouped = groupedByName;
 
       setResultsByExam(grouped);
       setAllMarks(marks);
@@ -337,8 +340,8 @@ export default function Results() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">ALL (All exams)</SelectItem>
-                  {['FA1', 'FA2', 'FA3', 'FA4', 'SA1', 'SA2', 'Annual'].map(e => (
-                    <SelectItem key={e} value={e}>{e}</SelectItem>
+                  {examTypes.map(e => (
+                    <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
