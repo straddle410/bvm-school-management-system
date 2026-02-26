@@ -45,9 +45,24 @@ Deno.serve(async (req) => {
     console.log(`[MARKS] Fetched ${publishedMarks.length} published marks for exam type "${examType.name}" (ID: ${examTypeId})`);
 
     if (publishedMarks.length === 0) {
-      return Response.json({
-        error: `No published or approved marks found for exam type "${examType.name}". Please publish marks first.`
-      }, { status: 400 });
+      console.error(`[ERROR] No marks found with exam_type filter: ${examTypeId}`);
+      console.error(`[DEBUG] Trying alternative filter with exam_type as string name...`);
+      
+      // Fallback: Try with exam type name if ID filter doesn't work
+      const fallbackMarks = await base44.asServiceRole.entities.Marks.filter({
+        academic_year: academicYear,
+        exam_type: examType.name
+      });
+      const fallbackPublished = fallbackMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
+      console.log(`[DEBUG] Fallback: Found ${fallbackPublished.length} marks with name filter`);
+      
+      if (fallbackPublished.length === 0) {
+        return Response.json({
+          error: `No published or approved marks found for exam type "${examType.name}". Please publish marks first.`
+        }, { status: 400 });
+      }
+      
+      publishedMarks.push(...fallbackPublished);
     }
 
     // VALIDATION: Check if attendance records exist within the range
