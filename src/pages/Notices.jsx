@@ -57,29 +57,63 @@ export default function Notices() {
     const staffData = getStaffSession();
     setUser(staffData);
 
-    // Mark notice notifications as read for staff
+    // Load staff unread notice notifs (don't auto-mark all read)
     if (staffData?.email) {
-      markStaffNotificationsRead(staffData.email, 'notice_posted_staff');
+      loadStaffUnreadNoticeNotifs(staffData.email);
     }
 
-    // Mark notice notifications as read for student
+    // Load student unread notice notifs (don't auto-mark all read)
     const studentSession = localStorage.getItem('student_session');
     if (studentSession) {
       try {
         const studentData = JSON.parse(studentSession);
-        markNoticeNotificationsAsRead(studentData.student_id);
+        loadStudentUnreadNoticeNotifs(studentData.student_id);
       } catch {}
     }
   }, []);
 
-  const markNoticeNotificationsAsRead = async (studentId) => {
+  const loadStaffUnreadNoticeNotifs = async (email) => {
     try {
-      const unread = await base44.entities.Notification.filter({
-        recipient_student_id: studentId,
-        type: 'notice_posted',
-        is_read: false
-      });
-      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
+      const unread = await base44.entities.Notification.filter({ recipient_staff_id: email, type: 'notice_posted_staff', is_read: false });
+      const map = {};
+      unread.forEach(n => { if (n.related_entity_id) map[n.related_entity_id] = n.id; });
+      setUnreadNotifMap(map);
+    } catch {}
+  };
+
+  const loadStudentUnreadNoticeNotifs = async (studentId) => {
+    try {
+      const unread = await base44.entities.Notification.filter({ recipient_student_id: studentId, type: 'notice_posted', is_read: false });
+      const map = {};
+      unread.forEach(n => { if (n.related_entity_id) map[n.related_entity_id] = n.id; });
+      setUnreadNotifMap(map);
+    } catch {}
+  };
+
+  const markNoticeRead = async (noticeId) => {
+    const notifId = unreadNotifMap[noticeId];
+    // Also track locally for notices without server notif
+    if (!readNoticeIds.has(noticeId)) {
+      const next = new Set(readNoticeIds).add(noticeId);
+      setReadNoticeIds(next);
+      localStorage.setItem('read_notice_ids', JSON.stringify([...next]));
+    }
+    if (!notifId) return;
+    try {
+      await base44.entities.Notification.update(notifId, { is_read: true });
+      setUnreadNotifMap(prev => { const next = { ...prev }; delete next[noticeId]; return next; });
+    } catch {}
+  };
+
+  const markAllNoticesRead = async () => {
+    try {
+      await Promise.all(Object.values(unreadNotifMap).map(id => base44.entities.Notification.update(id, { is_read: true })));
+      setUnreadNotifMap({});
+      // Also mark all visible as locally read
+      const next = new Set(readNoticeIds);
+      visibleNotices.forEach(n => next.add(n.id));
+      setReadNoticeIds(next);
+      localStorage.setItem('read_notice_ids', JSON.stringify([...next]));
     } catch {}
   };
 
