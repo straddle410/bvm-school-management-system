@@ -145,9 +145,18 @@ export default function Notices() {
     setShowDialog(true);
   };
 
+  // For student sessions, filter notices by target_classes if set
+  const studentClassForFilter = (() => {
+    try { return JSON.parse(localStorage.getItem('student_session'))?.class_name; } catch { return null; }
+  })();
+
   const visibleNotices = notices.filter(n => {
     if (!isStaff && n.status !== 'Published') return false;
     if (filterType !== 'all' && n.notice_type !== filterType) return false;
+    // If student, filter by target_classes (if notice targets specific classes)
+    if (!isStaff && studentClassForFilter && n.target_audience === 'Students' && n.target_classes?.length > 0) {
+      if (!n.target_classes.includes(studentClassForFilter)) return false;
+    }
     return true;
   });
 
