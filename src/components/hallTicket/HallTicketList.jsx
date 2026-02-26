@@ -56,6 +56,25 @@ export default function HallTicketList() {
     }
   });
 
+  const publishMutation = useMutation({
+    mutationFn: async (ticketIds) => {
+      const res = await base44.functions.invoke('publishHallTickets', {
+        ticketIds,
+        academicYear
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['hallTickets'] });
+      setSelected([]);
+      toast.success(`Published ${data.count} hall tickets. Notifications sent to students.`);
+    },
+    onError: (error) => {
+      const errorMsg = error.response?.data?.error || error.message;
+      toast.error(errorMsg);
+    }
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (ticketIds) => {
       for (const id of ticketIds) {
