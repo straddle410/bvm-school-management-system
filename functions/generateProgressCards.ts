@@ -173,13 +173,15 @@ Deno.serve(async (req) => {
         academic_year: academicYear
       });
 
-      // Fetch all attendance records for the student
+      // Fetch all attendance records for the student (filter by name and class)
       const allAttendanceRecords = await base44.asServiceRole.entities.Attendance.filter({
-        student_id: student.student_id,
         class_name: student.class_name,
         section: student.section,
         academic_year: academicYear
       });
+      
+      // Further filter by student name to match records
+      const studentAttendance = allAttendanceRecords.filter(a => a.student_name === student.student_name);
 
       // Helper function to calculate attendance for a date range
       const calculateAttendanceForRange = (records, startDate, endDate) => {
