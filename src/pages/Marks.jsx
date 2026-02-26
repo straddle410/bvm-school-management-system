@@ -420,6 +420,16 @@ export default function Marks() {
                 </CardContent>
               </Card>
             )}
+
+            {selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-16 text-center">
+                  <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-slate-700">No Timetable Created</h3>
+                  <p className="text-slate-500 mt-2">Timetable must be created for this class and exam before entering marks</p>
+                </CardContent>
+              </Card>
+            )}
       </div>
 
       {/* Add Subject Dialog */}
