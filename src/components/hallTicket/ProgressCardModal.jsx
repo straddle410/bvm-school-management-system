@@ -160,6 +160,101 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             </div>
           </div>
 
+          {/* Attendance Summary */}
+          {card.attendance_summary && (
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Attendance Summary</h2>
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                {/* Attendance Range and Overall Stats */}
+                {card.attendance_summary.range_start && card.attendance_summary.range_end ? (
+                  <div className="bg-gray-50 p-4 border-b border-gray-300">
+                    <p className="text-sm text-gray-600 mb-3">
+                      <span className="font-semibold">Reporting Period:</span> {card.attendance_summary.range_start} to {card.attendance_summary.range_end}
+                    </p>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-600">Working Days</p>
+                        <p className="text-2xl font-bold text-gray-900">{card.attendance_summary.working_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Days Present</p>
+                        <p className="text-2xl font-bold text-green-600">{card.attendance_summary.total_present_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Days Absent</p>
+                        <p className="text-2xl font-bold text-red-600">{card.attendance_summary.working_days - card.attendance_summary.total_present_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Attendance %</p>
+                        <p className="text-2xl font-bold text-blue-600">{card.attendance_summary.attendance_percentage}%</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Month-wise Breakdown */}
+                {card.attendance_summary.month_wise_breakdown && card.attendance_summary.month_wise_breakdown.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-100 border-b border-gray-300">
+                          <th className="px-4 py-2 text-left font-semibold text-gray-900">Month</th>
+                          <th className="px-4 py-2 text-center font-semibold text-gray-900">Working Days</th>
+                          <th className="px-4 py-2 text-center font-semibold text-gray-900">Present</th>
+                          <th className="px-4 py-2 text-center font-semibold text-gray-900">Absent</th>
+                          <th className="px-4 py-2 text-center font-semibold text-gray-900">Attendance %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {card.attendance_summary.month_wise_breakdown.map((month, idx) => (
+                          <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="px-4 py-2 font-medium text-gray-900">{month.month_display}</td>
+                            <td className="px-4 py-2 text-center text-gray-700">{month.working_days}</td>
+                            <td className="px-4 py-2 text-center text-green-600 font-semibold">{month.total_present}</td>
+                            <td className="px-4 py-2 text-center text-red-600 font-semibold">{month.working_days - month.total_present}</td>
+                            <td className="px-4 py-2 text-center text-blue-600 font-semibold">{month.attendance_percentage}%</td>
+                          </tr>
+                        ))}
+                        {/* Total Row */}
+                        <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
+                          <td className="px-4 py-2 text-gray-900">Total ({card.attendance_summary.range_start} – {card.attendance_summary.range_end})</td>
+                          <td className="px-4 py-2 text-center text-gray-900">{card.attendance_summary.working_days}</td>
+                          <td className="px-4 py-2 text-center text-green-600">{card.attendance_summary.total_present_days}</td>
+                          <td className="px-4 py-2 text-center text-red-600">{card.attendance_summary.working_days - card.attendance_summary.total_present_days}</td>
+                          <td className="px-4 py-2 text-center text-blue-600">{card.attendance_summary.attendance_percentage}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Fallback if no date range set */}
+                {!card.attendance_summary.month_wise_breakdown || card.attendance_summary.month_wise_breakdown.length === 0 && (
+                  <div className="p-4 bg-gray-50">
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-600">Working Days</p>
+                        <p className="text-2xl font-bold text-gray-900">{card.attendance_summary.working_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Days Present</p>
+                        <p className="text-2xl font-bold text-green-600">{card.attendance_summary.total_present_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Days Absent</p>
+                        <p className="text-2xl font-bold text-red-600">{card.attendance_summary.working_days - card.attendance_summary.total_present_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Attendance %</p>
+                        <p className="text-2xl font-bold text-blue-600">{card.attendance_summary.attendance_percentage}%</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="text-center text-xs text-gray-500 border-t pt-4 mt-8">
             <p>Generated on: {new Date(card.generated_at).toLocaleDateString()}</p>
