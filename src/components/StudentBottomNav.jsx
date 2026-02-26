@@ -6,10 +6,10 @@ import { GraduationCap, BookOpen, Brain, Trophy, MessageSquare } from 'lucide-re
 
 const navItems = [
   { label: 'Home',     icon: GraduationCap, page: 'StudentDashboard' },
-  { label: 'Homework', icon: BookOpen,       page: 'StudentHomework' },
-  { label: 'Quiz',     icon: Brain,          page: 'Quiz',            notifType: 'quiz_posted' },
-  { label: 'Results',  icon: Trophy,         page: 'Results',         notifType: 'results_posted' },
+  { label: 'Notices', icon: Bell,          page: 'Notices' },
+  { label: 'Diary',    icon: BookOpen,     page: 'Diary' },
   { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', messagesBadge: true },
+  { label: 'More',     icon: MoreHorizontal, page: 'More' },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
