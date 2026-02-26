@@ -119,7 +119,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Top Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md w-full">
         <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition">
-          
+          <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-2">
           <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
