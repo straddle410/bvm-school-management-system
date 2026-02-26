@@ -7,13 +7,13 @@ import { GraduationCap, BookOpen, Brain, Trophy, MessageSquare } from 'lucide-re
 const navItems = [
   { label: 'Home',     icon: GraduationCap, page: 'StudentDashboard' },
   { label: 'Homework', icon: BookOpen,       page: 'StudentHomework' },
-  { label: 'Quiz',     icon: Brain,          page: 'Quiz' },
-  { label: 'Results',  icon: Trophy,         page: 'Results' },
-  { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', badge: true },
+  { label: 'Quiz',     icon: Brain,          page: 'Quiz',            notifType: 'quiz_posted' },
+  { label: 'Results',  icon: Trophy,         page: 'Results',         notifType: 'results_posted' },
+  { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', messagesBadge: true },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [badges, setBadges] = useState({ quiz_posted: 0, results_posted: 0, messages: 0 });
   const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
@@ -25,24 +25,69 @@ export default function StudentBottomNav({ currentPage }) {
 
   useEffect(() => {
     if (!studentSession?.student_id) return;
-    const fetchUnread = async () => {
+
+    const fetchBadges = async () => {
       try {
-        const messages = await base44.entities.Message.filter({ recipient_id: studentSession.student_id, is_read: false });
-        setUnreadCount(messages.length);
+        const [notifs, unreadMsgs] = await Promise.all([
+          base44.entities.Notification.filter({
+            recipient_student_id: studentSession.student_id,
+            is_read: false,
+          }),
+          base44.entities.Message.filter({
+            recipient_id: studentSession.student_id,
+            is_read: false,
+          }),
+        ]);
+
+        const counts = { quiz_posted: 0, results_posted: 0, messages: 0 };
+        for (const n of notifs) {
+          if (n.type === 'quiz_posted') counts.quiz_posted++;
+          else if (n.type === 'results_posted' || n.type === 'marks_published') counts.results_posted++;
+          else if (n.type === 'class_message') counts.messages++;
+        }
+        counts.messages += unreadMsgs.length;
+        setBadges(counts);
       } catch {}
     };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 15000);
-    return () => clearInterval(interval);
+
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 30000);
+
+    // Real-time update
+    const unsub1 = base44.entities.Notification.subscribe((event) => {
+      if (event.type === 'create' && event.data?.recipient_student_id === studentSession.student_id) {
+        fetchBadges();
+      }
+      if (event.type === 'update' && event.data?.recipient_student_id === studentSession.student_id) {
+        fetchBadges();
+      }
+    });
+    const unsub2 = base44.entities.Message.subscribe((event) => {
+      if (event.data?.recipient_id === studentSession.student_id) {
+        fetchBadges();
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      unsub1();
+      unsub2();
+    };
   }, [studentSession]);
+
+  const getBadgeCount = (item) => {
+    if (item.messagesBadge) return badges.messages;
+    if (item.notifType) return badges[item.notifType] || 0;
+    return 0;
+  };
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50">
-      {/* glass effect bar */}
       <div className="mx-3 mb-3 bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-white/60">
         <div className="flex items-center justify-around px-2 py-2">
           {navItems.map((item) => {
             const isActive = currentPage === item.page;
+            const badgeCount = getBadgeCount(item);
             return (
               <Link
                 key={item.page}
@@ -54,9 +99,9 @@ export default function StudentBottomNav({ currentPage }) {
                 )}
                 <div className={`relative z-10 p-1.5 rounded-xl transition-all ${isActive ? 'bg-gradient-to-br from-[#1a237e] to-[#3949ab] shadow-md' : ''}`}>
                   <item.icon className={`h-5 w-5 transition-all ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                  {item.badge && unreadCount > 0 && (
+                  {badgeCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 shadow-sm">
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {badgeCount > 9 ? '9+' : badgeCount}
                     </span>
                   )}
                 </div>

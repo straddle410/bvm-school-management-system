@@ -16,22 +16,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing student_id' }, { status: 400 });
     }
 
-    // Get student notification preferences
-    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
-      student_id: student_id
+    // Check for duplicate notification (DB-level)
+    const existing = await base44.asServiceRole.entities.Notification.filter({
+      recipient_student_id: student_id,
+      type: 'results_posted',
+      related_entity_id: marks.id,
     });
 
-    const pref = prefs[0];
-
-    // Check if notifications are enabled
-    if (!pref || !pref.notifications_enabled) {
+    if (existing.length > 0) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    const duplicateKey = `marks_${marks.id}_${student_id}`;
-
+    // Create notification — no preference check, all students get it
     try {
-      // Create notification record
       await base44.asServiceRole.entities.Notification.create({
         recipient_student_id: student_id,
         type: 'results_posted',
@@ -40,29 +37,31 @@ Deno.serve(async (req) => {
         related_entity_id: marks.id,
         action_url: '/Results',
         is_read: false,
-        duplicate_key: duplicateKey
       });
-
-      // Also send push notification if enabled
-      try {
-        const pushPref = prefs[0];
-        if (pushPref && pushPref.browser_push_enabled && pushPref.browser_push_token) {
-          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-            student_ids: [student_id],
-            title: 'Your Results Are Published',
-            message: `${marks.subject} - ${marks.exam_type}`,
-            url: '/Results',
-          });
-        }
-      } catch (pushErr) {
-        console.error('Push send error (non-fatal):', pushErr.message);
-      }
-
-      return Response.json({ success: true, notified: 1 });
     } catch (err) {
-      console.error('Failed to create notification:', err);
+      console.error('Failed to create notification:', err.message);
       return Response.json({ success: true, notified: 0 });
     }
+
+    // Send push notification if enabled
+    try {
+      const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
+        student_id: student_id
+      });
+      const pref = prefs[0];
+      if (pref && pref.browser_push_enabled && pref.browser_push_token) {
+        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+          student_ids: [student_id],
+          title: 'Your Results Are Published',
+          message: `${marks.subject} - ${marks.exam_type}`,
+          url: '/Results',
+        });
+      }
+    } catch (pushErr) {
+      console.error('Push send error (non-fatal):', pushErr.message);
+    }
+
+    return Response.json({ success: true, notified: 1 });
   } catch (error) {
     console.error('Error in notifyStudentsOnMarksPublish:', error);
     return Response.json({ error: error.message }, { status: 500 });

@@ -38,7 +38,6 @@ Deno.serve(async (req) => {
     let students = [];
 
     if (recipient_type === 'individual') {
-      // Direct message to one student — find by student_id
       if (recipient_id) {
         const found = await base44.asServiceRole.entities.Student.filter({
           student_id: recipient_id,
@@ -50,7 +49,6 @@ Deno.serve(async (req) => {
       if (!class_name) {
         return Response.json({ success: true, notified: 0 });
       }
-      // Get all students in the class (Approved status)
       const allInClass = await base44.asServiceRole.entities.Student.filter({
         class_name: class_name,
         status: 'Approved'
@@ -66,7 +64,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Check for existing notifications to avoid duplicates
+    // Check for existing notifications to avoid duplicates (DB-level)
     const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
       type: 'class_message',
       related_entity_id: message_id,
@@ -91,6 +89,32 @@ Deno.serve(async (req) => {
         notified++;
       } catch (err) {
         console.error(`Failed to notify ${student.student_id}:`, err.message);
+      }
+    }
+
+    // Send push notifications to students with push tokens
+    if (notified > 0) {
+      try {
+        const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
+        const prefMap = new Map(prefs.map(p => [p.student_id, p]));
+
+        const pushStudentIds = students
+          .filter(s => {
+            const p = prefMap.get(s.student_id);
+            return p && p.browser_push_enabled && p.browser_push_token;
+          })
+          .map(s => s.student_id);
+
+        if (pushStudentIds.length > 0) {
+          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+            student_ids: pushStudentIds,
+            title: `Message from ${sender_name || 'Teacher'}`,
+            message: subject || (msgBody || '').substring(0, 80),
+            url: '/StudentMessaging',
+          });
+        }
+      } catch (pushErr) {
+        console.error('Push send error (non-fatal):', pushErr.message);
       }
     }
 
