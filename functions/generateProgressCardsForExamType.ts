@@ -194,43 +194,14 @@ Deno.serve(async (req) => {
       const rankKey = `${studentMarks.class_name}__${studentMarks.section}`;
       const rankData = rankMap[rankKey]?.find(r => r.student_id === studentMarks.student_id);
 
-      // Fetch attendance for this student
-      const studentAttendance = attendanceInRange.filter(a =>
-        a.student_id === studentMarks.student_id &&
-        a.class_name === studentMarks.class_name &&
-        a.section === studentMarks.section
+      // Fetch attendance summary from shared function - ensures exact match with attendance module
+      const attendanceSummary = await getAttendanceSummary(
+        studentMarks.student_id,
+        studentMarks.class_name,
+        studentMarks.section
       );
 
-      // VALIDATION: Ensure student has attendance records in range
-      const studentRecordsInRange = studentAttendance.filter(a => {
-        const attDate = new Date(a.date);
-        attDate.setUTCHours(0, 0, 0, 0);
-        const rangeStart = new Date(attendanceRangeStart);
-        const rangeEnd = new Date(attendanceRangeEnd);
-        rangeStart.setUTCHours(0, 0, 0, 0);
-        rangeEnd.setUTCHours(23, 59, 59, 999);
-        return attDate >= rangeStart && attDate <= rangeEnd;
-      });
-
-      if (studentRecordsInRange.length === 0) {
-        throw new Error(`Student ${studentMarks.student_name} (${studentMarks.student_id}) has no attendance records in range ${attendanceRangeStart} to ${attendanceRangeEnd}.`);
-      }
-
-      console.log(`[DEBUG-ATTENDANCE-FETCH] Student ${studentMarks.student_name} (${studentMarks.student_id}): Found ${studentAttendance.length} total attendance records`);
-      console.log(`[DEBUG-ATTENDANCE-IN-RANGE] Same student: ${studentRecordsInRange.length} records in range ${attendanceRangeStart} to ${attendanceRangeEnd}`);
-
-      const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceRangeStart, attendanceRangeEnd);
-      console.log(`[DEBUG-RANGE-CALC] Student ${studentMarks.student_name}: Range result = ${JSON.stringify(rangeAttendance)}`);
-
-      const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceRangeStart, attendanceRangeEnd);
-      console.log(`[DEBUG-MONTH-BREAKDOWN] Student ${studentMarks.student_name}: Monthly breakdown = ${JSON.stringify(monthWiseBreakdown)}`);
-
-      const attendanceSummary = {
-        range_start: attendanceRangeStart,
-        range_end: attendanceRangeEnd,
-        ...rangeAttendance,
-        month_wise_breakdown: monthWiseBreakdown
-      };
+      console.log(`[ATTENDANCE-SUMMARY] Student ${studentMarks.student_name} (${studentMarks.student_id}): working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
 
       // FAIL-FAST: Validate attendance_summary is fully populated
       if (!attendanceSummary.range_start || !attendanceSummary.range_end || attendanceSummary.working_days === undefined) {
