@@ -11,23 +11,23 @@ import MessageNotificationListener from '@/components/messaging/MessageNotificat
 // Don't register here - let StudentNotificationSettings handle it on user request
 
 const bottomNav = [
-  { name: 'Home', icon: Home, page: 'Dashboard' },
-  { name: 'Notices', icon: Bell, page: 'Notices' },
-  { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
-  { name: 'Calendar', icon: Calendar, page: 'Calendar' },
-  { name: 'More', icon: MoreHorizontal, page: 'More' },
-];
+{ name: 'Home', icon: Home, page: 'Dashboard' },
+{ name: 'Notices', icon: Bell, page: 'Notices' },
+{ name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
+{ name: 'Calendar', icon: Calendar, page: 'Calendar' },
+{ name: 'More', icon: MoreHorizontal, page: 'More' }];
+
 
 const LogoWithFallback = ({ src, alt, schoolProfile }) => {
   const [imgError, setImgError] = useState(false);
   const logoUrl = src || schoolProfile?.logo_url;
-  return imgError || !logoUrl ? (
-    <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow">
+  return imgError || !logoUrl ?
+  <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow">
       <Building2 className="h-5 w-5 text-[#1a237e]" />
-    </div>
-  ) : (
-    <img src={logoUrl} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />
-  );
+    </div> :
+
+  <img src={logoUrl} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />;
+
 };
 
 // Pages that don't use the app shell
@@ -45,11 +45,11 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     // Check student session first
     let ss = null;
-      try {
-        const raw = localStorage.getItem('student_session');
-        if (raw) { ss = JSON.parse(raw); setStudentSession(ss); }
-      } catch {}
-      loadData(!!ss);
+    try {
+      const raw = localStorage.getItem('student_session');
+      if (raw) {ss = JSON.parse(raw);setStudentSession(ss);}
+    } catch {}
+    loadData(!!ss);
   }, []);
 
   const loadData = async (hasStudentSession) => {
@@ -63,9 +63,9 @@ export default function Layout({ children, currentPageName }) {
     }
     try {
       const [currentUser, profiles] = await Promise.all([
-        base44.auth.me().catch(() => null),
-        base44.entities.SchoolProfile.list()
-      ]);
+      base44.auth.me().catch(() => null),
+      base44.entities.SchoolProfile.list()]
+      );
       setUser(currentUser);
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
     } catch (e) {
@@ -108,8 +108,8 @@ export default function Layout({ children, currentPageName }) {
           </main>
           <StudentBottomNav currentPage={currentPageName} />
         </div>
-      </AcademicYearProvider>
-    );
+      </AcademicYearProvider>);
+
   }
 
   return (
@@ -119,7 +119,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Top Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md w-full">
         <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition">
-          <ArrowLeft className="h-5 w-5" />
+          
         </button>
         <div className="flex items-center gap-2">
           <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
@@ -139,28 +139,28 @@ export default function Layout({ children, currentPageName }) {
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-2">
           {bottomNav.map((item) => {
-            const isActive = currentPageName === item.page;
-            return (
-              <Link
-                key={item.page}
-                to={createPageUrl(item.page)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
-                  isActive ? 'text-[#1a237e]' : 'text-gray-400'
-                }`}
-              >
+              const isActive = currentPageName === item.page;
+              return (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
+                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`
+                  }>
+
                 <item.icon className={`h-6 w-6 ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
                 <span className={`text-[10px] font-medium ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
                   {item.name}
                 </span>
-                {isActive && (
+                {isActive &&
                   <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />
-                )}
-              </Link>
-            );
-          })}
+                  }
+              </Link>);
+
+            })}
         </div>
       </nav>
     </div>
-    </AcademicYearProvider>
-  );
+    </AcademicYearProvider>);
+
 }
