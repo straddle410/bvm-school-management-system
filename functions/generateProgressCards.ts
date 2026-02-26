@@ -335,9 +335,11 @@ Deno.serve(async (req) => {
       let attendanceSummary = null;
       let monthWiseBreakdown = [];
 
-      console.log(`[BEFORE CALC] ${student.student_name}: startDate=${attendanceStartDate}, endDate=${attendanceEndDate}, recordsCount=${studentAttendance.length}`);
+      console.log(`[STEP5] Check before calc: startDate=${attendanceStartDate}, endDate=${attendanceEndDate}, recordsCount=${studentAttendance.length}`);
+      console.log(`[STEP6] Condition check: hasStartDate=${!!attendanceStartDate}, hasEndDate=${!!attendanceEndDate}, hasRecords=${studentAttendance.length > 0}`);
 
       if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
+        console.log(`[STEP7] Entering attendance calculation block`);
         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
         monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
 
