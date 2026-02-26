@@ -195,6 +195,7 @@ Deno.serve(async (req) => {
 
       console.log(`[DEBUG] Student: ${student.student_name}, Total Attendance Records: ${studentAttendance.length}`);
       console.log(`[DEBUG] Global Attendance Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
+      console.log(`[DEBUG] Attendance sample records:`, studentAttendance.slice(0, 3).map(a => ({ date: a.date, type: a.attendance_type })));
 
       // Helper function to calculate attendance for a date range
        const calculateAttendanceForRange = (records, startDate, endDate) => {
