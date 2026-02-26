@@ -136,20 +136,20 @@ export default function HallTicketPreviewModal({ ticket, onClose }) {
           {/* Header */}
           <div className="bg-[#1a237e] text-white p-4 text-center">
             {schoolProfile?.logo_url && (
-              <img src={schoolProfile.logo_url} alt="Logo" className="h-12 w-12 object-contain mx-auto mb-2 rounded" />
+              <img src={getProxiedImageUrl(schoolProfile.logo_url)} alt="Logo" className="h-12 w-12 object-contain mx-auto mb-2 rounded" />
             )}
             <h2 className="text-lg font-bold uppercase tracking-[0.12em]">{schoolProfile?.school_name || 'School'}</h2>
             {schoolProfile?.address && <p className="text-blue-200 text-xs mt-0.5">{schoolProfile.address}</p>}
             <div className="mt-2 bg-white/20 rounded-lg px-4 py-1 inline-block">
               <span className="text-sm font-semibold tracking-wide">HALL TICKET – {examTypeName}</span>
             </div>
-          </div>
+            </div>
 
-          {/* Student Info */}
-          <div className="p-4 border-b border-gray-200">
+            {/* Student Info */}
+            <div className="p-4 border-b border-gray-200">
             <div className="flex items-start gap-4">
               {ticket.student_photo_url && (
-                <img src={ticket.student_photo_url} alt="Student" className="h-20 w-16 object-cover rounded-lg border-2 border-gray-300 flex-shrink-0" />
+                <img src={getProxiedImageUrl(ticket.student_photo_url)} alt="Student" className="h-20 w-16 object-cover rounded-lg border-2 border-gray-300 flex-shrink-0" />
               )}
               <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm flex-1">
                 <div>
