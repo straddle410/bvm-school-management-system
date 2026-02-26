@@ -224,9 +224,9 @@ export default function HallTicketList() {
                     <td className="p-2">{ticket.class_name}-{ticket.section}</td>
                     <td className="p-2">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        ticket.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                        ticket.status === 'Approved' ? 'bg-yellow-100 text-yellow-800' :
                         ticket.status === 'Published' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
+                        'bg-gray-100 text-gray-800'
                       }`}>
                         {ticket.status}
                       </span>
