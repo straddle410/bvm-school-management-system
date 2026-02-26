@@ -339,7 +339,7 @@ Deno.serve(async (req) => {
       console.log(`[STEP6] Condition check: hasStartDate=${!!attendanceStartDate}, hasEndDate=${!!attendanceEndDate}, hasRecords=${studentAttendance.length > 0}`);
 
       if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
-        console.log(`[STEP7] Entering attendance calculation block`);
+        console.log(`[STEP7] YES - Entering attendance calculation block`);
         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
         monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
 
@@ -351,6 +351,8 @@ Deno.serve(async (req) => {
           ...rangeAttendance,
           month_wise_breakdown: monthWiseBreakdown
         };
+      } else {
+        console.log(`[STEP7] NO - Skipping block. startDate=${attendanceStartDate}, endDate=${attendanceEndDate}, recordsLen=${studentAttendance.length}`);
       }
 
       // Calculate overall rank (per class/section)
