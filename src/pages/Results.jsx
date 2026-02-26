@@ -155,28 +155,27 @@ export default function Results() {
       const m = marks[0];
 
       // Group marks by exam type - maintain order from ExamType entity
-      const grouped = {};
+      const marksGrouped = {};
       examTypes.forEach(exam => {
-        grouped[exam.id] = [];
+        marksGrouped[exam.id] = [];
       });
 
       marks.forEach(mark => {
-        if (!grouped[mark.exam_type]) {
-          grouped[mark.exam_type] = [];
+        if (!marksGrouped[mark.exam_type]) {
+          marksGrouped[mark.exam_type] = [];
         }
-        grouped[mark.exam_type].push(mark);
+        marksGrouped[mark.exam_type].push(mark);
       });
 
       // Remove empty exam types and replace IDs with names
-      const groupedByName = {};
-      Object.keys(grouped).forEach(key => {
-        if (grouped[key].length > 0) {
+      const grouped = {};
+      Object.keys(marksGrouped).forEach(key => {
+        if (marksGrouped[key].length > 0) {
           const examTypeObj = examTypes.find(e => e.id === key);
           const displayName = examTypeObj?.name || key;
-          groupedByName[displayName] = grouped[key];
+          grouped[displayName] = marksGrouped[key];
         }
       });
-      const grouped = groupedByName;
 
       setResultsByExam(grouped);
       setAllMarks(marks);
