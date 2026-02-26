@@ -354,7 +354,12 @@ Deno.serve(async (req) => {
 
     // Bulk create progress cards
     if (progressCards.length > 0) {
+      console.log(`[PROGRESS-CARDS] Creating ${progressCards.length} progress cards...`);
+      progressCards.forEach(card => {
+        console.log(`[PROGRESS-CARD-DATA] Student: ${card.student_name}, Attendance Summary Exists: ${!!card.attendance_summary}, Range: ${card.attendance_summary?.range_start} to ${card.attendance_summary?.range_end}`);
+      });
       await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
+      console.log(`[PROGRESS-CARDS] Successfully created ${progressCards.length} progress cards`);
     }
 
     return Response.json({
