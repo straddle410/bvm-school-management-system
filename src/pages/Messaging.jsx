@@ -129,17 +129,25 @@ export default function Messaging() {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 bg-white sticky top-[60px] z-30">
+      <button
+        onClick={() => setTab('inbox')}
+        className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+          tab === 'inbox' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500'
+        }`}
+      >
+        <Inbox className="h-4 w-4" /> Inbox
+        {unreadCount > 0 && (
+          <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{unreadCount}</span>
+        )}
+      </button>
+      {tab === 'inbox' && unreadCount > 0 && (
         <button
-          onClick={() => setTab('inbox')}
-          className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-            tab === 'inbox' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500'
-          }`}
+          onClick={markAllInboxRead}
+          className="px-3 py-2 text-xs text-[#1a237e] font-semibold flex items-center gap-1 hover:bg-blue-50 transition-colors"
         >
-          <Inbox className="h-4 w-4" /> Inbox
-          {unreadCount > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{unreadCount}</span>
-          )}
+          <CheckCheck className="h-3.5 w-3.5" /> All Read
         </button>
+      )}
         <button
           onClick={() => setTab('sent')}
           className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
