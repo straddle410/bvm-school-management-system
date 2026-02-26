@@ -7,13 +7,13 @@ import { GraduationCap, BookOpen, Brain, Trophy, MessageSquare } from 'lucide-re
 const navItems = [
   { label: 'Home',     icon: GraduationCap, page: 'StudentDashboard' },
   { label: 'Homework', icon: BookOpen,       page: 'StudentHomework' },
-  { label: 'Quiz',     icon: Brain,          page: 'Quiz' },
+  { label: 'Quiz',     icon: Brain,          page: 'Quiz',            badgeType: 'quiz' },
   { label: 'Results',  icon: Trophy,         page: 'Results' },
-  { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', badge: true },
+  { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', badgeType: 'messages' },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [badges, setBadges] = useState({ messages: 0, quiz: 0 });
   const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
@@ -25,14 +25,17 @@ export default function StudentBottomNav({ currentPage }) {
 
   useEffect(() => {
     if (!studentSession?.student_id) return;
-    const fetchUnread = async () => {
+    const fetchBadges = async () => {
       try {
-        const messages = await base44.entities.Message.filter({ recipient_id: studentSession.student_id, is_read: false });
-        setUnreadCount(messages.length);
+        const [messages, quizNotifs] = await Promise.all([
+          base44.entities.Message.filter({ recipient_id: studentSession.student_id, is_read: false }),
+          base44.entities.Notification.filter({ recipient_student_id: studentSession.student_id, type: 'quiz_posted', is_read: false }),
+        ]);
+        setBadges({ messages: messages.length, quiz: quizNotifs.length });
       } catch {}
     };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 15000);
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 15000);
     return () => clearInterval(interval);
   }, [studentSession]);
 
@@ -43,6 +46,7 @@ export default function StudentBottomNav({ currentPage }) {
         <div className="flex items-center justify-around px-2 py-2">
           {navItems.map((item) => {
             const isActive = currentPage === item.page;
+            const badgeCount = item.badgeType ? (badges[item.badgeType] || 0) : 0;
             return (
               <Link
                 key={item.page}
@@ -54,9 +58,9 @@ export default function StudentBottomNav({ currentPage }) {
                 )}
                 <div className={`relative z-10 p-1.5 rounded-xl transition-all ${isActive ? 'bg-gradient-to-br from-[#1a237e] to-[#3949ab] shadow-md' : ''}`}>
                   <item.icon className={`h-5 w-5 transition-all ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                  {item.badge && unreadCount > 0 && (
+                  {badgeCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 shadow-sm">
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {badgeCount > 9 ? '9+' : badgeCount}
                     </span>
                   )}
                 </div>
