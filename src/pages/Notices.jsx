@@ -439,7 +439,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
             <div className={`text-gray-600 text-sm mt-1 ${!expanded ? 'line-clamp-2' : ''}`} dangerouslySetInnerHTML={{ __html: notice.content }}>
             </div>
             {notice.content.length > 100 && (
-              <button onClick={() => setExpanded(!expanded)} className="text-blue-600 text-xs mt-1">
+              <button onClick={handleExpand} className="text-blue-600 text-xs mt-1">
                 {expanded ? 'Show less' : 'Read more'}
               </button>
             )}
