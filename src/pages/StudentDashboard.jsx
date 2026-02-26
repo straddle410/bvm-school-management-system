@@ -74,32 +74,28 @@ export default function StudentDashboard() {
     window.location.href = createPageUrl('StudentLogin');
   };
 
-  const { data: unreadCounts = {} } = useQuery({
+  const { data: unreadCounts = {}, refetch: refetchUnread } = useQuery({
     queryKey: ['unread-counts', student?.student_id],
     queryFn: async () => {
       if (!student?.student_id) return {};
-      const notifs = await base44.entities.Notification.filter({
-        recipient_student_id: student.student_id,
-        is_read: false
-      });
+      // Fetch both notifications and direct messages in parallel
+      const [notifs, unreadMsgs] = await Promise.all([
+        base44.entities.Notification.filter({ recipient_student_id: student.student_id, is_read: false }),
+        base44.entities.Message.filter({ recipient_id: student.student_id, is_read: false }),
+      ]);
       const counts = { Notices: 0, Diary: 0, Quiz: 0, Messages: 0, Results: 0 };
       for (const n of notifs) {
         if (n.type === 'notice_posted') counts.Notices++;
         else if (n.type === 'diary_published') counts.Diary++;
         else if (n.type === 'quiz_posted') counts.Quiz++;
         else if (n.type === 'class_message') counts.Messages++;
-        else if (n.type === 'marks_published') counts.Results++;
+        else if (n.type === 'marks_published' || n.type === 'results_posted') counts.Results++;
       }
-      // Also count unread direct messages
-      const unreadMsgs = await base44.entities.Message.filter({
-        recipient_id: student.student_id,
-        is_read: false
-      });
       counts.Messages += unreadMsgs.length;
       return counts;
     },
     enabled: !!student?.student_id,
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
 
   const notifMap = {
