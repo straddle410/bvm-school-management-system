@@ -207,14 +207,25 @@ export default function Notices() {
               <p className="text-blue-200 text-xs">School announcements</p>
             </div>
           </div>
-          {isStaff && (
-            <Button
-              onClick={() => setShowDialog(true)}
-              className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-bold text-sm"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Post
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {totalUnread > 0 && (
+              <Button
+                onClick={markAllNoticesRead}
+                size="sm"
+                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 text-xs"
+              >
+                <CheckCheck className="h-3.5 w-3.5 mr-1" /> Mark All Read
+              </Button>
+            )}
+            {isStaff && (
+              <Button
+                onClick={() => setShowDialog(true)}
+                className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-bold text-sm"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Post
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
