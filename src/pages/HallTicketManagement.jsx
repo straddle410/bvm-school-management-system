@@ -80,6 +80,10 @@ export default function HallTicketManagement() {
               <HallTicketList />
             </div>
           </TabsContent>
+
+          <TabsContent value="progress-cards" className="mt-6">
+            <ProgressCardsList />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
