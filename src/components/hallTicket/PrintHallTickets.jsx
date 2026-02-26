@@ -18,16 +18,20 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
         <td></td>
       </tr>`).join('');
 
+    const proxiedLogoUrl = schoolProfile?.logo_url ? `https://images.weserv.nl/?url=${encodeURIComponent(schoolProfile.logo_url)}` : '';
+    const proxiedPhotoUrl = photoUrl ? `https://images.weserv.nl/?url=${encodeURIComponent(photoUrl)}` : '';
+    const proxiedWatermarkUrl = schoolProfile?.logo_url ? `https://images.weserv.nl/?url=${encodeURIComponent(schoolProfile.logo_url)}` : '';
+
     return `
     <div class="ticket-slot">
       <div class="ticket">
-        <div class="header">
-          ${schoolProfile?.logo_url ? `<img src="${schoolProfile.logo_url}" class="logo"/>` : ''}
-          <div class="header-text">
-            <h2>${schoolProfile?.school_name || 'School'}</h2>
-            ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
-          </div>
-          ${schoolProfile?.logo_url ? `<img src="${schoolProfile.logo_url}" class="logo" style="visibility:hidden"/>` : ''}
+         <div class="header">
+           ${proxiedLogoUrl ? `<img src="${proxiedLogoUrl}" class="logo"/>` : ''}
+           <div class="header-text">
+             <h2>${schoolProfile?.school_name || 'School'}</h2>
+             ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
+           </div>
+           ${proxiedLogoUrl ? `<img src="${proxiedLogoUrl}" class="logo" style="visibility:hidden"/>` : ''}
         </div>
         <div class="badge-row">HALL TICKET — ${examName}</div>
         <div class="body-row" style="position:relative;">
