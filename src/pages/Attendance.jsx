@@ -72,6 +72,10 @@ export default function Attendance() {
     enabled: !!selectedClass && !!selectedSection
   });
 
+  // Check if current attendance is locked
+  const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
+  const lockedAtTime = existingAttendance[0]?.locked_at ? new Date(existingAttendance[0].locked_at).toLocaleString() : null;
+
   const { data: staffAccount } = useQuery({
     queryKey: ['staff-account', user?.email],
     queryFn: () => base44.entities.StaffAccount.filter({ email: user?.email }),
