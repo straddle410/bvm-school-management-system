@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
             month_display: displayText,
             period_start: periodStart.toISOString().split('T')[0],
             period_end: periodEnd.toISOString().split('T')[0],
-            working_days: monthRecords.length,
+            working_days: workingDays,
             full_days_present: fullDays,
             half_days_present: halfDays,
             total_present: Math.round(totalPresent * 100) / 100,
