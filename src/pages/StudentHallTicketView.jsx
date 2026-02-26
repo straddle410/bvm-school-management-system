@@ -239,8 +239,9 @@ export default function StudentHallTicketView() {
              width: 14mm;
              height: 18mm;
              object-fit: cover;
-             border: 0.5mm solid #000000 !important;
+             border: 1px solid #000000 !important;
              flex-shrink: 0;
+             filter: grayscale(100%);
              -webkit-print-color-adjust: exact;
              print-color-adjust: exact;
            }
@@ -271,7 +272,7 @@ export default function StudentHallTicketView() {
            img[alt="QR Code"] {
              width: 14mm;
              height: 14mm;
-             border: 0.5mm solid #000;
+             border: 1px solid #000;
            }
 
            /* Exam Schedule Table - with watermark container */
@@ -306,7 +307,8 @@ export default function StudentHallTicketView() {
            .timetable-watermark svg {
              width: 100%;
              height: 100%;
-             opacity: 0.4 !important;
+             opacity: 0.15 !important;
+             filter: grayscale(100%);
              -webkit-print-color-adjust: exact;
              print-color-adjust: exact;
            }
@@ -345,9 +347,9 @@ export default function StudentHallTicketView() {
            }
 
            .print-table th {
-             background: #000000 !important;
-             color: #ffffff !important;
-             border: 0.5mm solid #000000 !important;
+             background: #ffffff !important;
+             color: #000000 !important;
+             border: 1px solid #000000 !important;
              padding: 1mm;
              font-size: 6pt;
              font-weight: bold;
@@ -357,7 +359,7 @@ export default function StudentHallTicketView() {
            }
 
            .print-table td {
-             border: 0.5mm solid #000000 !important;
+             border: 1px solid #000000 !important;
              padding: 0.8mm;
              color: #000000 !important;
              background: #ffffff !important;
@@ -403,7 +405,7 @@ export default function StudentHallTicketView() {
 
            .print-area > div:nth-child(5) .border-t {
              width: 12mm;
-             border-top: 0.3mm solid #000000 !important;
+             border-top: 1px solid #000000 !important;
              margin: 2mm 0 0.5mm;
              -webkit-print-color-adjust: exact;
              print-color-adjust: exact;
