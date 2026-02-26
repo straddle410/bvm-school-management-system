@@ -23,10 +23,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Save, Send, Settings, FileText, Plus, Check, Download, Eye
+  BookOpen, Save, Send, Settings, FileText, Plus, Check, Download, Eye, Lock, Unlock, AlertTriangle
 } from 'lucide-react';
 import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
@@ -49,6 +58,9 @@ export default function Marks() {
   const [newSubjectName, setNewSubjectName] = useState('');
   const [viewMode, setViewMode] = useState('entry'); // 'entry' or 'review'
   const [reviewSortBy, setReviewSortBy] = useState('rank'); // 'rank', 'name', 'total'
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+  const [revokeExamType, setRevokeExamType] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -237,11 +249,13 @@ export default function Marks() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['marks']);
-      const message = saveMode === 'submit' 
-        ? 'Marks submitted successfully' 
-        : 'Marks saved as draft';
-      toast.success(message);
+      if (saveMode === 'submit') {
+        toast.success('Marks submitted successfully. Once submitted, marks cannot be edited unless Admin grants permission.');
+      } else {
+        toast.success('Marks saved as draft');
+      }
       setSaveMode('draft');
+      setShowSubmitConfirm(false);
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to save marks');
@@ -277,8 +291,10 @@ export default function Marks() {
 
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
   const isSubmitted = currentStatus === 'Submitted';
+  const isPublished = currentStatus === 'Published';
   const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'principal';
-  const canEdit = !isSubmitted || isAdmin;
+  const canEdit = currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
+  const canSave = !isPublished;
 
   const unlockMutation = useMutation({
     mutationFn: async () => {
@@ -293,6 +309,26 @@ export default function Marks() {
     },
     onError: (error) => {
       toast.error('Failed to unlock marks');
+    }
+  });
+
+  const revokePublicationMutation = useMutation({
+    mutationFn: async (examTypeId) => {
+      const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId || m.exam_type === revokeExamType);
+      const promises = marksToRevoke.map(mark => 
+        base44.entities.Marks.update(mark.id, { status: 'Verified' })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['reviewMarks']);
+      queryClient.invalidateQueries(['marks']);
+      toast.success('Publication revoked. Admin can now edit marks.');
+      setShowRevokeConfirm(false);
+      setRevokeExamType(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to revoke publication');
     }
   });
 
@@ -537,14 +573,38 @@ export default function Marks() {
                           </Button>
                         )}
                       </div>
-                      {isSubmitted && !isAdmin && (
+                      {isPublished && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-red-900 flex items-center gap-2">
+                              <Lock className="h-4 w-4" /> Marks Published
+                            </p>
+                            <p className="text-xs text-red-700 mt-1">Published marks cannot be edited. Admin must revoke publication first.</p>
+                          </div>
+                          {isAdmin && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setRevokeExamType(selectedExamType?.id || selectedExam);
+                                setShowRevokeConfirm(true);
+                              }}
+                              className="whitespace-nowrap"
+                            >
+                              Revoke Publication
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
+                      {isSubmitted && !isPublished && !isAdmin && (
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 text-center">
                           <p className="text-sm font-medium text-blue-900">✓ Marks Submitted</p>
                           <p className="text-xs text-blue-700 mt-1">Editing is not allowed for submitted marks</p>
                         </div>
                       )}
 
-                      {isSubmitted && isAdmin && (
+                      {isSubmitted && !isPublished && isAdmin && (
                         <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4 flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-amber-900">✓ Marks Submitted</p>
@@ -589,7 +649,7 @@ export default function Marks() {
                     </CardContent>
                   </Card>
 
-                {filteredStudents.length > 0 && canEdit && (
+                {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
                      <Button 
                        variant="outline"
@@ -597,7 +657,7 @@ export default function Marks() {
                          setSaveMode('draft');
                          saveMutation.mutate();
                        }}
-                       disabled={saveMutation.isPending}
+                       disabled={saveMutation.isPending || !canEdit}
                        className="gap-2"
                      >
                        <FileText className="h-4 w-4" />
@@ -605,10 +665,13 @@ export default function Marks() {
                      </Button>
                      <Button 
                        onClick={() => {
-                         setSaveMode('submit');
-                         saveMutation.mutate();
+                         if (!canEdit) {
+                           toast.error('Cannot submit. Marks are locked.');
+                           return;
+                         }
+                         setShowSubmitConfirm(true);
                        }}
-                       disabled={saveMutation.isPending}
+                       disabled={saveMutation.isPending || !canEdit}
                        className="gap-2"
                      >
                        <Send className="h-4 w-4" />
@@ -798,6 +861,60 @@ export default function Marks() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Submit Marks Confirmation Dialog */}
+      <AlertDialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Mark Submission
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Once submitted, marks cannot be edited unless Admin grants permission.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setSaveMode('submit');
+                saveMutation.mutate();
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              Submit Marks
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Revoke Publication Dialog */}
+      <AlertDialog open={showRevokeConfirm} onOpenChange={setShowRevokeConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Revoke Publication
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will revert published marks to Verified status, allowing you to make edits. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                revokePublicationMutation.mutate(revokeExamType);
+              }}
+              disabled={revokePublicationMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {revokePublicationMutation.isPending ? 'Revoking...' : 'Revoke Publication'}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
     </LoginRequired>
