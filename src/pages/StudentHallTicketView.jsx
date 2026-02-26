@@ -308,9 +308,9 @@ export default function StudentHallTicketView() {
            }
 
            .timetable-watermark svg {
-             width: 80% !important;
-             height: 80% !important;
-             opacity: 0.8 !important;
+             width: 120% !important;
+             height: 120% !important;
+             opacity: 0.5 !important;
              filter: grayscale(100%);
              -webkit-print-color-adjust: exact;
              print-color-adjust: exact;
