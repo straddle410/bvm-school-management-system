@@ -280,7 +280,7 @@ export default function Notices() {
               </div>
               <div>
                 <Label>Audience</Label>
-                <Select value={form.target_audience} onValueChange={v => setForm({...form, target_audience: v})}>
+                <Select value={form.target_audience} onValueChange={v => setForm({...form, target_audience: v, target_classes: []})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {['All', 'Students', 'Parents', 'Staff', 'Teachers'].map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
@@ -288,6 +288,45 @@ export default function Notices() {
                 </Select>
               </div>
             </div>
+
+            {form.target_audience === 'Students' && (
+              <div>
+                <Label>Target Classes <span className="text-gray-400 font-normal">(leave empty for all classes)</span></Label>
+                <div className="mt-1.5 border rounded-xl p-3 bg-gray-50 grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  {['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10'].map(cls => {
+                    const selected = form.target_classes?.includes(cls);
+                    return (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => {
+                          const current = form.target_classes || [];
+                          setForm({
+                            ...form,
+                            target_classes: selected
+                              ? current.filter(c => c !== cls)
+                              : [...current, cls]
+                          });
+                        }}
+                        className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                          selected
+                            ? 'bg-[#1a237e] text-white border-[#1a237e]'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-[#1a237e]'
+                        }`}
+                      >
+                        {selected && <Check className="h-3 w-3" />}
+                        {cls}
+                      </button>
+                    );
+                  })}
+                </div>
+                {form.target_classes?.length > 0 && (
+                  <p className="text-xs text-indigo-600 mt-1.5 font-medium">
+                    Selected: {form.target_classes.join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <Label>Publish Date</Label>
