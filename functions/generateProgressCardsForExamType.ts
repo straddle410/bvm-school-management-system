@@ -177,6 +177,16 @@ Deno.serve(async (req) => {
         return attDate >= start && attDate <= end;
       });
 
+      // Get unique working days (excluding holidays)
+      const uniqueWorkingDates = new Set();
+      allInRange.forEach(a => {
+        if (!a.is_holiday && a.attendance_type !== 'holiday') {
+          uniqueWorkingDates.add(a.date);
+        }
+      });
+      const workingDays = uniqueWorkingDates.size;
+
+      // Count present days
       const presentRecords = allInRange.filter(a => 
         !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
       );
@@ -184,10 +194,6 @@ Deno.serve(async (req) => {
       const fullDays = presentRecords.filter(a => a.attendance_type === 'full_day').length;
       const halfDays = presentRecords.filter(a => a.attendance_type === 'half_day').length;
       const totalPresent = fullDays + (halfDays * 0.5);
-
-      const workingDays = allInRange.filter(a => 
-        !a.is_holiday && a.attendance_type !== 'holiday'
-      ).length;
 
       const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
