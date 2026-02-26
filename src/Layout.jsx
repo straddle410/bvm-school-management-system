@@ -13,6 +13,7 @@ import { getProxiedImageUrl } from '@/components/imageProxy';
 
 const bottomNav = [
 { name: 'Home', icon: Home, page: 'Dashboard' },
+{ name: 'Marks', icon: BookOpen, page: 'Marks' },
 { name: 'Notices', icon: Bell, page: 'Notices' },
 { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
 { name: 'Calendar', icon: Calendar, page: 'Calendar' },
