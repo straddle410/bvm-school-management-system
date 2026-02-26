@@ -287,8 +287,13 @@ export default function Dashboard() {
             <div className="grid grid-cols-4 gap-3">
               {visibleQuickActions.map((item) => (
                   <Link key={item.label} to={createPageUrl(item.page)} className="block">
-                    <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex flex-col items-center gap-1.5 relative">
                       <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      {item.label === 'Messages' && unreadMessageCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
+                          {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                        </span>
+                      )}
                       <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                     </div>
                   </Link>
