@@ -282,45 +282,42 @@ export default function Marks() {
 
   // Group marks by exam type for review
   const reviewGroupedData = React.useMemo(() => {
-    const filter = {
-      status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] },
-      academic_year: academicYear,
-      class_name: selectedClass,
-      section: selectedSection
-    };
-    if (selectedExam) {
-      const examObj = examTypes.find(e => e.name === selectedExam);
-      filter.exam_type = examObj?.id || selectedExam;
-    }
-    
     const marks = existingMarks.filter(m => 
       m.status !== 'Draft' && 
       m.class_name === selectedClass && 
-      m.section === selectedSection &&
-      (!selectedExam || m.exam_type === selectedExam)
+      m.section === selectedSection
     );
 
     const grouped = {};
     marks.forEach(mark => {
-      if (!grouped[mark.exam_type]) {
-        grouped[mark.exam_type] = {
-          exam_type: mark.exam_type,
+      const examTypeId = mark.exam_type;
+      if (!grouped[examTypeId]) {
+        grouped[examTypeId] = {
+          exam_type: examTypeId,
+          exam_name: mark.exam_type,
           studentMarks: {}
         };
       }
-      if (!grouped[mark.exam_type].studentMarks[mark.student_id]) {
-        grouped[mark.exam_type].studentMarks[mark.student_id] = {
+      if (!grouped[examTypeId].studentMarks[mark.student_id]) {
+        const student = filteredStudents.find(s => s.student_id === mark.student_id || s.id === mark.student_id);
+        grouped[examTypeId].studentMarks[mark.student_id] = {
           student_id: mark.student_id,
           student_name: mark.student_name,
+          roll_no: student?.roll_no,
           subjects: {}
         };
       }
-      grouped[mark.exam_type].studentMarks[mark.student_id].subjects[mark.subject] = mark;
+      grouped[examTypeId].studentMarks[mark.student_id].subjects[mark.subject] = mark;
     });
 
     return Object.values(grouped).map(group => {
       const studentArray = Object.values(group.studentMarks);
-      const subjects = [...new Set(marks.filter(m => m.exam_type === group.exam_type).map(m => m.subject))];
+      const groupMarks = marks.filter(m => m.exam_type === group.exam_type);
+      
+      // Get subjects in same order as subjectList
+      const subjects = subjectList.filter(s => 
+        groupMarks.some(m => m.subject === s)
+      );
 
       const studentsWithTotals = studentArray.map(student => {
         const total = Object.values(student.subjects).reduce((sum, mark) => sum + mark.marks_obtained, 0);
@@ -335,7 +332,7 @@ export default function Marks() {
 
       return { ...group, subjects, students: studentsWithRanks };
     });
-  }, [existingMarks, selectedClass, selectedSection, selectedExam, examTypes, academicYear]);
+  }, [existingMarks, selectedClass, selectedSection, filteredStudents, subjectList]);
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
