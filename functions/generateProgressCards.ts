@@ -300,7 +300,9 @@ Deno.serve(async (req) => {
       if (attendanceStartDate && attendanceEndDate) {
         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
         monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
-        
+
+        console.log(`[DEBUG] ${student.student_name}: Range attendance - working_days: ${rangeAttendance.working_days}, percentage: ${rangeAttendance.attendance_percentage}`);
+
         attendanceSummary = {
           range_start: attendanceStartDate,
           range_end: attendanceEndDate,
