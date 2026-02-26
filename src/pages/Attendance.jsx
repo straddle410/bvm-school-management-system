@@ -22,7 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange, AlertCircle
+  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange, AlertCircle, Lock
 } from 'lucide-react';
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
@@ -439,6 +439,16 @@ export default function Attendance() {
               </Card>
             )}
 
+            {/* Locked Record Message */}
+            {isRecordLocked && (
+              <Card className="border-l-4 border-l-red-500 bg-red-50">
+                <CardContent className="p-4">
+                  <p className="text-sm text-red-900 font-medium">🔒 Attendance Locked</p>
+                  <p className="text-xs text-red-700 mt-1">This record was auto-locked at {lockedAtTime}. Only admin can unlock and edit.</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Stats */}
              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
               <Card className="border-0 shadow-sm p-4">
@@ -521,7 +531,7 @@ export default function Attendance() {
                   <div className="divide-y">
                         {filteredStudents.map((student, index) => {
                           const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
-                          const attendanceDisabled = isHoliday && !hasHolidayOverride;
+                          const attendanceDisabled = (isHoliday && !hasHolidayOverride) || isRecordLocked;
                           const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
 
                           return (
@@ -599,6 +609,12 @@ export default function Attendance() {
                     <Palmtree className="mr-1 sm:mr-2 h-4 w-4" />
                     <span className="hidden sm:inline">Attendance Disabled (Holiday)</span>
                     <span className="sm:hidden">Holiday</span>
+                  </Button>
+                ) : isRecordLocked ? (
+                  <Button disabled className="opacity-50 cursor-not-allowed text-xs sm:text-sm">
+                    <Lock className="mr-1 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Record Locked (Admin Only)</span>
+                    <span className="sm:hidden">Locked</span>
                   </Button>
                 ) : (
                   <Button 
