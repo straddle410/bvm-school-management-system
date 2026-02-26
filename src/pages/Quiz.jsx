@@ -210,16 +210,7 @@ export default function Quiz() {
       }
   });
 
-  const markQuizNotificationsAsRead = async (studentId) => {
-    try {
-      const unread = await base44.entities.Notification.filter({
-        recipient_student_id: studentId,
-        type: 'quiz_posted',
-        is_read: false
-      });
-      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
-    } catch {}
-  };
+
 
   const resetQuizForm = () => {
     setQuizForm({
