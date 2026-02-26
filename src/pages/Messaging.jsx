@@ -58,18 +58,19 @@ export default function Messaging() {
     enabled: !!user,
   });
 
-  // Real-time staff badge hook — also marks student_message notifications as read when inbox tab active
+  // Real-time staff badge hook
   const { badges: staffBadges } = useStaffNotificationBadges(user?.email);
-
-  useEffect(() => {
-    if (user?.email && tab === 'inbox') {
-      markStaffNotificationsRead(user.email, 'student_message');
-    }
-  }, [user?.email, tab]);
 
   const directUnread = inbox.filter(m => !m.is_read).length;
   // staffBadges.Messages includes both direct unread + student_message notifs — use whichever is higher
   const unreadCount = Math.max(directUnread, staffBadges.Messages || 0);
+
+  const markAllInboxRead = async () => {
+    const unreadMsgs = inbox.filter(m => !m.is_read && m.recipient_id === user?.email);
+    await Promise.all(unreadMsgs.map(m => base44.entities.Message.update(m.id, { is_read: true })));
+    if (user?.email) await markStaffNotificationsRead(user.email, 'student_message');
+    queryClient.invalidateQueries({ queryKey: ['messages-inbox'] });
+  };
 
   const handleSelectMessage = async (msg) => {
     // Group by thread
