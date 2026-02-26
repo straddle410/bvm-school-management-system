@@ -62,7 +62,26 @@ export default function Marks() {
 
   const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
     queryKey: ['exam-types', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true }),
+    queryFn: async () => {
+      const types = await base44.entities.ExamType.filter({ academic_year: academicYear });
+      // Fetch timetable to get exam order
+      const timetable = await base44.entities.ExamTimetable.filter({ academic_year: academicYear });
+      if (timetable.length === 0) return types;
+      // Create a map of exam_type to min date for ordering
+      const examDates = {};
+      timetable.forEach(t => {
+        const key = t.exam_type;
+        if (!examDates[key] || new Date(t.exam_date) < new Date(examDates[key])) {
+          examDates[key] = t.exam_date;
+        }
+      });
+      // Sort exam types by their schedule date
+      return types.sort((a, b) => {
+        const dateA = examDates[a.id] || examDates[a.name] || '9999-12-31';
+        const dateB = examDates[b.id] || examDates[b.name] || '9999-12-31';
+        return new Date(dateA) - new Date(dateB);
+      });
+    },
     staleTime: 5 * 60 * 1000
   });
 
