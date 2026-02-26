@@ -89,8 +89,37 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     }
   });
 
+  const validateDateRange = () => {
+    const errors = [];
+    
+    if (formData.attendance_range_start && formData.attendance_range_end) {
+      const start = new Date(formData.attendance_range_start);
+      const end = new Date(formData.attendance_range_end);
+      
+      if (start > end) {
+        errors.push('Start date cannot be after end date');
+      }
+
+      // Check if dates are within reasonable academic year bounds
+      const currentYear = new Date().getFullYear();
+      if (start.getFullYear() < currentYear - 1 || end.getFullYear() > currentYear + 1) {
+        errors.push('⚠️ Date range extends beyond typical academic year boundaries');
+      }
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate date ranges
+    const dateErrors = validateDateRange();
+    if (dateErrors.some(err => err.includes('cannot be after'))) {
+      toast.error(dateErrors[0]);
+      return;
+    }
+
     if (editingId) {
       updateMutation.mutate(formData);
     } else {
