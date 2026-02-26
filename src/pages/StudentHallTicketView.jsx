@@ -159,12 +159,14 @@ export default function StudentHallTicketView() {
              flex-direction: column;
              margin: 0;
              padding: 0;
-             border: 1px solid #000;
+             border: 1px solid #000000 !important;
              border-radius: 0;
              box-shadow: none !important;
-             overflow: hidden;
+             overflow: visible !important;
              position: relative;
-             background: #fff !important;
+             background: #ffffff !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            /* Header - White background, logo left aligned */
@@ -173,12 +175,14 @@ export default function StudentHallTicketView() {
              font-size: 10pt;
              line-height: 1.2;
              flex-shrink: 0;
-             background: #fff !important;
-             color: #000 !important;
+             background: #ffffff !important;
+             color: #000000 !important;
              display: flex;
              align-items: flex-start;
              gap: 2mm;
-             border-bottom: 1px solid #000;
+             border-bottom: 1px solid #000000 !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-header img {
@@ -188,6 +192,9 @@ export default function StudentHallTicketView() {
              flex-shrink: 0;
              display: block !important;
              visibility: visible !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
+             image-rendering: crisp-edges;
            }
 
            .print-header-text {
@@ -221,16 +228,20 @@ export default function StudentHallTicketView() {
              flex-shrink: 0;
              display: flex;
              gap: 3mm;
-             background: #fff !important;
-             border-bottom: 1px solid #000;
+             background: #ffffff !important;
+             border-bottom: 1px solid #000000 !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-area > div:nth-child(2) img {
              width: 14mm;
              height: 18mm;
              object-fit: cover;
-             border: 0.5mm solid #000;
+             border: 0.5mm solid #000000 !important;
              flex-shrink: 0;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-area > div:nth-child(2) .grid {
@@ -275,17 +286,21 @@ export default function StudentHallTicketView() {
              background: #fff !important;
            }
 
-           /* Timetable watermark - ultra light, behind content */
+           /* Timetable watermark - light, behind content, visible in print */
            .timetable-watermark {
              position: absolute;
              top: 50%;
              left: 50%;
              transform: translate(-50%, -50%);
              width: 75%;
-             opacity: 0.03;
+             opacity: 0.06 !important;
              filter: grayscale(100%);
              z-index: 0;
              pointer-events: none;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
+             visibility: visible !important;
+             display: flex !important;
            }
 
            /* Table content above watermark */
@@ -317,31 +332,39 @@ export default function StudentHallTicketView() {
              border-collapse: collapse;
              font-size: 6.5pt;
              line-height: 1;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-table th {
-             background: #000 !important;
-             color: #fff !important;
-             border: 0.5mm solid #000 !important;
+             background: #000000 !important;
+             color: #ffffff !important;
+             border: 0.5mm solid #000000 !important;
              padding: 1mm;
              font-size: 6pt;
              font-weight: bold;
              text-align: left;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-table td {
-             border: 0.5mm solid #000 !important;
+             border: 0.5mm solid #000000 !important;
              padding: 0.8mm;
-             color: #000 !important;
-             background: #fff !important;
+             color: #000000 !important;
+             background: #ffffff !important;
              text-align: left;
              overflow: hidden;
              text-overflow: ellipsis;
              white-space: nowrap;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-table tr {
-             background: #fff !important;
+             background: #ffffff !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            /* Instructions - Hidden for 3-per-page to save space */
@@ -356,20 +379,26 @@ export default function StudentHallTicketView() {
              justify-content: space-between;
              font-size: 5pt;
              flex-shrink: 0;
-             background: #fff !important;
-             border-top: 1px solid #000;
+             background: #ffffff !important;
+             border-top: 1px solid #000000 !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-area > div:nth-child(5) .text-center {
              text-align: center;
              flex: 1;
-             color: #000 !important;
+             color: #000000 !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            .print-area > div:nth-child(5) .border-t {
              width: 12mm;
-             border-top: 0.3mm solid #000;
+             border-top: 0.3mm solid #000000 !important;
              margin: 2mm 0 0.5mm;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            /* Overflow handling */
