@@ -396,8 +396,8 @@ export default function Marks() {
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Exams & Marks">
       <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
       <PageHeader 
-        title="Enter Marks"
-        subtitle="Enter and manage student marks"
+        title={viewMode === 'entry' ? "Enter Marks" : "Review Marks"}
+        subtitle={viewMode === 'entry' ? "Enter and manage student marks" : "Review and publish student results"}
       />
 
       <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
