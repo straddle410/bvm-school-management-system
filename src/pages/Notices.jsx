@@ -63,18 +63,13 @@ export default function Notices() {
 
   const markNoticeNotificationsAsRead = async (studentId) => {
     try {
-      const unreadNotifications = await base44.entities.Notification.filter({
+      const unread = await base44.entities.Notification.filter({
         recipient_student_id: studentId,
         type: 'notice_posted',
         is_read: false
       });
-      
-      for (const notif of unreadNotifications) {
-        await base44.entities.Notification.update(notif.id, { is_read: true });
-      }
-    } catch (error) {
-      console.debug('Error marking notifications as read:', error);
-    }
+      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
+    } catch {}
   };
 
   const isStaff = user && ['Admin', 'Principal', 'Teacher', 'Staff'].includes(user.role);

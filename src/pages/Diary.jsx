@@ -52,9 +52,7 @@ export default function Diary() {
         type: 'diary_published',
         is_read: false
       });
-      for (const notif of unread) {
-        await base44.entities.Notification.update(notif.id, { is_read: true });
-      }
+      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
     } catch {}
   };
 

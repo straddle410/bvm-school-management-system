@@ -37,9 +37,7 @@ export default function StudentMessaging() {
         type: 'class_message',
         is_read: false
       });
-      for (const n of unread) {
-        await base44.entities.Notification.update(n.id, { is_read: true });
-      }
+      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
     } catch {}
   };
 
