@@ -187,15 +187,11 @@ Deno.serve(async (req) => {
       const overallPercentage = totalPossibleMarks > 0 ? (totalMarksObtained / totalPossibleMarks) * 100 : 0;
       const overallGrade = calculateGrade(overallPercentage);
 
-      // Fetch all attendance records for the student (filter by name and class)
-      const allAttendanceRecords = await base44.asServiceRole.entities.Attendance.filter({
-        class_name: student.class_name,
-        section: student.section,
+      // Fetch attendance for this specific student
+      const studentAttendance = await base44.asServiceRole.entities.Attendance.filter({
+        student_id: student.student_id,
         academic_year: academicYear
       });
-
-      // Further filter by student name to match records
-      const studentAttendance = allAttendanceRecords.filter(a => a.student_name === student.student_name);
 
       console.log(`[DEBUG] Student: ${student.student_name}, Total Attendance Records: ${studentAttendance.length}`);
       console.log(`[DEBUG] Global Attendance Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
