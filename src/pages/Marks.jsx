@@ -47,6 +47,7 @@ export default function Marks() {
   const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState('');
+  const [viewMode, setViewMode] = useState('entry'); // 'entry' or 'review'
   
   const queryClient = useQueryClient();
 
