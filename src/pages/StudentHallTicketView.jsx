@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Printer, FileText, Calendar, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import WatermarkSeal from '@/components/hallTicket/WatermarkSeal';
 
 export default function StudentHallTicketView() {
   const [studentSession, setStudentSession] = useState(null);
