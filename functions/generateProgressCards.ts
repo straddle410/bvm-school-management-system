@@ -332,24 +332,22 @@ Deno.serve(async (req) => {
           ...rangeAttendance,
           month_wise_breakdown: monthWiseBreakdown
         };
-      } else {
-        // Fallback to full academic year
-        const validAttendance = studentAttendance.filter(a => 
-          !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
-        );
-        const workingDays = validAttendance.length;
-        const fullDayCount = validAttendance.filter(a => a.attendance_type === 'full_day').length;
-        const halfDayCount = validAttendance.filter(a => a.attendance_type === 'half_day').length;
-        const totalPresentDays = fullDayCount + (halfDayCount * 0.5);
-        const attendancePercentage = workingDays > 0 ? Math.round((totalPresentDays / workingDays) * 100) : 0;
+      } else if (studentAttendance.length > 0) {
+        // Fallback: use the actual range from attendance records
+        const dates = studentAttendance
+          .map(a => new Date(a.date))
+          .sort((a, b) => a - b);
+        const fallbackStart = dates[0].toISOString().split('T')[0];
+        const fallbackEnd = dates[dates.length - 1].toISOString().split('T')[0];
+
+        const rangeAttendance = calculateAttendanceForRange(studentAttendance, fallbackStart, fallbackEnd);
+        monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, fallbackStart, fallbackEnd);
 
         attendanceSummary = {
-          working_days: workingDays,
-          full_days_present: fullDayCount,
-          half_days_present: halfDayCount,
-          total_present_days: Math.round(totalPresentDays * 100) / 100,
-          attendance_percentage: attendancePercentage,
-          month_wise_breakdown: []
+          range_start: fallbackStart,
+          range_end: fallbackEnd,
+          ...rangeAttendance,
+          month_wise_breakdown: monthWiseBreakdown
         };
       }
 
