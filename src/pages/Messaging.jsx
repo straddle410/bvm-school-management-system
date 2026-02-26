@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import ComposeMessage from '@/components/messaging/ComposeMessage';
 import MessageList from '@/components/messaging/MessageList';
 import MessageThread from '@/components/messaging/MessageThread';
+import { useStaffNotificationBadges, markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
 
 function getCurrentUser() {
   // First check staff_session (custom teacher/staff login)
