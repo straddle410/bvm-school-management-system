@@ -68,24 +68,25 @@ export default function Results() {
   }, []);
 
   const autoSearchStudent = async (parsed) => {
-    setIsSearching(true);
-    const filter = { status: 'Published', student_id: parsed.student_id };
-    const marks = await base44.entities.Marks.filter(filter).catch(() => []);
-    setIsSearching(false);
-    setSearched(true);
-    // Mark results notifications as read when results are loaded/viewed
-    markResultsNotificationsAsRead(parsed.student_id);
-    if (marks.length > 0) {
-      const m = marks[0];
-      const grouped = {};
-      marks.forEach(mark => {
-        if (!grouped[mark.exam_type]) grouped[mark.exam_type] = [];
-        grouped[mark.exam_type].push(mark);
-      });
-      setResultsByExam(grouped);
-      setAllMarks(marks);
-      setStudentResult({ student_id: m.student_id, student_name: m.student_name, class_name: m.class_name, section: m.section });
-    }
+   setIsSearching(true);
+   const filter = { status: 'Published', student_id: parsed.student_id };
+   const marks = await base44.entities.Marks.filter(filter).catch(() => []);
+   setIsSearching(false);
+   setSearched(true);
+   // Mark results notifications as read when results are loaded/viewed
+   markResultsNotificationsAsRead(parsed.student_id);
+   if (marks.length > 0) {
+     const m = marks[0];
+     const grouped = {};
+     marks.forEach(mark => {
+       if (!grouped[mark.exam_type]) grouped[mark.exam_type] = [];
+       grouped[mark.exam_type].push(mark);
+     });
+     setResultsByExam(grouped);
+     setAllMarks(marks);
+     setStudentResult({ student_id: m.student_id, student_name: m.student_name, class_name: m.class_name, section: m.section });
+     setShowProgressReport(false); // Show detailed results by default for students
+   }
   };
 
   const markResultsNotificationsAsRead = async (studentId) => {
