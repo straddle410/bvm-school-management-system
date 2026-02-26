@@ -26,6 +26,7 @@ function getStudentSession() {
 
 const QUICK_ACCESS = [
   { label: 'Messages', page: 'StudentMessaging',  icon: MessageSquare, gradient: 'from-sky-400 to-blue-600',       notifKey: 'Messages' },
+  { label: 'Homework', page: 'StudentHomework',   icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',   notifKey: null },
   { label: 'Diary',    page: 'Diary',             icon: Book,          gradient: 'from-fuchsia-400 to-pink-500',   notifKey: 'Diary' },
   { label: 'Quiz',     page: 'Quiz',              icon: Brain,         gradient: 'from-purple-400 to-violet-500',  notifKey: 'Quiz' },
   { label: 'Gallery',  page: 'Gallery',           icon: Image,         gradient: 'from-pink-400 to-rose-500',      notifKey: null },
