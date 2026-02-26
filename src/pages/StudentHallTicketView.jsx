@@ -67,58 +67,272 @@ export default function StudentHallTicketView() {
           <p className="text-slate-400 text-sm mt-1">Check back after your exam schedule is published.</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {hallTickets.map((ticket) => (
-            <HallTicketCard key={ticket.id} ticket={ticket} schoolProfile={schoolProfile} />
-          ))}
-        </div>
+        <>
+          {/* Screen View */}
+          <div className="space-y-6 print:hidden">
+            {hallTickets.map((ticket) => (
+              <HallTicketCard key={ticket.id} ticket={ticket} schoolProfile={schoolProfile} />
+            ))}
+          </div>
+
+          {/* Print View - 3 per A4 page */}
+          <div className="hidden print:block print-container">
+            {hallTickets.map((ticket, index) => {
+              const pagePosition = index % 3;
+              const isLastTicket = index === hallTickets.length - 1;
+              const needsPageBreak = (index + 1) % 3 === 0 || isLastTicket;
+
+              return (
+                <div
+                  key={ticket.id}
+                  className={`print-ticket-wrapper ${needsPageBreak ? 'page-break-after' : ''}`}
+                  style={needsPageBreak ? { pageBreakAfter: 'always' } : {}}
+                >
+                  <HallTicketCard ticket={ticket} schoolProfile={schoolProfile} isPrint={true} />
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      {/* Print Styles */}
+      {/* Print Styles - A4 3-per-page layout */}
       <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          .print-area, .print-area * { visibility: visible; }
-          .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-          img[alt="QR Code"] { visibility: visible; }
+        @page {
+          size: A4;
+          margin: 0;
+          padding: 0;
+        }
 
-          /* Black & white print overrides */
-          .print-area .print-header {
-            background: #000 !important;
+        @media print {
+          * {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            color-adjust: exact;
           }
-          .print-area .print-label {
+
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 210mm;
+            height: 297mm;
+            overflow: hidden;
+          }
+
+          .print-container {
+            width: 210mm;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .print-ticket-wrapper {
+            width: 210mm;
+            height: 99mm;
+            page-break-inside: avoid;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          }
+
+          .print-ticket-wrapper.page-break-after {
+            page-break-after: always;
+          }
+
+          .print-area {
+            width: 100%;
+            height: 99mm;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            position: relative;
+          }
+
+          .print-header {
+            padding: 3mm 4mm;
+            font-size: 10pt;
+            line-height: 1.2;
+            flex-shrink: 0;
+          }
+
+          .print-header img {
+            width: 8mm;
+            height: 8mm;
+            margin: 1mm auto;
+          }
+
+          .print-school-name {
+            font-size: 11pt;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            margin: 1mm 0;
+          }
+
+          .print-header p {
+            font-size: 7pt;
+            margin: 0.5mm 0;
+          }
+
+          .print-header > div {
+            font-size: 8pt;
+            margin: 1.5mm 0 0 0;
+            padding: 1mm 3mm;
+          }
+
+          /* Student Info Section - Compact */
+          .print-area > div:nth-child(2) {
+            padding: 2mm 3mm;
+            flex-shrink: 0;
+            display: flex;
+            gap: 3mm;
+          }
+
+          .print-area > div:nth-child(2) img {
+            width: 14mm;
+            height: 18mm;
+            object-fit: cover;
+            border: 0.5mm solid #000;
+            flex-shrink: 0;
+          }
+
+          .print-area > div:nth-child(2) .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5mm 3mm;
+            font-size: 7pt;
+            line-height: 1.1;
+            flex: 1;
+          }
+
+          .print-label {
+            font-size: 6pt;
+            font-weight: bold;
             color: #000 !important;
+            margin-bottom: 0.2mm;
           }
-          .print-area .print-value {
+
+          .print-value {
+            font-size: 7pt;
             color: #000 !important;
+            font-weight: 600;
           }
-          .print-area .print-table th {
+
+          /* QR Code */
+          img[alt="QR Code"] {
+            width: 14mm;
+            height: 14mm;
+            border: 0.5mm solid #000;
+          }
+
+          /* Exam Schedule Table - Compact */
+          .print-area > div:nth-child(3) {
+            padding: 2mm 3mm;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-size: 6.5pt;
+            line-height: 1;
+          }
+
+          .print-area > div:nth-child(3) h3 {
+            font-size: 7pt;
+            font-weight: bold;
+            margin: 0 0 1mm 0;
+            display: flex;
+            align-items: center;
+            gap: 1mm;
+          }
+
+          .print-area > div:nth-child(3) h3 svg {
+            width: 3mm;
+            height: 3mm;
+          }
+
+          .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 6.5pt;
+            line-height: 1;
+          }
+
+          .print-table th {
             background: #000 !important;
             color: #fff !important;
-            border: 1px solid #000 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            border: 0.5mm solid #000 !important;
+            padding: 1mm;
+            font-size: 6pt;
+            font-weight: bold;
+            text-align: left;
           }
-          .print-area .print-table td {
+
+          .print-table td {
+            border: 0.5mm solid #000 !important;
+            padding: 0.8mm;
             color: #000 !important;
-            border: 1px solid #000 !important;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
-          .print-area .print-table tr {
+
+          .print-table tr {
             background: #fff !important;
           }
-          .print-area .print-instructions {
-            border: 1px solid #000 !important;
-            background: #fff !important;
+
+          .print-table tr:nth-child(odd) td {
+            background: #f5f5f5 !important;
           }
-          .print-area .print-instructions p,
-          .print-area .print-instructions li {
-            color: #000 !important;
+
+          /* Instructions - Hidden for 3-per-page to save space */
+          .print-instructions {
+            display: none;
           }
-          .print-area .print-school-name {
-            letter-spacing: 0.15em !important;
-            text-transform: uppercase !important;
+
+          /* Signatures - Minimal space */
+          .print-area > div:nth-child(5) {
+            padding: 1mm 3mm 2mm;
+            display: flex;
+            justify-content: space-between;
+            font-size: 5pt;
+            flex-shrink: 0;
+          }
+
+          .print-area > div:nth-child(5) .text-center {
+            text-align: center;
+            flex: 1;
+          }
+
+          .print-area > div:nth-child(5) .border-t {
+            width: 12mm;
+            border-top: 0.3mm solid #000;
+            margin: 2mm 0 0.5mm;
+          }
+
+          /* Overflow handling */
+          .overflow-x-auto {
+            overflow: visible !important;
+            width: 100%;
+          }
+
+          .overflow-x-auto table {
+            width: 100%;
+          }
+
+          /* Disable all rounded corners */
+          * {
+            border-radius: 0 !important;
+          }
+
+          /* Print at 100% - disable scaling */
+          body {
+            transform: scale(1);
+            -webkit-transform: scale(1);
+            transform-origin: 0 0;
           }
         }
       `}</style>
