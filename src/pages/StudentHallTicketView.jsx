@@ -418,15 +418,15 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
 
   return (
     <div className={`print-area ${!isPrint ? 'bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200' : ''}`}>
-      {/* Header */}
-      <div className="print-header bg-[#1a237e] text-white p-4 text-center">
+      {/* Header - Logo left aligned, white background */}
+      <div className="print-header bg-white text-black p-3 border-b border-gray-300 flex items-start gap-3 print:bg-white print:text-black print:border-b-2">
         {schoolProfile?.logo_url && (
-          <img src={schoolProfile.logo_url} alt="Logo" className="h-12 w-12 object-contain mx-auto mb-2 rounded" />
+          <img src={schoolProfile.logo_url} alt="Logo" className="h-9 w-9 object-contain flex-shrink-0 print:h-[35px] print:w-[35px]" />
         )}
-        <h2 className="print-school-name text-lg font-bold uppercase tracking-[0.15em]">{schoolProfile?.school_name || 'BVM School of Excellence'}</h2>
-        {schoolProfile?.address && <p className="text-blue-200 text-xs mt-0.5">{schoolProfile.address}</p>}
-        <div className="mt-3 bg-white/20 rounded-lg px-4 py-1 inline-block">
-          <span className="text-sm font-semibold tracking-wide">HALL TICKET – {ticket.exam_type_name || ticket.exam_type}</span>
+        <div className="print-header-text flex-1">
+          <h2 className="print-school-name text-base font-bold uppercase tracking-wider">{schoolProfile?.school_name || 'BVM School of Excellence'}</h2>
+          {schoolProfile?.address && <p className="text-gray-600 text-xs mt-1">{schoolProfile.address}</p>}
+          <p className="text-xs font-semibold mt-1 uppercase tracking-wide">HALL TICKET – {ticket.exam_type_name || ticket.exam_type}</p>
         </div>
       </div>
 
