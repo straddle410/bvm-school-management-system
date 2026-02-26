@@ -240,7 +240,8 @@ Deno.serve(async (req) => {
           const monthRecords = records.filter(a => {
             const attDate = new Date(a.date);
             return attDate >= periodStart && attDate <= periodEnd && 
-                   a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday';
+                   !a.is_holiday && a.attendance_type !== 'holiday' &&
+                   a.attendance_type !== 'absent'; // Exclude absents from working days
           });
 
           const fullDays = monthRecords.filter(a => a.attendance_type === 'full_day').length;
