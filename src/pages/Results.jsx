@@ -14,7 +14,6 @@ import { Search, GraduationCap, BookOpen, Share2, Printer, Lock } from 'lucide-r
 import ProgressReport from '../components/ProgressReport';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { useAcademicYear } from '@/components/AcademicYearContext';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
