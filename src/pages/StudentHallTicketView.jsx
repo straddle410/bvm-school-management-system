@@ -127,6 +127,24 @@ export default function StudentHallTicketView() {
 }
 
 function HallTicketCard({ ticket, schoolProfile }) {
+  const [qrCode, setQrCode] = useState(null);
+
+  useEffect(() => {
+    if (ticket) {
+      const qrData = JSON.stringify({
+        hall_ticket_number: ticket.hall_ticket_number,
+        academic_year: ticket.academic_year,
+        student_name: ticket.student_name,
+        class_name: ticket.class_name,
+        verified_at: new Date().toISOString()
+      });
+      
+      QRCode.toDataURL(qrData, { width: 100, errorCorrectionLevel: 'H' })
+        .then(url => setQrCode(url))
+        .catch(err => console.error('QR code generation failed:', err));
+    }
+  }, [ticket]);
+
   return (
     <div className="print-area bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
       {/* Header */}
