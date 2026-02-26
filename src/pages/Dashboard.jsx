@@ -138,6 +138,20 @@ export default function Dashboard() {
     refetchInterval: 60000
   });
 
+  const { data: unreadMessageCount = 0 } = useQuery({
+    queryKey: ['unread-message-count', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return 0;
+      try {
+        const msgs = await base44.entities.Message.filter({ recipient_id: user.email, is_read: false });
+        return msgs.length;
+      } catch { return 0; }
+    },
+    enabled: !!user?.email && isStaff,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
+
   const { data: latestDiaries = [] } = useQuery({
     queryKey: ['latest-diaries-dashboard'],
     queryFn: async () => {
