@@ -340,7 +340,7 @@ export default function StudentHallTicketView() {
   );
 }
 
-function HallTicketCard({ ticket, schoolProfile }) {
+function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
   const [qrCode, setQrCode] = useState(null);
 
   useEffect(() => {
@@ -360,7 +360,7 @@ function HallTicketCard({ ticket, schoolProfile }) {
   }, [ticket]);
 
   return (
-    <div className="print-area bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+    <div className={`print-area ${!isPrint ? 'bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200' : ''}`}>
       {/* Header */}
       <div className="print-header bg-[#1a237e] text-white p-4 text-center">
         {schoolProfile?.logo_url && (
