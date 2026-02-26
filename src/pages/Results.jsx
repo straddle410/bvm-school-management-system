@@ -379,8 +379,9 @@ export default function Results() {
             </Card>
             ) : null}
 
-        {/* Result */}
-         {searched && (
+        {/* Result — only show after search */}
+         {studentSession?.isStaff ? (
+           searched && (
             studentResult ? (
               <div className="space-y-4">
                 {/* Student Header */}
