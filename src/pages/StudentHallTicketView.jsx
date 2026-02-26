@@ -104,6 +104,11 @@ export default function StudentHallTicketView() {
           padding: 0;
         }
 
+        html, body {
+          margin: 0;
+          padding: 0;
+        }
+
         @media print {
           * {
             -webkit-print-color-adjust: exact;
@@ -115,7 +120,6 @@ export default function StudentHallTicketView() {
             margin: 0;
             padding: 0;
             width: 210mm;
-            height: 297mm;
             overflow: hidden;
           }
 
@@ -134,7 +138,7 @@ export default function StudentHallTicketView() {
             overflow: hidden;
           }
 
-          .print-ticket-wrapper.page-break-after {
+          .print-ticket-wrapper:nth-child(3n) {
             page-break-after: always;
           }
 
