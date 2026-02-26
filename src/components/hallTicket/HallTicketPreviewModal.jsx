@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { X, Calendar, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getProxiedImageUrl } from '@/components/imageProxy';
 
 export default function HallTicketPreviewModal({ ticket, onClose }) {
   const { data: schoolProfile } = useQuery({
