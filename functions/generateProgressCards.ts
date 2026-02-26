@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { academicYear, classNameFilter, sectionFilter, examTypeIdOrName } = await req.json();
+    const { academicYear, classNameFilter, sectionFilter } = await req.json();
 
     if (!academicYear) {
       return Response.json({ error: 'Academic year is required' }, { status: 400 });
