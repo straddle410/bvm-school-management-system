@@ -168,6 +168,24 @@ Deno.serve(async (req) => {
       const overallPercentage = totalPossibleMarks > 0 ? (totalMarksObtained / totalPossibleMarks) * 100 : 0;
       const overallGrade = calculateGrade(overallPercentage);
 
+      // Calculate attendance summary (half days count as 0.5)
+      const attendanceRecords = await base44.asServiceRole.entities.Attendance.filter({
+        student_id: student.student_id,
+        class_name: student.class_name,
+        section: student.section,
+        academic_year: academicYear
+      });
+
+      const validAttendance = attendanceRecords.filter(a => 
+        a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday'
+      );
+
+      const workingDays = validAttendance.length;
+      const fullDayCount = validAttendance.filter(a => a.attendance_type === 'full_day').length;
+      const halfDayCount = validAttendance.filter(a => a.attendance_type === 'half_day').length;
+      const totalPresentDays = fullDayCount + (halfDayCount * 0.5);
+      const attendancePercentage = workingDays > 0 ? Math.round((totalPresentDays / workingDays) * 100) : 0;
+
       // Calculate overall rank (per class/section)
       const classStudents = Object.values(studentData).filter(s => 
         s.class_name === student.class_name && s.section === student.section
@@ -194,6 +212,13 @@ Deno.serve(async (req) => {
           overall_percentage: Math.round(overallPercentage * 100) / 100,
           overall_rank: overallRank,
           overall_grade: overallGrade
+        },
+        attendance_summary: {
+          working_days: workingDays,
+          full_days_present: fullDayCount,
+          half_days_present: halfDayCount,
+          total_present_days: Math.round(totalPresentDays * 100) / 100,
+          attendance_percentage: attendancePercentage
         },
         generated_at: new Date().toISOString(),
         status: 'Generated'
