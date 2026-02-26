@@ -260,7 +260,7 @@ export default function Marks() {
 
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
   const isSubmitted = currentStatus === 'Submitted';
-  const isAdmin = user?.role === 'admin' || user?.role === 'principal';
+  const isAdmin = user?.role === 'Admin' || user?.role === 'Principal';
   const canEdit = !isSubmitted || isAdmin;
 
   const unlockMutation = useMutation({

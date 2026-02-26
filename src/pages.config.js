@@ -58,6 +58,7 @@ import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
 import DiaryManagement from './pages/DiaryManagement';
+import ExamManagement from './pages/ExamManagement';
 import Gallery from './pages/Gallery';
 import HallTicketManagement from './pages/HallTicketManagement';
 import HolidayCalendar from './pages/HolidayCalendar';
@@ -72,6 +73,7 @@ import PublicAdmission from './pages/PublicAdmission';
 import Quiz from './pages/Quiz';
 import Reports from './pages/Reports';
 import ReportsManagement from './pages/ReportsManagement';
+import Results from './pages/Results';
 import Settings from './pages/Settings';
 import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
@@ -87,8 +89,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import ExamManagement from './pages/ExamManagement';
-import Results from './pages/Results';
 import __Layout from './Layout.jsx';
 
 
@@ -104,6 +104,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Diary": Diary,
     "DiaryManagement": DiaryManagement,
+    "ExamManagement": ExamManagement,
     "Gallery": Gallery,
     "HallTicketManagement": HallTicketManagement,
     "HolidayCalendar": HolidayCalendar,
@@ -118,6 +119,7 @@ export const PAGES = {
     "Quiz": Quiz,
     "Reports": Reports,
     "ReportsManagement": ReportsManagement,
+    "Results": Results,
     "Settings": Settings,
     "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
@@ -133,8 +135,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "ExamManagement": ExamManagement,
-    "Results": Results,
 }
 
 export const pagesConfig = {
