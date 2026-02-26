@@ -18,8 +18,19 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get all active students (Published = active in this school's workflow)
-    let students = await base44.asServiceRole.entities.Student.filter({ status: 'Published' });
+    // Get all active students (both Published and Approved statuses are used)
+    const [studentsPublished, studentsApproved] = await Promise.all([
+      base44.asServiceRole.entities.Student.filter({ status: 'Published' }),
+      base44.asServiceRole.entities.Student.filter({ status: 'Approved' }),
+    ]);
+    let students = [...studentsPublished, ...studentsApproved];
+    // Deduplicate by student_id
+    const seenIds = new Set();
+    students = students.filter(s => {
+      if (seenIds.has(s.student_id)) return false;
+      seenIds.add(s.student_id);
+      return true;
+    });
 
     // Filter by target_classes if specified
     if (target_classes.length > 0) {
