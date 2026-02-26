@@ -98,6 +98,22 @@ export default function StudentDashboard() {
     refetchInterval: 30000,
   });
 
+  // Real-time: re-fetch badge counts when any notification is created
+  useEffect(() => {
+    if (!student?.student_id) return;
+    const unsub1 = base44.entities.Notification.subscribe((event) => {
+      if (event.type === 'create' && event.data?.recipient_student_id === student.student_id) {
+        refetchUnread();
+      }
+    });
+    const unsub2 = base44.entities.Message.subscribe((event) => {
+      if (event.type === 'create' && event.data?.recipient_id === student.student_id) {
+        refetchUnread();
+      }
+    });
+    return () => { unsub1(); unsub2(); };
+  }, [student?.student_id]);
+
   const notifMap = {
     Diary: unreadCounts.Diary || 0,
     Quiz: unreadCounts.Quiz || 0,
