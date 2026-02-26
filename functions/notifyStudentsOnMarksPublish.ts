@@ -16,19 +16,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing student_id' }, { status: 400 });
     }
 
-    // Check for duplicate notification (DB-level)
-    const existing = await base44.asServiceRole.entities.Notification.filter({
-      recipient_student_id: student_id,
+    // IDEMPOTENCY STRATEGY: Option A - Second verification inside creation
+    // Check for existing notifications to avoid duplicates
+    const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
       type: 'results_posted',
       related_entity_id: marks.id,
     });
+    const alreadyNotified = new Set(existingNotifs.map(n => n.recipient_student_id));
 
-    if (existing.length > 0) {
+    if (alreadyNotified.has(student_id)) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Create notification — no preference check, all students get it
+    let notified = 0;
+
+    // FIX #1b-safe: Per-student race window closure
     try {
+      // IDEMPOTENCY: Second micro-check right before create
+      // Closes race window from initial check to create
+      const existsNow = await base44.asServiceRole.entities.Notification.filter({
+        type: 'results_posted',
+        related_entity_id: marks.id,
+        recipient_student_id: student_id,
+      });
+      
+      if (existsNow.length > 0) {
+        console.log(`Notification already exists for ${student_id}, skipping`);
+        return Response.json({ success: true, notified: 0 });
+      }
+
+      // Create notification only if micro-check passed
       await base44.asServiceRole.entities.Notification.create({
         recipient_student_id: student_id,
         type: 'results_posted',
@@ -37,8 +54,15 @@ Deno.serve(async (req) => {
         related_entity_id: marks.id,
         action_url: '/Results',
         is_read: false,
+        duplicate_key: `marks_${marks.id}_${student_id}`,
       });
+      notified = 1;
     } catch (err) {
+      // Catch duplicate creation attempts from concurrent calls
+      if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
+        console.warn(`Duplicate marks notification for ${student_id} detected, ignoring`);
+        return Response.json({ success: true, notified: 0 });
+      }
       console.error('Failed to create notification:', err.message);
       return Response.json({ success: true, notified: 0 });
     }
@@ -61,7 +85,7 @@ Deno.serve(async (req) => {
       console.error('Push send error (non-fatal):', pushErr.message);
     }
 
-    return Response.json({ success: true, notified: 1 });
+    return Response.json({ success: true, notified });
   } catch (error) {
     console.error('Error in notifyStudentsOnMarksPublish:', error);
     return Response.json({ error: error.message }, { status: 500 });

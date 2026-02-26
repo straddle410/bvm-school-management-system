@@ -16,10 +16,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing class_name' }, { status: 400 });
     }
 
-    // Get all approved students in the class — NO preference check
+    // Get current academic year
+    const currentAcademicYear = quiz.academic_year || '2024-25';
+
+    // FIX #1a: Add academic year filter to prevent multi-year notifications
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
-      status: 'Approved'
+      status: 'Approved',
+      academic_year: currentAcademicYear,
     });
 
     if (students.length === 0) {

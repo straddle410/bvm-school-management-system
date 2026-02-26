@@ -17,11 +17,15 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get all approved students in the class
+    // Get current academic year
+    const currentAcademicYear = diary.academic_year || '2024-25';
+
+    // FIX #1a: Add academic year filter to prevent multi-year notifications
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
       section: section,
-      status: 'Approved'
+      status: 'Approved',
+      academic_year: currentAcademicYear,
     });
 
     if (students.length === 0) {
