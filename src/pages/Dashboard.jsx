@@ -7,7 +7,7 @@ import PushNotificationManager from '@/components/PushNotificationManager';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
-  FileText, Award, BookOpen, Palmtree, Clock, Book, LogOut,
+  FileText, Award, BookOpen, Palmtree, Clock, Book, BookMarked, NotebookPen, LogOut,
   CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
