@@ -30,6 +30,7 @@ export default function Diary() {
   const [filters, setFilters] = useState({ class: '', subject: '' });
   const [selectedDate, setSelectedDate] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const [unreadDiaryNotifMap, setUnreadDiaryNotifMap] = useState({}); // diaryId -> notifId
 
   useEffect(() => {
     const session = getStaffSession();
@@ -39,20 +40,43 @@ export default function Diary() {
         const studentData = JSON.parse(localStorage.getItem('student_session'));
         if (studentData) {
           setUserStudent(studentData);
-          markDiaryNotificationsAsRead(studentData.student_id);
+          // Load unread diary notifications (don't auto-mark all read)
+          loadUnreadDiaryNotifs(studentData.student_id);
         }
       } catch (e) {}
     }
   }, []);
 
-  const markDiaryNotificationsAsRead = async (studentId) => {
+  const loadUnreadDiaryNotifs = async (studentId) => {
     try {
       const unread = await base44.entities.Notification.filter({
         recipient_student_id: studentId,
         type: 'diary_published',
         is_read: false
       });
-      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
+      const map = {};
+      unread.forEach(n => { if (n.related_entity_id) map[n.related_entity_id] = n.id; });
+      setUnreadDiaryNotifMap(map);
+    } catch {}
+  };
+
+  const markDiaryRead = async (diaryId) => {
+    const notifId = unreadDiaryNotifMap[diaryId];
+    if (!notifId) return;
+    try {
+      await base44.entities.Notification.update(notifId, { is_read: true });
+      setUnreadDiaryNotifMap(prev => {
+        const next = { ...prev };
+        delete next[diaryId];
+        return next;
+      });
+    } catch {}
+  };
+
+  const markAllDiaryRead = async () => {
+    try {
+      await Promise.all(Object.values(unreadDiaryNotifMap).map(id => base44.entities.Notification.update(id, { is_read: true })));
+      setUnreadDiaryNotifMap({});
     } catch {}
   };
 

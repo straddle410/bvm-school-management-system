@@ -34,6 +34,10 @@ export default function Notices() {
   const [user, setUser] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [filterType, setFilterType] = useState('all');
+  const [readNoticeIds, setReadNoticeIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('read_notice_ids') || '[]')); } catch { return new Set(); }
+  });
+  const [unreadNotifMap, setUnreadNotifMap] = useState({}); // noticeId -> notifId
   const [form, setForm] = useState({
     title: '',
     content: '',
