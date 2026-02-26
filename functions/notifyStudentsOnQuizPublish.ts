@@ -16,10 +16,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing class_name' }, { status: 400 });
     }
 
-    // Get all students in the class (Published = active in this school)
+    // Get all students in the class
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
-      status: 'Published'
+      status: 'Approved'
     });
 
     if (students.length === 0) {
@@ -34,21 +34,18 @@ Deno.serve(async (req) => {
     const duplicateCheck = new Set();
 
     for (const student of students) {
+      const pref = prefMap.get(student.student_id);
+
+      if (!pref || !pref.notifications_enabled || !pref.quiz_notifications) {
+        continue;
+      }
+
       const duplicateKey = `quiz_${quiz.id}_${student.student_id}`;
-      if (duplicateCheck.has(duplicateKey)) continue;
+      if (duplicateCheck.has(duplicateKey)) {
+        continue;
+      }
       duplicateCheck.add(duplicateKey);
 
-      // Check for existing notification to avoid duplicates
-      try {
-        const existing = await base44.asServiceRole.entities.Notification.filter({
-          recipient_student_id: student.student_id,
-          related_entity_id: quiz.id,
-          type: 'quiz_posted'
-        });
-        if (existing.length > 0) continue;
-      } catch {}
-
-      // Create in-app notification for ALL students (no pref gate for badge)
       try {
         await base44.asServiceRole.entities.Notification.create({
           recipient_student_id: student.student_id,
@@ -57,8 +54,10 @@ Deno.serve(async (req) => {
           message: `${quiz.title} - ${quiz.subject}`,
           related_entity_id: quiz.id,
           action_url: '/Quiz',
-          is_read: false
+          is_read: false,
+          duplicate_key: duplicateKey
         });
+
         notified++;
       } catch (err) {
         console.error(`Failed to create notification for ${student.student_id}:`, err);

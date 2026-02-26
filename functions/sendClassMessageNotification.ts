@@ -9,10 +9,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get all students in the class (Published = active in this school)
+    // Get all students in the class
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
-      status: 'Published'
+      status: 'Published' // Only active students
     });
 
     if (students.length === 0) {

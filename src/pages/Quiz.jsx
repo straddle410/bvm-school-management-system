@@ -176,9 +176,12 @@ export default function Quiz() {
         type: 'quiz_posted',
         is_read: false
       });
-      await Promise.all(unreadNotifications.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
+
+      for (const notif of unreadNotifications) {
+        await base44.entities.Notification.update(notif.id, { is_read: true });
+      }
     } catch (error) {
-      console.debug('Error marking quiz notifications as read:', error);
+      console.debug('Error marking notifications as read:', error);
     }
   };
 
