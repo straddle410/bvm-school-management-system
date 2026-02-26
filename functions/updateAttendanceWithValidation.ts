@@ -52,6 +52,24 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.AuditLog.create(auditData);
     }
 
+    // Deduplication check: prevent duplicate (student + date + class + section + year) if trying to change student
+    if (data.student_id && data.student_id !== existingRecord.student_id) {
+      const duplicates = await base44.asServiceRole.entities.Attendance.filter({
+        student_id: data.student_id,
+        date: data.date || existingRecord.date,
+        class_name: data.class_name || existingRecord.class_name,
+        section: data.section || existingRecord.section,
+        academic_year: data.academic_year || existingRecord.academic_year
+      });
+
+      if (duplicates.length > 0) {
+        return Response.json(
+          { error: 'Duplicate attendance record would be created. One record per student per date allowed.' },
+          { status: 409 }
+        );
+      }
+    }
+
     // Update the record
     await base44.asServiceRole.entities.Attendance.update(attendanceId, data);
 
