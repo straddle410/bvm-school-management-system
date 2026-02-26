@@ -322,18 +322,24 @@ Deno.serve(async (req) => {
       }
 
       // Now calculate if we have both start and end dates
-      if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
-        const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
-        monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
+      if (attendanceStartDate && attendanceEndDate) {
+        if (studentAttendance.length > 0) {
+          const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
+          monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
 
-        console.log(`[DEBUG] ${student.student_name}: Range attendance - working_days: ${rangeAttendance.working_days}, percentage: ${rangeAttendance.attendance_percentage}`);
+          console.log(`[FINAL] ${student.student_name}: working_days: ${rangeAttendance.working_days}, percentage: ${rangeAttendance.attendance_percentage}`);
 
-        attendanceSummary = {
-          range_start: attendanceStartDate,
-          range_end: attendanceEndDate,
-          ...rangeAttendance,
-          month_wise_breakdown: monthWiseBreakdown
-        };
+          attendanceSummary = {
+            range_start: attendanceStartDate,
+            range_end: attendanceEndDate,
+            ...rangeAttendance,
+            month_wise_breakdown: monthWiseBreakdown
+          };
+        } else {
+          console.log(`[FINAL] ${student.student_name}: No attendance records found`);
+        }
+      } else {
+        console.log(`[FINAL] ${student.student_name}: No attendance date range available`);
       }
 
       // Calculate overall rank (per class/section)
