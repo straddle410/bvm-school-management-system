@@ -156,6 +156,26 @@ export default function Attendance() {
           });
           return response.data;
         }
+
+        // For CREATE: check for deduplication first
+        const dedupCheck = await base44.functions.invoke('validateAttendanceCreateDedup', {
+          date: selectedDate,
+          studentId: student.student_id || student.id,
+          classname: selectedClass,
+          section: selectedSection,
+          academicYear
+        });
+
+        if (dedupCheck.data?.isDuplicate) {
+          // Duplicate found - update instead of create
+          const response = await base44.functions.invoke('updateAttendanceWithValidation', {
+            attendanceId: dedupCheck.data.existingRecordId,
+            data
+          });
+          return response.data;
+        }
+
+        // Safe to create new record
         return base44.entities.Attendance.create(data);
       });
       return Promise.all(promises);
@@ -167,6 +187,8 @@ export default function Attendance() {
     onError: (err) => {
       if (err?.response?.status === 403) {
         toast.error('❌ This record is locked. Only admin can unlock and edit.');
+      } else if (err?.response?.status === 409) {
+        toast.error('⚠️ Duplicate record detected. Using existing record.');
       } else {
         toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
       }
