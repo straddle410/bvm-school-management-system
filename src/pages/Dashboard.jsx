@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import PushNotificationManager from '@/components/PushNotificationManager';
+import { useStaffNotificationBadges } from '@/components/StaffNotificationBadges';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
