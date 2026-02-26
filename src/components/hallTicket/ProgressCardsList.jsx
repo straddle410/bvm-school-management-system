@@ -21,10 +21,24 @@ export default function ProgressCardsList() {
     queryFn: async () => {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
-      const cards = await base44.entities.ProgressCard.filter(query);
+      
+      const allCards = await base44.entities.ProgressCard.filter(query);
+      
+      // Deduplicate by student_id + class + section + academic_year
+      const uniqueCards = new Map();
+      allCards.forEach(card => {
+        const key = `${card.student_id}__${card.class_name}__${card.section}`;
+        if (!uniqueCards.has(key)) {
+          uniqueCards.set(key, card);
+        }
+      });
+      
+      let cards = Array.from(uniqueCards.values());
+      
       if (filters.student_name) {
-        return cards.filter(c => c.student_name.toLowerCase().includes(filters.student_name.toLowerCase()));
+        cards = cards.filter(c => c.student_name.toLowerCase().includes(filters.student_name.toLowerCase()));
       }
+      
       return cards;
     }
   });
