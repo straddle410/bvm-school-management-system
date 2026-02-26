@@ -126,8 +126,11 @@ export default function HallTicketList() {
           <div className="flex flex-row justify-between items-center flex-wrap gap-2">
             <CardTitle>Hall Tickets ({hallTickets.length})</CardTitle>
             <div className="flex gap-2 flex-wrap">
-              <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0 || approveMutation.isPending} className="gap-2 bg-green-600" size="sm">
+              <Button onClick={() => approveMutation.mutate(selected)} disabled={selected.length === 0 || approveMutation.isPending} className="gap-2 bg-yellow-600 hover:bg-yellow-700" size="sm">
                 <Lock className="w-4 h-4" /> Approve & Lock ({selected.length})
+              </Button>
+              <Button onClick={() => publishMutation.mutate(selected)} disabled={selected.length === 0 || publishMutation.isPending} className="gap-2 bg-green-600 hover:bg-green-700" size="sm">
+                Publish & Notify ({selected.length})
               </Button>
               <Button onClick={() => {
                 if (confirm('Delete selected hall tickets? This cannot be undone.')) {
