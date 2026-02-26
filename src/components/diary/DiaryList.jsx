@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function DiaryList({ entries, canEdit, onEdit, onDelete }) {
+export default function DiaryList({ entries, canEdit, onEdit, onDelete, unreadIds = {}, onItemRead }) {
   if (!entries || entries.length === 0) {
     return (
       <Card>
@@ -18,12 +18,16 @@ export default function DiaryList({ entries, canEdit, onEdit, onDelete }) {
 
   return (
     <div className="space-y-4">
-      {entries.map(entry => (
-        <Card key={entry.id}>
+      {entries.map(entry => {
+        const isUnread = !!unreadIds[entry.id];
+        return (
+        <Card key={entry.id} className={isUnread ? 'border-l-4 border-blue-500' : ''} onClick={() => isUnread && onItemRead && onItemRead(entry.id)}>
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <CardTitle className="text-lg">{entry.title}</CardTitle>
+              <div className="flex-1 flex items-start gap-2">
+                {isUnread && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-2.5" />}
+                <div className="flex-1">
+                <CardTitle className={`text-lg ${isUnread ? 'font-extrabold' : ''}`}>{entry.title}</CardTitle>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   <Badge variant="outline">Class {entry.class_name}-{entry.section}</Badge>
                   <Badge variant="outline">{entry.subject}</Badge>
