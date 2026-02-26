@@ -11,9 +11,28 @@ import { Badge } from '@/components/ui/badge';
 import ProgressCardGenerator from '@/components/hallTicket/ProgressCardGenerator';
 import ProgressCardsList from '@/components/hallTicket/ProgressCardsList';
 
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+const gradeColor = (grade) => {
+  const map = {
+    'A+': 'bg-green-100 text-green-700',
+    'A': 'bg-emerald-100 text-emerald-700',
+    'B+': 'bg-blue-100 text-blue-700',
+    'B': 'bg-sky-100 text-sky-700',
+    'C': 'bg-yellow-100 text-yellow-700',
+    'D': 'bg-orange-100 text-orange-700',
+    'F': 'bg-red-100 text-red-700',
+  };
+  return map[grade] || 'bg-slate-100 text-slate-700';
+};
+
 export default function ExamManagement() {
   const [user, setUser] = useState(null);
   const { academicYear } = useAcademicYear();
+  const [filterExamType, setFilterExamType] = useState('');
+  const [filterClass, setFilterClass] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [viewResults, setViewResults] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -31,6 +50,36 @@ export default function ExamManagement() {
     };
     loadUser();
   }, []);
+
+  const { data: examTypes = [] } = useQuery({
+    queryKey: ['exam-types-results', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
+  });
+
+  const { data: classStudents = [] } = useQuery({
+    queryKey: ['students-results', filterClass],
+    queryFn: () => base44.entities.Student.filter({ class_name: filterClass }),
+    enabled: !!filterClass
+  });
+
+  const { data: studentResults = [] } = useQuery({
+    queryKey: ['student-marks-results', selectedStudentId, filterExamType, academicYear],
+    queryFn: async () => {
+      if (!selectedStudentId) return [];
+      const filter = { student_id: selectedStudentId, status: 'Published', academic_year: academicYear };
+      if (filterExamType) filter.exam_type = filterExamType;
+      return base44.entities.Marks.filter(filter);
+    },
+    enabled: !!selectedStudentId
+  });
+
+  const getPercentage = (marks) => {
+    const total = marks.reduce((s, m) => s + m.marks_obtained, 0);
+    const max = marks.reduce((s, m) => s + m.max_marks, 0);
+    return max > 0 ? Math.round((total / max) * 100) : 0;
+  };
+
+  const studentInfo = classStudents.find(s => s.student_id === selectedStudentId || s.id === selectedStudentId);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
