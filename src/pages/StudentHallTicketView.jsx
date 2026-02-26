@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Printer, FileText, Calendar, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import QRCode from 'qrcode';
 
 export default function StudentHallTicketView() {
   const [studentSession, setStudentSession] = useState(null);
@@ -136,13 +135,13 @@ function HallTicketCard({ ticket, schoolProfile }) {
         hall_ticket_number: ticket.hall_ticket_number,
         academic_year: ticket.academic_year,
         student_name: ticket.student_name,
-        class_name: ticket.class_name,
-        verified_at: new Date().toISOString()
+        class_name: ticket.class_name
       });
       
-      QRCode.toDataURL(qrData, { width: 100, errorCorrectionLevel: 'H' })
-        .then(url => setQrCode(url))
-        .catch(err => console.error('QR code generation failed:', err));
+      // Generate QR code via free API (no npm dependency)
+      const encodedData = encodeURIComponent(qrData);
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodedData}`;
+      setQrCode(qrUrl);
     }
   }, [ticket]);
 
