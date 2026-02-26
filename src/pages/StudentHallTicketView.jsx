@@ -543,13 +543,19 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {ticket.timetable.map((entry, idx) => (
+                  {ticket.timetable.map((entry, idx) => {
+                    const parseLocalDate = (dateStr) => {
+                      const [year, month, day] = dateStr.split('-');
+                      return new Date(year, month - 1, day);
+                    };
+                    const examDate = entry.exam_date ? parseLocalDate(entry.exam_date) : null;
+                    return (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                       <td className="px-3 py-2 font-medium text-slate-700 border border-gray-300">
-                        {entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                        {examDate ? examDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                       </td>
                       <td className="px-3 py-2 text-slate-700 border border-gray-300">
-                        {entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { weekday: 'short' }) : '—'}
+                        {examDate ? examDate.toLocaleDateString('en-IN', { weekday: 'short' }) : '—'}
                       </td>
                       <td className="px-3 py-2 font-semibold text-slate-800 border border-gray-300">{entry.subject_name}</td>
                       <td className="px-3 py-2 text-slate-700 border border-gray-300">
@@ -557,7 +563,8 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
                       </td>
                       <td className="px-3 py-2 text-slate-700 border border-gray-300">{entry.room_number || '—'}</td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
