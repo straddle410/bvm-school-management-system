@@ -119,6 +119,17 @@ export default function Results() {
     cacheTime: 10 * 60 * 1000
   });
 
+  // Fetch subjects for ordering
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects-for-ordering'],
+    queryFn: async () => {
+      const subs = await base44.entities.Subject.list();
+      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    },
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 20 * 60 * 1000
+  });
+
   // Load students when class+section is selected
   const { data: classStudents = [] } = useQuery({
     queryKey: ['students-class-section', filterClass, filterSection],
@@ -416,11 +427,13 @@ export default function Results() {
                   <>
                     {/* Separate cards for each exam type */}
                     {Object.entries(resultsByExam).map(([examType, marks]) => {
-                      // Sort marks by order of first appearance in marks array (preserving publish order)
+                      // Sort marks by Subject sort_order to match Marks entry page order
                       const sortedMarks = marks.slice().sort((a, b) => {
-                        const indexA = marks.findIndex(m => m.subject === a.subject);
-                        const indexB = marks.findIndex(m => m.subject === b.subject);
-                        return indexA - indexB;
+                        const subjectA = subjects.find(s => s.name === a.subject);
+                        const subjectB = subjects.find(s => s.name === b.subject);
+                        const orderA = subjectA?.sort_order || 0;
+                        const orderB = subjectB?.sort_order || 0;
+                        return orderA - orderB;
                       });
 
                       return (
