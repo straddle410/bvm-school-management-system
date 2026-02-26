@@ -193,6 +193,7 @@ export default function StudentHallTicketView() {
              flex-shrink: 0;
              display: block !important;
              visibility: visible !important;
+             background: #ffffff !important;
              -webkit-print-color-adjust: exact;
              print-color-adjust: exact;
              image-rendering: crisp-edges;
@@ -200,6 +201,7 @@ export default function StudentHallTicketView() {
 
            .print-header-text {
              flex: 1;
+             background: #ffffff !important;
            }
 
            .print-school-name {
@@ -207,20 +209,23 @@ export default function StudentHallTicketView() {
              font-weight: bold;
              letter-spacing: 0.05em;
              margin: 0;
-             color: #000 !important;
+             color: #000000 !important;
+             background: #ffffff !important;
            }
 
            .print-header p {
              font-size: 7pt;
              margin: 0.5mm 0 0 0;
-             color: #000 !important;
+             color: #000000 !important;
+             background: #ffffff !important;
            }
 
            .print-header > div {
              font-size: 8pt;
              margin: 0.5mm 0 0 0;
              padding: 0.5mm 0;
-             color: #000 !important;
+             color: #000000 !important;
+             background: #ffffff !important;
            }
 
            /* Student Info Section - Compact */
