@@ -305,11 +305,17 @@ Deno.serve(async (req) => {
       const rankKey = `${studentMarks.class_name}__${studentMarks.section}`;
       const rankData = rankMap[rankKey]?.find(r => r.student_id === studentMarks.student_id);
 
-      // Fetch attendance summary from shared function - ensures exact match with attendance module
-      const attendanceSummary = await getAttendanceSummary(
-        studentMarks.student_id,
-        studentMarks.class_name,
-        studentMarks.section
+      // Fetch student attendance and calculate summary using shared logic
+      const studentAttendance = attendanceInRange.filter(a =>
+        a.student_id === studentMarks.student_id &&
+        a.class_name === studentMarks.class_name &&
+        a.section === studentMarks.section
+      );
+
+      const attendanceSummary = calculateAttendanceSummary(
+        studentAttendance,
+        attendanceRangeStart,
+        attendanceRangeEnd
       );
 
       console.log(`[ATTENDANCE-SUMMARY] Student ${studentMarks.student_name} (${studentMarks.student_id}): working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
