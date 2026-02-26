@@ -72,7 +72,7 @@ export default function StudentMessageNotificationListener({ studentSession }) {
         tag: `message-${msg.id}`,
         requireInteraction: false,
         data: {
-          action_url: '/StudentMessaging',
+          action_url: '/Messaging',
           notificationId: msg.id,
         },
         vibrate: [200, 100, 200],

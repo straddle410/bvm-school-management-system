@@ -62,9 +62,10 @@ export default function StudentQuizNotificationListener({ studentSession }) {
         tag: `quiz-${quiz.id}`,
         requireInteraction: false,
         data: {
-          action_url: '/Quiz',
-          notificationId: quiz.id,
-        },
+           action_url: '/Quiz',
+           notificationId: quiz.id,
+         },
+         vibrate: [200, 100, 200],
         vibrate: [200, 100, 200],
       });
     }

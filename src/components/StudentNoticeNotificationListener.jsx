@@ -40,12 +40,15 @@ export default function StudentNoticeNotificationListener({ studentSession }) {
           }
 
           // Send browser push if enabled
-          if (prefs?.browser_push_enabled && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification(event.data.title, {
-              body: event.data.message,
-              icon: '/logo.png',
-            });
-          }
+           if (prefs?.browser_push_enabled && 'Notification' in window && Notification.permission === 'granted') {
+             new Notification(event.data.title, {
+               body: event.data.message,
+               icon: '/logo.png',
+               data: {
+                 action_url: '/Notices',
+               },
+             });
+           }
         });
       } catch (err) {
         console.error('Notice listener setup error:', err);
