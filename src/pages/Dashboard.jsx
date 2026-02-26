@@ -231,22 +231,24 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Banner */}
-      <div className="relative w-full overflow-hidden" style={{ height: 180 }}>
-        {banners.map((img, i) => (
-          <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === bannerIndex ? 1 : 0 }}>
-            <img src={img.url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <p className="absolute bottom-3 left-4 right-4 text-white font-semibold text-sm leading-tight">{img.caption}</p>
-          </div>
-        ))}
-        <div className="absolute bottom-2 right-3 flex gap-1.5">
-          {banners.map((_, i) => (
-            <button key={i} onClick={() => setBannerIndex(i)}
-              className={`rounded-full transition-all ${i === bannerIndex ? 'w-5 h-2 bg-yellow-400' : 'w-2 h-2 bg-white/60'}`} />
+      {/* Banner - hidden for admin */}
+      {!isAdmin && (
+        <div className="relative w-full overflow-hidden" style={{ height: 180 }}>
+          {banners.map((img, i) => (
+            <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === bannerIndex ? 1 : 0 }}>
+              <img src={img.url} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <p className="absolute bottom-3 left-4 right-4 text-white font-semibold text-sm leading-tight">{img.caption}</p>
+            </div>
           ))}
+          <div className="absolute bottom-2 right-3 flex gap-1.5">
+            {banners.map((_, i) => (
+              <button key={i} onClick={() => setBannerIndex(i)}
+                className={`rounded-full transition-all ${i === bannerIndex ? 'w-5 h-2 bg-yellow-400' : 'w-2 h-2 bg-white/60'}`} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <main className="flex-1 overflow-y-auto pb-24 px-3 sm:px-4 py-5 space-y-4 sm:space-y-6 w-full">
 
