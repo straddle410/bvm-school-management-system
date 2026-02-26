@@ -14,14 +14,17 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { getProxiedImageUrl } from '@/components/imageProxy';
+
 const LogoImageWithFallback = ({ src, alt }) => {
   const [imgError, setImgError] = useState(false);
+  const proxiedSrc = getProxiedImageUrl(src);
   return imgError || !src ? (
     <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow">
       <Building2 className="h-5 w-5 text-[#1a237e]" />
     </div>
   ) : (
-    <img src={src} alt={alt} className="h-8 w-8 rounded-full object-contain bg-white p-0.5 shadow" onError={() => setImgError(true)} />
+    <img src={proxiedSrc} alt={alt} className="h-8 w-8 rounded-full object-contain bg-white p-0.5 shadow" onError={() => setImgError(true)} />
   );
 };
 
