@@ -543,15 +543,13 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {ticket.timetable.map((entry, idx) => {
-                    const examDate = entry.exam_date ? new Date(entry.exam_date + 'T00:00:00') : null;
-                    return (
+                  {ticket.timetable.map((entry, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                       <td className="px-3 py-2 font-medium text-slate-700 border border-gray-300">
-                        {examDate ? examDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                        {entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                       </td>
                       <td className="px-3 py-2 text-slate-700 border border-gray-300">
-                        {entry.day || (examDate ? examDate.toLocaleDateString('en-IN', { weekday: 'short' }) : '—')}
+                        {entry.exam_date ? new Date(entry.exam_date).toLocaleDateString('en-IN', { weekday: 'short' }) : '—'}
                       </td>
                       <td className="px-3 py-2 font-semibold text-slate-800 border border-gray-300">{entry.subject_name}</td>
                       <td className="px-3 py-2 text-slate-700 border border-gray-300">
@@ -559,8 +557,7 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
                       </td>
                       <td className="px-3 py-2 text-slate-700 border border-gray-300">{entry.room_number || '—'}</td>
                     </tr>
-                  );
-                  })}
+                  ))}
                 </tbody>
               </table>
             </div>
