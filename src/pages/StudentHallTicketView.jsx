@@ -162,13 +162,20 @@ function HallTicketCard({ ticket, schoolProfile }) {
       {/* Student Info */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-start gap-4">
-          {ticket.student_photo_url && (
-            <img
-              src={ticket.student_photo_url}
-              alt="Student"
-              className="h-20 w-16 object-cover rounded-lg border-2 border-gray-300 flex-shrink-0"
-            />
-          )}
+          <div className="flex flex-col gap-2">
+            {ticket.student_photo_url && (
+              <img
+                src={ticket.student_photo_url}
+                alt="Student"
+                className="h-20 w-16 object-cover rounded-lg border-2 border-gray-300 flex-shrink-0"
+              />
+            )}
+            {qrCode && (
+              <div className="border border-gray-300 p-1 rounded-lg bg-white">
+                <img src={qrCode} alt="QR Code" className="w-16 h-16" />
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm flex-1">
             <div>
               <p className="print-label text-slate-500 text-xs">Student Name</p>
