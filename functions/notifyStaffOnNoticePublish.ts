@@ -37,23 +37,43 @@ Deno.serve(async (req) => {
 
     let notified = 0;
 
-    // Use Promise.all for parallel creation (faster)
+    // FIX #1b-safe: Promise.all with per-staff race window closure
     const notificationPromises = staffEmails
       .filter(email => !alreadyNotified.has(email))
-      .map(email => 
-        base44.asServiceRole.entities.Notification.create({
-          recipient_staff_id: email,
-          type: 'notice_posted_staff',
-          title: notice.title,
-          message: (notice.content || '').substring(0, 120),
-          related_entity_id: noticeId,
-          action_url: '/Notices',
-          is_read: false,
-        }).catch(err => {
+      .map(async (email) => {
+        try {
+          // IDEMPOTENCY: Second micro-check right before create
+          const existsNow = await base44.asServiceRole.entities.Notification.filter({
+            type: 'notice_posted_staff',
+            related_entity_id: noticeId,
+            recipient_staff_id: email,
+          });
+          
+          if (existsNow.length > 0) {
+            return null;
+          }
+
+          const created = await base44.asServiceRole.entities.Notification.create({
+            recipient_staff_id: email,
+            type: 'notice_posted_staff',
+            title: notice.title,
+            message: (notice.content || '').substring(0, 120),
+            related_entity_id: noticeId,
+            action_url: '/Notices',
+            is_read: false,
+            duplicate_key: `notice_staff_${noticeId}_${email}`,
+          });
+          
+          return created;
+        } catch (err) {
+          if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
+            console.warn(`Duplicate notice notification for staff ${email} detected, ignoring`);
+            return null;
+          }
           console.error(`Failed to notify staff ${email}:`, err.message);
           return null;
-        })
-      );
+        }
+      });
     
     const results = await Promise.all(notificationPromises);
     notified = results.filter(r => r !== null).length;
