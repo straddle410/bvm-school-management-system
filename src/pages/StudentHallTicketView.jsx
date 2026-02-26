@@ -176,7 +176,7 @@ export default function StudentHallTicketView() {
              background: #fff !important;
              color: #000 !important;
              display: flex;
-             align-items: center;
+             align-items: flex-start;
              gap: 2mm;
              border-bottom: 1px solid #000;
            }
@@ -186,6 +186,8 @@ export default function StudentHallTicketView() {
              height: 35px;
              object-fit: contain;
              flex-shrink: 0;
+             display: block !important;
+             visibility: visible !important;
            }
 
            .print-header-text {
