@@ -49,6 +49,13 @@ export default function StudentMessaging() {
 
   const unreadCount = inbox.filter(m => !m.is_read).length;
 
+  const markAllInboxRead = async () => {
+    const unreadMsgs = inbox.filter(m => !m.is_read && m.recipient_id === student?.student_id);
+    await Promise.all(unreadMsgs.map(m => base44.entities.Message.update(m.id, { is_read: true })));
+    queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
+    queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
+  };
+
   const handleSelectMessage = async (msg) => {
     const allMessages = [...inbox, ...sent];
     const threadId = msg.thread_id || msg.id;
