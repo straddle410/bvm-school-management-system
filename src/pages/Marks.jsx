@@ -703,7 +703,7 @@ export default function Marks() {
               </Card>
             )}
 
-            {selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
+            {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
               <Card className="border-0 shadow-sm">
                 <CardContent className="py-16 text-center">
                   <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
