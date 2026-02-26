@@ -629,7 +629,7 @@ export default function Marks() {
                       <Card key={idx} className="border-0 shadow-sm overflow-hidden">
                         <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
                           <h3 className="text-white font-semibold flex items-center justify-between">
-                            <span>{group.exam_type}</span>
+                            <span>{group.exam_name || group.exam_type}</span>
                             <span className="text-sm">({group.students.length} students)</span>
                           </h3>
                         </div>
