@@ -7,6 +7,7 @@ import { AcademicYearProvider } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
+import { getProxiedImageUrl } from '@/components/imageProxy';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
