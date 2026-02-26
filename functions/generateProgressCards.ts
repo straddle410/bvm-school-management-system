@@ -142,6 +142,9 @@ Deno.serve(async (req) => {
       examTypesWithRange.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
       globalAttendanceStartDate = examTypesWithRange[0].attendance_range_start;
       globalAttendanceEndDate = examTypesWithRange[0].attendance_range_end;
+      console.log(`[RANGE FOUND] ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
+    } else {
+      console.log(`[NO RANGE FOUND] exam types: ${examTypeRecords.length}, with range: ${examTypesWithRange.length}`);
     }
 
     // Calculate overall statistics and generate progress cards
