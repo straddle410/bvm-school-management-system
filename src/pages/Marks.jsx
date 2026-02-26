@@ -296,12 +296,19 @@ export default function Marks() {
     }
   });
 
-  // Group marks by exam type for review
+  // Group marks by exam type for review - filter by selected exam when available
   const reviewGroupedData = React.useMemo(() => {
-    const marks = reviewMarks;
+    let marksToUse = reviewMarks;
+    
+    // If an exam is selected in review mode, filter to only that exam
+    if (selectedExam) {
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+      const examId = selectedExamObj?.id || selectedExam;
+      marksToUse = reviewMarks.filter(m => m.exam_type === examId || m.exam_type === selectedExam);
+    }
 
     const grouped = {};
-    marks.forEach(mark => {
+    marksToUse.forEach(mark => {
       const examTypeId = mark.exam_type;
       if (!grouped[examTypeId]) {
         grouped[examTypeId] = {
@@ -324,15 +331,18 @@ export default function Marks() {
 
     return Object.values(grouped).map(group => {
       const studentArray = Object.values(group.studentMarks);
-      const groupMarks = marks.filter(m => m.exam_type === group.exam_type);
+      const groupMarks = marksToUse.filter(m => m.exam_type === group.exam_type);
       
-      // Get subjects in same order as subjectList
+      // Get subjects in exact same order as subjectList
       const subjects = subjectList.filter(s => 
         groupMarks.some(m => m.subject === s)
       );
 
       const studentsWithTotals = studentArray.map(student => {
-        const total = Object.values(student.subjects).reduce((sum, mark) => sum + mark.marks_obtained, 0);
+        const total = subjects.reduce((sum, subj) => {
+          const mark = student.subjects[subj];
+          return sum + (mark ? mark.marks_obtained : 0);
+        }, 0);
         return { ...student, total };
       });
 
@@ -344,7 +354,7 @@ export default function Marks() {
 
       return { ...group, subjects, students: studentsWithRanks };
     });
-  }, [reviewMarks, filteredStudents, subjectList]);
+  }, [reviewMarks, filteredStudents, subjectList, selectedExam, examTypes]);
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
