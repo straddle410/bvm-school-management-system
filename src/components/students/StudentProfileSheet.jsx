@@ -43,7 +43,7 @@ export default function StudentProfileSheet({ student, open, onClose, onEdit, on
           </div>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-3 border-white/50 shadow-lg">
-              <AvatarImage src={student.photo_url} />
+              <AvatarImage src={getProxiedImageUrl(student.photo_url)} />
               <AvatarFallback className="bg-indigo-300 text-white font-bold text-xl">{initials}</AvatarFallback>
             </Avatar>
             <div>
