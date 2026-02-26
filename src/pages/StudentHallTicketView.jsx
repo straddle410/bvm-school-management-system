@@ -438,6 +438,7 @@ export default function StudentHallTicketView() {
 
 function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
   const [qrCode, setQrCode] = useState(null);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     if (ticket) {
