@@ -412,15 +412,21 @@ export default function Notices() {
   );
 }
 
-function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit }) {
+function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnread, onRead }) {
   const [expanded, setExpanded] = useState(false);
   const typeColor = TYPE_COLORS[notice.notice_type] || 'bg-slate-100 text-slate-700';
   const canEdit = isAdmin || (user && notice.created_by_name === (user.full_name || user.name));
 
+  const handleExpand = () => {
+    setExpanded(true);
+    if (isUnread) onRead();
+  };
+
   return (
-    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden ${notice.is_pinned ? 'border-l-4 border-yellow-400' : ''}`}>
+    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden ${notice.is_pinned ? 'border-l-4 border-yellow-400' : ''} ${isUnread ? 'border-l-4 border-blue-500' : ''}`}>
       <div className="p-4">
         <div className="flex items-start gap-3">
+          {isUnread && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <Badge className={`text-xs ${typeColor} border-0`}>{notice.notice_type}</Badge>
@@ -429,7 +435,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit }) {
               )}
               {notice.is_pinned && <Pin className="h-3 w-3 text-yellow-500" />}
             </div>
-            <h3 className="font-bold text-gray-900 text-sm">{notice.title}</h3>
+            <h3 className={`text-sm ${isUnread ? 'font-extrabold text-gray-900' : 'font-bold text-gray-900'}`}>{notice.title}</h3>
             <div className={`text-gray-600 text-sm mt-1 ${!expanded ? 'line-clamp-2' : ''}`} dangerouslySetInnerHTML={{ __html: notice.content }}>
             </div>
             {notice.content.length > 100 && (
