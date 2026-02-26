@@ -192,6 +192,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden relative">
       <PushNotificationManager />
+      <ExamResultsModal open={examResultsModalOpen} onOpenChange={setExamResultsModalOpen} />
 
       {/* Header */}
       <header className="sticky top-0 z-50 w-full">
