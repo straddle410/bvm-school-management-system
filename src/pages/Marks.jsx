@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Save, Send, Settings, FileText, Plus
+  BookOpen, Save, Send, Settings, FileText, Plus, Check, Download, Eye
 } from 'lucide-react';
 import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
