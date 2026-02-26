@@ -49,6 +49,11 @@ export default function TimetableManagement() {
     }
   });
 
+  const { data: examTypes = [] } = useQuery({
+    queryKey: ['exam-types', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
+  });
+
   const { data: allTeachers = [] } = useQuery({
     queryKey: ['teachers'],
     queryFn: () => base44.entities.Teacher.list()
