@@ -6,6 +6,7 @@ import TimetableManager from '@/components/hallTicket/TimetableManager';
 import HallTicketGenerator from '@/components/hallTicket/HallTicketGenerator';
 import HallTicketList from '@/components/hallTicket/HallTicketList';
 import ProgressCardsList from '@/components/hallTicket/ProgressCardsList';
+import ExamTypeProgressCardGenerator from '@/components/hallTicket/ExamTypeProgressCardGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
