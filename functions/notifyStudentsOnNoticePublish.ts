@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
+    // IDEMPOTENCY STRATEGY: Option A - Second verification inside creation
     // Check for existing notifications to avoid duplicates
     const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
       type: 'notice_posted',
@@ -45,24 +46,46 @@ Deno.serve(async (req) => {
 
     let notified = 0;
 
-    // FIX #1b: Use Promise.all for parallel creation (faster than serial loop)
+    // FIX #1b-safe: Promise.all with per-student race window closure
     const notificationPromises = students
       .filter(s => !alreadyNotified.has(s.student_id))
-      .map(student => 
-        base44.asServiceRole.entities.Notification.create({
-          recipient_student_id: student.student_id,
-          type: 'notice_posted',
-          title: notice.title,
-          message: (notice.content || '').substring(0, 100),
-          related_entity_id: notice.id,
-          action_url: '/Notices',
-          is_read: false,
-          duplicate_key: `notice_${notice.id}_${student.student_id}`, // For future DB constraint
-        }).catch(err => {
+      .map(async (student) => {
+        try {
+          // IDEMPOTENCY: Second micro-check right before create
+          // Closes race window from "start of loop" to "1ms before create"
+          const existsNow = await base44.asServiceRole.entities.Notification.filter({
+            type: 'notice_posted',
+            related_entity_id: notice.id,
+            recipient_student_id: student.student_id,
+          });
+          
+          if (existsNow.length > 0) {
+            console.log(`Notification already exists for ${student.student_id}, skipping`);
+            return null; // Skip this student
+          }
+
+          const created = await base44.asServiceRole.entities.Notification.create({
+            recipient_student_id: student.student_id,
+            type: 'notice_posted',
+            title: notice.title,
+            message: (notice.content || '').substring(0, 100),
+            related_entity_id: notice.id,
+            action_url: '/Notices',
+            is_read: false,
+            duplicate_key: `notice_${notice.id}_${student.student_id}`,
+          });
+          
+          return created;
+        } catch (err) {
+          // Catch duplicate creation attempts from concurrent calls
+          if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
+            console.warn(`Duplicate notification for ${student.student_id} detected, ignoring`);
+            return null;
+          }
           console.error(`Failed to notify ${student.student_id}:`, err.message);
           return null;
-        })
-      );
+        }
+      });
     
     const results = await Promise.all(notificationPromises);
     notified = results.filter(r => r !== null).length;
