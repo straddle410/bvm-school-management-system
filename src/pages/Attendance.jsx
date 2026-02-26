@@ -8,6 +8,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import HolidayStatusDisplay from '@/components/HolidayStatusDisplay';
 import HolidayOverrideToggle from '@/components/HolidayOverrideToggle';
+import HalfDayModal from '@/components/attendance/HalfDayModal';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,7 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange
+  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange, AlertCircle
 } from 'lucide-react';
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ export default function Attendance() {
   const [rangeReason, setRangeReason] = useState('');
   const [rangeProgress, setRangeProgress] = useState(0);
   const [hasHolidayOverride, setHasHolidayOverride] = useState(false);
+  const [halfDayModal, setHalfDayModal] = useState({ isOpen: false, studentId: null, studentName: null });
 
   const queryClient = useQueryClient();
 
@@ -123,20 +125,25 @@ export default function Attendance() {
       if (!academicYear) throw new Error('Academic year not configured');
       const promises = filteredStudents.map(student => {
         const existing = attendanceData[student.student_id];
+        const attType = existing?.attendance_type || 'full_day';
+
         const data = {
           date: selectedDate,
           class_name: selectedClass,
           section: selectedSection,
           student_id: student.student_id || student.id,
           student_name: student.name,
-          is_present: isHoliday ? false : (existing?.is_present !== false),
+          attendance_type: isHoliday ? 'holiday' : attType,
+          half_day_period: existing?.half_day_period || null,
+          half_day_reason: existing?.half_day_reason || '',
+          is_present: isHoliday ? false : (attType !== 'absent'),
           is_holiday: isHoliday,
           holiday_reason: isHoliday ? (holidayReason || 'Holiday') : '',
           marked_by: user?.email,
           academic_year: academicYear,
           status: isHoliday ? 'Holiday' : 'Taken'
         };
-        
+
         if (existing?.id) {
           return base44.entities.Attendance.update(existing.id, data);
         }
@@ -204,11 +211,32 @@ export default function Attendance() {
     }
   });
 
-  const toggleAttendance = (studentId, isPresent) => {
+  const setAttendanceType = (studentId, type, halfDayData = {}) => {
     setAttendanceData(prev => ({
       ...prev,
-      [studentId]: { ...prev[studentId], is_present: isPresent }
+      [studentId]: {
+        ...prev[studentId],
+        attendance_type: type,
+        half_day_period: halfDayData.period || null,
+        half_day_reason: halfDayData.reason || '',
+        is_present: type !== 'absent'
+      }
     }));
+  };
+
+  const openHalfDayModal = (studentId, studentName) => {
+    setHalfDayModal({ isOpen: true, studentId, studentName });
+  };
+
+  const closeHalfDayModal = () => {
+    setHalfDayModal({ isOpen: false, studentId: null, studentName: null });
+  };
+
+  const handleHalfDayConfirm = (halfDayData) => {
+    if (halfDayModal.studentId) {
+      setAttendanceType(halfDayModal.studentId, 'half_day', halfDayData);
+      closeHalfDayModal();
+    }
   };
 
   const markAllPresent = () => {
@@ -219,10 +247,16 @@ export default function Attendance() {
     setAttendanceData(data);
   };
 
-  const presentCount = filteredStudents.filter(s => 
-    attendanceData[s.student_id || s.id]?.is_present !== false
+  const presentCount = filteredStudents.filter(s => {
+    const type = attendanceData[s.student_id || s.id]?.attendance_type || 'full_day';
+    return type === 'full_day' || type === 'half_day';
+  }).length;
+  const halfDayCount = filteredStudents.filter(s => 
+    attendanceData[s.student_id || s.id]?.attendance_type === 'half_day'
   ).length;
-  const absentCount = filteredStudents.length - presentCount;
+  const absentCount = filteredStudents.filter(s => 
+    attendanceData[s.student_id || s.id]?.attendance_type === 'absent'
+  ).length;
 
   const currentStatus = existingAttendance[0]?.status || 'Not Taken';
 
@@ -406,7 +440,7 @@ export default function Attendance() {
             )}
 
             {/* Stats */}
-             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
               <Card className="border-0 shadow-sm p-4">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
@@ -425,7 +459,18 @@ export default function Attendance() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Present</p>
-                    <p className="text-xl font-bold text-green-600">{presentCount}</p>
+                    <p className="text-xl font-bold text-green-600">{presentCount - halfDayCount}</p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="border-0 shadow-sm p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-yellow-50 flex items-center justify-center">
+                    <AlertCircle className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Half Day</p>
+                    <p className="text-xl font-bold text-yellow-600">{halfDayCount}</p>
                   </div>
                 </div>
               </Card>
@@ -475,13 +520,15 @@ export default function Attendance() {
                 ) : (
                   <div className="divide-y">
                         {filteredStudents.map((student, index) => {
-                          const isPresent = attendanceData[student.student_id || student.id]?.is_present !== false;
+                          const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
                           const attendanceDisabled = isHoliday && !hasHolidayOverride;
+                          const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
+
                           return (
                             <div 
                                 key={student.id}
                                 className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${
-                                  attendanceDisabled ? 'bg-slate-50 opacity-60' : isPresent ? 'bg-white' : 'bg-red-50'
+                                  attendanceDisabled ? 'bg-slate-50 opacity-60' : bgColor
                                 }`}
                               >
                             <span className="text-xs sm:text-sm text-slate-400 w-6 sm:w-8 flex-shrink-0">
@@ -496,23 +543,41 @@ export default function Attendance() {
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-slate-900 truncate text-sm">{student.name}</p>
                               <p className="text-xs text-slate-500">{student.student_id}</p>
+                              {attType === 'half_day' && attendanceData[student.student_id || student.id]?.half_day_period && (
+                                <p className="text-xs text-yellow-700 mt-0.5">
+                                  🕐 {attendanceData[student.student_id || student.id]?.half_day_period === 'morning' ? 'Absent Afternoon' : 'Absent Morning'}
+                                  {attendanceData[student.student_id || student.id]?.half_day_reason && ` - ${attendanceData[student.student_id || student.id]?.half_day_reason}`}
+                                </p>
+                              )}
                             </div>
                             <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                             <Button
                               size="sm"
-                              variant={isPresent ? 'default' : 'outline'}
-                              className={isPresent ? 'bg-green-600 hover:bg-green-700' : ''}
-                              onClick={() => toggleAttendance(student.student_id || student.id, true)}
+                              variant={attType === 'full_day' ? 'default' : 'outline'}
+                              className={attType === 'full_day' ? 'bg-green-600 hover:bg-green-700' : ''}
+                              onClick={() => setAttendanceType(student.student_id || student.id, 'full_day')}
                               disabled={attendanceDisabled}
+                              title="Full Day"
                             >
                               <CheckCircle2 className="h-4 w-4" />
                             </Button>
                             <Button
                               size="sm"
-                              variant={!isPresent ? 'default' : 'outline'}
-                              className={!isPresent ? 'bg-red-600 hover:bg-red-700' : ''}
-                              onClick={() => toggleAttendance(student.student_id || student.id, false)}
+                              variant={attType === 'half_day' ? 'default' : 'outline'}
+                              className={attType === 'half_day' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
+                              onClick={() => openHalfDayModal(student.student_id || student.id, student.name)}
                               disabled={attendanceDisabled}
+                              title="Half Day"
+                            >
+                              <AlertCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={attType === 'absent' ? 'default' : 'outline'}
+                              className={attType === 'absent' ? 'bg-red-600 hover:bg-red-700' : ''}
+                              onClick={() => setAttendanceType(student.student_id || student.id, 'absent')}
+                              disabled={attendanceDisabled}
+                              title="Absent"
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>
@@ -561,7 +626,14 @@ export default function Attendance() {
           </Card>
         ) : null}
       </div>
-    </div>
-    </LoginRequired>
-  );
-}
+
+      <HalfDayModal
+        isOpen={halfDayModal.isOpen}
+        onClose={closeHalfDayModal}
+        onConfirm={handleHalfDayConfirm}
+        studentName={halfDayModal.studentName}
+      />
+      </div>
+      </LoginRequired>
+      );
+      }
