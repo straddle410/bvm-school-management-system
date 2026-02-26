@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getStaffSession, clearStaffSession } from '@/components/useStaffSession';
-import StudentExamSection from '@/components/exam/StudentExamSection';
+import StudentExamSectionWithBadges from '@/components/exam/StudentExamSectionWithBadges';
 import TeacherExamCard from '@/components/exam/TeacherExamCard';
 import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
@@ -16,6 +16,7 @@ export default function More() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [schoolProfile, setSchoolProfile] = useState(null);
+  const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
     base44.entities.SchoolProfile.list().then(p => p.length && setSchoolProfile(p[0])).catch(() => {});
@@ -24,6 +25,14 @@ export default function More() {
       setUser(session);
       setLoading(false);
     } else {
+      try {
+        const studentSess = JSON.parse(localStorage.getItem('student_session'));
+        if (studentSess) {
+          setStudentSession(studentSess);
+          setLoading(false);
+          return;
+        }
+      } catch {}
       base44.auth.me().then(u => {
         setUser(u);
         setLoading(false);
@@ -129,8 +138,16 @@ export default function More() {
         </>
       ) : (
         <>
-          {/* ---- LOGGED IN STATE ---- */}
-          <div className="bg-[#1a237e] px-4 pt-6 pb-8">
+           {/* ---- STUDENT SESSION ---- */}
+           {studentSession && (
+             <div className="-mt-4 px-4 space-y-4 pt-4">
+               <StudentExamSectionWithBadges studentSession={studentSession} />
+             </div>
+           )}
+
+           {/* ---- LOGGED IN STATE ---- */}
+           {!studentSession && (
+           <div className="bg-[#1a237e] px-4 pt-6 pb-8">
             <div className="bg-[#283593] rounded-2xl p-5 flex flex-col items-center text-white">
               <div className="w-16 h-16 rounded-full bg-[#3949ab] border-2 border-white/30 flex items-center justify-center text-2xl font-bold">
                 {user?.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() : '?'}
@@ -191,6 +208,7 @@ export default function More() {
 
             <p className="text-center text-xs text-gray-400 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
           </div>
+           )}
         </>
       )}
     </div>
