@@ -16,10 +16,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing class_name' }, { status: 400 });
     }
 
-    // Get all students in the class
+    // Get all students in the class (Published = active in this school)
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
-      status: 'Approved'
+      status: 'Published'
     });
 
     if (students.length === 0) {
