@@ -159,6 +159,20 @@ export default function Dashboard() {
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' || user?.role === 'Principal' || user?.role === 'principal';
   const isStaff = user && (isAdmin || ['Teacher', 'teacher', 'Staff', 'staff', 'Librarian', 'Accountant'].includes(user?.role));
+
+  const { data: unreadMessageCount = 0 } = useQuery({
+    queryKey: ['unread-message-count', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return 0;
+      try {
+        const msgs = await base44.entities.Message.filter({ recipient_id: user.email, is_read: false });
+        return msgs.length;
+      } catch { return 0; }
+    },
+    enabled: !!user?.email && !!isStaff,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
   const userPermissions = user?.permissions || {};
 
   // For non-admin staff, filter quick actions based on their permissions
