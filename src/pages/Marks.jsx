@@ -223,7 +223,7 @@ export default function Marks() {
             class_name: selectedClass,
             section: selectedSection,
             subject: subject,
-              exam_type: selectedExamType?.id || selectedExam,
+            exam_type: selectedExamType?.id || selectedExam,
             marks_obtained: marks,
             max_marks: maxMarks,
             grade,
@@ -233,11 +233,31 @@ export default function Marks() {
             remarks: existing.remarks
           };
           
-          if (existing?.id) {
-            promises.push(base44.entities.Marks.update(existing.id, data));
-          } else {
-            promises.push(base44.entities.Marks.create(data));
-          }
+          // Server-side uniqueness check before save
+          const validationPromise = (async () => {
+            const validation = await base44.functions.invoke('validateMarksUniqueness', {
+              markData: {
+                student_id: data.student_id,
+                subject: data.subject,
+                exam_type: data.exam_type,
+                academic_year: data.academic_year,
+                class_name: data.class_name
+              },
+              markId: existing?.id
+            });
+            
+            if (validation.status >= 400) {
+              throw new Error(validation.data?.error || 'Duplicate mark record exists');
+            }
+            
+            if (existing?.id) {
+              return base44.entities.Marks.update(existing.id, data);
+            } else {
+              return base44.entities.Marks.create(data);
+            }
+          })();
+          
+          promises.push(validationPromise);
         });
       });
 
@@ -395,6 +415,24 @@ export default function Marks() {
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
+      // First, create immutable audit log entry
+      const groupData = reviewGroupedData.find(g => g.students.flatMap(s => Object.values(s.subjects).map(m => m.id)).some(id => marksIds.includes(id)));
+      
+      if (groupData) {
+        const previousStatus = groupData.students[0]?.subjects[Object.keys(groupData.students[0].subjects)[0]]?.status || 'Verified';
+        
+        await base44.functions.invoke('logMarksPublish', {
+          marksIds,
+          examType: groupData.exam_name || groupData.exam_type,
+          className: selectedClass,
+          section: selectedSection,
+          academicYear: academicYear,
+          previousStatus,
+          recordCount: marksIds.length
+        });
+      }
+      
+      // Then publish the marks
       const promises = marksIds.map(id =>
         base44.entities.Marks.update(id, { status: 'Published', verified_by: user?.email, approved_by: user?.email })
       );
@@ -402,7 +440,7 @@ export default function Marks() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['marks']);
-      toast.success('Results published successfully');
+      toast.success('Results published successfully with audit trail');
     }
   });
 
