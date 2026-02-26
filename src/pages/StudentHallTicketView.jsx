@@ -81,6 +81,7 @@ export default function StudentHallTicketView() {
           body * { visibility: hidden; }
           .print-area, .print-area * { visibility: visible; }
           .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+          img[alt="QR Code"] { visibility: visible; }
 
           /* Black & white print overrides */
           .print-area .print-header {
