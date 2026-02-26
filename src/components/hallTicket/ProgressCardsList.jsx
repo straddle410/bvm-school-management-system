@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { Eye, Download, Trash2 } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Eye, Download, Printer, CheckSquare2, Square } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { toast } from 'sonner';
 import ProgressCardModal from './ProgressCardModal';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -13,6 +14,7 @@ export default function ProgressCardsList() {
   const { academicYear } = useAcademicYear();
   const [filters, setFilters] = useState({ class: '', student_name: '' });
   const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedCards, setSelectedCards] = useState(new Set());
 
   const { data: progressCards = [], isLoading } = useQuery({
     queryKey: ['progressCards', academicYear, filters],
@@ -31,9 +33,78 @@ export default function ProgressCardsList() {
     setSelectedCard(card);
   };
 
-  const handleDownloadPDF = (card) => {
-    // TODO: Implement PDF download
-    alert('PDF download feature coming soon');
+  const toggleCardSelection = (cardId) => {
+    const newSelected = new Set(selectedCards);
+    if (newSelected.has(cardId)) {
+      newSelected.delete(cardId);
+    } else {
+      newSelected.add(cardId);
+    }
+    setSelectedCards(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCards.size === progressCards.length) {
+      setSelectedCards(new Set());
+    } else {
+      setSelectedCards(new Set(progressCards.map(c => c.id)));
+    }
+  };
+
+  const generateZipMutation = useMutation({
+    mutationFn: async () => {
+      const cardsToExport = progressCards.filter(c => selectedCards.has(c.id));
+      const response = await base44.functions.invoke('generateProgressCardsZip', {
+        progressCards: cardsToExport
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      const blob = new Blob([Buffer.from(data.zipData, 'base64')], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Progress_Cards_${new Date().getTime()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('Progress cards downloaded as ZIP');
+      setSelectedCards(new Set());
+    },
+    onError: (error) => {
+      toast.error('Failed to download progress cards');
+    }
+  });
+
+  const handlePrintSelected = () => {
+    const cardsToPrint = progressCards.filter(c => selectedCards.has(c.id));
+    if (cardsToprint.length === 0) {
+      toast.error('Please select at least one progress card to print');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><style>');
+    printWindow.document.write('@media print { body { margin: 0; padding: 20px; } .page-break { page-break-after: always; } }');
+    printWindow.document.write('</style></head><body>');
+
+    cardsToprint.forEach((card, idx) => {
+      printWindow.document.write(`
+        <div class="page-break">
+          <div style="border: 1px solid #ccc; padding: 20px; min-height: 280mm;">
+            <h2>${card.student_name}</h2>
+            <p>Class ${card.class_name} - Section ${card.section} | Roll: ${card.roll_number}</p>
+            <hr/>
+            <pre>${JSON.stringify(card.overall_stats, null, 2)}</pre>
+          </div>
+        </div>
+      `);
+    });
+
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
   };
 
   return (
@@ -84,7 +155,54 @@ export default function ProgressCardsList() {
       {/* Progress Cards List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Generated Progress Cards ({progressCards.length})</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Generated Progress Cards ({progressCards.length})</CardTitle>
+            {progressCards.length > 0 && (
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={toggleSelectAll}
+                  className="gap-2"
+                >
+                  {selectedCards.size === progressCards.length ? (
+                    <>
+                      <CheckSquare2 className="h-4 w-4" />
+                      Deselect All
+                    </>
+                  ) : (
+                    <>
+                      <Square className="h-4 w-4" />
+                      Select All
+                    </>
+                  )}
+                </Button>
+                {selectedCards.size > 0 && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={handlePrintSelected}
+                      className="gap-2 bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Print Selected ({selectedCards.size})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => generateZipMutation.mutate()}
+                      disabled={generateZipMutation.isPending}
+                      className="gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generateZipMutation.isPending ? 'Downloading...' : `Download ZIP (${selectedCards.size})`}
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -98,23 +216,35 @@ export default function ProgressCardsList() {
           ) : (
             <div className="space-y-3">
               {progressCards.map((card) => (
-                <div key={card.id} className="border rounded-lg p-4 hover:bg-gray-50 transition">
+                <div key={card.id} className={`border rounded-lg p-4 transition cursor-pointer ${selectedCards.has(card.id) ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}`}>
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{card.student_name}</h3>
-                      <p className="text-sm text-gray-600">
-                        Class {card.class_name} - Section {card.section} | Roll: {card.roll_number}
-                      </p>
-                      <div className="mt-2 flex gap-4 text-sm">
-                        <span className="text-gray-600">
-                          Overall: <span className="font-semibold text-blue-600">{card.overall_stats?.overall_percentage?.toFixed(2) || 0}%</span>
-                        </span>
-                        <span className="text-gray-600">
-                          Grade: <span className="font-semibold text-green-600">{card.overall_stats?.overall_grade || '-'}</span>
-                        </span>
-                        <span className="text-gray-600">
-                          Rank: <span className="font-semibold text-purple-600">#{card.overall_stats?.overall_rank || '-'}</span>
-                        </span>
+                    <div className="flex items-start gap-3 flex-1">
+                      <button
+                        onClick={() => toggleCardSelection(card.id)}
+                        className="mt-1 flex-shrink-0"
+                      >
+                        {selectedCards.has(card.id) ? (
+                          <CheckSquare2 className="h-5 w-5 text-blue-600" />
+                        ) : (
+                          <Square className="h-5 w-5 text-gray-400" />
+                        )}
+                      </button>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{card.student_name}</h3>
+                        <p className="text-sm text-gray-600">
+                          Class {card.class_name} - Section {card.section} | Roll: {card.roll_number}
+                        </p>
+                        <div className="mt-2 flex gap-4 text-sm">
+                          <span className="text-gray-600">
+                            Overall: <span className="font-semibold text-blue-600">{card.overall_stats?.overall_percentage?.toFixed(2) || 0}%</span>
+                          </span>
+                          <span className="text-gray-600">
+                            Grade: <span className="font-semibold text-green-600">{card.overall_stats?.overall_grade || '-'}</span>
+                          </span>
+                          <span className="text-gray-600">
+                            Rank: <span className="font-semibold text-purple-600">#{card.overall_stats?.overall_rank || '-'}</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -125,14 +255,6 @@ export default function ProgressCardsList() {
                         title="View Details"
                       >
                         <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => handleDownloadPDF(card)}
-                        title="Download PDF"
-                      >
-                        <Download className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
