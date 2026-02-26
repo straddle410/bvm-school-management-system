@@ -19,12 +19,12 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
       {/* Photo */}
       <div className="flex justify-center">
         <div className="relative">
-          <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
-            <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : formData.photo_url} />
-            <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
-              {formData.name?.[0] || 'S'}
-            </AvatarFallback>
-          </Avatar>
+            <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+              <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : getProxiedImageUrl(formData.photo_url)} />
+              <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
+                {formData.name?.[0] || 'S'}
+              </AvatarFallback>
+            </Avatar>
           <label className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-[#1a237e] flex items-center justify-center cursor-pointer hover:bg-[#283593] shadow">
             <Camera className="h-3.5 w-3.5 text-white" />
             <input type="file" accept="image/*" className="hidden" onChange={e => onPhotoChange(e.target.files[0])} />
