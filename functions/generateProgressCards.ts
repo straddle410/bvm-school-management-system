@@ -297,20 +297,9 @@ Deno.serve(async (req) => {
         return months;
       };
 
-      // Use global attendance range or default to student attendance dates
+      // Use global attendance range from exam types
       let attendanceStartDate = globalAttendanceStartDate;
       let attendanceEndDate = globalAttendanceEndDate;
-
-      if (!attendanceStartDate || !attendanceEndDate) {
-        // Default: use the first attendance date as start and last as end
-        if (studentAttendance.length > 0) {
-          const dates = studentAttendance
-            .map(a => new Date(a.date))
-            .sort((a, b) => a - b);
-          attendanceStartDate = dates[0].toISOString().split('T')[0];
-          attendanceEndDate = dates[dates.length - 1].toISOString().split('T')[0];
-        }
-      }
 
       // Calculate attendance based on range or full academic year
       let attendanceSummary = null;
