@@ -375,8 +375,9 @@ export default function Results() {
                 </>
               )}
             </div>
-          </CardContent>
-        </Card>)}
+            </CardContent>
+            </Card>
+            ) : null}
 
         {/* Result */}
          {searched && (
