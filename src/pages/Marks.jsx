@@ -259,6 +259,25 @@ export default function Marks() {
   };
 
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
+  const isSubmitted = currentStatus === 'Submitted';
+  const isAdmin = user?.role === 'admin' || user?.role === 'principal';
+  const canEdit = !isSubmitted || isAdmin;
+
+  const unlockMutation = useMutation({
+    mutationFn: async () => {
+      const promises = existingMarks.map(mark => 
+        base44.entities.Marks.update(mark.id, { status: 'Draft' })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['marks']);
+      toast.success('Marks unlocked for editing');
+    },
+    onError: (error) => {
+      toast.error('Failed to unlock marks');
+    }
+  });
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Exams & Marks">
