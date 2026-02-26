@@ -277,11 +277,18 @@ export default function Quiz() {
         showBack={!!studentSession}
         backUrl={studentSession ? createPageUrl('StudentDashboard') : undefined}
         actions={
-          userPermissions.quiz && (
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Post Quiz
-            </Button>
-          )
+          <div className="flex gap-2">
+            {Object.keys(unreadQuizNotifMap).length > 0 && (
+              <Button variant="outline" size="sm" onClick={markAllQuizzesRead}>
+                <CheckCheck className="mr-1.5 h-3.5 w-3.5" /> Mark All Read
+              </Button>
+            )}
+            {userPermissions.quiz && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Post Quiz
+              </Button>
+            )}
+          </div>
         }
       />
 
