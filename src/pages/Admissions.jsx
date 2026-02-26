@@ -293,12 +293,12 @@ export default function Admissions() {
           {selectedAdmission && (
             <div className="mt-6 space-y-6">
               <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={selectedAdmission.photo_url} />
-                  <AvatarFallback className="bg-purple-100 text-purple-700 text-2xl">
-                    {selectedAdmission.student_name?.[0]}
-                  </AvatarFallback>
-                </Avatar>
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={getProxiedImageUrl(selectedAdmission.photo_url)} />
+                    <AvatarFallback className="bg-purple-100 text-purple-700 text-2xl">
+                      {selectedAdmission.student_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">{selectedAdmission.student_name}</h3>
                   <p className="text-slate-500">Applying for Class {selectedAdmission.applying_for_class}</p>
