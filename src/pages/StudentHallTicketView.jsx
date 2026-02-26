@@ -438,7 +438,6 @@ export default function StudentHallTicketView() {
 
 function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
   const [qrCode, setQrCode] = useState(null);
-  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     if (ticket) {
@@ -460,15 +459,8 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
     <div className={`print-area ${!isPrint ? 'bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200' : ''}`}>
       {/* Header - Logo left aligned, white background */}
       <div className="print-header bg-white text-black p-3 border-b border-gray-300 flex items-start gap-3 print:bg-white print:text-black print:border-b-2">
-        {schoolProfile?.logo_url && !logoError && (
-          <img 
-            src={schoolProfile.logo_url} 
-            alt="Logo" 
-            style={{ minHeight: '35px', minWidth: '35px', objectFit: 'contain' }} 
-            className="h-9 w-9 flex-shrink-0 print:h-[35px] print:w-[35px] block visible" 
-            onError={() => setLogoError(true)}
-            crossOrigin="anonymous"
-          />
+        {schoolProfile?.logo_url && (
+          <img src={schoolProfile.logo_url} alt="Logo" style={{ minHeight: '35px', minWidth: '35px', objectFit: 'contain' }} className="h-9 w-9 flex-shrink-0 print:h-[35px] print:w-[35px] block visible" />
         )}
         <div className="print-header-text flex-1">
           <h2 className="print-school-name text-base font-bold uppercase tracking-wider">{schoolProfile?.school_name || 'BVM School of Excellence'}</h2>
