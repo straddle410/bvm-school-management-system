@@ -201,11 +201,12 @@ Deno.serve(async (req) => {
       const calculateAttendanceForRange = (records, startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        
+
         const filtered = records.filter(a => {
           const attDate = new Date(a.date);
           return attDate >= start && attDate <= end && 
-                 a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday';
+                 !a.is_holiday && a.attendance_type !== 'holiday' &&
+                 a.attendance_type !== 'absent'; // Exclude absents from working days
         });
 
         const fullDays = filtered.filter(a => a.attendance_type === 'full_day').length;
