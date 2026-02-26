@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pencil, Archive, RotateCcw, Trash2, User, BookOpen, Phone } from 'lucide-react';
 import { format } from 'date-fns';
+import { getProxiedImageUrl } from '@/components/imageProxy';
 
 const STATUS_COLORS = {
   Pending: 'bg-yellow-100 text-yellow-700',
