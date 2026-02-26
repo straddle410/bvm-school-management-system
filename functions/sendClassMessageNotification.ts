@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     // Get all students in the class
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
-      status: 'Published' // Only active students
+      status: 'Approved'
     });
 
     if (students.length === 0) {
