@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
         if (existing.length > 0) continue;
       } catch {}
 
+      // Create notification for ALL students (no preference gate for in-app badge)
       try {
         await base44.asServiceRole.entities.Notification.create({
           recipient_student_id: student.student_id,
