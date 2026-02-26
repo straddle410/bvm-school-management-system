@@ -202,6 +202,9 @@ Deno.serve(async (req) => {
       const afterFilter = studentAttendance.filter(a => !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent').length;
       console.log(`[DEBUG] Before filter: ${beforeFilter}, After filter (excluding holidays/absents): ${afterFilter}`);
 
+      // Log all dates
+      console.log(`[DEBUG] Attendance dates for ${student.student_name}:`, studentAttendance.map(a => ({ date: a.date, type: a.attendance_type })));
+
       // Helper function to calculate attendance for a date range
       const calculateAttendanceForRange = (records, startDate, endDate) => {
         const start = new Date(startDate);
