@@ -415,39 +415,48 @@ export default function Results() {
                 ) : (
                   <>
                     {/* Separate cards for each exam type */}
-                    {Object.entries(resultsByExam).map(([examType, marks]) => (
-                      <Card key={examType} className="border-0 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
-                          <h4 className="text-white font-semibold text-sm flex items-center justify-between">
-                            <span>{examType}</span>
-                            <span className="text-yellow-300 text-lg font-bold">{getPercentage(marks)}%</span>
-                          </h4>
-                        </div>
-                        <CardContent className="p-4">
-                          <div className="space-y-2">
-                            {marks.map((m, i) => (
-                              <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
-                                <div>
-                                  <p className="font-medium text-sm text-slate-800">{m.subject}</p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <span className="text-sm font-semibold text-slate-700">
-                                    {m.marks_obtained}/{m.max_marks}
-                                  </span>
-                                  {m.grade && (
-                                    <Badge className={`text-xs ${gradeColor(m.grade)}`}>
-                                      {m.grade}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                    {Object.entries(resultsByExam).map(([examType, marks]) => {
+                      // Sort marks by order of first appearance in marks array (preserving publish order)
+                      const sortedMarks = marks.slice().sort((a, b) => {
+                        const indexA = marks.findIndex(m => m.subject === a.subject);
+                        const indexB = marks.findIndex(m => m.subject === b.subject);
+                        return indexA - indexB;
+                      });
+
+                      return (
+                        <Card key={examType} className="border-0 shadow-sm overflow-hidden">
+                          <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
+                            <h4 className="text-white font-semibold text-sm flex items-center justify-between">
+                              <span>{examType}</span>
+                              <span className="text-yellow-300 text-lg font-bold">{getPercentage(marks)}%</span>
+                            </h4>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          <CardContent className="p-4">
+                            <div className="space-y-2">
+                              {sortedMarks.map((m, i) => (
+                                <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
+                                  <div>
+                                    <p className="font-medium text-sm text-slate-800">{m.subject}</p>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-sm font-semibold text-slate-700">
+                                      {m.marks_obtained}/{m.max_marks}
+                                    </span>
+                                    {m.grade && (
+                                      <Badge className={`text-xs ${gradeColor(m.grade)}`}>
+                                        {m.grade}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </>
-                )}
+                  )}
               </div>
             ) : (
              <Card className="border-0 shadow-sm">
