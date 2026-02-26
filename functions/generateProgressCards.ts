@@ -201,30 +201,40 @@ Deno.serve(async (req) => {
       console.log(`[DEBUG] Global Attendance Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
 
       // Helper function to calculate attendance for a date range
-      const calculateAttendanceForRange = (records, startDate, endDate) => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+       const calculateAttendanceForRange = (records, startDate, endDate) => {
+         const start = new Date(startDate);
+         const end = new Date(endDate);
 
-        const filtered = records.filter(a => {
-          const attDate = new Date(a.date);
-          return attDate >= start && attDate <= end && 
-                 !a.is_holiday && a.attendance_type !== 'holiday' &&
-                 a.attendance_type !== 'absent'; // Exclude absents from working days
-        });
+         // Include ALL records in range (holidays, absents, present) to calculate working days
+         const allInRange = records.filter(a => {
+           const attDate = new Date(a.date);
+           return attDate >= start && attDate <= end;
+         });
 
-        const fullDays = filtered.filter(a => a.attendance_type === 'full_day').length;
-        const halfDays = filtered.filter(a => a.attendance_type === 'half_day').length;
-        const totalPresent = fullDays + (halfDays * 0.5);
-        const percentage = filtered.length > 0 ? Math.round((totalPresent / filtered.length) * 100) : 0;
+         // Only non-holiday, non-absent records count toward attendance
+         const presentRecords = allInRange.filter(a => 
+           !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
+         );
 
-        return {
-          working_days: filtered.length,
-          full_days_present: fullDays,
-          half_days_present: halfDays,
-          total_present_days: Math.round(totalPresent * 100) / 100,
-          attendance_percentage: percentage
-        };
-      };
+         const fullDays = presentRecords.filter(a => a.attendance_type === 'full_day').length;
+         const halfDays = presentRecords.filter(a => a.attendance_type === 'half_day').length;
+         const totalPresent = fullDays + (halfDays * 0.5);
+
+         // Working days = all records excluding holidays
+         const workingDays = allInRange.filter(a => 
+           !a.is_holiday && a.attendance_type !== 'holiday'
+         ).length;
+
+         const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+
+         return {
+           working_days: workingDays,
+           full_days_present: fullDays,
+           half_days_present: halfDays,
+           total_present_days: Math.round(totalPresent * 100) / 100,
+           attendance_percentage: percentage
+         };
+       };
 
       // Helper to get month-wise breakdown
       const getMonthWiseBreakdown = (records, startDate, endDate) => {
