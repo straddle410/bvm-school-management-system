@@ -122,11 +122,14 @@ export default function AttendanceSummaryReport() {
         };
       }
       
-      // Only count each date once - use attendance_type field which is the source of truth
+      // Only count attendance records that fall on WORKING DAYS (not holidays/Sundays)
       const dateMap = {};
       studentAttendance.forEach(a => {
-        if (!dateMap[a.date]) {
-          dateMap[a.date] = a.attendance_type;
+        // Only count if the date is a working day
+        if (!holidaySet.has(a.date) && !sundaySet.has(a.date)) {
+          if (!dateMap[a.date]) {
+            dateMap[a.date] = a.attendance_type;
+          }
         }
       });
       
