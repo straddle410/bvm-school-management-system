@@ -128,6 +128,22 @@ Deno.serve(async (req) => {
       }));
     });
 
+    // Fetch exam type details ONCE for all students (for attendance range)
+    const examTypeRecords = await base44.asServiceRole.entities.ExamType.filter({
+      academic_year: academicYear
+    });
+
+    // Determine attendance range once
+    let globalAttendanceStartDate = null;
+    let globalAttendanceEndDate = null;
+
+    const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
+    if (examTypesWithRange.length > 0) {
+      examTypesWithRange.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      globalAttendanceStartDate = examTypesWithRange[0].attendance_range_start;
+      globalAttendanceEndDate = examTypesWithRange[0].attendance_range_end;
+    }
+
     // Calculate overall statistics and generate progress cards
     const progressCards = [];
     const uniqueStudents = new Map();
