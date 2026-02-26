@@ -14,6 +14,7 @@ import { Search, GraduationCap, BookOpen, Share2, Printer, Lock } from 'lucide-r
 import ProgressReport from '../components/ProgressReport';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
@@ -32,8 +33,9 @@ const gradeColor = (grade) => {
 };
 
 export default function Results() {
-  const [studentSession, setStudentSession] = useState(null);
-  const [sessionLoaded, setSessionLoaded] = useState(false);
+   const { academicYear } = useAcademicYear();
+   const [studentSession, setStudentSession] = useState(null);
+   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [filterClass, setFilterClass] = useState('');
   const [filterSection, setFilterSection] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -155,28 +157,16 @@ export default function Results() {
     if (marks.length > 0) {
       const m = marks[0];
 
-      // Group marks by exam type - maintain order from ExamType entity
-      const marksGrouped = {};
-      examTypes.forEach(exam => {
-        marksGrouped[exam.id] = [];
-      });
-
-      marks.forEach(mark => {
-        if (!marksGrouped[mark.exam_type]) {
-          marksGrouped[mark.exam_type] = [];
-        }
-        marksGrouped[mark.exam_type].push(mark);
-      });
-
-      // Remove empty exam types and replace IDs with names
-      const grouped = {};
-      Object.keys(marksGrouped).forEach(key => {
-        if (marksGrouped[key].length > 0) {
-          const examTypeObj = examTypes.find(e => e.id === key);
-          const displayName = examTypeObj?.name || key;
-          grouped[displayName] = marksGrouped[key];
-        }
-      });
+      // Group marks by exam type using exam type names (not IDs)
+        const grouped = {};
+        marks.forEach(mark => {
+          const examTypeObj = examTypes.find(e => e.id === mark.exam_type || e.name === mark.exam_type);
+          const examName = examTypeObj?.name || mark.exam_type;
+          if (!grouped[examName]) {
+            grouped[examName] = [];
+          }
+          grouped[examName].push(mark);
+        });
 
       setResultsByExam(grouped);
       setAllMarks(marks);
