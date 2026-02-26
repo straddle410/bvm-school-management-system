@@ -264,9 +264,9 @@ Deno.serve(async (req) => {
         return months;
       };
 
-      // Use the attendance range from most recent exam type (if available)
-      let attendanceStartDate = '2024-06-01';
-      let attendanceEndDate = '2025-05-31';
+      // Use the attendance range from most recent exam type or default to full academic year
+      let attendanceStartDate = null;
+      let attendanceEndDate = null;
       
       const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
       if (examTypesWithRange.length > 0) {
@@ -274,6 +274,15 @@ Deno.serve(async (req) => {
         examTypesWithRange.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
         attendanceStartDate = examTypesWithRange[0].attendance_range_start;
         attendanceEndDate = examTypesWithRange[0].attendance_range_end;
+      } else {
+        // Default: use the first attendance date as start and last as end
+        if (studentAttendance.length > 0) {
+          const dates = studentAttendance
+            .map(a => new Date(a.date))
+            .sort((a, b) => a - b);
+          attendanceStartDate = dates[0].toISOString().split('T')[0];
+          attendanceEndDate = dates[dates.length - 1].toISOString().split('T')[0];
+        }
       }
 
       // Calculate attendance based on range or full academic year
