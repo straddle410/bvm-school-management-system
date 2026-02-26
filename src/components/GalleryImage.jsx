@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getProxiedImageUrl } from '@/components/imageProxy';
 
 export default function GalleryImage({ src, alt, className, onClick, loading = 'lazy' }) {
   const [hasError, setHasError] = useState(false);
@@ -19,30 +20,18 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
       return;
     }
 
-    // Always use proxy to handle VPN/network restrictions
+    // Apply proxy to Supabase URLs, use original for others
     console.log('[GalleryImage] About to call getProxiedImage');
     getProxiedImage();
   }, [src]);
 
   const getProxiedImage = async () => {
     try {
-      console.log('[GalleryImage] Calling imageProxy for:', src);
-      const response = await base44.functions.invoke('imageProxy', { url: src });
-      console.log('[GalleryImage] Proxy response status:', response.status);
-      const dataUrl = response?.data?.dataUrl || response?.dataUrl;
-      if (dataUrl) {
-        console.log('[GalleryImage] ✓ Got dataUrl');
-        console.log('[GalleryImage] DataUrl first 100 chars:', dataUrl.substring(0, 100));
-        console.log('[GalleryImage] DataUrl total length:', dataUrl.length);
-        console.log('[GalleryImage] Starts with "data:":', dataUrl.startsWith('data:'));
-        console.log('[GalleryImage] Contains ";base64,":', dataUrl.includes(';base64,'));
-        setDisplayUrl(dataUrl);
-        setIsLoading(false);
-      } else {
-        console.error('[GalleryImage] No dataUrl in response', response);
-        setHasError(true);
-        setIsLoading(false);
-      }
+      // Use weserv.nl proxy for base44.app URLs
+      const proxiedUrl = getProxiedImageUrl(src);
+      console.log('[GalleryImage] Using proxied URL:', proxiedUrl);
+      setDisplayUrl(proxiedUrl);
+      setIsLoading(false);
     } catch (error) {
       console.error('[GalleryImage] Proxy error:', error.message || error);
       setHasError(true);
