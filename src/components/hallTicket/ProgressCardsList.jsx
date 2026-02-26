@@ -169,7 +169,7 @@ export default function ProgressCardsList() {
           <CardTitle className="text-lg">Filter Progress Cards</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Class</label>
               <select
@@ -180,6 +180,19 @@ export default function ProgressCardsList() {
                 <option value="">All Classes</option>
                 {CLASSES.map(c => (
                   <option key={c} value={c}>Class {c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Exam Type</label>
+              <select
+                value={filters.exam_type}
+                onChange={(e) => setFilters({ ...filters, exam_type: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="">All Exam Types</option>
+                {examTypes.map(exam => (
+                  <option key={exam.id} value={exam.id}>{exam.name}</option>
                 ))}
               </select>
             </div>
@@ -196,7 +209,7 @@ export default function ProgressCardsList() {
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => setFilters({ class: '', student_name: '' })}
+                onClick={() => setFilters({ class: '', student_name: '', exam_type: '' })}
                 className="w-full"
               >
                 Clear Filters
