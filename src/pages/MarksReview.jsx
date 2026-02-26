@@ -272,25 +272,31 @@ export default function MarksReview() {
                         </div>
 
                         {/* Actions */}
-                         <div className="flex flex-wrap gap-2 pt-2">
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={() => handleDownloadExcel(group.exam_type)}
-                             className="gap-2"
-                           >
-                             <Download className="h-4 w-4" />
-                             Export to Excel
-                           </Button>
-                           <Button
-                             onClick={() => handlePublish(allMarkIds)}
-                             disabled={publishMutation.isPending}
-                             className="bg-green-600 hover:bg-green-700 gap-2"
-                             size="sm"
-                           >
-                             <Check className="h-4 w-4" />
-                             {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
-                           </Button>
+                         <div className="flex flex-wrap gap-2 pt-2 items-center">
+                           {group.students.length > 0 && Object.values(group.students[0].subjects).length > 0 && Object.values(group.students[0].subjects)[0].status === 'Published' ? (
+                             <StatusBadge status="Published" />
+                           ) : (
+                             <>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => handleDownloadExcel(group.exam_type)}
+                                 className="gap-2"
+                               >
+                                 <Download className="h-4 w-4" />
+                                 Export to Excel
+                               </Button>
+                               <Button
+                                 onClick={() => handlePublish(allMarkIds)}
+                                 disabled={publishMutation.isPending}
+                                 className="bg-green-600 hover:bg-green-700 gap-2"
+                                 size="sm"
+                               >
+                                 <Check className="h-4 w-4" />
+                                 {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
+                               </Button>
+                             </>
+                           )}
                          </div>
                       </CardContent>
                     </Card>
