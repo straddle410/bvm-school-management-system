@@ -286,14 +286,15 @@ export default function StudentHallTicketView() {
              background: #fff !important;
            }
 
-           /* Timetable watermark - light, behind content, visible in print */
+           /* Timetable watermark - large and visible behind content */
            .timetable-watermark {
              position: absolute;
              top: 50%;
              left: 50%;
              transform: translate(-50%, -50%);
-             width: 75%;
-             opacity: 0.06 !important;
+             width: 90%;
+             height: 85%;
+             opacity: 0.08 !important;
              filter: grayscale(100%);
              z-index: 0;
              pointer-events: none;
@@ -301,6 +302,16 @@ export default function StudentHallTicketView() {
              print-color-adjust: exact;
              visibility: visible !important;
              display: flex !important;
+             align-items: center;
+             justify-content: center;
+           }
+
+           .timetable-watermark img {
+             width: 100% !important;
+             height: 100% !important;
+             object-fit: contain;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            /* Table content above watermark */
