@@ -277,13 +277,15 @@ export default function StudentHallTicketView() {
            .print-area > div:nth-child(3) {
              padding: 2mm 3mm;
              flex: 1;
-             overflow: hidden;
+             overflow: visible !important;
              display: flex;
              flex-direction: column;
              font-size: 6.5pt;
              line-height: 1;
              position: relative;
-             background: #fff !important;
+             background: #ffffff !important;
+             -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
            }
 
            /* Timetable watermark - large and visible behind content */
@@ -519,7 +521,7 @@ function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
         {/* Watermark - light, behind table, visible in print */}
         {schoolProfile?.logo_url && (
           <div className="timetable-watermark">
-            <img src={schoolProfile.logo_url} alt="Watermark" style={{ opacity: 0.06 }} className="w-full h-auto object-contain" />
+            <img src={schoolProfile.logo_url} alt="Watermark" className="w-full h-auto object-contain" />
           </div>
         )}
 
