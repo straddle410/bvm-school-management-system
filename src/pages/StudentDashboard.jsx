@@ -74,22 +74,41 @@ export default function StudentDashboard() {
     window.location.href = createPageUrl('StudentLogin');
   };
 
-  const { data: unreadNotice = 0 } = useQuery({
-    queryKey: ['unread-notice-count', student?.student_id],
+  const { data: unreadCounts = {} } = useQuery({
+    queryKey: ['unread-counts', student?.student_id],
     queryFn: async () => {
-      if (!student?.student_id) return 0;
+      if (!student?.student_id) return {};
       const notifs = await base44.entities.Notification.filter({
         recipient_student_id: student.student_id,
-        type: 'notice_posted',
         is_read: false
       });
-      return notifs.length;
+      const counts = { Notices: 0, Diary: 0, Quiz: 0, Messages: 0, Results: 0 };
+      for (const n of notifs) {
+        if (n.type === 'notice_posted') counts.Notices++;
+        else if (n.type === 'diary_published') counts.Diary++;
+        else if (n.type === 'quiz_posted') counts.Quiz++;
+        else if (n.type === 'class_message') counts.Messages++;
+        else if (n.type === 'marks_published') counts.Results++;
+      }
+      // Also count unread direct messages
+      const unreadMsgs = await base44.entities.Message.filter({
+        recipient_id: student.student_id,
+        is_read: false
+      });
+      counts.Messages += unreadMsgs.length;
+      return counts;
     },
     enabled: !!student?.student_id,
-    refetchInterval: 5000, // Update every 5 seconds
+    refetchInterval: 15000,
   });
 
-  const notifMap = { Diary: 0, Quiz: 0, Notices: unreadNotice, Results: 0, Messages: 0 };
+  const notifMap = {
+    Diary: unreadCounts.Diary || 0,
+    Quiz: unreadCounts.Quiz || 0,
+    Notices: unreadCounts.Notices || 0,
+    Results: unreadCounts.Results || 0,
+    Messages: unreadCounts.Messages || 0,
+  };
 
   const presentCount = attendance.filter(a => a.is_present).length;
   const attendancePct = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
