@@ -31,7 +31,7 @@ const DEFAULT_BANNERS = [
 ];
 
 const quickAccess = [
-  { label: 'Results',       icon: GraduationCap, gradient: 'from-indigo-400 to-indigo-600',   page: 'Results' },
+  { label: 'Exams',         icon: FileText,      gradient: 'from-red-400 to-rose-600',        action: 'exams', special: true },
   { label: 'Gallery',       icon: Image,         gradient: 'from-fuchsia-400 to-pink-500',    page: 'Gallery' },
   { label: 'Calendar',      icon: Calendar,      gradient: 'from-teal-400 to-emerald-500',    page: 'Calendar' },
   { label: 'Quiz',          icon: Brain,         gradient: 'from-purple-400 to-violet-600',   page: 'Quiz' },
@@ -58,9 +58,6 @@ const adminActions = [
   { label: 'Daily Attendance', icon: Check,         gradient: 'from-blue-500 to-indigo-600',   page: 'AttendanceReport' },
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
   { label: 'Holidays',         icon: Palmtree,      gradient: 'from-yellow-400 to-orange-500', page: 'HolidayCalendar' },
-  { label: 'Hall Ticket',      icon: FileText,      gradient: 'from-red-400 to-rose-600',      page: 'HallTicketManagement' },
-  { label: 'Review Marks',     icon: ClipboardList, gradient: 'from-indigo-400 to-blue-600',   page: 'MarksReview' },
-  { label: 'Progress Card',    icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
   { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
   { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'AnalyticsDashboard' },
 ];
@@ -161,7 +158,9 @@ export default function Dashboard() {
     .slice(0, 3);
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' || user?.role === 'Principal' || user?.role === 'principal';
+  const isTeacher = user && (isAdmin || ['Teacher', 'teacher', 'Staff', 'staff'].includes(user?.role));
   const isStaff = user && (isAdmin || ['Teacher', 'teacher', 'Staff', 'staff', 'Librarian', 'Accountant'].includes(user?.role));
+  const isStudent = !!user?.student_id;
 
   const { badges: staffBadges } = useStaffNotificationBadges(isStaff ? user?.email : null);
   const unreadMessageCount = staffBadges.Messages || 0;
@@ -181,6 +180,16 @@ export default function Dashboard() {
   };
 
   const initials = user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?';
+
+  const handleExamsClick = () => {
+    if (isAdmin) {
+      window.location.href = createPageUrl('More') + '?showExams=true';
+    } else if (isTeacher) {
+      window.location.href = createPageUrl('More') + '?showExams=true';
+    } else if (isStudent) {
+      window.location.href = createPageUrl('Results');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full overflow-x-hidden relative">
@@ -251,8 +260,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-4 gap-3">
             {quickAccess
               .filter(item => !(item.guestOnly && user) && !(item.staffOnly && !isStaff))
-              .map((item) => (
-                <Link key={item.label} to={createPageUrl(item.page)} className="block">
+              .map((item) => {
+                const content = (
                   <div className="flex flex-col items-center gap-1.5 relative">
                     <GradientIcon gradient={item.gradient} icon={item.icon} />
                     {item.label === 'Diary' && unreadDiaryCount > 0 && (
@@ -267,8 +276,21 @@ export default function Dashboard() {
                     )}
                     <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                   </div>
-                </Link>
-              ))}
+                );
+                
+                if (item.special) {
+                  return (
+                    <button key={item.label} onClick={handleExamsClick} className="block">
+                      {content}
+                    </button>
+                  );
+                }
+                return (
+                  <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                    {content}
+                  </Link>
+                );
+              })}
           </div>
         </section>
 
