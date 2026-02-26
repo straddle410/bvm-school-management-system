@@ -427,33 +427,33 @@ export default function Marks() {
                     </CardContent>
                   </Card>
 
-                {filteredStudents.length > 0 && (
-                  <div className="flex justify-end gap-3">
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        setSaveMode('draft');
-                        saveMutation.mutate();
-                      }}
-                      disabled={saveMutation.isPending}
-                      className="gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        setSaveMode('submit');
-                        saveMutation.mutate();
-                      }}
-                      disabled={saveMutation.isPending}
-                      className="gap-2"
-                    >
-                      <Send className="h-4 w-4" />
-                      {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
-                    </Button>
-                  </div>
-                )}
+                {filteredStudents.length > 0 && canEdit && (
+                   <div className="flex justify-end gap-3">
+                     <Button 
+                       variant="outline"
+                       onClick={() => {
+                         setSaveMode('draft');
+                         saveMutation.mutate();
+                       }}
+                       disabled={saveMutation.isPending}
+                       className="gap-2"
+                     >
+                       <FileText className="h-4 w-4" />
+                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                     </Button>
+                     <Button 
+                       onClick={() => {
+                         setSaveMode('submit');
+                         saveMutation.mutate();
+                       }}
+                       disabled={saveMutation.isPending}
+                       className="gap-2"
+                     >
+                       <Send className="h-4 w-4" />
+                       {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+                     </Button>
+                   </div>
+                 )}
               </>
             )}
 
