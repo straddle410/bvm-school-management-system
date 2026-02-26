@@ -213,14 +213,17 @@ Deno.serve(async (req) => {
       let attendanceSummary = null;
       if (attendanceStartDate && attendanceEndDate) {
         try {
-          const { data } = await base44.asServiceRole.functions.invoke('calculateAttendanceSummary', {
+          console.log(`[INVOKE] Calling calculateAttendanceSummary for ${student.student_name} (${student.student_id}), class=${student.class_name}, range=${attendanceStartDate} to ${attendanceEndDate}`);
+          const result = await base44.asServiceRole.functions.invoke('calculateAttendanceSummary', {
             student_id: student.student_id,
             class_name: student.class_name,
             section: student.section,
             start_date: attendanceStartDate,
             end_date: attendanceEndDate
           });
-          attendanceSummary = data?.attendance_summary;
+          console.log(`[INVOKE-RESULT] Raw result type: ${typeof result}, keys: ${Object.keys(result).join(', ')}`);
+          attendanceSummary = result?.data?.attendance_summary || result?.attendance_summary;
+          console.log(`[INVOKE-SUMMARY] Got attendance_summary: ${attendanceSummary ? 'YES' : 'NO'}`);
         } catch (err) {
           console.log(`[ATTENDANCE-ERROR] ${student.student_name}: ${err.message}`);
         }
