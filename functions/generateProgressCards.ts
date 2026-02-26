@@ -212,22 +212,18 @@ Deno.serve(async (req) => {
       // Calculate attendance summary using the centralized function
       let attendanceSummary = null;
       if (attendanceStartDate && attendanceEndDate) {
-        console.log(`[ATTENDANCE] Calling calculateAttendanceSummary for ${student.student_name}: ${attendanceStartDate} to ${attendanceEndDate}`);
         try {
-          const attendanceResult = await base44.asServiceRole.functions.invoke('calculateAttendanceSummary', {
+          const { data } = await base44.asServiceRole.functions.invoke('calculateAttendanceSummary', {
             student_id: student.student_id,
             class_name: student.class_name,
             section: student.section,
             start_date: attendanceStartDate,
             end_date: attendanceEndDate
           });
-          attendanceSummary = attendanceResult.attendance_summary;
-          console.log(`[ATTENDANCE-RESULT] Got summary: ${attendanceSummary ? 'YES' : 'NO'}`);
+          attendanceSummary = data?.attendance_summary;
         } catch (err) {
-          console.log(`[ATTENDANCE-ERROR] ${err.message}`);
+          console.log(`[ATTENDANCE-ERROR] ${student.student_name}: ${err.message}`);
         }
-      } else {
-        console.log(`[ATTENDANCE] Skipping - no date range. startDate=${attendanceStartDate}, endDate=${attendanceEndDate}`);
       }
 
       // Calculate overall rank (per class/section)
