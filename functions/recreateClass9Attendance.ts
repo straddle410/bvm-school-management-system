@@ -9,29 +9,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Delete all existing class 9 attendance for 2024-25 (in chunks to avoid rate limiting)
-    let allDeleted = 0;
-    let hasMore = true;
-    
-    while (hasMore) {
-      const existingAttendance = await base44.asServiceRole.entities.Attendance.filter({
-        class_name: '9',
-        academic_year: '2024-25'
-      }, 'id', 50);
-
-      if (existingAttendance.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      console.log(`[DELETE] Batch deleting ${existingAttendance.length} records...`);
-      for (const record of existingAttendance) {
-        await base44.asServiceRole.entities.Attendance.delete(record.id);
-      }
-      allDeleted += existingAttendance.length;
-    }
-    
-    console.log(`[DELETE] Total removed: ${allDeleted} attendance records`);
+    // Delete all existing class 9 attendance for 2024-25 using backend bulk delete
+    console.log(`[DELETE] Clearing class 9 attendance...`);
+    const deleteResult = await base44.asServiceRole.entities.Attendance.deleteMany({
+      class_name: '9',
+      academic_year: '2024-25'
+    });
 
     // Fetch students in class 9
     const students = await base44.asServiceRole.entities.Student.filter({
