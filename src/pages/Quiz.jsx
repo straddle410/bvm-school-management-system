@@ -59,6 +59,8 @@ export default function Quiz() {
 
    const queryClient = useQueryClient();
 
+   const [unreadQuizNotifMap, setUnreadQuizNotifMap] = useState({}); // quizId -> notifId
+
    useEffect(() => {
       const studentSess = localStorage.getItem('student_session');
       if (studentSess) {
@@ -66,8 +68,8 @@ export default function Quiz() {
           const parsed = JSON.parse(studentSess);
           setStudentSession(parsed);
           setUser({ id: parsed.id, full_name: parsed.name, role: 'student' });
-          // Mark quiz notifications as read
-          markQuizNotificationsAsRead(parsed.student_id);
+          // Load unread quiz notifs (don't auto-mark all read)
+          loadUnreadQuizNotifs(parsed.student_id);
         } catch {}
         setSessionLoaded(true);
         return;
@@ -78,9 +80,9 @@ export default function Quiz() {
           const parsed = JSON.parse(staffSess);
           setUser(parsed);
           setUserPermissions(parsed.permissions || {});
-          // Mark quiz submission notifications as read for staff
+          // Load unread quiz submission notifs for staff (don't auto-mark all)
           if (parsed.email) {
-            markStaffNotificationsRead(parsed.email, 'quiz_submitted');
+            loadUnreadStaffQuizNotifs(parsed.email);
           }
         } catch {}
         setSessionLoaded(true);
@@ -88,6 +90,40 @@ export default function Quiz() {
       }
       setSessionLoaded(true);
     }, []);
+
+   const loadUnreadQuizNotifs = async (studentId) => {
+     try {
+       const unread = await base44.entities.Notification.filter({ recipient_student_id: studentId, type: 'quiz_posted', is_read: false });
+       const map = {};
+       unread.forEach(n => { if (n.related_entity_id) map[n.related_entity_id] = n.id; });
+       setUnreadQuizNotifMap(map);
+     } catch {}
+   };
+
+   const loadUnreadStaffQuizNotifs = async (email) => {
+     try {
+       const unread = await base44.entities.Notification.filter({ recipient_staff_id: email, type: 'quiz_submitted', is_read: false });
+       const map = {};
+       unread.forEach(n => { if (n.related_entity_id) map[n.related_entity_id] = n.id; });
+       setUnreadQuizNotifMap(map);
+     } catch {}
+   };
+
+   const markQuizRead = async (quizId) => {
+     const notifId = unreadQuizNotifMap[quizId];
+     if (!notifId) return;
+     try {
+       await base44.entities.Notification.update(notifId, { is_read: true });
+       setUnreadQuizNotifMap(prev => { const next = { ...prev }; delete next[quizId]; return next; });
+     } catch {}
+   };
+
+   const markAllQuizzesRead = async () => {
+     try {
+       await Promise.all(Object.values(unreadQuizNotifMap).map(id => base44.entities.Notification.update(id, { is_read: true })));
+       setUnreadQuizNotifMap({});
+     } catch {}
+   };
 
    const { data: quizzes = [], isLoading } = useQuery({
      queryKey: ['quizzes'],
