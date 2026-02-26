@@ -86,10 +86,39 @@ export default function StudentDashboard() {
       return notifs.length;
     },
     enabled: !!student?.student_id,
-    refetchInterval: 5000, // Update every 5 seconds
+    refetchInterval: 10000,
   });
 
-  const notifMap = { Diary: 0, Quiz: 0, Notices: unreadNotice, Results: 0, Messages: 0 };
+  const { data: unreadQuiz = 0 } = useQuery({
+    queryKey: ['unread-quiz-count', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      const notifs = await base44.entities.Notification.filter({
+        recipient_student_id: student.student_id,
+        type: 'quiz_posted',
+        is_read: false
+      });
+      return notifs.length;
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 10000,
+  });
+
+  const { data: unreadMessages = 0 } = useQuery({
+    queryKey: ['unread-message-count-dashboard', student?.student_id],
+    queryFn: async () => {
+      if (!student?.student_id) return 0;
+      const msgs = await base44.entities.Message.filter({
+        recipient_id: student.student_id,
+        is_read: false
+      });
+      return msgs.length;
+    },
+    enabled: !!student?.student_id,
+    refetchInterval: 10000,
+  });
+
+  const notifMap = { Diary: 0, Quiz: unreadQuiz, Notices: unreadNotice, Results: 0, Messages: unreadMessages };
 
   const presentCount = attendance.filter(a => a.is_present).length;
   const attendancePct = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
