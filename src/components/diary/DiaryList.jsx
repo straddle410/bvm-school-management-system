@@ -27,31 +27,22 @@ export default function DiaryList({ entries, canEdit, onEdit, onDelete, unreadId
               <div className="flex-1 flex items-start gap-2">
                 {isUnread && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-2.5" />}
                 <div className="flex-1">
-                <CardTitle className={`text-lg ${isUnread ? 'font-extrabold' : ''}`}>{entry.title}</CardTitle>
-                <div className="flex gap-2 mt-2 flex-wrap">
-                   <Badge variant="outline">Class {entry.class_name}-{entry.section}</Badge>
-                   <Badge variant="outline">{entry.subject}</Badge>
-                   <Badge variant={entry.status === 'Published' ? 'default' : 'secondary'}>
-                     {entry.status}
-                   </Badge>
-                 </div>
+                  <CardTitle className={`text-lg ${isUnread ? 'font-extrabold' : ''}`}>{entry.title}</CardTitle>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    <Badge variant="outline">Class {entry.class_name}-{entry.section}</Badge>
+                    <Badge variant="outline">{entry.subject}</Badge>
+                    <Badge variant={entry.status === 'Published' ? 'default' : 'secondary'}>
+                      {entry.status}
+                    </Badge>
+                  </div>
                 </div>
-                </div>
-                {canEdit && (
+              </div>
+              {canEdit && (
                 <div className="flex gap-2">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => onEdit(entry)}
-                  >
+                  <Button size="icon" variant="outline" onClick={() => onEdit(entry)}>
                     <Edit2 className="h-4 w-4" />
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => onDelete(entry.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
+                  <Button size="icon" variant="outline" onClick={() => onDelete(entry.id)} className="text-red-600 hover:text-red-700">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
