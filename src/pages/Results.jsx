@@ -125,6 +125,11 @@ export default function Results() {
   });
 
   const handleSearch = async () => {
+    if (!selectedStudentId && !rollInput.trim()) {
+      alert('Please select a student or enter a student ID');
+      return;
+    }
+
     setIsSearching(true);
     setSearched(false);
     setStudentResult(null);
@@ -135,8 +140,9 @@ export default function Results() {
       studentId = rollInput.trim();
     }
 
-    // Only show Published marks to students
-    const filter = { status: 'Published' };
+    // Build filter - admins see all statuses, students see only published
+    const isAdmin = studentSession?.role === 'Admin';
+    const filter = isAdmin ? { status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] } } : { status: 'Published' };
     if (studentId) filter.student_id = studentId;
     if (filterExam && filterExam !== 'ALL') filter.exam_type = filterExam;
     if (filterClass) filter.class_name = filterClass;
