@@ -182,6 +182,8 @@ Deno.serve(async (req) => {
       
       // Further filter by student name to match records
       const studentAttendance = allAttendanceRecords.filter(a => a.student_name === student.student_name);
+      
+      console.log(`[DEBUG] Student: ${student.student_name}, Attendance Records Found: ${studentAttendance.length}`);
 
       // Helper function to calculate attendance for a date range
       const calculateAttendanceForRange = (records, startDate, endDate) => {
