@@ -101,7 +101,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
           {/* Exam Performance Details */}
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Exam Details</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Exam Details & Attendance</h2>
             <div className="space-y-4">
               {card.exam_performance?.map((exam, idx) => (
                 <div key={idx} className="border border-gray-300 rounded-lg p-4">
@@ -153,6 +153,31 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Attendance Report for this Exam Period */}
+                  {card.attendance_summary && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="text-xs font-semibold text-gray-600 mb-3 uppercase">Attendance ({card.attendance_summary.range_start} to {card.attendance_summary.range_end})</p>
+                      <div className="grid grid-cols-4 gap-3">
+                        <div className="bg-blue-50 p-2 rounded">
+                          <p className="text-xs text-gray-600">Working Days</p>
+                          <p className="text-lg font-bold text-gray-900">{card.attendance_summary.working_days}</p>
+                        </div>
+                        <div className="bg-green-50 p-2 rounded">
+                          <p className="text-xs text-gray-600">Days Present</p>
+                          <p className="text-lg font-bold text-green-600">{card.attendance_summary.total_present_days}</p>
+                        </div>
+                        <div className="bg-red-50 p-2 rounded">
+                          <p className="text-xs text-gray-600">Days Absent</p>
+                          <p className="text-lg font-bold text-red-600">{card.attendance_summary.working_days - card.attendance_summary.total_present_days}</p>
+                        </div>
+                        <div className="bg-purple-50 p-2 rounded">
+                          <p className="text-xs text-gray-600">Attendance %</p>
+                          <p className="text-lg font-bold text-purple-600">{card.attendance_summary.attendance_percentage}%</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
