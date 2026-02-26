@@ -171,29 +171,53 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
               />
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium text-slate-700">Max Marks</label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.max_marks}
-                    onChange={(e) => setFormData({ ...formData, max_marks: Number(e.target.value) })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700">Min Marks to Pass</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formData.min_marks_to_pass}
-                    onChange={(e) => setFormData({ ...formData, min_marks_to_pass: Number(e.target.value) })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
+                 <div>
+                   <label className="text-sm font-medium text-slate-700">Max Marks</label>
+                   <Input
+                     type="number"
+                     min="1"
+                     value={formData.max_marks}
+                     onChange={(e) => setFormData({ ...formData, max_marks: Number(e.target.value) })}
+                     className="mt-1"
+                   />
+                 </div>
+                 <div>
+                   <label className="text-sm font-medium text-slate-700">Min Marks to Pass</label>
+                   <Input
+                     type="number"
+                     min="0"
+                     value={formData.min_marks_to_pass}
+                     onChange={(e) => setFormData({ ...formData, min_marks_to_pass: Number(e.target.value) })}
+                     className="mt-1"
+                   />
+                 </div>
+               </div>
 
-              <div className="flex gap-2">
+               <div className="border-t pt-4">
+                 <p className="text-sm font-semibold text-slate-700 mb-3">Attendance Report Range</p>
+                 <div className="grid grid-cols-2 gap-3">
+                   <div>
+                     <label className="text-sm font-medium text-slate-700">Start Date</label>
+                     <Input
+                       type="date"
+                       value={formData.attendance_range_start}
+                       onChange={(e) => setFormData({ ...formData, attendance_range_start: e.target.value })}
+                       className="mt-1"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium text-slate-700">End Date</label>
+                     <Input
+                       type="date"
+                       value={formData.attendance_range_end}
+                       onChange={(e) => setFormData({ ...formData, attendance_range_end: e.target.value })}
+                       className="mt-1"
+                     />
+                   </div>
+                 </div>
+               </div>
+
+               <div className="flex gap-2">
                 <Button type="submit" className="bg-blue-600">Save</Button>
                 <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); setUseCustomName(false); }}>Cancel</Button>
               </div>
@@ -214,6 +238,11 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                       <span>Pass: <span className="font-semibold text-slate-900">{type.min_marks_to_pass}</span></span>
                     </div>
                     {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
+                    {type.attendance_range_start && type.attendance_range_end && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        Attendance Range: {type.attendance_range_start} to {type.attendance_range_end}
+                      </p>
+                    )}
                   </div>
                   {hasPermission && (
                     <div className="flex gap-2 ml-4">
@@ -224,7 +253,9 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                           description: type.description, 
                           category: type.category,
                           max_marks: type.max_marks,
-                          min_marks_to_pass: type.min_marks_to_pass
+                          min_marks_to_pass: type.min_marks_to_pass,
+                          attendance_range_start: type.attendance_range_start || '',
+                          attendance_range_end: type.attendance_range_end || ''
                         });
                         setShowForm(true);
                       }}>
