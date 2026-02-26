@@ -50,9 +50,15 @@ export default function Notices() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setUser(getStaffSession());
-    
-    // Mark notice notifications as read if student
+    const staffData = getStaffSession();
+    setUser(staffData);
+
+    // Mark notice notifications as read for staff
+    if (staffData?.email) {
+      markStaffNotificationsRead(staffData.email, 'notice_posted_staff');
+    }
+
+    // Mark notice notifications as read for student
     const studentSession = localStorage.getItem('student_session');
     if (studentSession) {
       try {
