@@ -94,7 +94,7 @@ export default function Layout({ children, currentPageName }) {
   if (studentSession && STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
     return (
       <AcademicYearProvider>
-        <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto relative pb-20">
+        <div className="min-h-screen bg-gray-100 flex flex-col relative pb-20">
           <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
             <div className="flex items-center gap-2">
               <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" schoolProfile={schoolProfile} />
