@@ -208,8 +208,6 @@ Deno.serve(async (req) => {
         throw new Error(`[ATTENDANCE-VALIDATION-FAILED] Incomplete attendance_summary for student ${studentMarks.student_name}: ${JSON.stringify(attendanceSummary)}`);
       }
 
-      console.log(`[ATTENDANCE-SUMMARY] Student ${studentMarks.student_name} (${studentMarks.student_id}): working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}, months=${monthWiseBreakdown.length}`);
-
       progressCards.push({
         student_id: studentMarks.student_id,
         student_name: studentMarks.student_name,
