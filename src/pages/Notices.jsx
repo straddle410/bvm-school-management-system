@@ -38,6 +38,7 @@ export default function Notices() {
     content: '',
     notice_type: 'General',
     target_audience: 'All',
+    target_classes: [],
     publish_date: format(new Date(), 'yyyy-MM-dd'),
     expiry_date: '',
     is_pinned: false
