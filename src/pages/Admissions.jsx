@@ -27,6 +27,7 @@ import {
   Search, MoreVertical, Eye, CheckCircle, XCircle, 
   UserPlus, FileText, ExternalLink
 } from 'lucide-react';
+import { getProxiedImageUrl } from '@/components/imageProxy';
 import {
   DropdownMenu,
   DropdownMenuContent,
