@@ -612,10 +612,34 @@ export default function Marks() {
                           </h3>
                         </div>
                         <CardContent className="p-4 space-y-4">
+                           <div className="flex gap-2 mb-4">
+                            <Button
+                              variant={reviewSortBy === 'rank' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setReviewSortBy('rank')}
+                            >
+                              Sort by Rank
+                            </Button>
+                            <Button
+                              variant={reviewSortBy === 'name' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setReviewSortBy('name')}
+                            >
+                              Sort by Name
+                            </Button>
+                            <Button
+                              variant={reviewSortBy === 'total' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setReviewSortBy('total')}
+                            >
+                              Sort by Total
+                            </Button>
+                          </div>
                           <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                               <thead>
                                 <tr className="border-b border-slate-200 bg-slate-50">
+                                  <th className="text-center p-2 font-semibold text-slate-700 w-16">Roll No</th>
                                   <th className="text-left p-2 font-semibold text-slate-700 w-16">Rank</th>
                                   <th className="text-left p-2 font-semibold text-slate-700 min-w-40">Student Name</th>
                                   {group.subjects.map(subject => (
@@ -627,21 +651,30 @@ export default function Marks() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {group.students.map((student) => (
-                                  <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
-                                    <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
-                                    <td className="p-2">{student.student_name}</td>
-                                    {group.subjects.map(subject => {
-                                      const mark = student.subjects[subject];
-                                      return (
-                                        <td key={subject} className="text-center p-2">
-                                          {mark ? mark.marks_obtained : '-'}
-                                        </td>
-                                      );
-                                    })}
-                                    <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
-                                  </tr>
-                                ))}
+                                {(() => {
+                                  let sorted = [...group.students];
+                                  if (reviewSortBy === 'name') {
+                                    sorted.sort((a, b) => a.student_name.localeCompare(b.student_name));
+                                  } else if (reviewSortBy === 'total') {
+                                    sorted.sort((a, b) => b.total - a.total);
+                                  }
+                                  return sorted.map((student) => (
+                                    <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
+                                      <td className="text-center p-2 text-slate-700">{student.roll_no || '-'}</td>
+                                      <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
+                                      <td className="p-2">{student.student_name}</td>
+                                      {group.subjects.map(subject => {
+                                        const mark = student.subjects[subject];
+                                        return (
+                                          <td key={subject} className="text-center p-2">
+                                            {mark ? mark.marks_obtained : '-'}
+                                          </td>
+                                        );
+                                      })}
+                                      <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
+                                    </tr>
+                                  ));
+                                })()}
                               </tbody>
                             </table>
                           </div>
