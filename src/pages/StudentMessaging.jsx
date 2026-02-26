@@ -116,6 +116,14 @@ export default function StudentMessaging() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {unreadCount > 0 && tab === 'inbox' && (
+              <button
+                onClick={markAllInboxRead}
+                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all"
+              >
+                <CheckCheck className="h-3.5 w-3.5" /> All Read
+              </button>
+            )}
             <button
               onClick={() => queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] })}
               className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all"
