@@ -137,6 +137,7 @@ export default function Notices() {
       content: notice.content,
       notice_type: notice.notice_type,
       target_audience: notice.target_audience,
+      target_classes: notice.target_classes || [],
       publish_date: notice.publish_date,
       expiry_date: notice.expiry_date || '',
       is_pinned: notice.is_pinned
