@@ -310,7 +310,7 @@ Deno.serve(async (req) => {
       } else {
         // Fallback to full academic year
         const validAttendance = studentAttendance.filter(a => 
-          a.status !== 'Holiday' && !a.is_holiday && a.attendance_type !== 'holiday'
+          !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
         );
         const workingDays = validAttendance.length;
         const fullDayCount = validAttendance.filter(a => a.attendance_type === 'full_day').length;
