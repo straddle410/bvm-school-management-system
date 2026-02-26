@@ -375,15 +375,41 @@ export default function Marks() {
                           Add Subject
                         </Button>
                       </div>
+                      {isSubmitted && !isAdmin && (
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 text-center">
+                          <p className="text-sm font-medium text-blue-900">✓ Marks Submitted</p>
+                          <p className="text-xs text-blue-700 mt-1">Editing is not allowed for submitted marks</p>
+                        </div>
+                      )}
+
+                      {isSubmitted && isAdmin && (
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-amber-900">✓ Marks Submitted</p>
+                            <p className="text-xs text-amber-700 mt-1">These marks are locked. Click unlock to allow editing.</p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => unlockMutation.mutate()}
+                            disabled={unlockMutation.isPending}
+                            className="whitespace-nowrap"
+                          >
+                            {unlockMutation.isPending ? 'Unlocking...' : 'Unlock for Editing'}
+                          </Button>
+                        </div>
+                      )}
+
                       {/* Desktop Table View */}
                       <div className="hidden md:block">
                         <MarksTable
                           students={filteredStudents}
                           subjects={subjectList}
                           marksData={marksData}
-                          onMarkChange={updateMarks}
+                          onMarkChange={canEdit ? updateMarks : undefined}
                           maxMarks={maxMarks}
                           passingMarks={passingMarks}
+                          isLocked={!canEdit}
                         />
                       </div>
                       {/* Mobile Subject Tabs View */}
@@ -392,9 +418,10 @@ export default function Marks() {
                           students={filteredStudents}
                           subjects={subjectList}
                           marksData={marksData}
-                          onMarkChange={updateMarks}
+                          onMarkChange={canEdit ? updateMarks : undefined}
                           maxMarks={maxMarks}
                           passingMarks={passingMarks}
+                          isLocked={!canEdit}
                         />
                       </div>
                     </CardContent>
