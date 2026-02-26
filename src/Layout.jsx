@@ -69,6 +69,9 @@ export default function Layout({ children, currentPageName }) {
       base44.auth.me().catch(() => null),
       base44.entities.SchoolProfile.list()]
       );
+      if (currentUser) {
+        currentUser.role = currentUser.role?.toLowerCase();
+      }
       setUser(currentUser);
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
     } catch (e) {
