@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { PenSquare, Inbox, Send, RefreshCw } from 'lucide-react';
+import { PenSquare, Inbox, Send, RefreshCw, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ComposeMessage from '@/components/messaging/ComposeMessage';
 import MessageList from '@/components/messaging/MessageList';
