@@ -255,7 +255,8 @@ export default function Notices() {
             </p>
             <div className="space-y-3">
               {pinned.map(notice => (
-                <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm} />
+                <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm}
+                  isUnread={!!unreadNotifMap[notice.id]} onRead={() => markNoticeRead(notice.id)} />
               ))}
             </div>
           </div>
@@ -264,7 +265,8 @@ export default function Notices() {
         {/* Regular Notices */}
         <div className="space-y-3">
           {regular.map(notice => (
-            <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm} />
+            <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm}
+              isUnread={!!unreadNotifMap[notice.id]} onRead={() => markNoticeRead(notice.id)} />
           ))}
         </div>
 
