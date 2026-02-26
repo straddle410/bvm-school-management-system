@@ -13,7 +13,11 @@ Deno.serve(async (req) => {
 
     // Generate individual PDFs for each card
     for (const card of progressCards) {
-      const fileName = `Class_${card.class_name}_${card.student_name}.pdf`;
+      // Get exam types from exam_stats, or use "Overall" if not available
+      const examTypes = card.exam_stats ? Object.keys(card.exam_stats) : ['Overall'];
+      
+      for (const examType of examTypes) {
+        const fileName = `Class_${card.class_name}_${card.student_name}_${examType}.pdf`;
       
       // Create HTML content for the progress card (full A4 page)
       const htmlContent = `
@@ -112,7 +116,8 @@ Deno.serve(async (req) => {
         }).catch(reject);
       });
 
-      zip.file(fileName, pdfBuffer);
+        zip.file(fileName, pdfBuffer);
+      }
     }
 
     const zipData = await zip.generateAsync({ type: 'uint8array' });
