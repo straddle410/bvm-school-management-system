@@ -46,6 +46,8 @@ export default function Results() {
   const [showProgressReport, setShowProgressReport] = useState(false);
   const [allMarks, setAllMarks] = useState([]);
 
+  const [unreadResultsCleared, setUnreadResultsCleared] = useState(false);
+
   useEffect(() => {
     const studentSess = localStorage.getItem('student_session');
     const staffSess = localStorage.getItem('staff_session');
@@ -56,7 +58,6 @@ export default function Results() {
         setFilterClass(parsed.class_name || '');
         setFilterSection(parsed.section || '');
         setSelectedStudentId(parsed.student_id || '');
-        markResultsNotificationsAsRead(parsed.student_id);
         // Auto-search for student's own results
         autoSearchStudent(parsed);
       } catch {}
