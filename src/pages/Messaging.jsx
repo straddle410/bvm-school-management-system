@@ -58,7 +58,16 @@ export default function Messaging() {
     enabled: !!user,
   });
 
-  const unreadCount = inbox.filter(m => !m.is_read).length;
+  // Real-time staff badge hook — also marks student_message notifications as read when inbox tab active
+  const { badges: staffBadges } = useStaffNotificationBadges(user?.email);
+
+  useEffect(() => {
+    if (user?.email && tab === 'inbox') {
+      markStaffNotificationsRead(user.email, 'student_message');
+    }
+  }, [user?.email, tab]);
+
+  const unreadCount = inbox.filter(m => !m.is_read).length + (staffBadges.Messages > inbox.filter(m => !m.is_read).length ? staffBadges.Messages - inbox.filter(m => !m.is_read).length : 0);
 
   const handleSelectMessage = async (msg) => {
     // Group by thread
