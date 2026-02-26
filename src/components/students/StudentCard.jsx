@@ -27,10 +27,10 @@ export default function StudentCard({ student, onView, onEdit, onArchive, isAdmi
   return (
     <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow cursor-pointer group">
       <button onClick={handleViewProfile} className="flex items-center gap-3 flex-1 min-w-0 text-left group-hover:opacity-80">
-        <Avatar className="h-11 w-11 flex-shrink-0">
-          <AvatarImage src={student.photo_url} />
-          <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold">{initials}</AvatarFallback>
-        </Avatar>
+         <Avatar className="h-11 w-11 flex-shrink-0">
+           <AvatarImage src={getProxiedImageUrl(student.photo_url)} />
+           <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold">{initials}</AvatarFallback>
+         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-900 text-sm truncate">{student.name}</p>
           <p className="text-xs text-gray-400">{student.student_id} · Class {student.class_name}-{student.section} · Roll #{student.roll_no}</p>
