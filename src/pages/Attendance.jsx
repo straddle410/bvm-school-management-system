@@ -104,7 +104,14 @@ export default function Attendance() {
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
-        data[a.student_id] = { is_present: a.is_present, id: a.id, status: a.status };
+        data[a.student_id] = { 
+          is_present: a.is_present, 
+          id: a.id, 
+          status: a.status,
+          attendance_type: a.attendance_type || 'full_day',
+          half_day_period: a.half_day_period || null,
+          half_day_reason: a.half_day_reason || ''
+        };
       });
       setAttendanceData(data);
       if (!manuallyChanged) {
