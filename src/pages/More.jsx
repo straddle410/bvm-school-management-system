@@ -147,67 +147,69 @@ export default function More() {
 
            {/* ---- LOGGED IN STATE ---- */}
            {!studentSession && (
-           <div className="bg-[#1a237e] px-4 pt-6 pb-8">
-             <div className="bg-[#283593] rounded-2xl p-5 flex flex-col items-center text-white">
-               <div className="w-16 h-16 rounded-full bg-[#3949ab] border-2 border-white/30 flex items-center justify-center text-2xl font-bold">
-                 {user?.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() : '?'}
-               </div>
-               {loading ? (
-                 <p className="mt-3 text-white/70 text-sm">Loading...</p>
-               ) : (
-                 <>
-                   <p className="mt-3 font-bold text-lg">{user?.full_name}</p>
-                   <span className="mt-1 px-3 py-0.5 bg-yellow-400 text-gray-900 text-xs font-bold rounded-full capitalize">
-                     {user?.role || 'User'}
-                   </span>
-                   <button
-                     onClick={() => { clearStaffSession(); window.location.reload(); }}
-                     className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors"
-                   >
-                     <LogOut className="h-4 w-4" />
-                     Logout
-                   </button>
-                 </>
-               )}
-             </div>
-           </div>
-
-           <div className="-mt-4 px-4 space-y-4">
-             {/* Exam Management - Teachers & Staff */}
-             {isTeacher && (
-               <TeacherExamCard />
-             )}
-
-             {/* Create Content - Teachers & Staff */}
-             {isTeacher && (
-               <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                 <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Create Content</p>
-                 <div className="divide-y divide-gray-50">
-                   {contentItems.map(item => <MenuItem key={item.label} item={item} />)}
+             <>
+               <div className="bg-[#1a237e] px-4 pt-6 pb-8">
+                 <div className="bg-[#283593] rounded-2xl p-5 flex flex-col items-center text-white">
+                   <div className="w-16 h-16 rounded-full bg-[#3949ab] border-2 border-white/30 flex items-center justify-center text-2xl font-bold">
+                     {user?.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() : '?'}
+                   </div>
+                   {loading ? (
+                     <p className="mt-3 text-white/70 text-sm">Loading...</p>
+                   ) : (
+                     <>
+                       <p className="mt-3 font-bold text-lg">{user?.full_name}</p>
+                       <span className="mt-1 px-3 py-0.5 bg-yellow-400 text-gray-900 text-xs font-bold rounded-full capitalize">
+                         {user?.role || 'User'}
+                       </span>
+                       <button
+                         onClick={() => { clearStaffSession(); window.location.reload(); }}
+                         className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors"
+                       >
+                         <LogOut className="h-4 w-4" />
+                         Logout
+                       </button>
+                     </>
+                   )}
                  </div>
                </div>
-             )}
 
-             {/* Admin Controls */}
-             {isAdmin && (
-               <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                 <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Admin Controls</p>
-                 <div className="divide-y divide-gray-50">
-                   {adminItems.map(item => <MenuItem key={item.label} item={item} />)}
+               <div className="-mt-4 px-4 space-y-4">
+                 {/* Exam Management - Teachers & Staff */}
+                 {isTeacher && (
+                   <TeacherExamCard />
+                 )}
+
+                 {/* Create Content - Teachers & Staff */}
+                 {isTeacher && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Create Content</p>
+                     <div className="divide-y divide-gray-50">
+                       {contentItems.map(item => <MenuItem key={item.label} item={item} />)}
+                     </div>
+                   </div>
+                 )}
+
+                 {/* Admin Controls */}
+                 {isAdmin && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Admin Controls</p>
+                     <div className="divide-y divide-gray-50">
+                       {adminItems.map(item => <MenuItem key={item.label} item={item} />)}
+                     </div>
+                   </div>
+                 )}
+
+                 {/* Support */}
+                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Support</p>
+                   <div className="divide-y divide-gray-50">
+                     {supportItems.map(item => <MenuItem key={item.label} item={item} />)}
+                   </div>
                  </div>
-               </div>
-             )}
 
-             {/* Support */}
-             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-               <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Support</p>
-               <div className="divide-y divide-gray-50">
-                 {supportItems.map(item => <MenuItem key={item.label} item={item} />)}
+                 <p className="text-center text-xs text-gray-400 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
                </div>
-             </div>
-
-             <p className="text-center text-xs text-gray-400 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
-           </div>
+             </>
            )}
         </>
       )}
