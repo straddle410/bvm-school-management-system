@@ -133,14 +133,14 @@ Deno.serve(async (req) => {
       academic_year: academicYear
     });
 
-    // Determine attendance range once - use the LATEST exam's range (most recent by updated_date)
+    // Determine attendance range once - use the exam with the latest END date (most comprehensive range)
     let globalAttendanceStartDate = null;
     let globalAttendanceEndDate = null;
 
     const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
     if (examTypesWithRange.length > 0) {
-      // Sort by updated_date descending to get the most recently configured exam
-      const sorted = examTypesWithRange.sort((a, b) => new Date(b.updated_date) - new Date(a.updated_date));
+      // Sort by end_date descending to get the exam with the latest end date (most comprehensive)
+      const sorted = examTypesWithRange.sort((a, b) => new Date(b.attendance_range_end) - new Date(a.attendance_range_end));
       globalAttendanceStartDate = sorted[0].attendance_range_start;
       globalAttendanceEndDate = sorted[0].attendance_range_end;
       console.log(`[RANGE FOUND] Exam: ${sorted[0].name}, Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
