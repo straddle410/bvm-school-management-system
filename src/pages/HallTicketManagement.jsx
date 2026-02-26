@@ -84,10 +84,6 @@ export default function HallTicketManagement() {
           <TabsContent value="progress-cards" className="mt-6">
             <ProgressCardsList />
           </TabsContent>
-
-          <TabsContent value="attendance" className="mt-6">
-            <AttendanceReportTab />
-          </TabsContent>
         </Tabs>
       </div>
     </div>
