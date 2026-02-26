@@ -15,7 +15,7 @@ export default function MessageThread({ messages, currentUserId, onBack, onReply
           <p className="font-semibold text-sm truncate">{first.subject || '(No subject)'}</p>
           <p className="text-blue-200 text-xs">{messages.length} message{messages.length !== 1 ? 's' : ''}</p>
         </div>
-        <Button onClick={onReply} size="sm" variant="outline" className="border-white text-white hover:bg-white/10 gap-1 text-xs">
+        <Button onClick={onReply} size="sm" variant="outline" className="border-white/70 text-white bg-white/10 hover:bg-white/20 gap-1 text-xs">
           <Reply className="h-3 w-3" /> Reply
         </Button>
       </div>
