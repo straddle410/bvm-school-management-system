@@ -38,10 +38,11 @@ Deno.serve(async (req) => {
     // Fetch published marks for this exam type only
     const allMarks = await base44.asServiceRole.entities.Marks.filter({
       academic_year: academicYear,
-      exam_type: examType.name
+      exam_type: examTypeId
     });
 
     const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
+    console.log(`[MARKS] Fetched ${publishedMarks.length} published marks for exam type "${examType.name}" (ID: ${examTypeId})`);
 
     if (publishedMarks.length === 0) {
       return Response.json({
