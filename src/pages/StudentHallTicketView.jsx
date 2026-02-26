@@ -303,6 +303,7 @@ export default function StudentHallTicketView() {
              display: flex;
              align-items: center;
              justify-content: center;
+             overflow: visible !important;
              -webkit-print-color-adjust: exact;
              print-color-adjust: exact;
            }
