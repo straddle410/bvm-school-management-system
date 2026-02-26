@@ -137,6 +137,8 @@ export default function Settings() {
   const [newSubject, setNewSubject] = useState('');
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerCaption, setBannerCaption] = useState('');
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupResult, setCleanupResult] = useState(null);
 
   const { data: bannerSlides = [] } = useQuery({
     queryKey: ['banner-slides'],
@@ -172,6 +174,20 @@ export default function Settings() {
   const toggleBannerMutation = useMutation({
     mutationFn: ({ id, is_active }) => base44.entities.BannerSlide.update(id, { is_active }),
     onSuccess: () => queryClient.invalidateQueries(['banner-slides'])
+  });
+
+  const runCleanupMutation = useMutation({
+    mutationFn: async () => {
+      const result = await base44.functions.invoke('cleanupOldNotifications', {});
+      return result.data;
+    },
+    onSuccess: (data) => {
+      setCleanupResult(data);
+      toast.success(`Cleanup complete: ${data.deleted} notifications deleted`);
+    },
+    onError: (err) => {
+      toast.error(`Cleanup failed: ${err.message}`);
+    }
   });
 
   return (
@@ -510,8 +526,46 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="notifications" className="mt-6">
+          <TabsContent value="notifications" className="mt-6 space-y-6">
             <NotificationSettingsSection />
+
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle>Notification Cleanup</CardTitle>
+                <CardDescription>Manually trigger cleanup of old read notifications</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>What this does:</strong> Deletes read notifications older than 90 days (excluding current academic year). Runs automatically every Sunday at 2:00 AM.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => runCleanupMutation.mutate()}
+                  disabled={runCleanupMutation.isPending}
+                  variant="outline"
+                >
+                  {runCleanupMutation.isPending ? 'Running cleanup...' : 'Run Cleanup Now'}
+                </Button>
+
+                {cleanupResult && (
+                  <div className={`rounded-lg p-4 ${cleanupResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                    <p className={`font-medium ${cleanupResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                      {cleanupResult.success ? '✓ Cleanup Success' : '⚠ Cleanup Aborted'}
+                    </p>
+                    <ul className={`text-sm mt-2 space-y-1 ${cleanupResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                      <li><strong>Deleted:</strong> {cleanupResult.deleted} notifications</li>
+                      <li><strong>Candidates:</strong> {cleanupResult.candidateCount}</li>
+                      {cleanupResult.threshold && <li><strong>Safety Threshold:</strong> {cleanupResult.threshold}</li>}
+                      {cleanupResult.currentAcademicYear && <li><strong>Current Academic Year:</strong> {cleanupResult.currentAcademicYear}</li>}
+                      {cleanupResult.cutoffDate && <li><strong>Cutoff Date:</strong> {new Date(cleanupResult.cutoffDate).toLocaleDateString()}</li>}
+                      {cleanupResult.errors && <li className="text-red-600"><strong>Errors:</strong> {cleanupResult.errors.length} deletion errors</li>}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
           </Tabs>
           </div>
