@@ -9,7 +9,7 @@ import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
   Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare,
-  Ticket, Calendar, TrendingUp, FileText
+  Ticket, Calendar, TrendingUp, FileText, Award
 } from 'lucide-react';
 
 export default function More() {
@@ -46,6 +46,25 @@ export default function More() {
 
   const permissions = user?.permissions || {};
 
+  const examItems = {
+    admin: [
+      { label: 'Exam Types', sub: 'Create & manage exams', icon: ClipboardList, color: '#d32f2f', bg: '#ffebee', page: 'ExamManagement', tab: 'exam-types' },
+      { label: 'Timetable', sub: 'Set exam schedule', icon: Calendar, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'timetable' },
+      { label: 'Hall Tickets', sub: 'Generate hall tickets', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', page: 'HallTicketManagement' },
+      { label: 'Marks Entry', sub: 'Enter student marks', icon: FileText, color: '#7b1fa2', bg: '#f3e5f5', page: 'Marks' },
+      { label: 'Results Publish', sub: 'Publish exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
+      { label: 'Progress Cards', sub: 'Generate progress reports', icon: Award, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'progress-cards' },
+    ],
+    teacher: [
+      { label: 'Marks Entry', sub: 'Enter student marks', icon: FileText, color: '#7b1fa2', bg: '#f3e5f5', page: 'Marks' },
+      { label: 'Results', sub: 'View & submit results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
+    ],
+    student: [
+      { label: 'Hall Tickets', sub: 'Download hall tickets', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', page: 'Results' },
+      { label: 'Results', sub: 'View exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'Results' },
+    ],
+  };
+
   const allContentItems = [
    { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance', permKey: 'attendance' },
    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices', permKey: 'post_notices' },
@@ -59,12 +78,6 @@ export default function More() {
     : allContentItems.filter(item => !item.permKey || !!permissions[item.permKey]);
 
   const adminItems = [
-   { label: 'Exam Types', sub: 'Create & manage exams', icon: FileText, color: '#d32f2f', bg: '#ffebee', page: 'ExamManagement' },
-   { label: 'Exam Timetable', sub: 'Set exam schedule', icon: Calendar, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'timetable' },
-   { label: 'Hall Tickets', sub: 'Generate hall tickets', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', page: 'HallTicketManagement' },
-   { label: 'Marks Review', sub: 'Verify marks before publish', icon: ClipboardList, color: '#7b1fa2', bg: '#f3e5f5', page: 'MarksReview' },
-   { label: 'Results', sub: 'Publish exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
-   { label: 'Progress Cards', sub: 'Generate progress reports', icon: FileText, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'progress-cards' },
    { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
    { label: 'Staff Management', sub: 'Create & manage accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'StaffManagement' },
    { label: 'Reports', sub: 'Analytics & insights', icon: BookOpen, color: '#78909c', bg: '#eceff1', page: 'ReportsManagement' },
@@ -79,7 +92,9 @@ export default function More() {
     { label: 'About App', sub: 'Version 2.0.0', icon: Info, color: '#78909c', bg: '#eceff1' },
   ];
 
-  const MenuItem = ({ item, onClick }) => {
+  const [expandedExams, setExpandedExams] = useState(false);
+
+  const MenuItem = ({ item, onClick, showArrow = true }) => {
     const inner = (
       <div className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
@@ -89,7 +104,7 @@ export default function More() {
           <p className="text-sm font-semibold text-gray-900">{item.label}</p>
           {item.sub && <p className="text-xs text-gray-500 mt-0.5">{item.sub}</p>}
         </div>
-        <ChevronRight className="h-4 w-4 text-gray-300 flex-shrink-0" />
+        {showArrow && <ChevronRight className="h-4 w-4 text-gray-300 flex-shrink-0" />}
       </div>
     );
 
@@ -174,9 +189,41 @@ export default function More() {
                </div>
 
                <div className="-mt-4 px-4 space-y-4">
-                 {/* Exam Management - Teachers & Staff */}
-                 {isTeacher && (
-                   <TeacherExamCard />
+                 {/* Exam Management - Admin */}
+                 {isAdmin && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <div onClick={() => setExpandedExams(!expandedExams)}>
+                       <MenuItem 
+                         item={{ 
+                           label: 'Exam Management', 
+                           sub: 'Manage all exam operations',
+                           icon: FileText, 
+                           color: '#d32f2f', 
+                           bg: '#ffebee'
+                         }} 
+                         showArrow={true}
+                       />
+                     </div>
+                     {expandedExams && (
+                       <div className="divide-y divide-gray-50 bg-gray-50">
+                         {examItems.admin.map(item => (
+                           <div key={item.label} className="pl-4">
+                             <MenuItem item={item} />
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                 )}
+
+                 {/* Exam Section - Teachers */}
+                 {isTeacher && !isAdmin && examItems.teacher.length > 0 && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Exams</p>
+                     <div className="divide-y divide-gray-50">
+                       {examItems.teacher.map(item => <MenuItem key={item.label} item={item} />)}
+                     </div>
+                   </div>
                  )}
 
                  {/* Create Content - Teachers & Staff */}
@@ -192,7 +239,7 @@ export default function More() {
                  {/* Admin Controls */}
                  {isAdmin && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Admin Controls</p>
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Other Controls</p>
                      <div className="divide-y divide-gray-50">
                        {adminItems.map(item => <MenuItem key={item.label} item={item} />)}
                      </div>
