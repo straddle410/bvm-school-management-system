@@ -483,18 +483,20 @@ export default function Quiz() {
                 {todayQuizzes.map(quiz => {
                   const attempted = hasAttemptedToday(quiz.id);
                   const attemptCount = attempts.filter(a => a.quiz_id === quiz.id).length;
+                  const isUnread = !!unreadQuizNotifMap[quiz.id];
                   return (
-                    <Card key={quiz.id} className="border-0 shadow-sm">
+                    <Card key={quiz.id} className={`shadow-sm ${isUnread ? 'border-l-4 border-blue-500 border' : 'border-0'}`}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
                             <HelpCircle className="h-5 w-5 text-amber-600" />
                           </div>
-                          {attempted && (
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
-                          )}
+                          <div className="flex items-center gap-2">
+                            {isUnread && <div className="h-2 w-2 rounded-full bg-blue-500" />}
+                            {attempted && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                          </div>
                         </div>
-                        <CardTitle className="text-lg mt-3">{quiz.title}</CardTitle>
+                        <CardTitle className={`text-lg mt-3 ${isUnread ? 'font-extrabold' : ''}`}>{quiz.title}</CardTitle>
                         <p className="text-sm text-slate-500">
                           {quiz.subject}
                         </p>
