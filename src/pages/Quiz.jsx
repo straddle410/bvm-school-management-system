@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock
+  Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock, CheckCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
