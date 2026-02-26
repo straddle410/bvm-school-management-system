@@ -186,13 +186,22 @@ Deno.serve(async (req) => {
       });
       const workingDays = uniqueWorkingDates.size;
 
-      // Count present days
-      const presentRecords = allInRange.filter(a => 
-        !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
-      );
+      // Count unique dates for full days and half days (deduplicate by date)
+      const fullDayDates = new Set();
+      const halfDayDates = new Set();
+      
+      allInRange.forEach(a => {
+        if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+          if (a.attendance_type === 'full_day') {
+            fullDayDates.add(a.date);
+          } else if (a.attendance_type === 'half_day') {
+            halfDayDates.add(a.date);
+          }
+        }
+      });
 
-      const fullDays = presentRecords.filter(a => a.attendance_type === 'full_day').length;
-      const halfDays = presentRecords.filter(a => a.attendance_type === 'half_day').length;
+      const fullDays = fullDayDates.size;
+      const halfDays = halfDayDates.size;
       const totalPresent = fullDays + (halfDays * 0.5);
 
       const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
