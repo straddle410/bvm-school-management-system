@@ -76,11 +76,19 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[CREATE] Generating ${attendanceRecords.length} new attendance records`);
-    await base44.asServiceRole.entities.Attendance.bulkCreate(attendanceRecords);
+    
+    // Create in batches to avoid rate limiting
+    const batchSize = 100;
+    for (let i = 0; i < attendanceRecords.length; i += batchSize) {
+      const batch = attendanceRecords.slice(i, i + batchSize);
+      console.log(`[CREATE] Creating batch ${Math.floor(i / batchSize) + 1}...`);
+      await base44.asServiceRole.entities.Attendance.bulkCreate(batch);
+      // Wait between batches
+      await new Promise(r => setTimeout(r, 500));
+    }
 
     return Response.json({
       message: 'Successfully recreated class 9 attendance data',
-      recordsDeleted: existingAttendance.length,
       recordsCreated: attendanceRecords.length,
       dateRange: { start: '2025-11-01', end: '2026-02-26' },
       studentCount: students.length
