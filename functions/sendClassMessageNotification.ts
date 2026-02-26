@@ -3,62 +3,94 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { message_id, class_name, subject, body, sender_name } = await req.json();
+    const body = await req.json();
 
-    if (!message_id || !class_name) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    // Support both: called directly with params OR via entity automation with {event, data}
+    let message_id, class_name, subject, msgBody, sender_name, recipient_type, recipient_id, recipient_section;
+
+    if (body.event && body.data) {
+      // Called from entity automation
+      const msg = body.data;
+      message_id = body.event?.entity_id || msg.id;
+      recipient_type = msg.recipient_type;
+      class_name = msg.recipient_class;
+      recipient_section = msg.recipient_section;
+      recipient_id = msg.recipient_id;
+      subject = msg.subject;
+      msgBody = msg.body;
+      sender_name = msg.sender_name;
+    } else {
+      // Called directly
+      message_id = body.message_id;
+      recipient_type = body.recipient_type || 'class';
+      class_name = body.class_name;
+      recipient_section = body.recipient_section;
+      recipient_id = body.recipient_id;
+      subject = body.subject;
+      msgBody = body.body;
+      sender_name = body.sender_name;
     }
 
-    // Get all students in the class
-    const students = await base44.asServiceRole.entities.Student.filter({
-      class_name: class_name,
-      status: 'Published' // Only active students
-    });
+    if (!message_id) {
+      return Response.json({ error: 'Missing message_id' }, { status: 400 });
+    }
+
+    let students = [];
+
+    if (recipient_type === 'individual') {
+      // Direct message to one student — find by student_id
+      if (recipient_id) {
+        const found = await base44.asServiceRole.entities.Student.filter({
+          student_id: recipient_id,
+          status: 'Approved'
+        });
+        students = found;
+      }
+    } else if (recipient_type === 'class' || recipient_type === 'section') {
+      if (!class_name) {
+        return Response.json({ success: true, notified: 0 });
+      }
+      // Get all students in the class (Approved status)
+      const allInClass = await base44.asServiceRole.entities.Student.filter({
+        class_name: class_name,
+        status: 'Approved'
+      });
+      if (recipient_type === 'section' && recipient_section) {
+        students = allInClass.filter(s => s.section === recipient_section);
+      } else {
+        students = allInClass;
+      }
+    }
 
     if (students.length === 0) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get notification preferences for all students
-    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
-    const prefMap = new Map(prefs.map(p => [p.student_id, p]));
+    // Check for existing notifications to avoid duplicates
+    const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
+      type: 'class_message',
+      related_entity_id: message_id,
+    });
+    const alreadyNotified = new Set(existingNotifs.map(n => n.recipient_student_id));
 
     let notified = 0;
-    const duplicateCheck = new Set();
 
-    // Send push notifications to eligible students
     for (const student of students) {
-      const pref = prefMap.get(student.student_id);
-      
-      // Check if notifications are enabled
-      if (!pref || !pref.notifications_enabled || !pref.message_notifications) {
-        continue;
-      }
-
-      // Prevent duplicate notifications
-      const duplicateKey = `message_${message_id}_${student.student_id}`;
-      if (duplicateCheck.has(duplicateKey)) {
-        console.warn(`Skipping duplicate notification for ${student.student_id}`);
-        continue;
-      }
-      duplicateCheck.add(duplicateKey);
+      if (alreadyNotified.has(student.student_id)) continue;
 
       try {
-        // Create notification record with deduplication key and action URL
         await base44.asServiceRole.entities.Notification.create({
           recipient_student_id: student.student_id,
           type: 'class_message',
-          title: `Message from ${sender_name}`,
-          message: subject || body.substring(0, 100),
+          title: `Message from ${sender_name || 'Teacher'}`,
+          message: subject || (msgBody || '').substring(0, 100),
           related_entity_id: message_id,
           action_url: '/StudentMessaging',
           is_read: false,
-          duplicate_key: duplicateKey
         });
-
         notified++;
       } catch (err) {
-        console.error(`Failed to create notification for student ${student.student_id}:`, err);
+        console.error(`Failed to notify ${student.student_id}:`, err.message);
       }
     }
 
