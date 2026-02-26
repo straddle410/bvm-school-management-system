@@ -334,13 +334,7 @@ Deno.serve(async (req) => {
           overall_rank: overallRank,
           overall_grade: overallGrade
         },
-        attendance_summary: {
-          working_days: workingDays,
-          full_days_present: fullDayCount,
-          half_days_present: halfDayCount,
-          total_present_days: Math.round(totalPresentDays * 100) / 100,
-          attendance_percentage: attendancePercentage
-        },
+        attendance_summary: attendanceSummary,
         generated_at: new Date().toISOString(),
         status: 'Generated'
       });
