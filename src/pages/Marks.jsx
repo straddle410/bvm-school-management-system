@@ -48,6 +48,7 @@ export default function Marks() {
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState('');
   const [viewMode, setViewMode] = useState('entry'); // 'entry' or 'review'
+  const [reviewSortBy, setReviewSortBy] = useState('rank'); // 'rank', 'name', 'total'
   
   const queryClient = useQueryClient();
 
