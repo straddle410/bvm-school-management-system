@@ -308,7 +308,7 @@ export default function Marks() {
               </CardContent>
             </Card>
 
-            {selectedClass && selectedSection && selectedExam && (
+            {selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
               <>
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-4">
