@@ -125,16 +125,18 @@ export default function Dashboard() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Only fetch unread diary count for students (not staff)
+  const isStudentUser = !!user?.student_id;
   const { data: unreadDiaryCount = 0 } = useQuery({
     queryKey: ['unread-diary-count', user?.student_id],
     queryFn: async () => {
-      if (!user?.student_id) return 0;
+      if (!isStudentUser) return 0;
       try {
         const n = await base44.entities.Notification.filter({ recipient_student_id: user.student_id, type: 'diary_published', is_read: false });
         return n.length;
       } catch { return 0; }
     },
-    enabled: !!user?.student_id,
+    enabled: isStudentUser,
     staleTime: 60000,
     refetchInterval: 60000
   });

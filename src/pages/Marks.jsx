@@ -168,7 +168,7 @@ export default function Marks() {
             class_name: selectedClass,
             section: selectedSection,
             subject: subject,
-            exam_type: selectedExamObj?.id || selectedExam,
+              exam_type: selectedExamType?.id || selectedExam,
             marks_obtained: marks,
             max_marks: maxMarks,
             grade,

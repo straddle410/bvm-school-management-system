@@ -120,6 +120,7 @@ export default function Attendance() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!academicYear) throw new Error('Academic year not configured');
       const promises = filteredStudents.map(student => {
         const existing = attendanceData[student.student_id];
         const data = {
@@ -154,10 +155,13 @@ export default function Attendance() {
   const saveRangeMutation = useMutation({
     mutationFn: async () => {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
+      if (!academicYear) throw new Error('Academic year not configured');
+      
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
       const total = days.length;
 
-      // Batch by day to avoid rate limiting
+      // Batch create holidays (check all first, then create in one batch)
+      const holidaysToCreate = [];
       for (let i = 0; i < days.length; i++) {
         const day = days[i];
         const dateStr = format(day, 'yyyy-MM-dd');
@@ -169,8 +173,7 @@ export default function Attendance() {
         });
 
         if (existingHoliday.length === 0) {
-          // Create proper Holiday entity record
-          await base44.entities.Holiday.create({
+          holidaysToCreate.push({
             date: dateStr,
             title: rangeReason || 'Holiday',
             reason: rangeReason || 'Holiday',
@@ -179,8 +182,14 @@ export default function Attendance() {
             status: 'Active'
           });
         }
-        setRangeProgress(Math.round(((i + 1) / total) * 100));
+        setRangeProgress(Math.round(((i + 1) / total) * 50));
       }
+
+      // Batch create all new holidays in one call
+      if (holidaysToCreate.length > 0) {
+        await base44.entities.Holiday.bulkCreate(holidaysToCreate);
+      }
+      setRangeProgress(100);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
