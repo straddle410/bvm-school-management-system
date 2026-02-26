@@ -15,13 +15,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Academic year is required' }, { status: 400 });
     }
 
+    // Standardize class name format (handle both "9" and "Class 9")
+    const normalizeClassName = (name) => {
+      if (!name) return name;
+      const str = name.toString().trim();
+      return /^[0-9]$/.test(str) || ['Nursery', 'LKG', 'UKG'].includes(str) ? str : str.replace(/^Class\s*/i, '');
+    };
+
     // Fetch published or approved marks with filters
     const marksFilter = {
       academic_year: academicYear
     };
-    if (classNameFilter) marksFilter.class_name = classNameFilter;
+    if (classNameFilter) marksFilter.class_name = normalizeClassName(classNameFilter);
     if (sectionFilter) marksFilter.section = sectionFilter;
-    if (examTypeIdOrName) marksFilter.exam_type = examTypeIdOrName;
 
     const allMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
     const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
@@ -30,15 +36,22 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'No approved or published marks found', cardsGenerated: 0 });
     }
 
-    // Group by student and exam type
+    // Group by student and exam type, deduplicate marks
     const studentExamData = {};
+    const seenMarks = new Set(); // Track seen marks to prevent duplicates
+
     publishedMarks.forEach(mark => {
+      // Create a unique identifier for this mark entry
+      const markId = `${mark.student_id}__${mark.exam_type}__${mark.subject}`;
+      if (seenMarks.has(markId)) return; // Skip duplicate marks
+      seenMarks.add(markId);
+
       const key = `${mark.student_id}__${mark.exam_type}`;
       if (!studentExamData[key]) {
         studentExamData[key] = {
           student_id: mark.student_id,
           student_name: mark.student_name,
-          class_name: mark.class_name,
+          class_name: normalizeClassName(mark.class_name),
           section: mark.section,
           roll_number: mark.roll_number,
           exam_type: mark.exam_type,
@@ -104,15 +117,22 @@ Deno.serve(async (req) => {
 
     // Calculate overall statistics and generate progress cards
     const progressCards = [];
+    const uniqueStudents = new Map();
+
+    // Deduplicate students at the progress card level
     Object.values(studentData).forEach(student => {
+      const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
+      if (uniqueStudents.has(studentKey)) return; // Skip duplicate student entries
+      uniqueStudents.set(studentKey, true);
+
       const examPerformance = [];
       let totalMarksObtained = 0;
       let totalPossibleMarks = 0;
 
       Object.values(student.exams).forEach(examData => {
         const examKey = `${examData.exam_type}__${examData.class_name}__${examData.section}`;
-        const rankData = examRanks[examKey].find(r => r.student_id === student.student_id);
-        const percentage = (examData.total_marks / examData.max_marks) * 100;
+        const rankData = examRanks[examKey]?.find(r => r.student_id === student.student_id);
+        const percentage = examData.max_marks > 0 ? (examData.total_marks / examData.max_marks) * 100 : 0;
         const grade = calculateGrade(percentage);
 
         examPerformance.push({
@@ -133,14 +153,17 @@ Deno.serve(async (req) => {
       const overallPercentage = totalPossibleMarks > 0 ? (totalMarksObtained / totalPossibleMarks) * 100 : 0;
       const overallGrade = calculateGrade(overallPercentage);
 
-      // Calculate overall rank
-      const allStudentsTotal = Object.values(studentData).map(s => {
+      // Calculate overall rank (per class/section)
+      const classStudents = Object.values(studentData).filter(s => 
+        s.class_name === student.class_name && s.section === student.section
+      );
+      const classRankings = classStudents.map(s => {
         let total = 0;
         Object.values(s.exams).forEach(e => (total += e.total_marks));
         return { student_id: s.student_id, total };
-      });
-      allStudentsTotal.sort((a, b) => b.total - a.total);
-      const overallRank = allStudentsTotal.findIndex(s => s.student_id === student.student_id) + 1;
+      }).sort((a, b) => b.total - a.total);
+
+      const overallRank = classRankings.findIndex(s => s.student_id === student.student_id) + 1;
 
       progressCards.push({
         student_id: student.student_id,
@@ -162,18 +185,17 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Clear existing cards for this class/section/year and recreate
+    // Clear existing cards for this class/section/year to prevent duplicates
     const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
-      academic_year: academicYear,
-      class_name: classNameFilter || undefined,
-      section: sectionFilter || undefined
+      academic_year: academicYear
     });
 
     for (const card of existingCards) {
-      if (!classNameFilter || card.class_name === classNameFilter) {
-        if (!sectionFilter || card.section === sectionFilter) {
-          await base44.asServiceRole.entities.ProgressCard.delete(card.id);
-        }
+      const cardClassMatch = !classNameFilter || normalizeClassName(card.class_name) === normalizeClassName(classNameFilter);
+      const cardSectionMatch = !sectionFilter || card.section === sectionFilter;
+
+      if (cardClassMatch && cardSectionMatch) {
+        await base44.asServiceRole.entities.ProgressCard.delete(card.id);
       }
     }
 
