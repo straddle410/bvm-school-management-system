@@ -87,7 +87,8 @@ export default function DiaryList({ entries, canEdit, onEdit, onDelete, unreadId
             </div>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 }
