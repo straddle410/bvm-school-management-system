@@ -3,10 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getStaffSession, clearStaffSession } from '@/components/useStaffSession';
+import StudentExamSection from '@/components/exam/StudentExamSection';
+import TeacherExamCard from '@/components/exam/TeacherExamCard';
 import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
-  Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare
+  Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare,
+  Ticket, Calendar, TrendingUp, FileText
 } from 'lucide-react';
 
 export default function More() {
@@ -35,12 +38,11 @@ export default function More() {
   const permissions = user?.permissions || {};
 
   const allContentItems = [
-    { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance', permKey: 'attendance' },
-    { label: 'Marks Entry', sub: 'Enter class-wise marks', icon: ClipboardList, color: '#1e88e5', bg: '#e3f2fd', page: 'Marks', permKey: 'marks' },
-    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices', permKey: 'post_notices' },
-    { label: 'Messages', sub: 'Inbox & send messages', icon: MessageSquare, color: '#1a237e', bg: '#e8eaf6', page: 'Messaging', permKey: null },
-    { label: 'Diary', sub: 'Post class diary entries', icon: BookOpen, color: '#e91e63', bg: '#fce4ec', page: 'DiaryManagement', permKey: null },
-    { label: 'Homework', sub: 'Assign homework', icon: ClipboardList, color: '#f57c00', bg: '#fff3e0', page: 'HomeworkManage', permKey: null },
+   { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance', permKey: 'attendance' },
+   { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices', permKey: 'post_notices' },
+   { label: 'Messages', sub: 'Inbox & send messages', icon: MessageSquare, color: '#1a237e', bg: '#e8eaf6', page: 'Messaging', permKey: null },
+   { label: 'Diary', sub: 'Post class diary entries', icon: BookOpen, color: '#e91e63', bg: '#fce4ec', page: 'DiaryManagement', permKey: null },
+   { label: 'Homework', sub: 'Assign homework', icon: ClipboardList, color: '#f57c00', bg: '#fff3e0', page: 'HomeworkManage', permKey: null },
   ];
 
   const contentItems = isAdmin
@@ -48,14 +50,16 @@ export default function More() {
     : allContentItems.filter(item => !item.permKey || !!permissions[item.permKey]);
 
   const adminItems = [
-    { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
-    { label: 'Teachers', sub: 'Manage faculty', icon: Users, color: '#7e57c2', bg: '#ede7f6', page: 'Teachers' },
-    { label: 'Admissions', sub: 'Online admission management', icon: UserPlus, color: '#26a69a', bg: '#e0f2f1', page: 'Admissions' },
-    { label: 'Staff Management', sub: 'Create & manage staff accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'StaffManagement' },
-    { label: 'Approvals', sub: 'Bulk approve items', icon: ClipboardCheck, color: '#43a047', bg: '#e8f5e9', page: 'Approvals' },
-    { label: 'ID Cards', sub: 'Generate student ID cards', icon: LayoutDashboard, color: '#1a237e', bg: '#e8eaf6', page: 'IDCards' },
-    { label: 'Reports', sub: 'Analytics & reports', icon: BookOpen, color: '#e53935', bg: '#ffebee', page: 'Reports' },
-    { label: 'Settings', sub: 'School configuration', icon: Settings, color: '#78909c', bg: '#eceff1', page: 'Settings' },
+   { label: 'Exam Types', sub: 'Create & manage exams', icon: FileText, color: '#d32f2f', bg: '#ffebee', page: 'ExamManagement' },
+   { label: 'Exam Timetable', sub: 'Set exam schedule', icon: Calendar, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'timetable' },
+   { label: 'Hall Tickets', sub: 'Generate hall tickets', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', page: 'HallTicketManagement' },
+   { label: 'Marks Review', sub: 'Verify marks before publish', icon: ClipboardList, color: '#7b1fa2', bg: '#f3e5f5', page: 'MarksReview' },
+   { label: 'Results', sub: 'Publish exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
+   { label: 'Progress Cards', sub: 'Generate progress reports', icon: FileText, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'progress-cards' },
+   { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
+   { label: 'Staff Management', sub: 'Create & manage accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'StaffManagement' },
+   { label: 'Reports', sub: 'Analytics & insights', icon: BookOpen, color: '#78909c', bg: '#eceff1', page: 'ReportsManagement' },
+   { label: 'Settings', sub: 'School configuration', icon: Settings, color: '#78909c', bg: '#eceff1', page: 'Settings' },
   ];
 
   const supportItems = [
@@ -81,7 +85,10 @@ export default function More() {
     );
 
     if (onClick) return <div onClick={onClick} className="cursor-pointer">{inner}</div>;
-    if (item.page) return <Link to={createPageUrl(item.page)}>{inner}</Link>;
+    if (item.page) {
+      const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
+      return <Link to={url}>{inner}</Link>;
+    }
     return inner;
   };
 
@@ -149,15 +156,20 @@ export default function More() {
           </div>
 
           <div className="-mt-4 px-4 space-y-4">
-            {/* Create Content - Teachers & Staff */}
-            {isTeacher && (
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Create Content</p>
-                <div className="divide-y divide-gray-50">
-                  {contentItems.map(item => <MenuItem key={item.label} item={item} />)}
-                </div>
-              </div>
-            )}
+           {/* Exam Management - Teachers & Staff */}
+           {isTeacher && (
+             <TeacherExamCard />
+           )}
+
+           {/* Create Content - Teachers & Staff */}
+           {isTeacher && (
+             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+               <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Create Content</p>
+               <div className="divide-y divide-gray-50">
+                 {contentItems.map(item => <MenuItem key={item.label} item={item} />)}
+               </div>
+             </div>
+           )}
 
             {/* Admin Controls */}
             {isAdmin && (
