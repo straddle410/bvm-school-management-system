@@ -164,7 +164,7 @@ export default function Students() {
               {isAdmin && <StudentExport students={students} academicYear={academicYear} />}
               {isAdmin && (
                 <Button onClick={() => setShowBulkUpload(true)} variant="outline" className="rounded-xl">
-                  <Upload className="h-4 w-4 mr-1" /> Bulk Upload
+                  <Upload className="h-4 w-4 mr-1" /> Import
                 </Button>
               )}
               {isAdmin && (

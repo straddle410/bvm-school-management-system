@@ -83,7 +83,7 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Bulk Upload Students</DialogTitle>
+          <DialogTitle>Import Students</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
