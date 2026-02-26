@@ -421,31 +421,7 @@ export default function Marks() {
       />
 
       <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
-            {/* Mode Toggle - Admin Only */}
-            {isAdmin && (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant={viewMode === 'entry' ? 'default' : 'outline'}
-                      onClick={() => setViewMode('entry')}
-                      className="gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Entry
-                    </Button>
-                    <Button
-                      variant={viewMode === 'review' ? 'default' : 'outline'}
-                      onClick={() => setViewMode('review')}
-                      className="gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Review & Publish
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
 
             {/* Selection */}
             <Card className="border-0 shadow-sm">
