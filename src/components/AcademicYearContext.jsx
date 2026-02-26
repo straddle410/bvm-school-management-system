@@ -35,8 +35,8 @@ export function AcademicYearProvider({ children }) {
         const session = localStorage.getItem('staff_session');
         if (session) {
           const parsed = JSON.parse(session);
-          const role = parsed?.role || '';
-          if (role === 'Admin' || role === 'admin' || role === 'Principal' || role === 'principal') {
+          const role = parsed?.role?.toLowerCase() || '';
+          if (role === 'admin' || role === 'principal') {
             setIsAdmin(true); return;
           }
         }
@@ -46,7 +46,7 @@ export function AcademicYearProvider({ children }) {
         const isAuth = await base44.auth.isAuthenticated();
         if (isAuth) {
           const user = await base44.auth.me();
-          if (user?.role === 'admin' || user?.role === 'principal') { setIsAdmin(true); return; }
+          if (user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'principal') { setIsAdmin(true); return; }
         }
       } catch {}
       setIsAdmin(false);
