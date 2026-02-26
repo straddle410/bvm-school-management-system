@@ -184,23 +184,18 @@ Deno.serve(async (req) => {
       const overallPercentage = totalPossibleMarks > 0 ? (totalMarksObtained / totalPossibleMarks) * 100 : 0;
       const overallGrade = calculateGrade(overallPercentage);
 
-      // Get exam type details (for attendance range)
-      const examTypeRecords = await base44.asServiceRole.entities.ExamType.filter({
-        academic_year: academicYear
-      });
-
       // Fetch all attendance records for the student (filter by name and class)
       const allAttendanceRecords = await base44.asServiceRole.entities.Attendance.filter({
         class_name: student.class_name,
         section: student.section,
         academic_year: academicYear
       });
-      
+
       // Further filter by student name to match records
       const studentAttendance = allAttendanceRecords.filter(a => a.student_name === student.student_name);
-      
+
       console.log(`[DEBUG] Student: ${student.student_name}, Attendance Records Found: ${studentAttendance.length}`);
-      console.log(`[DEBUG] Attendance Range: ${attendanceStartDate} to ${attendanceEndDate}`);
+      console.log(`[DEBUG] Global Attendance Range: ${globalAttendanceStartDate} to ${globalAttendanceEndDate}`);
 
       // Helper function to calculate attendance for a date range
       const calculateAttendanceForRange = (records, startDate, endDate) => {
