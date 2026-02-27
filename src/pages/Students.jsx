@@ -240,12 +240,34 @@ export default function Students() {
           </div>
 
           {/* Filters */}
-          <StudentFilters
-            search={search} onSearch={setSearch}
-            filterClass={filterClass} onFilterClass={setFilterClass}
-            filterSection={filterSection} onFilterSection={setFilterSection}
-            filterStatus={filterStatus} onFilterStatus={setFilterStatus}
-          />
+           <StudentFilters
+             search={search} onSearch={setSearch}
+             filterClass={filterClass} onFilterClass={setFilterClass}
+             filterSection={filterSection} onFilterSection={setFilterSection}
+             filterStatus={filterStatus} onFilterStatus={setFilterStatus}
+           />
+
+          {/* Bulk Actions */}
+          {totalPending > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+              <label className="flex items-center gap-3 cursor-pointer flex-1">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === filtered.filter(s => s.status === 'Pending').length && selectedIds.size > 0}
+                  onChange={handleSelectAll}
+                  className="w-5 h-5 rounded cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-gray-700">
+                  Select Pending ({selectedIds.size}/{filtered.filter(s => s.status === 'Pending').length})
+                </span>
+              </label>
+              {selectedIds.size > 0 && (
+                <Button onClick={handleVerifySelected} className="bg-green-600 hover:bg-green-700 rounded-xl">
+                  <CheckCircle className="h-4 w-4 mr-1" /> Verify ({selectedIds.size})
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* List */}
           {isLoading ? (
