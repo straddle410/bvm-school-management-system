@@ -109,17 +109,23 @@ Deno.serve(async (req) => {
           return attDate >= periodStart && attDate <= periodEnd;
         });
 
-        const presentMonthRecords = allMonthRecords.filter(a => 
-          !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
-        );
+        // Use unique dates (same logic as progress card generation)
+        const uniqueMonthWorkingDates = new Set();
+        const monthFullDayDates = new Set();
+        const monthHalfDayDates = new Set();
 
-        const fullDays = presentMonthRecords.filter(a => a.attendance_type === 'full_day').length;
-        const halfDays = presentMonthRecords.filter(a => a.attendance_type === 'half_day').length;
+        allMonthRecords.forEach(a => {
+          if (!a.is_holiday && a.attendance_type !== 'holiday') {
+            uniqueMonthWorkingDates.add(a.date);
+            if (a.attendance_type === 'full_day') monthFullDayDates.add(a.date);
+            else if (a.attendance_type === 'half_day') monthHalfDayDates.add(a.date);
+          }
+        });
+
+        const workingDays = uniqueMonthWorkingDates.size;
+        const fullDays = monthFullDayDates.size;
+        const halfDays = monthHalfDayDates.size;
         const totalPresent = fullDays + (halfDays * 0.5);
-
-        const workingDays = allMonthRecords.filter(a => 
-          !a.is_holiday && a.attendance_type !== 'holiday'
-        ).length;
 
         const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
