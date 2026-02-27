@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdmissionLanding from './pages/AdmissionLanding';
 import Admissions from './pages/Admissions';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import Approvals from './pages/Approvals';
@@ -71,6 +72,7 @@ import More from './pages/More';
 import Notices from './pages/Notices';
 import ProductionReset from './pages/ProductionReset';
 import PublicAdmission from './pages/PublicAdmission';
+import PublicAdmissionForm from './pages/PublicAdmissionForm';
 import Quiz from './pages/Quiz';
 import Reports from './pages/Reports';
 import ReportsManagement from './pages/ReportsManagement';
@@ -90,12 +92,11 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import PublicAdmissionForm from './pages/PublicAdmissionForm';
-import AdmissionLanding from './pages/AdmissionLanding';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdmissionLanding": AdmissionLanding,
     "Admissions": Admissions,
     "AnalyticsDashboard": AnalyticsDashboard,
     "Approvals": Approvals,
@@ -120,6 +121,7 @@ export const PAGES = {
     "Notices": Notices,
     "ProductionReset": ProductionReset,
     "PublicAdmission": PublicAdmission,
+    "PublicAdmissionForm": PublicAdmissionForm,
     "Quiz": Quiz,
     "Reports": Reports,
     "ReportsManagement": ReportsManagement,
@@ -139,8 +141,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "PublicAdmissionForm": PublicAdmissionForm,
-    "AdmissionLanding": AdmissionLanding,
 }
 
 export const pagesConfig = {

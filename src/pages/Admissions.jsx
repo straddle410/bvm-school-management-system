@@ -66,6 +66,8 @@ export default function Admissions() {
     mutationFn: ({ id, data }) => base44.entities.AdmissionApplication.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['admissions']);
+      queryClient.invalidateQueries(['approvals-count']);
+      queryClient.invalidateQueries(['pending-approvals-count']);
       toast.success('Application updated');
     }
   });
