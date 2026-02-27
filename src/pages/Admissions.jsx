@@ -58,7 +58,7 @@ export default function Admissions() {
 
   const { data: admissions = [], isLoading } = useQuery({
     queryKey: ['admissions'],
-    queryFn: () => base44.entities.Admission.list('-created_date')
+    queryFn: () => base44.entities.AdmissionApplication.list('-created_date')
   });
 
   const updateMutation = useMutation({
