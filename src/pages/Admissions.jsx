@@ -415,30 +415,63 @@ export default function Admissions() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500">Date of Birth</p>
-                  <p className="font-semibold">{selectedAdmission.dob || '-'}</p>
+                <div>
+                  <Label>Date of Birth</Label>
+                  <Input 
+                    type="date"
+                    value={editData.dob || ''} 
+                    onChange={(e) => setEditData({...editData, dob: e.target.value})}
+                  />
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500">Gender</p>
-                  <p className="font-semibold">{selectedAdmission.gender}</p>
+                <div>
+                  <Label>Gender</Label>
+                  <Select value={editData.gender || ''} onValueChange={(value) => setEditData({...editData, gender: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl col-span-2">
-                  <p className="text-sm text-slate-500">Parent/Guardian</p>
-                  <p className="font-semibold">{selectedAdmission.parent_name}</p>
-                  <p className="text-sm text-slate-600">{selectedAdmission.parent_phone}</p>
-                  <p className="text-sm text-slate-600">{selectedAdmission.parent_email}</p>
+                <div className="col-span-2">
+                  <Label>Parent/Guardian Name</Label>
+                  <Input 
+                    value={editData.parent_name || ''} 
+                    onChange={(e) => setEditData({...editData, parent_name: e.target.value})}
+                  />
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl col-span-2">
-                  <p className="text-sm text-slate-500">Address</p>
-                  <p className="font-semibold">{selectedAdmission.address || '-'}</p>
+                <div>
+                  <Label>Parent Phone</Label>
+                  <Input 
+                    value={editData.parent_phone || ''} 
+                    onChange={(e) => setEditData({...editData, parent_phone: e.target.value})}
+                  />
                 </div>
-                {selectedAdmission.previous_school && (
-                  <div className="p-4 bg-slate-50 rounded-xl col-span-2">
-                    <p className="text-sm text-slate-500">Previous School</p>
-                    <p className="font-semibold">{selectedAdmission.previous_school}</p>
-                  </div>
-                )}
+                <div>
+                  <Label>Parent Email</Label>
+                  <Input 
+                    type="email"
+                    value={editData.parent_email || ''} 
+                    onChange={(e) => setEditData({...editData, parent_email: e.target.value})}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Address</Label>
+                  <Input 
+                    value={editData.address || ''} 
+                    onChange={(e) => setEditData({...editData, address: e.target.value})}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Previous School</Label>
+                  <Input 
+                    value={editData.previous_school || ''} 
+                    onChange={(e) => setEditData({...editData, previous_school: e.target.value})}
+                  />
+                </div>
               </div>
 
               {selectedAdmission.documents?.length > 0 && (
