@@ -44,6 +44,7 @@ const quickAccess = [
   { label: 'Notices',       icon: Bell,          gradient: 'from-sky-400 to-blue-500',        page: 'Notices' },
   { label: 'Messages',      icon: Mail,          gradient: 'from-green-400 to-emerald-500',   page: 'Messaging', staffOnly: true },
   { label: 'Diary',         icon: BookMarked,    gradient: 'from-pink-400 to-rose-500',       page: 'Diary' },
+  { label: 'Admissions',    icon: FileText,      gradient: 'from-lime-400 to-green-500',      page: 'PublicAdmission', guestOnly: true },
   { label: 'Student Login', icon: User,          gradient: 'from-orange-400 to-amber-500',    page: 'StudentLogin', guestOnly: true },
 ];
 
