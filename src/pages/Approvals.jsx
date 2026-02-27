@@ -130,7 +130,16 @@ export default function Approvals() {
     staleTime: 60000,
   });
 
-  const totalPending = pendingAdmissions.length + pendingMarks.length + pendingAttendance.length + pendingNotices.length;
+  const handleApproveStudent = async (studentId) => {
+    await base44.entities.Student.update(studentId, { 
+      status: 'Approved', 
+      approved_by: user.email 
+    });
+    queryClient.invalidateQueries(['approvals-students']);
+    toast.success('Student approved');
+  };
+
+  const totalPending = verifiedStudents.length + pendingAdmissions.length + pendingMarks.length + pendingAttendance.length + pendingNotices.length;
 
   return (
     <LoginRequired allowedRoles={['Admin', 'admin', 'Principal', 'principal']}>
