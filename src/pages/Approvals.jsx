@@ -10,8 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '@/components/ui/PageHeader';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { CheckCircle2, Clock, AlertCircle, FileText } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, FileText, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function Approvals() {
   const [user, setUser] = useState(null);
