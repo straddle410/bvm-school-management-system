@@ -62,7 +62,12 @@ export default function Admissions() {
 
   const { data: admissions = [], isLoading } = useQuery({
     queryKey: ['admissions'],
-    queryFn: () => base44.entities.AdmissionApplication.list('-created_date'),
+    queryFn: async () => {
+      const records = await base44.entities.AdmissionApplication.filter({
+        status: 'Pending'
+      }, '-created_date');
+      return records;
+    },
     retry: 1,
     retryDelay: 500
   });
