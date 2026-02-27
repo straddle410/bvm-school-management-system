@@ -29,6 +29,7 @@ const EMPTY_FORM = {
 export default function Students() {
   const { academicYear, setAcademicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('all');
   const [filterSection, setFilterSection] = useState('all');
@@ -40,6 +41,7 @@ export default function Students() {
   const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [photoFile, setPhotoFile] = useState(null);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showPastYearWarning, setShowPastYearWarning] = useState(false);
 
   const queryClient = useQueryClient();
 
