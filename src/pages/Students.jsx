@@ -104,6 +104,19 @@ export default function Students() {
   };
 
   const openAdd = async () => {
+    if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
+      setShowPastYearWarning(true);
+      return;
+    }
+    const newId = await generateStudentId();
+    setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
+    setIsEdit(false);
+    setPhotoFile(null);
+    setShowForm(true);
+  };
+
+  const handlePastYearConfirm = async () => {
+    setShowPastYearWarning(false);
     const newId = await generateStudentId();
     setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
     setIsEdit(false);
