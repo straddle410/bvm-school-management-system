@@ -149,13 +149,13 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-2">
-          {bottomNav.map((item) => {
+          {getBottomNav(isAdmin).map((item) => {
               const isActive = currentPageName === item.page;
               return (
                 <Link
                   key={item.page}
                   to={createPageUrl(item.page)}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all relative ${
                   isActive ? 'text-[#1a237e]' : 'text-gray-400'}`
                   }>
 
