@@ -286,17 +286,26 @@ export default function Students() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filtered.map(student => (
-                <StudentCard
-                  key={student.id}
-                  student={student}
-                  onView={() => openProfile(student)}
-                  onEdit={() => openEdit(student)}
-                  onArchive={() => handleArchive(student)}
-                  isAdmin={isAdmin}
-                />
-              ))}
-            </div>
+               {filtered.map(student => (
+                 <div key={student.id} className="flex gap-2 items-start">
+                   {student.status === 'Pending' && (
+                     <input
+                       type="checkbox"
+                       checked={selectedIds.has(student.id)}
+                       onChange={() => handleToggleSelect(student.id)}
+                       className="w-5 h-5 rounded mt-3 cursor-pointer flex-shrink-0"
+                     />
+                   )}
+                   <StudentCard
+                     student={student}
+                     onView={() => openProfile(student)}
+                     onEdit={() => openEdit(student)}
+                     onArchive={() => handleArchive(student)}
+                     isAdmin={isAdmin}
+                   />
+                 </div>
+               ))}
+             </div>
           )}
         </div>
 
