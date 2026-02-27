@@ -73,6 +73,7 @@ export default function Layout({ children, currentPageName }) {
       );
       if (currentUser) {
         currentUser.role = currentUser.role?.toLowerCase();
+        setIsAdmin(currentUser.role === 'admin' || currentUser.role === 'principal');
       }
       setUser(currentUser);
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
