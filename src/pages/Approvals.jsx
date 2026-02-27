@@ -82,7 +82,7 @@ export default function Approvals() {
 
   const convertToStudentMutation = useMutation({
     mutationFn: async (admission) => {
-      const { student_id, roll_no } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class });
+      const { student_id, roll_no } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class, academic_year: academicYear });
       const defaultPassword = 'BVM123';
       
       await base44.entities.Student.create({
