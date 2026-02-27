@@ -460,7 +460,7 @@ export default function Admissions() {
                     {convertToStudentMutation.isPending ? 'Converting...' : 'Convert to Student'}
                   </Button>
                 )}
-                {['Verified', 'Under Review', 'Submitted'].includes(selectedAdmission.status) && (
+                {selectedAdmission.status && !['Approved', 'Rejected', 'Converted'].includes(selectedAdmission.status) && (
                     <Button 
                       className="flex-1"
                       onClick={() => handleStatusChange(selectedAdmission, 'Approved')}
