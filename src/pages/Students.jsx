@@ -49,6 +49,10 @@ export default function Students() {
     const session = getStaffSession();
     if (session) setUser(session);
     else base44.auth.me().then(setUser).catch(() => {});
+    
+    base44.entities.SchoolProfile.list().then(profiles => {
+      if (profiles.length > 0) setSchoolProfile(profiles[0]);
+    }).catch(() => {});
   }, []);
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' ||
