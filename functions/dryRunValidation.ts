@@ -178,16 +178,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Expected: 10 working days, 8 full, 1 half, 1 absent, present = 8.5, pct = 85%
+    // Dynamic expected based on actual numDays
+    // Pattern: days 0..numDays-3 = full_day, day numDays-2 = half_day, day numDays-1 = absent
+    const fullCount   = numDays >= 2 ? numDays - 2 : 0;
+    const halfCount   = numDays >= 2 ? 1 : 0;
+    const absentCount = numDays >= 1 ? 1 : 0;
     const expectedAtt = {
       working_days: numDays,
-      full_days_present: numDays - 2,  // 8 full
-      half_days_present: 1,
-      absent_days: 1,
-      total_present_days: (numDays - 2) + 0.5,
-      attendance_percentage: Math.round(((numDays - 2 + 0.5) / numDays) * 100)
+      full_days_present: fullCount,
+      half_days_present: halfCount,
+      absent_days: absentCount,
+      total_present_days: Math.round((fullCount + halfCount * 0.5) * 100) / 100,
+      attendance_percentage: Math.round(((fullCount + halfCount * 0.5) / numDays) * 100)
     };
-    step('Step 1C: Create Attendance', 'PASS', { students: 3, days_per_student: numDays, pattern: 'full×8, half×1, absent×1', expected: expectedAtt });
+    step('Step 1C: Create Attendance', 'PASS', { students: 3, days_per_student: numDays, pattern: `full×${fullCount}, half×${halfCount}, absent×${absentCount}`, expected: expectedAtt });
 
     // ══════════════════════════════════════════════
     // STEP 1D: Enter + Publish marks
