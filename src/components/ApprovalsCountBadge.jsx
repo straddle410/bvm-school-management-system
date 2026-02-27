@@ -7,7 +7,7 @@ export function useApprovalsCount(academicYear, enabled = true) {
     queryKey: ['approvals-count-admissions'],
     queryFn: async () => {
       try {
-        const items = await base44.entities.Admission.filter({ status: 'Verified' });
+        const items = await base44.entities.AdmissionApplication.filter({ status: 'Verified' });
         return items.length;
       } catch { return 0; }
     },
