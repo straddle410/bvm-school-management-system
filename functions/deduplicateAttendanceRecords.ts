@@ -50,16 +50,17 @@ Deno.serve(async (req) => {
       return 0;
     };
 
+    // Collect all IDs to delete
+    const allToDelete = [];
+
     for (const { key, records } of duplicates) {
       // Sort: highest priority first, then prefer 'Approved' status, then newest created
       records.sort((a, b) => {
         const pDiff = priority(b) - priority(a);
         if (pDiff !== 0) return pDiff;
-        // same type: prefer Approved status
         const aApproved = a.status === 'Approved' ? 1 : 0;
         const bApproved = b.status === 'Approved' ? 1 : 0;
         if (bApproved !== aApproved) return bApproved - aApproved;
-        // then newest
         return new Date(b.created_date) - new Date(a.created_date);
       });
 
@@ -73,9 +74,17 @@ Deno.serve(async (req) => {
         deleted_types: toDelete.map(r => `${r.attendance_type}(${r.status})`)
       });
 
-      for (const record of toDelete) {
-        await base44.asServiceRole.entities.Attendance.delete(record.id);
-        deletedCount++;
+      toDelete.forEach(r => allToDelete.push(r.id));
+    }
+
+    // Delete in batches of 5 with delay to avoid rate limits
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < allToDelete.length; i += BATCH_SIZE) {
+      const batch = allToDelete.slice(i, i + BATCH_SIZE);
+      await Promise.all(batch.map(id => base44.asServiceRole.entities.Attendance.delete(id)));
+      deletedCount += batch.length;
+      if (i + BATCH_SIZE < allToDelete.length) {
+        await new Promise(r => setTimeout(r, 300));
       }
     }
 
