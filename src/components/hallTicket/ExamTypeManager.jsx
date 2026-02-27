@@ -130,10 +130,9 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate date ranges
-    const dateErrors = validateDateRange();
-    if (dateErrors.some(err => err.includes('cannot be after'))) {
-      toast.error(dateErrors[0]);
+    const { errors } = validateDateRange();
+    if (errors.length > 0) {
+      toast.error(errors[0]);
       return;
     }
 
