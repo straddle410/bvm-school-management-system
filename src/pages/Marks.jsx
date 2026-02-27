@@ -69,6 +69,9 @@ export default function Marks() {
 
   useEffect(() => {
     setUser(getStaffSession());
+    base44.entities.SchoolProfile.list().then(profiles => {
+      if (profiles.length > 0) setSchoolProfile(profiles[0]);
+    }).catch(() => {});
   }, []);
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
