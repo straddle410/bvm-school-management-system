@@ -53,14 +53,18 @@ export default function Admissions() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    base44.auth.me().then(setUser).catch(() => {
+      // User not authenticated, silently fail
+    });
     // Clear pending applications badge when page opens
     queryClient.invalidateQueries(['pending-admissions-count']);
   }, [queryClient]);
 
   const { data: admissions = [], isLoading } = useQuery({
     queryKey: ['admissions'],
-    queryFn: () => base44.entities.AdmissionApplication.list('-created_date')
+    queryFn: () => base44.entities.AdmissionApplication.list('-created_date'),
+    retry: 1,
+    retryDelay: 500
   });
 
   const updateMutation = useMutation({
