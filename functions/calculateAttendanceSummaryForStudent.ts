@@ -130,6 +130,7 @@ Deno.serve(async (req) => {
       const monthFullDays = monthFullDayDates.size;
       const monthHalfDays = monthHalfDayDates.size;
       const monthTotalPresent = monthFullDays + (monthHalfDays * 0.5);
+      const monthAbsent = monthWorkingDays - monthFullDays - monthHalfDays;
       const monthPercentage = monthWorkingDays > 0 ? Math.round((monthTotalPresent / monthWorkingDays) * 100) : 0;
 
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
