@@ -201,6 +201,9 @@ export default function Marks() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
+        throw new Error('PAST_YEAR_WARNING');
+      }
       const promises = [];
       let enteredCount = 0;
 
