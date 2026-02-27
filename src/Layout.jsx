@@ -12,12 +12,12 @@ import { getProxiedImageUrl } from '@/components/imageProxy';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
-const bottomNav = [
+const getBottomNav = (isAdmin) => [
 { name: 'Home', icon: Home, page: 'Dashboard' },
 { name: 'Marks', icon: BookOpen, page: 'Marks' },
 { name: 'Notices', icon: Bell, page: 'Notices' },
 { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
-{ name: 'Calendar', icon: Calendar, page: 'Calendar' },
+...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
 { name: 'More', icon: MoreHorizontal, page: 'More' }];
 
 
