@@ -242,7 +242,7 @@ export default function Admissions() {
                 <CheckCircle className="mr-2 h-4 w-4 text-blue-600" /> Verify
               </DropdownMenuItem>
             )}
-            {row.status === 'Verified' && (
+            {['Verified', 'Under Review', 'Submitted'].includes(row.status) && (
               <DropdownMenuItem onClick={() => handleStatusChange(row, 'Approved')}>
                 <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Approve
               </DropdownMenuItem>
