@@ -89,8 +89,21 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     }
   });
 
+  // Parse academic year date boundaries (e.g. "2024-25" → Apr 1 2024 to Mar 31 2025)
+  const getAcademicYearBounds = (year) => {
+    if (!year) return null;
+    const [startYearStr] = year.split('-');
+    const startYear = parseInt(startYearStr);
+    if (isNaN(startYear)) return null;
+    return {
+      start: new Date(`${startYear}-04-01`),
+      end: new Date(`${startYear + 1}-03-31`)
+    };
+  };
+
   const validateDateRange = () => {
     const errors = [];
+    const warnings = [];
     
     if (formData.attendance_range_start && formData.attendance_range_end) {
       const start = new Date(formData.attendance_range_start);
@@ -100,14 +113,18 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
         errors.push('Start date cannot be after end date');
       }
 
-      // Check if dates are within reasonable academic year bounds
-      const currentYear = new Date().getFullYear();
-      if (start.getFullYear() < currentYear - 1 || end.getFullYear() > currentYear + 1) {
-        errors.push('⚠️ Date range extends beyond typical academic year boundaries');
+      // Check if dates are within the selected academic year
+      const bounds = getAcademicYearBounds(academicYear);
+      if (bounds) {
+        const startOk = start >= bounds.start && start <= bounds.end;
+        const endOk = end >= bounds.start && end <= bounds.end;
+        if (!startOk || !endOk) {
+          warnings.push(`⚠️ Attendance range must be within ${academicYear} (${bounds.start.toLocaleDateString('en-IN')} – ${bounds.end.toLocaleDateString('en-IN')}). Dates outside this range will be blocked by the server.`);
+        }
       }
     }
 
-    return errors;
+    return { errors, warnings };
   };
 
   const handleSubmit = async (e) => {
