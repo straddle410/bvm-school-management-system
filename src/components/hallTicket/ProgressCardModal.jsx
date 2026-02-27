@@ -160,7 +160,8 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                   {card.attendance_summary && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <p className="text-xs font-semibold text-gray-600 mb-3 uppercase">Attendance ({card.attendance_summary.range_start} to {card.attendance_summary.range_end})</p>
-                      <div className="grid grid-cols-4 gap-3">
+                      {/* Summary row */}
+                      <div className="grid grid-cols-4 gap-3 mb-4">
                         <div className="bg-blue-50 p-2 rounded">
                           <p className="text-xs text-gray-600">Working Days</p>
                           <p className="text-lg font-bold text-gray-900">{card.attendance_summary.working_days}</p>
@@ -171,13 +172,49 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                         </div>
                         <div className="bg-red-50 p-2 rounded">
                           <p className="text-xs text-gray-600">Days Absent</p>
-                          <p className="text-lg font-bold text-red-600">{card.attendance_summary.working_days - card.attendance_summary.total_present_days}</p>
+                          <p className="text-lg font-bold text-red-600">{(card.attendance_summary.working_days - card.attendance_summary.total_present_days).toFixed(1)}</p>
                         </div>
                         <div className="bg-purple-50 p-2 rounded">
                           <p className="text-xs text-gray-600">Attendance %</p>
                           <p className="text-lg font-bold text-purple-600">{card.attendance_summary.attendance_percentage}%</p>
                         </div>
                       </div>
+                      {/* Month-wise breakdown */}
+                      {card.attendance_summary.month_wise_breakdown?.filter(m => m.working_days > 0).length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">Month-wise Breakdown</p>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs border border-gray-200 rounded">
+                              <thead className="bg-gray-100">
+                                <tr>
+                                  <th className="text-left p-2 font-semibold text-gray-700 border-b border-gray-200">Month</th>
+                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Working Days</th>
+                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Full Days</th>
+                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Half Days</th>
+                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Present</th>
+                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Attendance %</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {card.attendance_summary.month_wise_breakdown.filter(m => m.working_days > 0).map((m, midx) => (
+                                  <tr key={midx} className={midx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                    <td className="p-2 font-medium text-gray-800">{m.month_display || m.month}</td>
+                                    <td className="p-2 text-center text-gray-700">{m.working_days}</td>
+                                    <td className="p-2 text-center text-gray-700">{m.full_days_present}</td>
+                                    <td className="p-2 text-center text-gray-700">{m.half_days_present}</td>
+                                    <td className="p-2 text-center font-semibold text-green-700">{m.total_present}</td>
+                                    <td className="p-2 text-center">
+                                      <span className={`font-semibold ${m.attendance_percentage >= 75 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {m.attendance_percentage}%
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
