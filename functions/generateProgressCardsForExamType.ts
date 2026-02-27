@@ -1,10 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  const start = new Date(academicYearStart);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(academicYearEnd);
+  end.setUTCHours(23, 59, 59, 999);
+  return d >= start && d <= end;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify user is authenticated
     let user;
     try {
       user = await base44.auth.me();
@@ -21,6 +30,13 @@ Deno.serve(async (req) => {
     if (!academicYear || !examTypeId) {
       return Response.json({ error: 'Academic year and exam type ID are required' }, { status: 400 });
     }
+
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
+    if (yearConfigs.length === 0) {
+      return Response.json({ error: `Academic year "${academicYear}" is not configured in the system.` }, { status: 400 });
+    }
+    const yearConfig = yearConfigs[0];
 
     // Fetch the exam type to get attendance range
     const examTypes = await base44.asServiceRole.entities.ExamType.filter({
