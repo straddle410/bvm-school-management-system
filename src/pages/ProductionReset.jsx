@@ -40,10 +40,21 @@ export default function ProductionReset() {
 
   const deleteEntity = async (entityName) => {
     setDeleting(d => ({ ...d, [entityName]: true }));
-    const res = await base44.functions.invoke('productionResetEntity', { entityName });
-    setResults(r => ({ ...r, [entityName]: res.data }));
+    let totalDeleted = 0;
+    let clean = false;
+
+    // Loop: keep deleting batches until clean
+    while (!clean) {
+      const res = await base44.functions.invoke('productionResetEntity', { entityName });
+      const data = res.data;
+      totalDeleted += data?.deleted ?? 0;
+      clean = data?.clean === true;
+      setResults(r => ({ ...r, [entityName]: { ...data, deleted: totalDeleted } }));
+      if (!clean) await new Promise(r => setTimeout(r, 800)); // brief pause between batches
+    }
+
     setDeleting(d => ({ ...d, [entityName]: false }));
-    // Refresh status
+    // Refresh status counts
     const statusRes = await base44.functions.invoke('productionResetEntity', {});
     setStatus(statusRes.data);
   };
