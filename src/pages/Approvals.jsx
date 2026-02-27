@@ -69,6 +69,37 @@ export default function Approvals() {
     }
   });
 
+  const updateAdmissionMutation = useMutation({
+    mutationFn: async (data) => {
+      await base44.entities.AdmissionApplication.update(selectedAdmission.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['approvals-admissions']);
+      setShowEditSheet(false);
+      toast.success('Admission updated');
+    }
+  });
+
+  const handleEditAdmission = (admission) => {
+    setSelectedAdmission(admission);
+    setEditData({
+      student_name: admission.student_name,
+      dob: admission.dob,
+      gender: admission.gender,
+      parent_name: admission.parent_name,
+      parent_phone: admission.parent_phone,
+      parent_email: admission.parent_email,
+      address: admission.address,
+      previous_school: admission.previous_school,
+      applying_for_class: admission.applying_for_class
+    });
+    setShowEditSheet(true);
+  };
+
+  const handleSaveChanges = () => {
+    updateAdmissionMutation.mutate(editData);
+  };
+
   // Fetch verified students (ready for approval)
   const { data: verifiedStudents = [] } = useQuery({
     queryKey: ['approvals-students', academicYear],
