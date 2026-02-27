@@ -15,7 +15,7 @@ import StudentExport from '@/components/students/StudentExport';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Upload } from 'lucide-react';
+import { Plus, Users, Upload, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const EMPTY_FORM = {
