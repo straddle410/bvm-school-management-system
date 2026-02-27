@@ -2,7 +2,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// Allowed entities for reset (whitelist for safety)
 const ALLOWED_ENTITIES = [
   'ProgressCard',
   'HallTicket',
@@ -24,15 +23,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { entityName, dryRun } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { entityName } = body;
 
+    // Status check (no entityName)
     if (!entityName) {
-      // Return status of all entities (read-only)
       const status = {};
       for (const e of ALLOWED_ENTITIES) {
         const records = await base44.asServiceRole.entities[e].list(undefined, 200);
         status[e] = records?.length ?? 0;
-        await sleep(100);
+        await sleep(150);
       }
       const [students, teachers, academicYears] = await Promise.all([
         base44.asServiceRole.entities.Student.list(undefined, 5),
@@ -43,9 +43,9 @@ Deno.serve(async (req) => {
         mode: 'status',
         transactional_entities: status,
         protected_entities: {
-          Student: students?.length ?? 'ok',
-          Teacher: teachers?.length ?? 'ok',
-          AcademicYear: academicYears?.length ?? 'ok',
+          Student: students?.length ?? 0,
+          Teacher: teachers?.length ?? 0,
+          AcademicYear: academicYears?.length ?? 0,
         }
       });
     }
@@ -54,50 +54,46 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Entity "${entityName}" is not in the allowed reset list.` }, { status: 400 });
     }
 
-    // Fetch all IDs in batches
-    let allIds = [];
-    let offset = 0;
-    const batchSize = 200;
+    // Count before deletion
+    let totalFound = 0;
+    let totalDeleted = 0;
+    let page = 0;
+    const pageSize = 50;
 
-    while (true) {
-      const batch = await base44.asServiceRole.entities[entityName].list(undefined, batchSize, offset);
+    // Delete in pages: fetch a page, delete all, repeat until none left
+    let attempts = 0;
+    const maxAttempts = 200; // safety cap
+
+    while (attempts < maxAttempts) {
+      await sleep(600); // conservative delay between pages to avoid rate limits
+
+      const batch = await base44.asServiceRole.entities[entityName].list(undefined, pageSize);
       if (!batch || batch.length === 0) break;
-      allIds = allIds.concat(batch.map(r => r.id));
-      if (batch.length < batchSize) break;
-      offset += batchSize;
-      await sleep(150);
-    }
 
-    const found = allIds.length;
+      totalFound += batch.length;
 
-    if (dryRun) {
-      return Response.json({ entityName, found, deleted: 0, dry_run: true, message: `Would delete ${found} records` });
-    }
-
-    let deleted = 0;
-    const errors = [];
-
-    for (const id of allIds) {
-      try {
-        await base44.asServiceRole.entities[entityName].delete(id);
-        deleted++;
-      } catch (e) {
-        errors.push({ id, error: e.message });
+      for (const record of batch) {
+        await base44.asServiceRole.entities[entityName].delete(record.id);
+        totalDeleted++;
+        await sleep(200); // 200ms between each delete
       }
-      // Small delay every 10 deletions
-      if (deleted % 10 === 0) await sleep(100);
+
+      attempts++;
+
+      // If we got fewer than pageSize, we've likely cleared everything
+      if (batch.length < pageSize) break;
     }
 
-    // Spot-check remaining
+    // Final verification
+    await sleep(500);
     const remaining = await base44.asServiceRole.entities[entityName].list(undefined, 10);
     const remainingCount = remaining?.length ?? 0;
 
     return Response.json({
       entityName,
-      found,
-      deleted,
+      found: totalFound,
+      deleted: totalDeleted,
       remaining_spot_check: remainingCount,
-      errors: errors.length > 0 ? errors : undefined,
       clean: remainingCount === 0,
       performed_by: user.email,
       timestamp: new Date().toISOString()
