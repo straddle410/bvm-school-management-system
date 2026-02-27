@@ -15,25 +15,38 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch all students and find the highest number
-    const students = await base44.asServiceRole.entities.Student.list();
+    const { academicYear } = await req.json();
+
+    if (!academicYear) {
+      return Response.json({ error: 'Academic year is required' }, { status: 400 });
+    }
+
+    // Extract year prefix from academic year (e.g., "2025-26" → "25", "2026-27" → "26")
+    const yearPrefix = academicYear.substring(2, 4);
+    const idPrefix = `S${yearPrefix}`;
+
+    // Fetch all students for this academic year
+    const students = await base44.asServiceRole.entities.Student.filter({
+      academic_year: academicYear
+    });
     
-    let maxNumber = 26000; // Starting point
+    let maxNumber = 0;
     
     students.forEach(student => {
-      if (student.student_id && student.student_id.startsWith('S')) {
-        const numPart = parseInt(student.student_id.substring(1));
+      if (student.student_id && student.student_id.startsWith(idPrefix)) {
+        const numPart = parseInt(student.student_id.substring(idPrefix.length));
         if (!isNaN(numPart) && numPart > maxNumber) {
           maxNumber = numPart;
         }
       }
     });
 
-    const nextId = `S${maxNumber + 1}`;
+    const nextSequence = maxNumber + 1;
+    const nextId = `${idPrefix}${String(nextSequence).padStart(3, '0')}`;
     
     return Response.json({ 
       next_student_id: nextId,
-      message: `Next student ID will be ${nextId}`
+      message: `Next student ID for ${academicYear} will be ${nextId}`
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
