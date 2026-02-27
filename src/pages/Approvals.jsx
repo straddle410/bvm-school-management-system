@@ -82,7 +82,8 @@ export default function Approvals() {
 
   const convertToStudentMutation = useMutation({
     mutationFn: async (admission) => {
-      const { student_id, roll_no } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class, academic_year: academicYear });
+      const response = await base44.functions.invoke('generateNextStudentId', { academicYear: academicYear });
+      const student_id = response.data.next_student_id;
       const defaultPassword = 'BVM123';
       
       await base44.entities.Student.create({
@@ -92,7 +93,7 @@ export default function Approvals() {
         name: admission.student_name,
         class_name: admission.applying_for_class,
         section: 'A',
-        roll_no,
+        roll_no: 0,
         photo_url: admission.photo_url,
         parent_name: admission.parent_name,
         parent_phone: admission.parent_phone,
@@ -100,7 +101,7 @@ export default function Approvals() {
         dob: admission.dob,
         gender: admission.gender,
         address: admission.address,
-        academic_year: admission.academic_year || '2024-25',
+        academic_year: academicYear,
         admission_date: format(new Date(), 'yyyy-MM-dd'),
         status: 'Approved'
       });
