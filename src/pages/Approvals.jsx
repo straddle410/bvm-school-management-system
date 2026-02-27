@@ -1,372 +1,248 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import LoginRequired from '@/components/LoginRequired';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getStaffSession } from '@/components/useStaffSession';
+import { useAcademicYear } from '@/components/AcademicYearContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '@/components/ui/PageHeader';
-import StatusBadge from '@/components/ui/StatusBadge';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircle2, XCircle, Users, BookOpen, ClipboardCheck, 
-  Image, HelpCircle, Calendar, MoreHorizontal
-} from 'lucide-react';
-import { toast } from "sonner";
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { CheckCircle2, Clock, AlertCircle, FileText } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function Approvals() {
   const [user, setUser] = useState(null);
-  const [selectedItems, setSelectedItems] = useState({});
-  const [activeTab, setActiveTab] = useState('students');
-  
-  const queryClient = useQueryClient();
+  const { academicYear } = useAcademicYear();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    setUser(getStaffSession());
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list()
+  // Fetch pending admissions
+  const { data: pendingAdmissions = [] } = useQuery({
+    queryKey: ['approvals-admissions', academicYear],
+    queryFn: async () => {
+      try {
+        return await base44.entities.Admission.filter({ 
+          status: 'Verified',
+          academic_year: academicYear 
+        }, '-created_date');
+      } catch { return []; }
+    },
+    staleTime: 60000,
   });
 
-  const { data: marks = [] } = useQuery({
-    queryKey: ['marks'],
-    queryFn: () => base44.entities.Marks.list()
+  // Fetch pending marks for approval
+  const { data: pendingMarks = [] } = useQuery({
+    queryKey: ['approvals-marks', academicYear],
+    queryFn: async () => {
+      try {
+        return await base44.entities.Marks.filter({ 
+          status: 'Verified',
+          academic_year: academicYear 
+        }, '-created_date');
+      } catch { return []; }
+    },
+    staleTime: 60000,
   });
 
-  const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance'],
-    queryFn: () => base44.entities.Attendance.list()
+  // Fetch pending attendance for approval
+  const { data: pendingAttendance = [] } = useQuery({
+    queryKey: ['approvals-attendance', academicYear],
+    queryFn: async () => {
+      try {
+        return await base44.entities.Attendance.filter({ 
+          status: 'Verified',
+          academic_year: academicYear 
+        }, '-date');
+      } catch { return []; }
+    },
+    staleTime: 60000,
   });
 
-  const { data: admissions = [] } = useQuery({
-    queryKey: ['admissions'],
-    queryFn: () => base44.entities.Admission.list()
+  // Fetch pending notices for approval
+  const { data: pendingNotices = [] } = useQuery({
+    queryKey: ['approvals-notices'],
+    queryFn: async () => {
+      try {
+        return await base44.entities.Notice.filter({ 
+          status: 'Submitted'
+        }, '-created_date');
+      } catch { return []; }
+    },
+    staleTime: 60000,
   });
 
-  const { data: photos = [] } = useQuery({
-    queryKey: ['gallery-photos'],
-    queryFn: () => base44.entities.GalleryPhoto.list()
-  });
-
-  const { data: quizzes = [] } = useQuery({
-    queryKey: ['quizzes'],
-    queryFn: () => base44.entities.Quiz.list()
-  });
-
-  const { data: events = [] } = useQuery({
-    queryKey: ['calendar-events'],
-    queryFn: () => base44.entities.CalendarEvent.list()
-  });
-
-  const { data: notices = [] } = useQuery({
-    queryKey: ['notices'],
-    queryFn: () => base44.entities.Notice.list()
-  });
-
-  const { data: examTypes = [] } = useQuery({
-    queryKey: ['exam-types'],
-    queryFn: () => base44.entities.ExamType.list()
-  });
-
-  // Filter pending items
-  const pendingStudents = students.filter(s => ['Pending', 'Verified', 'Approved'].includes(s.status) && s.status !== 'Published');
-  const pendingMarks = marks.filter(m => ['Draft', 'Submitted', 'Verified', 'Approved'].includes(m.status) && m.status !== 'Published');
-  const pendingAttendance = attendance.filter(a => ['Taken', 'Submitted', 'Verified', 'Approved'].includes(a.status) && a.status !== 'Published');
-  const pendingAdmissions = admissions.filter(a => ['Submitted', 'Under Review', 'Verified'].includes(a.status));
-  const pendingPhotos = photos.filter(p => ['Pending', 'Verified', 'Approved'].includes(p.status) && p.status !== 'Published');
-  const pendingQuizzes = quizzes.filter(q => ['Draft', 'Submitted', 'Approved'].includes(q.status) && q.status !== 'Published');
-  const pendingEvents = events.filter(e => e.status === 'Pending');
-  const pendingExams = examTypes.filter(e => ['Draft', 'Verified'].includes(e.status) && e.status !== 'Published');
-  const pendingNotices = notices.filter(n => ['Draft', 'Submitted'].includes(n.status));
-
-  const getNextStatus = (currentStatus) => {
-    const workflow = {
-      'Pending': 'Verified',
-      'Verified': 'Approved',
-      'Approved': 'Published',
-      'Draft': 'Submitted',
-      'Submitted': 'Verified',
-      'Taken': 'Submitted',
-      'Under Review': 'Verified'
-    };
-    return workflow[currentStatus] || 'Published';
-  };
-
-  const bulkApprove = async (entityName, items, statusField = 'status') => {
-    const promises = items.map(item => {
-      const newStatus = getNextStatus(item.status);
-      return base44.entities[entityName].update(item.id, { [statusField]: newStatus });
-    });
-    await Promise.all(promises);
-    queryClient.invalidateQueries();
-    toast.success(`${items.length} items approved`);
-    setSelectedItems({});
-  };
-
-  const bulkPublish = async (entityName, items) => {
-    const promises = items.map(item => {
-      return base44.entities[entityName].update(item.id, { status: 'Published' });
-    });
-    await Promise.all(promises);
-    queryClient.invalidateQueries();
-    toast.success(`${items.length} items published`);
-    setSelectedItems({});
-  };
-
-  const toggleSelect = (id) => {
-    setSelectedItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
-  const selectAll = (items) => {
-    const newSelected = {};
-    items.forEach(item => {
-      newSelected[item.id] = true;
-    });
-    setSelectedItems(newSelected);
-  };
-
-  const clearSelection = () => {
-    setSelectedItems({});
-  };
-
-  const getSelectedItems = (items) => {
-    return items.filter(item => selectedItems[item.id]);
-  };
-
-  const tabs = [
-    { value: 'students', label: 'Students', count: pendingStudents.length, icon: Users },
-    { value: 'admissions', label: 'Admissions', count: pendingAdmissions.length, icon: Users },
-    { value: 'marks', label: 'Marks', count: pendingMarks.length, icon: BookOpen },
-    { value: 'attendance', label: 'Attendance', count: pendingAttendance.length, icon: ClipboardCheck },
-    { value: 'photos', label: 'Gallery', count: pendingPhotos.length, icon: Image },
-    { value: 'quizzes', label: 'Quizzes', count: pendingQuizzes.length, icon: HelpCircle },
-    { value: 'events', label: 'Events', count: pendingEvents.length, icon: Calendar },
-    { value: 'exams', label: 'Exam Types', count: pendingExams.length, icon: BookOpen },
-    { value: 'notices', label: 'Notices', count: pendingNotices.length, icon: MoreHorizontal },
-  ];
-
-  const totalPending = tabs.reduce((sum, tab) => sum + tab.count, 0);
-
-  const renderApprovalList = (items, entityName, renderItem) => {
-    const selected = getSelectedItems(items);
-    
-    return (
-      <div className="space-y-4">
-        {items.length > 0 && (
-          <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => selectAll(items)}>
-                Select All
-              </Button>
-              <Button variant="outline" size="sm" onClick={clearSelection}>
-                Clear
-              </Button>
-              <span className="text-sm text-slate-500">
-                {selected.length} of {items.length} selected
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                size="sm"
-                disabled={selected.length === 0}
-                onClick={() => bulkApprove(entityName, selected)}
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Approve Selected
-              </Button>
-              <Button 
-                size="sm"
-                variant="default"
-                className="bg-green-600 hover:bg-green-700"
-                disabled={selected.length === 0}
-                onClick={() => bulkPublish(entityName, selected)}
-              >
-                Publish Selected
-              </Button>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          {items.map(item => (
-            <Card 
-              key={item.id} 
-              className={`border-0 shadow-sm transition-all ${selectedItems[item.id] ? 'ring-2 ring-blue-500' : ''}`}
-            >
-              <CardContent className="p-4 flex items-center gap-4">
-                <Checkbox
-                  checked={selectedItems[item.id] || false}
-                  onCheckedChange={() => toggleSelect(item.id)}
-                />
-                <div className="flex-1">
-                  {renderItem(item)}
-                </div>
-                <StatusBadge status={item.status} />
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => bulkApprove(entityName, [item])}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => bulkPublish(entityName, [item])}
-                  >
-                    Publish
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {items.length === 0 && (
-            <div className="py-16 text-center">
-              <CheckCircle2 className="h-12 w-12 text-green-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700">All Caught Up!</h3>
-              <p className="text-slate-500 mt-1">No pending items to approve</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const totalPending = pendingAdmissions.length + pendingMarks.length + pendingAttendance.length + pendingNotices.length;
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Approvals">
-      <div className="min-h-screen bg-slate-50">
-      <PageHeader 
-        title="Bulk Approvals"
-        subtitle={`${totalPending} items pending approval`}
-      />
+    <LoginRequired allowedRoles={['Admin', 'admin', 'Principal', 'principal']}>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <PageHeader 
+          title="Approvals" 
+          subtitle={`${totalPending} pending approval${totalPending !== 1 ? 's' : ''}`}
+        />
 
-      <div className="p-4 lg:p-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-white border shadow-sm flex-wrap h-auto p-2 gap-2">
-            {tabs.map(tab => (
-              <TabsTrigger 
-                key={tab.value} 
-                value={tab.value}
-                className="data-[state=active]:bg-blue-50"
-              >
-                <tab.icon className="h-4 w-4 mr-2" />
-                {tab.label}
-                {tab.count > 0 && (
-                  <Badge className="ml-2 bg-amber-100 text-amber-700 border-0">
-                    {tab.count}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <main className="flex-1 overflow-y-auto px-4 py-6">
+          {totalPending === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">All Caught Up!</h3>
+              <p className="text-gray-600">No pending approvals at the moment.</p>
+            </div>
+          ) : (
+            <Tabs defaultValue="admissions" className="space-y-4">
+              <TabsList className="grid grid-cols-4">
+                <TabsTrigger value="admissions" className="relative">
+                  Admissions
+                  {pendingAdmissions.length > 0 && (
+                    <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
+                      {pendingAdmissions.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="marks" className="relative">
+                  Marks
+                  {pendingMarks.length > 0 && (
+                    <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
+                      {pendingMarks.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="attendance" className="relative">
+                  Attendance
+                  {pendingAttendance.length > 0 && (
+                    <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
+                      {pendingAttendance.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="notices" className="relative">
+                  Notices
+                  {pendingNotices.length > 0 && (
+                    <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
+                      {pendingNotices.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
 
-          <div className="mt-6">
-            <TabsContent value="students">
-              {renderApprovalList(pendingStudents, 'Student', (item) => (
-                <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-slate-500">Class {item.class_name}-{item.section}</p>
-                </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="admissions">
-              {renderApprovalList(pendingAdmissions, 'Admission', (item) => (
-                <div>
-                  <p className="font-medium">{item.student_name}</p>
-                  <p className="text-sm text-slate-500">Applying for Class {item.applying_for_class}</p>
-                </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="marks">
-              {renderApprovalList(pendingMarks, 'Marks', (item) => (
-                <div>
-                  <p className="font-medium">{item.student_name}</p>
-                  <p className="text-sm text-slate-500">
-                    {item.subject} - {item.exam_type} | {item.marks_obtained}/{item.max_marks}
-                  </p>
-                </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="attendance">
-              {renderApprovalList(pendingAttendance, 'Attendance', (item) => (
-                <div>
-                  <p className="font-medium">{item.student_name}</p>
-                  <p className="text-sm text-slate-500">
-                    {item.date} | Class {item.class_name}-{item.section} | 
-                    {item.is_present ? ' Present' : ' Absent'}
-                  </p>
-                </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="photos">
-              {renderApprovalList(pendingPhotos, 'GalleryPhoto', (item) => (
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={item.photo_url} 
-                    alt="" 
-                    className="h-12 w-12 rounded-lg object-cover"
-                  />
-                  <div>
-                    <p className="font-medium">{item.caption || 'Photo'}</p>
-                    <p className="text-sm text-slate-500">By {item.uploaded_by}</p>
+              {/* Admissions Tab */}
+              <TabsContent value="admissions">
+                {pendingAdmissions.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No pending admissions</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingAdmissions.map((item) => (
+                      <Card key={item.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{item.student_name}</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Applying for Class {item.applying_for_class} • {item.academic_year}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">Parent: {item.parent_name} • {item.parent_phone}</p>
+                            </div>
+                            <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
+                              <Clock className="h-3 w-3 mr-1" /> Verified
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                </div>
-              ))}
-            </TabsContent>
+                )}
+              </TabsContent>
 
-            <TabsContent value="quizzes">
-              {renderApprovalList(pendingQuizzes, 'Quiz', (item) => (
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  <p className="text-sm text-slate-500">
-                    {item.subject} | Class {item.class_name} | {item.quiz_date}
-                  </p>
-                </div>
-              ))}
-            </TabsContent>
+              {/* Marks Tab */}
+              <TabsContent value="marks">
+                {pendingMarks.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No pending marks</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingMarks.map((item) => (
+                      <Card key={item.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{item.student_name}</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {item.subject} • {item.exam_type} • Class {item.class_name}-{item.section}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">{item.marks_obtained}/{item.max_marks} marks</p>
+                            </div>
+                            <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
+                              <Clock className="h-3 w-3 mr-1" /> Verified
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
 
-            <TabsContent value="events">
-              {renderApprovalList(pendingEvents, 'CalendarEvent', (item) => (
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  <p className="text-sm text-slate-500">{item.event_type} | {item.start_date}</p>
-                </div>
-              ))}
-            </TabsContent>
+              {/* Attendance Tab */}
+              <TabsContent value="attendance">
+                {pendingAttendance.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No pending attendance</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingAttendance.map((item) => (
+                      <Card key={item.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{item.student_name}</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {format(new Date(item.date + 'T00:00:00'), 'MMM d, yyyy')} • Class {item.class_name}-{item.section}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1 capitalize">{item.attendance_type.replace('_', ' ')}</p>
+                            </div>
+                            <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
+                              <Clock className="h-3 w-3 mr-1" /> Verified
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
 
-            <TabsContent value="exams">
-              {renderApprovalList(pendingExams, 'ExamType', (item) => (
-                <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-slate-500">Max: {item.max_marks} | Pass: {item.passing_marks}</p>
-                </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="notices">
-              {renderApprovalList(pendingNotices, 'Notice', (item) => (
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  <p className="text-sm text-slate-500">{item.notice_type} | {item.target_audience}</p>
-                </div>
-              ))}
-            </TabsContent>
-          </div>
-        </Tabs>
+              {/* Notices Tab */}
+              <TabsContent value="notices">
+                {pendingNotices.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No pending notices</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingNotices.map((item) => (
+                      <Card key={item.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.content}</p>
+                              <p className="text-xs text-gray-500 mt-2">By: {item.created_by}</p>
+                            </div>
+                            <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
+                              <Clock className="h-3 w-3 mr-1" /> Pending
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          )}
+        </main>
       </div>
-    </div>
     </LoginRequired>
   );
 }
