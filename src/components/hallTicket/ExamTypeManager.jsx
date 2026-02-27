@@ -293,11 +293,18 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                       <span>Pass: <span className="font-semibold text-slate-900">{type.min_marks_to_pass}</span></span>
                     </div>
                     {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
-                    {type.attendance_range_start && type.attendance_range_end && (
-                      <p className="text-xs text-blue-600 mt-1">
-                        Attendance Range: {type.attendance_range_start} to {type.attendance_range_end}
-                      </p>
-                    )}
+                    {type.attendance_range_start && type.attendance_range_end && (() => {
+                      const bounds = getAcademicYearBounds(academicYear);
+                      const start = new Date(type.attendance_range_start);
+                      const end = new Date(type.attendance_range_end);
+                      const outOfBounds = bounds && (start < bounds.start || end > bounds.end);
+                      return (
+                        <p className={`text-xs mt-1 ${outOfBounds ? 'text-amber-600 font-medium' : 'text-blue-600'}`}>
+                          {outOfBounds ? '⚠️ ' : ''}Attendance Range: {type.attendance_range_start} to {type.attendance_range_end}
+                          {outOfBounds && <span className="block text-amber-700">Range exceeds academic year {academicYear}</span>}
+                        </p>
+                      );
+                    })()}
                   </div>
                   {hasPermission && (
                     <div className="flex gap-2 ml-4">
