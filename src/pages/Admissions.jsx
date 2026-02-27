@@ -112,8 +112,15 @@ export default function Admissions() {
 
   const convertToStudentMutation = useMutation({
     mutationFn: async (admission) => {
+      // Generate student ID and default password
+      const { student_id } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class });
+      const defaultPassword = 'BVM123';
+      
       // Create student record
-      await base44.entities.Student.create({
+      const studentRecord = await base44.entities.Student.create({
+        student_id,
+        username: student_id,
+        password: defaultPassword,
         name: admission.student_name,
         class_name: admission.applying_for_class,
         section: 'A',
@@ -126,16 +133,17 @@ export default function Admissions() {
         address: admission.address,
         academic_year: admission.academic_year || '2024-25',
         admission_date: format(new Date(), 'yyyy-MM-dd'),
-        status: 'Pending'
+        status: 'Approved'
       });
+      
       // Update admission status
-      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted' });
+      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: studentRecord.id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admissions']);
       queryClient.invalidateQueries(['students']);
       setShowDetailsSheet(false);
-      toast.success('Admission converted to student record');
+      toast.success('Student record created with ID and password generated');
     }
   });
 
