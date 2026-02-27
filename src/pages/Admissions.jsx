@@ -141,6 +141,39 @@ export default function Admissions() {
 
   const columns = [
     {
+      header: (
+        <input 
+          type="checkbox" 
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSelectedIds(new Set(filteredAdmissions.map(a => a.id)));
+            } else {
+              setSelectedIds(new Set());
+            }
+          }}
+          checked={selectedIds.size === filteredAdmissions.length && filteredAdmissions.length > 0}
+          className="rounded"
+        />
+      ),
+      width: '40px',
+      cell: (row) => (
+        <input 
+          type="checkbox" 
+          checked={selectedIds.has(row.id)}
+          onChange={(e) => {
+            const newSet = new Set(selectedIds);
+            if (e.target.checked) {
+              newSet.add(row.id);
+            } else {
+              newSet.delete(row.id);
+            }
+            setSelectedIds(newSet);
+          }}
+          className="rounded"
+        />
+      )
+    },
+    {
       header: 'Application',
       cell: (row) => (
          <div className="flex items-center gap-3">
