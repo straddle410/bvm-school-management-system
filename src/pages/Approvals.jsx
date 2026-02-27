@@ -189,14 +189,15 @@ export default function Approvals() {
         />
 
         <main className="flex-1 overflow-y-auto px-4 py-6">
-          {totalPending === 0 ? (
+          {totalPending === 0 && (
             <div className="flex flex-col items-center justify-center py-12">
               <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-1">All Caught Up!</h3>
               <p className="text-gray-600">No pending approvals at the moment.</p>
             </div>
-          ) : (
-            <Tabs defaultValue="students" className="space-y-4">
+          )}
+          
+          <Tabs defaultValue="students" className="space-y-4">
                <TabsList className="grid grid-cols-5">
                  <TabsTrigger value="students" className="relative">
                    Students
