@@ -73,14 +73,14 @@ export default function Admissions() {
     }
   });
 
-  const bulkApproveMutation = useMutation({
+  const bulkVerifyMutation = useMutation({
     mutationFn: async (ids) => {
       const now = new Date().toISOString();
       const updatePromises = Array.from(ids).map(id => 
         base44.entities.AdmissionApplication.update(id, { 
-          status: 'Approved',
-          approved_by: user?.email,
-          approved_at: now
+          status: 'Verified',
+          verified_by: user?.email,
+          verified_at: now
         })
       );
       await Promise.all(updatePromises);
@@ -88,7 +88,7 @@ export default function Admissions() {
     onSuccess: () => {
       queryClient.invalidateQueries(['admissions']);
       setSelectedIds(new Set());
-      toast.success(`${selectedIds.size} application(s) approved`);
+      toast.success(`${selectedIds.size} application(s) verified`);
     }
   });
 
