@@ -139,7 +139,26 @@ export default function Admissions() {
   const viewDetails = (admission) => {
     setSelectedAdmission(admission);
     setRemarks(admission.remarks || '');
+    setEditData({
+      student_name: admission.student_name,
+      dob: admission.dob,
+      gender: admission.gender,
+      parent_name: admission.parent_name,
+      parent_phone: admission.parent_phone,
+      parent_email: admission.parent_email,
+      address: admission.address,
+      previous_school: admission.previous_school,
+      applying_for_class: admission.applying_for_class
+    });
     setShowDetailsSheet(true);
+  };
+
+  const saveApplicationEdits = () => {
+    updateMutation.mutate({
+      id: selectedAdmission.id,
+      data: { ...editData, remarks }
+    });
+    setShowDetailsSheet(false);
   };
 
   const filteredAdmissions = admissions.filter(a => {
