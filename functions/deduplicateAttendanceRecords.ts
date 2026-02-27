@@ -54,16 +54,12 @@ Deno.serve(async (req) => {
         group.slice(1).forEach(r => toDelete.push(r.id));
       });
 
-      // Delete in small batches with delay
-      const BATCH = 3;
+      // Delete one at a time with delay to avoid rate limits
       let deleted = 0;
-      for (let i = 0; i < toDelete.length; i += BATCH) {
-        const batch = toDelete.slice(i, i + BATCH);
-        await Promise.all(batch.map(id => base44.asServiceRole.entities.Attendance.delete(id)));
-        deleted += batch.length;
-        if (i + BATCH < toDelete.length) {
-          await new Promise(r => setTimeout(r, 500));
-        }
+      for (const id of toDelete) {
+        await base44.asServiceRole.entities.Attendance.delete(id);
+        deleted++;
+        await new Promise(r => setTimeout(r, 400));
       }
 
       return { total: records.length, dupGroups, deleted };
