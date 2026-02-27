@@ -46,7 +46,7 @@ export default function Approvals() {
   const rejectMutation = useMutation({
     mutationFn: async ({ id, type }) => {
       if (type === 'admissions') {
-        await base44.entities.Admission.update(id, { status: 'Rejected' });
+        await base44.entities.AdmissionApplication.update(id, { status: 'Rejected' });
       } else if (type === 'marks') {
         await base44.entities.Marks.update(id, { status: 'Draft' });
       } else if (type === 'attendance') {
