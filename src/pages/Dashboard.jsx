@@ -104,7 +104,7 @@ export default function Dashboard() {
       try { setUser(JSON.parse(studentRaw)); } catch {}
     }
     // Load school profile for logo
-    base44.entities.SchoolProfile.list().then(p => { if (p.length > 0) setSchoolProfile(p[0]); }).catch(() => {});
+    base44.entities.SchoolProfile.list().catch(() => {}).then(p => { if (p?.length > 0) setSchoolProfile(p[0]); });
   }, []);
 
   const { data: bannerSlides = [] } = useQuery({
