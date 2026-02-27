@@ -153,6 +153,33 @@ export default function Students() {
     deleteMutation.mutate(student.id);
   };
 
+  const handleSelectAll = () => {
+    const pendingIds = filtered.filter(s => s.status === 'Pending').map(s => s.id);
+    if (selectedIds.size === pendingIds.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pendingIds));
+    }
+  };
+
+  const handleToggleSelect = (id) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedIds(newSelected);
+  };
+
+  const handleVerifySelected = async () => {
+    if (selectedIds.size === 0) return;
+    const toVerify = Array.from(selectedIds);
+    for (const id of toVerify) {
+      await base44.entities.Student.update(id, { status: 'Verified', verified_by: user.email });
+    }
+    queryClient.invalidateQueries(['students']);
+    setSelectedIds(new Set());
+    toast.success(`${toVerify.length} student(s) verified`);
+  };
+
   const filtered = students.filter(s => {
     const q = search.toLowerCase();
     const matchSearch = !q || s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q) || s.parent_name?.toLowerCase().includes(q);
