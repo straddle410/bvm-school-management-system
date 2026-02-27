@@ -363,12 +363,12 @@ export default function Admissions() {
                   <span className="text-sm font-medium text-blue-900">{selectedIds.size} selected</span>
                   <Button
                     size="sm"
-                    onClick={() => bulkApproveMutation.mutate(selectedIds)}
-                    disabled={bulkApproveMutation.isPending}
+                    onClick={() => bulkVerifyMutation.mutate(selectedIds)}
+                    disabled={bulkVerifyMutation.isPending}
                     className="ml-auto"
                   >
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    {bulkApproveMutation.isPending ? 'Approving...' : 'Bulk Approve'}
+                    {bulkVerifyMutation.isPending ? 'Verifying...' : 'Bulk Verify'}
                   </Button>
                   <Button
                     size="sm"
