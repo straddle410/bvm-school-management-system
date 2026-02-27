@@ -34,6 +34,7 @@ const SECTIONS = ['A'];
 export default function Attendance() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('A');
@@ -47,6 +48,7 @@ export default function Attendance() {
   const [rangeProgress, setRangeProgress] = useState(0);
   const [hasHolidayOverride, setHasHolidayOverride] = useState(false);
   const [halfDayModal, setHalfDayModal] = useState({ isOpen: false, studentId: null, studentName: null });
+  const [showPastYearWarning, setShowPastYearWarning] = useState(false);
 
   const queryClient = useQueryClient();
 
