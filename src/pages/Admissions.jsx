@@ -47,6 +47,7 @@ export default function Admissions() {
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [selectedAdmission, setSelectedAdmission] = useState(null);
   const [remarks, setRemarks] = useState('');
+  const [selectedIds, setSelectedIds] = useState(new Set());
   
   const queryClient = useQueryClient();
 
