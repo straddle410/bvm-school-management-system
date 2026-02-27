@@ -52,7 +52,9 @@ export default function Admissions() {
 
   useEffect(() => {
     base44.auth.me().then(setUser);
-  }, []);
+    // Clear pending applications badge when page opens
+    queryClient.invalidateQueries(['pending-admissions-count']);
+  }, [queryClient]);
 
   const { data: admissions = [], isLoading } = useQuery({
     queryKey: ['admissions'],
