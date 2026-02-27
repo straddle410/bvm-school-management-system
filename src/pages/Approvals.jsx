@@ -331,9 +331,16 @@ export default function Approvals() {
                               <Button size="sm" onClick={() => handleEditAdmission(item)} variant="outline">
                                 <Eye className="h-3 w-3" />
                               </Button>
-                              <Button size="sm" onClick={() => approveMutation.mutate({ id: item.id, type: 'admissions' })} className="bg-green-600 hover:bg-green-700" disabled={approveMutation.isPending}>
-                                <Check className="h-3 w-3" />
-                              </Button>
+                              {item.status === 'Verified' && (
+                                <Button size="sm" onClick={() => approveMutation.mutate({ id: item.id, type: 'admissions' })} className="bg-green-600 hover:bg-green-700" disabled={approveMutation.isPending}>
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {item.status === 'Approved' && (
+                                <Button size="sm" onClick={() => convertToStudentMutation.mutate(item)} className="bg-indigo-600 hover:bg-indigo-700" disabled={convertToStudentMutation.isPending}>
+                                  <UserPlus className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button size="sm" onClick={() => rejectMutation.mutate({ id: item.id, type: 'admissions' })} variant="outline" disabled={rejectMutation.isPending}>
                                 <X className="h-3 w-3" />
                               </Button>
