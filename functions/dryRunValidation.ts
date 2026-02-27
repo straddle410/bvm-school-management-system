@@ -150,11 +150,11 @@ Deno.serve(async (req) => {
     // Pad if not enough weekdays in window (shouldn't happen for 10 days)
     const numDays = Math.min(workingDates.length, 10);
 
-    // Pattern per student:
-    // days 1-7: full_day, day 8: half_day, day 9: absent, day 10: full_day
+    // Pattern per student (relative to numDays):
+    // last day = absent, second-to-last = half_day, rest = full_day
     const getAttType = (idx) => {
-      if (idx === 7) return 'half_day';
-      if (idx === 8) return 'absent';
+      if (idx === numDays - 1) return 'absent';
+      if (idx === numDays - 2) return 'half_day';
       return 'full_day';
     };
 
