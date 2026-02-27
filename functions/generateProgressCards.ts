@@ -155,6 +155,20 @@ Deno.serve(async (req) => {
     let globalAttendanceEndDate = null;
     let rangeExamType = null;
 
+    // Validate attendance ranges are within academic year
+    for (const et of examTypeRecords.filter(e => e.attendance_range_start || e.attendance_range_end)) {
+      if (et.attendance_range_start && !validateAcademicYearBoundary(et.attendance_range_start, yearConfig.start_date, yearConfig.end_date)) {
+        return Response.json({
+          error: `Action not allowed outside selected Academic Year. Attendance range start for exam "${et.name}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+        }, { status: 400 });
+      }
+      if (et.attendance_range_end && !validateAcademicYearBoundary(et.attendance_range_end, yearConfig.start_date, yearConfig.end_date)) {
+        return Response.json({
+          error: `Action not allowed outside selected Academic Year. Attendance range end for exam "${et.name}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+        }, { status: 400 });
+      }
+    }
+
     const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
     if (examTypesWithRange.length > 0) {
       // Sort by end_date descending to get the exam with the latest end date (most comprehensive)

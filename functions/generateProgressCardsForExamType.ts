@@ -58,6 +58,18 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Validate attendance range is within academic year
+    if (!validateAcademicYearBoundary(attendanceRangeStart, yearConfig.start_date, yearConfig.end_date)) {
+      return Response.json({
+        error: `Action not allowed outside selected Academic Year. Attendance range start "${attendanceRangeStart}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+      }, { status: 400 });
+    }
+    if (!validateAcademicYearBoundary(attendanceRangeEnd, yearConfig.start_date, yearConfig.end_date)) {
+      return Response.json({
+        error: `Action not allowed outside selected Academic Year. Attendance range end "${attendanceRangeEnd}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+      }, { status: 400 });
+    }
+
     // Fetch published marks for this exam type only
     const allMarks = await base44.asServiceRole.entities.Marks.filter({
       academic_year: academicYear,
