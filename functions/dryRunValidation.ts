@@ -372,8 +372,8 @@ Deno.serve(async (req) => {
       mark_status: firstMark[0]?.status, blocked: editBlocked
     });
 
-    // 3D: Generate cards without published marks — check with fake exam type
-    const fakeExamTypes = await base44.asServiceRole.entities.ExamType.filter({ id: 'fake-exam-type-id-00000' });
+    // 3D: Generate cards without published marks — search for non-existent exam type name
+    const fakeExamTypes = await base44.asServiceRole.entities.ExamType.filter({ name: '__FAKE_EXAM_DOES_NOT_EXIST_DRY_RUN__', academic_year: AY });
     const fakeBlocked = fakeExamTypes.length === 0; // No exam type → blocked
     step('Step 3D: Card Gen Without Marks Rejected', fakeBlocked ? 'PASS' : 'FAIL', {
       note: 'generateProgressCardsForExamType returns 404 for unknown exam type, 400 if no published marks',
