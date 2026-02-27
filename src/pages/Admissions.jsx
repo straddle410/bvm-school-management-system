@@ -137,6 +137,19 @@ export default function Admissions() {
         verified_at: newStatus === 'Verified' ? new Date().toISOString() : undefined
       } 
     });
+    
+    // Notify admin when application is verified
+    if (newStatus === 'Verified') {
+      try {
+        await base44.functions.invoke('notifyAdminOnApplicationVerified', { 
+          applicationId: admission.id,
+          studentName: admission.student_name 
+        });
+      } catch (err) {
+        console.error('Failed to send notification:', err);
+      }
+    }
+    
     if (showDetailsSheet) setShowDetailsSheet(false);
   };
 
