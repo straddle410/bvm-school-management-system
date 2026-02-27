@@ -420,6 +420,125 @@ export default function Approvals() {
             </Tabs>
           )}
         </main>
+
+        {/* Edit Admission Sheet */}
+        <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+          <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Edit Application Details</SheetTitle>
+            </SheetHeader>
+            
+            {selectedAdmission && (
+              <div className="mt-6 space-y-4">
+                <div>
+                  <Label>Student Name</Label>
+                  <Input 
+                    value={editData.student_name || ''} 
+                    onChange={(e) => setEditData({...editData, student_name: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Date of Birth</Label>
+                    <Input 
+                      type="date"
+                      value={editData.dob || ''} 
+                      onChange={(e) => setEditData({...editData, dob: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Gender</Label>
+                    <Select value={editData.gender || ''} onValueChange={(value) => setEditData({...editData, gender: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Applying For Class</Label>
+                  <Select value={editData.applying_for_class || ''} onValueChange={(value) => setEditData({...editData, applying_for_class: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(cls => (
+                        <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Parent/Guardian Name</Label>
+                  <Input 
+                    value={editData.parent_name || ''} 
+                    onChange={(e) => setEditData({...editData, parent_name: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Parent Phone</Label>
+                    <Input 
+                      value={editData.parent_phone || ''} 
+                      onChange={(e) => setEditData({...editData, parent_phone: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Parent Email</Label>
+                    <Input 
+                      type="email"
+                      value={editData.parent_email || ''} 
+                      onChange={(e) => setEditData({...editData, parent_email: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Address</Label>
+                  <Textarea 
+                    value={editData.address || ''} 
+                    onChange={(e) => setEditData({...editData, address: e.target.value})}
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label>Previous School</Label>
+                  <Input 
+                    value={editData.previous_school || ''} 
+                    onChange={(e) => setEditData({...editData, previous_school: e.target.value})}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowEditSheet(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="flex-1"
+                    onClick={handleSaveChanges}
+                    disabled={updateAdmissionMutation.isPending}
+                  >
+                    {updateAdmissionMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
     </LoginRequired>
   );
