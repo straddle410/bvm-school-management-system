@@ -294,6 +294,9 @@ export default function Approvals() {
                               <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
                                 <Clock className="h-3 w-3 mr-1" /> Verified
                               </Badge>
+                              <Button size="sm" onClick={() => handleEditAdmission(item)} variant="outline">
+                                <Eye className="h-3 w-3" />
+                              </Button>
                               <Button size="sm" onClick={() => approveMutation.mutate({ id: item.id, type: 'admissions' })} className="bg-green-600 hover:bg-green-700" disabled={approveMutation.isPending}>
                                 <Check className="h-3 w-3" />
                               </Button>
