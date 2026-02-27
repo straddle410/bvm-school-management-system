@@ -4,42 +4,15 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    
+
     if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
-    const studentId = body.student_id || null; // optional: filter to one student
+    const studentId = body.student_id || null;
     const className = body.class_name || '9';
     const academicYear = body.academic_year || '2024-25';
-
-    // Fetch all attendance for the class/year (or single student)
-    const filter = studentId
-      ? { student_id: studentId, academic_year: academicYear }
-      : { class_name: className, academic_year: academicYear };
-
-    const allAttendance = await base44.asServiceRole.entities.Attendance.filter(filter);
-    console.log(`[DEDUP] Processing ${allAttendance.length} attendance records for ${studentId || `class ${className}`}, ${academicYear}`);
-
-    // Group by (student_id, date) to find duplicates
-    const groupedByStudentDate = {};
-    allAttendance.forEach(record => {
-      const key = `${record.student_id}__${record.date}`;
-      if (!groupedByStudentDate[key]) groupedByStudentDate[key] = [];
-      groupedByStudentDate[key].push(record);
-    });
-
-    // Find groups with multiple records
-    const duplicates = Object.entries(groupedByStudentDate)
-      .filter(([, records]) => records.length > 1)
-      .map(([key, records]) => ({ key, records }));
-
-    console.log(`[DEDUP] Found ${duplicates.length} duplicate groups`);
-
-    // For each duplicate group, keep the best record and delete others
-    let deletedCount = 0;
-    const consolidationLog = [];
 
     // Priority: full_day > half_day > absent > holiday
     const priority = (r) => {
@@ -50,54 +23,95 @@ Deno.serve(async (req) => {
       return 0;
     };
 
-    // Collect all IDs to delete
-    const allToDelete = [];
-
-    for (const { key, records } of duplicates) {
-      // Sort: highest priority first, then prefer 'Approved' status, then newest created
-      records.sort((a, b) => {
-        const pDiff = priority(b) - priority(a);
-        if (pDiff !== 0) return pDiff;
-        const aApproved = a.status === 'Approved' ? 1 : 0;
-        const bApproved = b.status === 'Approved' ? 1 : 0;
-        if (bApproved !== aApproved) return bApproved - aApproved;
-        return new Date(b.created_date) - new Date(a.created_date);
+    const deduplicateForStudent = async (sid) => {
+      const records = await base44.asServiceRole.entities.Attendance.filter({
+        student_id: sid,
+        academic_year: academicYear
       });
 
-      const keeper = records[0];
-      const toDelete = records.slice(1);
-
-      consolidationLog.push({
-        key,
-        kept: `${keeper.attendance_type} (${keeper.status})`,
-        deleted_count: toDelete.length,
-        deleted_types: toDelete.map(r => `${r.attendance_type}(${r.status})`)
+      // Group by date
+      const byDate = {};
+      records.forEach(r => {
+        const k = r.date;
+        if (!byDate[k]) byDate[k] = [];
+        byDate[k].push(r);
       });
 
-      toDelete.forEach(r => allToDelete.push(r.id));
-    }
+      const toDelete = [];
+      let dupGroups = 0;
 
-    // Delete in batches of 5 with delay to avoid rate limits
-    const BATCH_SIZE = 5;
-    for (let i = 0; i < allToDelete.length; i += BATCH_SIZE) {
-      const batch = allToDelete.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(id => base44.asServiceRole.entities.Attendance.delete(id)));
-      deletedCount += batch.length;
-      if (i + BATCH_SIZE < allToDelete.length) {
-        await new Promise(r => setTimeout(r, 300));
+      Object.values(byDate).forEach(group => {
+        if (group.length <= 1) return;
+        dupGroups++;
+        group.sort((a, b) => {
+          const pDiff = priority(b) - priority(a);
+          if (pDiff !== 0) return pDiff;
+          const aApproved = a.status === 'Approved' ? 1 : 0;
+          const bApproved = b.status === 'Approved' ? 1 : 0;
+          if (bApproved !== aApproved) return bApproved - aApproved;
+          return new Date(b.created_date) - new Date(a.created_date);
+        });
+        group.slice(1).forEach(r => toDelete.push(r.id));
+      });
+
+      // Delete in small batches with delay
+      const BATCH = 3;
+      let deleted = 0;
+      for (let i = 0; i < toDelete.length; i += BATCH) {
+        const batch = toDelete.slice(i, i + BATCH);
+        await Promise.all(batch.map(id => base44.asServiceRole.entities.Attendance.delete(id)));
+        deleted += batch.length;
+        if (i + BATCH < toDelete.length) {
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+
+      return { total: records.length, dupGroups, deleted };
+    };
+
+    let totalDeleted = 0;
+    let totalDupGroups = 0;
+    let totalRecords = 0;
+    const studentResults = [];
+
+    if (studentId) {
+      const result = await deduplicateForStudent(studentId);
+      totalDeleted = result.deleted;
+      totalDupGroups = result.dupGroups;
+      totalRecords = result.total;
+      studentResults.push({ student_id: studentId, ...result });
+    } else {
+      // Fetch all students for the class
+      const students = await base44.asServiceRole.entities.Student.filter({
+        class_name: className,
+        academic_year: academicYear
+      });
+
+      console.log(`[DEDUP] Processing ${students.length} students for class ${className}, ${academicYear}`);
+
+      for (const student of students) {
+        const sid = student.student_id || student.id;
+        console.log(`[DEDUP] Deduplicating student ${student.name} (${sid})`);
+        const result = await deduplicateForStudent(sid);
+        totalDeleted += result.deleted;
+        totalDupGroups += result.dupGroups;
+        totalRecords += result.total;
+        studentResults.push({ student_id: sid, name: student.name, ...result });
+        // Pause between students to avoid rate limits
+        await new Promise(r => setTimeout(r, 800));
       }
     }
 
-    console.log(`[DEDUP] Done. Deleted ${deletedCount} duplicate records across ${duplicates.length} groups`);
+    console.log(`[DEDUP] Complete. Deleted ${totalDeleted} duplicates across ${totalDupGroups} groups`);
 
     return Response.json({
-      message: `Deduplication complete`,
+      message: 'Deduplication complete',
       scope: studentId ? `Student ${studentId}` : `Class ${className}, ${academicYear}`,
-      totalRecordsProcessed: allAttendance.length,
-      duplicateGroupsFound: duplicates.length,
-      recordsDeleted: deletedCount,
-      cleanRecordsRemaining: allAttendance.length - deletedCount,
-      consolidationLog: consolidationLog.slice(0, 20)
+      totalRecordsProcessed: totalRecords,
+      duplicateGroupsFound: totalDupGroups,
+      recordsDeleted: totalDeleted,
+      cleanRecordsRemaining: totalRecords - totalDeleted,
+      studentResults
     });
   } catch (error) {
     console.error('[DEDUP-ERROR]', error);
