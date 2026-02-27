@@ -57,6 +57,7 @@ const quickActions = [
   { label: 'Post Notice',         icon: Megaphone,     gradient: 'from-yellow-400 to-orange-500', page: 'Notices',                 permKey: 'post_notices',    roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                   permKey: 'marks',           roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Messages',            icon: Mail,          gradient: 'from-green-400 to-emerald-500', page: 'Messaging',               permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Manage Admissions',   icon: UserCheck,     gradient: 'from-indigo-400 to-purple-600', page: 'Admissions',               permKey: 'student_admission_permission', roleRequired: ['Admin', 'admin', 'Principal', 'principal'] },
   { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',     permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal'] },
 ];
 
