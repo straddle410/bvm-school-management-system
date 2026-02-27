@@ -272,8 +272,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Helper to calculate attendance for a date range
-      const calculateAttendanceForRange = (records, startDate, endDate) => {
+      // ── SHARED ATTENDANCE CALCULATION (Set-based deduplication - identical to attendance summary module) ──
+      const calcAttendanceForRange = (records, startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
         start.setUTCHours(0, 0, 0, 0);
@@ -285,71 +285,62 @@ Deno.serve(async (req) => {
           return attDate >= start && attDate <= end;
         });
 
-        const presentRecords = allInRange.filter(a => 
-          !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
-        );
+        const uniqueWorkingDates = new Set();
+        const fullDayDates = new Set();
+        const halfDayDates = new Set();
 
-        const fullDays = presentRecords.filter(a => a.attendance_type === 'full_day').length;
-        const halfDays = presentRecords.filter(a => a.attendance_type === 'half_day').length;
+        allInRange.forEach(a => {
+          if (!a.is_holiday && a.attendance_type !== 'holiday') {
+            uniqueWorkingDates.add(a.date);
+            if (a.attendance_type === 'full_day') fullDayDates.add(a.date);
+            else if (a.attendance_type === 'half_day') halfDayDates.add(a.date);
+          }
+        });
+
+        const workingDays = uniqueWorkingDates.size;
+        const fullDays = fullDayDates.size;
+        const halfDays = halfDayDates.size;
         const totalPresent = fullDays + (halfDays * 0.5);
-
-        const workingDays = allInRange.filter(a => 
-          !a.is_holiday && a.attendance_type !== 'holiday'
-        ).length;
-
+        const absentDays = workingDays - fullDays - halfDays;
         const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
-        return {
-          working_days: workingDays,
-          full_days_present: fullDays,
-          half_days_present: halfDays,
-          total_present_days: Math.round(totalPresent * 100) / 100,
-          attendance_percentage: percentage
-        };
-      };
-
-      // Helper to get month-wise breakdown
-      const getMonthWiseBreakdown = (records, startDate, endDate) => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        start.setUTCHours(0, 0, 0, 0);
-        end.setUTCHours(23, 59, 59, 999);
         const months = [];
-
         let current = new Date(start);
         while (current <= end) {
           const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
           const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
           monthStart.setUTCHours(0, 0, 0, 0);
           monthEnd.setUTCHours(23, 59, 59, 999);
-
           const periodStart = monthStart < start ? start : monthStart;
           const periodEnd = monthEnd > end ? end : monthEnd;
 
-          const allMonthRecords = records.filter(a => {
+          const monthRecords = allInRange.filter(a => {
             const attDate = new Date(a.date);
             attDate.setUTCHours(0, 0, 0, 0);
             return attDate >= periodStart && attDate <= periodEnd;
           });
 
-          const presentMonthRecords = allMonthRecords.filter(a => 
-            !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
-          );
+          const mWorkingDates = new Set();
+          const mFullDates = new Set();
+          const mHalfDates = new Set();
+          monthRecords.forEach(a => {
+            if (!a.is_holiday && a.attendance_type !== 'holiday') {
+              mWorkingDates.add(a.date);
+              if (a.attendance_type === 'full_day') mFullDates.add(a.date);
+              else if (a.attendance_type === 'half_day') mHalfDates.add(a.date);
+            }
+          });
 
-          const fullDays = presentMonthRecords.filter(a => a.attendance_type === 'full_day').length;
-          const halfDays = presentMonthRecords.filter(a => a.attendance_type === 'half_day').length;
-          const totalPresent = fullDays + (halfDays * 0.5);
-
-          const workingDays = allMonthRecords.filter(a => 
-            !a.is_holiday && a.attendance_type !== 'holiday'
-          ).length;
-
-          const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+          const mWorking = mWorkingDates.size;
+          const mFull = mFullDates.size;
+          const mHalf = mHalfDates.size;
+          const mPresent = mFull + (mHalf * 0.5);
+          const mAbsent = mWorking - mFull - mHalf;
+          const mPct = mWorking > 0 ? Math.round((mPresent / mWorking) * 100) : 0;
 
           const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           const monthName = monthNames[current.getMonth()];
           let displayText = monthName;
-
           if (periodStart.getMonth() === periodEnd.getMonth()) {
             if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
               displayText = `${monthName} (${periodStart.getDate()}–${periodEnd.getDate()})`;
@@ -362,24 +353,31 @@ Deno.serve(async (req) => {
             month_display: displayText,
             period_start: periodStart.toISOString().split('T')[0],
             period_end: periodEnd.toISOString().split('T')[0],
-            working_days: workingDays,
-            full_days_present: fullDays,
-            half_days_present: halfDays,
-            total_present: Math.round(totalPresent * 100) / 100,
-            attendance_percentage: percentage
+            working_days: mWorking,
+            full_days_present: mFull,
+            half_days_present: mHalf,
+            absent_days: mAbsent,
+            total_present: Math.round(mPresent * 100) / 100,
+            attendance_percentage: mPct
           });
-
           current.setMonth(current.getMonth() + 1);
         }
 
-        return months;
+        return {
+          working_days: workingDays,
+          full_days_present: fullDays,
+          half_days_present: halfDays,
+          absent_days: absentDays,
+          total_present_days: Math.round(totalPresent * 100) / 100,
+          attendance_percentage: percentage,
+          month_wise_breakdown: months
+        };
       };
 
       // Calculate attendance summary
        let attendanceSummary = null;
        console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${attendanceStartDate}, endDate: ${attendanceEndDate}, records: ${studentAttendance.length}`);
        if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
-         // VALIDATION: Ensure attendance records exist within the range for this student
          const studentRecordsInRange = studentAttendance.filter(a => {
            const attDate = new Date(a.date);
            attDate.setUTCHours(0, 0, 0, 0);
@@ -394,16 +392,13 @@ Deno.serve(async (req) => {
            throw new Error(`Student ${student.student_name} (${student.student_id}) has no attendance records in range ${attendanceStartDate} to ${attendanceEndDate}. Cannot generate progress card without attendance data.`);
          }
 
-         const rangeAttendance = calculateAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
-         const monthWiseBreakdown = getMonthWiseBreakdown(studentAttendance, attendanceStartDate, attendanceEndDate);
-
+         const rangeResult = calcAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
          attendanceSummary = {
            range_start: attendanceStartDate,
            range_end: attendanceEndDate,
-           ...rangeAttendance,
-           month_wise_breakdown: monthWiseBreakdown
+           ...rangeResult
          };
-         console.log(`[CALC-DONE] Summary created: working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
+         console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
        } else {
          throw new Error(`Cannot generate progress card for ${student.student_name}: Missing attendance date range or no attendance records found.`);
        }
