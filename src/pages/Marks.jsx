@@ -929,7 +929,7 @@ export default function Marks() {
       </AlertDialog>
 
       {/* Revoke Publication Dialog */}
-      <AlertDialog open={showRevokeConfirm} onOpenChange={setShowRevokeConfirm}>
+       <AlertDialog open={showRevokeConfirm} onOpenChange={setShowRevokeConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -955,7 +955,18 @@ export default function Marks() {
         </AlertDialogContent>
       </AlertDialog>
 
-    </div>
-    </LoginRequired>
-  );
-}
+      {/* Past Year Warning */}
+      <PastYearWarning
+        open={showPastYearWarning}
+        academicYear={academicYear}
+        onConfirm={() => {
+          setShowPastYearWarning(false);
+          saveMutation.mutate();
+        }}
+        onCancel={() => setShowPastYearWarning(false)}
+      />
+
+      </div>
+      </LoginRequired>
+      );
+      }
