@@ -90,6 +90,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [examResultsModalOpen, setExamResultsModalOpen] = useState(false);
+  const { academicYear } = useAcademicYear();
 
   useEffect(() => {
     const staffRaw = localStorage.getItem('staff_session');
