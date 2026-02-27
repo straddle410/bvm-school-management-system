@@ -505,6 +505,13 @@ export default function Admissions() {
               </div>
 
               <div className="flex flex-wrap gap-3">
+                <Button 
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => saveApplicationEdits()}
+                >
+                  Save Changes
+                </Button>
                 {!['Rejected', 'Converted'].includes(selectedAdmission.status) && (
                   <Button 
                     className="flex-1"
