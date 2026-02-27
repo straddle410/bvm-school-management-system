@@ -324,6 +324,11 @@ export default function Dashboard() {
                           {(staffBadges.Quiz || 0) > 9 ? '9+' : staffBadges.Quiz}
                         </span>
                       )}
+                      {item.label === 'Manage Admissions' && pendingApplicationsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
+                          {pendingApplicationsCount > 9 ? '9+' : pendingApplicationsCount}
+                        </span>
+                      )}
                       <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                     </div>
                   </Link>
