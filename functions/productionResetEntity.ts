@@ -26,13 +26,17 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { entityName } = body;
 
-    // Status check (no entityName)
+    // ── STATUS CHECK (no entityName) ──
     if (!entityName) {
       const status = {};
       for (const e of ALLOWED_ENTITIES) {
-        const records = await base44.asServiceRole.entities[e].list(undefined, 200);
-        status[e] = records?.length ?? 0;
-        await sleep(150);
+        try {
+          const records = await base44.asServiceRole.entities[e].list(undefined, 200);
+          status[e] = records?.length ?? 0;
+        } catch {
+          status[e] = -1;
+        }
+        await sleep(300);
       }
       const [students, teachers, academicYears] = await Promise.all([
         base44.asServiceRole.entities.Student.list(undefined, 5),
@@ -54,45 +58,46 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Entity "${entityName}" is not in the allowed reset list.` }, { status: 400 });
     }
 
-    // Count before deletion
-    let totalFound = 0;
-    let totalDeleted = 0;
-    let page = 0;
-    const pageSize = 50;
+    // ── DELETE ONE BATCH OF 20 RECORDS ──
+    // Each call deletes up to 20 records safely within timeout + rate limits.
+    // The UI calls this repeatedly until remaining = 0.
+    const BATCH_SIZE = 20;
 
-    // Delete in pages: fetch a page, delete all, repeat until none left
-    let attempts = 0;
-    const maxAttempts = 200; // safety cap
+    const batch = await base44.asServiceRole.entities[entityName].list(undefined, BATCH_SIZE);
 
-    while (attempts < maxAttempts) {
-      await sleep(600); // conservative delay between pages to avoid rate limits
-
-      const batch = await base44.asServiceRole.entities[entityName].list(undefined, pageSize);
-      if (!batch || batch.length === 0) break;
-
-      totalFound += batch.length;
-
-      for (const record of batch) {
-        await base44.asServiceRole.entities[entityName].delete(record.id);
-        totalDeleted++;
-        await sleep(200); // 200ms between each delete
-      }
-
-      attempts++;
-
-      // If we got fewer than pageSize, we've likely cleared everything
-      if (batch.length < pageSize) break;
+    if (!batch || batch.length === 0) {
+      return Response.json({
+        entityName,
+        found: 0,
+        deleted: 0,
+        remaining_spot_check: 0,
+        clean: true,
+        performed_by: user.email,
+        timestamp: new Date().toISOString()
+      });
     }
 
-    // Final verification
+    let deleted = 0;
+    for (const record of batch) {
+      try {
+        await base44.asServiceRole.entities[entityName].delete(record.id);
+        deleted++;
+        await sleep(300); // 300ms gap between each delete
+      } catch (e) {
+        console.error(`Failed to delete ${entityName} ${record.id}:`, e.message);
+        await sleep(1000); // longer wait on error
+      }
+    }
+
+    // Check remaining
     await sleep(500);
     const remaining = await base44.asServiceRole.entities[entityName].list(undefined, 10);
     const remainingCount = remaining?.length ?? 0;
 
     return Response.json({
       entityName,
-      found: totalFound,
-      deleted: totalDeleted,
+      found: batch.length,
+      deleted,
       remaining_spot_check: remainingCount,
       clean: remainingCount === 0,
       performed_by: user.email,
