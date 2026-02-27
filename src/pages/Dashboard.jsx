@@ -15,6 +15,7 @@ import {
 import { format } from 'date-fns';
 
 import { getProxiedImageUrl } from '@/components/imageProxy';
+import ApprovalsCountBadge, { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 
 const LogoImageWithFallback = ({ src, alt }) => {
   const [imgError, setImgError] = useState(false);
