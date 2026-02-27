@@ -452,6 +452,22 @@ export default function Admissions() {
               </div>
 
               <div className="flex flex-wrap gap-3">
+                {['Submitted', 'Under Review'].includes(selectedAdmission.status) && (
+                  <Button 
+                    className="flex-1"
+                    onClick={() => handleStatusChange(selectedAdmission, 'Verified')}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" /> Verify
+                  </Button>
+                )}
+                {selectedAdmission.status === 'Verified' && (
+                    <Button 
+                      className="flex-1"
+                      onClick={() => handleStatusChange(selectedAdmission, 'Approved')}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                    </Button>
+                  )}
                 {selectedAdmission.status === 'Approved' && (
                   <Button 
                     className="flex-1"
@@ -460,23 +476,6 @@ export default function Admissions() {
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
                     {convertToStudentMutation.isPending ? 'Converting...' : 'Convert to Student'}
-                  </Button>
-                )}
-                {selectedAdmission.status && !['Approved', 'Rejected', 'Converted'].includes(selectedAdmission.status) && (
-                    <Button 
-                      className="flex-1"
-                      onClick={() => handleStatusChange(selectedAdmission, 'Approved')}
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                    </Button>
-                  )}
-                {['Submitted', 'Under Review'].includes(selectedAdmission.status) && (
-                  <Button 
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => handleStatusChange(selectedAdmission, 'Verified')}
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" /> Verify
                   </Button>
                 )}
                 {!['Rejected', 'Converted'].includes(selectedAdmission.status) && (
