@@ -1,10 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const DELAY_MS = 200; // ms between deletes to avoid rate limit
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // ── ADMIN ONLY ──
     const user = await base44.auth.me();
     if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
@@ -14,26 +16,38 @@ Deno.serve(async (req) => {
     const results = {};
 
     const deleteAll = async (entityName) => {
-      const records = await base44.asServiceRole.entities[entityName].list();
-      const count = records.length;
-      log.push(`[${entityName}] Found ${count} records to delete`);
+      // Fetch all records (up to 500 per batch)
+      let allIds = [];
+      let offset = 0;
+      const batchSize = 100;
 
-      let deleted = 0;
-      for (const record of records) {
-        await base44.asServiceRole.entities[entityName].delete(record.id);
-        deleted++;
+      while (true) {
+        const batch = await base44.asServiceRole.entities[entityName].list(undefined, batchSize, offset);
+        if (!batch || batch.length === 0) break;
+        allIds = allIds.concat(batch.map(r => r.id));
+        if (batch.length < batchSize) break;
+        offset += batchSize;
+        await sleep(DELAY_MS);
       }
 
-      // Verify
-      const remaining = await base44.asServiceRole.entities[entityName].list();
-      results[entityName] = {
-        deleted: deleted,
-        remaining: remaining.length
-      };
-      log.push(`[${entityName}] Deleted ${deleted}, Remaining: ${remaining.length}`);
+      log.push(`[${entityName}] Found ${allIds.length} records to delete`);
+
+      let deleted = 0;
+      for (const id of allIds) {
+        await base44.asServiceRole.entities[entityName].delete(id);
+        deleted++;
+        if (deleted % 20 === 0) await sleep(DELAY_MS);
+      }
+
+      // Verify remaining
+      const remaining = await base44.asServiceRole.entities[entityName].list(undefined, 10);
+      const remainingCount = remaining ? remaining.length : 0;
+
+      results[entityName] = { deleted, remaining: remainingCount };
+      log.push(`[${entityName}] Deleted: ${deleted}, Remaining (spot-check): ${remainingCount}`);
     };
 
-    // ── ENTITIES TO DELETE (in safe order) ──
+    // ── DELETE ORDER (safest dependency order) ──
     const entitiesToDelete = [
       'ProgressCard',
       'HallTicket',
@@ -48,23 +62,24 @@ Deno.serve(async (req) => {
 
     for (const entity of entitiesToDelete) {
       await deleteAll(entity);
+      await sleep(300);
     }
 
-    // ── VERIFY PROTECTED ENTITIES ARE UNTOUCHED ──
-    const protected_checks = {};
-    const [students, staff, academicYears] = await Promise.all([
-      base44.asServiceRole.entities.Student.list(),
-      base44.asServiceRole.entities.Teacher.list(),
-      base44.asServiceRole.entities.AcademicYear.list(),
+    // ── VERIFY PROTECTED ENTITIES UNTOUCHED ──
+    const [students, teachers, academicYears] = await Promise.all([
+      base44.asServiceRole.entities.Student.list(undefined, 5),
+      base44.asServiceRole.entities.Teacher.list(undefined, 5),
+      base44.asServiceRole.entities.AcademicYear.list(undefined, 5),
     ]);
 
-    protected_checks['Student'] = students.length;
-    protected_checks['Teacher'] = staff.length;
-    protected_checks['AcademicYear'] = academicYears.length;
+    const protected_checks = {
+      Student: students?.length ?? 0,
+      Teacher: teachers?.length ?? 0,
+      AcademicYear: academicYears?.length ?? 0,
+    };
 
-    log.push(`[PROTECTED] Students: ${students.length}, Teachers: ${staff.length}, AcademicYears: ${academicYears.length} — all untouched`);
+    log.push(`[PROTECTED] Students: ${protected_checks.Student}, Teachers: ${protected_checks.Teacher}, AcademicYears: ${protected_checks.AcademicYear} — all untouched`);
 
-    // ── SUMMARY ──
     const allClean = Object.values(results).every(r => r.remaining === 0);
 
     return Response.json({
