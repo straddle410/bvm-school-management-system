@@ -453,14 +453,14 @@ export default function Admissions() {
                     {convertToStudentMutation.isPending ? 'Converting...' : 'Convert to Student'}
                   </Button>
                 )}
-                {selectedAdmission.status === 'Verified' && (
-                  <Button 
-                    className="flex-1"
-                    onClick={() => handleStatusChange(selectedAdmission, 'Approved')}
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                  </Button>
-                )}
+                {['Verified', 'Under Review', 'Submitted'].includes(selectedAdmission.status) && (
+                    <Button 
+                      className="flex-1"
+                      onClick={() => handleStatusChange(selectedAdmission, 'Approved')}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                    </Button>
+                  )}
                 {['Submitted', 'Under Review'].includes(selectedAdmission.status) && (
                   <Button 
                     variant="outline"
