@@ -80,6 +80,39 @@ export default function Approvals() {
     }
   });
 
+  const convertToStudentMutation = useMutation({
+    mutationFn: async (admission) => {
+      const { student_id, roll_no } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class });
+      const defaultPassword = 'BVM123';
+      
+      await base44.entities.Student.create({
+        student_id,
+        username: student_id,
+        password: defaultPassword,
+        name: admission.student_name,
+        class_name: admission.applying_for_class,
+        section: 'A',
+        roll_no,
+        photo_url: admission.photo_url,
+        parent_name: admission.parent_name,
+        parent_phone: admission.parent_phone,
+        parent_email: admission.parent_email,
+        dob: admission.dob,
+        gender: admission.gender,
+        address: admission.address,
+        academic_year: admission.academic_year || '2024-25',
+        admission_date: format(new Date(), 'yyyy-MM-dd'),
+        status: 'Approved'
+      });
+      
+      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: admission.id });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['approvals-admissions']);
+      toast.success('Student record created successfully');
+    }
+  });
+
   const handleEditAdmission = (admission) => {
     setSelectedAdmission(admission);
     setEditData({
