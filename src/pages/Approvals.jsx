@@ -25,6 +25,9 @@ export default function Approvals() {
   const [user, setUser] = useState(null);
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
+  const [selectedAdmission, setSelectedAdmission] = useState(null);
+  const [showEditSheet, setShowEditSheet] = useState(false);
+  const [editData, setEditData] = useState({});
 
   useEffect(() => {
     setUser(getStaffSession());
