@@ -121,9 +121,16 @@ export default function Admissions() {
   const handleStatusChange = async (admission, newStatus) => {
     updateMutation.mutate({ 
       id: admission.id, 
-      data: { status: newStatus, remarks } 
+      data: { 
+        status: newStatus,
+        remarks: selectedAdmission?.id === admission.id ? remarks : admission.remarks || '',
+        approved_by: newStatus === 'Approved' ? user?.email : undefined,
+        approved_at: newStatus === 'Approved' ? new Date().toISOString() : undefined,
+        verified_by: newStatus === 'Verified' ? user?.email : undefined,
+        verified_at: newStatus === 'Verified' ? new Date().toISOString() : undefined
+      } 
     });
-    setShowDetailsSheet(false);
+    if (showDetailsSheet) setShowDetailsSheet(false);
   };
 
   const viewDetails = (admission) => {
