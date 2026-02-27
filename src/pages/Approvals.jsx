@@ -147,14 +147,18 @@ export default function Approvals() {
     staleTime: 60000,
   });
 
-  // Fetch pending admissions
+  // Fetch pending and approved admissions
   const { data: pendingAdmissions = [] } = useQuery({
     queryKey: ['approvals-admissions', academicYear],
     queryFn: async () => {
       try {
-        return await base44.entities.AdmissionApplication.filter({ 
+        const verified = await base44.entities.AdmissionApplication.filter({ 
           status: 'Verified'
         }, '-created_date');
+        const approved = await base44.entities.AdmissionApplication.filter({ 
+          status: 'Approved'
+        }, '-created_date');
+        return [...verified, ...approved];
       } catch { return []; }
     },
     staleTime: 60000,
