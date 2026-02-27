@@ -61,6 +61,20 @@ export default function Approvals() {
     }
   });
 
+  // Fetch verified students (ready for approval)
+  const { data: verifiedStudents = [] } = useQuery({
+    queryKey: ['approvals-students', academicYear],
+    queryFn: async () => {
+      try {
+        return await base44.entities.Student.filter({ 
+          status: 'Verified',
+          academic_year: academicYear 
+        }, '-created_date');
+      } catch { return []; }
+    },
+    staleTime: 60000,
+  });
+
   // Fetch pending admissions
   const { data: pendingAdmissions = [] } = useQuery({
     queryKey: ['approvals-admissions', academicYear],
