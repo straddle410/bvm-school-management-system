@@ -419,7 +419,6 @@ export default function Approvals() {
                 )}
               </TabsContent>
             </Tabs>
-          )}
         </main>
 
         {/* Edit Admission Sheet */}
