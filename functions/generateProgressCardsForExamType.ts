@@ -350,7 +350,14 @@ Deno.serve(async (req) => {
         attendanceRangeEnd
       );
 
-      console.log(`[ATTENDANCE-SUMMARY] Student ${studentMarks.student_name} (${studentMarks.student_id}): working_days=${attendanceSummary.working_days}, percentage=${attendanceSummary.attendance_percentage}`);
+      console.log(`[ATTENDANCE-SUMMARY] Student ${studentMarks.student_name} (${studentMarks.student_id}): working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
+
+      // CONSISTENCY GATE: Verify calc is internally consistent
+      // absent_days must equal working_days - full_days - half_days
+      const expectedAbsent = attendanceSummary.working_days - attendanceSummary.full_days_present - attendanceSummary.half_days_present;
+      if (attendanceSummary.absent_days !== expectedAbsent) {
+        throw new Error(`[CONSISTENCY-CHECK-FAILED] Student ${studentMarks.student_name}: absent_days mismatch. Expected ${expectedAbsent}, got ${attendanceSummary.absent_days}. This indicates a logic error.`);
+      }
 
       // FAIL-FAST: Validate attendance_summary is fully populated
       if (!attendanceSummary.range_start || !attendanceSummary.range_end || attendanceSummary.working_days === undefined) {
