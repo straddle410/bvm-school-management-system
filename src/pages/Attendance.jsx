@@ -201,7 +201,9 @@ export default function Attendance() {
       toast.success(isHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
     },
     onError: (err) => {
-      if (err?.response?.status === 403) {
+      if (err?.message === 'PAST_YEAR_WARNING') {
+        setShowPastYearWarning(true);
+      } else if (err?.response?.status === 403) {
         toast.error('❌ This record is locked. Only admin can unlock and edit.');
       } else if (err?.response?.status === 409) {
         toast.error('⚠️ Duplicate record detected. Using existing record.');
