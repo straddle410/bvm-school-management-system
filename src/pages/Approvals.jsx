@@ -157,16 +157,24 @@ export default function Approvals() {
               <p className="text-gray-600">No pending approvals at the moment.</p>
             </div>
           ) : (
-            <Tabs defaultValue="admissions" className="space-y-4">
-              <TabsList className="grid grid-cols-4">
-                <TabsTrigger value="admissions" className="relative">
-                  Admissions
-                  {pendingAdmissions.length > 0 && (
-                    <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
-                      {pendingAdmissions.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
+            <Tabs defaultValue="students" className="space-y-4">
+               <TabsList className="grid grid-cols-5">
+                 <TabsTrigger value="students" className="relative">
+                   Students
+                   {verifiedStudents.length > 0 && (
+                     <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
+                       {verifiedStudents.length}
+                     </Badge>
+                   )}
+                 </TabsTrigger>
+                 <TabsTrigger value="admissions" className="relative">
+                   Admissions
+                   {pendingAdmissions.length > 0 && (
+                     <Badge variant="destructive" className="ml-2 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]">
+                       {pendingAdmissions.length}
+                     </Badge>
+                   )}
+                 </TabsTrigger>
                 <TabsTrigger value="marks" className="relative">
                   Marks
                   {pendingMarks.length > 0 && (
