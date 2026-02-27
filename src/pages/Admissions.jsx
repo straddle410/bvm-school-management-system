@@ -112,11 +112,11 @@ export default function Admissions() {
 
   const convertToStudentMutation = useMutation({
     mutationFn: async (admission) => {
-      // Generate student ID and default password
-      const { student_id } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class });
+      // Generate student ID, roll number, and set default password
+      const { student_id, roll_no } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class });
       const defaultPassword = 'BVM123';
       
-      // Create student record
+      // Create student record with class assignment
       const studentRecord = await base44.entities.Student.create({
         student_id,
         username: student_id,
@@ -124,6 +124,7 @@ export default function Admissions() {
         name: admission.student_name,
         class_name: admission.applying_for_class,
         section: 'A',
+        roll_no,
         photo_url: admission.photo_url,
         parent_name: admission.parent_name,
         parent_phone: admission.parent_phone,
@@ -137,7 +138,7 @@ export default function Admissions() {
       });
       
       // Update admission status
-      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: studentRecord.id });
+      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: studentRecord.id, assigned_roll_no: roll_no });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admissions']);
