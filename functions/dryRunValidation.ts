@@ -74,6 +74,24 @@ Deno.serve(async (req) => {
 
     step('SETUP', 'INFO', { academic_year: AY, ay_range: `${ayStart} → ${ayEnd}`, attendance_window: `${attStartStr} → ${attEndStr}` });
 
+    // ── Pre-cleanup: delete any leftover test data from prior runs ──
+    const testStudentIds = ['__TEST_S001__', '__TEST_S002__', '__TEST_S003__'];
+    for (const sid of testStudentIds) {
+      const leftover = await base44.asServiceRole.entities.Attendance.filter({ student_id: sid, academic_year: AY });
+      for (const r of leftover) { try { await base44.asServiceRole.entities.Attendance.delete(r.id); } catch {} }
+      const leftoverMarks = await base44.asServiceRole.entities.Marks.filter({ student_id: sid, academic_year: AY });
+      for (const r of leftoverMarks) { try { await base44.asServiceRole.entities.Marks.delete(r.id); } catch {} }
+      const leftoverCards = await base44.asServiceRole.entities.ProgressCard.filter({ student_id: sid, academic_year: AY });
+      for (const r of leftoverCards) { try { await base44.asServiceRole.entities.ProgressCard.delete(r.id); } catch {} }
+    }
+    // Delete leftover dry-run exam types
+    const leftoverET = await base44.asServiceRole.entities.ExamType.filter({ academic_year: AY });
+    for (const et of leftoverET) {
+      if (et.description && et.description.startsWith('DRY_RUN_TEST_')) {
+        try { await base44.asServiceRole.entities.ExamType.delete(et.id); } catch {}
+      }
+    }
+
     // ══════════════════════════════════════════════
     // STEP 1A: Create ExamType
     // ══════════════════════════════════════════════
