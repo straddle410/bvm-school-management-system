@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  const start = new Date(academicYearStart);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(academicYearEnd);
+  end.setUTCHours(23, 59, 59, 999);
+  return d >= start && d <= end;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -17,7 +27,22 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Fetch all attendance records for this student within range
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
+    if (yearConfigs.length > 0) {
+      const yearConfig = yearConfigs[0];
+      if (!validateAcademicYearBoundary(startDate, yearConfig.start_date, yearConfig.end_date)) {
+        return Response.json({
+          error: `Action not allowed outside selected Academic Year. Start date "${startDate}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+        }, { status: 400 });
+      }
+      if (!validateAcademicYearBoundary(endDate, yearConfig.start_date, yearConfig.end_date)) {
+        return Response.json({
+          error: `Action not allowed outside selected Academic Year. End date "${endDate}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+        }, { status: 400 });
+      }
+    }
+
     const allAttendance = await base44.asServiceRole.entities.Attendance.filter({
       student_id: studentId,
       class_name: classname,
@@ -36,7 +61,6 @@ Deno.serve(async (req) => {
       return attDate >= start && attDate <= end;
     });
 
-    // Calculate working days (unique dates excluding holidays)
     const uniqueWorkingDates = new Set();
     recordsInRange.forEach(a => {
       if (!a.is_holiday && a.attendance_type !== 'holiday') {
@@ -45,7 +69,6 @@ Deno.serve(async (req) => {
     });
     const workingDays = uniqueWorkingDates.size;
 
-    // Count unique dates for full days and half days (deduplicate by date)
     const fullDayDates = new Set();
     const halfDayDates = new Set();
     
@@ -62,10 +85,8 @@ Deno.serve(async (req) => {
     const fullDays = fullDayDates.size;
     const halfDays = halfDayDates.size;
     const totalPresent = fullDays + (halfDays * 0.5);
-
     const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
-    // Month-wise breakdown
     const months = [];
     let current = new Date(start);
     

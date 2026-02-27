@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  const start = new Date(academicYearStart);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(academicYearEnd);
+  end.setUTCHours(23, 59, 59, 999);
+  return d >= start && d <= end;
+}
+
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
@@ -9,10 +19,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Create SDK using service role (staff session auth via payload)
     const base44 = createClientFromRequest(req);
 
-    // Parse staff session from payload for auth
     let staffUser = null;
     if (staffSession) {
       try {
@@ -20,7 +28,6 @@ Deno.serve(async (req) => {
       } catch {}
     }
 
-    // Fall back to platform auth if no staff session
     if (!staffUser) {
       try {
         const platformUser = await base44.auth.me();
@@ -34,6 +41,13 @@ Deno.serve(async (req) => {
     }
 
     const user = staffUser;
+
+    // Validate academic year is configured
+    const yearConfig = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
+    if (yearConfig.length === 0) {
+      return Response.json({ error: 'Academic year not configured in system' }, { status: 400 });
+    }
+    const yearRecord = yearConfig[0];
 
     // Check if hall tickets already exist for this class/exam/year
     const existingTickets = await base44.asServiceRole.entities.HallTicket.filter({
@@ -56,19 +70,34 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Exam type not found' }, { status: 400 });
     }
     const examType = examTypes[0];
+
     if (!examType.is_active) {
       return Response.json({ error: 'Cannot generate tickets for inactive exam type' }, { status: 400 });
     }
 
-    // Validate academic year is configured
-    const yearConfig = await base44.asServiceRole.entities.AcademicYear.filter({ 
-      year: academicYear 
-    });
-    if (yearConfig.length === 0) {
-      return Response.json({ error: 'Academic year not configured in system' }, { status: 400 });
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    // Ensure exam type belongs to the same academic year
+    if (examType.academic_year && examType.academic_year !== academicYear) {
+      return Response.json({
+        error: `Action not allowed outside selected Academic Year. Exam type "${examType.name}" belongs to academic year "${examType.academic_year}", not "${academicYear}".`
+      }, { status: 400 });
     }
 
-    // Fetch students - get all students in the class regardless of status
+    // If exam timetable entries exist, validate exam dates are within academic year
+    const timetableEntries = await base44.asServiceRole.entities.ExamTimetable.filter({
+      exam_type: examTypeId,
+      academic_year: academicYear
+    });
+
+    for (const entry of timetableEntries) {
+      if (entry.exam_date && !validateAcademicYearBoundary(entry.exam_date, yearRecord.start_date, yearRecord.end_date)) {
+        return Response.json({
+          error: `Action not allowed outside selected Academic Year. Exam date "${entry.exam_date}" for subject "${entry.subject_name}" is outside the ${academicYear} range (${yearRecord.start_date} to ${yearRecord.end_date}).`
+        }, { status: 400 });
+      }
+    }
+
+    // Fetch students
     const query = { class_name: classname, academic_year: academicYear };
     if (section) query.section = section;
 
@@ -99,12 +128,9 @@ Deno.serve(async (req) => {
     
     const hallTickets = [];
 
-    // Generate random sequence if needed
     let randomSequence = [];
     if (assignmentType === 'random') {
-      // Create array [1, 2, 3, ..., studentCount]
       randomSequence = Array.from({ length: students.length }, (_, i) => i + 1);
-      // Shuffle using Fisher-Yates
       for (let i = randomSequence.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [randomSequence[i], randomSequence[j]] = [randomSequence[j], randomSequence[i]];
@@ -116,7 +142,6 @@ Deno.serve(async (req) => {
       if (assignmentType === 'sequential') {
         xx = String(student.roll_no || idx + 1).padStart(2, '0');
       } else {
-        // Random assignment - use pre-generated unique sequence
         xx = String(randomSequence[idx]).padStart(2, '0');
       }
 
@@ -137,10 +162,8 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Bulk create hall tickets
     await base44.asServiceRole.entities.HallTicket.bulkCreate(hallTickets);
 
-    // Log the action
     await base44.asServiceRole.entities.HallTicketLog.create({
       action: 'generated',
       hall_ticket_id: 'bulk',

@@ -1,11 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  const start = new Date(academicYearStart);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(academicYearEnd);
+  end.setUTCHours(23, 59, 59, 999);
+  return d >= start && d <= end;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { student_id, class_name, section, start_date, end_date } = await req.json();
+    const { student_id, class_name, section, start_date, end_date, academic_year } = await req.json();
 
-    // Validate required parameters
     if (!student_id || !class_name || !section || !start_date || !end_date) {
       return Response.json(
         { error: 'Missing required parameters: student_id, class_name, section, start_date, end_date' },
@@ -13,28 +22,42 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch attendance records for the student
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    if (academic_year) {
+      const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year });
+      if (yearConfigs.length > 0) {
+        const yearConfig = yearConfigs[0];
+        if (!validateAcademicYearBoundary(start_date, yearConfig.start_date, yearConfig.end_date)) {
+          return Response.json({
+            error: `Action not allowed outside selected Academic Year. Start date "${start_date}" is outside the ${academic_year} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+          }, { status: 400 });
+        }
+        if (!validateAcademicYearBoundary(end_date, yearConfig.start_date, yearConfig.end_date)) {
+          return Response.json({
+            error: `Action not allowed outside selected Academic Year. End date "${end_date}" is outside the ${academic_year} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+          }, { status: 400 });
+        }
+      }
+    }
+
     const studentAttendance = await base44.asServiceRole.entities.Attendance.filter({
       student_id,
       class_name,
       section
     });
 
-    // Helper function to calculate attendance for a date range
     const calculateAttendanceForRange = (records, startDate, endDate) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       start.setUTCHours(0, 0, 0, 0);
       end.setUTCHours(23, 59, 59, 999);
 
-      // Include ALL records in range (holidays, absents, present) to calculate working days
       const allInRange = records.filter(a => {
         const attDate = new Date(a.date);
         attDate.setUTCHours(0, 0, 0, 0);
         return attDate >= start && attDate <= end;
       });
 
-      // Only non-holiday, non-absent records count toward attendance
       const presentRecords = allInRange.filter(a => 
         !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
       );
@@ -43,7 +66,6 @@ Deno.serve(async (req) => {
       const halfDays = presentRecords.filter(a => a.attendance_type === 'half_day').length;
       const totalPresent = fullDays + (halfDays * 0.5);
 
-      // Working days = all records excluding holidays
       const workingDays = allInRange.filter(a => 
         !a.is_holiday && a.attendance_type !== 'holiday'
       ).length;
@@ -59,7 +81,6 @@ Deno.serve(async (req) => {
       };
     };
 
-    // Helper to get month-wise breakdown
     const getMonthWiseBreakdown = (records, startDate, endDate) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -77,14 +98,12 @@ Deno.serve(async (req) => {
         const periodStart = monthStart < start ? start : monthStart;
         const periodEnd = monthEnd > end ? end : monthEnd;
 
-        // Include ALL records in period to count working days
         const allMonthRecords = records.filter(a => {
           const attDate = new Date(a.date);
           attDate.setUTCHours(0, 0, 0, 0);
           return attDate >= periodStart && attDate <= periodEnd;
         });
 
-        // Only non-holiday, non-absent records count toward attendance
         const presentMonthRecords = allMonthRecords.filter(a => 
           !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent'
         );
@@ -93,7 +112,6 @@ Deno.serve(async (req) => {
         const halfDays = presentMonthRecords.filter(a => a.attendance_type === 'half_day').length;
         const totalPresent = fullDays + (halfDays * 0.5);
 
-        // Working days = exclude holidays
         const workingDays = allMonthRecords.filter(a => 
           !a.is_holiday && a.attendance_type !== 'holiday'
         ).length;
@@ -129,11 +147,8 @@ Deno.serve(async (req) => {
       return months;
     };
 
-    // Only calculate if we have records in the range
     if (studentAttendance.length === 0) {
-      return Response.json({
-        attendance_summary: null
-      });
+      return Response.json({ attendance_summary: null });
     }
 
     const rangeAttendance = calculateAttendanceForRange(studentAttendance, start_date, end_date);
@@ -146,9 +161,7 @@ Deno.serve(async (req) => {
       month_wise_breakdown: monthWiseBreakdown
     };
 
-    return Response.json({
-      attendance_summary: attendanceSummary
-    });
+    return Response.json({ attendance_summary: attendanceSummary });
   } catch (error) {
     return Response.json(
       { error: error.message || 'Failed to calculate attendance summary' },

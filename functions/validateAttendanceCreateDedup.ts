@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Shared: validate a date falls within an academic year's range
+function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  const start = new Date(academicYearStart);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(academicYearEnd);
+  end.setUTCHours(23, 59, 59, 999);
+  return d >= start && d <= end;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -18,6 +29,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
+    if (yearConfigs.length === 0) {
+      return Response.json({ error: `Academic year "${academicYear}" is not configured in the system.` }, { status: 400 });
+    }
+    const yearConfig = yearConfigs[0];
+    if (!validateAcademicYearBoundary(date, yearConfig.start_date, yearConfig.end_date)) {
+      return Response.json({
+        error: `Action not allowed outside selected Academic Year. Date "${date}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+      }, { status: 400 });
+    }
+
     // Check for existing record with same student + date + class + section + year
     const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
       date,
@@ -28,7 +51,6 @@ Deno.serve(async (req) => {
     });
 
     if (existingRecords.length > 0) {
-      // Record exists - return existing ID, caller should update not create
       return Response.json({
         isDuplicate: true,
         existingRecordId: existingRecords[0].id,
@@ -36,7 +58,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // No duplicate found - safe to create
     return Response.json({
       isDuplicate: false,
       canCreate: true,

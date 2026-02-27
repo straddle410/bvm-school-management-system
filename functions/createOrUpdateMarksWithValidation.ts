@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  const start = new Date(academicYearStart);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(academicYearEnd);
+  end.setUTCHours(23, 59, 59, 999);
+  return d >= start && d <= end;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -30,15 +40,30 @@ Deno.serve(async (req) => {
       status
     } = markData;
 
-    // Validate required fields
     if (!student_id || !subject || !exam_type || !academic_year || !class_name) {
       return Response.json({
         error: 'Required fields: student_id, subject, exam_type, academic_year, class_name'
       }, { status: 400 });
     }
 
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    // Verify the exam_type belongs to this academic year
+    const examTypes = await base44.asServiceRole.entities.ExamType.filter({ academic_year });
+    const examTypeRecord = examTypes.find(et => et.id === exam_type || et.name === exam_type);
+    if (!examTypeRecord) {
+      return Response.json({
+        error: `Action not allowed outside selected Academic Year. Exam type "${exam_type}" does not belong to academic year "${academic_year}".`
+      }, { status: 400 });
+    }
+
+    // Also check academic year date range config
+    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year });
+    if (yearConfigs.length === 0) {
+      return Response.json({ error: `Academic year "${academic_year}" is not configured in the system.` }, { status: 400 });
+    }
+
     // ========================================
-    // UNIQUENESS VALIDATION (inside backend)
+    // UNIQUENESS VALIDATION
     // ========================================
     const existingMarks = await base44.asServiceRole.entities.Marks.filter({
       student_id,
@@ -48,7 +73,6 @@ Deno.serve(async (req) => {
       class_name
     });
 
-    // CREATE operation: fail if ANY record exists
     if (operation === 'create') {
       if (existingMarks.length > 0) {
         return Response.json({
@@ -60,7 +84,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // UPDATE operation: fail if a DIFFERENT record has the same key
     if (operation === 'update') {
       if (!markId) {
         return Response.json({
@@ -85,8 +108,6 @@ Deno.serve(async (req) => {
     if (operation === 'update' && markId) {
       const existingMark = existingMarks.find(m => m.id === markId);
       if (existingMark) {
-        // Status workflow: Draft → Submitted → Verified → Approved → Published
-        // Published cannot transition backward
         if (existingMark.status === 'Published' && status !== 'Published') {
           return Response.json({
             error: `Published marks cannot be reverted to ${status}. Only admin can revoke publication via dedicated function.`,
@@ -94,7 +115,6 @@ Deno.serve(async (req) => {
           }, { status: 403 });
         }
 
-        // Non-admins cannot change status of submitted marks
         const isAdmin = user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'principal';
         if (!isAdmin && existingMark.status === 'Submitted' && status !== 'Submitted') {
           return Response.json({
@@ -113,9 +133,7 @@ Deno.serve(async (req) => {
       result = await base44.asServiceRole.entities.Marks.create(markData);
     } else if (operation === 'update') {
       if (!markId) {
-        return Response.json({
-          error: 'markId required for update'
-        }, { status: 400 });
+        return Response.json({ error: 'markId required for update' }, { status: 400 });
       }
       result = await base44.asServiceRole.entities.Marks.update(markId, markData);
     }
