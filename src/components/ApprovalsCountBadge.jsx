@@ -12,7 +12,8 @@ export function useApprovalsCount(academicYear, enabled = true) {
       } catch { return 0; }
     },
     enabled,
-    staleTime: 60000,
+    staleTime: 30000,
+    refetchInterval: 30000,
   });
 
   const { data: marksCount = 0 } = useQuery({
