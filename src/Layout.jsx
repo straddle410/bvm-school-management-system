@@ -4,7 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck } from 'lucide-react';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
-import { AcademicYearProvider } from '@/components/AcademicYearContext';
+import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
