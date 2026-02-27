@@ -705,6 +705,17 @@ export default function Attendance() {
         onConfirm={handleHalfDayConfirm}
         studentName={halfDayModal.studentName}
       />
+
+      {/* Past Year Warning */}
+      <PastYearWarning
+        open={showPastYearWarning}
+        academicYear={academicYear}
+        onConfirm={() => {
+          setShowPastYearWarning(false);
+          saveMutation.mutate();
+        }}
+        onCancel={() => setShowPastYearWarning(false)}
+      />
       </div>
       </LoginRequired>
       );
