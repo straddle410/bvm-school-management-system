@@ -115,43 +115,7 @@ export default function Admissions() {
     }
   });
 
-  const convertToStudentMutation = useMutation({
-    mutationFn: async (admission) => {
-      // Generate student ID, roll number, and set default password
-      const { student_id, roll_no } = await base44.functions.invoke('generateNextStudentId', { class_name: admission.applying_for_class });
-      const defaultPassword = 'BVM123';
-      
-      // Create student record with class assignment
-      const studentRecord = await base44.entities.Student.create({
-        student_id,
-        username: student_id,
-        password: defaultPassword,
-        name: admission.student_name,
-        class_name: admission.applying_for_class,
-        section: 'A',
-        roll_no,
-        photo_url: admission.photo_url,
-        parent_name: admission.parent_name,
-        parent_phone: admission.parent_phone,
-        parent_email: admission.parent_email,
-        dob: admission.dob,
-        gender: admission.gender,
-        address: admission.address,
-        academic_year: admission.academic_year || '2024-25',
-        admission_date: format(new Date(), 'yyyy-MM-dd'),
-        status: 'Approved'
-      });
-      
-      // Update admission status
-      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: studentRecord.id, assigned_roll_no: roll_no });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admissions']);
-      queryClient.invalidateQueries(['students']);
-      setShowDetailsSheet(false);
-      toast.success('Student record created with ID and password generated');
-    }
-  });
+
 
   const handleStatusChange = async (admission, newStatus) => {
     updateMutation.mutate({ 
@@ -321,11 +285,7 @@ export default function Admissions() {
                 <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Approve
               </DropdownMenuItem>
             )}
-            {row.status === 'Approved' && (
-              <DropdownMenuItem onClick={() => convertToStudentMutation.mutate(row)}>
-                <UserPlus className="mr-2 h-4 w-4 text-indigo-600" /> Convert to Student
-              </DropdownMenuItem>
-            )}
+
             {!['Rejected', 'Converted'].includes(row.status) && (
               <DropdownMenuItem 
                 onClick={() => handleStatusChange(row, 'Rejected')}
@@ -573,16 +533,7 @@ export default function Admissions() {
                       <CheckCircle className="mr-2 h-4 w-4" /> Approve
                     </Button>
                   )}
-                {selectedAdmission.status === 'Approved' && (
-                  <Button 
-                    className="flex-1"
-                    onClick={() => convertToStudentMutation.mutate(selectedAdmission)}
-                    disabled={convertToStudentMutation.isPending}
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    {convertToStudentMutation.isPending ? 'Converting...' : 'Convert to Student'}
-                  </Button>
-                )}
+
                 {!['Rejected', 'Converted'].includes(selectedAdmission.status) && (
                   <Button 
                     variant="destructive"
