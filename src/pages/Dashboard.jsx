@@ -344,8 +344,11 @@ export default function Dashboard() {
                 const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
                 return (
                   <Link key={item.label} to={url} className="block">
-                    <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex flex-col items-center gap-1.5 relative">
                       <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      {item.label === 'Approvals' && approvalsCount > 0 && (
+                        <ApprovalsCountBadge count={approvalsCount} />
+                      )}
                       <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
                     </div>
                   </Link>
