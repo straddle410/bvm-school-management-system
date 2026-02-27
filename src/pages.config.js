@@ -69,6 +69,7 @@ import MarksReview from './pages/MarksReview';
 import Messaging from './pages/Messaging';
 import More from './pages/More';
 import Notices from './pages/Notices';
+import ProductionReset from './pages/ProductionReset';
 import PublicAdmission from './pages/PublicAdmission';
 import Quiz from './pages/Quiz';
 import Reports from './pages/Reports';
@@ -89,7 +90,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import ProductionReset from './pages/ProductionReset';
 import __Layout from './Layout.jsx';
 
 
@@ -116,6 +116,7 @@ export const PAGES = {
     "Messaging": Messaging,
     "More": More,
     "Notices": Notices,
+    "ProductionReset": ProductionReset,
     "PublicAdmission": PublicAdmission,
     "Quiz": Quiz,
     "Reports": Reports,
@@ -136,7 +137,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "ProductionReset": ProductionReset,
 }
 
 export const pagesConfig = {
