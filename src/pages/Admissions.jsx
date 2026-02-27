@@ -80,6 +80,7 @@ export default function Admissions() {
   const bulkVerifyMutation = useMutation({
     mutationFn: async (ids) => {
       const now = new Date().toISOString();
+      const selectedAdmissions = admissions.filter(a => ids.has(a.id));
       const updatePromises = Array.from(ids).map(id => 
         base44.entities.AdmissionApplication.update(id, { 
           status: 'Verified',
@@ -88,9 +89,22 @@ export default function Admissions() {
         })
       );
       await Promise.all(updatePromises);
+      
+      // Notify admin for each verified application
+      for (const admission of selectedAdmissions) {
+        try {
+          await base44.functions.invoke('notifyAdminOnApplicationVerified', { 
+            applicationId: admission.id,
+            studentName: admission.student_name 
+          });
+        } catch (err) {
+          console.error('Failed to send notification:', err);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admissions']);
+      queryClient.invalidateQueries(['approvals-count']);
       setSelectedIds(new Set());
       toast.success(`${selectedIds.size} application(s) verified`);
     }
