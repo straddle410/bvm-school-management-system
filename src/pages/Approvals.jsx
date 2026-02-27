@@ -201,6 +201,39 @@ export default function Approvals() {
                 </TabsTrigger>
               </TabsList>
 
+              {/* Students Tab */}
+              <TabsContent value="students">
+                {verifiedStudents.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No verified students waiting for approval</p>
+                ) : (
+                  <div className="space-y-3">
+                    {verifiedStudents.map((item) => (
+                      <Card key={item.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Class {item.class_name} • {item.academic_year}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">Student ID: {item.student_id} • Parent: {item.parent_name}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
+                                <Clock className="h-3 w-3 mr-1" /> Verified
+                              </Badge>
+                              <Button size="sm" onClick={() => handleApproveStudent(item.id)} className="bg-green-600 hover:bg-green-700">
+                                <Check className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
               {/* Admissions Tab */}
               <TabsContent value="admissions">
                 {pendingAdmissions.length === 0 ? (
