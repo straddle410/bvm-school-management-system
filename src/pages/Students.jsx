@@ -287,6 +287,14 @@ export default function Students() {
           academicYear={academicYear}
           onSuccess={() => queryClient.invalidateQueries(['students'])}
         />
+
+        {/* Past Year Warning */}
+        <PastYearWarning
+          open={showPastYearWarning}
+          academicYear={academicYear}
+          onConfirm={handlePastYearConfirm}
+          onCancel={() => setShowPastYearWarning(false)}
+        />
       </div>
     </LoginRequired>
   );
