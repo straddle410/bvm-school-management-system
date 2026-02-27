@@ -16,16 +16,16 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
-    // Generate username (class + roll_no or ID-based)
+    // Generate username & student_id (same value, class + roll_no)
     const rollNo = data.assigned_roll_no || Math.floor(Math.random() * 1000);
-    const username = `${data.applying_for_class.toLowerCase()}${String(rollNo).padStart(3, '0')}`;
+    const studentIdUsername = `S${data.applying_for_class}${String(rollNo).padStart(3, '0')}`;
     const defaultPassword = 'BVM123'; // Default password from spec
 
     // Create student record
     const newStudent = await base44.asServiceRole.entities.Student.create({
       name: data.student_name,
-      student_id: `S${Date.now()}`, // Simple unique ID
-      username: username,
+      student_id: studentIdUsername,
+      username: studentIdUsername,
       password: defaultPassword,
       class_name: data.applying_for_class,
       section: data.section,
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       await base44.integrations.Core.SendEmail({
         to: data.parent_email,
         subject: 'Admission Approved - Login Credentials',
-        body: `Dear ${data.parent_name},\n\nCongratulations! ${data.student_name}'s admission has been approved.\n\nLogin Credentials:\nUsername: ${username}\nPassword: ${defaultPassword}\n\nNote: Please change password on first login.\n\nBest regards,\nSchool Administration`
+        body: `Dear ${data.parent_name},\n\nCongratulations! ${data.student_name}'s admission has been approved.\n\nLogin Credentials:\nUsername: ${studentIdUsername}\nPassword: ${defaultPassword}\n\nNote: Please change password on first login.\n\nBest regards,\nSchool Administration`
       });
     } catch {}
 
