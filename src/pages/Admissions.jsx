@@ -108,7 +108,7 @@ export default function Admissions() {
         status: 'Pending'
       });
       // Update admission status
-      await base44.entities.Admission.update(admission.id, { status: 'Converted' });
+      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admissions']);
