@@ -28,7 +28,7 @@ export default function Approvals() {
   const approveMutation = useMutation({
     mutationFn: async ({ id, type }) => {
       if (type === 'admissions') {
-        await base44.entities.Admission.update(id, { status: 'Approved', approved_by: user.email });
+        await base44.entities.AdmissionApplication.update(id, { status: 'Approved', approved_by: user.email, approved_at: new Date().toISOString() });
       } else if (type === 'marks') {
         await base44.entities.Marks.update(id, { status: 'Approved', approved_by: user.email });
       } else if (type === 'attendance') {
