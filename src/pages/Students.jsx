@@ -42,6 +42,7 @@ export default function Students() {
   const [photoFile, setPhotoFile] = useState(null);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   const queryClient = useQueryClient();
 
