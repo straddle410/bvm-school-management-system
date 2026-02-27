@@ -19,10 +19,47 @@ import { toast } from 'sonner';
 export default function Approvals() {
   const [user, setUser] = useState(null);
   const { academicYear } = useAcademicYear();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setUser(getStaffSession());
   }, []);
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ id, type }) => {
+      if (type === 'admissions') {
+        await base44.entities.Admission.update(id, { status: 'Approved', approved_by: user.email });
+      } else if (type === 'marks') {
+        await base44.entities.Marks.update(id, { status: 'Approved', approved_by: user.email });
+      } else if (type === 'attendance') {
+        await base44.entities.Attendance.update(id, { status: 'Approved', approved_by: user.email });
+      } else if (type === 'notices') {
+        await base44.entities.Notice.update(id, { status: 'Approved', approved_by: user.email });
+      }
+    },
+    onSuccess: (_, { type }) => {
+      queryClient.invalidateQueries([`approvals-${type}`]);
+      toast.success('Approved successfully');
+    }
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, type }) => {
+      if (type === 'admissions') {
+        await base44.entities.Admission.update(id, { status: 'Rejected' });
+      } else if (type === 'marks') {
+        await base44.entities.Marks.update(id, { status: 'Draft' });
+      } else if (type === 'attendance') {
+        await base44.entities.Attendance.update(id, { status: 'Taken' });
+      } else if (type === 'notices') {
+        await base44.entities.Notice.update(id, { status: 'Draft' });
+      }
+    },
+    onSuccess: (_, { type }) => {
+      queryClient.invalidateQueries([`approvals-${type}`]);
+      toast.success('Rejected');
+    }
+  });
 
   // Fetch pending admissions
   const { data: pendingAdmissions = [] } = useQuery({
