@@ -60,7 +60,7 @@ const quickActions = [
 
 const adminActions = [
   { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
-  { label: 'Daily Attendance', icon: Check,         gradient: 'from-blue-500 to-indigo-600',   page: 'AttendanceReport' },
+  { label: 'Approvals',        icon: ClipboardCheck, gradient: 'from-orange-400 to-red-600',     page: 'Approvals' },
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
   { label: 'Holidays',         icon: Palmtree,      gradient: 'from-yellow-400 to-orange-500', page: 'HolidayCalendar' },
   { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
