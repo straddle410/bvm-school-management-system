@@ -46,6 +46,8 @@ export default function Layout({ children, currentPageName }) {
   const [studentSession, setStudentSession] = useState(null);
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const { academicYear } = useAcademicYear();
+  const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
   useEffect(() => {
     // Check student session first
