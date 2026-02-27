@@ -80,13 +80,13 @@ export default function Approvals() {
     queryKey: ['approvals-admissions', academicYear],
     queryFn: async () => {
       try {
-        return await base44.entities.Admission.filter({ 
-          status: 'Verified',
-          academic_year: academicYear 
+        return await base44.entities.AdmissionApplication.filter({ 
+          status: 'Verified'
         }, '-created_date');
       } catch { return []; }
     },
     staleTime: 60000,
+    refetchInterval: 30000,
   });
 
   // Fetch pending marks for approval
