@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
         totalRecords += result.total;
         studentResults.push({ student_id: sid, name: student.name, ...result });
         // Pause between students to avoid rate limits
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 1200));
       }
     }
 
