@@ -275,7 +275,11 @@ export default function Marks() {
       setShowSubmitConfirm(false);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to save marks');
+      if (error.message === 'PAST_YEAR_WARNING') {
+        setShowPastYearWarning(true);
+      } else {
+        toast.error(error.message || 'Failed to save marks');
+      }
     }
   });
 
