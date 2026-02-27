@@ -82,6 +82,12 @@ export default function Approvals() {
 
   const convertToStudentMutation = useMutation({
     mutationFn: async (admission) => {
+      // Prevent duplicate conversions - check if already converted
+      const existingAdmission = await base44.entities.AdmissionApplication.filter({ id: admission.id });
+      if (existingAdmission[0]?.status === 'Converted') {
+        throw new Error('This admission has already been converted to a student');
+      }
+      
       const response = await base44.functions.invoke('generateNextStudentId', { academicYear: academicYear });
       const student_id = response.data.next_student_id;
       const defaultPassword = 'BVM123';
@@ -110,7 +116,11 @@ export default function Approvals() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['approvals-admissions']);
+      queryClient.invalidateQueries(['students']);
       toast.success('Student record created successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to convert admission');
     }
   });
 
