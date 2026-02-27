@@ -260,9 +260,14 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                      />
                    </div>
                    </div>
-                   {validateDateRange().length > 0 && (
-                   <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                     <strong>⚠️ Warning:</strong> {validateDateRange()[0]}
+                   {validateDateRange().errors.length > 0 && (
+                   <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
+                     <strong>❌ Error:</strong> {validateDateRange().errors[0]}
+                   </div>
+                   )}
+                   {validateDateRange().warnings.length > 0 && (
+                   <div className="mt-3 p-2 bg-amber-50 border border-amber-300 rounded text-sm text-amber-900">
+                     {validateDateRange().warnings[0]}
                    </div>
                    )}
                    </div>
