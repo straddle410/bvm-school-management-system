@@ -50,6 +50,7 @@ const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social 
 export default function Marks() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('A');
   const [selectedExam, setSelectedExam] = useState('');
@@ -62,6 +63,7 @@ export default function Marks() {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
   const [revokeExamType, setRevokeExamType] = useState(null);
+  const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   
   const queryClient = useQueryClient();
 
