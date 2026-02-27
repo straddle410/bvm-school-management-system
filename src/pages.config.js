@@ -91,6 +91,7 @@ import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import PublicAdmissionForm from './pages/PublicAdmissionForm';
+import AdmissionLanding from './pages/AdmissionLanding';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +140,7 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "PublicAdmissionForm": PublicAdmissionForm,
+    "AdmissionLanding": AdmissionLanding,
 }
 
 export const pagesConfig = {
