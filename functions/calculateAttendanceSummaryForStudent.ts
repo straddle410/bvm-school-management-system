@@ -152,6 +152,7 @@ Deno.serve(async (req) => {
         working_days: monthWorkingDays,
         full_days_present: monthFullDays,
         half_days_present: monthHalfDays,
+        absent_days: monthAbsent,
         total_present: Math.round(monthTotalPresent * 100) / 100,
         attendance_percentage: monthPercentage
       });
