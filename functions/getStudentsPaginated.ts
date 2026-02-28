@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
       section = '',
       status = '',
       exclude_archived = false,
+      show_deleted = false,
       academic_year
     } = body;
 
@@ -31,8 +32,17 @@ Deno.serve(async (req) => {
     // Fetch filtered records (server-side by indexed fields)
     let allFiltered = await base44.asServiceRole.entities.Student.filter(filterObj, '-created_date', 10000);
 
+    // ── Soft-delete filtering ──
+    if (show_deleted) {
+      // Admin only: show only deleted students
+      allFiltered = allFiltered.filter(s => s.is_deleted === true);
+    } else {
+      // Default: exclude deleted students always
+      allFiltered = allFiltered.filter(s => !s.is_deleted);
+    }
+
     // Exclude archived if requested and no specific status filter
-    if (exclude_archived && !status) {
+    if (!show_deleted && exclude_archived && !status) {
       allFiltered = allFiltered.filter(s => !ARCHIVED_STATUSES.includes(s.status));
     }
 

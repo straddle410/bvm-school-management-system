@@ -54,9 +54,9 @@ Deno.serve(async (req) => {
       }, { status: 422 });
     }
 
-    // ── STEP 2: Eligible students (Published only) ──
+    // ── STEP 2: Eligible students (Published only, not soft-deleted) ──
     const allStudents = await base44.asServiceRole.entities.Student.filter({ academic_year: academicYear });
-    const eligible = allStudents.filter(s => s.status === 'Published');
+    const eligible = allStudents.filter(s => s.status === 'Published' && !s.is_deleted);
 
     // Pre-fetch existing students in next year to detect duplicates
     const nextYearStudents = await base44.asServiceRole.entities.Student.filter({ academic_year: nextYear });
