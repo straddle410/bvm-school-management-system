@@ -414,14 +414,9 @@ export default function Students() {
     for (const id of toVerify) {
       const student = students.find(s => s.id === id);
       if (!student || student.status !== 'Pending') continue;
-      await base44.entities.Student.update(id, { status: 'Verified', verified_by: user.email });
-      await base44.entities.AuditLog.create({
-        action: 'STATUS_CHANGE',
-        module: 'Student',
-        performed_by: user?.email || 'unknown',
-        details: `Status changed: Pending → Verified | Student: ${student.name} (${student.student_id})`,
-        date: new Date().toISOString().split('T')[0],
-        academic_year: student.academic_year
+      await base44.functions.invoke('updateStudentWithAudit', {
+        student_db_id: id,
+        updates: { status: 'Verified', verified_by: user.email }
       });
     }
     queryClient.invalidateQueries(['students']);
