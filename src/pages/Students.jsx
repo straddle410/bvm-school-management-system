@@ -226,19 +226,13 @@ export default function Students() {
           });
         }
 
-        // Audit log status change
-        if (originalStatus && normalized.status !== originalStatus) {
-          await base44.entities.AuditLog.create({
-            action: 'STATUS_CHANGE',
-            module: 'Student',
-            performed_by: user?.email || 'unknown',
-            details: `Status changed: ${originalStatus} → ${normalized.status} | Student: ${normalized.name} (${normalized.student_id})`,
-            date: new Date().toISOString().split('T')[0],
-            academic_year: normalized.academic_year
-          });
-        }
-
-        return base44.entities.Student.update(id, normalized);
+        // Route through backend function for field-level audit + enforcement
+        const updateRes = await base44.functions.invoke('updateStudentWithAudit', {
+          student_db_id: id,
+          updates: normalized
+        });
+        if (updateRes.data?.error) throw new Error(updateRes.data.error);
+        return updateRes.data?.student;
       }
 
       // CREATE: auto-assign roll_no if not set
