@@ -341,7 +341,7 @@ export default function Students() {
 
           {/* Filters */}
            <StudentFilters
-             search={search} onSearch={setSearch}
+             search={search} onSearch={handleSearchChange}
              filterClass={filterClass} onFilterClass={setFilterClass}
              filterSection={filterSection} onFilterSection={setFilterSection}
              filterStatus={filterStatus} onFilterStatus={setFilterStatus}
