@@ -32,47 +32,56 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
   const [open, setOpen] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [result, setResult] = useState(null);
+  const [blockedYear, setBlockedYear] = useState(null); // non-null = blocked dialog
 
   const nextYear = getNextAcademicYear(academicYear);
+
+  const handleOpenDialog = async () => {
+    // Pre-check: does next academic year exist?
+    const allYears = await base44.entities.AcademicYear.list();
+    const nextYearRecord = allYears.find(y => y.year === nextYear);
+    if (!nextYearRecord) {
+      // Log the block
+      await base44.entities.AuditLog.create({
+        action: 'PROMOTION_BLOCKED',
+        module: 'Student',
+        performed_by: 'admin',
+        details: `Promotion blocked: Academic year ${nextYear} not found in system.`,
+        academic_year: academicYear,
+      });
+      setBlockedYear(nextYear);
+      return;
+    }
+    setOpen(true);
+  };
 
   const handlePromote = async () => {
     setPromoting(true);
     setResult(null);
+
+    // Backend will also validate — this is a second guard
+    const allYears = await base44.entities.AcademicYear.list();
+    const nextYearRecord = allYears.find(y => y.year === nextYear);
+    if (!nextYearRecord) {
+      toast.error(`Academic year ${nextYear} not found. Please create it in Settings.`);
+      setPromoting(false);
+      setOpen(false);
+      setBlockedYear(nextYear);
+      return;
+    }
 
     try {
       // 1. Fetch all active students in current year
       const students = await base44.entities.Student.filter({ academic_year: academicYear });
       const activeStudents = students.filter(s => !['Passed Out', 'Transferred'].includes(s.status));
 
-      // 2. Check if next academic year exists, if not create it
-      const allYears = await base44.entities.AcademicYear.list();
-      let nextYearRecord = allYears.find(y => y.year === nextYear);
-
-      if (!nextYearRecord) {
-        // Auto-create next year
-        const currentYearRecord = allYears.find(y => y.year === academicYear);
-        const startDate = currentYearRecord?.end_date
-          ? new Date(new Date(currentYearRecord.end_date).getTime() + 86400000).toISOString().split('T')[0]
-          : `${parseInt(academicYear.split('-')[0]) + 1}-04-01`;
-        const endDate = `${parseInt(academicYear.split('-')[0]) + 2}-03-31`;
-
-        nextYearRecord = await base44.entities.AcademicYear.create({
-          year: nextYear,
-          start_date: startDate,
-          end_date: endDate,
-          is_current: false,
-          is_locked: false,
-          status: 'Active'
-        });
-      }
-
-      // 3. Mark next year as current, unset old
+      // 2. Mark next year as current, unset old
       await Promise.all(allYears.map(y =>
         base44.entities.AcademicYear.update(y.id, { is_current: false })
       ));
       await base44.entities.AcademicYear.update(nextYearRecord.id, { is_current: true });
 
-      // 4. Promote each student
+      // 3. Promote each student
       let promoted = 0, passedOut = 0;
       await Promise.all(activeStudents.map(async (student) => {
         const nextClass = getNextClass(student.class_name);
@@ -84,7 +93,6 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
           });
           promoted++;
         } else {
-          // Class 10 students pass out
           await base44.entities.Student.update(student.id, {
             academic_year: nextYear,
             status: 'Passed Out'
@@ -106,13 +114,33 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
   return (
     <>
       <Button
-        onClick={() => setOpen(true)}
+        onClick={handleOpenDialog}
         className="bg-green-600 hover:bg-green-700 text-white"
       >
         <ArrowUpCircle className="mr-2 h-4 w-4" />
         Promote Students
       </Button>
 
+      {/* BLOCKED: Next year not found */}
+      <Dialog open={!!blockedYear} onOpenChange={(v) => { if (!v) setBlockedYear(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Promotion Blocked
+            </DialogTitle>
+          </DialogHeader>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 space-y-2">
+            <p className="font-semibold">Academic Year <strong>{blockedYear}</strong> is not created.</p>
+            <p>Please create it in <strong>Settings → Academic Years</strong> before promoting students.</p>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setBlockedYear(null)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRM: Normal promotion */}
       <Dialog open={open} onOpenChange={(v) => { if (!promoting) { setOpen(v); if (!v) setResult(null); } }}>
         <DialogContent>
           <DialogHeader>
@@ -132,7 +160,6 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
                     <li>All students in <strong>{academicYear}</strong> will move to <strong>{nextYear}</strong></li>
                     <li>Each student's class will be advanced by one (e.g. Class 5 → Class 6)</li>
                     <li>Class 10 students will be marked as <strong>Passed Out</strong></li>
-                    <li>Next academic year <strong>{nextYear}</strong> will be auto-created if not existing</li>
                     <li>You can still view previous year data by switching the year in the header</li>
                   </ul>
                 </div>
