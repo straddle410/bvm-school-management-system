@@ -64,15 +64,16 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
       for (let i = 0; i < records.length; i++) {
         const r = records[i];
         const rowNum = i + 1;
-        const enriched = {
+        // Normalize before validation and saving
+        const enriched = normalizeStudentData({
           ...r,
           academic_year: academicYear,
           username: r.student_id || `S${i}`,
-          password: 'BVM123',
+          password: r.password || 'BVM123', // password handled by normalizer (trim only)
           status: r.status || 'Pending',
           section: r.section || 'A',
           roll_no: r.roll_no ? parseInt(r.roll_no) : i + 1
-        };
+        });
 
         // 1. Student ID uniqueness
         if (enriched.student_id) {
