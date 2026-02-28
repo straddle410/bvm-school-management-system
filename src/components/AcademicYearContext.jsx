@@ -29,14 +29,15 @@ export function AcademicYearProvider({ children }) {
 
   useEffect(() => {
     // Check if user is admin via base44 auth OR staff session in localStorage
+    let userRole = null;
     const checkAdmin = async () => {
       // First check staff session (custom login) - no network call needed
       try {
         const session = localStorage.getItem('staff_session');
         if (session) {
           const parsed = JSON.parse(session);
-          const role = parsed?.role?.toLowerCase() || '';
-          if (role === 'admin' || role === 'principal') {
+          userRole = parsed?.role?.toLowerCase() || '';
+          if (userRole === 'admin' || userRole === 'principal') {
             setIsAdmin(true); return;
           }
         }
@@ -46,7 +47,8 @@ export function AcademicYearProvider({ children }) {
         const isAuth = await base44.auth.isAuthenticated();
         if (isAuth) {
           const user = await base44.auth.me();
-          if (user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'principal') { setIsAdmin(true); return; }
+          userRole = user?.role?.toLowerCase() || '';
+          if (userRole === 'admin' || userRole === 'principal') { setIsAdmin(true); return; }
         }
       } catch {}
       setIsAdmin(false);
@@ -57,7 +59,18 @@ export function AcademicYearProvider({ children }) {
     const loadYears = async () => {
       const years = await base44.entities.AcademicYear.list('-start_date');
       setAcademicYears(years);
-      // Check if currently selected year exists in the list
+      
+      // TEACHER LOCK: Teachers MUST use Active year only
+      if (userRole && userRole !== 'admin' && userRole !== 'principal') {
+        const activeYear = years.find(y => y.status === 'Active');
+        if (activeYear) {
+          setAcademicYearState(activeYear.year);
+          localStorage.setItem('selected_academic_year', activeYear.year);
+        }
+        return;
+      }
+
+      // ADMIN/PRINCIPAL: Can use saved selection or fallback to current year
       const saved = localStorage.getItem('selected_academic_year');
       const yearExists = years.find(y => y.year === saved);
       if (yearExists) {

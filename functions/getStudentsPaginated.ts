@@ -36,10 +36,10 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Academic year not found' }, { status: 404 });
       }
 
-      // Teacher can ONLY see students in Active year
+      // Teacher can ONLY see students in Active year - strict enforcement
       if (yearData[0].status !== 'Active') {
         return Response.json({ 
-          error: 'Access denied: Teachers can only access the current active academic year.' 
+          error: 'Access denied for selected academic year.' 
         }, { status: 403 });
       }
     }

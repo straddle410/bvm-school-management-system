@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Teacher year visibility enforcement
+    // Teacher year visibility enforcement - STRICT
     if (isTeacher) {
       // Fetch the requested year to validate teacher access
       const requestedYear = await base44.asServiceRole.entities.AcademicYear.filter({
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
       // Teachers can only access: Active year OR admission_open = true years
       if (!isActive && !isAdmissionOpen) {
         return Response.json({ 
-          error: 'Access denied: This academic year is not available for admissions.' 
+          error: 'Access denied for selected academic year.' 
         }, { status: 403 });
       }
     }
