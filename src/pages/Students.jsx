@@ -115,6 +115,17 @@ export default function Students() {
     return res.data.student_id;
   };
 
+  const generateRollNo = async (class_name, section, academic_year) => {
+    if (!class_name || !section || !academic_year) return null;
+    const res = await base44.functions.invoke('getNextRollNo', {
+      action: 'next',
+      class_name,
+      section,
+      academic_year
+    });
+    return res.data.next_roll_no;
+  };
+
   // ── Validation helpers ──────────────────────────────────────────────────
   const validateStudentIdUnique = async (studentId, excludeId = null) => {
     if (!studentId) return;
