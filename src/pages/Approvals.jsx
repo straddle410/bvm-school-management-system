@@ -93,12 +93,10 @@ export default function Approvals() {
       const name = admission.student_name;
       const dob = admission.dob;
 
-      // 1. Duplicate student check (name + dob + class + academic_year)
+      // 1. Duplicate student check (name + dob + class + academic_year) — case-insensitive
       if (name && dob && class_name) {
         const existing = await base44.entities.Student.filter({ class_name, academic_year: academicYear });
-        const dup = existing.find(s =>
-          s.name?.toLowerCase().trim() === name.toLowerCase().trim() && s.dob === dob
-        );
+        const dup = existing.find(s => namesMatch(s.name, name) && s.dob === dob);
         if (dup) throw new Error('Duplicate student found. Cannot convert admission.');
       }
 
@@ -110,7 +108,8 @@ export default function Approvals() {
       const idCheck = await base44.entities.Student.filter({ student_id });
       if (idCheck.length > 0) throw new Error('Student ID already exists. Please try again.');
 
-      await base44.entities.Student.create({
+      // 4. Normalize before saving
+      const studentData = normalizeStudentData({
         student_id,
         username: student_id,
         password: 'BVM123',
@@ -129,6 +128,8 @@ export default function Approvals() {
         admission_date: format(new Date(), 'yyyy-MM-dd'),
         status: 'Approved'
       });
+
+      await base44.entities.Student.create(studentData);
 
       await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: student_id });
     },
