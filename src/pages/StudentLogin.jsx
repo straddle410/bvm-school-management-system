@@ -16,12 +16,9 @@ export default function StudentLogin() {
     setError('');
     setLoading(true);
     try {
-      const searchTerm = username.trim();
-      const allStudents = await base44.entities.Student.list();
-      const student = allStudents.find(s =>
-        (s.username && s.username.toLowerCase() === searchTerm.toLowerCase()) ||
-        (s.student_id && s.student_id.toLowerCase() === searchTerm.toLowerCase())
-      );
+      const normalizedUsername = username.trim().toUpperCase();
+      const results = await base44.entities.Student.filter({ username: normalizedUsername }, '-created_date', 1);
+      const student = results[0] || null;
       if (!student) { setError('Invalid username or password'); setLoading(false); return; }
       const storedPassword = student.password || 'BVM123';
       if (password !== storedPassword) { setError('Invalid username or password'); setLoading(false); return; }
