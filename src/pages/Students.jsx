@@ -165,15 +165,20 @@ export default function Students() {
       const normalized = normalizeStudentData({ ...data, photo_url });
 
       if (id) {
-        // EDIT: re-validate roll_no if relevant fields changed
+        // EDIT: if class/section/year changed → auto-assign new roll_no
         const orig = selectedStudent?.id === id ? selectedStudent : null;
-        const rollChanged = orig && (
-          String(normalized.roll_no) !== String(orig.roll_no) ||
+        const classChanged = orig && (
           normalized.class_name !== orig.class_name ||
           normalized.section !== orig.section ||
           normalized.academic_year !== orig.academic_year
         );
-        if (rollChanged) await validateRollNoUnique(normalized, id);
+        if (classChanged) {
+          const nextRoll = await generateRollNo(normalized.class_name, normalized.section, normalized.academic_year);
+          if (nextRoll) normalized.roll_no = nextRoll;
+        }
+
+        const rollChanged = orig && String(normalized.roll_no) !== String(orig.roll_no);
+        if (rollChanged && !classChanged) await validateRollNoUnique(normalized, id);
 
         // Audit log + uniqueness check if student_id changed
         if (originalStudentId && normalized.student_id !== originalStudentId.toUpperCase().trim()) {
