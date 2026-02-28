@@ -150,7 +150,7 @@ export default function PublicAdmission() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Card className="border-0 shadow-xl">
           <CardHeader className="border-b bg-blue-50/50">
-            <CardTitle className="text-lg">Admission Application {formData.academic_year}</CardTitle>
+            <CardTitle className="text-lg">Admission Application {academicYear || 'Loading...'}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-8">
