@@ -307,5 +307,5 @@ export default function StudentProfile() {
               </TabsContent>
             </Tabs>
           ) : (
-            <>
+            <div className="space-y-6">
               {/* Quick Stats */}
