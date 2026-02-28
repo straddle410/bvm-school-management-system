@@ -66,11 +66,10 @@ export default function Students() {
     enabled: !!academicYear
   });
 
-  const generateStudentId = async () => {
-    const all = await base44.entities.Student.list('-created_date', 1000);
-    const ids = all.map(s => s.student_id).filter(id => id && /^S\d+$/.test(id)).map(id => parseInt(id.slice(1)));
-    const max = ids.length > 0 ? Math.max(...ids) : 0;
-    return `S${String(max + 1).padStart(4, '0')}`;
+  const generateStudentId = async (academicYear) => {
+    if (!academicYear) throw new Error('Academic year required to generate student ID');
+    const res = await base44.functions.invoke('generateStudentId', { academic_year: academicYear });
+    return res.data.student_id;
   };
 
   const saveMutation = useMutation({
