@@ -259,8 +259,6 @@ export default function Students() {
     }
   });
 
-  const [showDeleted, setShowDeleted] = useState(false);
-
   const softDeleteMutation = useMutation({
     mutationFn: async ({ id, action }) => {
       const res = await base44.functions.invoke('softDeleteStudent', { student_id: id, action });
