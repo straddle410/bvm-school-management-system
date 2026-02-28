@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAcademicYear } from '@/components/AcademicYearContext';
+import AcademicYearSelector from '@/components/AcademicYearSelector';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import DataTable from '@/components/ui/DataTable';
@@ -39,6 +41,7 @@ import { format } from 'date-fns';
 import { toast } from "sonner";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Admissions() {
   const [user, setUser] = useState(null);
@@ -49,27 +52,67 @@ export default function Admissions() {
   const [remarks, setRemarks] = useState('');
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [editData, setEditData] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [analytics, setAnalytics] = useState(null);
   
+  const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {
-      // User not authenticated, silently fail
+    base44.auth.me().then(user => {
+      if (!user) return;
+      const userRole = user.role?.toLowerCase();
+      const isAdmin = userRole === 'admin' || userRole === 'principal';
+      const hasPermission = user.permissions?.student_admission_permission;
+      
+      if (!isAdmin && !hasPermission) {
+        window.location.replace(createPageUrl('Dashboard'));
+        return;
+      }
+      setUser(user);
+    }).catch(() => {
+      window.location.replace(createPageUrl('Dashboard'));
     });
-    // Clear pending applications badge when page opens
-    queryClient.invalidateQueries(['pending-admissions-count']);
-  }, [queryClient]);
+  }, []);
 
-  const { data: admissions = [], isLoading } = useQuery({
-    queryKey: ['admissions'],
+  const { data: paginatedData = { results: [], total_count: 0, total_pages: 0 }, isLoading } = useQuery({
+    queryKey: ['admissions-paginated', academicYear, filterStatus, searchQuery, currentPage],
     queryFn: async () => {
-      const records = await base44.entities.AdmissionApplication.filter({
-        status: 'Pending'
-      }, '-created_date');
-      return records;
+      const response = await base44.functions.invoke('getAdmissionsPaginated', {
+        academicYear,
+        status: filterStatus === 'all' ? null : filterStatus,
+        search: searchQuery || null,
+        page: currentPage,
+        limit: pageSize
+      });
+      return response.data;
     },
+    enabled: !!user && !!academicYear,
     retry: 1,
     retryDelay: 500
+  });
+
+  const { data: yearReport = null } = useQuery({
+    queryKey: ['admissions-year-report', academicYear],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getAdmissionYearReport', {
+        academicYear
+      });
+      return response.data;
+    },
+    enabled: !!user && !!academicYear,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Calculate SLA for each admission
+  const admissionsWithSLA = (paginatedData.results || []).map(app => {
+    const createdDate = new Date(app.created_date);
+    const now = new Date();
+    const daysInStatus = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+    const slaThreshold = 5; // 5 days SLA
+    const slaBreached = daysInStatus > slaThreshold;
+    return { ...app, daysInStatus, slaBreached };
   });
 
   const updateMutation = useMutation({
@@ -85,7 +128,7 @@ export default function Admissions() {
   const bulkVerifyMutation = useMutation({
     mutationFn: async (ids) => {
       const now = new Date().toISOString();
-      const selectedAdmissions = admissions.filter(a => ids.has(a.id));
+      const selectedAdmissions = admissionsWithSLA.filter(a => ids.has(a.id));
       const updatePromises = Array.from(ids).map(id => 
         base44.entities.AdmissionApplication.update(id, { 
           status: 'Verified',
@@ -95,7 +138,6 @@ export default function Admissions() {
       );
       await Promise.all(updatePromises);
       
-      // Notify admin for each verified application
       for (const admission of selectedAdmissions) {
         try {
           await base44.functions.invoke('notifyAdminOnApplicationVerified', { 
@@ -108,8 +150,8 @@ export default function Admissions() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admissions']);
-      queryClient.invalidateQueries(['approvals-count']);
+      queryClient.invalidateQueries(['admissions-paginated']);
+      queryClient.invalidateQueries(['admissions-year-report']);
       setSelectedIds(new Set());
       toast.success(`${selectedIds.size} application(s) verified`);
     }
@@ -170,12 +212,7 @@ export default function Admissions() {
     setShowDetailsSheet(false);
   };
 
-  const filteredAdmissions = admissions.filter(a => {
-    const matchesSearch = a.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         a.application_no?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || a.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+
 
   const columns = [
     {
@@ -184,12 +221,12 @@ export default function Admissions() {
           type="checkbox" 
           onChange={(e) => {
             if (e.target.checked) {
-              setSelectedIds(new Set(filteredAdmissions.map(a => a.id)));
+              setSelectedIds(new Set(admissionsWithSLA.map(a => a.id)));
             } else {
               setSelectedIds(new Set());
             }
           }}
-          checked={selectedIds.size === filteredAdmissions.length && filteredAdmissions.length > 0}
+          checked={selectedIds.size === admissionsWithSLA.length && admissionsWithSLA.length > 0}
           className="rounded"
         />
       ),
@@ -253,7 +290,16 @@ export default function Admissions() {
     },
     {
       header: 'Status',
-      cell: (row) => <StatusBadge status={row.status} />
+      cell: (row) => (
+        <div className="flex flex-col gap-1">
+          <StatusBadge status={row.status} />
+          {row.slaBreached && (
+            <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-1 rounded w-fit">
+              SLA: {row.daysInStatus} days
+            </span>
+          )}
+        </div>
+      )
     },
     {
       header: 'Actions',
@@ -300,38 +346,63 @@ export default function Admissions() {
     }
   ];
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Admissions"
-        subtitle={`${filteredAdmissions.length} applications`}
+        subtitle={`${paginatedData.total_count} total applications`}
         actions={
-          <Link to={createPageUrl('PublicAdmission')} target="_blank">
-            <Button variant="outline">
-              <ExternalLink className="mr-2 h-4 w-4" /> View Public Form
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <AcademicYearSelector />
+            <Link to={createPageUrl('PublicAdmission')} target="_blank">
+              <Button variant="outline">
+                <ExternalLink className="mr-2 h-4 w-4" /> View Public Form
+              </Button>
+            </Link>
+          </div>
         }
       />
 
       <div className="p-4 lg:p-8 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          {['Submitted', 'Under Review', 'Verified', 'Approved', 'Converted'].map(status => (
-            <Card 
-              key={status} 
-              className={`border-0 shadow-sm p-4 cursor-pointer transition-all ${
-                filterStatus === status ? 'ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => setFilterStatus(filterStatus === status ? 'all' : status)}
-            >
-              <p className="text-sm text-slate-500">{status}</p>
-              <p className="text-2xl font-bold mt-1">
-                {admissions.filter(a => a.status === status).length}
-              </p>
+        {/* Analytics Summary */}
+        {yearReport && (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <Card className="border-0 shadow-sm p-4">
+              <p className="text-sm text-slate-500">Total</p>
+              <p className="text-2xl font-bold mt-1">{yearReport.summary.total_applications}</p>
             </Card>
-          ))}
-        </div>
+            <Card className="border-0 shadow-sm p-4">
+              <p className="text-sm text-slate-500">Verified</p>
+              <p className="text-2xl font-bold mt-1 text-blue-600">{yearReport.summary.total_verified}</p>
+              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.verification_rate}%</p>
+            </Card>
+            <Card className="border-0 shadow-sm p-4">
+              <p className="text-sm text-slate-500">Approved</p>
+              <p className="text-2xl font-bold mt-1 text-green-600">{yearReport.summary.total_approved}</p>
+              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.approval_rate}%</p>
+            </Card>
+            <Card className="border-0 shadow-sm p-4">
+              <p className="text-sm text-slate-500">Converted</p>
+              <p className="text-2xl font-bold mt-1 text-indigo-600">{yearReport.summary.total_converted}</p>
+              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.conversion_rate}%</p>
+            </Card>
+            <Card className="border-0 shadow-sm p-4">
+              <p className="text-sm text-slate-500">Rejected</p>
+              <p className="text-2xl font-bold mt-1 text-red-600">{yearReport.summary.total_rejected}</p>
+              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.rejection_rate}%</p>
+            </Card>
+          </div>
+        )}
 
         {/* Filters & Bulk Actions */}
         <Card className="border-0 shadow-sm">
@@ -347,20 +418,19 @@ export default function Admissions() {
                     className="pl-10"
                   />
                 </div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full sm:w-44">
-                    <SelectValue placeholder="Filter Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="Submitted">Submitted</SelectItem>
-                    <SelectItem value="Under Review">Under Review</SelectItem>
-                    <SelectItem value="Verified">Verified</SelectItem>
-                    <SelectItem value="Approved">Approved</SelectItem>
-                    <SelectItem value="Rejected">Rejected</SelectItem>
-                    <SelectItem value="Converted">Converted</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Select value={filterStatus} onValueChange={(val) => { setFilterStatus(val); setCurrentPage(1); }}>
+                   <SelectTrigger className="w-full sm:w-44">
+                     <SelectValue placeholder="Filter Status" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="all">All Status</SelectItem>
+                     <SelectItem value="Pending">Pending</SelectItem>
+                     <SelectItem value="Verified">Verified</SelectItem>
+                     <SelectItem value="Approved">Approved</SelectItem>
+                     <SelectItem value="Converted">Converted</SelectItem>
+                     <SelectItem value="Rejected">Rejected</SelectItem>
+                   </SelectContent>
+                 </Select>
               </div>
               
               {selectedIds.size > 0 && (
@@ -390,10 +460,51 @@ export default function Admissions() {
 
         <DataTable
           columns={columns}
-          data={filteredAdmissions}
+          data={admissionsWithSLA}
           loading={isLoading}
           emptyMessage="No admission applications yet"
         />
+
+        {/* Pagination */}
+        {paginatedData.total_pages > 1 && (
+          <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-slate-200">
+            <span className="text-sm text-slate-600">
+              Page {currentPage} of {paginatedData.total_pages} ({paginatedData.total_count} total)
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(5, paginatedData.total_pages) }).map((_, i) => {
+                const page = Math.max(1, currentPage - 2) + i;
+                if (page > paginatedData.total_pages) return null;
+                return (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === paginatedData.total_pages}
+                onClick={() => setCurrentPage(Math.min(paginatedData.total_pages, currentPage + 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Details Sheet */}
