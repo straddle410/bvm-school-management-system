@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,22 +7,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Upload, Check } from 'lucide-react';
-
-const currentAcademicYear = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  if (month >= 4) {
-    return `${year}-${String(year + 1).slice(2)}`;
-  } else {
-    return `${year - 1}-${String(year).slice(2)}`;
-  }
-};
+import { Upload, Check, AlertCircle } from 'lucide-react';
 
 export default function PublicAdmissionForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [admissionYears, setAdmissionYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [yearError, setYearError] = useState(null);
+
   const [formData, setFormData] = useState({
     student_name: '',
     dob: '',
@@ -36,8 +30,36 @@ export default function PublicAdmissionForm() {
     address: '',
     previous_school: '',
     documents: [],
-    academic_year: currentAcademicYear()
+    academic_year: ''
   });
+
+  // Load admission open years on mount
+  useEffect(() => {
+    const loadAdmissionYears = async () => {
+      try {
+        const response = await base44.functions.invoke('getAdmissionOpenYears', {});
+        const years = response.data.years || [];
+        
+        if (years.length === 0) {
+          setYearError('Admissions are currently closed.');
+        } else {
+          setAdmissionYears(years);
+          // If only one year, auto-select it
+          if (years.length === 1) {
+            setSelectedYear(years[0].year);
+            setFormData(prev => ({ ...prev, academic_year: years[0].year }));
+          }
+        }
+      } catch (error) {
+        const msg = error.response?.data?.error || 'Failed to load admission years';
+        setYearError(msg);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    loadAdmissionYears();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -46,6 +68,11 @@ export default function PublicAdmissionForm() {
 
   const handleSelectChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleYearChange = (value) => {
+    setSelectedYear(value);
+    setFormData(prev => ({ ...prev, academic_year: value }));
   };
 
   const handleFileUpload = async (e, fileType) => {
@@ -98,7 +125,8 @@ export default function PublicAdmissionForm() {
         address: formData.address.trim(),
         previous_school: formData.previous_school,
         photo_url: formData.photo_url,
-        documents: formData.documents
+        documents: formData.documents,
+        academic_year: formData.academic_year
       });
       setSubmitted(true);
       toast.success('Application submitted successfully');
@@ -109,6 +137,30 @@ export default function PublicAdmissionForm() {
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
+  if (yearError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Admissions Closed</h2>
+            <p className="text-gray-600">{yearError}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -136,6 +188,30 @@ export default function PublicAdmissionForm() {
             <CardDescription>Please fill out the form to apply for admission</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Academic Year Selection */}
+            {admissionYears.length > 1 && (
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-gray-900 mb-3">Select Academic Year for Admission</h3>
+                <Select value={selectedYear || ''} onValueChange={handleYearChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Academic Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {admissionYears.map((yr) => (
+                      <SelectItem key={yr.year} value={yr.year}>{yr.year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Show selected year info */}
+            {selectedYear && (
+              <div className="mb-6 p-3 bg-green-50 rounded-lg border border-green-200 text-sm text-green-800">
+                ✓ Admissions Open For Academic Year {selectedYear}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Student Information */}
               <div>

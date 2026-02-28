@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
       parent_email,
       address,
       previous_school,
-      documents
+      documents,
+      academic_year
     } = payload;
 
     // Validate required fields
@@ -45,23 +46,26 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'parent_phone cannot be empty' }, { status: 400 });
     }
 
-    // Step 2: Fetch admission intake year (admission_open = true)
-    const admissionYears = await base44.asServiceRole.entities.AcademicYear.filter({
+    // Step 2: Validate academic_year (server-side security check)
+    if (!academic_year) {
+      return Response.json({
+        error: 'Academic year is required'
+      }, { status: 400 });
+    }
+
+    const yearRecord = await base44.asServiceRole.entities.AcademicYear.filter({
+      year: academic_year,
       admission_open: true
     });
 
-    console.log('[submitPublicAdmission] Fetched AcademicYears with admission_open:', JSON.stringify(admissionYears));
-
-    if (admissionYears.length === 0) {
+    if (yearRecord.length === 0) {
       return Response.json({
-        error: 'Admissions are currently closed.'
+        error: 'Selected academic year is not open for admission.'
       }, { status: 422 });
     }
 
-    // If multiple years have admission_open, choose the latest (highest start_date)
-    const admissionYear = admissionYears.sort((a, b) => new Date(b.start_date) - new Date(a.start_date))[0];
-    const intakeYear = admissionYear.year;
-    console.log('[submitPublicAdmission] Admission intake year selected:', intakeYear);
+    const intakeYear = academic_year;
+    console.log('[submitPublicAdmission] Using admission intake year:', intakeYear);
 
     // Step 3: Duplicate check - student_name + dob + academic_year only
     const applicationsForYear = await base44.asServiceRole.entities.AdmissionApplication.filter({
