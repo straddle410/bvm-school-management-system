@@ -353,12 +353,12 @@ export default function Students() {
               <label className="flex items-center gap-3 cursor-pointer flex-1">
                 <input
                   type="checkbox"
-                  checked={selectedIds.size === filtered.filter(s => s.status === 'Pending').length && selectedIds.size > 0}
+                  checked={selectedIds.size === students.filter(s => s.status === 'Pending').length && selectedIds.size > 0}
                   onChange={handleSelectAll}
                   className="w-5 h-5 rounded cursor-pointer"
                 />
                 <span className="text-sm font-semibold text-gray-700">
-                  Select Pending ({selectedIds.size}/{filtered.filter(s => s.status === 'Pending').length})
+                  Select Pending ({selectedIds.size}/{students.filter(s => s.status === 'Pending').length})
                 </span>
               </label>
               {selectedIds.size > 0 && (
