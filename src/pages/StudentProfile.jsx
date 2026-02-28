@@ -304,7 +304,8 @@ export default function StudentProfile() {
               </CardContent>
             </Card>
           )}
-        </div>
-      </div>
-    );
-}
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <>
+              {/* Quick Stats */}
