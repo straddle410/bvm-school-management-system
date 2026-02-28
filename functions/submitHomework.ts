@@ -10,10 +10,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'student_id and submission are required' }, { status: 400 });
     }
 
-    // ── SOFT-DELETE GUARD ──
+    // ── STUDENT VALIDATION ──
     const students = await base44.asServiceRole.entities.Student.filter({ student_id });
     const student = students[0];
-    if (student && student.is_deleted === true) {
+    if (!student) {
+      return Response.json({ error: 'Student not found.' }, { status: 404 });
+    }
+    if (student.is_deleted === true) {
       return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
     }
 
