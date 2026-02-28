@@ -53,23 +53,78 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
       }
 
       const records = Array.isArray(extractRes.output) ? extractRes.output : [extractRes.output];
-      const enriched = records.map((r, i) => ({
-        ...r,
-        academic_year: academicYear,
-        username: r.student_id || `S${i}`,
-        password: 'BVM123',
-        status: r.status || 'Pending',
-        section: r.section || 'A',
-        roll_no: r.roll_no ? parseInt(r.roll_no) : i + 1
-      }));
 
-      await base44.entities.Student.bulkCreate(enriched);
-      
-      setResult({ success: records.length, failed: 0 });
-      toast.success(`Added ${records.length} students`);
-      onSuccess?.();
-      
-      setTimeout(() => { onClose(); setResult(null); }, 2000);
+      // Fetch existing students for uniqueness checks
+      const existingStudents = await base44.entities.Student.filter({ academic_year: academicYear });
+
+      const toCreate = [];
+      const errors = [];
+
+      for (let i = 0; i < records.length; i++) {
+        const r = records[i];
+        const rowNum = i + 1;
+        const enriched = {
+          ...r,
+          academic_year: academicYear,
+          username: r.student_id || `S${i}`,
+          password: 'BVM123',
+          status: r.status || 'Pending',
+          section: r.section || 'A',
+          roll_no: r.roll_no ? parseInt(r.roll_no) : i + 1
+        };
+
+        // 1. Student ID uniqueness
+        if (enriched.student_id) {
+          const idConflict = existingStudents.find(s => s.student_id === enriched.student_id) ||
+                             toCreate.find(s => s.student_id === enriched.student_id);
+          if (idConflict) {
+            errors.push({ row: rowNum, name: r.name || '—', reason: `Student ID "${enriched.student_id}" already exists` });
+            continue;
+          }
+        }
+
+        // 2. Roll number uniqueness (within existing + already-queued)
+        if (enriched.roll_no && enriched.class_name && enriched.section) {
+          const rollConflict = existingStudents.find(s =>
+            s.roll_no === enriched.roll_no &&
+            s.class_name === enriched.class_name &&
+            s.section === enriched.section
+          ) || toCreate.find(s =>
+            s.roll_no === enriched.roll_no &&
+            s.class_name === enriched.class_name &&
+            s.section === enriched.section
+          );
+          if (rollConflict) {
+            errors.push({ row: rowNum, name: r.name || '—', reason: `Roll number ${enriched.roll_no} already assigned in Class ${enriched.class_name}-${enriched.section}` });
+            continue;
+          }
+        }
+
+        // 3. Duplicate student (name + dob + class)
+        if (enriched.name && enriched.dob && enriched.class_name) {
+          const dupConflict = existingStudents.find(s =>
+            s.name?.toLowerCase().trim() === enriched.name.toLowerCase().trim() &&
+            s.dob === enriched.dob &&
+            s.class_name === enriched.class_name
+          );
+          if (dupConflict) {
+            errors.push({ row: rowNum, name: r.name || '—', reason: 'Possible duplicate student already exists' });
+            continue;
+          }
+        }
+
+        toCreate.push(enriched);
+      }
+
+      if (toCreate.length > 0) {
+        await base44.entities.Student.bulkCreate(toCreate);
+      }
+
+      setResult({ success: toCreate.length, failed: errors.length, errors });
+      if (toCreate.length > 0) toast.success(`Added ${toCreate.length} students`);
+      if (errors.length > 0) toast.warning(`${errors.length} row(s) skipped due to duplicates`);
+      if (toCreate.length > 0) onSuccess?.();
+      if (errors.length === 0) setTimeout(() => { onClose(); setResult(null); }, 2000);
     } catch (err) {
       toast.error(err.message || 'Upload failed');
       setResult({ success: 0, failed: 1 });
