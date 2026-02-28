@@ -158,6 +158,15 @@ export default function Students() {
 
   const saveMutation = useMutation({
     mutationFn: async ({ id, data, originalStudentId, originalStatus }) => {
+      // ── SOFT-DELETE GUARD: block all edits/status changes on deleted students ──
+      if (id) {
+        const currentRecords = await base44.entities.Student.filter({ id });
+        const current = currentRecords[0];
+        if (current && current.is_deleted === true) {
+          throw new Error('Operation not allowed for deleted student.');
+        }
+      }
+
       // Block edits on locked students (Passed Out / Transferred)
       if (id && isLocked({ status: originalStatus || data.status })) {
         throw new Error('This student record is locked (Passed Out / Transferred) and cannot be edited.');
@@ -341,6 +350,11 @@ export default function Students() {
   const handleArchive = async student => {
     if (!isAdmin) {
       toast.error('Only Admin/Principal can archive/reactivate students.');
+      return;
+    }
+    // ── SOFT-DELETE GUARD ──
+    if (student.is_deleted) {
+      toast.error('Operation not allowed for deleted student.');
       return;
     }
     const isArchived = isLocked(student);
