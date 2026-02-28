@@ -153,7 +153,7 @@ export default function Students() {
 
       if (id) {
         // EDIT: re-validate roll_no if relevant fields changed
-        const orig = students.find(s => s.id === id);
+        const orig = selectedStudent?.id === id ? selectedStudent : null;
         const rollChanged = orig && (
           String(normalized.roll_no) !== String(orig.roll_no) ||
           normalized.class_name !== orig.class_name ||
