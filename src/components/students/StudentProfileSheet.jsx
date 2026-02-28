@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pencil, Archive, RotateCcw, Trash2, User, BookOpen, Phone } from 'lucide-react';
+import { Pencil, Archive, RotateCcw, Trash2, User, BookOpen, Phone, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { getProxiedImageUrl } from '@/components/imageProxy';
 
