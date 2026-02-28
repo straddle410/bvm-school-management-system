@@ -77,6 +77,19 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Student.update(u.id, { roll_no: parseInt(u.roll_no) });
       }
 
+      // ── AUDIT: ONE consolidated entry for bulk resequence ──
+      await base44.asServiceRole.entities.AuditLog.create({
+        action: 'BULK_ROLL_RESEQUENCE',
+        module: 'Student',
+        class_name,
+        section,
+        academic_year,
+        performed_by: user.email,
+        timestamp: new Date().toISOString(),
+        date: new Date().toISOString().split('T')[0],
+        details: `Bulk roll resequence for Class ${class_name}-${section} (${updates.length} students updated)`
+      });
+
       return Response.json({ success: true, updated: updates.length });
     }
 
