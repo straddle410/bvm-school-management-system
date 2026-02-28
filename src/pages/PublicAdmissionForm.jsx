@@ -75,7 +75,7 @@ export default function PublicAdmissionForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.student_name || !formData.parent_name || !formData.parent_email || !formData.applying_for_class) {
       toast.error('Please fill all required fields');
       return;
@@ -83,14 +83,24 @@ export default function PublicAdmissionForm() {
 
     try {
       setLoading(true);
-      await base44.entities.AdmissionApplication.create({
-        ...formData,
-        status: 'Pending'
+      const response = await base44.functions.invoke('submitPublicAdmission', {
+        student_name: formData.student_name,
+        dob: formData.dob,
+        gender: formData.gender,
+        applying_for_class: formData.applying_for_class,
+        parent_name: formData.parent_name,
+        parent_phone: formData.parent_phone,
+        parent_email: formData.parent_email,
+        address: formData.address,
+        previous_school: formData.previous_school,
+        photo_url: formData.photo_url,
+        documents: formData.documents
       });
       setSubmitted(true);
       toast.success('Application submitted successfully');
     } catch (error) {
-      toast.error('Failed to submit application');
+      const message = error.response?.data?.error || 'Failed to submit application';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
