@@ -149,7 +149,10 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
             <p className="text-xs text-blue-700">
-              <strong>Required columns:</strong> student_id, name, class_name, section, roll_no, parent_name, parent_phone, parent_email
+              <strong>Required columns:</strong> student_id, name, class_name, section, parent_name, parent_phone, parent_email
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              ℹ Roll numbers are auto-assigned — no need to include in the file.
             </p>
           </div>
 
