@@ -548,6 +548,8 @@ export default function Students() {
                      onView={() => openProfile(student)}
                      onEdit={() => openEdit(student)}
                      onArchive={() => handleArchive(student)}
+                     onDelete={() => handleDelete(student)}
+                     onRestore={() => handleRestore(student)}
                      isAdmin={isAdmin}
                    />
                  </div>
