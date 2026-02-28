@@ -62,7 +62,7 @@ export default function Admissions() {
   useEffect(() => {
     base44.auth.me().then(user => {
       if (!user) return;
-      const userRole = user.role?.toLowerCase();
+      const userRole = (user.role || '').toLowerCase();
       const isAdmin = userRole === 'admin' || userRole === 'principal';
       const hasPermission = user.permissions?.student_admission_permission;
       
