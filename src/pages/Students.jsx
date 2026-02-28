@@ -66,11 +66,46 @@ export default function Students() {
                   user?.role === 'Principal' || user?.role === 'principal';
   const isTeacher = !isAdmin && (user?.role === 'teacher' || user?.role === 'Teacher' || user?.role === 'staff' || user?.role === 'Staff');
 
-  const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students', academicYear],
-    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear }, '-created_date'),
-    enabled: !!academicYear
+  // Debounced search trigger
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const handleSearchChange = useCallback((val) => {
+    setSearch(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(val);
+      setPage(1);
+    }, 300);
+  }, []);
+
+  const { data: studentsData, isLoading } = useQuery({
+    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, filterStatus],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getStudentsPaginated', {
+        page,
+        limit: LIMIT,
+        search: debouncedSearch,
+        class_name: filterClass === 'all' ? '' : filterClass,
+        section: filterSection === 'all' ? '' : filterSection,
+        status: filterStatus === 'all' ? '' : filterStatus,
+        academic_year: academicYear
+      });
+      return res.data;
+    },
+    enabled: !!academicYear,
+    keepPreviousData: true
   });
+
+  const students = studentsData?.data || [];
+
+  useEffect(() => {
+    if (studentsData) {
+      setTotalPages(studentsData.total_pages || 1);
+      setTotalCount(studentsData.total_count || 0);
+    }
+  }, [studentsData]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [filterClass, filterSection, filterStatus, academicYear]);
 
   const generateStudentId = async (academicYear) => {
     if (!academicYear) throw new Error('Academic year required to generate student ID');
