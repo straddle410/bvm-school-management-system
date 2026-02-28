@@ -350,6 +350,11 @@ export default function Students() {
               )}
               {isAdmin && <StudentExport students={students} academicYear={academicYear} />}
               {isAdmin && (
+                <Button onClick={() => setShowManageRolls(true)} variant="outline" className="rounded-xl">
+                  <Hash className="h-4 w-4 mr-1" /> Roll Nos
+                </Button>
+              )}
+              {isAdmin && (
                 <Button onClick={() => setShowBulkUpload(true)} variant="outline" className="rounded-xl">
                   <Upload className="h-4 w-4 mr-1" /> Import
                 </Button>
