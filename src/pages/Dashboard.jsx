@@ -184,19 +184,21 @@ export default function Dashboard() {
   const userPermissions = user?.permissions || {};
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
-  const { data: pendingApplicationsCount = 0 } = useQuery({
-    queryKey: ['pending-admissions-count', academicYear],
+  const { data: yearReport = null } = useQuery({
+    queryKey: ['admissions-year-report-badge', academicYear],
     queryFn: async () => {
-      if (!isAdmin) return 0;
+      if (!isAdmin) return null;
       try {
-        const apps = await base44.entities.AdmissionApplication.filter({ status: 'Pending', academic_year: academicYear });
-        return apps.length;
-      } catch { return 0; }
+        const response = await base44.functions.invoke('getAdmissionYearReport', { academicYear });
+        return response.data;
+      } catch { return null; }
     },
-    enabled: isAdmin,
+    enabled: isAdmin && !!academicYear,
     staleTime: 60000,
     refetchInterval: 60000
   });
+
+  const pendingApplicationsCount = yearReport?.summary?.total_pending || 0;
 
   // For non-admin staff, filter quick actions based on their permissions
   const visibleQuickActions = quickActions.filter(item => {
