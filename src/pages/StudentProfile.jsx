@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, User, Phone, Calendar, Award, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, BookOpen, User, Phone, Calendar, Award, TrendingUp, Clock, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import StudentAuditHistory from '@/components/students/StudentAuditHistory';
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
