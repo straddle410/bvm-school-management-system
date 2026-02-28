@@ -277,8 +277,8 @@ export default function Students() {
              filterStatus={filterStatus} onFilterStatus={setFilterStatus}
            />
 
-          {/* Bulk Actions */}
-          {totalPending > 0 && (
+          {/* Bulk Actions — Admin only */}
+          {isAdmin && totalPending > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
               <label className="flex items-center gap-3 cursor-pointer flex-1">
                 <input
