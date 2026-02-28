@@ -38,7 +38,17 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs">Student ID</Label>
-            <Input value={formData.student_id || ''} onChange={e => set('student_id', e.target.value)} placeholder="S0001" className="mt-1 rounded-xl bg-gray-50" />
+            <Input
+              value={formData.student_id || ''}
+              onChange={e => set('student_id', e.target.value)}
+              placeholder="S25001"
+              className="mt-1 rounded-xl bg-gray-50"
+              readOnly={!isAdmin}
+              disabled={!isAdmin}
+            />
+            {isAdmin && isEdit && (
+              <p className="text-xs text-amber-600 mt-1">⚠ Changing ID will be audit-logged</p>
+            )}
           </div>
           <div>
             <Label className="text-xs">Username</Label>
