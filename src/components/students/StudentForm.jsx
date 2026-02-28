@@ -60,35 +60,35 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
               onChange={e => set('student_id', e.target.value)}
               placeholder="S25001"
               className="mt-1 rounded-xl bg-gray-50"
-              readOnly={!isAdmin}
-              disabled={!isAdmin}
+              readOnly={dis || locked}
+              disabled={dis || locked}
             />
-            {isAdmin && isEdit && (
+            {isAdmin && isEdit && !locked && (
               <p className="text-xs text-amber-600 mt-1">⚠ Changing ID will be audit-logged</p>
             )}
           </div>
           <div>
             <Label className="text-xs">Username</Label>
-            <Input value={formData.username || ''} onChange={e => set('username', e.target.value)} placeholder="Login username" className="mt-1 rounded-xl bg-gray-50" />
+            <Input value={formData.username || ''} onChange={e => set('username', e.target.value)} placeholder="Login username" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Password</Label>
-            <Input value={formData.password || 'BVM123'} onChange={e => set('password', e.target.value)} placeholder="BVM123" className="mt-1 rounded-xl bg-gray-50" />
+            <Input value={formData.password || 'BVM123'} onChange={e => set('password', e.target.value)} placeholder="BVM123" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Academic Year</Label>
-            <Input value={formData.academic_year || ''} onChange={e => set('academic_year', e.target.value)} placeholder="2024-25" className="mt-1 rounded-xl bg-gray-50" />
+            <Input value={formData.academic_year || ''} onChange={e => set('academic_year', e.target.value)} placeholder="2024-25" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Class *</Label>
-            <Select value={formData.class_name || ''} onValueChange={v => set('class_name', v)}>
+            <Select value={formData.class_name || ''} onValueChange={locked ? undefined : v => set('class_name', v)} disabled={dis}>
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue placeholder="Select class" /></SelectTrigger>
               <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
             <Label className="text-xs">Section *</Label>
-            <Select value={formData.section || 'A'} onValueChange={v => set('section', v)}>
+            <Select value={formData.section || 'A'} onValueChange={locked ? undefined : v => set('section', v)} disabled={dis}>
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue /></SelectTrigger>
               <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
             </Select>
@@ -98,17 +98,17 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Input
               type="number"
               value={formData.roll_no || ''}
-              onChange={isEdit ? (e => set('roll_no', parseInt(e.target.value))) : undefined}
-              readOnly={!isEdit}
-              disabled={!isEdit}
+              onChange={(isEdit && !locked) ? (e => set('roll_no', parseInt(e.target.value))) : undefined}
+              readOnly={!isEdit || locked}
+              disabled={!isEdit || locked}
               placeholder={isEdit ? '1' : 'Auto'}
-              className={`mt-1 rounded-xl bg-gray-50 ${!isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`mt-1 rounded-xl bg-gray-50 ${(!isEdit || locked) ? 'opacity-60 cursor-not-allowed' : ''}`}
             />
-            {isEdit && <p className="text-xs text-amber-600 mt-1">⚠ Use "Manage Roll Numbers" for bulk edits</p>}
+            {isEdit && !locked && <p className="text-xs text-amber-600 mt-1">⚠ Use "Manage Roll Numbers" for bulk edits</p>}
           </div>
           <div>
             <Label className="text-xs">Admission Date</Label>
-            <Input type="date" value={formData.admission_date || ''} onChange={e => set('admission_date', e.target.value)} className="mt-1 rounded-xl bg-gray-50" />
+            <Input type="date" value={formData.admission_date || ''} onChange={e => set('admission_date', e.target.value)} className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
         </div>
       </div>
