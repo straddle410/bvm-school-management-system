@@ -41,6 +41,15 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // ── SOFT-DELETE GUARD ──
+    const studentRecords = await base44.asServiceRole.entities.Attendance.filter({ student_id: studentId });
+    // Fetch the Student entity to check is_deleted
+    const allStudentsForId = await base44.asServiceRole.entities.Student.filter({ student_id: studentId, academic_year: academicYear });
+    const studentRecord = allStudentsForId[0];
+    if (studentRecord && studentRecord.is_deleted === true) {
+      return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
+    }
+
     // Check for existing record with same student + date + class + section + year
     const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
       date,

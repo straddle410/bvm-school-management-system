@@ -39,6 +39,17 @@ Deno.serve(async (req) => {
 
     const existingRecord = existingRecords[0];
 
+    // ── SOFT-DELETE GUARD ──
+    const studentId = data.student_id || existingRecord.student_id;
+    const ayForCheck = data.academic_year || existingRecord.academic_year;
+    if (studentId && ayForCheck) {
+      const studentsForId = await base44.asServiceRole.entities.Student.filter({ student_id: studentId, academic_year: ayForCheck });
+      const studentForCheck = studentsForId[0];
+      if (studentForCheck && studentForCheck.is_deleted === true) {
+        return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
+      }
+    }
+
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
     const attendanceDate = data.date || existingRecord.date;
     const attendanceAcademicYear = data.academic_year || existingRecord.academic_year;

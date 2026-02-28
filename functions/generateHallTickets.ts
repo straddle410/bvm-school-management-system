@@ -137,7 +137,24 @@ Deno.serve(async (req) => {
       }
     }
 
-    students.forEach((student, idx) => {
+    // ── SOFT-DELETE GUARD: exclude deleted students ──
+    const activeStudents = students.filter(s => !s.is_deleted);
+    if (activeStudents.length === 0) {
+      return Response.json({ error: 'No active (non-deleted) students found', count: 0 }, { status: 200 });
+    }
+
+    // Re-check for duplicate roll numbers after filtering
+    const activeRollNumbers = activeStudents.map(s => s.roll_no).filter(Boolean);
+    const activeUniqueRolls = new Set(activeRollNumbers);
+    if (activeRollNumbers.length !== activeUniqueRolls.size) {
+      const duplicates = activeRollNumbers.filter((rn, idx) => activeRollNumbers.indexOf(rn) !== idx);
+      return Response.json({
+        error: `Duplicate roll numbers found in active students: ${[...new Set(duplicates)].join(', ')}.`,
+        hasDuplicateRollNumbers: true
+      }, { status: 400 });
+    }
+
+    activeStudents.forEach((student, idx) => {
       let xx;
       if (assignmentType === 'sequential') {
         xx = String(student.roll_no || idx + 1).padStart(2, '0');

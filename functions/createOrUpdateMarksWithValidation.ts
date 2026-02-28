@@ -46,6 +46,13 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // ── SOFT-DELETE GUARD ──
+    const studentsForMark = await base44.asServiceRole.entities.Student.filter({ student_id, academic_year, class_name });
+    const studentForMark = studentsForMark[0];
+    if (studentForMark && studentForMark.is_deleted === true) {
+      return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
+    }
+
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
     // Verify the exam_type belongs to this academic year
     const examTypes = await base44.asServiceRole.entities.ExamType.filter({ academic_year });
