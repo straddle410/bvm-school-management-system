@@ -16,9 +16,10 @@ import ManageRollNumbers from '@/components/students/ManageRollNumbers';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight, Hash, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
+import { isLocked, isValidTransition, ACTIVE_STATUSES } from '@/components/students/studentStatusUtils';
 
 const EMPTY_FORM = {
   student_id: '', username: '', password: 'BVM123',
