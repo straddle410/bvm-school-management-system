@@ -149,6 +149,9 @@ export default function Students() {
       setShowForm(false);
       setPhotoFile(null);
       toast.success(isEdit ? 'Student updated' : 'Student added');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to save student');
     }
   });
 
