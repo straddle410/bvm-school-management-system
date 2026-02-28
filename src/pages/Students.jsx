@@ -109,38 +109,40 @@ export default function Students() {
         throw new Error('Invalid Student ID format. Expected format: S25001');
       }
 
+      const normalized = normalizeStudentData({ ...data, photo_url });
+
       if (id) {
         // EDIT: re-validate roll_no if relevant fields changed
         const orig = students.find(s => s.id === id);
         const rollChanged = orig && (
-          String(data.roll_no) !== String(orig.roll_no) ||
-          data.class_name !== orig.class_name ||
-          data.section !== orig.section ||
-          data.academic_year !== orig.academic_year
+          String(normalized.roll_no) !== String(orig.roll_no) ||
+          normalized.class_name !== orig.class_name ||
+          normalized.section !== orig.section ||
+          normalized.academic_year !== orig.academic_year
         );
-        if (rollChanged) await validateRollNoUnique(data, id);
+        if (rollChanged) await validateRollNoUnique(normalized, id);
 
         // Audit log + uniqueness check if student_id changed
-        if (originalStudentId && data.student_id !== originalStudentId) {
-          await validateStudentIdUnique(data.student_id, id);
+        if (originalStudentId && normalized.student_id !== originalStudentId.toUpperCase().trim()) {
+          await validateStudentIdUnique(normalized.student_id, id);
           await base44.entities.AuditLog.create({
             action: 'student_id_changed',
             module: 'Student',
             performed_by: user?.email || 'unknown',
-            details: `Student ID changed from ${originalStudentId} to ${data.student_id} for student: ${data.name}`,
+            details: `Student ID changed from ${originalStudentId} to ${normalized.student_id} for student: ${normalized.name}`,
             date: new Date().toISOString().split('T')[0],
-            academic_year: data.academic_year
+            academic_year: normalized.academic_year
           });
         }
-        return base44.entities.Student.update(id, { ...data, photo_url });
+        return base44.entities.Student.update(id, normalized);
       }
 
       // CREATE: run all three duplicate checks
-      await validateStudentIdUnique(data.student_id);
-      await validateRollNoUnique(data);
-      await validateNoDuplicateStudent(data);
+      await validateStudentIdUnique(normalized.student_id);
+      await validateRollNoUnique(normalized);
+      await validateNoDuplicateStudent(normalized);
 
-      return base44.entities.Student.create({ ...data, photo_url });
+      return base44.entities.Student.create(normalized);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['students']);
