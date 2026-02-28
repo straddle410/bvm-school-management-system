@@ -519,6 +519,13 @@ export default function Students() {
           onSuccess={() => queryClient.invalidateQueries(['students'])}
         />
 
+        {/* Manage Roll Numbers */}
+        <ManageRollNumbers
+          open={showManageRolls}
+          onClose={() => { setShowManageRolls(false); queryClient.invalidateQueries(['students']); }}
+          academicYear={academicYear}
+        />
+
         {/* Past Year Warning */}
         <PastYearWarning
           open={showPastYearWarning}
