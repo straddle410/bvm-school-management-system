@@ -61,12 +61,12 @@ Deno.serve(async (req) => {
     const activeYear = academicYears[0].year;
     console.log('[submitPublicAdmission] Active year selected:', activeYear);
 
-    // Step 3: Duplicate check 1 - name + dob + year
-    const duplicateByNameDob = await base44.asServiceRole.entities.AdmissionApplication.filter({
+    // Step 3: Duplicate check - student_name + dob + academic_year only
+    const applicationsForYear = await base44.asServiceRole.entities.AdmissionApplication.filter({
       academic_year: activeYear
     });
 
-    for (const existingApp of duplicateByNameDob) {
+    for (const existingApp of applicationsForYear) {
       if (existingApp.student_name && existingApp.dob) {
         if (
           existingApp.student_name.toLowerCase() === normalizedStudentName.toLowerCase() &&
@@ -79,21 +79,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 4: Duplicate check 2 - parent phone + year
-    for (const existingApp of duplicateByNameDob) {
-      if (existingApp.parent_phone) {
-        if (existingApp.parent_phone === normalizedParentPhone) {
-          return Response.json({
-            error: 'Duplicate application: An application with this parent phone number already exists in this academic year.'
-          }, { status: 422 });
-        }
-      }
-    }
-
-    // Step 5: Generate application number
+    // Step 4: Generate application number
     const appNo = `APP-${Date.now().toString(36).toUpperCase()}`;
 
-    // Step 6: Create AdmissionApplication with service role (backend enforces year)
+    // Step 5: Create AdmissionApplication with service role (backend enforces year)
     const newApplication = await base44.asServiceRole.entities.AdmissionApplication.create({
       application_no: appNo,
       student_name: normalizedStudentName,
@@ -112,7 +101,7 @@ Deno.serve(async (req) => {
       academic_year: activeYear
     });
 
-    // Step 7: Create audit log
+    // Step 6: Create audit log
     await base44.asServiceRole.entities.AuditLog.create({
       action: 'PUBLIC_SUBMISSION',
       module: 'Admission',
