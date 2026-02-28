@@ -45,25 +45,27 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'parent_phone cannot be empty' }, { status: 400 });
     }
 
-    // Step 2: Fetch active academic year (backend-controlled, NOT user input)
-    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({
-      status: 'Active'
+    // Step 2: Fetch admission intake year (admission_open = true)
+    const admissionYears = await base44.asServiceRole.entities.AcademicYear.filter({
+      admission_open: true
     });
 
-    console.log('[submitPublicAdmission] Fetched AcademicYears:', JSON.stringify(academicYears));
+    console.log('[submitPublicAdmission] Fetched AcademicYears with admission_open:', JSON.stringify(admissionYears));
 
-    if (academicYears.length === 0) {
+    if (admissionYears.length === 0) {
       return Response.json({
-        error: 'No active academic year configured. Please contact school administration.'
+        error: 'Admissions are currently closed.'
       }, { status: 422 });
     }
 
-    const activeYear = academicYears[0].year;
-    console.log('[submitPublicAdmission] Active year selected:', activeYear);
+    // If multiple years have admission_open, choose the latest (highest start_date)
+    const admissionYear = admissionYears.sort((a, b) => new Date(b.start_date) - new Date(a.start_date))[0];
+    const intakeYear = admissionYear.year;
+    console.log('[submitPublicAdmission] Admission intake year selected:', intakeYear);
 
     // Step 3: Duplicate check - student_name + dob + academic_year only
     const applicationsForYear = await base44.asServiceRole.entities.AdmissionApplication.filter({
-      academic_year: activeYear
+      academic_year: intakeYear
     });
 
     for (const existingApp of applicationsForYear) {
@@ -82,7 +84,7 @@ Deno.serve(async (req) => {
     // Step 4: Generate application number
     const appNo = `APP-${Date.now().toString(36).toUpperCase()}`;
 
-    // Step 5: Create AdmissionApplication with service role (backend enforces year)
+    // Step 5: Create AdmissionApplication with service role (backend enforces admission year)
     const newApplication = await base44.asServiceRole.entities.AdmissionApplication.create({
       application_no: appNo,
       student_name: normalizedStudentName,
@@ -98,7 +100,7 @@ Deno.serve(async (req) => {
       previous_school: normalizedPreviousSchool,
       documents: documents || [],
       status: 'Pending',
-      academic_year: activeYear
+      academic_year: intakeYear
     });
 
     // Step 6: Create audit log
@@ -108,7 +110,7 @@ Deno.serve(async (req) => {
       performed_by: 'public-user',
       timestamp: new Date().toISOString(),
       details: `Public admission application submitted for ${normalizedStudentName} (${appNo})`,
-      academic_year: activeYear
+      academic_year: intakeYear
     });
 
     return Response.json({
@@ -116,7 +118,7 @@ Deno.serve(async (req) => {
       message: 'Application submitted successfully',
       application_id: newApplication.id,
       application_no: appNo,
-      academic_year: activeYear
+      academic_year: intakeYear
     }, { status: 201 });
 
   } catch (error) {
