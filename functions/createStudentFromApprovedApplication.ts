@@ -20,6 +20,18 @@ Deno.serve(async (req) => {
     const studentId = `S${Date.now().toString().slice(-5)}`; // e.g., S25001
     const defaultPassword = 'BVM123'; // Default password from spec
 
+    // Auto-assign roll_no
+    const classStudents = await base44.asServiceRole.entities.Student.filter({
+      class_name: data.applying_for_class,
+      section: data.section || 'A',
+      academic_year: data.academic_year
+    }, 'roll_no', 10000);
+    const maxRoll = classStudents.reduce((max, s) => {
+      const r = parseInt(s.roll_no);
+      return !isNaN(r) && r > max ? r : max;
+    }, 0);
+    const rollNo = maxRoll + 1;
+
     // Create student record
     const newStudent = await base44.asServiceRole.entities.Student.create({
       name: data.student_name,
@@ -27,7 +39,7 @@ Deno.serve(async (req) => {
       username: studentId,
       password: defaultPassword,
       class_name: data.applying_for_class,
-      section: data.section,
+      section: data.section || 'A',
       roll_no: rollNo,
       photo_url: data.photo_url,
       parent_name: data.parent_name,
