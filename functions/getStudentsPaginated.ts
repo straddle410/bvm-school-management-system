@@ -21,6 +21,29 @@ Deno.serve(async (req) => {
 
     if (!academic_year) return Response.json({ error: 'academic_year is required' }, { status: 400 });
 
+    // Role-based access enforcement
+    const userRole = user.role?.toLowerCase();
+    const isAdmin = userRole === 'admin' || userRole === 'principal';
+    const isTeacher = !isAdmin && (userRole === 'teacher' || userRole === 'staff');
+
+    // Teachers must ONLY access the Active year for Student module
+    if (isTeacher) {
+      const yearData = await base44.asServiceRole.entities.AcademicYear.filter({
+        year: academic_year
+      });
+
+      if (yearData.length === 0) {
+        return Response.json({ error: 'Academic year not found' }, { status: 404 });
+      }
+
+      // Teacher can ONLY see students in Active year
+      if (yearData[0].status !== 'Active') {
+        return Response.json({ 
+          error: 'Access denied: Teachers can only access the current active academic year.' 
+        }, { status: 403 });
+      }
+    }
+
     const ARCHIVED_STATUSES = ['Passed Out', 'Transferred'];
 
     // Build filter object for indexed fields
