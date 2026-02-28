@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { CheckCircle2, Clock, AlertCircle, FileText, Check, X, Eye, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
+import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
