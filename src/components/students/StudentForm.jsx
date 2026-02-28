@@ -11,7 +11,7 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const SECTIONS = ['A', 'B', 'C', 'D'];
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-export default function StudentForm({ formData, onChange, onPhotoChange, photoFile, isEdit, onSubmit, onCancel, loading }) {
+export default function StudentForm({ formData, onChange, onPhotoChange, photoFile, isEdit, onSubmit, onCancel, loading, isAdmin = true }) {
   const set = (key, val) => onChange({ ...formData, [key]: val });
 
   return (
