@@ -50,7 +50,13 @@ export default function StudentCard({ student, onView, onEdit, onArchive, isAdmi
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onView}><Eye className="mr-2 h-4 w-4" /> View Profile</DropdownMenuItem>
-            <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+            {locked ? (
+              <DropdownMenuItem className="text-gray-400 cursor-not-allowed" disabled>
+                <Lock className="mr-2 h-4 w-4" /> Read-only
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onArchive} className={isArchived ? 'text-green-600' : 'text-orange-600'}>
               {isArchived ? <RotateCcw className="mr-2 h-4 w-4" /> : <Archive className="mr-2 h-4 w-4" />}
               {isArchived ? 'Reactivate' : 'Archive'}
