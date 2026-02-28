@@ -263,7 +263,7 @@ export default function Students() {
   };
 
   const handleSelectAll = () => {
-    const pendingIds = filtered.filter(s => s.status === 'Pending').map(s => s.id);
+    const pendingIds = students.filter(s => s.status === 'Pending').map(s => s.id);
     if (selectedIds.size === pendingIds.length) {
       setSelectedIds(new Set());
     } else {
@@ -289,16 +289,7 @@ export default function Students() {
     toast.success(`${toVerify.length} student(s) verified`);
   };
 
-  const filtered = students.filter(s => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q) || s.parent_name?.toLowerCase().includes(q);
-    const matchClass = filterClass === 'all' || s.class_name === filterClass;
-    const matchSection = filterSection === 'all' || s.section === filterSection;
-    const matchStatus = filterStatus === 'all' || s.status === filterStatus;
-    return matchSearch && matchClass && matchSection && matchStatus;
-  });
-
-  // Stats
+  // Stats from current page (server already filtered)
   const totalActive = students.filter(s => s.status === 'Published').length;
   const totalPending = students.filter(s => s.status === 'Pending').length;
   const totalArchived = students.filter(s => s.status === 'Passed Out' || s.status === 'Transferred').length;
