@@ -299,7 +299,7 @@ export default function Students() {
       <div className="min-h-screen bg-[#f0f4ff]">
         <PageHeader
           title={`Students — ${academicYear}`}
-          subtitle={`${filtered.length} of ${students.length} students`}
+          subtitle={`${totalCount} students`}
           backTo="Dashboard"
           actions={
             <div className="flex gap-2">
