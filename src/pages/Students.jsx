@@ -478,6 +478,7 @@ export default function Students() {
              filterClass={filterClass} onFilterClass={setFilterClass}
              filterSection={filterSection} onFilterSection={setFilterSection}
              filterStatus={filterStatus} onFilterStatus={setFilterStatus}
+             showArchived={showArchived} onToggleArchived={() => { setShowArchived(v => !v); setPage(1); }}
            />
 
           {/* Bulk Actions — Admin only */}
