@@ -353,36 +353,28 @@ export default function Students() {
     }
     const isArchived = isLocked(student);
     if (isArchived) {
-      // Admin-only revert from Passed Out/Transferred → Published (with confirmation)
+      // Admin-only revert from Passed Out/Transferred → Published
       if (!window.confirm(`Reactivate ${student.name}? This will set their status back to Published.`)) return;
-      await base44.entities.Student.update(student.id, { status: 'Published' });
-      await base44.entities.AuditLog.create({
-        action: 'STATUS_CHANGE',
-        module: 'Student',
-        performed_by: user?.email || 'unknown',
-        details: `Status reverted: ${student.status} → Published | Student: ${student.name} (${student.student_id})`,
-        date: new Date().toISOString().split('T')[0],
-        academic_year: student.academic_year
+      const revertRes = await base44.functions.invoke('updateStudentWithAudit', {
+        student_db_id: student.id,
+        updates: { status: 'Published' }
       });
+      if (revertRes.data?.error) { toast.error(revertRes.data.error); return; }
       queryClient.invalidateQueries(['students']);
       setShowProfile(false);
       toast.success('Student reactivated');
     } else {
-      // Forward: Published → Passed Out (only valid from Published)
+      // Forward: Published → Passed Out
       if (!isValidTransition(student.status, 'Passed Out')) {
         toast.error(`Cannot archive student with status: ${student.status}. Student must be Published first.`);
         return;
       }
       if (!window.confirm(`Archive ${student.name} as "Passed Out"? The record will become read-only.`)) return;
-      await base44.entities.Student.update(student.id, { status: 'Passed Out' });
-      await base44.entities.AuditLog.create({
-        action: 'STATUS_CHANGE',
-        module: 'Student',
-        performed_by: user?.email || 'unknown',
-        details: `Status changed: ${student.status} → Passed Out | Student: ${student.name} (${student.student_id})`,
-        date: new Date().toISOString().split('T')[0],
-        academic_year: student.academic_year
+      const archiveRes = await base44.functions.invoke('updateStudentWithAudit', {
+        student_db_id: student.id,
+        updates: { status: 'Passed Out' }
       });
+      if (archiveRes.data?.error) { toast.error(archiveRes.data.error); return; }
       queryClient.invalidateQueries(['students']);
       setShowProfile(false);
       toast.success('Student archived as Passed Out');
