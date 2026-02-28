@@ -18,9 +18,33 @@ Deno.serve(async (req) => {
     // Role-based access
     const userRole = user.role?.toLowerCase();
     const isAdmin = userRole === 'admin' || userRole === 'principal';
+    const isTeacher = !isAdmin && (userRole === 'teacher' || userRole === 'staff');
     
     if (userRole === 'staff' && !user.permissions?.student_admission_permission) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Teacher year visibility enforcement
+    if (isTeacher) {
+      // Fetch the requested year to validate teacher access
+      const requestedYear = await base44.asServiceRole.entities.AcademicYear.filter({
+        year: academicYear
+      });
+
+      if (requestedYear.length === 0) {
+        return Response.json({ error: 'Academic year not found' }, { status: 404 });
+      }
+
+      const yearData = requestedYear[0];
+      const isActive = yearData.status === 'Active';
+      const isAdmissionOpen = yearData.admission_open === true;
+
+      // Teachers can only access: Active year OR admission_open = true years
+      if (!isActive && !isAdmissionOpen) {
+        return Response.json({ 
+          error: 'Access denied: This academic year is not available for admissions.' 
+        }, { status: 403 });
+      }
     }
 
     // Build query - ALWAYS filter by academic_year
