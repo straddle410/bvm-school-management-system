@@ -75,25 +75,23 @@ export default function PublicAdmission() {
         documents.push(result.file_url);
       }
 
-      const appNo = `APP-${Date.now().toString(36).toUpperCase()}`;
-      
-      await base44.entities.Admission.create({
+      // Use backend function (academic_year determined server-side)
+      const response = await base44.functions.invoke('submitPublicAdmission', {
         ...formData,
         photo_url,
-        documents,
-        application_no: appNo,
-        status: 'Submitted'
+        documents
       });
 
-      return appNo;
+      return response.data;
     },
-    onSuccess: (appNo) => {
-      setApplicationNo(appNo);
+    onSuccess: (data) => {
+      setApplicationNo(data.application_no);
       setSubmitted(true);
       toast.success('Application submitted successfully!');
     },
-    onError: () => {
-      toast.error('Failed to submit application. Please try again.');
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to submit application. Please try again.';
+      toast.error(message);
     }
   });
 
