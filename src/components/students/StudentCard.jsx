@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, Pencil, Archive, MoreVertical, RotateCcw, Lock } from 'lucide-react';
+import { Eye, Pencil, Archive, MoreVertical, RotateCcw, Lock, Trash2, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { createPageUrl } from '@/utils';
 import { getProxiedImageUrl } from '@/components/imageProxy';
@@ -15,10 +15,11 @@ const STATUS_COLORS = {
   Transferred: 'bg-orange-100 text-orange-600',
 };
 
-export default function StudentCard({ student, onView, onEdit, onArchive, isAdmin }) {
+export default function StudentCard({ student, onView, onEdit, onArchive, onRestore, isAdmin }) {
   const navigate = useNavigate();
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const isArchived = student.status === 'Passed Out' || student.status === 'Transferred';
+  const isDeleted = student.is_deleted === true;
   const locked = isArchived;
 
   const handleViewProfile = () => {
@@ -26,7 +27,7 @@ export default function StudentCard({ student, onView, onEdit, onArchive, isAdmi
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow cursor-pointer group">
+    <div className={`rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow cursor-pointer group ${isDeleted ? 'bg-red-50 border border-red-200' : 'bg-white'}`}>
       <button onClick={handleViewProfile} className="flex items-center gap-3 flex-1 min-w-0 text-left group-hover:opacity-80">
          <Avatar className="h-11 w-11 flex-shrink-0">
            <AvatarImage src={getProxiedImageUrl(student.photo_url)} />
@@ -50,17 +51,28 @@ export default function StudentCard({ student, onView, onEdit, onArchive, isAdmi
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onView}><Eye className="mr-2 h-4 w-4" /> View Profile</DropdownMenuItem>
-            {locked ? (
-              <DropdownMenuItem className="text-gray-400 cursor-not-allowed" disabled>
-                <Lock className="mr-2 h-4 w-4" /> Read-only
+            {isDeleted ? (
+              <DropdownMenuItem onClick={onRestore} className="text-green-600">
+                <RefreshCw className="mr-2 h-4 w-4" /> Restore Student
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+              <>
+                {locked ? (
+                  <DropdownMenuItem className="text-gray-400 cursor-not-allowed" disabled>
+                    <Lock className="mr-2 h-4 w-4" /> Read-only
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={onArchive} className={isArchived ? 'text-green-600' : 'text-orange-600'}>
+                  {isArchived ? <RotateCcw className="mr-2 h-4 w-4" /> : <Archive className="mr-2 h-4 w-4" />}
+                  {isArchived ? 'Reactivate' : 'Archive'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onView} className="text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" /> Soft Delete
+                </DropdownMenuItem>
+              </>
             )}
-            <DropdownMenuItem onClick={onArchive} className={isArchived ? 'text-green-600' : 'text-orange-600'}>
-              {isArchived ? <RotateCcw className="mr-2 h-4 w-4" /> : <Archive className="mr-2 h-4 w-4" />}
-              {isArchived ? 'Reactivate' : 'Archive'}
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
