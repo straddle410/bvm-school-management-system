@@ -47,8 +47,10 @@ Deno.serve(async (req) => {
 
     // Step 2: Fetch active academic year (backend-controlled, NOT user input)
     const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({
-      is_active: true
+      status: 'Active'
     });
+
+    console.log('[submitPublicAdmission] Fetched AcademicYears:', JSON.stringify(academicYears));
 
     if (academicYears.length === 0) {
       return Response.json({
@@ -57,6 +59,7 @@ Deno.serve(async (req) => {
     }
 
     const activeYear = academicYears[0].year;
+    console.log('[submitPublicAdmission] Active year selected:', activeYear);
 
     // Step 3: Duplicate check 1 - name + dob + year
     const duplicateByNameDob = await base44.asServiceRole.entities.AdmissionApplication.filter({
