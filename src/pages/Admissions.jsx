@@ -429,6 +429,8 @@ export default function Admissions() {
                      <SelectItem value="Approved">Approved</SelectItem>
                      <SelectItem value="Converted">Converted</SelectItem>
                      <SelectItem value="Rejected">Rejected</SelectItem>
+                     <SelectItem value="Submitted">Submitted</SelectItem>
+                     <SelectItem value="Under Review">Under Review</SelectItem>
                    </SelectContent>
                  </Select>
               </div>
