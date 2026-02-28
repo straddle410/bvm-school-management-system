@@ -15,8 +15,24 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 export default function StudentForm({ formData, onChange, onPhotoChange, photoFile, isEdit, onSubmit, onCancel, loading, isAdmin = true }) {
   const set = (key, val) => onChange({ ...formData, [key]: val });
 
+  const locked = isEdit && isLocked(formData);
+  const allowedNextStatuses = isEdit ? getAllowedTransitions(formData.status) : Object.keys(STATUS_LABELS).filter(s => ACTIVE_STATUSES.includes(s));
+  // For edit: show current status + allowed next ones
+  const statusOptions = isEdit
+    ? [formData.status, ...allowedNextStatuses]
+    : ['Pending'];
+
+  // Readonly wrapper — if locked, disable all inputs
+  const dis = locked || !isAdmin;
+
   return (
     <form onSubmit={onSubmit} className="space-y-6">
+      {locked && (
+        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
+          <Lock className="h-4 w-4 flex-shrink-0" />
+          <span>This student is <strong>{formData.status}</strong>. Record is read-only.</span>
+        </div>
+      )}
       {/* Photo */}
       <div className="flex justify-center">
         <div className="relative">
