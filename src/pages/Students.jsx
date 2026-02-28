@@ -270,7 +270,8 @@ export default function Students() {
     saveMutation.mutate({
       id: isEdit ? selectedStudent.id : null,
       data: formData,
-      originalStudentId: isEdit ? selectedStudent.student_id : null
+      originalStudentId: isEdit ? selectedStudent.student_id : null,
+      originalStatus: isEdit ? selectedStudent.status : null
     });
   };
 
