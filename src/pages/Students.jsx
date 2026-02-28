@@ -44,6 +44,11 @@ export default function Students() {
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const LIMIT = 25;
+  const debounceRef = useRef(null);
 
   const queryClient = useQueryClient();
 
