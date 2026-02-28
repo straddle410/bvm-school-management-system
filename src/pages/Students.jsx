@@ -195,7 +195,12 @@ export default function Students() {
         return base44.entities.Student.update(id, normalized);
       }
 
-      // CREATE: run all three duplicate checks
+      // CREATE: auto-assign roll_no if not set
+      if (!normalized.roll_no && normalized.class_name && normalized.section && normalized.academic_year) {
+        const nextRoll = await generateRollNo(normalized.class_name, normalized.section, normalized.academic_year);
+        if (nextRoll) normalized.roll_no = nextRoll;
+      }
+
       await validateStudentIdUnique(normalized.student_id);
       await validateRollNoUnique(normalized);
       await validateNoDuplicateStudent(normalized);
