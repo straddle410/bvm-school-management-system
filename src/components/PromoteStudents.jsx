@@ -125,10 +125,12 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
                 <div className="text-sm text-amber-800">
                   <p className="font-semibold mb-1">Before you proceed:</p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li>All students in <strong>{academicYear}</strong> will move to <strong>{nextYear}</strong></li>
+                    <li>Only <strong>Published</strong> students in <strong>{academicYear}</strong> will be promoted</li>
+                    <li>A <strong>new record</strong> is created in <strong>{nextYear}</strong> — old records are preserved</li>
                     <li>Each student's class will be advanced by one (e.g. Class 5 → Class 6)</li>
                     <li>Class 10 students will be marked as <strong>Passed Out</strong></li>
-                    <li>You can still view previous year data by switching the year in the header</li>
+                    <li>Student IDs remain the same across years; roll numbers are reassigned</li>
+                    <li>Previous year data remains intact and viewable in the year selector</li>
                   </ul>
                 </div>
               </div>
