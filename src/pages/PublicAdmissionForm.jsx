@@ -76,8 +76,12 @@ export default function PublicAdmissionForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.student_name || !formData.parent_name || !formData.parent_email || !formData.applying_for_class) {
-      toast.error('Please fill all required fields');
+    if (!formData.student_name || !formData.parent_name || !formData.parent_email || !formData.applying_for_class || !formData.address.trim()) {
+      if (!formData.address.trim()) {
+        toast.error('Residential address is required.');
+      } else {
+        toast.error('Please fill all required fields');
+      }
       return;
     }
 
@@ -91,7 +95,7 @@ export default function PublicAdmissionForm() {
         parent_name: formData.parent_name,
         parent_phone: formData.parent_phone,
         parent_email: formData.parent_email,
-        address: formData.address,
+        address: formData.address.trim(),
         previous_school: formData.previous_school,
         photo_url: formData.photo_url,
         documents: formData.documents
@@ -243,13 +247,14 @@ export default function PublicAdmissionForm() {
                   </div>
 
                   <div>
-                    <Label>Residential Address</Label>
+                    <Label>Residential Address *</Label>
                     <Textarea
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="Full address"
                       rows={3}
+                      required
                     />
                   </div>
 
