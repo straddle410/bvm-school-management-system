@@ -45,6 +45,14 @@ Deno.serve(async (req) => {
       const { updates } = body; // [{ id, roll_no }]
       if (!Array.isArray(updates)) return Response.json({ error: 'updates array required' }, { status: 400 });
 
+      // ── SOFT-DELETE GUARD: prevent roll number changes for deleted students ──
+      for (const u of updates) {
+        const targetStudent = students.find(s => s.id === u.id);
+        if (targetStudent && targetStudent.is_deleted === true) {
+          return Response.json({ error: `Operation not allowed for deleted student (${targetStudent.name}).` }, { status: 422 });
+        }
+      }
+
       // Validate uniqueness
       const seen = new Map();
       for (const u of updates) {

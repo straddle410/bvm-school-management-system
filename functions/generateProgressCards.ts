@@ -210,12 +210,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── SOFT-DELETE GUARD: fetch all student ids for this year and exclude deleted ──
+    const allStudentsInYear = await base44.asServiceRole.entities.Student.filter({ academic_year: academicYear });
+    const deletedStudentIds = new Set(allStudentsInYear.filter(s => s.is_deleted).map(s => s.student_id).filter(Boolean));
+
     // Calculate overall statistics and generate progress cards
     const progressCards = [];
     const uniqueStudents = new Map();
 
     // Deduplicate students at the progress card level
-    Object.values(studentData).forEach(student => {
+    Object.values(studentData).filter(student => !deletedStudentIds.has(student.student_id)).forEach(student => {
       const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
       if (uniqueStudents.has(studentKey)) return; // Skip duplicate student entries
       uniqueStudents.set(studentKey, true);

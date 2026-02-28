@@ -181,6 +181,7 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.HallTicket.bulkCreate(hallTickets);
 
+
     await base44.asServiceRole.entities.HallTicketLog.create({
       action: 'generated',
       hall_ticket_id: 'bulk',

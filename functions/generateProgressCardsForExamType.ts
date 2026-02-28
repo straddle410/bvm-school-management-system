@@ -320,11 +320,15 @@ Deno.serve(async (req) => {
       };
     };
 
+    // ── SOFT-DELETE GUARD ──
+    const allStudentsInYear = await base44.asServiceRole.entities.Student.filter({ academic_year: academicYear });
+    const deletedStudentIds = new Set(allStudentsInYear.filter(s => s.is_deleted).map(s => s.student_id).filter(Boolean));
+
     // Generate progress cards
     const progressCards = [];
     const uniqueStudents = new Map();
 
-    for (const studentMarks of Object.values(studentMarksMap)) {
+    for (const studentMarks of Object.values(studentMarksMap).filter(s => !deletedStudentIds.has(s.student_id))) {
       const studentKey = `${studentMarks.student_id}__${studentMarks.class_name}__${studentMarks.section}__${academicYear}`;
       if (uniqueStudents.has(studentKey)) continue;
       uniqueStudents.set(studentKey, true);
