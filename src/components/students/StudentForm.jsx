@@ -77,8 +77,17 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             </Select>
           </div>
           <div>
-            <Label className="text-xs">Roll No</Label>
-            <Input type="number" value={formData.roll_no || ''} onChange={e => set('roll_no', parseInt(e.target.value))} placeholder="1" className="mt-1 rounded-xl bg-gray-50" />
+            <Label className="text-xs">Roll No {!isEdit && <span className="text-gray-400 normal-case font-normal">(auto-assigned)</span>}</Label>
+            <Input
+              type="number"
+              value={formData.roll_no || ''}
+              onChange={isEdit ? (e => set('roll_no', parseInt(e.target.value))) : undefined}
+              readOnly={!isEdit}
+              disabled={!isEdit}
+              placeholder={isEdit ? '1' : 'Auto'}
+              className={`mt-1 rounded-xl bg-gray-50 ${!isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
+            />
+            {isEdit && <p className="text-xs text-amber-600 mt-1">⚠ Use "Manage Roll Numbers" for bulk edits</p>}
           </div>
           <div>
             <Label className="text-xs">Admission Date</Label>
