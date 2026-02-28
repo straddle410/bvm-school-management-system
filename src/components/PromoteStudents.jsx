@@ -58,54 +58,22 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
   const handlePromote = async () => {
     setPromoting(true);
     setResult(null);
-
-    // Backend will also validate — this is a second guard
-    const allYears = await base44.entities.AcademicYear.list();
-    const nextYearRecord = allYears.find(y => y.year === nextYear);
-    if (!nextYearRecord) {
-      toast.error(`Academic year ${nextYear} not found. Please create it in Settings.`);
-      setPromoting(false);
-      setOpen(false);
-      setBlockedYear(nextYear);
-      return;
-    }
-
     try {
-      // 1. Fetch all active students in current year
-      const students = await base44.entities.Student.filter({ academic_year: academicYear });
-      const activeStudents = students.filter(s => !['Passed Out', 'Transferred'].includes(s.status));
+      const res = await base44.functions.invoke('promoteStudents', { academicYear });
+      const data = res.data;
 
-      // 2. Mark next year as current, unset old
-      await Promise.all(allYears.map(y =>
-        base44.entities.AcademicYear.update(y.id, { is_current: false })
-      ));
-      await base44.entities.AcademicYear.update(nextYearRecord.id, { is_current: true });
+      if (data.blocked) {
+        setOpen(false);
+        setBlockedYear(data.nextYear);
+        return;
+      }
 
-      // 3. Promote each student
-      let promoted = 0, passedOut = 0;
-      await Promise.all(activeStudents.map(async (student) => {
-        const nextClass = getNextClass(student.class_name);
-        if (nextClass) {
-          await base44.entities.Student.update(student.id, {
-            class_name: nextClass,
-            academic_year: nextYear,
-            status: 'Approved'
-          });
-          promoted++;
-        } else {
-          await base44.entities.Student.update(student.id, {
-            academic_year: nextYear,
-            status: 'Passed Out'
-          });
-          passedOut++;
-        }
-      }));
-
-      setResult({ promoted, passedOut, nextYear });
-      toast.success(`${promoted} students promoted to ${nextYear}`);
-      if (onPromoted) onPromoted(nextYear);
+      setResult(data);
+      toast.success(`${data.promoted} students promoted to ${data.nextYear}`);
+      if (onPromoted) onPromoted(data.nextYear);
     } catch (err) {
-      toast.error('Promotion failed: ' + err.message);
+      const msg = err?.response?.data?.error || err.message;
+      toast.error('Promotion failed: ' + msg);
     } finally {
       setPromoting(false);
     }
