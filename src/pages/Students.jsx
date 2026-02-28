@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Upload, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
 
 const EMPTY_FORM = {
   student_id: '', username: '', password: 'BVM123',
