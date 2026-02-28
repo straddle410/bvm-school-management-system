@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, Pencil, Archive, MoreVertical, RotateCcw } from 'lucide-react';
+import { Eye, Pencil, Archive, MoreVertical, RotateCcw, Lock } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { createPageUrl } from '@/utils';
 import { getProxiedImageUrl } from '@/components/imageProxy';
