@@ -158,7 +158,24 @@ export default function Students() {
   // ────────────────────────────────────────────────────────────────────────
 
   const saveMutation = useMutation({
-    mutationFn: async ({ id, data, originalStudentId }) => {
+    mutationFn: async ({ id, data, originalStudentId, originalStatus }) => {
+      // Block edits on locked students (Passed Out / Transferred)
+      if (id && isLocked({ status: originalStatus || data.status })) {
+        throw new Error('This student record is locked (Passed Out / Transferred) and cannot be edited.');
+      }
+
+      // Role check — only admin can change status
+      if (!isAdmin && data.status !== originalStatus) {
+        throw new Error('Only Admin/Principal can change student status.');
+      }
+
+      // Validate status transition
+      if (id && originalStatus && data.status !== originalStatus) {
+        if (!isValidTransition(originalStatus, data.status)) {
+          throw new Error(`Invalid status transition: ${originalStatus} → ${data.status}`);
+        }
+      }
+
       let photo_url = data.photo_url;
       if (photoFile) {
         const r = await base44.integrations.Core.UploadFile({ file: photoFile });
@@ -200,6 +217,19 @@ export default function Students() {
             academic_year: normalized.academic_year
           });
         }
+
+        // Audit log status change
+        if (originalStatus && normalized.status !== originalStatus) {
+          await base44.entities.AuditLog.create({
+            action: 'STATUS_CHANGE',
+            module: 'Student',
+            performed_by: user?.email || 'unknown',
+            details: `Status changed: ${originalStatus} → ${normalized.status} | Student: ${normalized.name} (${normalized.student_id})`,
+            date: new Date().toISOString().split('T')[0],
+            academic_year: normalized.academic_year
+          });
+        }
+
         return base44.entities.Student.update(id, normalized);
       }
 
