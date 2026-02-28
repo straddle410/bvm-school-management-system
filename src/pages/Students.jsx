@@ -354,6 +354,7 @@ export default function Students() {
               onSubmit={handleSubmit}
               onCancel={() => setShowForm(false)}
               loading={saveMutation.isPending}
+              isAdmin={isAdmin}
             />
           </DialogContent>
         </Dialog>
