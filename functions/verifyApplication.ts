@@ -57,6 +57,25 @@ Deno.serve(async (req) => {
       academic_year: application.academic_year
     });
 
+    // Send notifications to Admin + Principal
+    const adminPrincipals = await base44.asServiceRole.entities.StaffAccount.filter({
+      role: { $in: ['Admin', 'Principal'] },
+      is_active: true
+    });
+
+    const recipientEmails = adminPrincipals
+      .map(staff => staff.email)
+      .filter(email => email && email !== user.email); // Exclude sender
+
+    if (recipientEmails.length > 0) {
+      await base44.asServiceRole.functions.invoke('sendAdmissionNotification', {
+        recipientEmails,
+        application: { ...application, status: 'Verified' },
+        action: 'VERIFIED',
+        performedBy: user.email
+      }).catch(() => null); // Soft fail if notification fails
+    }
+
     return Response.json({ 
       success: true, 
       message: 'Application verified' 

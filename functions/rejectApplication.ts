@@ -55,6 +55,16 @@ Deno.serve(async (req) => {
       academic_year: application.academic_year
     });
 
+    // Send notification to verifying staff (if exists)
+    if (application.verified_by) {
+      await base44.asServiceRole.functions.invoke('sendAdmissionNotification', {
+        recipientEmails: [application.verified_by],
+        application: { ...application, status: 'Rejected' },
+        action: 'REJECTED',
+        performedBy: user.email
+      }).catch(() => null); // Soft fail if notification fails
+    }
+
     return Response.json({ 
       success: true, 
       message: 'Application rejected' 
