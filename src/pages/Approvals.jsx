@@ -82,37 +82,54 @@ export default function Approvals() {
 
   const convertToStudentMutation = useMutation({
     mutationFn: async (admission) => {
-      // Prevent duplicate conversions - check if already converted
+      // Prevent double-conversion
       const existingAdmission = await base44.entities.AdmissionApplication.filter({ id: admission.id });
       if (existingAdmission[0]?.status === 'Converted') {
         throw new Error('This admission has already been converted to a student');
       }
-      
-      const response = await base44.functions.invoke('generateNextStudentId', { academicYear: academicYear });
-      const student_id = response.data.next_student_id;
-      const defaultPassword = 'BVM123';
-      
+
+      const class_name = admission.applying_for_class;
+      const name = admission.student_name;
+      const dob = admission.dob;
+
+      // 1. Duplicate student check (name + dob + class + academic_year)
+      if (name && dob && class_name) {
+        const existing = await base44.entities.Student.filter({ class_name, academic_year: academicYear });
+        const dup = existing.find(s =>
+          s.name?.toLowerCase().trim() === name.toLowerCase().trim() && s.dob === dob
+        );
+        if (dup) throw new Error('Duplicate student found. Cannot convert admission.');
+      }
+
+      // 2. Generate a new unique student ID
+      const response = await base44.functions.invoke('generateStudentId', { academic_year: academicYear });
+      const student_id = response.data.student_id;
+
+      // 3. Safety check: ensure generated ID is not already taken
+      const idCheck = await base44.entities.Student.filter({ student_id });
+      if (idCheck.length > 0) throw new Error('Student ID already exists. Please try again.');
+
       await base44.entities.Student.create({
         student_id,
         username: student_id,
-        password: defaultPassword,
-        name: admission.student_name,
-        class_name: admission.applying_for_class,
+        password: 'BVM123',
+        name,
+        class_name,
         section: 'A',
         roll_no: 0,
         photo_url: admission.photo_url,
         parent_name: admission.parent_name,
         parent_phone: admission.parent_phone,
         parent_email: admission.parent_email,
-        dob: admission.dob,
+        dob,
         gender: admission.gender,
         address: admission.address,
         academic_year: academicYear,
         admission_date: format(new Date(), 'yyyy-MM-dd'),
         status: 'Approved'
       });
-      
-      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: admission.id });
+
+      await base44.entities.AdmissionApplication.update(admission.id, { status: 'Converted', assigned_student_id: student_id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['approvals-admissions']);
