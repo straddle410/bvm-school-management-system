@@ -82,12 +82,10 @@ export default function Students() {
   }, []);
 
   const { data: studentsData, isLoading } = useQuery({
-    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, filterStatus, showArchived],
+    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, filterStatus, showArchived, showDeleted],
     queryFn: async () => {
-      // Build effective status filter
       let effectiveStatus = filterStatus === 'all' ? '' : filterStatus;
-      // If not showing archived, and no specific status filter, restrict to active statuses
-      const restrictToActive = !showArchived && filterStatus === 'all';
+      const restrictToActive = !showArchived && !showDeleted && filterStatus === 'all';
 
       const res = await base44.functions.invoke('getStudentsPaginated', {
         page,
@@ -97,6 +95,7 @@ export default function Students() {
         section: filterSection === 'all' ? '' : filterSection,
         status: effectiveStatus,
         exclude_archived: restrictToActive,
+        show_deleted: showDeleted && isAdmin,
         academic_year: academicYear
       });
       return res.data;
@@ -256,13 +255,21 @@ export default function Students() {
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: id => base44.entities.Student.delete(id),
-    onSuccess: () => {
+  const [showDeleted, setShowDeleted] = useState(false);
+
+  const softDeleteMutation = useMutation({
+    mutationFn: async ({ id, action }) => {
+      const res = await base44.functions.invoke('softDeleteStudent', { student_id: id, action });
+      if (res.data?.blocked) throw new Error(res.data.error);
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
+    },
+    onSuccess: (_, { action }) => {
       queryClient.invalidateQueries(['students']);
       setShowProfile(false);
-      toast.success('Student deleted');
-    }
+      toast.success(action === 'delete' ? 'Student soft-deleted' : 'Student restored');
+    },
+    onError: (err) => toast.error(err.message)
   });
 
   const handleSubmit = e => {
@@ -375,8 +382,13 @@ export default function Students() {
   };
 
   const handleDelete = student => {
-    if (!window.confirm(`Delete ${student.name}? This cannot be undone.`)) return;
-    deleteMutation.mutate(student.id);
+    if (!window.confirm(`Soft-delete ${student.name}? They will be hidden from all views but not permanently removed.`)) return;
+    softDeleteMutation.mutate({ id: student.id, action: 'delete' });
+  };
+
+  const handleRestore = student => {
+    if (!window.confirm(`Restore ${student.name}? They will become visible again.`)) return;
+    softDeleteMutation.mutate({ id: student.id, action: 'restore' });
   };
 
   const handleSelectAll = () => {
@@ -478,7 +490,8 @@ export default function Students() {
              filterClass={filterClass} onFilterClass={setFilterClass}
              filterSection={filterSection} onFilterSection={setFilterSection}
              filterStatus={filterStatus} onFilterStatus={setFilterStatus}
-             showArchived={showArchived} onToggleArchived={() => { setShowArchived(v => !v); setPage(1); }}
+             showArchived={showArchived} onToggleArchived={() => { setShowArchived(v => !v); setShowDeleted(false); setPage(1); }}
+             showDeleted={showDeleted} onToggleDeleted={isAdmin ? () => { setShowDeleted(v => !v); setShowArchived(false); setPage(1); } : null}
            />
 
           {/* Bulk Actions — Admin only, hide when showing archived */}
@@ -598,6 +611,7 @@ export default function Students() {
           onEdit={() => openEdit(selectedStudent)}
           onArchive={() => handleArchive(selectedStudent)}
           onDelete={() => handleDelete(selectedStudent)}
+          onRestore={() => handleRestore(selectedStudent)}
           isAdmin={isAdmin}
         />
 
