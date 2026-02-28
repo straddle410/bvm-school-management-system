@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ import StudentExport from '@/components/students/StudentExport';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Upload, CheckCircle } from 'lucide-react';
+import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
 
