@@ -73,13 +73,39 @@ export default function Students() {
   };
 
   const saveMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
+    mutationFn: async ({ id, data, originalStudentId }) => {
       let photo_url = data.photo_url;
       if (photoFile) {
         const r = await base44.integrations.Core.UploadFile({ file: photoFile });
         photo_url = r.file_url;
       }
-      if (id) return base44.entities.Student.update(id, { ...data, photo_url });
+
+      // Validate student_id format before saving
+      if (data.student_id && !/^S\d{2}\d{3,}$/.test(data.student_id) && !/^S\d{4,}$/.test(data.student_id)) {
+        // Allow old format (S0001) and new format (S25001)
+        if (!/^S\d+$/.test(data.student_id)) {
+          throw new Error('Invalid Student ID format. Expected format: S25001');
+        }
+      }
+
+      if (id) {
+        // If student_id changed, check uniqueness and create audit log
+        if (originalStudentId && data.student_id !== originalStudentId) {
+          const dupes = await base44.entities.Student.filter({ student_id: data.student_id });
+          const conflict = dupes.find(s => s.id !== id);
+          if (conflict) throw new Error(`Student ID ${data.student_id} is already in use`);
+
+          await base44.entities.AuditLog.create({
+            action: 'student_id_changed',
+            module: 'Student',
+            performed_by: user?.email || 'unknown',
+            details: `Student ID changed from ${originalStudentId} to ${data.student_id} for student: ${data.name}`,
+            date: new Date().toISOString().split('T')[0],
+            academic_year: data.academic_year
+          });
+        }
+        return base44.entities.Student.update(id, { ...data, photo_url });
+      }
       return base44.entities.Student.create({ ...data, photo_url });
     },
     onSuccess: () => {
