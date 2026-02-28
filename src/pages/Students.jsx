@@ -72,6 +72,32 @@ export default function Students() {
     return res.data.student_id;
   };
 
+  // ── Validation helpers ──────────────────────────────────────────────────
+  const validateStudentIdUnique = async (studentId, excludeId = null) => {
+    if (!studentId) return;
+    const dupes = await base44.entities.Student.filter({ student_id: studentId });
+    const conflict = excludeId ? dupes.find(s => s.id !== excludeId) : dupes[0];
+    if (conflict) throw new Error('Student ID already exists. Please regenerate.');
+  };
+
+  const validateRollNoUnique = async ({ roll_no, class_name, section, academic_year }, excludeId = null) => {
+    if (!roll_no || !class_name || !section || !academic_year) return;
+    const dupes = await base44.entities.Student.filter({ roll_no: parseInt(roll_no), class_name, section, academic_year });
+    const conflict = excludeId ? dupes.find(s => s.id !== excludeId) : dupes[0];
+    if (conflict) throw new Error('Roll number already assigned in this class for this academic year.');
+  };
+
+  const validateNoDuplicateStudent = async ({ name, dob, class_name, academic_year }) => {
+    if (!name || !dob || !class_name || !academic_year) return;
+    const all = await base44.entities.Student.filter({ class_name, academic_year });
+    const conflict = all.find(s =>
+      s.name?.toLowerCase().trim() === name.toLowerCase().trim() &&
+      s.dob === dob
+    );
+    if (conflict) throw new Error('Possible duplicate student already exists.');
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
   const saveMutation = useMutation({
     mutationFn: async ({ id, data, originalStudentId }) => {
       let photo_url = data.photo_url;
@@ -80,21 +106,25 @@ export default function Students() {
         photo_url = r.file_url;
       }
 
-      // Validate student_id format before saving
-      if (data.student_id && !/^S\d{2}\d{3,}$/.test(data.student_id) && !/^S\d{4,}$/.test(data.student_id)) {
-        // Allow old format (S0001) and new format (S25001)
-        if (!/^S\d+$/.test(data.student_id)) {
-          throw new Error('Invalid Student ID format. Expected format: S25001');
-        }
+      // Validate student_id format
+      if (data.student_id && !/^S\d+$/.test(data.student_id)) {
+        throw new Error('Invalid Student ID format. Expected format: S25001');
       }
 
       if (id) {
-        // If student_id changed, check uniqueness and create audit log
-        if (originalStudentId && data.student_id !== originalStudentId) {
-          const dupes = await base44.entities.Student.filter({ student_id: data.student_id });
-          const conflict = dupes.find(s => s.id !== id);
-          if (conflict) throw new Error(`Student ID ${data.student_id} is already in use`);
+        // EDIT: re-validate roll_no if relevant fields changed
+        const orig = students.find(s => s.id === id);
+        const rollChanged = orig && (
+          String(data.roll_no) !== String(orig.roll_no) ||
+          data.class_name !== orig.class_name ||
+          data.section !== orig.section ||
+          data.academic_year !== orig.academic_year
+        );
+        if (rollChanged) await validateRollNoUnique(data, id);
 
+        // Audit log + uniqueness check if student_id changed
+        if (originalStudentId && data.student_id !== originalStudentId) {
+          await validateStudentIdUnique(data.student_id, id);
           await base44.entities.AuditLog.create({
             action: 'student_id_changed',
             module: 'Student',
@@ -106,6 +136,12 @@ export default function Students() {
         }
         return base44.entities.Student.update(id, { ...data, photo_url });
       }
+
+      // CREATE: run all three duplicate checks
+      await validateStudentIdUnique(data.student_id);
+      await validateRollNoUnique(data);
+      await validateNoDuplicateStudent(data);
+
       return base44.entities.Student.create({ ...data, photo_url });
     },
     onSuccess: () => {
