@@ -483,7 +483,7 @@ export default function Students() {
             </DialogHeader>
             <StudentForm
               formData={formData}
-              onChange={setFormData}
+              onChange={handleFormChange}
               onPhotoChange={setPhotoFile}
               photoFile={photoFile}
               isEdit={isEdit}
