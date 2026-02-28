@@ -28,22 +28,27 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
         mcq_total = hw.mcq_questions.length;
         mcq_score = mcqAnswers.filter((a, i) => a.selected_option === hw.mcq_questions[i]?.correct_answer).length;
       }
-      return base44.entities.HomeworkSubmission.create({
-        homework_id: hw.id,
+      const res = await base44.functions.invoke('submitHomework', {
         student_id: student.student_id,
-        student_name: student.name,
-        class_name: student.class_name,
-        section: student.section,
-        homework_type: hw.homework_type,
-        mcq_answers: mcqAnswers,
-        descriptive_answers: descAnswers,
-        file_urls: fileUrls,
-        submitted_at: new Date().toISOString(),
-        is_late: isLate,
-        mcq_score,
-        mcq_total,
-        status: 'Submitted',
+        submission: {
+          homework_id: hw.id,
+          student_id: student.student_id,
+          student_name: student.name,
+          class_name: student.class_name,
+          section: student.section,
+          homework_type: hw.homework_type,
+          mcq_answers: mcqAnswers,
+          descriptive_answers: descAnswers,
+          file_urls: fileUrls,
+          submitted_at: new Date().toISOString(),
+          is_late: isLate,
+          mcq_score,
+          mcq_total,
+          status: 'Submitted',
+        }
       });
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['student-submissions'] });

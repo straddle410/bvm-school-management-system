@@ -192,14 +192,20 @@ export default function Quiz() {
         }
       });
 
-      return base44.entities.QuizAttempt.create({
-        quiz_id: selectedQuiz.id,
-        student_id: user?.id || 'anonymous',
-        student_name: user?.full_name || user?.name || 'Anonymous',
-        answers: answersData,
-        score,
-        attempt_date: format(new Date(), 'yyyy-MM-dd')
+      const studentId = studentSession?.student_id || user?.id || 'anonymous';
+      const res = await base44.functions.invoke('submitQuizAttempt', {
+        student_id: studentId,
+        attempt: {
+          quiz_id: selectedQuiz.id,
+          student_id: studentId,
+          student_name: user?.full_name || user?.name || 'Anonymous',
+          answers: answersData,
+          score,
+          attempt_date: format(new Date(), 'yyyy-MM-dd')
+        }
       });
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['quiz-attempts']);
