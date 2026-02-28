@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pencil, Archive, RotateCcw, Trash2, User, BookOpen, Phone, Lock } from 'lucide-react';
+import { Pencil, Archive, RotateCcw, Trash2, User, BookOpen, Phone, Lock, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { getProxiedImageUrl } from '@/components/imageProxy';
 
@@ -24,11 +24,12 @@ function InfoRow({ label, value }) {
   );
 }
 
-export default function StudentProfileSheet({ student, open, onClose, onEdit, onArchive, onDelete, isAdmin }) {
+export default function StudentProfileSheet({ student, open, onClose, onEdit, onArchive, onDelete, onRestore, isAdmin }) {
   if (!student) return null;
 
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const isArchived = student.status === 'Passed Out' || student.status === 'Transferred';
+  const isDeleted = student.is_deleted === true;
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -96,28 +97,43 @@ export default function StudentProfileSheet({ student, open, onClose, onEdit, on
           {/* Admin Actions */}
           {isAdmin && (
             <div className="space-y-2">
-              {isArchived ? (
-                <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
-                  <Lock className="h-4 w-4 flex-shrink-0" />
-                  <span>Record is read-only (<strong>{student.status}</strong>)</span>
-                </div>
+              {isDeleted ? (
+                <>
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+                    <Trash2 className="h-4 w-4 flex-shrink-0" />
+                    <span>This student has been <strong>soft-deleted</strong> and is hidden from all views.</span>
+                  </div>
+                  <button onClick={onRestore}
+                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white rounded-xl py-3 text-sm font-semibold hover:bg-green-700 transition-all">
+                    <RefreshCw className="h-4 w-4" /> Restore Student
+                  </button>
+                </>
               ) : (
-                <button onClick={onEdit}
-                  className="w-full flex items-center justify-center gap-2 bg-[#1a237e] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#283593] transition-all">
-                  <Pencil className="h-4 w-4" /> Edit Student
-                </button>
+                <>
+                  {isArchived ? (
+                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
+                      <Lock className="h-4 w-4 flex-shrink-0" />
+                      <span>Record is read-only (<strong>{student.status}</strong>)</span>
+                    </div>
+                  ) : (
+                    <button onClick={onEdit}
+                      className="w-full flex items-center justify-center gap-2 bg-[#1a237e] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#283593] transition-all">
+                      <Pencil className="h-4 w-4" /> Edit Student
+                    </button>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={onArchive}
+                      className="flex items-center justify-center gap-2 border border-orange-200 text-orange-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-orange-50">
+                      {isArchived ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                      {isArchived ? 'Reactivate' : 'Archive'}
+                    </button>
+                    <button onClick={onDelete}
+                      className="flex items-center justify-center gap-2 border border-red-200 text-red-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-red-50">
+                      <Trash2 className="h-4 w-4" /> Soft Delete
+                    </button>
+                  </div>
+                </>
               )}
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={onArchive}
-                  className="flex items-center justify-center gap-2 border border-orange-200 text-orange-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-orange-50">
-                  {isArchived ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-                  {isArchived ? 'Reactivate' : 'Archive'}
-                </button>
-                <button onClick={onDelete}
-                  className="flex items-center justify-center gap-2 border border-red-200 text-red-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-red-50">
-                  <Trash2 className="h-4 w-4" /> Delete
-                </button>
-              </div>
             </div>
           )}
         </div>
