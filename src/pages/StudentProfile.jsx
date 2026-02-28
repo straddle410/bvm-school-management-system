@@ -308,4 +308,17 @@ export default function StudentProfile() {
             </Tabs>
           ) : (
             <div className="space-y-6">
-              {/* Quick Stats */}
+              {/* Quick Stats (non-admin) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-gray-500 text-xs font-medium">Attendance</p><p className="text-2xl font-bold text-gray-900">{attendancePercentage}%</p></div><Clock className="h-8 w-8 text-blue-500 opacity-20" /></div></CardContent></Card>
+                <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-gray-500 text-xs font-medium">Avg Marks</p><p className="text-2xl font-bold text-gray-900">{avgMarks || '—'}</p></div><Award className="h-8 w-8 text-green-500 opacity-20" /></div></CardContent></Card>
+                <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-gray-500 text-xs font-medium">Marks Records</p><p className="text-2xl font-bold text-gray-900">{marks.length}</p></div><TrendingUp className="h-8 w-8 text-purple-500 opacity-20" /></div></CardContent></Card>
+              </div>
+              <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><BookOpen className="h-5 w-5 text-indigo-600" />Academic Details</CardTitle></CardHeader><CardContent><InfoRow label="Student ID" value={student.student_id} /><InfoRow label="Class" value={`${student.class_name}-${student.section}`} /><InfoRow label="Roll No" value={student.roll_no?.toString()} /><InfoRow label="Academic Year" value={student.academic_year} /></CardContent></Card>
+              <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><User className="h-5 w-5 text-indigo-600" />Personal Details</CardTitle></CardHeader><CardContent><InfoRow label="Full Name" value={student.name} /><InfoRow label="Gender" value={student.gender} /><InfoRow label="Date of Birth" value={student.dob ? format(new Date(student.dob), 'dd MMM yyyy') : null} /><InfoRow label="Blood Group" value={student.blood_group} /></CardContent></Card>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+}
