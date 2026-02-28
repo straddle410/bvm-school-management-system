@@ -31,6 +31,7 @@ export default function StudentProfile() {
   const [searchParams] = useSearchParams();
   const studentId = searchParams.get('id');
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Check for student session first
@@ -43,7 +44,11 @@ export default function StudentProfile() {
     if (session) {
       setUser(session);
     } else {
-      base44.auth.me().then(setUser).catch(() => {});
+      base44.auth.me().then(u => {
+        setUser(u);
+        const role = (u?.role || '').toLowerCase();
+        setIsAdmin(['admin', 'principal'].includes(role));
+      }).catch(() => {});
     }
   }, []);
 
