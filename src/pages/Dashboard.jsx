@@ -50,6 +50,7 @@ const quickAccess = [
 
 // quickActions now uses permission-aware filtering in the component
 const quickActions = [
+  { label: 'Students',            icon: Users,         gradient: 'from-emerald-400 to-teal-600',  page: 'Students',               permKey: null,              roleRequired: ['Teacher', 'teacher', 'Staff', 'staff'] },
   { label: 'Take Attendance',     icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Attendance Summary',  icon: BarChart3,      gradient: 'from-teal-400 to-green-600',    page: 'AttendanceSummaryReport', permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Post Diary',          icon: NotebookPen,   gradient: 'from-rose-400 to-pink-600',     page: 'DiaryManagement',         permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
