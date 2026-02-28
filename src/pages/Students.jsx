@@ -396,10 +396,21 @@ export default function Students() {
   };
 
   const handleVerifySelected = async () => {
+    if (!isAdmin) { toast.error('Only Admin/Principal can verify students.'); return; }
     if (selectedIds.size === 0) return;
     const toVerify = Array.from(selectedIds);
     for (const id of toVerify) {
+      const student = students.find(s => s.id === id);
+      if (!student || student.status !== 'Pending') continue;
       await base44.entities.Student.update(id, { status: 'Verified', verified_by: user.email });
+      await base44.entities.AuditLog.create({
+        action: 'STATUS_CHANGE',
+        module: 'Student',
+        performed_by: user?.email || 'unknown',
+        details: `Status changed: Pending → Verified | Student: ${student.name} (${student.student_id})`,
+        date: new Date().toISOString().split('T')[0],
+        academic_year: student.academic_year
+      });
     }
     queryClient.invalidateQueries(['students']);
     setSelectedIds(new Set());
