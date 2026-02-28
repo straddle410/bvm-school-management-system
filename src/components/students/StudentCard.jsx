@@ -19,6 +19,7 @@ export default function StudentCard({ student, onView, onEdit, onArchive, isAdmi
   const navigate = useNavigate();
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const isArchived = student.status === 'Passed Out' || student.status === 'Transferred';
+  const locked = isArchived;
 
   const handleViewProfile = () => {
     navigate(createPageUrl('StudentProfile') + `?id=${student.id}`);
