@@ -173,15 +173,15 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <Label className="text-xs">Parent Name</Label>
-            <Input value={formData.parent_name || ''} onChange={e => set('parent_name', e.target.value)} placeholder="Guardian name" className="mt-1 rounded-xl bg-gray-50" />
+            <Input value={formData.parent_name || ''} onChange={e => set('parent_name', e.target.value)} placeholder="Guardian name" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Phone</Label>
-            <Input value={formData.parent_phone || ''} onChange={e => set('parent_phone', e.target.value)} placeholder="+91 98765 43210" className="mt-1 rounded-xl bg-gray-50" />
+            <Input value={formData.parent_phone || ''} onChange={e => set('parent_phone', e.target.value)} placeholder="+91 98765 43210" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Email</Label>
-            <Input type="email" value={formData.parent_email || ''} onChange={e => set('parent_email', e.target.value)} placeholder="parent@email.com" className="mt-1 rounded-xl bg-gray-50" />
+            <Input type="email" value={formData.parent_email || ''} onChange={e => set('parent_email', e.target.value)} placeholder="parent@email.com" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
         </div>
       </div>
@@ -189,12 +189,14 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onCancel}
           className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-gray-50">
-          Cancel
+          {locked ? 'Close' : 'Cancel'}
         </button>
-        <button type="submit" disabled={loading}
-          className="flex-1 bg-[#1a237e] text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 hover:bg-[#283593]">
-          {loading ? 'Saving...' : isEdit ? 'Update Student' : 'Add Student'}
-        </button>
+        {!locked && (
+          <button type="submit" disabled={loading}
+            className="flex-1 bg-[#1a237e] text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 hover:bg-[#283593]">
+            {loading ? 'Saving...' : isEdit ? 'Update Student' : 'Add Student'}
+          </button>
+        )}
       </div>
     </form>
   );
