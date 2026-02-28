@@ -318,7 +318,7 @@ export default function Students() {
             <div className="space-y-2">
                {filtered.map(student => (
                  <div key={student.id} className="flex gap-2 items-start">
-                   {student.status === 'Pending' && (
+                   {isAdmin && student.status === 'Pending' && (
                      <input
                        type="checkbox"
                        checked={selectedIds.has(student.id)}
