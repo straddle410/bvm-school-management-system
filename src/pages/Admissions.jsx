@@ -66,12 +66,16 @@ export default function Admissions() {
       const isAdmin = userRole === 'admin' || userRole === 'principal';
       const hasPermission = user.permissions?.student_admission_permission;
       
+      console.log('[Admissions] Auth Check:', { userRole, isAdmin, hasPermission });
+      
       if (!isAdmin && !hasPermission) {
+        console.log('[Admissions] Access Denied - Redirecting to Dashboard');
         window.location.replace(createPageUrl('Dashboard'));
         return;
       }
       setUser(user);
-    }).catch(() => {
+    }).catch((err) => {
+      console.error('[Admissions] Auth Error:', err);
       window.location.replace(createPageUrl('Dashboard'));
     });
   }, []);
@@ -79,6 +83,7 @@ export default function Admissions() {
   const { data: paginatedData = { results: [], total_count: 0, total_pages: 0 }, isLoading } = useQuery({
     queryKey: ['admissions-paginated', academicYear, filterStatus, searchQuery, currentPage],
     queryFn: async () => {
+      console.log('[Admissions] Fetching paginated data:', { academicYear, currentPage });
       const response = await base44.functions.invoke('getAdmissionsPaginated', {
         academicYear,
         status: filterStatus === 'all' ? null : filterStatus,
@@ -96,13 +101,15 @@ export default function Admissions() {
   const { data: yearReport = null } = useQuery({
     queryKey: ['admissions-year-report', academicYear],
     queryFn: async () => {
+      console.log('[Admissions] Fetching year report:', { academicYear });
       const response = await base44.functions.invoke('getAdmissionYearReport', {
         academicYear
       });
       return response.data;
     },
     enabled: !!user && !!academicYear,
-    staleTime: 5 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    onError: (err) => console.error('[Admissions] Year report error:', err)
   });
 
   // Calculate SLA for each admission
@@ -347,10 +354,22 @@ export default function Admissions() {
   ];
 
   if (!user) {
+    console.log('[Admissions] Rendering loading state - user not authenticated');
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!academicYear) {
+    console.log('[Admissions] Rendering loading state - academicYear undefined');
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600">Loading academic year...</p>
         </div>
       </div>
     );
