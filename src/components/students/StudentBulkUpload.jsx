@@ -102,10 +102,10 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
           }
         }
 
-        // 3. Duplicate student (name + dob + class)
+        // 3. Duplicate student (name + dob + class) — case-insensitive via namesMatch
         if (enriched.name && enriched.dob && enriched.class_name) {
           const dupConflict = existingStudents.find(s =>
-            s.name?.toLowerCase().trim() === enriched.name.toLowerCase().trim() &&
+            namesMatch(s.name, enriched.name) &&
             s.dob === enriched.dob &&
             s.class_name === enriched.class_name
           );
