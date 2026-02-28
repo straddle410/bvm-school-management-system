@@ -6,10 +6,14 @@ export default function AcademicYearSelector() {
   const { academicYear, setAcademicYear, academicYears, isAdmin } = useAcademicYear();
   const [open, setOpen] = useState(false);
 
-  // Non-admins (teachers) cannot see or change the year selector
-  // Only admins/principals can access the dropdown
+  // Teachers see locked read-only year display
   if (!isAdmin) {
-    return null;
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-blue-200 font-semibold px-2 py-1.5 bg-white/10 rounded-lg">
+        <span>{academicYear}</span>
+        <Lock className="h-3 w-3" />
+      </div>
+    );
   }
 
   if (academicYears.length === 0) {
