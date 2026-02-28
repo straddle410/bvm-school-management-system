@@ -43,6 +43,7 @@ export default function Students() {
   const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [photoFile, setPhotoFile] = useState(null);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showManageRolls, setShowManageRolls] = useState(false);
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [page, setPage] = useState(1);
