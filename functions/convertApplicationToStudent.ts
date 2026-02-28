@@ -44,7 +44,45 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // Step 4: Run duplicate checks
+    // Step 4: Check section capacity
+    const sectionConfig = await base44.asServiceRole.entities.SectionConfig.filter({
+      class_name: application.applying_for_class,
+      section: application.section,
+      academic_year: application.academic_year,
+      is_active: true
+    });
+
+    if (sectionConfig.length === 0) {
+      return Response.json({ 
+        error: `No capacity configuration found for ${application.applying_for_class}-${application.section} in ${application.academic_year}` 
+      }, { status: 422 });
+    }
+
+    const config = sectionConfig[0];
+    const currentStudentsInSection = await base44.asServiceRole.entities.Student.filter({
+      class_name: application.applying_for_class,
+      section: application.section,
+      academic_year: application.academic_year,
+      is_deleted: false
+    });
+
+    if (currentStudentsInSection.length >= config.capacity) {
+      await base44.asServiceRole.entities.AuditLog.create({
+        action: 'CONVERSION_BLOCKED_CAPACITY',
+        module: 'Admission',
+        performed_by: user.email,
+        timestamp: new Date().toISOString(),
+        details: `Capacity limit reached for ${application.applying_for_class}-${application.section}. Current: ${currentStudentsInSection.length}, Capacity: ${config.capacity}`,
+        academic_year: application.academic_year,
+        class_name: application.applying_for_class,
+        section: application.section
+      });
+      return Response.json({ 
+        error: `Section capacity exceeded: ${currentStudentsInSection.length}/${config.capacity} students already enrolled` 
+      }, { status: 422 });
+    }
+
+    // Step 5: Run duplicate checks
     const existingStudents = await base44.asServiceRole.entities.Student.filter({
       academic_year: application.academic_year
     });
@@ -109,7 +147,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 5: Generate student_id via secure function
+    // Step 6: Generate student_id via secure function
     const studentIdResponse = await base44.asServiceRole.functions.invoke('generateStudentId', {
       academicYear: application.academic_year
     });
@@ -119,7 +157,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to generate student ID' }, { status: 500 });
     }
 
-    // Step 6: Generate roll_no via getNextRollNo
+    // Step 7: Generate roll_no via getNextRollNo
     const rollNoResponse = await base44.asServiceRole.functions.invoke('getNextRollNo', {
       className: application.applying_for_class,
       section: application.section,
@@ -131,7 +169,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to generate roll number' }, { status: 500 });
     }
 
-    // Step 7: Create Student record using service role
+    // Step 8: Create Student record using service role (capacity already verified)
     const newStudent = await base44.asServiceRole.entities.Student.create({
       student_id: studentId,
       name: application.student_name,
@@ -151,14 +189,14 @@ Deno.serve(async (req) => {
       approved_by: user.email
     });
 
-    // Step 8: Update AdmissionApplication
+    // Step 9: Update AdmissionApplication
     await base44.asServiceRole.entities.AdmissionApplication.update(applicationId, {
       status: 'Converted',
       assigned_student_id: newStudent.id,
       assigned_roll_no: rollNo
     });
 
-    // Step 9: Create AuditLog entry
+    // Step 10: Create AuditLog entry
     await base44.asServiceRole.entities.AuditLog.create({
       action: 'APPLICATION_CONVERTED',
       module: 'Admission',
