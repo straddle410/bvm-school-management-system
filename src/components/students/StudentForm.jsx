@@ -119,15 +119,15 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <Label className="text-xs">Full Name *</Label>
-            <Input value={formData.name || ''} onChange={e => set('name', e.target.value)} placeholder="Full name" required className="mt-1 rounded-xl bg-gray-50" />
+            <Input value={formData.name || ''} onChange={e => set('name', e.target.value)} placeholder="Full name" required className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Date of Birth</Label>
-            <Input type="date" value={formData.dob || ''} onChange={e => set('dob', e.target.value)} className="mt-1 rounded-xl bg-gray-50" />
+            <Input type="date" value={formData.dob || ''} onChange={e => set('dob', e.target.value)} className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
             <Label className="text-xs">Gender</Label>
-            <Select value={formData.gender || 'Male'} onValueChange={v => set('gender', v)}>
+            <Select value={formData.gender || 'Male'} onValueChange={locked ? undefined : v => set('gender', v)} disabled={dis}>
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Male">Male</SelectItem>
@@ -138,28 +138,31 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
           </div>
           <div>
             <Label className="text-xs">Blood Group</Label>
-            <Select value={formData.blood_group || ''} onValueChange={v => set('blood_group', v)}>
+            <Select value={formData.blood_group || ''} onValueChange={locked ? undefined : v => set('blood_group', v)} disabled={dis}>
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>{BLOOD_GROUPS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div>
-            <Label className="text-xs">Status</Label>
-            <Select value={formData.status || 'Pending'} onValueChange={v => set('status', v)}>
-              <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Verified">Verified</SelectItem>
-                <SelectItem value="Approved">Approved</SelectItem>
-                <SelectItem value="Published">Active</SelectItem>
-                <SelectItem value="Passed Out">Passed Out</SelectItem>
-                <SelectItem value="Transferred">Transferred</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Status — only admin, only valid transitions */}
+          {isAdmin && (
+            <div>
+              <Label className="text-xs">Status</Label>
+              <Select value={formData.status || 'Pending'} onValueChange={locked ? undefined : v => set('status', v)} disabled={locked}>
+                <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map(s => (
+                    <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!locked && statusOptions.length === 1 && (
+                <p className="text-xs text-gray-400 mt-1">No further transitions available</p>
+              )}
+            </div>
+          )}
           <div className="col-span-2">
             <Label className="text-xs">Address</Label>
-            <Textarea value={formData.address || ''} onChange={e => set('address', e.target.value)} placeholder="Home address" rows={2} className="mt-1 rounded-xl bg-gray-50 resize-none" />
+            <Textarea value={formData.address || ''} onChange={e => set('address', e.target.value)} placeholder="Home address" rows={2} className="mt-1 rounded-xl bg-gray-50 resize-none" readOnly={dis} disabled={dis} />
           </div>
         </div>
       </div>
