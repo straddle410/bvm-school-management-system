@@ -60,19 +60,32 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
 
       const toCreate = [];
       const errors = [];
+      // Track max roll_no per class+section to auto-assign sequentially
+      const rollCounters = {}; // key: `class_name|section` → max roll_no so far
+
+      // Initialize counters from existing students
+      for (const s of existingStudents) {
+        const key = `${s.class_name}|${s.section}`;
+        const roll = parseInt(s.roll_no);
+        if (!isNaN(roll) && roll > (rollCounters[key] || 0)) {
+          rollCounters[key] = roll;
+        }
+      }
 
       for (let i = 0; i < records.length; i++) {
         const r = records[i];
         const rowNum = i + 1;
-        // Normalize before validation and saving
+        const section = r.section || 'A';
+
+        // Normalize — always IGNORE roll_no from file; auto-assign below
         const enriched = normalizeStudentData({
           ...r,
           academic_year: academicYear,
           username: r.student_id || `S${i}`,
-          password: r.password || 'BVM123', // password handled by normalizer (trim only)
+          password: r.password || 'BVM123',
           status: r.status || 'Pending',
-          section: r.section || 'A',
-          roll_no: r.roll_no ? parseInt(r.roll_no) : i + 1
+          section,
+          roll_no: null // will be assigned below
         });
 
         // 1. Student ID uniqueness
@@ -85,24 +98,7 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
           }
         }
 
-        // 2. Roll number uniqueness (within existing + already-queued)
-        if (enriched.roll_no && enriched.class_name && enriched.section) {
-          const rollConflict = existingStudents.find(s =>
-            s.roll_no === enriched.roll_no &&
-            s.class_name === enriched.class_name &&
-            s.section === enriched.section
-          ) || toCreate.find(s =>
-            s.roll_no === enriched.roll_no &&
-            s.class_name === enriched.class_name &&
-            s.section === enriched.section
-          );
-          if (rollConflict) {
-            errors.push({ row: rowNum, name: r.name || '—', reason: `Roll number ${enriched.roll_no} already assigned in Class ${enriched.class_name}-${enriched.section}` });
-            continue;
-          }
-        }
-
-        // 3. Duplicate student (name + dob + class) — case-insensitive via namesMatch
+        // 2. Duplicate student (name + dob + class) — case-insensitive via namesMatch
         if (enriched.name && enriched.dob && enriched.class_name) {
           const dupConflict = existingStudents.find(s =>
             namesMatch(s.name, enriched.name) &&
@@ -113,6 +109,13 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
             errors.push({ row: rowNum, name: r.name || '—', reason: 'Possible duplicate student already exists' });
             continue;
           }
+        }
+
+        // 3. Auto-assign roll_no
+        if (enriched.class_name && enriched.section) {
+          const key = `${enriched.class_name}|${enriched.section}`;
+          rollCounters[key] = (rollCounters[key] || 0) + 1;
+          enriched.roll_no = rollCounters[key];
         }
 
         toCreate.push(enriched);
