@@ -157,16 +157,25 @@ export default function PromoteStudents({ academicYear, onPromoted }) {
               <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center space-y-3">
                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
                 <p className="text-lg font-bold text-green-800">Promotion Complete!</p>
-                <div className="grid grid-cols-2 gap-3 mt-2">
+                <div className="grid grid-cols-3 gap-3 mt-2">
                   <div className="bg-white rounded-lg p-3">
                     <p className="text-2xl font-bold text-green-700">{result.promoted}</p>
-                    <p className="text-sm text-slate-500">Students Promoted</p>
+                    <p className="text-sm text-slate-500">Promoted</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-2xl font-bold text-slate-600">{result.passedOut}</p>
-                    <p className="text-sm text-slate-500">Passed Out</p>
+                    <p className="text-2xl font-bold text-slate-600">{result.graduated}</p>
+                    <p className="text-sm text-slate-500">Graduated</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="text-2xl font-bold text-amber-600">{result.skipped}</p>
+                    <p className="text-sm text-slate-500">Skipped</p>
                   </div>
                 </div>
+                {result.warnings?.length > 0 && (
+                  <div className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2 text-left space-y-0.5">
+                    {result.warnings.map((w, i) => <p key={i}>⚠ {w}</p>)}
+                  </div>
+                )}
                 <p className="text-sm text-green-700">Current year is now <strong>{result.nextYear}</strong></p>
               </div>
               <Button className="w-full" onClick={() => { setOpen(false); setResult(null); }}>
