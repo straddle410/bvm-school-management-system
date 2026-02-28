@@ -24,6 +24,7 @@ export default function PublicAdmission() {
   const [documentFiles, setDocumentFiles] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [applicationNo, setApplicationNo] = useState('');
+  const [academicYear, setAcademicYear] = useState('');
   
   const [formData, setFormData] = useState({
     student_name: '',
@@ -34,9 +35,23 @@ export default function PublicAdmission() {
     parent_phone: '',
     parent_email: '',
     address: '',
-    previous_school: '',
-    academic_year: '2024-25'
+    previous_school: ''
   });
+
+  // Fetch active academic year on mount
+  useEffect(() => {
+    const fetchActiveYear = async () => {
+      try {
+        const years = await base44.entities.AcademicYear.filter({ is_active: true });
+        if (years.length > 0) {
+          setAcademicYear(years[0].year);
+        }
+      } catch (err) {
+        console.error('Failed to fetch academic year:', err);
+      }
+    };
+    fetchActiveYear();
+  }, []);
 
   const { data: schoolProfiles = [] } = useQuery({
     queryKey: ['school-profile'],
