@@ -247,6 +247,22 @@ export default function Students() {
     setShowForm(true);
   };
 
+  // When class/section/year changes in form for a NEW student → auto-assign roll
+  const handleFormChange = async (newData) => {
+    setFormData(newData);
+    // Only auto-assign roll for new students when class+section+year are all set
+    if (!isEdit && newData.class_name && newData.section && newData.academic_year) {
+      // Only re-fetch if these 3 fields changed
+      const prev = formData;
+      if (newData.class_name !== prev.class_name ||
+          newData.section !== prev.section ||
+          newData.academic_year !== prev.academic_year) {
+        const roll = await generateRollNo(newData.class_name, newData.section, newData.academic_year);
+        if (roll) setFormData(f => ({ ...f, ...newData, roll_no: roll }));
+      }
+    }
+  };
+
   const openEdit = student => {
     setFormData({ ...student });
     setSelectedStudent(student);
