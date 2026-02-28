@@ -14,10 +14,13 @@ Deno.serve(async (req) => {
       class_name = '',
       section = '',
       status = '',
+      exclude_archived = false,
       academic_year
     } = body;
 
     if (!academic_year) return Response.json({ error: 'academic_year is required' }, { status: 400 });
+
+    const ARCHIVED_STATUSES = ['Passed Out', 'Transferred'];
 
     // Build filter object for indexed fields
     const filterObj = { academic_year };
@@ -26,7 +29,12 @@ Deno.serve(async (req) => {
     if (status && status !== 'all') filterObj.status = status;
 
     // Fetch filtered records (server-side by indexed fields)
-    const allFiltered = await base44.asServiceRole.entities.Student.filter(filterObj, '-created_date', 10000);
+    let allFiltered = await base44.asServiceRole.entities.Student.filter(filterObj, '-created_date', 10000);
+
+    // Exclude archived if requested and no specific status filter
+    if (exclude_archived && !status) {
+      allFiltered = allFiltered.filter(s => !ARCHIVED_STATUSES.includes(s.status));
+    }
 
     // Apply search (case-insensitive) on name, student_id, parent_name
     let results = allFiltered;
