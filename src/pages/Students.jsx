@@ -91,10 +91,7 @@ export default function Students() {
   const validateNoDuplicateStudent = async ({ name, dob, class_name, academic_year }) => {
     if (!name || !dob || !class_name || !academic_year) return;
     const all = await base44.entities.Student.filter({ class_name, academic_year });
-    const conflict = all.find(s =>
-      s.name?.toLowerCase().trim() === name.toLowerCase().trim() &&
-      s.dob === dob
-    );
+    const conflict = all.find(s => namesMatch(s.name, name) && s.dob === dob);
     if (conflict) throw new Error('Possible duplicate student already exists.');
   };
   // ────────────────────────────────────────────────────────────────────────
