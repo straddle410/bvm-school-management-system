@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
 
 export default function StudentBulkUpload({ open, onClose, academicYear, onSuccess }) {
   const fileInput = useRef(null);
