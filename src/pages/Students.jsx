@@ -374,7 +374,7 @@ export default function Students() {
             <div className="space-y-3">
               {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white rounded-2xl animate-pulse" />)}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : students.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
               <Users className="h-10 w-10 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400 text-sm">No students found.</p>
@@ -386,7 +386,7 @@ export default function Students() {
             </div>
           ) : (
             <div className="space-y-2">
-               {filtered.map(student => (
+               {students.map(student => (
                  <div key={student.id} className="flex gap-2 items-start">
                    {isAdmin && student.status === 'Pending' && (
                      <input
@@ -406,6 +406,33 @@ export default function Students() {
                  </div>
                ))}
              </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 bg-white rounded-2xl shadow-sm p-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page <= 1 || isLoading}
+                className="rounded-xl"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-gray-600 font-medium">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || isLoading}
+                className="rounded-xl"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
 
