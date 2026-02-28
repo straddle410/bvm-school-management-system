@@ -82,15 +82,21 @@ export default function Students() {
   }, []);
 
   const { data: studentsData, isLoading } = useQuery({
-    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, filterStatus],
+    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, filterStatus, showArchived],
     queryFn: async () => {
+      // Build effective status filter
+      let effectiveStatus = filterStatus === 'all' ? '' : filterStatus;
+      // If not showing archived, and no specific status filter, restrict to active statuses
+      const restrictToActive = !showArchived && filterStatus === 'all';
+
       const res = await base44.functions.invoke('getStudentsPaginated', {
         page,
         limit: LIMIT,
         search: debouncedSearch,
         class_name: filterClass === 'all' ? '' : filterClass,
         section: filterSection === 'all' ? '' : filterSection,
-        status: filterStatus === 'all' ? '' : filterStatus,
+        status: effectiveStatus,
+        exclude_archived: restrictToActive,
         academic_year: academicYear
       });
       return res.data;
