@@ -313,6 +313,11 @@ export default function Students() {
   };
 
   const openEdit = student => {
+    // Teachers cannot edit
+    if (!isAdmin) {
+      toast.error('Only Admin/Principal can edit student records.');
+      return;
+    }
     setFormData({ ...student });
     setSelectedStudent(student);
     setIsEdit(true);
