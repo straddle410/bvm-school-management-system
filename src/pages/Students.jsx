@@ -127,7 +127,11 @@ export default function Students() {
 
   const handleSubmit = e => {
     e.preventDefault();
-    saveMutation.mutate({ id: isEdit ? selectedStudent.id : null, data: formData });
+    saveMutation.mutate({
+      id: isEdit ? selectedStudent.id : null,
+      data: formData,
+      originalStudentId: isEdit ? selectedStudent.student_id : null
+    });
   };
 
   const openAdd = async () => {
