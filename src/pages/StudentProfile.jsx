@@ -138,7 +138,36 @@ export default function StudentProfile() {
 
         {/* Content */}
         <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-          {/* Quick Stats */}
+
+          {/* Tabs: Profile / Audit History */}
+          {isAdmin ? (
+            <Tabs defaultValue="profile">
+              <TabsList className="bg-white border shadow-sm">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="audit">
+                  <ShieldCheck className="h-4 w-4 mr-1.5" />Audit History
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="audit" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                      Audit History
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <StudentAuditHistory
+                      studentId={student.student_id}
+                      academicYear={student.academic_year}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="profile" className="mt-4 space-y-6">
+                {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6">
