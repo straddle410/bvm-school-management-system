@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
-    // Notify all admins
-    const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+    // Notify all admin staff
+    const admins = await base44.asServiceRole.entities.StaffAccount.filter({ role: 'Admin' });
     for (const admin of admins) {
       try {
         await base44.asServiceRole.entities.Notification.create({
