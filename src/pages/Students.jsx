@@ -139,7 +139,7 @@ export default function Students() {
       setShowPastYearWarning(true);
       return;
     }
-    const newId = await generateStudentId();
+    const newId = await generateStudentId(academicYear);
     setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
     setIsEdit(false);
     setPhotoFile(null);
@@ -148,7 +148,7 @@ export default function Students() {
 
   const handlePastYearConfirm = async () => {
     setShowPastYearWarning(false);
-    const newId = await generateStudentId();
+    const newId = await generateStudentId(academicYear);
     setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
     setIsEdit(false);
     setPhotoFile(null);
