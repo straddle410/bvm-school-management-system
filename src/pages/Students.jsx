@@ -58,6 +58,7 @@ export default function Students() {
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' ||
                   user?.role === 'Principal' || user?.role === 'principal';
+  const isTeacher = !isAdmin && (user?.role === 'teacher' || user?.role === 'Teacher' || user?.role === 'staff' || user?.role === 'Staff');
 
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students', academicYear],
