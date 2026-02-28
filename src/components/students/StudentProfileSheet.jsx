@@ -96,10 +96,17 @@ export default function StudentProfileSheet({ student, open, onClose, onEdit, on
           {/* Admin Actions */}
           {isAdmin && (
             <div className="space-y-2">
-              <button onClick={onEdit}
-                className="w-full flex items-center justify-center gap-2 bg-[#1a237e] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#283593] transition-all">
-                <Pencil className="h-4 w-4" /> Edit Student
-              </button>
+              {isArchived ? (
+                <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
+                  <Lock className="h-4 w-4 flex-shrink-0" />
+                  <span>Record is read-only (<strong>{student.status}</strong>)</span>
+                </div>
+              ) : (
+                <button onClick={onEdit}
+                  className="w-full flex items-center justify-center gap-2 bg-[#1a237e] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#283593] transition-all">
+                  <Pencil className="h-4 w-4" /> Edit Student
+                </button>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={onArchive}
                   className="flex items-center justify-center gap-2 border border-orange-200 text-orange-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-orange-50">
