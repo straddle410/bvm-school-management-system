@@ -523,24 +523,51 @@ export default function Students() {
              showDeleted={showDeleted} onToggleDeleted={isAdmin ? () => { setShowDeleted(v => !v); setShowArchived(false); setPage(1); } : null}
            />
 
-          {/* Bulk Actions — Admin only, hide when showing archived */}
-          {isAdmin && totalPending > 0 && !showArchived && (
-            <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
-              <label className="flex items-center gap-3 cursor-pointer flex-1">
+          {/* Bulk Actions — Admin only */}
+          {isAdmin && selectableStudents.length > 0 && !showArchived && !showDeleted && (
+            <div className="bg-white rounded-2xl shadow-sm p-3 flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={selectedIds.size === students.filter(s => s.status === 'Pending').length && selectedIds.size > 0}
+                  checked={selectableStudents.length > 0 && selectedIds.size === selectableStudents.length}
                   onChange={handleSelectAll}
-                  className="w-5 h-5 rounded cursor-pointer"
+                  className="w-4 h-4 rounded cursor-pointer accent-[#1a237e]"
                 />
-                <span className="text-sm font-semibold text-gray-700">
-                  Select Pending ({selectedIds.size}/{students.filter(s => s.status === 'Pending').length})
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
                 </span>
               </label>
+
               {selectedIds.size > 0 && (
-                <Button onClick={handleVerifySelected} className="bg-green-600 hover:bg-green-700 rounded-xl">
-                  <CheckCircle className="h-4 w-4 mr-1" /> Verify ({selectedIds.size})
-                </Button>
+                <>
+                  <div className="h-5 w-px bg-gray-200" />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={bulkAction} onValueChange={setBulkAction}>
+                      <SelectTrigger className="h-8 text-xs w-44 rounded-xl">
+                        <SelectValue placeholder="Change status to…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableBulkActions.map(a => (
+                          <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      className="h-8 rounded-xl bg-[#1a237e] hover:bg-[#283593] text-xs"
+                      disabled={!bulkAction}
+                      onClick={() => handleBulkStatusChange(bulkAction)}
+                    >
+                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> Apply
+                    </Button>
+                    <button
+                      onClick={() => { setSelectedIds(new Set()); setBulkAction(''); }}
+                      className="text-xs text-gray-400 hover:text-gray-600 underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           )}
