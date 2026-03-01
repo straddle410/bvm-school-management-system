@@ -409,22 +409,31 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Duplicate current-year warning */}
-                  {academicYears.filter(y => y.is_current).length > 1 && (
-                    <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg p-3">
-                      <p className="text-sm text-red-800 font-medium">
-                        ⚠️ Multiple years marked as "Current Year". This must be fixed.
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => fixDuplicatesMutation.mutate()}
-                        disabled={fixDuplicatesMutation.isPending}
-                      >
-                        {fixDuplicatesMutation.isPending ? 'Fixing...' : 'Fix Now'}
-                      </Button>
-                    </div>
-                  )}
+                  {/* Duplicate year records warning */}
+                  {(() => {
+                    const yearCounts = {};
+                    academicYears.forEach(y => { yearCounts[y.year] = (yearCounts[y.year] || 0) + 1; });
+                    const hasDuplicateRecords = Object.values(yearCounts).some(c => c > 1);
+                    const hasDuplicateCurrent = academicYears.filter(y => y.is_current).length > 1;
+                    return (hasDuplicateRecords || hasDuplicateCurrent) && (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-red-50 border border-red-200 rounded-lg p-3 gap-3">
+                        <div>
+                          <p className="text-sm text-red-800 font-semibold">⚠️ Duplicate academic year records detected</p>
+                          {hasDuplicateRecords && <p className="text-xs text-red-700 mt-0.5">Same year appears multiple times in the database. Run cleanup to keep one per year.</p>}
+                          {hasDuplicateCurrent && <p className="text-xs text-red-700 mt-0.5">Multiple years are marked as "Current Year".</p>}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="whitespace-nowrap"
+                          onClick={() => cleanupDuplicateYearsMutation.mutate()}
+                          disabled={cleanupDuplicateYearsMutation.isPending || fixDuplicatesMutation.isPending}
+                        >
+                          {cleanupDuplicateYearsMutation.isPending ? 'Cleaning...' : 'Fix Duplicates'}
+                        </Button>
+                      </div>
+                    );
+                  })()}
 
                   {academicYears.map(year => (
                     <div 
