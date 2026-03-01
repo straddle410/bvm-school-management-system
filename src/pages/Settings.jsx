@@ -449,10 +449,13 @@ export default function Settings() {
                     );
                   })()}
 
-                  {academicYears.map(year => (
+                  {academicYears.map(year => {
+                    const isArchived = (year.status || '').toLowerCase() === 'archived';
+                    return (
                     <div 
                       key={year.id}
                       className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-3 ${
+                        isArchived ? 'bg-slate-100 opacity-60' :
                         year.is_current ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-50'
                       }`}
                     >
