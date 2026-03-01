@@ -471,15 +471,32 @@ export default function Settings() {
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-3">
-                        {/* Admissions Open Toggle */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border">
-                          <span className="text-xs font-medium text-slate-600">Admissions Open</span>
-                          <Switch
-                            checked={!!year.admission_open}
-                            onCheckedChange={(v) => toggleAdmissionMutation.mutate({ id: year.id, admission_open: v })}
-                          />
-                        </div>
-                        {/* Status selector */}
+                        {isArchived ? (
+                          <span className="text-xs text-slate-400 italic">Archived — restore via status</span>
+                        ) : (
+                          <>
+                            {/* Admissions Open Toggle */}
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border">
+                              <span className="text-xs font-medium text-slate-600">Admissions Open</span>
+                              <Switch
+                                checked={!!year.admission_open}
+                                onCheckedChange={(v) => toggleAdmissionMutation.mutate({ id: year.id, admission_open: v })}
+                              />
+                            </div>
+                            {year.is_current ? (
+                              <span className="text-sm font-medium text-blue-600 whitespace-nowrap">✓ Current Year</span>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentYearMutation.mutate(year.id)}
+                              >
+                                Set as Current
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        {/* Status selector — always visible so archived can be restored */}
                         <Select
                           value={year.status || 'Active'}
                           onValueChange={(v) => updateYearStatusMutation.mutate({ id: year.id, status: v })}
@@ -493,20 +510,10 @@ export default function Settings() {
                             <SelectItem value="Archived">Archived</SelectItem>
                           </SelectContent>
                         </Select>
-                        {year.is_current ? (
-                          <span className="text-sm font-medium text-blue-600 whitespace-nowrap">✓ Current Year</span>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => setCurrentYearMutation.mutate(year.id)}
-                          >
-                            Set as Current
-                          </Button>
-                        )}
                       </div>
-                    </div>
-                  ))}
+                      </div>
+                      );
+                      })}
 
                   {academicYears.length === 0 && (
                     <div className="py-12 text-center">
