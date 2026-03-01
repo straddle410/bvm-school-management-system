@@ -118,7 +118,12 @@ export default function Settings() {
     mutationFn: () => base44.functions.invoke('cleanupDuplicateAcademicYears', {}),
     onSuccess: (res) => {
       queryClient.invalidateQueries(['academic-years']);
-      toast.success(res.data?.message || 'Cleanup complete');
+      const d = res.data;
+      const msg = d?.message || 'Cleanup complete';
+      const detail = d?.activeYears != null
+        ? ` Active: ${d.activeYears}, Archived: ${d.archivedYears}, Remaining dupes: ${d.duplicatesRemainingActive}`
+        : '';
+      toast.success(msg + detail);
     },
     onError: (err) => toast.error(`Cleanup failed: ${err.message}`)
   });
