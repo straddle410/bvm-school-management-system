@@ -46,7 +46,7 @@ export default function AcademicYearSelector() {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 min-w-28 overflow-hidden">
-            {academicYears.map(y => (
+            {filteredYears.map(y => (
               <button
                 key={y.id}
                 onClick={() => { setAcademicYear(y.year); setOpen(false); }}
