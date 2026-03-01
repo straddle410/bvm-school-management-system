@@ -340,11 +340,10 @@ export default function Settings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {academicYears.map(y => (
-                          <SelectItem key={y.id} value={y.year}>{y.year}</SelectItem>
+                        {/* Deduplicated list of unique year strings */}
+                        {[...new Map(academicYears.map(y => [y.year, y])).values()].map(y => (
+                          <SelectItem key={y.year} value={y.year}>{y.year}</SelectItem>
                         ))}
-                        <SelectItem value="2024-25">2024-25</SelectItem>
-                        <SelectItem value="2025-26">2025-26</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
