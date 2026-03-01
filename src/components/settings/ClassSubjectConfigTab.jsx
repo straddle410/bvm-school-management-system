@@ -1,0 +1,165 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAcademicYear } from '@/components/AcademicYearContext';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Save, Check } from 'lucide-react';
+
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+export default function ClassSubjectConfigTab() {
+  const { academicYear } = useAcademicYear();
+  const queryClient = useQueryClient();
+  const [selectedClass, setSelectedClass] = useState(CLASSES[0]);
+  const [saving, setSaving] = useState(false);
+
+  const { data: allSubjects = [] } = useQuery({
+    queryKey: ['subjects-global'],
+    queryFn: async () => {
+      const subs = await base44.entities.Subject.list();
+      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    }
+  });
+
+  const { data: config, isLoading } = useQuery({
+    queryKey: ['class-subject-config', academicYear, selectedClass],
+    queryFn: async () => {
+      const configs = await base44.entities.ClassSubjectConfig.filter({
+        academic_year: academicYear,
+        class_name: selectedClass
+      });
+      return configs[0] || null;
+    },
+    enabled: !!academicYear && !!selectedClass
+  });
+
+  const [selected, setSelected] = useState([]);
+
+  // Sync local selection when config or class changes
+  React.useEffect(() => {
+    if (config?.subject_names) {
+      setSelected(config.subject_names);
+    } else {
+      // Default: all subjects selected
+      setSelected(allSubjects.map(s => s.name));
+    }
+  }, [config, selectedClass, allSubjects.length]);
+
+  const toggle = (name) => {
+    setSelected(prev =>
+      prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
+    );
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await base44.functions.invoke('setSubjectsForClass', {
+        academic_year: academicYear,
+        class_name: selectedClass,
+        subject_names: selected
+      });
+      queryClient.invalidateQueries(['class-subject-config', academicYear, selectedClass]);
+      queryClient.invalidateQueries(['class-subjects']);
+      toast.success(`Subjects saved for Class ${selectedClass} — ${academicYear}`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <CardHeader>
+        <CardTitle>Class → Subjects Mapping</CardTitle>
+        <CardDescription>
+          Configure which subjects are taught per class for <strong>{academicYear}</strong>.
+          Other modules (Marks, Timetable) will use this list.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {/* Class Selector */}
+        <div className="flex flex-wrap gap-2">
+          {CLASSES.map(cls => (
+            <button
+              key={cls}
+              onClick={() => setSelectedClass(cls)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                selectedClass === cls
+                  ? 'bg-[#1a237e] text-white border-[#1a237e]'
+                  : 'bg-white text-slate-700 border-slate-200 hover:border-[#1a237e]'
+              }`}
+            >
+              Class {cls}
+            </button>
+          ))}
+        </div>
+
+        {/* Subject Checkboxes */}
+        {isLoading ? (
+          <p className="text-slate-400 text-sm">Loading...</p>
+        ) : allSubjects.length === 0 ? (
+          <p className="text-slate-400 text-sm">No subjects in the global master list yet. Add them in the Subjects tab first.</p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-slate-700">
+                Select subjects for Class {selectedClass}
+                <span className="ml-2 text-xs text-slate-400">({selected.length}/{allSubjects.length} selected)</span>
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelected(
+                  selected.length === allSubjects.length ? [] : allSubjects.map(s => s.name)
+                )}
+                className="text-xs h-7"
+              >
+                {selected.length === allSubjects.length ? 'Deselect All' : 'Select All'}
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {allSubjects.map(sub => (
+                <label
+                  key={sub.id}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    selected.includes(sub.name)
+                      ? 'bg-blue-50 border-blue-300'
+                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className={`h-5 w-5 rounded flex items-center justify-center flex-shrink-0 ${
+                    selected.includes(sub.name) ? 'bg-[#1a237e]' : 'border-2 border-slate-300'
+                  }`}>
+                    {selected.includes(sub.name) && <Check className="h-3 w-3 text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={selected.includes(sub.name)}
+                    onChange={() => toggle(sub.name)}
+                  />
+                  <span className="text-sm font-medium text-slate-700">{sub.name}</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="flex justify-end pt-2">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-[#1a237e] hover:bg-[#283593] gap-2"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? 'Saving...' : `Save for Class ${selectedClass}`}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
