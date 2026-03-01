@@ -135,6 +135,22 @@ export default function Settings() {
     onSuccess: () => queryClient.invalidateQueries(['academic-years'])
   });
 
+  const updateYearStatusMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const updates = { status };
+      // If closing a year that is currently "current", auto-clear is_current
+      if (status === 'Closed' || status === 'Archived') {
+        const year = academicYears.find(y => y.id === id);
+        if (year?.is_current) {
+          updates.is_current = false;
+          toast.info(`"${year.year}" is no longer the current year. Please set a new current year.`);
+        }
+      }
+      return base44.entities.AcademicYear.update(id, updates);
+    },
+    onSuccess: () => queryClient.invalidateQueries(['academic-years'])
+  });
+
   const createSubjectMutation = useMutation({
     mutationFn: (name) => base44.entities.Subject.create({ name }),
     onSuccess: () => {
