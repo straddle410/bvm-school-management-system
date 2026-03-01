@@ -46,25 +46,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'parent_phone cannot be empty' }, { status: 400 });
     }
 
-    // Step 2: Validate academic_year (server-side security check)
-    if (!academic_year) {
-      return Response.json({
-        error: 'Academic year is required'
-      }, { status: 400 });
+    // Step 2: Resolve academic_year — auto-detect from current year if not provided
+    const allYears = await base44.asServiceRole.entities.AcademicYear.list();
+    const activeYears = allYears.filter(y => (y.status || '').toLowerCase() !== 'archived');
+
+    let resolvedYear = null;
+
+    if (academic_year && academic_year.trim()) {
+      // Frontend provided a year — validate it exists and is not archived
+      const provided = activeYears.find(y => y.year === academic_year.trim());
+      if (provided) {
+        resolvedYear = provided;
+      }
+      // If provided year is invalid/archived, fall through to auto-detect current year
     }
 
-    const yearRecord = await base44.asServiceRole.entities.AcademicYear.filter({
-      year: academic_year,
-      admission_open: true
-    });
-
-    if (yearRecord.length === 0) {
-      return Response.json({
-        error: 'Selected academic year is not open for admission.'
-      }, { status: 422 });
+    if (!resolvedYear) {
+      // Auto-detect: prefer is_current=true, then fall back to status=Active
+      resolvedYear = activeYears.find(y => y.is_current === true)
+        || activeYears.find(y => (y.status || '').toLowerCase() === 'active');
     }
 
-    const intakeYear = academic_year;
+    if (!resolvedYear) {
+      return Response.json({ error: 'No current academic year set. Please contact the school.' }, { status: 422 });
+    }
+
+    if (!resolvedYear.admission_open) {
+      return Response.json({ error: 'Admissions are not currently open. Please contact the school.' }, { status: 422 });
+    }
+
+    const intakeYear = resolvedYear.year;
     console.log('[submitPublicAdmission] Using admission intake year:', intakeYear);
 
     // Step 3: Duplicate check - student_name + dob + academic_year only
