@@ -591,12 +591,12 @@ export default function Students() {
             <div className="space-y-2">
                {students.map(student => (
                  <div key={student.id} className="flex gap-2 items-start">
-                   {isAdmin && student.status === 'Pending' && (
+                   {isAdmin && !isLocked(student) && !student.is_deleted && !showArchived && !showDeleted && (
                      <input
                        type="checkbox"
                        checked={selectedIds.has(student.id)}
                        onChange={() => handleToggleSelect(student.id)}
-                       className="w-5 h-5 rounded mt-3 cursor-pointer flex-shrink-0"
+                       className="w-4 h-4 rounded mt-3.5 cursor-pointer flex-shrink-0 accent-[#1a237e]"
                      />
                    )}
                    <StudentCard
