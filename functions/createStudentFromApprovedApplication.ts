@@ -16,6 +16,21 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    // Require academic_year on the application record
+    if (!data.academic_year || !data.academic_year.trim()) {
+      return Response.json({ error: 'Application is missing academic_year — cannot create student' }, { status: 422 });
+    }
+
+    // Verify academic_year exists and is not archived
+    const allYears = await base44.asServiceRole.entities.AcademicYear.list();
+    const matchedYear = allYears.find(y => y.year === data.academic_year);
+    if (!matchedYear) {
+      return Response.json({ error: `Academic year "${data.academic_year}" not found` }, { status: 422 });
+    }
+    if ((matchedYear.status || '').toLowerCase() === 'archived') {
+      return Response.json({ error: `Academic year "${data.academic_year}" is archived — student creation blocked` }, { status: 422 });
+    }
+
     // Generate student_id and use it as username (login ID)
     const studentId = `S${Date.now().toString().slice(-5)}`; // e.g., S25001
     const defaultPassword = 'BVM123'; // Default password from spec
