@@ -515,6 +515,9 @@ export default function Settings() {
                       );
                       })}
 
+                  {activeYears.length === 0 && academicYears.length > 0 && (
+                    <div className="py-4 text-center text-sm text-slate-400">All years are archived.</div>
+                  )}
                   {academicYears.length === 0 && (
                     <div className="py-12 text-center">
                       <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
