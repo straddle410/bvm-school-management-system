@@ -9,10 +9,26 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { applicationId } = await req.json();
+    const body = await req.json();
+    const { applicationId, academic_year } = body;
 
     if (!applicationId) {
       return Response.json({ error: 'applicationId is required' }, { status: 400 });
+    }
+
+    // Require academic_year in payload
+    if (!academic_year || !academic_year.trim()) {
+      return Response.json({ error: 'academic_year is required' }, { status: 400 });
+    }
+
+    // Verify academic_year exists and is not archived
+    const allYears = await base44.asServiceRole.entities.AcademicYear.list();
+    const matchedYear = allYears.find(y => y.year === academic_year);
+    if (!matchedYear) {
+      return Response.json({ error: `Academic year "${academic_year}" not found` }, { status: 422 });
+    }
+    if ((matchedYear.status || '').toLowerCase() === 'archived') {
+      return Response.json({ error: `Academic year "${academic_year}" is archived and cannot be used for new conversions` }, { status: 422 });
     }
 
     // Role enforcement: Admin/Principal only
