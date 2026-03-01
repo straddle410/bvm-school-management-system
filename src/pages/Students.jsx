@@ -49,6 +49,7 @@ export default function Students() {
   const [showManageRolls, setShowManageRolls] = useState(false);
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkAction, setBulkAction] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
