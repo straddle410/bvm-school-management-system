@@ -354,8 +354,8 @@ export default function Settings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* Deduplicated list of unique year strings */}
-                        {[...new Map(academicYears.map(y => [y.year, y])).values()].map(y => (
+                          {/* Only non-archived, deduplicated */}
+                        {[...new Map(activeYears.map(y => [y.year, y])).values()].map(y => (
                           <SelectItem key={y.year} value={y.year}>{y.year}</SelectItem>
                         ))}
                       </SelectContent>
