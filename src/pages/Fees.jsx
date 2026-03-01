@@ -12,6 +12,7 @@ import GenerateInvoices from '@/components/fees/GenerateInvoices';
 import StudentLedger from '@/components/fees/StudentLedger';
 import PaymentsList from '@/components/fees/PaymentsList';
 import ReceiptSettings from '@/components/fees/ReceiptSettings';
+import DiscountManager from '@/components/fees/DiscountManager';
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
@@ -28,7 +29,7 @@ export default function Fees() {
 
   const handleTabChange = (tab) => {
     // Only admin can access setup tabs
-    if (!isAdmin && ['fee-heads', 'plans', 'generate'].includes(tab)) return;
+    if (!isAdmin && ['fee-heads', 'plans', 'generate', 'discounts', 'receipt-settings'].includes(tab)) return;
     setActiveTab(tab);
   };
 
@@ -55,6 +56,7 @@ export default function Fees() {
               <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>
               {isAdmin && <TabsTrigger value="generate">Generate Invoices</TabsTrigger>}
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
               {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
             </TabsList>
@@ -86,6 +88,12 @@ export default function Fees() {
                     <p className="text-red-800 font-medium">Plan editing is disabled for archived years.</p>
                   </CardContent></Card>
                 ) : <FeePlanManager academicYear={academicYear} />}
+              </TabsContent>
+            )}
+
+            {isAdmin && (
+              <TabsContent value="discounts">
+                <DiscountManager academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
             )}
 
