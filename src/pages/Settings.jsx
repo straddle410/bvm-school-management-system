@@ -709,7 +709,7 @@ export default function Settings() {
                 placeholder="e.g., 2025-26"
                 required
               />
-              {yearForm.year && academicYears.some(y => y.year.trim() === yearForm.year.trim()) && (
+              {yearForm.year && activeYears.some(y => y.year.trim() === yearForm.year.trim()) && (
                 <p className="text-xs text-red-600 mt-1">⚠️ This academic year already exists.</p>
               )}
             </div>
