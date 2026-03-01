@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAcademicYear } from './AcademicYearContext';
 import { ChevronDown, Lock } from 'lucide-react';
 
 export default function AcademicYearSelector() {
   const { academicYear, setAcademicYear, academicYears, isAdmin, roleLoaded } = useAcademicYear();
   const [open, setOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef(null);
+
+  useEffect(() => {
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+  }, [open]);
 
   // Wait until role is fully resolved — prevents dropdown flash for teachers
   if (!roleLoaded) return null;
