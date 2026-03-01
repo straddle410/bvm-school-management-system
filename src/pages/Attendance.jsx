@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
@@ -10,20 +10,21 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import HolidayStatusDisplay from '@/components/HolidayStatusDisplay';
 import HolidayOverrideToggle from '@/components/HolidayOverrideToggle';
 import HalfDayModal from '@/components/attendance/HalfDayModal';
+import FilterSection from '@/components/attendanceSummary/FilterSection';
+import SummaryCards from '@/components/attendanceSummary/SummaryCards';
+import ReportTable from '@/components/attendanceSummary/ReportTable';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange, AlertCircle, Lock
+import {
+  Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange,
+  AlertCircle, Lock, BarChart3, Plus, Trash2, Edit2
 } from 'lucide-react';
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
@@ -31,10 +32,8 @@ import { toast } from "sonner";
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const SECTIONS = ['A'];
 
-export default function Attendance() {
-  const { academicYear } = useAcademicYear();
-  const [user, setUser] = useState(null);
-  const [schoolProfile, setSchoolProfile] = useState(null);
+// ─── Mark Attendance Tab ──────────────────────────────────────────────────────
+function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('A');
@@ -49,18 +48,10 @@ export default function Attendance() {
   const [hasHolidayOverride, setHasHolidayOverride] = useState(false);
   const [halfDayModal, setHalfDayModal] = useState({ isOpen: false, studentId: null, studentName: null });
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
-
+  const [manuallyChanged, setManuallyChanged] = useState(false);
   const queryClient = useQueryClient();
 
-  // Auto-detect Sunday
   const isSunday = getDay(new Date(selectedDate + 'T00:00:00')) === 0;
-
-  useEffect(() => {
-    setUser(getStaffSession());
-    base44.entities.SchoolProfile.list().then(profiles => {
-      if (profiles.length > 0) setSchoolProfile(profiles[0]);
-    }).catch(() => {});
-  }, []);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', academicYear],
@@ -70,15 +61,11 @@ export default function Attendance() {
   const { data: existingAttendance = [] } = useQuery({
     queryKey: ['attendance', selectedDate, selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
-      date: selectedDate,
-      class_name: selectedClass,
-      section: selectedSection,
-      academic_year: academicYear
+      date: selectedDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
     }),
     enabled: !!selectedClass && !!selectedSection
   });
 
-  // Check if current attendance is locked
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
   const lockedAtTime = existingAttendance[0]?.locked_at ? new Date(existingAttendance[0].locked_at).toLocaleString() : null;
 
@@ -94,23 +81,17 @@ export default function Attendance() {
     enabled: !!selectedDate && !!academicYear
   });
 
-  const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || user?.role === 'admin';
+  const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
   const isMarkedHoliday = holidays.length > 0;
-  const canManageHolidays = user?.role === 'admin' || user?.role === 'principal';
-
-  // Track if user manually changed holiday toggle
-  const [manuallyChanged, setManuallyChanged] = useState(false);
+  const canManageHolidays = isAdmin;
 
   useEffect(() => {
     const detectedHoliday = isSunday || isMarkedHoliday;
-
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
-        data[a.student_id] = { 
-          is_present: a.is_present, 
-          id: a.id, 
-          status: a.status,
+        data[a.student_id] = {
+          is_present: a.is_present, id: a.id, status: a.status,
           attendance_type: a.attendance_type || 'full_day',
           half_day_period: a.half_day_period || null,
           half_day_reason: a.half_day_reason || ''
@@ -130,65 +111,40 @@ export default function Attendance() {
     }
   }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays]);
 
-  const filteredStudents = students.filter(s => 
+  const filteredStudents = students.filter(s =>
     s.class_name === selectedClass && s.section === selectedSection
   ).sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!academicYear) throw new Error('Academic year not configured');
-      if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
-        throw new Error('PAST_YEAR_WARNING');
-      }
+      if (isPastAcademicYear(academicYear)) throw new Error('PAST_YEAR_WARNING');
       const promises = filteredStudents.map(async (student) => {
         const existing = attendanceData[student.student_id];
         const attType = existing?.attendance_type || 'full_day';
-
         const data = {
-          date: selectedDate,
-          class_name: selectedClass,
-          section: selectedSection,
-          student_id: student.student_id || student.id,
-          student_name: student.name,
+          date: selectedDate, class_name: selectedClass, section: selectedSection,
+          student_id: student.student_id || student.id, student_name: student.name,
           attendance_type: isHoliday ? 'holiday' : attType,
           half_day_period: existing?.half_day_period || null,
           half_day_reason: existing?.half_day_reason || '',
           is_present: isHoliday ? false : (attType !== 'absent'),
-          is_holiday: isHoliday,
-          holiday_reason: isHoliday ? (holidayReason || 'Holiday') : '',
-          marked_by: user?.email,
-          academic_year: academicYear,
+          is_holiday: isHoliday, holiday_reason: isHoliday ? (holidayReason || 'Holiday') : '',
+          marked_by: user?.email, academic_year: academicYear,
           status: isHoliday ? 'Holiday' : 'Taken'
         };
-
         if (existing?.id) {
-          // Use validation function for updates (enforces lock check + audit logging)
-          const response = await base44.functions.invoke('updateAttendanceWithValidation', {
-            attendanceId: existing.id,
-            data
-          });
+          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: existing.id, data });
           return response.data;
         }
-
-        // For CREATE: check for deduplication first
         const dedupCheck = await base44.functions.invoke('validateAttendanceCreateDedup', {
-          date: selectedDate,
-          studentId: student.student_id || student.id,
-          classname: selectedClass,
-          section: selectedSection,
-          academicYear
+          date: selectedDate, studentId: student.student_id || student.id,
+          classname: selectedClass, section: selectedSection, academicYear
         });
-
         if (dedupCheck.data?.isDuplicate) {
-          // Duplicate found - update instead of create
-          const response = await base44.functions.invoke('updateAttendanceWithValidation', {
-            attendanceId: dedupCheck.data.existingRecordId,
-            data
-          });
+          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: dedupCheck.data.existingRecordId, data });
           return response.data;
         }
-
-        // Safe to create new record
         return base44.entities.Attendance.create(data);
       });
       return Promise.all(promises);
@@ -198,522 +154,544 @@ export default function Attendance() {
       toast.success(isHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
     },
     onError: (err) => {
-      if (err?.message === 'PAST_YEAR_WARNING') {
-        setShowPastYearWarning(true);
-      } else if (err?.response?.status === 403) {
-        toast.error('❌ This record is locked. Only admin can unlock and edit.');
-      } else if (err?.response?.status === 409) {
-        toast.error('⚠️ Duplicate record detected. Using existing record.');
-      } else {
-        toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
-      }
+      if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
+      else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
+      else toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
     }
   });
-
-
 
   const saveRangeMutation = useMutation({
     mutationFn: async () => {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
-      if (!academicYear) throw new Error('Academic year not configured');
-      
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
-      const total = days.length;
-
-      // Batch create holidays (check all first, then create in one batch)
       const holidaysToCreate = [];
       for (let i = 0; i < days.length; i++) {
-        const day = days[i];
-        const dateStr = format(day, 'yyyy-MM-dd');
-
-        // Check if holiday already exists
-        const existingHoliday = await base44.entities.Holiday.filter({ 
-          date: dateStr, 
-          academic_year: academicYear 
-        });
-
-        if (existingHoliday.length === 0) {
-          holidaysToCreate.push({
-            date: dateStr,
-            title: rangeReason || 'Holiday',
-            reason: rangeReason || 'Holiday',
-            marked_by: user?.email,
-            academic_year: academicYear,
-            status: 'Active'
-          });
+        const dateStr = format(days[i], 'yyyy-MM-dd');
+        const existing = await base44.entities.Holiday.filter({ date: dateStr, academic_year: academicYear });
+        if (existing.length === 0) {
+          holidaysToCreate.push({ date: dateStr, title: rangeReason || 'Holiday', reason: rangeReason || 'Holiday', marked_by: user?.email, academic_year: academicYear, status: 'Active' });
         }
-        setRangeProgress(Math.round(((i + 1) / total) * 50));
+        setRangeProgress(Math.round(((i + 1) / days.length) * 100));
       }
-
-      // Batch create all new holidays in one call
-      if (holidaysToCreate.length > 0) {
-        await base44.entities.Holiday.bulkCreate(holidaysToCreate);
-      }
-      setRangeProgress(100);
+      if (holidaysToCreate.length > 0) await base44.entities.Holiday.bulkCreate(holidaysToCreate);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
-      queryClient.invalidateQueries({ queryKey: ['attendance'] });
       toast.success(`Holiday marked from ${rangeStart} to ${rangeEnd}`);
       setShowRangeMode(false);
       setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeProgress(0);
     },
-    onError: (err) => {
-      toast.error('Failed to mark holiday: ' + (err?.message || 'Unknown error'));
-      setRangeProgress(0);
-    }
+    onError: (err) => { toast.error('Failed: ' + (err?.message || 'Unknown error')); setRangeProgress(0); }
   });
 
   const setAttendanceType = (studentId, type, halfDayData = {}) => {
     setAttendanceData(prev => ({
       ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        attendance_type: type,
-        half_day_period: halfDayData.period || null,
-        half_day_reason: halfDayData.reason || '',
-        is_present: type !== 'absent'
-      }
+      [studentId]: { ...prev[studentId], attendance_type: type, half_day_period: halfDayData.period || null, half_day_reason: halfDayData.reason || '', is_present: type !== 'absent' }
     }));
-  };
-
-  const openHalfDayModal = (studentId, studentName) => {
-    setHalfDayModal({ isOpen: true, studentId, studentName });
-  };
-
-  const closeHalfDayModal = () => {
-    setHalfDayModal({ isOpen: false, studentId: null, studentName: null });
-  };
-
-  const handleHalfDayConfirm = (halfDayData) => {
-    if (halfDayModal.studentId) {
-      setAttendanceType(halfDayModal.studentId, 'half_day', halfDayData);
-      closeHalfDayModal();
-    }
   };
 
   const markAllPresent = () => {
     const data = {};
-    filteredStudents.forEach(s => {
-      data[s.student_id || s.id] = { ...attendanceData[s.student_id || s.id], is_present: true };
-    });
+    filteredStudents.forEach(s => { data[s.student_id || s.id] = { ...attendanceData[s.student_id || s.id], is_present: true }; });
     setAttendanceData(data);
   };
 
-  const presentCount = filteredStudents.filter(s => {
-    const type = attendanceData[s.student_id || s.id]?.attendance_type || 'full_day';
-    return type === 'full_day' || type === 'half_day';
-  }).length;
-  const halfDayCount = filteredStudents.filter(s => 
-    attendanceData[s.student_id || s.id]?.attendance_type === 'half_day'
-  ).length;
-  const absentCount = filteredStudents.filter(s => 
-    attendanceData[s.student_id || s.id]?.attendance_type === 'absent'
-  ).length;
-
   const currentStatus = existingAttendance[0]?.status || 'Not Taken';
+  const presentCount = filteredStudents.filter(s => { const t = attendanceData[s.student_id || s.id]?.attendance_type || 'full_day'; return t === 'full_day' || t === 'half_day'; }).length;
+  const halfDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'half_day').length;
+  const absentCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'absent').length;
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-3 sm:p-4 space-y-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-slate-400" />
+              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border rounded-lg px-3 py-2 text-sm" />
+            </div>
+            <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Class" /></SelectTrigger>
+              <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          {selectedClass && selectedSection && (
+            <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasHolidayOverride} holidayReason={holidayReason} />
+          )}
+
+          {isHoliday && canOverrideHoliday && selectedClass && (
+            <HolidayOverrideToggle selectedDate={selectedDate} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} onOverrideChange={setHasHolidayOverride} />
+          )}
+
+          {canManageHolidays && (
+            <div className={`flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
+              <Palmtree className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm font-medium flex-1">
+                {isSunday ? '🔴 Sunday — Auto Holiday' : isMarkedHoliday ? `📌 ${holidays[0]?.title || 'Holiday'}` : 'Mark as Holiday'}
+              </span>
+              {isHoliday && !isMarkedHoliday && (
+                <input type="text" placeholder="Holiday reason" value={holidayReason} onChange={e => setHolidayReason(e.target.value)} className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]" />
+              )}
+              {!isMarkedHoliday && !isSunday && (
+                <button onClick={() => { setIsHoliday(!isHoliday); setManuallyChanged(true); if (isHoliday) setHolidayReason(''); }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {!canManageHolidays && (isHoliday || isSunday) && (
+            <div className="pt-2 border-t text-amber-600 text-sm font-medium flex items-center gap-2">
+              <Palmtree className="h-4 w-4" />
+              {isSunday ? '🔴 Sunday — Auto Holiday' : `📌 ${holidayReason}`}
+            </div>
+          )}
+
+          {canManageHolidays && (
+            <div className="pt-2 border-t">
+              <button onClick={() => setShowRangeMode(!showRangeMode)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-amber-600 transition-colors">
+                <CalendarRange className="h-4 w-4" />
+                <span>Mark Holiday Range</span>
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Admin</span>
+              </button>
+              {showRangeMode && (
+                <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
+                  <p className="text-xs text-amber-700 font-medium">Marks ALL classes as holiday for the date range.</p>
+                  <div className="flex flex-wrap gap-3 items-center">
+                    <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600">From</label><input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm" /></div>
+                    <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600">To</label><input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm" /></div>
+                    <input type="text" placeholder="Reason (e.g. Summer Vacation)" value={rangeReason} onChange={e => setRangeReason(e.target.value)} className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button size="sm" className="bg-amber-500 hover:bg-amber-600" onClick={() => saveRangeMutation.mutate()} disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}>
+                      <Palmtree className="h-4 w-4 mr-1" />
+                      {saveRangeMutation.isPending ? `Marking... ${rangeProgress}%` : 'Mark Holiday Range'}
+                    </Button>
+                    {saveRangeMutation.isPending && <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-amber-500 h-2 rounded-full transition-all" style={{ width: `${rangeProgress}%` }} /></div>}
+                    <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)} disabled={saveRangeMutation.isPending}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedClass && selectedSection && (
+        <>
+          {isHoliday && !hasHolidayOverride && (
+            <Card className="border-l-4 border-l-amber-500 bg-amber-50"><CardContent className="p-4"><p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p></CardContent></Card>
+          )}
+          {isRecordLocked && (
+            <Card className="border-l-4 border-l-red-500 bg-red-50"><CardContent className="p-4"><p className="text-sm text-red-900 font-medium">🔒 Locked at {lockedAtTime}. Only admin can unlock.</p></CardContent></Card>
+          )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[{ label: 'Total', value: filteredStudents.length, color: 'blue', Icon: Users },
+              { label: 'Present', value: presentCount - halfDayCount, color: 'green', Icon: CheckCircle2 },
+              { label: 'Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
+              { label: 'Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
+              <Card key={label} className="border-0 shadow-sm p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-xl bg-${color}-50 flex items-center justify-center`}>
+                    <Icon className={`h-5 w-5 text-${color}-600`} />
+                  </div>
+                  <div><p className="text-sm text-slate-500">{label}</p><p className={`text-xl font-bold ${color !== 'blue' ? `text-${color}-600` : ''}`}>{value}</p></div>
+                </div>
+              </Card>
+            ))}
+            <Card className="border-0 shadow-sm p-4">
+              <div className="flex items-center gap-3"><div className="text-sm text-slate-500">Status</div><StatusBadge status={currentStatus} /></div>
+            </Card>
+          </div>
+
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
+              <CardTitle className="text-base">Class {selectedClass}-{selectedSection}</CardTitle>
+              {!isHoliday && <Button variant="outline" size="sm" onClick={markAllPresent}>Mark All Present</Button>}
+            </CardHeader>
+            <CardContent className="p-0">
+              {isHoliday ? (
+                <div className="py-12 text-center text-amber-500">
+                  <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                  <p className="font-medium text-slate-700">Holiday: {holidayReason || 'Holiday'}</p>
+                  <p className="text-sm text-slate-400 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
+                </div>
+              ) : filteredStudents.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">No published students in this class</div>
+              ) : (
+                <div className="divide-y">
+                  {filteredStudents.map((student, index) => {
+                    const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
+                    const attendanceDisabled = (isHoliday && !hasHolidayOverride) || isRecordLocked;
+                    const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
+                    return (
+                      <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 opacity-60' : bgColor}`}>
+                        <span className="text-xs text-slate-400 w-6 flex-shrink-0">{student.roll_no || index + 1}</span>
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarImage src={student.photo_url} />
+                          <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">{student.name?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-900 truncate text-sm">{student.name}</p>
+                          <p className="text-xs text-slate-500">{student.student_id}</p>
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          {[
+                            { type: 'full_day', color: 'green', Icon: CheckCircle2, title: 'Present' },
+                            { type: 'half_day', color: 'yellow', Icon: AlertCircle, title: 'Half Day' },
+                            { type: 'absent', color: 'red', Icon: XCircle, title: 'Absent' }
+                          ].map(({ type, color, Icon, title }) => (
+                            <Button key={type} size="sm"
+                              variant={attType === type ? 'default' : 'outline'}
+                              className={attType === type ? `bg-${color}-600 hover:bg-${color}-700` : ''}
+                              onClick={() => type === 'half_day'
+                                ? setHalfDayModal({ isOpen: true, studentId: student.student_id || student.id, studentName: student.name })
+                                : setAttendanceType(student.student_id || student.id, type)}
+                              disabled={attendanceDisabled}
+                              title={title}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {(filteredStudents.length > 0 || isHoliday) && (
+            <div className="flex justify-end">
+              {isHoliday && !hasHolidayOverride ? (
+                <Button disabled><Palmtree className="mr-2 h-4 w-4" />Attendance Disabled (Holiday)</Button>
+              ) : isRecordLocked ? (
+                <Button disabled><Lock className="mr-2 h-4 w-4" />Record Locked</Button>
+              ) : (
+                <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {saveMutation.isPending ? 'Saving...' : 'Save Attendance'}
+                </Button>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {!selectedClass && (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="py-16 text-center">
+            <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700">Select Class</h3>
+            <p className="text-slate-500 mt-2">Choose a class to mark attendance</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <HalfDayModal
+        isOpen={halfDayModal.isOpen}
+        onClose={() => setHalfDayModal({ isOpen: false, studentId: null, studentName: null })}
+        onConfirm={(halfDayData) => { if (halfDayModal.studentId) { setAttendanceType(halfDayModal.studentId, 'half_day', halfDayData); setHalfDayModal({ isOpen: false, studentId: null, studentName: null }); } }}
+        studentName={halfDayModal.studentName}
+      />
+
+      <PastYearWarning
+        open={showPastYearWarning}
+        academicYear={academicYear}
+        onConfirm={() => { setShowPastYearWarning(false); saveMutation.mutate(); }}
+        onCancel={() => setShowPastYearWarning(false)}
+      />
+    </div>
+  );
+}
+
+// ─── Attendance Summary Tab ───────────────────────────────────────────────────
+function AttendanceSummaryTab({ academicYear, user }) {
+  const [filters, setFilters] = useState({ class: '', section: 'A', fromDate: '', toDate: '' });
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['students-published', filters.class, filters.section, academicYear],
+    queryFn: () => base44.entities.Student.filter({ status: 'Published', class_name: filters.class, section: filters.section, academic_year: academicYear }),
+    enabled: hasGenerated && !!filters.class && !!filters.section
+  });
+
+  const { data: attendanceRecords = [] } = useQuery({
+    queryKey: ['attendance-range', filters.class, filters.section, filters.fromDate, filters.toDate, academicYear],
+    queryFn: () => base44.entities.Attendance.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear })
+      .then(all => all.filter(a => a.date >= filters.fromDate && a.date <= filters.toDate)),
+    enabled: hasGenerated && !!filters.class && !!filters.fromDate && !!filters.toDate
+  });
+
+  const { data: holidays = [] } = useQuery({
+    queryKey: ['holidays-range', filters.fromDate, filters.toDate, academicYear],
+    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear })
+      .then(all => all.filter(h => h.date >= filters.fromDate && h.date <= filters.toDate)),
+    enabled: hasGenerated && !!filters.fromDate && !!filters.toDate
+  });
+
+  const reportData = useMemo(() => {
+    if (!hasGenerated || students.length === 0) return [];
+    const daysBetween = [];
+    const current = new Date(filters.fromDate);
+    const end = new Date(filters.toDate);
+    while (current <= end) { daysBetween.push(format(current, 'yyyy-MM-dd')); current.setDate(current.getDate() + 1); }
+    const holidaySet = new Set(holidays.map(h => h.date));
+    const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0));
+    const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
+    return students.map(student => {
+      const sa = attendanceRecords.filter(a => a.student_id === student.student_id || a.student_id === student.id);
+      const dateMap = {};
+      sa.forEach(a => { if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !dateMap[a.date]) dateMap[a.date] = a.attendance_type; });
+      const fullDays = Object.values(dateMap).filter(t => t === 'full_day').length;
+      const halfDays = Object.values(dateMap).filter(t => t === 'half_day').length;
+      const totalPresent = fullDays + halfDays * 0.5;
+      const absentDays = Object.values(dateMap).filter(t => t === 'absent').length;
+      return {
+        id: student.id, student_id: student.student_id, name: student.name,
+        rollNo: student.roll_no || '-', class: student.class_name, section: student.section,
+        totalWorkingDays: workingDays, totalHolidays: daysBetween.filter(d => holidaySet.has(d)).length,
+        presentDays: Math.round(totalPresent * 100) / 100, absentDays,
+        attendancePercent: workingDays > 0 ? parseFloat(((totalPresent / workingDays) * 100).toFixed(2)) : 0
+      };
+    });
+  }, [students, attendanceRecords, holidays, filters.fromDate, filters.toDate, hasGenerated]);
+
+  const filteredData = useMemo(() => {
+    let data = reportData.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    if (sortBy === 'attendance-asc') data.sort((a, b) => a.attendancePercent - b.attendancePercent);
+    else if (sortBy === 'attendance-desc') data.sort((a, b) => b.attendancePercent - a.attendancePercent);
+    else data.sort((a, b) => a.name.localeCompare(b.name));
+    return data;
+  }, [reportData, searchTerm, sortBy]);
+
+  const avgAttendance = filteredData.length > 0 ? (filteredData.reduce((sum, s) => sum + s.attendancePercent, 0) / filteredData.length).toFixed(2) : 0;
+
+  return (
+    <div className="space-y-6">
+      <FilterSection filters={filters} setFilters={setFilters} onGenerate={() => setHasGenerated(true)} classes={CLASSES} />
+      {hasGenerated && (
+        <>
+          <SummaryCards totalStudents={students.length} avgAttendance={avgAttendance} workingDays={reportData[0]?.totalWorkingDays || 0} />
+          <ReportTable data={filteredData} searchTerm={searchTerm} setSearchTerm={setSearchTerm} sortBy={sortBy} setSortBy={setSortBy} fromDate={filters.fromDate} toDate={filters.toDate} />
+        </>
+      )}
+      {hasGenerated && students.length === 0 && (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="py-16 text-center">
+            <BarChart3 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700">No students found</h3>
+            <p className="text-slate-500 mt-2">Try selecting a different class or section</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ─── Holidays Tab ─────────────────────────────────────────────────────────────
+function HolidaysTab({ academicYear, user, isAdmin }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingHoliday, setEditingHoliday] = useState(null);
+  const [formData, setFormData] = useState({ date: '', title: '', reason: '' });
+  const queryClient = useQueryClient();
+
+  const { data: holidays = [] } = useQuery({
+    queryKey: ['holidays', academicYear],
+    queryFn: () => base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' })
+  });
+
+  const { data: staffAccount } = useQuery({
+    queryKey: ['staff-account', user?.email],
+    queryFn: () => base44.entities.StaffAccount.filter({ email: user?.email }),
+    enabled: !!user?.email
+  });
+
+  const canManage = staffAccount?.[0]?.permissions?.manage_holidays || isAdmin;
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Holiday.create({ ...data, marked_by: user?.email, academic_year: academicYear, status: 'Active' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      base44.entities.AuditLog.create({ action: 'holiday_marked', module: 'Holiday', date: formData.date, performed_by: user?.email, details: `Marked ${formData.title}`, academic_year: academicYear });
+      toast.success('Holiday added');
+      setShowForm(false); setFormData({ date: '', title: '', reason: '' });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Holiday.update(editingHoliday.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      toast.success('Holiday updated');
+      setEditingHoliday(null); setShowForm(false); setFormData({ date: '', title: '', reason: '' });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Holiday.update(id, { status: 'Cancelled' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      base44.entities.AuditLog.create({ action: 'holiday_removed', module: 'Holiday', performed_by: user?.email, details: 'Removed holiday', academic_year: academicYear });
+      toast.success('Holiday removed');
+    }
+  });
+
+  const handleSubmit = () => {
+    if (!formData.date || !formData.title) { toast.error('Date and title are required'); return; }
+    editingHoliday ? updateMutation.mutate(formData) : createMutation.mutate(formData);
+  };
+
+  const sortedHolidays = [...holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if (!canManage) {
+    return (
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-4 flex gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800">You don't have permission to manage holidays. Contact your admin.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-slate-900">Active Holidays — {academicYear}</h2>
+        <Button onClick={() => { setEditingHoliday(null); setFormData({ date: '', title: '', reason: '' }); setShowForm(true); }}>
+          <Plus className="h-4 w-4 mr-2" />Add Holiday
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-slate-700">Date</label>
+                <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700">Holiday Name</label>
+                <input type="text" placeholder="e.g., Diwali" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700">Reason (optional)</label>
+              <input type="text" value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button size="sm" onClick={handleSubmit}>{editingHoliday ? 'Update' : 'Add'} Holiday</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {sortedHolidays.length === 0 ? (
+        <Card className="border-0 shadow-sm"><CardContent className="py-12 text-center text-slate-400"><Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" /><p>No holidays marked yet</p></CardContent></Card>
+      ) : (
+        <div className="grid gap-3">
+          {sortedHolidays.map((holiday) => (
+            <Card key={holiday.id} className="border-0 shadow-sm">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900">{holiday.title}</p>
+                    <p className="text-sm text-slate-500">{format(parseISO(holiday.date), 'MMM dd, yyyy')} {holiday.reason && `· ${holiday.reason}`}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="icon" variant="ghost" onClick={() => { setEditingHoliday(holiday); setFormData({ date: holiday.date, title: holiday.title, reason: holiday.reason || '' }); setShowForm(true); }}>
+                    <Edit2 className="h-4 w-4 text-slate-400" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => deleteMutation.mutate(holiday.id)}>
+                    <Trash2 className="h-4 w-4 text-red-400" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export default function Attendance() {
+  const { academicYear } = useAcademicYear();
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('mark');
+
+  useEffect(() => {
+    setUser(getStaffSession());
+  }, []);
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
+
+  // Block non-admins from restricted tabs
+  const handleTabChange = (tab) => {
+    if (!isAdmin && (tab === 'summary' || tab === 'holidays')) return;
+    setActiveTab(tab);
+  };
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Attendance">
       <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
-      <PageHeader 
-        title="Attendance"
-        subtitle="Mark and manage daily attendance"
-      />
+        <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
-      <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
-       {/* Filters */}
-       <Card className="border-0 shadow-sm">
-         <CardContent className="p-3 sm:p-4 space-y-3">
-           <div className="flex flex-col gap-3 sm:gap-4">
-             <div className="flex items-center gap-2">
-               <Calendar className="h-5 w-5 text-slate-400" />
-               <input
-                 type="date"
-                 value={selectedDate}
-                 onChange={(e) => setSelectedDate(e.target.value)}
-                 className="border rounded-lg px-3 py-2 text-sm"
-               />
-             </div>
-             <Select value={selectedClass} onValueChange={setSelectedClass}>
-               <SelectTrigger className="w-full sm:w-40">
-                 <SelectValue placeholder="Select Class" />
-               </SelectTrigger>
-               <SelectContent>
-                 {CLASSES.map(c => (
-                   <SelectItem key={c} value={c}>Class {c}</SelectItem>
-                 ))}
-               </SelectContent>
-             </Select>
-             <Select value={selectedSection} onValueChange={setSelectedSection}>
-               <SelectTrigger className="w-full sm:w-40">
-                 <SelectValue placeholder="Select Section" />
-               </SelectTrigger>
-               <SelectContent>
-                 {SECTIONS.map(s => (
-                   <SelectItem key={s} value={s}>Section {s}</SelectItem>
-                 ))}
-               </SelectContent>
-             </Select>
-           </div>
+        <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <TabsList className={`mb-6 ${isAdmin ? 'grid grid-cols-3' : 'grid grid-cols-1 w-auto'}`}>
+              <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
+              {isAdmin && <TabsTrigger value="summary">Attendance Summary</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
+            </TabsList>
 
-           {/* Holiday Status Display */}
-           {selectedClass && selectedSection && (
-             <HolidayStatusDisplay 
-               isHoliday={isHoliday} 
-               isSunday={isSunday} 
-               hasOverride={hasHolidayOverride}
-               holidayReason={holidayReason}
-             />
-           )}
+            <TabsContent value="mark">
+              <MarkAttendanceTab user={user} academicYear={academicYear} isAdmin={isAdmin} />
+            </TabsContent>
 
-           {/* Holiday Override Toggle */}
-           {isHoliday && canOverrideHoliday && selectedClass && selectedSection && (
-             <HolidayOverrideToggle 
-               selectedDate={selectedDate}
-               canOverride={canOverrideHoliday}
-               user={user}
-               academicYear={academicYear}
-               onOverrideChange={setHasHolidayOverride}
-             />
-           )}
-
-            {/* Holiday Toggle - Admin Only */}
-            {canManageHolidays && (
-              <div className={`flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3 pt-2 border-t ${isHoliday ? 'text-amber-600' : 'text-slate-500'}`}>
-                <Palmtree className="h-4 w-4 flex-shrink-0" />
-                <span className="text-sm font-medium flex-1">
-                  {isSunday ? '🔴 Sunday — Auto Holiday' : isMarkedHoliday ? `📌 Marked Holiday: ${holidays[0]?.title || 'Holiday'}` : 'Mark as Holiday'}
-                </span>
-                {isHoliday && !isMarkedHoliday && (
-                  <input
-                    type="text"
-                    placeholder="Holiday reason (e.g. Diwali)"
-                    value={holidayReason}
-                    onChange={e => setHolidayReason(e.target.value)}
-                    className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
-                  />
-                )}
-                {!isMarkedHoliday && !isSunday && (
-                  <button
-                    onClick={() => { 
-                      setIsHoliday(!isHoliday); 
-                      setManuallyChanged(true);
-                      if (isHoliday) setHolidayReason(''); 
-                      else setHolidayReason(''); 
-                    }}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${isHoliday ? 'bg-amber-500' : 'bg-gray-300'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isHoliday ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                  </button>
-                )}
-              </div>
+            {isAdmin && (
+              <TabsContent value="summary">
+                <AttendanceSummaryTab academicYear={academicYear} user={user} />
+              </TabsContent>
             )}
 
-            {/* Show Holiday Info for Teachers */}
-            {!canManageHolidays && (isHoliday || isSunday) && (
-              <div className="pt-2 border-t text-amber-600">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Palmtree className="h-4 w-4" />
-                  {isSunday ? '🔴 Sunday — Auto Holiday' : `📌 Marked Holiday: ${holidayReason}`}
-                </div>
-              </div>
+            {isAdmin && (
+              <TabsContent value="holidays">
+                <HolidaysTab academicYear={academicYear} user={user} isAdmin={isAdmin} />
+              </TabsContent>
             )}
 
-            {/* Holiday Range - Admin Only */}
-            {canManageHolidays && (
-              <div className="pt-2 border-t">
-                <button
-                  onClick={() => setShowRangeMode(!showRangeMode)}
-                  className="flex items-center gap-2 text-sm text-slate-500 hover:text-amber-600 transition-colors"
-                >
-                  <CalendarRange className="h-4 w-4" />
-                  <span>Mark Holiday Range (multiple days)</span>
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-1">Admin</span>
-                </button>
-                {showRangeMode && (
-                  <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
-                    <p className="text-xs text-amber-700 font-medium">This will mark ALL classes as holiday for the selected date range.</p>
-                    <div className="flex flex-wrap gap-3 items-center">
-                      <div className="flex items-center gap-1.5">
-                        <label className="text-xs text-slate-600">From</label>
-                        <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)}
-                          className="border rounded-lg px-2 py-1.5 text-sm" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <label className="text-xs text-slate-600">To</label>
-                        <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)}
-                          className="border rounded-lg px-2 py-1.5 text-sm" />
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Reason (e.g. Summer Vacation)"
-                        value={rangeReason}
-                        onChange={e => setRangeReason(e.target.value)}
-                        className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        size="sm"
-                        className="bg-amber-500 hover:bg-amber-600 text-white"
-                        onClick={() => saveRangeMutation.mutate()}
-                        disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}
-                      >
-                        <Palmtree className="h-4 w-4 mr-1" />
-                        {saveRangeMutation.isPending ? `Marking... ${rangeProgress}%` : 'Mark Holiday Range'}
-                      </Button>
-                      {saveRangeMutation.isPending && (
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-amber-500 h-2 rounded-full transition-all"
-                            style={{ width: `${rangeProgress}%` }}
-                          />
-                        </div>
-                      )}
-                      <Button size="sm" variant="ghost" onClick={() => setShowRangeMode(false)} disabled={saveRangeMutation.isPending}>Cancel</Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Block non-admins landing on restricted tabs via state or bookmark */}
+            {!isAdmin && (activeTab === 'summary' || activeTab === 'holidays') && (
+              <TabsContent value={activeTab}>
+                <Card className="border-red-200 bg-red-50">
+                  <CardContent className="p-6 text-center">
+                    <Lock className="h-10 w-10 text-red-400 mx-auto mb-3" />
+                    <p className="font-semibold text-red-800">Not Authorized</p>
+                    <p className="text-sm text-red-600 mt-1">Only admins and principals can access this section.</p>
+                    <Button className="mt-4" size="sm" onClick={() => setActiveTab('mark')}>Go to Mark Attendance</Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             )}
-          </CardContent>
-        </Card>
-
-        {selectedClass && selectedSection && (
-          <>
-            {/* Holiday Block Message */}
-            {isHoliday && !hasHolidayOverride && (
-              <Card className="border-l-4 border-l-amber-500 bg-amber-50">
-                <CardContent className="p-4">
-                  <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
-                  <p className="text-xs text-amber-700 mt-1">Contact admin to enable attendance for this day</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Locked Record Message */}
-            {isRecordLocked && (
-              <Card className="border-l-4 border-l-red-500 bg-red-50">
-                <CardContent className="p-4">
-                  <p className="text-sm text-red-900 font-medium">🔒 Attendance Locked</p>
-                  <p className="text-xs text-red-700 mt-1">This record was auto-locked at {lockedAtTime}. Only admin can unlock and edit.</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Stats */}
-             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
-              <Card className="border-0 shadow-sm p-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Total</p>
-                    <p className="text-xl font-bold">{filteredStudents.length}</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="border-0 shadow-sm p-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Present</p>
-                    <p className="text-xl font-bold text-green-600">{presentCount - halfDayCount}</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="border-0 shadow-sm p-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-yellow-50 flex items-center justify-center">
-                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Half Day</p>
-                    <p className="text-xl font-bold text-yellow-600">{halfDayCount}</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="border-0 shadow-sm p-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-red-50 flex items-center justify-center">
-                    <XCircle className="h-5 w-5 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Absent</p>
-                    <p className="text-xl font-bold text-red-600">{absentCount}</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="border-0 shadow-sm p-4">
-                <div className="flex items-center gap-3">
-                  <div className="text-sm text-slate-500">Status</div>
-                  <StatusBadge status={currentStatus} />
-                </div>
-              </Card>
-            </div>
-
-            {/* Student List */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
-                <CardTitle className="text-base sm:text-lg">
-                  Class {selectedClass}-{selectedSection}
-                  {isHoliday && <span className="ml-2 text-xs sm:text-sm font-normal text-amber-600">🌴 Holiday</span>}
-                </CardTitle>
-                {!isHoliday && (
-                  <Button variant="outline" size="sm" onClick={markAllPresent} className="w-full sm:w-auto text-xs sm:text-sm">
-                    Mark All Present
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
-                {isHoliday ? (
-                  <div className="py-12 text-center text-amber-500">
-                    <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
-                    <p className="font-medium text-slate-700">Holiday: {holidayReason || 'Holiday'}</p>
-                    <p className="text-sm text-slate-400 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
-                  </div>
-                ) : filteredStudents.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400">
-                    No published students found in this class
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                        {filteredStudents.map((student, index) => {
-                          const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
-                          const attendanceDisabled = (isHoliday && !hasHolidayOverride) || isRecordLocked;
-                          const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
-
-                          return (
-                            <div 
-                                key={student.id}
-                                className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${
-                                  attendanceDisabled ? 'bg-slate-50 opacity-60' : bgColor
-                                }`}
-                              >
-                            <span className="text-xs sm:text-sm text-slate-400 w-6 sm:w-8 flex-shrink-0">
-                              {student.roll_no || index + 1}
-                            </span>
-                            <Avatar className="h-8 sm:h-10 w-8 sm:w-10 flex-shrink-0">
-                              <AvatarImage src={student.photo_url} />
-                              <AvatarFallback className="bg-blue-100 text-blue-700 text-xs sm:text-sm">
-                                {student.name?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-slate-900 truncate text-sm">{student.name}</p>
-                              <p className="text-xs text-slate-500">{student.student_id}</p>
-                              {attType === 'half_day' && attendanceData[student.student_id || student.id]?.half_day_period && (
-                                <p className="text-xs text-yellow-700 mt-0.5">
-                                  🕐 {attendanceData[student.student_id || student.id]?.half_day_period === 'morning' ? 'Absent Afternoon' : 'Absent Morning'}
-                                  {attendanceData[student.student_id || student.id]?.half_day_reason && ` - ${attendanceData[student.student_id || student.id]?.half_day_reason}`}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-                            <Button
-                              size="sm"
-                              variant={attType === 'full_day' ? 'default' : 'outline'}
-                              className={attType === 'full_day' ? 'bg-green-600 hover:bg-green-700' : ''}
-                              onClick={() => setAttendanceType(student.student_id || student.id, 'full_day')}
-                              disabled={attendanceDisabled}
-                              title="Full Day"
-                            >
-                              <CheckCircle2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={attType === 'half_day' ? 'default' : 'outline'}
-                              className={attType === 'half_day' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
-                              onClick={() => openHalfDayModal(student.student_id || student.id, student.name)}
-                              disabled={attendanceDisabled}
-                              title="Half Day"
-                            >
-                              <AlertCircle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={attType === 'absent' ? 'default' : 'outline'}
-                              className={attType === 'absent' ? 'bg-red-600 hover:bg-red-700' : ''}
-                              onClick={() => setAttendanceType(student.student_id || student.id, 'absent')}
-                              disabled={attendanceDisabled}
-                              title="Absent"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            {(filteredStudents.length > 0 || isHoliday) && (
-              <div className="flex justify-end gap-2">
-                {isHoliday && !hasHolidayOverride ? (
-                  <Button disabled className="opacity-50 cursor-not-allowed text-xs sm:text-sm">
-                    <Palmtree className="mr-1 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Attendance Disabled (Holiday)</span>
-                    <span className="sm:hidden">Holiday</span>
-                  </Button>
-                ) : isRecordLocked ? (
-                  <Button disabled className="opacity-50 cursor-not-allowed text-xs sm:text-sm">
-                    <Lock className="mr-1 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Record Locked (Admin Only)</span>
-                    <span className="sm:hidden">Locked</span>
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => saveMutation.mutate()}
-                    disabled={saveMutation.isPending}
-                    size="sm"
-                    className="text-xs sm:text-sm"
-                  >
-                    <Save className="mr-1 sm:mr-2 h-4 w-4" />
-                    {saveMutation.isPending ? 'Saving...' : <span className="hidden sm:inline">Save Attendance</span> || 'Save'}
-                  </Button>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {!selectedClass || !selectedSection ? (
-          <Card className="border-0 shadow-sm">
-            <CardContent className="py-16 text-center">
-              <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700">Select Class & Section</h3>
-              <p className="text-slate-500 mt-2">Choose a class and section to mark attendance</p>
-            </CardContent>
-          </Card>
-        ) : null}
+          </Tabs>
+        </div>
       </div>
-
-      <HalfDayModal
-        isOpen={halfDayModal.isOpen}
-        onClose={closeHalfDayModal}
-        onConfirm={handleHalfDayConfirm}
-        studentName={halfDayModal.studentName}
-      />
-
-      {/* Past Year Warning */}
-      <PastYearWarning
-        open={showPastYearWarning}
-        academicYear={academicYear}
-        onConfirm={() => {
-          setShowPastYearWarning(false);
-          saveMutation.mutate();
-        }}
-        onCancel={() => setShowPastYearWarning(false)}
-      />
-      </div>
-      </LoginRequired>
-      );
-      }
+    </LoginRequired>
+  );
+}

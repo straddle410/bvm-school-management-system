@@ -51,8 +51,7 @@ const quickAccess = [
 // quickActions now uses permission-aware filtering in the component
 const quickActions = [
   { label: 'Students',            icon: Users,         gradient: 'from-emerald-400 to-teal-600',  page: 'Students',               permKey: null,              roleRequired: ['Teacher', 'teacher', 'Staff', 'staff'] },
-  { label: 'Take Attendance',     icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
-  { label: 'Attendance Summary',  icon: BarChart3,      gradient: 'from-teal-400 to-green-600',    page: 'AttendanceSummaryReport', permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
+  { label: 'Attendance',          icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',      roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Post Diary',          icon: NotebookPen,   gradient: 'from-rose-400 to-pink-600',     page: 'DiaryManagement',         permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Post Homework',       icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',  page: 'HomeworkManage',          permKey: null,              roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
   { label: 'Post Notice',         icon: Megaphone,     gradient: 'from-yellow-400 to-orange-500', page: 'Notices',                 permKey: 'post_notices',    roleRequired: ['Admin', 'admin', 'Principal', 'principal', 'Teacher', 'teacher'] },
@@ -66,7 +65,6 @@ const adminActions = [
   { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
   { label: 'Approvals',        icon: ClipboardCheck, gradient: 'from-orange-400 to-red-600',     page: 'Approvals' },
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
-  { label: 'Holidays',         icon: Palmtree,      gradient: 'from-yellow-400 to-orange-500', page: 'HolidayCalendar' },
   { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
   { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'AnalyticsDashboard' },
 ];
@@ -76,7 +74,7 @@ const examModuleActions = [
    { label: 'Marks Entry',      icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks' },
    { label: 'Results',          icon: GraduationCap, gradient: 'from-indigo-400 to-indigo-600', page: 'Results' },
    { label: 'Progress Cards',   icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
-   { label: 'Attendance Report', icon: BarChart4,     gradient: 'from-green-400 to-emerald-600', page: 'AttendanceSummaryReport' },
+   { label: 'Attendance',       icon: BarChart4,     gradient: 'from-green-400 to-emerald-600', page: 'Attendance' },
 ];
 
 function GradientIcon({ gradient, icon: Icon, size = 'md' }) {
