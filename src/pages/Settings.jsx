@@ -61,8 +61,11 @@ export default function Settings() {
 
   const { data: academicYears = [] } = useQuery({
     queryKey: ['academic-years'],
-    queryFn: () => base44.entities.AcademicYear.list()
+    queryFn: () => base44.entities.AcademicYear.list('-start_date')
   });
+
+  // Only non-archived years for duplicate detection and active UI
+  const activeYears = academicYears.filter(y => (y.status || 'Active').toLowerCase() !== 'archived');
 
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
