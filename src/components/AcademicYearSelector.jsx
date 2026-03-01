@@ -56,8 +56,8 @@ export default function AcademicYearSelector() {
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
           <div
-            className="fixed bg-white rounded-xl shadow-xl border border-gray-100 z-[101] min-w-28 overflow-hidden"
-            style={{ top: dropdownPos.top, right: dropdownPos.right }}
+            className="fixed bg-white rounded-xl shadow-xl border border-gray-100 min-w-28 overflow-hidden"
+            style={{ top: dropdownPos.top + 8, right: dropdownPos.right, zIndex: 9999 }}
           >
             {filteredYears.map(y => (
               <button
