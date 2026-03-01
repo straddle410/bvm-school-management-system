@@ -46,6 +46,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Application not found' }, { status: 404 });
     }
 
+    // Mismatch guard: payload academic_year must match application academic_year
+    if (application.academic_year !== academic_year) {
+      return Response.json({
+        error: "Selected academic year doesn't match application academic year."
+      }, { status: 422 });
+    }
+
     // Step 2: Validate status === Approved
     if (application.status !== 'Approved') {
       return Response.json({ 
