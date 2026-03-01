@@ -96,13 +96,28 @@ export default function Settings() {
   });
 
   const createYearMutation = useMutation({
-    mutationFn: (data) => base44.entities.AcademicYear.create(data),
+    mutationFn: async (data) => {
+      // Guard: prevent duplicate year
+      const existing = academicYears.find(y => y.year.trim() === data.year.trim());
+      if (existing) throw new Error(`Academic year "${data.year}" already exists.`);
+      return base44.entities.AcademicYear.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['academic-years']);
       setShowYearDialog(false);
       setYearForm({ year: '', start_date: '', end_date: '' });
       toast.success('Academic year created');
-    }
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const cleanupDuplicateYearsMutation = useMutation({
+    mutationFn: () => base44.functions.invoke('cleanupDuplicateAcademicYears', {}),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(['academic-years']);
+      toast.success(res.data?.message || 'Cleanup complete');
+    },
+    onError: (err) => toast.error(`Cleanup failed: ${err.message}`)
   });
 
   const setCurrentYearMutation = useMutation({
