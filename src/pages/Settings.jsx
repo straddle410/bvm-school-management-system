@@ -100,8 +100,8 @@ export default function Settings() {
 
   const createYearMutation = useMutation({
     mutationFn: async (data) => {
-      // Guard: prevent duplicate year
-      const existing = academicYears.find(y => y.year.trim() === data.year.trim());
+      // Guard: prevent duplicate year among non-archived
+      const existing = activeYears.find(y => y.year.trim() === data.year.trim());
       if (existing) throw new Error(`Academic year "${data.year}" already exists.`);
       return base44.entities.AcademicYear.create(data);
     },
