@@ -53,13 +53,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
     }
 
-    // ── ACADEMIC YEAR BOUNDARY CHECK ──
-    // Verify the exam_type belongs to this academic year
-    const examTypes = await base44.asServiceRole.entities.ExamType.filter({ academic_year });
-    const examTypeRecord = examTypes.find(et => et.id === exam_type || et.name === exam_type);
+    // ── EXAM TYPE ACADEMIC YEAR MISMATCH GUARD ──
+    // Load the ExamType directly by ID to confirm its year matches mark's year
+    const examTypeById = await base44.asServiceRole.entities.ExamType.filter({ id: exam_type });
+    const examTypeByName = examTypeById.length === 0
+      ? await base44.asServiceRole.entities.ExamType.filter({ academic_year, name: exam_type })
+      : [];
+    const examTypeRecord = examTypeById[0] || examTypeByName[0];
     if (!examTypeRecord) {
       return Response.json({
-        error: `Action not allowed outside selected Academic Year. Exam type "${exam_type}" does not belong to academic year "${academic_year}".`
+        error: `Exam type "${exam_type}" not found.`
+      }, { status: 400 });
+    }
+    if (examTypeRecord.academic_year && examTypeRecord.academic_year !== academic_year) {
+      return Response.json({
+        error: `Exam academic year mismatch: exam type "${examTypeRecord.name}" belongs to year "${examTypeRecord.academic_year}" but marks are being entered for "${academic_year}". Use the correct academic year.`
       }, { status: 400 });
     }
 
