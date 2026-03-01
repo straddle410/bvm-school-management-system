@@ -379,6 +379,23 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* Duplicate current-year warning */}
+                  {academicYears.filter(y => y.is_current).length > 1 && (
+                    <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm text-red-800 font-medium">
+                        ⚠️ Multiple years marked as "Current Year". This must be fixed.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => fixDuplicatesMutation.mutate()}
+                        disabled={fixDuplicatesMutation.isPending}
+                      >
+                        {fixDuplicatesMutation.isPending ? 'Fixing...' : 'Fix Now'}
+                      </Button>
+                    </div>
+                  )}
+
                   {academicYears.map(year => (
                     <div 
                       key={year.id}
