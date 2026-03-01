@@ -246,6 +246,11 @@ export default function Students() {
       await validateRollNoUnique(normalized);
       await validateNoDuplicateStudent(normalized);
 
+      // Block creation if academic_year is missing
+      if (!normalized.academic_year || !normalized.academic_year.trim()) {
+        throw new Error('Academic year is required to create a student.');
+      }
+
       return base44.entities.Student.create(normalized);
     },
     onSuccess: () => {
