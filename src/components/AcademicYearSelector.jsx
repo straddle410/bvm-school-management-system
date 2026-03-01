@@ -3,10 +3,13 @@ import { useAcademicYear } from './AcademicYearContext';
 import { ChevronDown, Lock } from 'lucide-react';
 
 export default function AcademicYearSelector() {
-  const { academicYear, setAcademicYear, academicYears, isAdmin } = useAcademicYear();
+  const { academicYear, setAcademicYear, academicYears, isAdmin, roleLoaded } = useAcademicYear();
   const [open, setOpen] = useState(false);
 
-  // Teachers see locked read-only year display
+  // Wait until role is fully resolved — prevents dropdown flash for teachers
+  if (!roleLoaded) return null;
+
+  // Teachers/Staff: locked read-only year display, no dropdown
   if (!isAdmin) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-blue-200 font-semibold px-2 py-1.5 bg-white/10 rounded-lg">
