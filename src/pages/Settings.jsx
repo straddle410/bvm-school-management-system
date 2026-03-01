@@ -739,7 +739,7 @@ export default function Settings() {
               </Button>
               <Button
                 type="submit"
-                disabled={createYearMutation.isPending || (!!yearForm.year && academicYears.some(y => y.year.trim() === yearForm.year.trim()))}
+                disabled={createYearMutation.isPending || (!!yearForm.year && activeYears.some(y => y.year.trim() === yearForm.year.trim()))}
               >
                 {createYearMutation.isPending ? 'Creating...' : 'Create Year'}
               </Button>
