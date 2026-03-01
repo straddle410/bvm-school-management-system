@@ -57,7 +57,8 @@ Deno.serve(async (req) => {
     // Atomically convert to Student (must succeed or entire approval fails)
     try {
       const conversionResponse = await base44.asServiceRole.functions.invoke('convertApplicationToStudent', {
-        applicationId
+        applicationId,
+        academic_year: application.academic_year
       });
 
       if (!conversionResponse.data?.success) {
