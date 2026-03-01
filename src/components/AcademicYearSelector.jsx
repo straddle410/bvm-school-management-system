@@ -19,7 +19,13 @@ export default function AcademicYearSelector() {
     );
   }
 
-  if (academicYears.length === 0) {
+  // Dedupe by year string and exclude archived (safety net in case context still has stale data)
+  const seen = new Set();
+  const filteredYears = academicYears
+    .filter(y => (y.status || '').toLowerCase() !== 'archived')
+    .filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
+
+  if (filteredYears.length === 0) {
     return (
       <div className="text-xs text-blue-200 font-medium px-2 py-1 bg-white/10 rounded-lg">
         {academicYear}
