@@ -43,18 +43,22 @@ export default function AcademicYearSelector() {
   }
 
   return (
-    <div className="relative">
+    <div className="flex-shrink-0">
       <button
+        ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 text-xs text-white font-semibold px-2 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg transition-colors"
+        className="flex items-center gap-1 text-xs text-white font-semibold px-2 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg transition-colors whitespace-nowrap"
       >
         <span>{academicYear}</span>
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-3 w-3 flex-shrink-0" />
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 min-w-28 overflow-hidden">
+          <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
+          <div
+            className="fixed bg-white rounded-xl shadow-xl border border-gray-100 z-[101] min-w-28 overflow-hidden"
+            style={{ top: dropdownPos.top, right: dropdownPos.right }}
+          >
             {filteredYears.map(y => (
               <button
                 key={y.id}
