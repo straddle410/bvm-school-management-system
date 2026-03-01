@@ -439,9 +439,22 @@ export default function Settings() {
                             onCheckedChange={(v) => toggleAdmissionMutation.mutate({ id: year.id, admission_open: v })}
                           />
                         </div>
-                        <StatusBadge status={year.status} />
+                        {/* Status selector */}
+                        <Select
+                          value={year.status || 'Active'}
+                          onValueChange={(v) => updateYearStatusMutation.mutate({ id: year.id, status: v })}
+                        >
+                          <SelectTrigger className="w-32 h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Closed">Closed</SelectItem>
+                            <SelectItem value="Archived">Archived</SelectItem>
+                          </SelectContent>
+                        </Select>
                         {year.is_current ? (
-                          <span className="text-sm font-medium text-blue-600">Current Year</span>
+                          <span className="text-sm font-medium text-blue-600 whitespace-nowrap">✓ Current Year</span>
                         ) : (
                           <Button 
                             variant="outline" 
