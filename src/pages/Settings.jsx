@@ -27,10 +27,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   School, Save, Upload, Image as ImageIcon, Calendar, 
-  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell
+  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen
 } from 'lucide-react';
 import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
+import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('school');
@@ -279,6 +280,9 @@ export default function Settings() {
             </TabsTrigger>
             <TabsTrigger value="banners">
               <Layers className="h-4 w-4 mr-2" /> Banners
+            </TabsTrigger>
+            <TabsTrigger value="class-subjects">
+              <BookOpen className="h-4 w-4 mr-2" /> Class Subjects
             </TabsTrigger>
             <TabsTrigger value="notifications">
               <Bell className="h-4 w-4 mr-2" /> Notifications
@@ -643,6 +647,10 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="class-subjects" className="mt-6">
+            <ClassSubjectConfigTab />
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6 space-y-6">
