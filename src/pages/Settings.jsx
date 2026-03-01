@@ -107,7 +107,6 @@ export default function Settings() {
 
   const setCurrentYearMutation = useMutation({
     mutationFn: async (yearId) => {
-      // Unset all other years
       await Promise.all(academicYears.map(y => 
         base44.entities.AcademicYear.update(y.id, { is_current: y.id === yearId })
       ));
@@ -116,6 +115,11 @@ export default function Settings() {
       queryClient.invalidateQueries(['academic-years']);
       toast.success('Current year updated');
     }
+  });
+
+  const toggleAdmissionMutation = useMutation({
+    mutationFn: ({ id, admission_open }) => base44.entities.AcademicYear.update(id, { admission_open }),
+    onSuccess: () => queryClient.invalidateQueries(['academic-years'])
   });
 
   const createSubjectMutation = useMutation({
