@@ -423,12 +423,12 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Duplicate year records warning */}
+                  {/* Duplicate year records warning — only among NON-archived years */}
                   {(() => {
                     const yearCounts = {};
-                    academicYears.forEach(y => { yearCounts[y.year] = (yearCounts[y.year] || 0) + 1; });
+                    activeYears.forEach(y => { yearCounts[y.year] = (yearCounts[y.year] || 0) + 1; });
                     const hasDuplicateRecords = Object.values(yearCounts).some(c => c > 1);
-                    const hasDuplicateCurrent = academicYears.filter(y => y.is_current).length > 1;
+                    const hasDuplicateCurrent = activeYears.filter(y => y.is_current).length > 1;
                     return (hasDuplicateRecords || hasDuplicateCurrent) && (
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-red-50 border border-red-200 rounded-lg p-3 gap-3">
                         <div>
