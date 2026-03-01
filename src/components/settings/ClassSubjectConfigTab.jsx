@@ -102,12 +102,17 @@ export default function ClassSubjectConfigTab() {
         </div>
 
         {/* Subject Checkboxes */}
-        {isLoading ? (
+        {isLoading || selected === null ? (
           <p className="text-slate-400 text-sm">Loading...</p>
         ) : allSubjects.length === 0 ? (
           <p className="text-slate-400 text-sm">No subjects in the global master list yet. Add them in the Subjects tab first.</p>
         ) : (
           <>
+            {!config?.exists && (
+              <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                Not configured — Marks &amp; Timetable will fall back to the global subjects list until you save a configuration here.
+              </div>
+            )}
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-slate-700">
                 Select subjects for Class {selectedClass}
