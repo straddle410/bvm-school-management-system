@@ -221,7 +221,7 @@ export default function Dashboard() {
       <ExamResultsModal open={examResultsModalOpen} onOpenChange={setExamResultsModalOpen} />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full">
+      <header className="sticky top-0 z-40 w-full">
         <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-3 sm:px-4 pt-4 pb-5 shadow-lg">
           {user && (
             <div className="flex items-center justify-between mb-3">
