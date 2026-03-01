@@ -369,12 +369,12 @@ export default function Settings() {
                   {academicYears.map(year => (
                     <div 
                       key={year.id}
-                      className={`flex items-center justify-between p-4 rounded-xl ${
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-3 ${
                         year.is_current ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-50'
                       }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0">
                           <Calendar className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
@@ -384,7 +384,15 @@ export default function Settings() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        {/* Admissions Open Toggle */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border">
+                          <span className="text-xs font-medium text-slate-600">Admissions Open</span>
+                          <Switch
+                            checked={!!year.admission_open}
+                            onCheckedChange={(v) => toggleAdmissionMutation.mutate({ id: year.id, admission_open: v })}
+                          />
+                        </div>
                         <StatusBadge status={year.status} />
                         {year.is_current ? (
                           <span className="text-sm font-medium text-blue-600">Current Year</span>
