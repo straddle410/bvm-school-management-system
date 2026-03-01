@@ -1,20 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getStaffSession } from '@/components/useStaffSession';
-import { useAcademicYear } from '@/components/AcademicYearContext';
-import LoginRequired from '@/components/LoginRequired';
-import PageHeader from '@/components/ui/PageHeader';
-import FilterSection from '@/components/attendanceSummary/FilterSection';
-import SummaryCards from '@/components/attendanceSummary/SummaryCards';
-import ReportTable from '@/components/attendanceSummary/ReportTable';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar } from 'lucide-react';
-import { format } from 'date-fns';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function AttendanceSummaryReport() {
+  const navigate = useNavigate();
+  useEffect(() => { navigate(createPageUrl('Attendance'), { replace: true }); }, []);
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [filters, setFilters] = useState({

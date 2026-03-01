@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { getStaffSession } from '@/components/useStaffSession';
-import { useAcademicYear } from '@/components/AcademicYearContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import LoginRequired from '@/components/LoginRequired';
-import PageHeader from '@/components/ui/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { toast } from "sonner";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function HolidayCalendar() {
+  const navigate = useNavigate();
+  useEffect(() => { navigate(createPageUrl('Attendance'), { replace: true }); }, []);
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
