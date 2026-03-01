@@ -30,22 +30,25 @@ export default function ClassSubjectConfigTab() {
         academic_year: academicYear,
         class_name: selectedClass
       });
-      return configs[0] || null;
+      if (configs.length > 0 && configs[0].subject_names) {
+        return { exists: true, subject_names: configs[0].subject_names };
+      }
+      return { exists: false, subject_names: [] };
     },
     enabled: !!academicYear && !!selectedClass
   });
 
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState(null); // null = loading/unknown
 
-  // Sync local selection when config or class changes
+  // Reset selection whenever year, class, or fetched config changes
   React.useEffect(() => {
-    if (config?.subject_names) {
-      setSelected(config.subject_names);
+    if (config === undefined) return; // query not yet resolved
+    if (config === null || !config.exists) {
+      setSelected([]); // not configured → empty
     } else {
-      // Default: all subjects selected
-      setSelected(allSubjects.map(s => s.name));
+      setSelected(config.subject_names);
     }
-  }, [config, selectedClass, allSubjects.length]);
+  }, [academicYear, selectedClass, config]);
 
   const toggle = (name) => {
     setSelected(prev =>
