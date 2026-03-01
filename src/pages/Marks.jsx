@@ -106,11 +106,19 @@ export default function Marks() {
   });
 
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
-    queryKey: ['subjects'],
+    queryKey: ['class-subjects', academicYear, selectedClass],
     queryFn: async () => {
-      const subs = await base44.entities.Subject.list();
-      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      if (!selectedClass) {
+        const subs = await base44.entities.Subject.list();
+        return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
+      }
+      const res = await base44.functions.invoke('getSubjectsForClass', {
+        academic_year: academicYear,
+        class_name: selectedClass
+      });
+      return res.data?.subjects || [];
     },
+    enabled: !!academicYear,
     staleTime: 5 * 60 * 1000
   });
 
@@ -191,9 +199,10 @@ export default function Marks() {
         }, [])
     : [];
   
+  // subjects is now already an array of strings (names) from getSubjectsForClass
   const subjectList = timetableSubjects.length > 0 
     ? timetableSubjects 
-    : (subjects.length > 0 ? subjects.map(s => s.name) : DEFAULT_SUBJECTS);
+    : (subjects.length > 0 ? subjects : DEFAULT_SUBJECTS);
 
   const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;

@@ -32,11 +32,19 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
+    queryKey: ['class-subjects', academicYear, formData.class_name],
     queryFn: async () => {
-      const subs = await base44.entities.Subject.list();
-      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-    }
+      if (!formData.class_name) {
+        const subs = await base44.entities.Subject.list();
+        return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
+      }
+      const res = await base44.functions.invoke('getSubjectsForClass', {
+        academic_year: academicYear,
+        class_name: formData.class_name
+      });
+      return res.data?.subjects || [];
+    },
+    enabled: !!academicYear
   });
 
   const { data: teachers = [] } = useQuery({
@@ -165,7 +173,7 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               >
                 <option value="">Select Subject</option>
                 {subjects.map(sub => (
-                  <option key={sub.id} value={sub.name}>{sub.name}</option>
+                  <option key={sub} value={sub}>{sub}</option>
                 ))}
               </select>
             </div>
