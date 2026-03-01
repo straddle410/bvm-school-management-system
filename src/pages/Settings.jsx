@@ -125,7 +125,10 @@ export default function Settings() {
 
   const setCurrentYearMutation = useMutation({
     mutationFn: async (yearId) => {
-      // Enforce uniqueness: unset all others first, then set the selected one
+      const year = academicYears.find(y => y.id === yearId);
+      if ((year?.status || '').toLowerCase() === 'archived') {
+        throw new Error('Cannot modify archived academic year');
+      }
       await Promise.all(
         academicYears
           .filter(y => y.is_current && y.id !== yearId)
@@ -136,7 +139,8 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries(['academic-years']);
       toast.success('Current year updated');
-    }
+    },
+    onError: (err) => toast.error(err.message)
   });
 
   const fixDuplicatesMutation = useMutation({
@@ -149,18 +153,25 @@ export default function Settings() {
   });
 
   const toggleAdmissionMutation = useMutation({
-    mutationFn: ({ id, admission_open }) => base44.entities.AcademicYear.update(id, { admission_open }),
-    onSuccess: () => queryClient.invalidateQueries(['academic-years'])
+    mutationFn: ({ id, admission_open }) => {
+      const year = academicYears.find(y => y.id === id);
+      if ((year?.status || '').toLowerCase() === 'archived') {
+        throw new Error('Cannot modify archived academic year');
+      }
+      return base44.entities.AcademicYear.update(id, { admission_open });
+    },
+    onSuccess: () => queryClient.invalidateQueries(['academic-years']),
+    onError: (err) => toast.error(err.message)
   });
 
   const updateYearStatusMutation = useMutation({
     mutationFn: async ({ id, status }) => {
       const updates = { status };
-      // If closing a year that is currently "current", auto-clear is_current
       if (status === 'Closed' || status === 'Archived') {
         const year = academicYears.find(y => y.id === id);
         if (year?.is_current) {
           updates.is_current = false;
+          updates.admission_open = false;
           toast.info(`"${year.year}" is no longer the current year. Please set a new current year.`);
         }
       }
