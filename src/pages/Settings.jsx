@@ -107,14 +107,27 @@ export default function Settings() {
 
   const setCurrentYearMutation = useMutation({
     mutationFn: async (yearId) => {
-      await Promise.all(academicYears.map(y => 
-        base44.entities.AcademicYear.update(y.id, { is_current: y.id === yearId })
-      ));
+      // Enforce uniqueness: unset all others first, then set the selected one
+      await Promise.all(
+        academicYears
+          .filter(y => y.is_current && y.id !== yearId)
+          .map(y => base44.entities.AcademicYear.update(y.id, { is_current: false }))
+      );
+      await base44.entities.AcademicYear.update(yearId, { is_current: true });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['academic-years']);
       toast.success('Current year updated');
     }
+  });
+
+  const fixDuplicatesMutation = useMutation({
+    mutationFn: () => base44.functions.invoke('enforceCurrentYearUniqueness', {}),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(['academic-years']);
+      toast.success(res.data?.message || 'Duplicates fixed');
+    },
+    onError: (err) => toast.error(`Fix failed: ${err.message}`)
   });
 
   const toggleAdmissionMutation = useMutation({
