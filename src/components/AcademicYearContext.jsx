@@ -55,7 +55,12 @@ export function AcademicYearProvider({ children }) {
 
       // Step 2: Load years with resolved role
       try {
-        const years = await base44.entities.AcademicYear.list('-start_date');
+        const allYears = await base44.entities.AcademicYear.list('-start_date');
+        // Filter out archived, then dedupe by year string (keep first occurrence = latest start_date)
+        const seen = new Set();
+        const years = allYears
+          .filter(y => (y.status || '').toLowerCase() !== 'archived')
+          .filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
         setAcademicYears(years);
 
         if (!adminAccess) {
