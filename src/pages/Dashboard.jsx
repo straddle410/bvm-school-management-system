@@ -10,7 +10,7 @@ import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
   FileText, Award, BookOpen, Palmtree, Clock, Book, BookMarked, NotebookPen, LogOut,
-  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2, TrendingUp, BarChart4, ClipboardCheck, UserCheck
+  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2, TrendingUp, BarChart4, ClipboardCheck, UserCheck, Wallet
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -64,6 +64,7 @@ const quickActions = [
 const adminActions = [
   { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
   { label: 'Approvals',        icon: ClipboardCheck, gradient: 'from-orange-400 to-red-600',     page: 'Approvals' },
+  { label: 'Fees',             icon: Wallet,        gradient: 'from-green-400 to-emerald-600',  page: 'Fees' },
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
   { label: 'Reports',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'ReportsManagement' },
   { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'AnalyticsDashboard' },
