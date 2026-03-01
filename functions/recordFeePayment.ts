@@ -18,14 +18,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invoice not found' }, { status: 404 });
     }
     const invoice = invoices[0];
+    const academicYear = invoice.academic_year;
 
     // Load student to validate academic_year integrity
     const students = await base44.asServiceRole.entities.Student.filter({ student_id: invoice.student_id });
     if (students && students.length > 0) {
       const student = students[0];
-      if (student.academic_year && student.academic_year !== invoice.academic_year) {
+      if (student.academic_year && student.academic_year !== academicYear) {
         return Response.json({
-          error: `Academic year mismatch: student is in ${student.academic_year} but invoice belongs to ${invoice.academic_year}`
+          error: `Academic year mismatch: student is in ${student.academic_year} but invoice belongs to ${academicYear}`
         }, { status: 422 });
       }
     }
@@ -34,13 +35,37 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Invoice is already ${invoice.status}` }, { status: 409 });
     }
 
-    // Generate receipt number
-    const timestamp = Date.now();
-    const receiptNo = `RCP-${invoice.academic_year?.replace('-', '')}-${timestamp.toString().slice(-6)}`;
+    // ── Receipt Number Generation ──────────────────────────────────────────
+    // Load or create receipt config for this academic year
+    let configs = await base44.asServiceRole.entities.FeeReceiptConfig.filter({ academic_year: academicYear });
+    let config;
+
+    if (!configs || configs.length === 0) {
+      // Create default config
+      config = await base44.asServiceRole.entities.FeeReceiptConfig.create({
+        academic_year: academicYear,
+        prefix: 'RCPT',
+        next_number: 1,
+        padding: 4
+      });
+    } else {
+      config = configs[0];
+    }
+
+    const prefix = config.prefix || 'RCPT';
+    const padding = config.padding || 4;
+    const seq = String(config.next_number || 1).padStart(padding, '0');
+    const receiptNo = `${prefix}/${academicYear}/${seq}`;
+
+    // Increment next_number immediately to ensure uniqueness
+    await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
+      next_number: (config.next_number || 1) + 1
+    });
+    // ──────────────────────────────────────────────────────────────────────
 
     // Create payment record
     const payment = await base44.asServiceRole.entities.FeePayment.create({
-      academic_year: invoice.academic_year,
+      academic_year: academicYear,
       invoice_id: invoice.id,
       student_id: invoice.student_id,
       student_name: invoice.student_name,
