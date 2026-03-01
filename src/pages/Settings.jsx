@@ -457,6 +457,7 @@ export default function Settings() {
                   {academicYears.map(year => {
                     const isArchived = (year.status || '').toLowerCase() === 'archived';
                     return (
+
                     <div 
                       key={year.id}
                       className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-3 ${
