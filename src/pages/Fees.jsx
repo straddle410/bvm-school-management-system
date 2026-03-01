@@ -11,6 +11,7 @@ import FeePlanManager from '@/components/fees/FeePlanManager';
 import GenerateInvoices from '@/components/fees/GenerateInvoices';
 import StudentLedger from '@/components/fees/StudentLedger';
 import PaymentsList from '@/components/fees/PaymentsList';
+import ReceiptSettings from '@/components/fees/ReceiptSettings';
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
@@ -55,6 +56,7 @@ export default function Fees() {
               {isAdmin && <TabsTrigger value="generate">Generate Invoices</TabsTrigger>}
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="ledger">
@@ -90,6 +92,12 @@ export default function Fees() {
             {isAdmin && (
               <TabsContent value="fee-heads">
                 <FeeHeadsManager />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
+              <TabsContent value="receipt-settings">
+                <ReceiptSettings />
               </TabsContent>
             )}
 
