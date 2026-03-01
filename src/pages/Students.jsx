@@ -397,12 +397,14 @@ export default function Students() {
     softDeleteMutation.mutate({ id: student.id, action: 'restore' });
   };
 
+  // Selectable students = those on the current page that are not locked and not deleted
+  const selectableStudents = students.filter(s => !isLocked(s) && !s.is_deleted);
+
   const handleSelectAll = () => {
-    const pendingIds = students.filter(s => s.status === 'Pending').map(s => s.id);
-    if (selectedIds.size === pendingIds.length) {
+    if (selectedIds.size === selectableStudents.length && selectableStudents.length > 0) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(pendingIds));
+      setSelectedIds(new Set(selectableStudents.map(s => s.id)));
     }
   };
 
@@ -413,21 +415,47 @@ export default function Students() {
     setSelectedIds(newSelected);
   };
 
-  const handleVerifySelected = async () => {
-    if (!isAdmin) { toast.error('Only Admin/Principal can verify students.'); return; }
-    if (selectedIds.size === 0) return;
-    const toVerify = Array.from(selectedIds);
-    for (const id of toVerify) {
+  // Status transitions available as bulk actions
+  const BULK_ACTIONS = [
+    { value: 'Verified',   label: 'Mark as Verified',   fromStatuses: ['Pending'] },
+    { value: 'Approved',   label: 'Mark as Approved',   fromStatuses: ['Verified'] },
+    { value: 'Published',  label: 'Mark as Active',     fromStatuses: ['Approved'] },
+  ];
+
+  // Available actions for currently-selected students
+  const availableBulkActions = BULK_ACTIONS.filter(action =>
+    Array.from(selectedIds).some(id => {
+      const s = students.find(st => st.id === id);
+      return s && action.fromStatuses.includes(s.status);
+    })
+  );
+
+  const handleBulkStatusChange = async (toStatus) => {
+    if (!isAdmin) { toast.error('Only Admin/Principal can change student status.'); return; }
+    if (selectedIds.size === 0 || !toStatus) return;
+
+    const ids = Array.from(selectedIds);
+    let processed = 0;
+    for (const id of ids) {
       const student = students.find(s => s.id === id);
-      if (!student || student.status !== 'Pending') continue;
+      if (!student) continue;
+      if (!isValidTransition(student.status, toStatus)) continue;
+
+      const updates = { status: toStatus };
+      if (toStatus === 'Verified')  updates.verified_by  = user.email;
+      if (toStatus === 'Approved')  updates.approved_by  = user.email;
+
       await base44.functions.invoke('updateStudentWithAudit', {
         student_db_id: id,
-        updates: { status: 'Verified', verified_by: user.email }
+        updates
       });
+      processed++;
     }
+
     queryClient.invalidateQueries(['students']);
     setSelectedIds(new Set());
-    toast.success(`${toVerify.length} student(s) verified`);
+    setBulkAction('');
+    toast.success(`${processed} student(s) updated to ${toStatus}`);
   };
 
   // Stats from current page (server already filtered)
