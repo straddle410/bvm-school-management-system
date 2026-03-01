@@ -32,8 +32,21 @@ export default function TimetableManager() {
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list()
+    queryKey: ['class-subjects', academicYear, selectedClasses.join(',')],
+    queryFn: async () => {
+      if (selectedClasses.length === 0) {
+        const subs = await base44.entities.Subject.list();
+        return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      }
+      // Use first selected class for subject scoping
+      const res = await base44.functions.invoke('getSubjectsForClass', {
+        academic_year: academicYear,
+        class_name: selectedClasses[0]
+      });
+      const names = res.data?.subjects || [];
+      return names.map(n => ({ name: n, id: n }));
+    },
+    enabled: !!academicYear
   });
 
   const { data: timetable = [] } = useQuery({

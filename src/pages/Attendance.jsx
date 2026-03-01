@@ -90,11 +90,8 @@ export default function Attendance() {
 
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', selectedDate, academicYear],
-    queryFn: async () => {
-      const allHolidays = await base44.entities.Holiday.filter({ status: 'Active' });
-      return allHolidays.filter(h => h.date === selectedDate);
-    },
-    enabled: !!selectedDate
+    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear, date: selectedDate }),
+    enabled: !!selectedDate && !!academicYear
   });
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || user?.role === 'admin';

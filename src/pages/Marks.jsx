@@ -150,18 +150,15 @@ export default function Marks() {
     staleTime: 2 * 60 * 1000
   });
 
-  // For review mode - fetch all marks for the class/section (including Draft to show all entered marks)
+  // For review mode - fetch marks for the class/section/year directly from DB
   const { data: reviewMarks = [] } = useQuery({
     queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
-    queryFn: async () => {
-      const allMarks = await base44.entities.Marks.list();
-      return allMarks.filter(m => 
-        m.class_name === selectedClass && 
-        m.section === selectedSection && 
-        m.academic_year === academicYear
-      );
-    },
-    enabled: !!(selectedClass && selectedSection && viewMode === 'review'),
+    queryFn: () => base44.entities.Marks.filter({
+      class_name: selectedClass,
+      section: selectedSection,
+      academic_year: academicYear
+    }),
+    enabled: !!(selectedClass && selectedSection && viewMode === 'review' && academicYear),
     staleTime: 2 * 60 * 1000
   });
 

@@ -65,6 +65,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── STUDENT ACADEMIC YEAR MISMATCH GUARD ──
+    const attStudentId = data.student_id || existingRecord.student_id;
+    const attAcademicYear = data.academic_year || existingRecord.academic_year;
+    if (attStudentId && attAcademicYear) {
+      const matchingStudents = await base44.asServiceRole.entities.Student.filter({ student_id: attStudentId });
+      if (matchingStudents.length > 0) {
+        const student = matchingStudents[0];
+        if (student.academic_year && student.academic_year !== attAcademicYear) {
+          return Response.json({
+            error: `Academic year mismatch: student "${attStudentId}" belongs to year "${student.academic_year}" but attendance is for "${attAcademicYear}".`
+          }, { status: 400 });
+        }
+      }
+    }
+
     // Check if locked
     if (existingRecord.is_locked) {
       if (user.role !== 'admin') {
