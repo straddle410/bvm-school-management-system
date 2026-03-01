@@ -710,7 +710,10 @@ export default function Settings() {
               <Button type="button" variant="outline" onClick={() => setShowYearDialog(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createYearMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={createYearMutation.isPending || (!!yearForm.year && academicYears.some(y => y.year.trim() === yearForm.year.trim()))}
+              >
                 {createYearMutation.isPending ? 'Creating...' : 'Create Year'}
               </Button>
             </div>
