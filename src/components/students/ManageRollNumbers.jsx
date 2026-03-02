@@ -36,7 +36,7 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
         section: filterSection,
         academic_year: filterYear
       });
-      const list = res.data.students || [];
+      const list = (res.data.students || []).filter(s => s.is_active !== false);
       setStudents(list);
       const rollMap = {};
       list.forEach(s => { rollMap[s.id] = s.roll_no || ''; });
@@ -125,14 +125,15 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
         {step === 1 && (
           <div className="space-y-4">
             <p className="text-sm text-gray-500">Select class to view and edit roll numbers.</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs">Class *</Label>
-                <Select value={filterClass} onValueChange={setFilterClass}>
-                  <SelectTrigger className="mt-1 rounded-xl"><SelectValue placeholder="Class" /></SelectTrigger>
-                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+            <p className="text-xs text-orange-600 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200 mb-2">Only active students are shown. Archived students are excluded from roll number management.</p>
+                 <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <Label className="text-xs">Class *</Label>
+                      <Select value={filterClass} onValueChange={setFilterClass}>
+                        <SelectTrigger className="mt-1 rounded-xl"><SelectValue placeholder="Class" /></SelectTrigger>
+                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
               <div>
                 <Label className="text-xs">Section *</Label>
                 <Select value={filterSection} onValueChange={setFilterSection}>
