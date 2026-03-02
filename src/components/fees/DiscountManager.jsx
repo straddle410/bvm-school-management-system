@@ -260,6 +260,22 @@ export default function DiscountManager({ academicYear, isArchived }) {
         </div>
       )}
 
+      {/* Reversed (collapsed) */}
+      {reversedDiscounts.length > 0 && (
+        <details className="bg-orange-50 rounded-xl p-3">
+          <summary className="text-sm text-orange-700 cursor-pointer font-medium">Reversed discounts ({reversedDiscounts.length})</summary>
+          <div className="mt-2 space-y-1">
+            {reversedDiscounts.map(d => (
+              <div key={d.id} className="text-sm text-orange-600 px-2 py-1 flex gap-2">
+                <span>{d.student_name}</span>
+                <span>·</span>
+                <span>{discountPreview(d)}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
       {/* Archived (collapsed) */}
       {archivedDiscounts.length > 0 && (
         <details className="bg-slate-50 rounded-xl p-3">
