@@ -218,7 +218,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
                 </p>
                 {d.notes && <p className="text-xs text-slate-400 mt-0.5 truncate">{d.notes}</p>}
               </div>
-              {!isArchived && (
+              {!isArchived && !d.notes?.startsWith('[SIBLING]') && (
                 <div className="flex gap-2 flex-shrink-0">
                   <Button size="sm" variant="outline" onClick={() => openEdit(d)}>
                     <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
@@ -227,6 +227,11 @@ export default function DiscountManager({ academicYear, isArchived }) {
                     <Archive className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+              )}
+              {d.notes?.startsWith('[SIBLING]') && (
+                <Badge className="bg-blue-100 text-blue-700 border-0 text-xs flex-shrink-0">
+                  <Users className="h-3 w-3 mr-1" /> Sibling
+                </Badge>
               )}
             </div>
           ))}
