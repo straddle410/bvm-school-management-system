@@ -13,10 +13,9 @@ import { toast } from 'sonner';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-const EMPTY_FAMILY = {
+const EMPTY_FORM = {
   family_name: '',
   parent_phone: '',
-  student_ids: [],
   sibling_discount_type: 'PERCENT',
   sibling_discount_value: '',
   sibling_discount_scope: 'TOTAL',
@@ -29,9 +28,23 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [editingFamily, setEditingFamily] = useState(null);
-  const [form, setForm] = useState(EMPTY_FAMILY);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [phoneSearch, setPhoneSearch] = useState('');
-  const [applyingFamily, setApplyingFamily] = useState(null); // confirm apply/remove
+  const [applyingFamily, setApplyingFamily] = useState(null);
+
+  // ─── AUTHORITATIVE SELECTION STATE ───────────────────────────────────────────
+  // This is the ONLY source of truth for selected student IDs.
+  // Only the three helpers below (addStudent, removeStudent, clearStudents) may modify it.
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const addStudent = (student_id) =>
+    setSelectedIds(prev => prev.includes(student_id) ? prev : [...prev, student_id]);
+
+  const removeStudent = (student_id) =>
+    setSelectedIds(prev => prev.filter(id => id !== student_id));
+
+  const clearStudents = () => setSelectedIds([]);
+  // ─────────────────────────────────────────────────────────────────────────────
 
   // Fetch all families for this AY
   const { data: families = [] } = useQuery({
@@ -45,46 +58,34 @@ export default function FamilyManager({ academicYear, isArchived }) {
     queryFn: () => base44.entities.FeeHead.filter({ is_active: true })
   });
 
-  // Fetch all published, non-deleted students to find siblings by phone
+  // Fetch all published, non-deleted students
   const { data: allStudents = [] } = useQuery({
     queryKey: ['students-all-published', academicYear],
     queryFn: () => base44.entities.Student.filter({ academic_year: academicYear, status: 'Published', is_deleted: false }),
     enabled: !!academicYear
   });
 
-  // Auto-suggest siblings by parent phone — these are SUGGESTIONS ONLY, not auto-selected
+  // Auto-suggest: read-only derived list, NEVER writes to selectedIds
   const suggestedByPhone = phoneSearch.length >= 6
     ? allStudents.filter(s => s.parent_phone?.replace(/\s/g, '').includes(phoneSearch.replace(/\s/g, '')))
     : [];
 
-  const addSuggestedStudents = () => {
-    const newIds = suggestedByPhone.map(s => s.student_id);
-    const merged = [...new Set([...form.student_ids, ...newIds])];
-    setForm({ ...form, student_ids: merged });
-  };
-
-  // Students selected in form
-  const selectedStudents = allStudents.filter(s => form.student_ids.includes(s.student_id));
-
-  const toggleStudent = (student) => {
-    const ids = form.student_ids.includes(student.student_id)
-      ? form.student_ids.filter(id => id !== student.student_id)
-      : [...form.student_ids, student.student_id];
-    setForm({ ...form, student_ids: ids });
-  };
+  // Students currently selected (derived from selectedIds)
+  const selectedStudents = allStudents.filter(s => selectedIds.includes(s.id || s.student_id) || selectedIds.includes(s.student_id));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!form.family_name.trim()) throw new Error('Family name is required');
-      if (form.student_ids.length < 2) throw new Error('Select at least 2 students');
+      if (selectedIds.length < 2) throw new Error('Select at least 2 students');
 
       const studentNames = allStudents
-        .filter(s => form.student_ids.includes(s.student_id))
+        .filter(s => selectedIds.includes(s.student_id))
         .map(s => s.name);
 
       const payload = {
         ...form,
         academic_year: academicYear,
+        student_ids: selectedIds,
         student_names: studentNames,
         sibling_discount_value: form.sibling_discount_value ? parseFloat(form.sibling_discount_value) : null,
         sibling_discount_applied: editingFamily ? (editingFamily.sibling_discount_applied ?? false) : false
@@ -136,8 +137,9 @@ export default function FamilyManager({ academicYear, isArchived }) {
 
   const openAdd = () => {
     setEditingFamily(null);
-    setForm(EMPTY_FAMILY);
+    setForm(EMPTY_FORM);
     setPhoneSearch('');
+    clearStudents();
     setShowDialog(true);
   };
 
@@ -146,7 +148,6 @@ export default function FamilyManager({ academicYear, isArchived }) {
     setForm({
       family_name: family.family_name,
       parent_phone: family.parent_phone || '',
-      student_ids: family.student_ids || [],
       sibling_discount_type: family.sibling_discount_type || 'PERCENT',
       sibling_discount_value: family.sibling_discount_value != null ? String(family.sibling_discount_value) : '',
       sibling_discount_scope: family.sibling_discount_scope || 'TOTAL',
@@ -155,14 +156,17 @@ export default function FamilyManager({ academicYear, isArchived }) {
       notes: family.notes || ''
     });
     setPhoneSearch(family.parent_phone || '');
+    // Load existing student selection — this is the only place setSelectedIds is called outside the helpers
+    setSelectedIds(family.student_ids || []);
     setShowDialog(true);
   };
 
   const closeDialog = () => {
     setShowDialog(false);
     setEditingFamily(null);
-    setForm(EMPTY_FAMILY);
+    setForm(EMPTY_FORM);
     setPhoneSearch('');
+    clearStudents();
   };
 
   const discountLabel = (f) => {
@@ -227,7 +231,6 @@ export default function FamilyManager({ academicYear, isArchived }) {
                 </div>
               </div>
               <CardContent className="p-4 space-y-3">
-                {/* Members */}
                 <div className="flex flex-wrap gap-2">
                   {(family.student_ids || []).map((sid, i) => (
                     <span key={sid} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
@@ -235,8 +238,6 @@ export default function FamilyManager({ academicYear, isArchived }) {
                     </span>
                   ))}
                 </div>
-
-                {/* Discount info */}
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="text-sm text-emerald-700 font-medium flex items-center gap-1">
                     {family.sibling_discount_type === 'PERCENT'
@@ -308,23 +309,30 @@ export default function FamilyManager({ academicYear, isArchived }) {
             <div>
               <Label>Family Name *</Label>
               <Input className="mt-1" placeholder="e.g. Sharma Family"
-                value={form.family_name} onChange={e => setForm({ ...form, family_name: e.target.value })} />
+                value={form.family_name}
+                onChange={e => setForm(f => ({ ...f, family_name: e.target.value }))} />
             </div>
 
             <div>
               <Label>Parent Phone (for auto-suggest)</Label>
+              {/* NOTE: phone input ONLY updates form.parent_phone and phoneSearch.
+                  It does NOT touch selectedIds. */}
               <Input className="mt-1" placeholder="Enter phone to find siblings"
                 value={phoneSearch}
-                onChange={e => { setPhoneSearch(e.target.value); setForm({ ...form, parent_phone: e.target.value }); }} />
+                onChange={e => {
+                  setPhoneSearch(e.target.value);
+                  setForm(f => ({ ...f, parent_phone: e.target.value }));
+                }} />
             </div>
 
-            {/* Auto-suggest — display only, user must explicitly add */}
+            {/* Auto-suggest panel — display only, no checkboxes, explicit Add buttons only */}
             {suggestedByPhone.length > 0 && (
               <div className="bg-indigo-50 rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-medium text-indigo-700">Students with matching phone (suggestions):</p>
-                  <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
-                    onClick={addSuggestedStudents}>
+                  <Button size="sm" variant="outline"
+                    className="text-xs h-6 px-2 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
+                    onClick={() => suggestedByPhone.forEach(s => addStudent(s.student_id))}>
                     Add All
                   </Button>
                 </div>
@@ -334,11 +342,11 @@ export default function FamilyManager({ academicYear, isArchived }) {
                       <span className="text-sm text-slate-700">{s.name}</span>
                       <span className="text-xs text-slate-400 ml-2">{s.student_id} · Class {s.class_name}</span>
                     </div>
-                    {form.student_ids.includes(s.student_id) ? (
+                    {selectedIds.includes(s.student_id) ? (
                       <span className="text-xs text-emerald-600 font-medium">✓ Added</span>
                     ) : (
                       <Button size="sm" variant="outline" className="text-xs h-6 px-2"
-                        onClick={() => toggleStudent(s)}>
+                        onClick={() => addStudent(s.student_id)}>
                         Add
                       </Button>
                     )}
@@ -347,7 +355,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
               </div>
             )}
 
-            {/* Manual class-based search */}
+            {/* Manual class-based checkboxes — bound to selectedIds via addStudent/removeStudent */}
             <div>
               <Label>Add Students Manually</Label>
               <div className="mt-1 flex flex-wrap gap-2 max-h-40 overflow-y-auto border rounded-lg p-2">
@@ -363,8 +371,8 @@ export default function FamilyManager({ academicYear, isArchived }) {
                         {classStudents.map(s => (
                           <label key={s.student_id} className="flex items-center gap-2 cursor-pointer py-0.5">
                             <input type="checkbox"
-                              checked={form.student_ids.includes(s.student_id)}
-                              onChange={() => toggleStudent(s)}
+                              checked={selectedIds.includes(s.student_id)}
+                              onChange={e => e.target.checked ? addStudent(s.student_id) : removeStudent(s.student_id)}
                               className="h-3.5 w-3.5 rounded accent-indigo-600"
                             />
                             <span className="text-xs text-slate-700">{s.name} <span className="text-slate-400">({s.student_id})</span></span>
@@ -377,18 +385,18 @@ export default function FamilyManager({ academicYear, isArchived }) {
               </div>
             </div>
 
-            {/* Selected summary */}
+            {/* Selected summary chips */}
             {selectedStudents.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {selectedStudents.map(s => (
                   <span key={s.student_id} className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full flex items-center gap-1">
                     {s.name}
-                    <button onClick={() => toggleStudent(s)} className="ml-0.5 text-indigo-400 hover:text-red-500">×</button>
+                    <button onClick={() => removeStudent(s.student_id)} className="ml-0.5 text-indigo-400 hover:text-red-500">×</button>
                   </span>
                 ))}
               </div>
             )}
-            {form.student_ids.length < 2 && (
+            {selectedIds.length < 2 && (
               <p className="text-xs text-amber-600">Select at least 2 students to form a family.</p>
             )}
 
@@ -399,7 +407,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
                 <div>
                   <Label>Type</Label>
                   <Select value={form.sibling_discount_type}
-                    onValueChange={v => setForm({ ...form, sibling_discount_type: v })}>
+                    onValueChange={v => setForm(f => ({ ...f, sibling_discount_type: v }))}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="PERCENT">Percentage (%)</SelectItem>
@@ -412,7 +420,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   <Input className="mt-1" type="number" min="0"
                     max={form.sibling_discount_type === 'PERCENT' ? 100 : undefined}
                     value={form.sibling_discount_value}
-                    onChange={e => setForm({ ...form, sibling_discount_value: e.target.value })}
+                    onChange={e => setForm(f => ({ ...f, sibling_discount_value: e.target.value }))}
                     placeholder={form.sibling_discount_type === 'PERCENT' ? 'e.g. 10' : 'e.g. 500'}
                   />
                 </div>
@@ -421,7 +429,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
               <div className="mt-3">
                 <Label>Apply On</Label>
                 <Select value={form.sibling_discount_scope}
-                  onValueChange={v => setForm({ ...form, sibling_discount_scope: v, sibling_discount_fee_head_id: '', sibling_discount_fee_head_name: '' })}>
+                  onValueChange={v => setForm(f => ({ ...f, sibling_discount_scope: v, sibling_discount_fee_head_id: '', sibling_discount_fee_head_name: '' }))}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="TOTAL">Total Invoice Amount</SelectItem>
@@ -436,7 +444,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   <Select value={form.sibling_discount_fee_head_id}
                     onValueChange={id => {
                       const fh = feeHeads.find(f => f.id === id);
-                      setForm({ ...form, sibling_discount_fee_head_id: id, sibling_discount_fee_head_name: fh?.name || '' });
+                      setForm(f => ({ ...f, sibling_discount_fee_head_id: id, sibling_discount_fee_head_name: fh?.name || '' }));
                     }}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select fee head" /></SelectTrigger>
                     <SelectContent>
@@ -450,7 +458,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
             <div>
               <Label>Notes (optional)</Label>
               <Input className="mt-1" value={form.notes}
-                onChange={e => setForm({ ...form, notes: e.target.value })}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                 placeholder="e.g. Sharma family — 3 siblings" />
             </div>
 
