@@ -257,6 +257,7 @@ export default function StaffManagement() {
                         {member.permissions.post_notices && <span className="text-[9px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded-full">Notices{member.permissions.notices_needs_approval ? '*' : ''}</span>}
                         {member.permissions.gallery && <span className="text-[9px] bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded-full">Gallery{member.permissions.gallery_needs_approval ? '*' : ''}</span>}
                         {member.permissions.quiz && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full">Quiz</span>}
+                        {member.permissions.fees_reverse_receipt && <span className="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full">Receipt Reversal</span>}
                       </div>
                     )}
                     {member.temp_password && (
