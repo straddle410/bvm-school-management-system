@@ -86,16 +86,16 @@ Deno.serve(async (req) => {
     }
     const plan = plans[0];
 
-    // Load students
+    // Load students (exclude deleted)
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: className,
       academic_year: academicYear,
       status: 'Published'
     });
 
-    let filteredStudents = students;
+    let filteredStudents = students.filter(s => !s.is_deleted);
     if (studentIds && studentIds.length > 0) {
-      filteredStudents = students.filter(s => studentIds.includes(s.student_id));
+      filteredStudents = filteredStudents.filter(s => studentIds.includes(s.student_id));
     }
 
     if (filteredStudents.length === 0) {

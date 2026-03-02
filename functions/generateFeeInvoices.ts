@@ -107,6 +107,12 @@ Deno.serve(async (req) => {
 
     let created = 0, skipped = 0;
     for (const student of students) {
+      // VALIDATION: Ensure student is not deleted/archived
+      if (student.is_deleted) {
+        skipped++;
+        continue;
+      }
+
       if (student.academic_year && student.academic_year !== academicYear) {
         skipped++;
         continue;
