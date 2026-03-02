@@ -29,10 +29,24 @@ export default function InvoiceRegenerator({ academicYear }) {
     onSuccess: (res) => {
       const msg = res.data?.message || `Regenerated invoices`;
       toast.success(msg);
+      if (res.data?.blocked && res.data.blocked.length > 0) {
+        const blockedNames = res.data.blocked.map(b => b.student_name).join(', ');
+        toast.error(`Blocked (payments exist): ${blockedNames}. Contact admin to handle payment adjustments.`, { duration: 5000 });
+      }
       queryClient.invalidateQueries({ queryKey: ['diagnostic-invoices'] });
       setShowDiagnostic(false);
     },
     onError: (e) => toast.error(e?.message || 'Regeneration failed')
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (studentId) =>
+      base44.functions.invoke('restorePaymentInvoiceLink', { studentId, academicYear }),
+    onSuccess: (res) => {
+      toast.success(`Restored: ${res.data?.message}`);
+      queryClient.invalidateQueries({ queryKey: ['diagnostic-invoices'] });
+    },
+    onError: (e) => toast.error(e?.message || 'Restore failed')
   });
 
   const handleRegenerate = (studentIds = []) => {
@@ -134,15 +148,40 @@ export default function InvoiceRegenerator({ academicYear }) {
                         })}
                       </div>
 
-                      {diagnostic.invoices.some(inv => inv.gross_total !== diagnostic.current_plan.total_amount) && (
-                        <Button
-                          className="w-full bg-red-600 hover:bg-red-700"
-                          onClick={() => handleRegenerate()}
-                          disabled={regenerateMutation.isPending}
-                        >
-                          <AlertCircle className="h-4 w-4 mr-2" />
-                          {regenerateMutation.isPending ? 'Regenerating…' : 'Fix Mismatched Invoices'}
-                        </Button>
+                      {diagnostic.invoices && (
+                        <div className="space-y-2 pt-2">
+                          {diagnostic.invoices.some(inv => inv.gross_total !== diagnostic.current_plan.total_amount) && (
+                            <Button
+                              className="w-full bg-red-600 hover:bg-red-700"
+                              onClick={() => handleRegenerate()}
+                              disabled={regenerateMutation.isPending}
+                            >
+                              <AlertCircle className="h-4 w-4 mr-2" />
+                              {regenerateMutation.isPending ? 'Regenerating…' : 'Fix Mismatched Invoices'}
+                            </Button>
+                          )}
+                          {diagnostic.invoices.some(inv => inv.gross_total !== diagnostic.current_plan.total_amount && inv.tuition_net > 0) && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-2 text-xs text-red-800 space-y-1">
+                              <p className="font-semibold">⚠ Students with payments cannot be regenerated:</p>
+                              {diagnostic.invoices
+                                .filter(inv => inv.gross_total !== diagnostic.current_plan.total_amount && inv.tuition_net > 0)
+                                .map((inv, idx) => (
+                                  <div key={idx} className="flex items-center justify-between gap-2">
+                                    <span>{inv.student_name} (paid: ₹{inv.tuition_net?.toLocaleString()})</span>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-6 px-2 text-xs"
+                                      onClick={() => restoreMutation.mutate(inv.student_id)}
+                                      disabled={restoreMutation.isPending}
+                                    >
+                                      {restoreMutation.isPending ? 'Restoring…' : 'Restore'}
+                                    </Button>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
