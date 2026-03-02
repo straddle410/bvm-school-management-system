@@ -383,16 +383,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   type="button"
                   className={applyingFamily.action === 'apply' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
                   disabled={applyMutation.isPending}
-                  onClick={() => {
-                    console.log('Confirm button clicked:', applyingFamily);
-                    if (applyingFamily?.family?.id && applyingFamily?.action) {
-                      console.log('Calling applyMutation with:', { family_id: applyingFamily.family.id, action: applyingFamily.action });
-                      applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action });
-                    } else {
-                      console.error('Missing data:', applyingFamily);
-                      toast.error('Missing family or action information');
-                    }
-                  }}
+                  onClick={() => applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action })}
                 >
                   {applyMutation.isPending ? 'Processing…' : applyingFamily.action === 'apply' ? 'Yes, Apply' : 'Yes, Remove'}
                 </Button>
