@@ -154,22 +154,37 @@ Deno.serve(async (req) => {
 
       // If fully paid, create ledger credit instead of applying to invoice
       if (isFullyPaid) {
-        // Create DISCOUNT_CREDIT ledger entry
-        await base44.asServiceRole.entities.FeePayment.create({
-          academic_year: family.academic_year,
+        // Check if credit already exists for this family discount (idempotency)
+        const existingCredits = await base44.asServiceRole.entities.FeePayment.filter({
           invoice_id: inv.id,
           student_id,
-          student_name: student.name,
-          class_name: student.class_name,
-          installment_name: inv.installment_name,
-          receipt_no: `CREDIT-${Date.now()}`,
-          amount_paid: -discountAmt, // negative = credit
-          payment_date: new Date().toISOString().split('T')[0],
-          payment_mode: 'Credit',
-          remarks: `[SIBLING] Family discount credit: ${family.family_name}`,
-          collected_by: user.email,
-          status: 'Active'
+          academic_year: family.academic_year
         });
+        const creditExists = existingCredits.some(p => 
+          p.remarks?.includes(`[SIBLING-FAMILY:${family_id}]`) && 
+          p.amount_paid < 0 &&
+          p.status === 'Active'
+        );
+
+        if (!creditExists) {
+          // Create DISCOUNT_CREDIT ledger entry with family reference
+          await base44.asServiceRole.entities.FeePayment.create({
+            academic_year: family.academic_year,
+            invoice_id: inv.id,
+            student_id,
+            student_name: student.name,
+            class_name: student.class_name,
+            installment_name: inv.installment_name,
+            receipt_no: `CREDIT-FAM${family_id.substring(0, 8)}-${Date.now()}`,
+            amount_paid: -discountAmt, // negative = credit
+            payment_date: new Date().toISOString().split('T')[0],
+            payment_mode: 'Credit',
+            reference_no: family_id, // stable family reference for reversal lookup
+            remarks: `[SIBLING-FAMILY:${family_id}] ${family.family_name} sibling discount credit`,
+            collected_by: user.email,
+            status: 'Active'
+          });
+        }
         results.push({ student_id, status: 'applied_credit', credit_amount: discountAmt });
       } else {
         // Recalculate invoice if not fully paid
