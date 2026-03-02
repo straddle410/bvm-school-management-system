@@ -364,7 +364,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
 
       {/* Confirm Apply/Remove Dialog */}
       {applyingFamily && (
-        <Dialog open onOpenChange={() => setApplyingFamily(null)}>
+        <Dialog open={!!applyingFamily} onOpenChange={(open) => { if (!open) setApplyingFamily(null); }}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>
