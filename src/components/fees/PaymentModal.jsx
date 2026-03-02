@@ -46,7 +46,7 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
         <div className="space-y-3 pt-2">
           <div className="bg-slate-50 rounded-lg p-3 text-sm space-y-1">
             <p><span className="text-slate-500">Student:</span> <span className="font-medium">{invoice.student_name}</span></p>
-            <p><span className="text-slate-500">Installment:</span> <span className="font-medium">{invoice.installment_name}</span></p>
+            <p><span className="text-slate-500">Invoice:</span> <span className="font-medium">{invoice.installment_name || 'Annual Fee'}</span></p>
             <p><span className="text-slate-500">Total:</span> ₹{(invoice.total_amount || 0).toLocaleString()} · <span className="text-slate-500">Balance:</span> <span className="font-semibold text-red-600">₹{(invoice.balance || 0).toLocaleString()}</span></p>
           </div>
 
