@@ -45,6 +45,23 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     enabled: !!selectedStudent && !!academicYear
   });
 
+  const { data: discounts = [] } = useQuery({
+    queryKey: ['fee-discounts-student', selectedStudent?.student_id, academicYear],
+    queryFn: () => base44.entities.StudentFeeDiscount.filter({ student_id: selectedStudent.student_id, academic_year: academicYear, status: 'Active' }),
+    enabled: !!selectedStudent && !!academicYear
+  });
+
+  // Compute ledger figures from source of truth
+  const gross = invoice?.gross_total ?? invoice?.total_amount ?? 0;
+  const discountSum = discounts.reduce((sum, d) => {
+    if (d.discount_type === 'PERCENT') return sum + (gross * d.discount_value / 100);
+    return sum + (d.discount_value || 0);
+  }, 0);
+  const discount = Math.min(discountSum, gross);
+  const net = gross - discount;
+  const paid = invoice?.paid_amount ?? 0;
+  const balance = Math.max(net - paid, 0);
+
   const filteredStudents = students.filter(s =>
     s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
   );
