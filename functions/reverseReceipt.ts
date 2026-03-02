@@ -5,8 +5,22 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user || !['admin', 'principal', 'accountant'].includes(user.role?.toLowerCase())) {
-      return Response.json({ error: 'Forbidden: Admin/Accountant access required' }, { status: 403 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userRole = user.role?.toLowerCase();
+    const isAdmin = ['admin', 'principal'].includes(userRole);
+
+    // Non-admins need the fees_reverse_receipt permission
+    if (!isAdmin) {
+      // Look up StaffAccount to check granular permission
+      const staffAccounts = await base44.asServiceRole.entities.StaffAccount.filter({ email: user.email });
+      const staffAccount = staffAccounts?.[0];
+      const hasPermission = staffAccount?.permissions?.fees_reverse_receipt === true;
+      if (!hasPermission) {
+        return Response.json({ error: 'Forbidden: You do not have permission to reverse receipts' }, { status: 403 });
+      }
     }
 
     const { paymentId, reason } = await req.json();
