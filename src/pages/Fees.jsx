@@ -23,6 +23,7 @@ export default function Fees() {
   useEffect(() => { setUser(getStaffSession()); }, []);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
+  const canManageFees = isAdmin || !!user?.permissions?.fees_reverse_receipt; // reuse fee permission for family mgmt
   const canReverseReceipt = isAdmin || !!user?.permissions?.fees_reverse_receipt;
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
@@ -56,6 +57,7 @@ export default function Fees() {
               <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
               {isAdmin && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="families">Sibling / Family</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
               {isAdmin && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
               {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
@@ -83,6 +85,12 @@ export default function Fees() {
             {isAdmin && (
               <TabsContent value="discounts">
                 <DiscountManager academicYear={academicYear} isArchived={isArchivedYear} />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
+              <TabsContent value="families">
+                <FamilyManager academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
             )}
 
