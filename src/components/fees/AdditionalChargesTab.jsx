@@ -196,13 +196,9 @@ export default function AdditionalChargesTab({ academicYear, isArchived }) {
 
             <div className="flex gap-2 justify-end pt-1">
               <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}>Cancel</Button>
-              <Button variant="outline" size="sm" disabled={!isFormValid || saveMutation.isPending} onClick={() => saveMutation.mutate('DRAFT')}>
-                Save as Draft
-              </Button>
               <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" disabled={!isFormValid || saveMutation.isPending}
-                onClick={() => saveMutation.mutate('DRAFT').then?.(() => {}) || saveMutation.mutate('DRAFT')}>
-                {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 mr-1" />}
-                Save Draft
+                onClick={() => saveMutation.mutate('DRAFT')}>
+                {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save as Draft'}
               </Button>
             </div>
           </CardContent>
