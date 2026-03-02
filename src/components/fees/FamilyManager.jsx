@@ -474,8 +474,13 @@ export default function FamilyManager({ academicYear, isArchived }) {
            </div>
 
             {/* Discount */}
-            <div className="border-t pt-3">
+             <div className="border-t pt-3">
               <p className="text-sm font-semibold text-slate-700 mb-2">Sibling Discount</p>
+              {selectedIds.length > 0 && totalOutstanding > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3 text-xs text-blue-800">
+                  Max discount available: ₹{Math.floor(totalOutstanding)}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Type</Label>
