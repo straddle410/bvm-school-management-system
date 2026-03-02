@@ -12,6 +12,7 @@ import StudentLedger from '@/components/fees/StudentLedger';
 import PaymentsList from '@/components/fees/PaymentsList';
 import ReceiptSettings from '@/components/fees/ReceiptSettings';
 import DiscountManager from '@/components/fees/DiscountManager';
+import AdditionalChargesList from '@/components/fees/AdditionalChargesList';
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
