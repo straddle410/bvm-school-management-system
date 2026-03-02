@@ -318,20 +318,31 @@ export default function FamilyManager({ academicYear, isArchived }) {
                 onChange={e => { setPhoneSearch(e.target.value); setForm({ ...form, parent_phone: e.target.value }); }} />
             </div>
 
-            {/* Auto-suggest */}
+            {/* Auto-suggest — display only, user must explicitly add */}
             {suggestedByPhone.length > 0 && (
               <div className="bg-indigo-50 rounded-xl p-3 space-y-2">
-                <p className="text-xs font-medium text-indigo-700">Students with matching phone:</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-indigo-700">Students with matching phone (suggestions):</p>
+                  <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
+                    onClick={addSuggestedStudents}>
+                    Add All
+                  </Button>
+                </div>
                 {suggestedByPhone.map(s => (
-                  <label key={s.student_id} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox"
-                      checked={form.student_ids.includes(s.student_id)}
-                      onChange={() => toggleStudent(s)}
-                      className="h-4 w-4 rounded accent-indigo-600"
-                    />
-                    <span className="text-sm text-slate-700">{s.name}</span>
-                    <span className="text-xs text-slate-400">{s.student_id} · Class {s.class_name}</span>
-                  </label>
+                  <div key={s.student_id} className="flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-sm text-slate-700">{s.name}</span>
+                      <span className="text-xs text-slate-400 ml-2">{s.student_id} · Class {s.class_name}</span>
+                    </div>
+                    {form.student_ids.includes(s.student_id) ? (
+                      <span className="text-xs text-emerald-600 font-medium">✓ Added</span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="text-xs h-6 px-2"
+                        onClick={() => toggleStudent(s)}>
+                        Add
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
