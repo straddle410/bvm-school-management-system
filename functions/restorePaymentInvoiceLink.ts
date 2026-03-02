@@ -36,16 +36,21 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.FeeInvoice.update(activeInvoice.id, { status: 'Pending' });
     }
 
-    // Find all payments for this student
-    const payments = await base44.asServiceRole.entities.FeePayment.filter({
+    // Find ALL payments for this student (no filters yet)
+    const allPayments = await base44.asServiceRole.entities.FeePayment.filter({
       student_id: studentId,
-      academic_year: academicYear,
-      entry_type: 'CASH_PAYMENT'
+      academic_year: academicYear
     });
 
-    // Re-link all payments to the active invoice
+    // Filter: CASH_PAYMENT entries that are NOT REVERSED
+    const paymentsToRelink = allPayments.filter(p => 
+      p.entry_type === 'CASH_PAYMENT' && 
+      p.status !== 'REVERSED'
+    );
+
+    // Re-link ALL non-reversed cash payments to the active invoice
     let relinked = 0;
-    for (const payment of payments) {
+    for (const payment of paymentsToRelink) {
       if (payment.invoice_id !== activeInvoice.id) {
         await base44.asServiceRole.entities.FeePayment.update(payment.id, {
           invoice_id: activeInvoice.id
