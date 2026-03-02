@@ -156,16 +156,25 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                   </table>
                 )}
 
+                {/* Discount row */}
+                {discount > 0 && (
+                  <div className="flex justify-between items-center text-sm bg-emerald-50 rounded-lg px-3 py-2">
+                    <span className="text-emerald-700 font-medium">Discount Applied</span>
+                    <span className="text-emerald-700 font-bold">−₹{discount.toLocaleString()}</span>
+                  </div>
+                )}
+
                 {/* Totals summary */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {[
-                    { label: 'Total Fee', value: invoice.total_amount || 0, color: 'text-slate-800' },
-                    { label: 'Paid', value: invoice.paid_amount || 0, color: 'text-emerald-700' },
-                    { label: 'Balance', value: invoice.balance || 0, color: (invoice.balance || 0) > 0 ? 'text-red-600' : 'text-emerald-700' }
+                    { label: 'Gross', value: gross, color: 'text-slate-800' },
+                    { label: 'Discount', value: discount, color: 'text-emerald-700' },
+                    { label: 'Paid', value: paid, color: 'text-blue-700' },
+                    { label: 'Balance', value: balance, color: balance > 0 ? 'text-red-600' : 'text-emerald-700' }
                   ].map(({ label, value, color }) => (
                     <div key={label} className="bg-slate-50 rounded-lg p-2.5 text-center">
                       <p className="text-xs text-slate-500">{label}</p>
-                      <p className={`text-base font-bold ${color}`}>₹{value.toLocaleString()}</p>
+                      <p className={`text-sm font-bold ${color}`}>₹{value.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
