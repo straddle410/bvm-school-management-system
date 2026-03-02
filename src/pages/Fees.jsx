@@ -27,7 +27,7 @@ export default function Fees() {
   const isArchivedYear = selectedYearObj?.status === 'Archived';
 
   const handleTabChange = (tab) => {
-    if (!isAdmin && ['fee-heads', 'plans', 'discounts', 'receipt-settings'].includes(tab)) return;
+    if (!isAdmin && ['fee-heads', 'plans', 'discounts', 'receipt-settings', 'adhoc'].includes(tab)) return;
     setActiveTab(tab);
   };
 
