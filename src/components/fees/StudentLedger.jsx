@@ -38,8 +38,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     enabled: !!selectedStudent && !!academicYear
   });
 
-  // Split invoices by type
-  const invoice = allInvoices.find(i => i.invoice_type !== 'ADHOC') || allInvoices.find(i => !i.invoice_type) || null;
+  const invoice = allInvoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL') || null;
   const adhocInvoices = allInvoices.filter(i => i.invoice_type === 'ADHOC' && i.status !== 'Cancelled');
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
@@ -47,6 +46,13 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     queryFn: () => base44.entities.FeePayment.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
     enabled: !!selectedStudent && !!academicYear
   });
+
+  // Payments keyed by invoice_id for adhoc
+  const paymentsByInvoice = payments.reduce((acc, p) => {
+    if (!acc[p.invoice_id]) acc[p.invoice_id] = [];
+    acc[p.invoice_id].push(p);
+    return acc;
+  }, {});
 
   const { data: discounts = [] } = useQuery({
     queryKey: ['fee-discounts-student', selectedStudent?.student_id, academicYear],
@@ -64,16 +70,6 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const net = gross - discount;
   const paid = invoice?.paid_amount ?? 0;
   const balance = Math.max(net - paid, 0);
-
-  // Payments split by invoice
-  const annualPayments = payments.filter(p => !adhocInvoices.some(ai => ai.id === p.invoice_id));
-  const adhocPaymentsMap = {};
-  for (const p of payments) {
-    if (adhocInvoices.some(ai => ai.id === p.invoice_id)) {
-      if (!adhocPaymentsMap[p.invoice_id]) adhocPaymentsMap[p.invoice_id] = [];
-      adhocPaymentsMap[p.invoice_id].push(p);
-    }
-  }
 
   const filteredStudents = students.filter(s =>
     s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
@@ -126,11 +122,9 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
             </div>
           </div>
 
-          {!invoice && adhocInvoices.length === 0 && (
-            <Card><CardContent className="py-8 text-center text-slate-400">No invoices generated for this student yet.</CardContent></Card>
-          )}
-
-          {invoice && (
+          {!invoice ? (
+            <Card><CardContent className="py-8 text-center text-slate-400">No annual invoice generated for this student yet.</CardContent></Card>
+          ) : (
             <Card className="border-0 shadow-sm overflow-hidden">
               <div className="px-4 py-3 bg-slate-50 flex items-center justify-between">
                 <div>
@@ -195,10 +189,10 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                 </div>
 
                 {/* Payments list */}
-                {annualPayments.length > 0 && (
+                {payments.length > 0 && (
                   <div className="border-t pt-3 space-y-1">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Payment History</p>
-                    {annualPayments.map(p => (
+                    {payments.map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm py-1">
                         <span className="text-slate-600">{p.payment_date} · {p.payment_mode}</span>
                         <span className="font-medium text-emerald-700">
@@ -218,54 +212,56 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
               </CardContent>
             </Card>
           )}
+        </div>
+      )}
 
-          {/* Additional (ADHOC) Invoices */}
-          {adhocInvoices.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Additional Fees</h4>
-              {adhocInvoices.map(ai => {
-                const aiBalance = ai.balance ?? Math.max((ai.total_amount || 0) - (ai.paid_amount || 0), 0);
-                const aiPayments = adhocPaymentsMap[ai.id] || [];
-                return (
-                  <Card key={ai.id} className="border-0 shadow-sm overflow-hidden">
-                    <div className="px-4 py-3 bg-indigo-50 flex items-center justify-between">
-                      <span className="font-semibold text-slate-800 text-sm">{ai.title || ai.installment_name}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[ai.status] || 'bg-slate-100'}`}>{ai.status}</span>
-                    </div>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: 'Amount', value: ai.total_amount || 0, color: 'text-slate-800' },
-                          { label: 'Paid', value: ai.paid_amount || 0, color: 'text-blue-700' },
-                          { label: 'Balance', value: aiBalance, color: aiBalance > 0 ? 'text-red-600' : 'text-emerald-700' }
-                        ].map(({ label, value, color }) => (
-                          <div key={label} className="bg-slate-50 rounded-lg p-2.5 text-center">
-                            <p className="text-xs text-slate-500">{label}</p>
-                            <p className={`text-sm font-bold ${color}`}>₹{value.toLocaleString()}</p>
-                          </div>
-                        ))}
+      {/* Additional Fees Section */}
+      {selectedStudent && adhocInvoices.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Additional Fees</p>
+          {adhocInvoices.map(adhoc => {
+            const adhocPaid = adhoc.paid_amount ?? 0;
+            const adhocBalance = Math.max((adhoc.total_amount ?? 0) - adhocPaid, 0);
+            const invPayments = paymentsByInvoice[adhoc.id] || [];
+            return (
+              <Card key={adhoc.id} className="border-0 shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-amber-50 flex items-center justify-between">
+                  <span className="font-medium text-slate-800 text-sm">{adhoc.title || adhoc.installment_name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[adhoc.status] || 'bg-slate-100'}`}>{adhoc.status}</span>
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: 'Amount', value: adhoc.total_amount ?? 0, color: 'text-slate-800' },
+                      { label: 'Paid', value: adhocPaid, color: 'text-blue-700' },
+                      { label: 'Balance', value: adhocBalance, color: adhocBalance > 0 ? 'text-red-600' : 'text-emerald-700' }
+                    ].map(({ label, value, color }) => (
+                      <div key={label} className="bg-slate-50 rounded-lg p-2.5 text-center">
+                        <p className="text-xs text-slate-500">{label}</p>
+                        <p className={`text-sm font-bold ${color}`}>₹{value.toLocaleString()}</p>
                       </div>
-                      {aiPayments.length > 0 && (
-                        <div className="border-t pt-2 space-y-1">
-                          {aiPayments.map(p => (
-                            <div key={p.id} className="flex items-center justify-between text-xs py-0.5">
-                              <span className="text-slate-500">{p.payment_date} · {p.payment_mode}</span>
-                              <span className="font-medium text-emerald-700">₹{(p.amount_paid || 0).toLocaleString()} <span className="text-slate-400">#{p.receipt_no}</span></span>
-                            </div>
-                          ))}
+                    ))}
+                  </div>
+                  {invPayments.length > 0 && (
+                    <div className="border-t pt-2 space-y-1">
+                      {invPayments.map(p => (
+                        <div key={p.id} className="flex items-center justify-between text-xs text-slate-500">
+                          <span>{p.payment_date} · {p.payment_mode}</span>
+                          <span className="font-medium text-emerald-700">₹{(p.amount_paid || 0).toLocaleString()} <span className="text-slate-400">#{p.receipt_no}</span></span>
                         </div>
-                      )}
-                      {!isArchivedYear && aiBalance > 0 && ai.status !== 'Waived' && ai.status !== 'Cancelled' && (
-                        <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => setPayingInvoice({ ...ai, balance: aiBalance })}>
-                          Record Payment
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+                      ))}
+                    </div>
+                  )}
+                  {!isArchivedYear && adhocBalance > 0 && adhoc.status !== 'Waived' && (
+                    <Button size="sm" className="w-full bg-amber-600 hover:bg-amber-700"
+                      onClick={() => setPayingInvoice({ ...adhoc, balance: adhocBalance })}>
+                      Record Payment
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
