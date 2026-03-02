@@ -77,7 +77,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
     : [];
 
   // Students currently selected (derived from selectedIds)
-  const selectedStudents = allStudents.filter(s => selectedIds.includes(s.id || s.student_id) || selectedIds.includes(s.student_id));
+  const selectedStudents = allStudents.filter(s => selectedIds.includes(String(s.student_id).trim()));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
