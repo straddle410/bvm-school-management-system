@@ -26,19 +26,66 @@ Deno.serve(async (req) => {
         family.student_ids.includes(d.student_id) && d.notes?.startsWith('[SIBLING]')
       );
 
+      const results = [];
       for (const d of siblingDiscounts) {
-        // Guardrail: check if invoice is fully paid
         const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
           student_id: d.student_id,
           academic_year: family.academic_year
         });
         const inv = invoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL');
-        if (inv && inv.status === 'Paid') continue; // skip paid invoices silently
+        const isFullyPaid = inv && inv.status === 'Paid';
+
+        // Archive the discount record
         await base44.asServiceRole.entities.StudentFeeDiscount.update(d.id, { status: 'Archived' });
+
+        if (isFullyPaid && inv) {
+          // Find and reverse the DISCOUNT_CREDIT ledger entry
+          const creditPayments = await base44.asServiceRole.entities.FeePayment.filter({
+            invoice_id: inv.id,
+            student_id: d.student_id,
+            academic_year: family.academic_year
+          });
+          const creditEntry = creditPayments.find(p => p.remarks?.includes('[SIBLING]') && p.amount_paid < 0);
+          if (creditEntry) {
+            // Create reversal entry (positive = reverses the negative credit)
+            await base44.asServiceRole.entities.FeePayment.create({
+              academic_year: family.academic_year,
+              invoice_id: inv.id,
+              student_id: d.student_id,
+              student_name: creditEntry.student_name,
+              class_name: creditEntry.class_name,
+              installment_name: creditEntry.installment_name,
+              receipt_no: `CREDIT-REV-${Date.now()}`,
+              amount_paid: -creditEntry.amount_paid, // positive (reversal)
+              payment_date: new Date().toISOString().split('T')[0],
+              payment_mode: 'Reversal',
+              remarks: `[SIBLING] Family discount credit reversal`,
+              collected_by: user.email,
+              status: 'Active'
+            });
+          }
+        } else if (inv) {
+          // Recalculate invoice (remove discount)
+          const gross = inv.gross_total ?? inv.total_amount ?? 0;
+          const paidAmt = inv.paid_amount ?? 0;
+          const balance = Math.max(gross - paidAmt, 0);
+          let status = inv.status;
+          if (paidAmt >= gross && gross >= 0 && paidAmt > 0) status = 'Paid';
+          else if (paidAmt > 0) status = 'Partial';
+          else status = 'Pending';
+
+          await base44.asServiceRole.entities.FeeInvoice.update(inv.id, {
+            discount_total: 0,
+            total_amount: gross,
+            balance,
+            status
+          });
+        }
+        results.push({ student_id: d.student_id, status: 'removed' });
       }
 
       await base44.asServiceRole.entities.FeeFamily.update(family_id, { sibling_discount_applied: false });
-      return Response.json({ success: true, action: 'removed' });
+      return Response.json({ success: true, action: 'removed', results });
     }
 
     // APPLY
