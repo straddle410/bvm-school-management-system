@@ -55,6 +55,7 @@ export default function Fees() {
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
               {isAdmin && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
               {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
             </TabsList>
 
