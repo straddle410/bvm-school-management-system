@@ -23,7 +23,6 @@ export default function Fees() {
   useEffect(() => { setUser(getStaffSession()); }, []);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
-  const canManageFees = isAdmin || !!user?.permissions?.fees_reverse_receipt; // reuse fee permission for family mgmt
   const canReverseReceipt = isAdmin || !!user?.permissions?.fees_reverse_receipt;
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
