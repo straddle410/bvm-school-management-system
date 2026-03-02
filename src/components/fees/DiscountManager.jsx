@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 const EMPTY_FORM = {
-  discount_type: 'PERCENT',
+  discount_type: 'AMOUNT',
   discount_value: '',
   scope: 'TOTAL',
   fee_head_id: '',
