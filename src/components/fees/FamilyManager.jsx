@@ -52,10 +52,16 @@ export default function FamilyManager({ academicYear, isArchived }) {
     enabled: !!academicYear
   });
 
-  // Auto-suggest siblings by parent phone
+  // Auto-suggest siblings by parent phone — these are SUGGESTIONS ONLY, not auto-selected
   const suggestedByPhone = phoneSearch.length >= 6
     ? allStudents.filter(s => s.parent_phone?.replace(/\s/g, '').includes(phoneSearch.replace(/\s/g, '')))
     : [];
+
+  const addSuggestedStudents = () => {
+    const newIds = suggestedByPhone.map(s => s.student_id);
+    const merged = [...new Set([...form.student_ids, ...newIds])];
+    setForm({ ...form, student_ids: merged });
+  };
 
   // Students selected in form
   const selectedStudents = allStudents.filter(s => form.student_ids.includes(s.student_id));
