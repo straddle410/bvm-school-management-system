@@ -259,13 +259,31 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                     ))}
                   </div>
                   {invPayments.length > 0 && (
-                    <div className="border-t pt-2 space-y-1">
-                      {invPayments.map(p => (
-                        <div key={p.id} className="flex items-center justify-between text-xs text-slate-500">
-                          <span>{p.payment_date} · {p.payment_mode}</span>
-                          <span className="font-medium text-emerald-700">₹{(p.amount_paid || 0).toLocaleString()} <span className="text-slate-400">#{p.receipt_no}</span></span>
-                        </div>
-                      ))}
+                    <div className="border-t pt-2 space-y-1.5">
+                      {invPayments.map(p => {
+                        const isReversed = p.status === 'REVERSED';
+                        return (
+                          <div key={p.id} className={`rounded-lg px-2 py-1 ${isReversed ? 'bg-red-50 border border-red-100' : ''}`}>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className={`flex items-center gap-1 ${isReversed ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
+                                {p.payment_date} · {p.payment_mode}
+                                {isReversed && (
+                                  <Badge variant="destructive" className="text-[9px] py-0 px-1" style={{ textDecoration: 'none' }}>REVERSED</Badge>
+                                )}
+                              </span>
+                              <span className={`font-medium ${isReversed ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
+                                ₹{(p.amount_paid || 0).toLocaleString()} <span className={`${isReversed ? 'text-slate-300' : 'text-slate-400'}`}>#{p.receipt_no}</span>
+                              </span>
+                            </div>
+                            {isReversed && (
+                              <div className="text-[10px] text-red-500 mt-0.5 space-y-0.5">
+                                {p.reversal_reason && <p>↩ {p.reversal_reason}</p>}
+                                {p.reversed_by && <p className="text-slate-400">By: {p.reversed_by}{p.reversed_at ? ` · ${new Date(p.reversed_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}` : ''}</p>}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {!isArchivedYear && adhocBalance > 0 && adhoc.status !== 'Waived' && (
