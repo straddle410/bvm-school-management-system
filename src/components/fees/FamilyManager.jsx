@@ -32,6 +32,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [applyingFamily, setApplyingFamily] = useState(null);
+  const [saveError, setSaveError] = useState(null);
 
   // ─── AUTHORITATIVE SELECTION STATE ───────────────────────────────────────────
   const [selectedIds, setSelectedIds] = useState([]);
