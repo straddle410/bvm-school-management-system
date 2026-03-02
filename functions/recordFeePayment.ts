@@ -35,6 +35,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Invoice is already ${invoice.status}` }, { status: 409 });
     }
 
+    // ── Overpayment guard ─────────────────────────────────────────────────
+    const outstanding = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
+    if (amountPaid > outstanding) {
+      return Response.json({
+        error: `Payment amount (₹${amountPaid}) exceeds outstanding balance (₹${outstanding}). Please enter ₹${outstanding} or less.`
+      }, { status: 422 });
+    }
+    if (amountPaid <= 0) {
+      return Response.json({ error: 'Payment amount must be greater than zero.' }, { status: 400 });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // ── Receipt Number Generation ──────────────────────────────────────────
     // Load or create receipt config for this academic year
     let configs = await base44.asServiceRole.entities.FeeReceiptConfig.filter({ academic_year: academicYear });
