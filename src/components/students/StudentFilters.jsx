@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
-export default function StudentFilters({ search, onSearch, filterClass, onFilterClass, filterSection, onFilterSection, filterStatus, onFilterStatus, showArchived, onToggleArchived, showDeleted, onToggleDeleted }) {
+export default function StudentFilters({ search, onSearch, filterClass, onFilterClass, filterSection, onFilterSection, filterStatus, onFilterStatus, showArchived, onToggleArchived }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col gap-3">
       <div className="flex flex-col sm:flex-row gap-3">
@@ -66,21 +66,6 @@ export default function StudentFilters({ search, onSearch, filterClass, onFilter
           <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 ${showArchived ? 'bg-orange-400 border-orange-400' : 'border-gray-300'}`} />
           {showArchived ? 'Showing Archived Students' : 'Show Archived Students'}
         </button>
-        {/* Show Deleted Toggle — Admin only */}
-        {onToggleDeleted && (
-          <button
-            type="button"
-            onClick={onToggleDeleted}
-            className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors w-fit ${
-              showDeleted
-                ? 'bg-red-50 border-red-300 text-red-700'
-                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 ${showDeleted ? 'bg-red-400 border-red-400' : 'border-gray-300'}`} />
-            {showDeleted ? 'Showing Deleted Students' : 'Show Deleted Students'}
-          </button>
-        )}
       </div>
     </div>
   );
