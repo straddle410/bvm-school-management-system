@@ -39,13 +39,17 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.StudentFeeDiscount.update(d.id, { status: 'Archived' });
 
         if (isFullyPaid && inv) {
-          // Find and reverse the DISCOUNT_CREDIT ledger entry
+          // Find and reverse the DISCOUNT_CREDIT ledger entry using family_id reference
           const creditPayments = await base44.asServiceRole.entities.FeePayment.filter({
             invoice_id: inv.id,
             student_id: d.student_id,
             academic_year: family.academic_year
           });
-          const creditEntry = creditPayments.find(p => p.remarks?.includes('[SIBLING]') && p.amount_paid < 0);
+          const creditEntry = creditPayments.find(p => 
+            p.remarks?.includes(`[SIBLING-FAMILY:${family_id}]`) && 
+            p.amount_paid < 0 &&
+            p.status === 'Active'
+          );
           if (creditEntry) {
             // Create reversal entry (positive = reverses the negative credit)
             await base44.asServiceRole.entities.FeePayment.create({
@@ -55,11 +59,12 @@ Deno.serve(async (req) => {
               student_name: creditEntry.student_name,
               class_name: creditEntry.class_name,
               installment_name: creditEntry.installment_name,
-              receipt_no: `CREDIT-REV-${Date.now()}`,
+              receipt_no: `CREDIT-REV-FAM${family_id.substring(0, 8)}-${Date.now()}`,
               amount_paid: -creditEntry.amount_paid, // positive (reversal)
               payment_date: new Date().toISOString().split('T')[0],
               payment_mode: 'Reversal',
-              remarks: `[SIBLING] Family discount credit reversal`,
+              reference_no: family_id, // same family reference for tracking
+              remarks: `[SIBLING-FAMILY:${family_id}] Family discount credit reversal`,
               collected_by: user.email,
               status: 'Active'
             });
