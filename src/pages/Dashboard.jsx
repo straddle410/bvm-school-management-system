@@ -365,7 +365,7 @@ export default function Dashboard() {
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Admin Tools</h2>
             <div className="grid grid-cols-4 gap-3">
               {adminActions.map((item) => {
-                const url = item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page);
+                const url = item.href ? item.href : (item.tab ? createPageUrl(item.page) + `?tab=${item.tab}` : createPageUrl(item.page));
                 return (
                   <Link key={item.label} to={url} className="block">
                     <div className="flex flex-col items-center gap-1.5 relative">
