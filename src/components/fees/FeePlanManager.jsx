@@ -53,6 +53,8 @@ export default function FeePlanManager({ academicYear }) {
     setFeeItems(feeItems.map((f, i) => i === idx ? { ...f, amount: parseFloat(val) || 0 } : f));
   };
 
+  const [saved, setSaved] = useState(false);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const data = {
@@ -69,9 +71,12 @@ export default function FeePlanManager({ academicYear }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fee-plan', academicYear, selectedClass] });
       toast.success('Fee plan saved');
+      setSaved(true);
     },
     onError: (e) => toast.error(e.message)
   });
+
+  const markEdited = () => { if (saved) setSaved(false); };
 
   return (
     <div className="space-y-4">
