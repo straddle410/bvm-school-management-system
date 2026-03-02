@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, User, TrendingDown } from 'lucide-react';
+import { Search, User } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -19,7 +19,8 @@ const statusColor = {
   Waived: 'bg-slate-100 text-slate-600'
 };
 
-export default function StudentLedger({ academicYear }) {
+export default function StudentLedger({ academicYear, isArchivedYear }) {
+  const queryClient = useQueryClient();
   const [selectedClass, setSelectedClass] = useState('');
   const [search, setSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -31,9 +32,10 @@ export default function StudentLedger({ academicYear }) {
     enabled: !!selectedClass && !!academicYear
   });
 
-  const { data: invoices = [], refetch: refetchInvoices } = useQuery({
-    queryKey: ['fee-invoices', selectedStudent?.student_id, academicYear],
-    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
+  const { data: invoice, refetch: refetchInvoice } = useQuery({
+    queryKey: ['fee-invoice', selectedStudent?.student_id, academicYear],
+    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear })
+      .then(r => r[0] || null),
     enabled: !!selectedStudent && !!academicYear
   });
 
@@ -43,13 +45,9 @@ export default function StudentLedger({ academicYear }) {
     enabled: !!selectedStudent && !!academicYear
   });
 
-  const filteredStudents = students.filter(s => s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase()));
-
-  const totalDue = invoices.reduce((s, i) => s + (i.total_amount || 0), 0);
-  const totalPaid = invoices.reduce((s, i) => s + (i.paid_amount || 0), 0);
-  const totalBalance = invoices.reduce((s, i) => s + (i.balance || 0), 0);
-
-  const sortedInvoices = [...invoices].sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''));
+  const filteredStudents = students.filter(s =>
+    s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -98,67 +96,86 @@ export default function StudentLedger({ academicYear }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Total Due', value: totalDue, color: 'text-slate-800' },
-              { label: 'Paid', value: totalPaid, color: 'text-emerald-700' },
-              { label: 'Balance', value: totalBalance, color: totalBalance > 0 ? 'text-red-600' : 'text-emerald-700' }
-            ].map(({ label, value, color }) => (
-              <Card key={label} className="border-0 shadow-sm">
-                <CardContent className="p-3 text-center">
-                  <p className="text-xs text-slate-500">{label}</p>
-                  <p className={`text-lg font-bold ${color}`}>₹{value.toLocaleString()}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {sortedInvoices.length === 0 ? (
-            <Card><CardContent className="py-8 text-center text-slate-400">No invoices generated for this student yet.</CardContent></Card>
+          {!invoice ? (
+            <Card><CardContent className="py-8 text-center text-slate-400">No annual invoice generated for this student yet.</CardContent></Card>
           ) : (
-            <div className="space-y-3">
-              {sortedInvoices.map(inv => {
-                const invPayments = payments.filter(p => p.invoice_id === inv.id);
-                return (
-                  <Card key={inv.id} className="border-0 shadow-sm overflow-hidden">
-                    <div className="px-4 py-3 bg-slate-50 flex items-center justify-between">
-                      <div>
-                        <span className="font-semibold text-slate-800">{inv.installment_name}</span>
-                        {inv.due_date && <span className="ml-2 text-xs text-slate-500">Due: {inv.due_date}</span>}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[inv.status] || 'bg-slate-100'}`}>{inv.status}</span>
-                        <span className="font-bold text-slate-800">₹{(inv.total_amount || 0).toLocaleString()}</span>
-                      </div>
+            <Card className="border-0 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-slate-50 flex items-center justify-between">
+                <div>
+                  <span className="font-semibold text-slate-800">Annual Fee</span>
+                  {invoice.due_date && <span className="ml-2 text-xs text-slate-500">Due: {invoice.due_date}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[invoice.status] || 'bg-slate-100'}`}>{invoice.status}</span>
+                </div>
+              </div>
+
+              <CardContent className="p-4 space-y-3">
+                {/* Fee breakdown */}
+                {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).length > 0 && (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left pb-1.5 text-slate-500 font-medium text-xs">Fee Head</th>
+                        <th className="text-right pb-1.5 text-slate-500 font-medium text-xs">Gross</th>
+                        {invoice.discount_total > 0 && <th className="text-right pb-1.5 text-slate-500 font-medium text-xs">Discount</th>}
+                        <th className="text-right pb-1.5 text-slate-500 font-medium text-xs">Net</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).map((fh, i) => (
+                        <tr key={i} className="border-b border-slate-50">
+                          <td className="py-1.5 text-slate-600">{fh.fee_head_name}</td>
+                          <td className="py-1.5 text-right text-slate-500">₹{(fh.gross_amount || 0).toLocaleString()}</td>
+                          {invoice.discount_total > 0 && (
+                            <td className="py-1.5 text-right text-emerald-600">
+                              {fh.discount_amount > 0 ? `−₹${fh.discount_amount.toLocaleString()}` : '—'}
+                            </td>
+                          )}
+                          <td className="py-1.5 text-right font-medium">₹{(fh.net_amount || fh.amount || 0).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+
+                {/* Totals summary */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Total Fee', value: invoice.total_amount || 0, color: 'text-slate-800' },
+                    { label: 'Paid', value: invoice.paid_amount || 0, color: 'text-emerald-700' },
+                    { label: 'Balance', value: invoice.balance || 0, color: (invoice.balance || 0) > 0 ? 'text-red-600' : 'text-emerald-700' }
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="bg-slate-50 rounded-lg p-2.5 text-center">
+                      <p className="text-xs text-slate-500">{label}</p>
+                      <p className={`text-base font-bold ${color}`}>₹{value.toLocaleString()}</p>
                     </div>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Paid: <span className="font-medium text-emerald-700">₹{(inv.paid_amount || 0).toLocaleString()}</span></span>
-                        <span className="text-slate-500">Balance: <span className={`font-medium ${(inv.balance || 0) > 0 ? 'text-red-600' : 'text-emerald-700'}`}>₹{(inv.balance || 0).toLocaleString()}</span></span>
+                  ))}
+                </div>
+
+                {/* Payments list */}
+                {payments.length > 0 && (
+                  <div className="border-t pt-3 space-y-1">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Payment History</p>
+                    {payments.map(p => (
+                      <div key={p.id} className="flex items-center justify-between text-sm py-1">
+                        <span className="text-slate-600">{p.payment_date} · {p.payment_mode}</span>
+                        <span className="font-medium text-emerald-700">
+                          ₹{(p.amount_paid || 0).toLocaleString()}{' '}
+                          <span className="text-xs text-slate-400">#{p.receipt_no}</span>
+                        </span>
                       </div>
+                    ))}
+                  </div>
+                )}
 
-                      {invPayments.length > 0 && (
-                        <div className="border-t pt-3 space-y-1">
-                          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Payments</p>
-                          {invPayments.map(p => (
-                            <div key={p.id} className="flex items-center justify-between text-sm">
-                              <span className="text-slate-600">{p.payment_date} · {p.payment_mode}</span>
-                              <span className="font-medium text-emerald-700">₹{(p.amount_paid || 0).toLocaleString()} <span className="text-xs text-slate-400">#{p.receipt_no}</span></span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {inv.status !== 'Paid' && inv.status !== 'Waived' && (
-                        <Button size="sm" className="w-full" onClick={() => setPayingInvoice(inv)}>
-                          Record Payment
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                {!isArchivedYear && invoice.status !== 'Paid' && invoice.status !== 'Waived' && (
+                  <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => setPayingInvoice(invoice)}>
+                    Record Payment
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       )}
@@ -167,7 +184,11 @@ export default function StudentLedger({ academicYear }) {
         <PaymentModal
           invoice={payingInvoice}
           onClose={() => setPayingInvoice(null)}
-          onSuccess={() => { setPayingInvoice(null); refetchInvoices(); refetchPayments(); }}
+          onSuccess={() => {
+            setPayingInvoice(null);
+            refetchInvoice();
+            refetchPayments();
+          }}
         />
       )}
     </div>

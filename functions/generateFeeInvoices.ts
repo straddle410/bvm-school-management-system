@@ -1,29 +1,27 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Apply a discount rule to a set of fee head line items and return enriched data
-function applyDiscount(feeHeads, grossTotal, discount) {
+// Apply a discount rule to fee items and return enriched breakdown
+function applyDiscount(feeItems, grossTotal, discount) {
   if (!discount) {
-    // No discount — set gross = net, discount = 0
-    const heads = feeHeads.map(fh => ({
+    const items = feeItems.map(fh => ({
       ...fh,
       gross_amount: fh.amount || 0,
       discount_amount: 0,
       net_amount: fh.amount || 0
     }));
-    return { heads, grossTotal, discountTotal: 0, netTotal: grossTotal };
+    return { items, grossTotal, discountTotal: 0, netTotal: grossTotal };
   }
 
   let discountTotal = 0;
-  const heads = feeHeads.map(fh => {
+  const items = feeItems.map(fh => {
     const gross = fh.amount || 0;
     let discountAmt = 0;
 
     if (discount.scope === 'TOTAL') {
-      // Proportionally distribute total discount across fee heads
-      const proportion = grossTotal > 0 ? gross / grossTotal : 0;
       if (discount.discount_type === 'PERCENT') {
         discountAmt = Math.round(gross * (discount.discount_value / 100));
       } else {
+        const proportion = grossTotal > 0 ? gross / grossTotal : 0;
         discountAmt = Math.round(discount.discount_value * proportion);
       }
     } else if (discount.scope === 'FEE_HEAD' && fh.fee_head_id === discount.fee_head_id) {
@@ -34,7 +32,7 @@ function applyDiscount(feeHeads, grossTotal, discount) {
       }
     }
 
-    discountAmt = Math.min(discountAmt, gross); // can't discount more than gross
+    discountAmt = Math.min(discountAmt, gross);
     discountTotal += discountAmt;
 
     return {
@@ -45,14 +43,13 @@ function applyDiscount(feeHeads, grossTotal, discount) {
     };
   });
 
-  // For TOTAL+AMOUNT, clamp discount to gross total
+  // For TOTAL+AMOUNT, clamp and redistribute precisely
   if (discount.scope === 'TOTAL' && discount.discount_type === 'AMOUNT') {
     discountTotal = Math.min(discount.discount_value, grossTotal);
-    // Recalculate proportional distribution precisely
     let remaining = discountTotal;
-    heads.forEach((fh, idx) => {
+    items.forEach((fh, idx) => {
       const proportion = grossTotal > 0 ? fh.gross_amount / grossTotal : 0;
-      const amt = idx === heads.length - 1
+      const amt = idx === items.length - 1
         ? remaining
         : Math.round(discountTotal * proportion);
       fh.discount_amount = Math.min(amt, fh.gross_amount);
@@ -61,12 +58,7 @@ function applyDiscount(feeHeads, grossTotal, discount) {
     });
   }
 
-  return {
-    heads,
-    grossTotal,
-    discountTotal,
-    netTotal: grossTotal - discountTotal
-  };
+  return { items, grossTotal, discountTotal, netTotal: grossTotal - discountTotal };
 }
 
 Deno.serve(async (req) => {
@@ -74,13 +66,15 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    if (user.role !== 'admin' && user.role !== 'Admin' && user.role !== 'principal' && user.role !== 'Principal') {
+
+    const role = (user.role || '').toLowerCase();
+    if (role !== 'admin' && role !== 'principal') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { feePlanId, installmentName, academicYear, className } = await req.json();
-    if (!feePlanId || !installmentName || !academicYear || !className) {
-      return Response.json({ error: 'feePlanId, installmentName, academicYear and className are required' }, { status: 400 });
+    const { feePlanId, academicYear, className } = await req.json();
+    if (!feePlanId || !academicYear || !className) {
+      return Response.json({ error: 'feePlanId, academicYear and className are required' }, { status: 400 });
     }
 
     // Load fee plan
@@ -92,9 +86,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Plan academic year (${plan.academic_year}) does not match context (${academicYear})` }, { status: 422 });
     }
 
-    const installment = (plan.installments || []).find(i => i.name === installmentName);
-    if (!installment) return Response.json({ error: `Installment "${installmentName}" not found in plan` }, { status: 404 });
-
     // Load published students for this class + academic year
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: className,
@@ -104,13 +95,11 @@ Deno.serve(async (req) => {
 
     if (students.length === 0) return Response.json({ created: 0, skipped: 0, message: 'No published students found' });
 
-    // Load all active discounts for this class + academic year (batch fetch)
+    // Load all active discounts for this academic year (batch)
     const discounts = await base44.asServiceRole.entities.StudentFeeDiscount.filter({
       academic_year: academicYear,
       status: 'Active'
     });
-
-    // Build discount lookup: student_id → discount
     const discountMap = {};
     for (const d of discounts) {
       discountMap[d.student_id] = d;
@@ -123,19 +112,19 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Check for duplicate invoice
+      // Duplicate guard: one annual invoice per student per year
       const existing = await base44.asServiceRole.entities.FeeInvoice.filter({
         student_id: student.student_id,
         academic_year: academicYear,
-        installment_name: installmentName
+        installment_name: 'Annual Fee'
       });
       if (existing && existing.length > 0) { skipped++; continue; }
 
-      const feeHeads = installment.fee_heads || [];
-      const grossTotal = installment.total_amount || 0;
+      const feeItems = plan.fee_items || [];
+      const grossTotal = plan.total_amount || 0;
       const discount = discountMap[student.student_id] || null;
 
-      const { heads, discountTotal, netTotal } = applyDiscount(feeHeads, grossTotal, discount);
+      const { items, discountTotal, netTotal } = applyDiscount(feeItems, grossTotal, discount);
 
       await base44.asServiceRole.entities.FeeInvoice.create({
         academic_year: academicYear,
@@ -143,9 +132,9 @@ Deno.serve(async (req) => {
         student_name: student.name,
         class_name: student.class_name,
         section: student.section,
-        installment_name: installmentName,
-        due_date: installment.due_date || '',
-        fee_heads: heads,
+        installment_name: 'Annual Fee',
+        due_date: plan.due_date || '',
+        fee_heads: items,
         gross_total: grossTotal,
         discount_total: discountTotal,
         total_amount: netTotal,
