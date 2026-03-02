@@ -193,10 +193,10 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                 </div>
 
                 {/* Payments list */}
-                {payments.length > 0 && (
+                {annualPayments.length > 0 && (
                   <div className="border-t pt-3 space-y-1">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Payment History</p>
-                    {payments.map(p => (
+                    {annualPayments.map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm py-1">
                         <span className="text-slate-600">{p.payment_date} · {p.payment_mode}</span>
                         <span className="font-medium text-emerald-700">
