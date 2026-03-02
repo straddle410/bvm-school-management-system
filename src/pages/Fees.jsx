@@ -56,7 +56,7 @@ export default function Fees() {
               <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
               {isAdmin && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="families">Families</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="families">Sibling / Family</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
               {isAdmin && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
               {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
@@ -84,6 +84,12 @@ export default function Fees() {
             {isAdmin && (
               <TabsContent value="discounts">
                 <DiscountManager academicYear={academicYear} isArchived={isArchivedYear} />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
+              <TabsContent value="families">
+                <FamilyManager academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
             )}
 
