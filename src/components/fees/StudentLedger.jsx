@@ -70,11 +70,11 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const net = gross - discount;
 
   // CRITICAL FIX: Calculate paid from actual FeePayment entries linked to ACTIVE invoice
-  // Filter: entry_type = CASH_PAYMENT, status = Active, invoice_id = active invoice id
+  // Include: entry_type = CASH_PAYMENT, status !== REVERSED, invoice_id = active invoice id
   const activeInvoicePayments = payments.filter(p => 
     p.entry_type === 'CASH_PAYMENT' && 
-    p.status === 'Active' && 
-    p.invoice_id === invoice?.id
+    p.invoice_id === invoice?.id && 
+    p.status !== 'REVERSED'
   );
   const paid = activeInvoicePayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
   const balance = Math.max(net - paid, 0);
