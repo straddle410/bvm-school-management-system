@@ -101,7 +101,7 @@ export default function FeePlanManager({ academicYear }) {
           <CardContent className="p-5 space-y-4">
             <div>
               <label className="text-sm font-medium text-slate-600">Due Date (optional)</label>
-              <Input type="date" className="mt-1 w-48" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+              <Input type="date" className="mt-1 w-48" value={dueDate} onChange={e => { setDueDate(e.target.value); markEdited(); }} />
             </div>
 
             <div>
@@ -122,7 +122,7 @@ export default function FeePlanManager({ academicYear }) {
                           type="number" min="0"
                           className="w-32 text-right ml-auto"
                           value={fh.amount || ''}
-                          onChange={e => updateAmount(idx, e.target.value)}
+                          onChange={e => { updateAmount(idx, e.target.value); markEdited(); }}
                           placeholder="0"
                         />
                       </td>
@@ -137,8 +137,13 @@ export default function FeePlanManager({ academicYear }) {
             </div>
 
             <div className="flex justify-end pt-1">
-              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || totalAmount === 0}>
-                <Save className="h-4 w-4 mr-1" />{saveMutation.isPending ? 'Saving...' : 'Save Plan'}
+              <Button
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending || totalAmount === 0}
+                className={saved ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+              >
+                <Save className="h-4 w-4 mr-1" />
+                {saveMutation.isPending ? 'Saving...' : saved ? 'Saved ✓' : 'Save Plan'}
               </Button>
             </div>
           </CardContent>
