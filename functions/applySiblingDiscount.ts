@@ -104,7 +104,13 @@ Deno.serve(async (req) => {
       }
 
       await base44.asServiceRole.entities.FeeFamily.update(family_id, { sibling_discount_applied: false });
-      return Response.json({ success: true, action: 'removed', results });
+      return Response.json({ 
+       success: true, 
+       action: 'removed',
+       affectedStudents: results.length,
+       affectedInvoices: results.length,
+       results 
+      });
     }
 
     // APPLY - PROPORTIONAL DISTRIBUTION
