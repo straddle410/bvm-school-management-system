@@ -164,12 +164,14 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const applyMutation = useMutation({
     mutationFn: async ({ family_id, action }) => {
       // Validation
+      console.log('applyMutation triggered:', { family_id, action, academicYear });
       if (!family_id) throw new Error('Family ID is missing');
       if (!academicYear) throw new Error('Academic year is missing');
       if (!action) throw new Error('Action is missing');
 
       const family = families.find(f => f.id === family_id);
       if (!family) throw new Error('Family not found');
+      console.log('Found family:', family);
       
       // Family discount cap check: total discount cannot exceed total outstanding balance
       if (action === 'apply' && family) {
@@ -183,9 +185,12 @@ export default function FamilyManager({ academicYear, isArchived }) {
       }
 
       try {
+        console.log('Invoking applySiblingDiscount:', { family_id, action });
         const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action });
+        console.log('API Response:', res.data);
         return res;
       } catch (err) {
+        console.error('API Error:', err);
         throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
       }
     },
@@ -370,9 +375,12 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   className={applyingFamily.action === 'apply' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
                   disabled={applyMutation.isPending}
                   onClick={() => {
+                    console.log('Confirm button clicked:', applyingFamily);
                     if (applyingFamily?.family?.id && applyingFamily?.action) {
+                      console.log('Calling applyMutation with:', { family_id: applyingFamily.family.id, action: applyingFamily.action });
                       applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action });
                     } else {
+                      console.error('Missing data:', applyingFamily);
                       toast.error('Missing family or action information');
                     }
                   }}
