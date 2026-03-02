@@ -281,13 +281,24 @@ Deno.serve(async (req) => {
     }
 
     await base44.asServiceRole.entities.FeeFamily.update(family_id, { sibling_discount_applied: true });
+    // Calculate verification
+    const perStudentBreakdown = results.map(r => ({
+      student_id: r.student_id,
+      discount_applied: r.discount_amount
+    }));
+    const verificationSum = results.reduce((sum, r) => sum + r.discount_amount, 0);
+
     return Response.json({ 
       success: true, 
       action: 'applied',
       affectedStudents: results.length,
       affectedInvoices: results.length,
-      totalFamilyDiscount: family.sibling_discount_type === 'PERCENT' ? null : family.sibling_discount_value,
+      totalFamilyDiscount: family.sibling_discount_type === 'PERCENT' 
+        ? `${family.sibling_discount_value}% (calculated as ₹${totalAllocated})` 
+        : family.sibling_discount_value,
       totalDiscountApplied: totalAllocated,
+      perStudentBreakdown,
+      verificationSumEqualsTotal: verificationSum === totalAllocated,
       results 
     });
   } catch (error) {
