@@ -32,12 +32,15 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     enabled: !!selectedClass && !!academicYear
   });
 
-  const { data: invoice, refetch: refetchInvoice } = useQuery({
+  const { data: allInvoices = [], refetch: refetchInvoice } = useQuery({
     queryKey: ['fee-invoice', selectedStudent?.student_id, academicYear],
-    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear })
-      .then(r => r[0] || null),
+    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
     enabled: !!selectedStudent && !!academicYear
   });
+
+  // Split invoices by type
+  const invoice = allInvoices.find(i => i.invoice_type !== 'ADHOC') || allInvoices.find(i => !i.invoice_type) || null;
+  const adhocInvoices = allInvoices.filter(i => i.invoice_type === 'ADHOC' && i.status !== 'Cancelled');
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['fee-payments-student', selectedStudent?.student_id, academicYear],
