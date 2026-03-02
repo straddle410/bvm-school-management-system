@@ -85,6 +85,12 @@ export default function Fees() {
             )}
 
             {isAdmin && (
+              <TabsContent value="adhoc">
+                <AdditionalChargesTab academicYear={academicYear} isArchived={isArchivedYear} />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
               <TabsContent value="fee-heads">
                 <FeeHeadsManager />
               </TabsContent>
