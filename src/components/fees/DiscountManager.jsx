@@ -167,7 +167,8 @@ export default function DiscountManager({ academicYear, isArchived }) {
     return matchClass && matchSearch;
   });
 
-  const activeDiscounts = filteredDiscounts.filter(d => d.status !== 'Archived');
+  const activeDiscounts = filteredDiscounts.filter(d => d.status === 'Active');
+  const reversedDiscounts = filteredDiscounts.filter(d => d.status === 'Reversed');
   const archivedDiscounts = filteredDiscounts.filter(d => d.status === 'Archived');
 
   const discountPreview = (d) => {
