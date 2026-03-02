@@ -39,16 +39,17 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.StudentFeeDiscount.update(d.id, { status: 'Archived' });
 
         if (isFullyPaid && inv) {
-          // Find and reverse the DISCOUNT_CREDIT ledger entry using family_id reference
+          // Find and reverse the DISCOUNT_CREDIT ledger entry using discount_application_id
           const creditPayments = await base44.asServiceRole.entities.FeePayment.filter({
             invoice_id: inv.id,
             student_id: d.student_id,
             academic_year: family.academic_year
           });
           const creditEntry = creditPayments.find(p => 
-            p.remarks?.includes(`[SIBLING-FAMILY:${family_id}]`) && 
+            p.entry_type === 'CREDIT_ADJUSTMENT' && 
             p.amount_paid < 0 &&
-            p.status === 'Active'
+            p.status === 'Active' &&
+            p.remarks?.includes('[SIBLING-DISCOUNT:')
           );
           if (creditEntry) {
             // Create reversal entry (positive = reverses the negative credit)
@@ -59,12 +60,14 @@ Deno.serve(async (req) => {
               student_name: creditEntry.student_name,
               class_name: creditEntry.class_name,
               installment_name: creditEntry.installment_name,
-              receipt_no: `CREDIT-REV-FAM${family_id.substring(0, 8)}-${Date.now()}`,
+              receipt_no: `CREDIT-REV-${creditEntry.reference_no.substring(0, 8)}-${Date.now()}`,
               amount_paid: -creditEntry.amount_paid, // positive (reversal)
               payment_date: new Date().toISOString().split('T')[0],
-              payment_mode: 'Reversal',
-              reference_no: family_id, // same family reference for tracking
-              remarks: `[SIBLING-FAMILY:${family_id}] Family discount credit reversal`,
+              payment_mode: 'Credit',
+              entry_type: 'REVERSAL',
+              affects_cash: false,
+              reference_no: creditEntry.reference_no, // same discount instance reference for tracking reversal
+              remarks: `[SIBLING-DISCOUNT-REV:${creditEntry.reference_no}] Family discount credit reversal`,
               collected_by: user.email,
               status: 'Active'
             });
