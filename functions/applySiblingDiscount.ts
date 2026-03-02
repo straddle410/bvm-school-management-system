@@ -161,20 +161,20 @@ Deno.serve(async (req) => {
 
       // If fully paid, create ledger credit instead of applying to invoice
       if (isFullyPaid) {
-        // Check if credit already exists for this family discount (idempotency)
+        // Check if credit already exists for this discount application (idempotency)
         const existingCredits = await base44.asServiceRole.entities.FeePayment.filter({
           invoice_id: inv.id,
           student_id,
           academic_year: family.academic_year
         });
         const creditExists = existingCredits.some(p => 
-          p.remarks?.includes(`[SIBLING-FAMILY:${family_id}]`) && 
+          p.reference_no === discount_application_id && 
           p.amount_paid < 0 &&
           p.status === 'Active'
         );
 
         if (!creditExists) {
-          // Create DISCOUNT_CREDIT ledger entry with family reference
+          // Create DISCOUNT_CREDIT ledger entry with discount_application_id reference
           await base44.asServiceRole.entities.FeePayment.create({
             academic_year: family.academic_year,
             invoice_id: inv.id,
@@ -182,12 +182,14 @@ Deno.serve(async (req) => {
             student_name: student.name,
             class_name: student.class_name,
             installment_name: inv.installment_name,
-            receipt_no: `CREDIT-FAM${family_id.substring(0, 8)}-${Date.now()}`,
+            receipt_no: `CREDIT-APP${discount_application_id.substring(0, 8)}-${Date.now()}`,
             amount_paid: -discountAmt, // negative = credit
             payment_date: new Date().toISOString().split('T')[0],
             payment_mode: 'Credit',
-            reference_no: family_id, // stable family reference for reversal lookup
-            remarks: `[SIBLING-FAMILY:${family_id}] ${family.family_name} sibling discount credit`,
+            entry_type: 'CREDIT_ADJUSTMENT',
+            affects_cash: false,
+            reference_no: discount_application_id, // unique discount instance reference
+            remarks: `[SIBLING-DISCOUNT:${discount_application_id}] ${family.family_name} sibling discount credit`,
             collected_by: user.email,
             status: 'Active'
           });
