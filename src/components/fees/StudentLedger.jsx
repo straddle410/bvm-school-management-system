@@ -65,6 +65,16 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const paid = invoice?.paid_amount ?? 0;
   const balance = Math.max(net - paid, 0);
 
+  // Payments split by invoice
+  const annualPayments = payments.filter(p => !adhocInvoices.some(ai => ai.id === p.invoice_id));
+  const adhocPaymentsMap = {};
+  for (const p of payments) {
+    if (adhocInvoices.some(ai => ai.id === p.invoice_id)) {
+      if (!adhocPaymentsMap[p.invoice_id]) adhocPaymentsMap[p.invoice_id] = [];
+      adhocPaymentsMap[p.invoice_id].push(p);
+    }
+  }
+
   const filteredStudents = students.filter(s =>
     s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
   );
