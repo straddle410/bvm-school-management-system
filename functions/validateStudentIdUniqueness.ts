@@ -24,11 +24,17 @@ Deno.serve(async (req) => {
     const normalizedId = String(student_id).trim().toUpperCase();
     const allStudents = await base44.asServiceRole.entities.Student.list();
 
+    // Ensure all students have student_id_norm. If missing, compute it on-the-fly.
+    const studentsWithNorm = allStudents.map(s => ({
+      ...s,
+      student_id_norm: s.student_id_norm || String(s.student_id).trim().toUpperCase()
+    }));
+
     // Find all students in the same academic year with same normalized student_id
-    const duplicates = allStudents.filter(s => 
+    const duplicates = studentsWithNorm.filter(s => 
       s.academic_year === academic_year &&
       !s.is_deleted &&
-      String(s.student_id).trim().toUpperCase() === normalizedId
+      s.student_id_norm === normalizedId
     );
 
     if (action === 'validate') {
