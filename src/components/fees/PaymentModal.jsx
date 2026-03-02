@@ -56,7 +56,16 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
 
           <div>
             <label className="text-sm font-medium text-slate-700">Amount to Pay (₹) *</label>
-            <input type="number" min="1" max={invoice.balance || invoice.total_amount} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" value={form.amountPaid} onChange={e => setForm({ ...form, amountPaid: e.target.value })} />
+            <p className="text-xs text-slate-500 mb-1">Max payable = ₹{outstanding.toLocaleString()}</p>
+            <input
+              type="number" min="1" max={outstanding}
+              className={`border rounded-lg px-3 py-2 text-sm w-full ${isOverpayment ? 'border-red-400 bg-red-50' : ''}`}
+              value={form.amountPaid}
+              onChange={e => setForm({ ...form, amountPaid: e.target.value })}
+            />
+            {isOverpayment && (
+              <p className="text-xs text-red-600 mt-1">Amount cannot exceed outstanding balance of ₹{outstanding.toLocaleString()}</p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700">Payment Date *</label>
@@ -84,8 +93,8 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button
               className="bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => { if (!form.amountPaid || parseFloat(form.amountPaid) <= 0) { toast.error('Enter a valid amount'); return; } payMutation.mutate(); }}
-              disabled={payMutation.isPending}
+              onClick={() => { if (!form.amountPaid || parseFloat(form.amountPaid) <= 0) { toast.error('Enter a valid amount'); return; } if (isOverpayment) { toast.error(`Amount exceeds outstanding balance of ₹${outstanding}`); return; } payMutation.mutate(); }}
+              disabled={payMutation.isPending || isOverpayment}
             >
               {payMutation.isPending ? 'Recording...' : 'Record Payment'}
             </Button>
