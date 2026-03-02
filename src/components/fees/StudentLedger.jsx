@@ -190,17 +190,33 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
 
                 {/* Payments list */}
                 {payments.length > 0 && (
-                  <div className="border-t pt-3 space-y-1">
+                  <div className="border-t pt-3 space-y-1.5">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Payment History</p>
-                    {payments.map(p => (
-                      <div key={p.id} className="flex items-center justify-between text-sm py-1">
-                        <span className="text-slate-600">{p.payment_date} · {p.payment_mode}</span>
-                        <span className="font-medium text-emerald-700">
-                          ₹{(p.amount_paid || 0).toLocaleString()}{' '}
-                          <span className="text-xs text-slate-400">#{p.receipt_no}</span>
-                        </span>
-                      </div>
-                    ))}
+                    {payments.map(p => {
+                      const isReversed = p.status === 'REVERSED';
+                      return (
+                        <div key={p.id} className={`rounded-lg px-2 py-1.5 ${isReversed ? 'bg-red-50 border border-red-100' : ''}`}>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className={`flex items-center gap-1.5 ${isReversed ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
+                              {p.payment_date} · {p.payment_mode}
+                              {isReversed && (
+                                <Badge variant="destructive" className="text-[10px] py-0 px-1.5 no-underline" style={{ textDecoration: 'none' }}>REVERSED</Badge>
+                              )}
+                            </span>
+                            <span className={`font-medium ${isReversed ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
+                              ₹{(p.amount_paid || 0).toLocaleString()}{' '}
+                              <span className={`text-xs ${isReversed ? 'text-slate-300' : 'text-slate-400'}`}>#{p.receipt_no}</span>
+                            </span>
+                          </div>
+                          {isReversed && (
+                            <div className="text-xs text-red-500 mt-0.5 space-y-0.5">
+                              {p.reversal_reason && <p>↩ {p.reversal_reason}</p>}
+                              {p.reversed_by && <p className="text-slate-400">By: {p.reversed_by}{p.reversed_at ? ` · ${new Date(p.reversed_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}` : ''}</p>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
