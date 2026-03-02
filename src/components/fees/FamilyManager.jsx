@@ -162,40 +162,21 @@ export default function FamilyManager({ academicYear, isArchived }) {
   });
 
   const applyMutation = useMutation({
-    mutationFn: async ({ family_id, action }) => {
-      // Validation
-      console.log('applyMutation triggered:', { family_id, action, academicYear });
-      if (!family_id) throw new Error('Family ID is missing');
-      if (!academicYear) throw new Error('Academic year is missing');
-      if (!action) throw new Error('Action is missing');
+   mutationFn: async ({ family_id, action }) => {
+     if (!family_id) throw new Error('Family ID is missing');
+     if (!academicYear) throw new Error('Academic year is missing');
+     if (!action) throw new Error('Action is missing');
 
-      const family = families.find(f => f.id === family_id);
-      if (!family) throw new Error('Family not found');
-      console.log('Found family:', family);
-      
-      // Family discount cap check: total discount cannot exceed total outstanding balance
-      if (action === 'apply' && family) {
-        const discountAmt = family.sibling_discount_type === 'PERCENT'
-          ? (family.sibling_discount_value / 100) * totalOutstanding
-          : family.sibling_discount_value;
-        
-        if (discountAmt > totalOutstanding) {
-          throw new Error(`Maximum allowed discount is ₹${Math.floor(totalOutstanding)}.`);
-        }
-      }
+     const family = families.find(f => f.id === family_id);
+     if (!family) throw new Error('Family not found');
 
-      console.log('About to invoke API with:', { family_id, action });
-      try {
-        console.log('Invoking applySiblingDiscount:', { family_id, action });
-        const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action });
-        console.log('API Response:', res.data);
-        return res;
-      } catch (err) {
-        console.error('API Error caught:', err);
-        console.error('Error details:', { msg: err?.message, data: err?.data, status: err?.status });
-        throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
-      }
-    },
+     try {
+       const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action });
+       return res;
+     } catch (err) {
+       throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
+     }
+   },
     onSuccess: (res, { action }) => {
       console.log('Mutation onSuccess triggered with:', { res, action });
       try {
