@@ -288,3 +288,11 @@ function Wave3ACollectionReportContent() {
     </div>
   );
 }
+
+export default function Wave3ACollectionReport() {
+  return (
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Finance Reports">
+      <Wave3ACollectionReportContent />
+    </LoginRequired>
+  );
+}
