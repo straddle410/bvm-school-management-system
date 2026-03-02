@@ -22,6 +22,7 @@ export default function Fees() {
   useEffect(() => { setUser(getStaffSession()); }, []);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
+  const canReverseReceipt = isAdmin || !!user?.permissions?.fees_reverse_receipt;
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
   const isArchivedYear = selectedYearObj?.status === 'Archived';
