@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Percent, Tag, Edit2, Archive, Plus, Search, AlertCircle, Lock } from 'lucide-react';
+import { Percent, Tag, Edit2, Archive, Plus, Search, AlertCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -204,24 +204,21 @@ export default function DiscountManager({ academicYear, isArchived }) {
         <Card><CardContent className="py-10 text-center text-slate-400 text-sm">No active discounts for this year.</CardContent></Card>
       ) : (
         <div className="space-y-2">
-          {activeDiscounts.map(d => {
-            const isSibling = d.notes?.startsWith('[SIBLING]');
-            return (
-            <div key={d.id} className={`bg-white rounded-xl shadow-sm p-4 flex items-center justify-between gap-3 ${isSibling ? 'border border-indigo-100' : ''}`}>
+          {activeDiscounts.map(d => (
+            <div key={d.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold text-slate-800 truncate">{d.student_name}</span>
                   <span className="text-xs text-slate-400">{d.student_id}</span>
                   <Badge variant="outline" className="text-xs">{d.class_name}</Badge>
-                  {isSibling && <Badge className="bg-indigo-100 text-indigo-800 border-0 text-xs"><Lock className="h-2.5 w-2.5 mr-1" />Sibling</Badge>}
                 </div>
                 <p className="text-sm text-emerald-700 font-medium mt-0.5 flex items-center gap-1">
                   {d.discount_type === 'PERCENT' ? <Percent className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}
                   {discountPreview(d)}
                 </p>
-                {d.notes && <p className="text-xs text-slate-400 mt-0.5 truncate">{isSibling ? d.notes.replace('[SIBLING] ', '') : d.notes}</p>}
+                {d.notes && <p className="text-xs text-slate-400 mt-0.5 truncate">{d.notes}</p>}
               </div>
-              {!isArchived && !isSibling && (
+              {!isArchived && (
                 <div className="flex gap-2 flex-shrink-0">
                   <Button size="sm" variant="outline" onClick={() => openEdit(d)}>
                     <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
@@ -231,11 +228,8 @@ export default function DiscountManager({ academicYear, isArchived }) {
                   </Button>
                 </div>
               )}
-              {isSibling && (
-                <span className="text-xs text-indigo-400 flex-shrink-0">Managed via Sibling tab</span>
-              )}
             </div>
-          );})}
+          ))}
         </div>
       )}
 
