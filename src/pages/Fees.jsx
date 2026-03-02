@@ -65,7 +65,7 @@ export default function Fees() {
             </TabsContent>
 
             <TabsContent value="payments">
-              <PaymentsList academicYear={academicYear} isAdmin={isAdmin} />
+              <PaymentsList academicYear={academicYear} isAdmin={isAdmin} canReverseReceipt={canReverseReceipt} />
             </TabsContent>
 
             {isAdmin && (
