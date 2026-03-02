@@ -107,31 +107,81 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, action: 'removed', results });
     }
 
-    // APPLY
+    // APPLY - PROPORTIONAL DISTRIBUTION
     if (!family.sibling_discount_value || !family.sibling_discount_type) {
       return Response.json({ error: 'Family has no sibling discount configured' }, { status: 400 });
     }
 
-    const results = [];
+    // Step 1: Fetch all students and their invoices to calculate total gross
+    const familyStudents = [];
+    const studentInvoices = {};
+    let totalFamilyGross = 0;
+
     for (const student_id of (family.student_ids || [])) {
-      // Get student info
       const students = await base44.asServiceRole.entities.Student.filter({ student_id });
       const student = students[0];
-      if (!student) { results.push({ student_id, status: 'not_found' }); continue; }
+      if (!student) continue;
 
-      // Get annual invoice for guardrail check
       const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
         student_id,
         academic_year: family.academic_year
       });
       const inv = invoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL');
-      const isFullyPaid = inv && inv.status === 'Paid';
-
-      // Compute cap check
-      const gross = inv?.gross_total ?? inv?.total_amount ?? 0;
-      if (family.sibling_discount_type === 'AMOUNT' && gross > 0 && family.sibling_discount_value > gross) {
-        results.push({ student_id, status: 'skipped_exceeds_gross' }); continue;
+      
+      if (inv) {
+        familyStudents.push(student);
+        studentInvoices[student_id] = inv;
+        const gross = inv.gross_total ?? inv.total_amount ?? 0;
+        totalFamilyGross += gross;
       }
+    }
+
+    if (familyStudents.length === 0 || totalFamilyGross === 0) {
+      return Response.json({ error: 'No valid invoices found for family students' }, { status: 400 });
+    }
+
+    // Step 2: Calculate proportional discount per student
+    const studentDiscountAmounts = {};
+    let totalAllocated = 0;
+
+    for (let i = 0; i < familyStudents.length; i++) {
+      const student = familyStudents[i];
+      const student_id = student.student_id;
+      const inv = studentInvoices[student_id];
+      const gross = inv.gross_total ?? inv.total_amount ?? 0;
+
+      let discountAmt = 0;
+
+      if (family.sibling_discount_type === 'PERCENT') {
+        // For percentage: apply % to each student's gross
+        discountAmt = Math.round((family.sibling_discount_value / 100) * gross);
+      } else {
+        // For AMOUNT: distribute proportionally
+        if (i === familyStudents.length - 1) {
+          // Last student: absorb any rounding difference
+          discountAmt = family.sibling_discount_value - totalAllocated;
+        } else {
+          const proportion = gross / totalFamilyGross;
+          discountAmt = Math.round(family.sibling_discount_value * proportion);
+        }
+      }
+
+      // Ensure discount doesn't exceed student's due amount
+      const dueAmount = Math.max((inv.total_amount ?? inv.gross_total ?? 0) - (inv.paid_amount ?? 0), 0);
+      discountAmt = Math.min(discountAmt, dueAmount);
+
+      studentDiscountAmounts[student_id] = discountAmt;
+      totalAllocated += discountAmt;
+    }
+
+    // Step 3: Apply discounts to each student
+    const results = [];
+
+    for (const student of familyStudents) {
+      const student_id = student.student_id;
+      const inv = studentInvoices[student_id];
+      const discountAmt = studentDiscountAmounts[student_id];
+      const isFullyPaid = inv && inv.status === 'Paid';
 
       // Archive any existing sibling discount for this student+AY
       const existingDiscounts = await base44.asServiceRole.entities.StudentFeeDiscount.filter({
@@ -144,27 +194,18 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Calculate discount amount
-      const gross = inv?.gross_total ?? inv?.total_amount ?? 0;
-      let discountAmt = 0;
-      if (family.sibling_discount_type === 'PERCENT') {
-        discountAmt = Math.min((family.sibling_discount_value / 100) * gross, gross);
-      } else {
-        discountAmt = Math.min(family.sibling_discount_value, gross);
-      }
-
-      // Create new sibling discount and capture its ID for credit reference
+      // Create new sibling discount record (stored at proportional amount)
       const discountRecord = await base44.asServiceRole.entities.StudentFeeDiscount.create({
         academic_year: family.academic_year,
         student_id,
         student_name: student.name,
         class_name: student.class_name,
-        discount_type: family.sibling_discount_type,
-        discount_value: family.sibling_discount_value,
+        discount_type: 'AMOUNT', // Always store as AMOUNT (the proportional value)
+        discount_value: discountAmt, // Proportional discount for this student
         scope: family.sibling_discount_scope || 'TOTAL',
         fee_head_id: family.sibling_discount_fee_head_id || '',
         fee_head_name: family.sibling_discount_fee_head_name || '',
-        notes: `[SIBLING] Family: ${family.family_name}`,
+        notes: `[SIBLING] Family: ${family.family_name} (proportional)`,
         discount_source: 'FAMILY',
         family_id: family_id,
         status: 'Active',
@@ -175,7 +216,6 @@ Deno.serve(async (req) => {
 
       // If fully paid, create ledger credit instead of applying to invoice
       if (isFullyPaid) {
-        // Check if credit already exists for this discount application (idempotency)
         const existingCredits = await base44.asServiceRole.entities.FeePayment.filter({
           invoice_id: inv.id,
           student_id,
@@ -188,7 +228,6 @@ Deno.serve(async (req) => {
         );
 
         if (!creditExists) {
-          // Create DISCOUNT_CREDIT ledger entry with discount_application_id reference
           await base44.asServiceRole.entities.FeePayment.create({
             academic_year: family.academic_year,
             invoice_id: inv.id,
@@ -197,42 +236,47 @@ Deno.serve(async (req) => {
             class_name: student.class_name,
             installment_name: inv.installment_name,
             receipt_no: `CREDIT-APP${discount_application_id.substring(0, 8)}-${Date.now()}`,
-            amount_paid: -discountAmt, // negative = credit
+            amount_paid: -discountAmt,
             payment_date: new Date().toISOString().split('T')[0],
             payment_mode: 'Credit',
             entry_type: 'CREDIT_ADJUSTMENT',
             affects_cash: false,
-            reference_no: discount_application_id, // unique discount instance reference
-            remarks: `[SIBLING-DISCOUNT:${discount_application_id}] ${family.family_name} sibling discount credit`,
+            reference_no: discount_application_id,
+            remarks: `[SIBLING-DISCOUNT:${discount_application_id}] ${family.family_name} proportional discount credit`,
             collected_by: user.email,
             status: 'Active'
           });
         }
-        results.push({ student_id, status: 'applied_credit', credit_amount: discountAmt });
+        results.push({ student_id, status: 'applied_credit', discount_amount: discountAmt });
       } else {
-        // Recalculate invoice if not fully paid
-        if (inv) {
-          const net = Math.max(gross - discountAmt, 0);
-          const paidAmt = inv.paid_amount ?? 0;
-          const balance = Math.max(net - paidAmt, 0);
-          let status = inv.status;
-          if (paidAmt >= net && net >= 0 && paidAmt > 0) status = 'Paid';
-          else if (paidAmt > 0) status = 'Partial';
-          else status = 'Pending';
+        // Update invoice with proportional discount
+        const gross = inv.gross_total ?? inv.total_amount ?? 0;
+        const net = Math.max(gross - discountAmt, 0);
+        const paidAmt = inv.paid_amount ?? 0;
+        const balance = Math.max(net - paidAmt, 0);
+        let status = inv.status;
+        if (paidAmt >= net && net >= 0 && paidAmt > 0) status = 'Paid';
+        else if (paidAmt > 0) status = 'Partial';
+        else status = 'Pending';
 
-          await base44.asServiceRole.entities.FeeInvoice.update(inv.id, {
-            discount_total: discountAmt,
-            total_amount: net,
-            balance,
-            status
-          });
-        }
-        results.push({ student_id, status: 'applied' });
+        await base44.asServiceRole.entities.FeeInvoice.update(inv.id, {
+          discount_total: discountAmt,
+          total_amount: net,
+          balance,
+          status
+        });
+        results.push({ student_id, status: 'applied', discount_amount: discountAmt });
       }
     }
 
     await base44.asServiceRole.entities.FeeFamily.update(family_id, { sibling_discount_applied: true });
-    return Response.json({ success: true, action: 'applied', results });
+    return Response.json({ 
+      success: true, 
+      action: 'applied', 
+      totalFamilyDiscount: family.sibling_discount_type === 'PERCENT' ? null : family.sibling_discount_value,
+      totalDiscountApplied: totalAllocated,
+      results 
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
