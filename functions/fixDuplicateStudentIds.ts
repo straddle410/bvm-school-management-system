@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const { action, student_id: targetStudentId, record_id } = await req.json();
+    const { action, student_id: targetStudentId, record_id, new_student_id: explicitNewId } = await req.json();
 
     if (!action || !targetStudentId) {
       return Response.json({ error: 'action and student_id required' }, { status: 400 });
@@ -69,23 +69,28 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Record not found' }, { status: 404 });
       }
 
-      const year = targetRecord.academic_year;
-      const yearPrefix = year.split('-')[0]; // "2025-26" → "2025"
-      const yearStudents = allStudents.filter(s => s.academic_year === year);
+      // Use explicit override if provided, otherwise auto-generate
+      let newStudentId = explicitNewId;
       
-      // Find max numeric suffix (e.g., S25001 → 1, S25010 → 10)
-      let maxNum = 0;
-      yearStudents.forEach(s => {
-        const sidStr = String(s.student_id).trim();
-        // Extract trailing digits: S25001 → 1, S25999 → 999
-        const match = sidStr.match(/(\d+)$/);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          maxNum = Math.max(maxNum, num);
-        }
-      });
+      if (!newStudentId) {
+        const year = targetRecord.academic_year;
+        const yearPrefix = year.split('-')[0]; // "2025-26" → "2025"
+        const yearStudents = allStudents.filter(s => s.academic_year === year);
+        
+        // Find max numeric suffix (e.g., S25001 → 1, S25010 → 10)
+        let maxNum = 0;
+        yearStudents.forEach(s => {
+          const sidStr = String(s.student_id).trim();
+          // Extract trailing digits: S25001 → 1, S25999 → 999
+          const match = sidStr.match(/(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            maxNum = Math.max(maxNum, num);
+          }
+        });
 
-      const newStudentId = `S${yearPrefix}${String(maxNum + 1).padStart(3, '0')}`;
+        newStudentId = `S${yearPrefix}${String(maxNum + 1).padStart(3, '0')}`;
+      }
 
       await base44.asServiceRole.entities.Student.update(record_id, {
         student_id: newStudentId,
