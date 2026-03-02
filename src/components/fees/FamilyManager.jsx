@@ -184,13 +184,15 @@ export default function FamilyManager({ academicYear, isArchived }) {
         }
       }
 
+      console.log('About to invoke API with:', { family_id, action });
       try {
         console.log('Invoking applySiblingDiscount:', { family_id, action });
         const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action });
         console.log('API Response:', res.data);
         return res;
       } catch (err) {
-        console.error('API Error:', err);
+        console.error('API Error caught:', err);
+        console.error('Error details:', { msg: err?.message, data: err?.data, status: err?.status });
         throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
       }
     },
