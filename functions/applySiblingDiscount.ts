@@ -283,7 +283,9 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.FeeFamily.update(family_id, { sibling_discount_applied: true });
     return Response.json({ 
       success: true, 
-      action: 'applied', 
+      action: 'applied',
+      affectedStudents: results.length,
+      affectedInvoices: results.length,
       totalFamilyDiscount: family.sibling_discount_type === 'PERCENT' ? null : family.sibling_discount_value,
       totalDiscountApplied: totalAllocated,
       results 
