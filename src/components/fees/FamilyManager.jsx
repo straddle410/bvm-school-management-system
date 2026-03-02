@@ -157,8 +157,22 @@ export default function FamilyManager({ academicYear, isArchived }) {
   });
 
   const applyMutation = useMutation({
-    mutationFn: ({ family_id, action }) =>
-      base44.functions.invoke('applySiblingDiscount', { family_id, action }),
+    mutationFn: ({ family_id, action }) => {
+      const family = families.find(f => f.id === family_id);
+      
+      // Family discount cap check: total discount cannot exceed total outstanding balance
+      if (action === 'apply' && family) {
+        const discountAmt = family.sibling_discount_type === 'PERCENT'
+          ? (family.sibling_discount_value / 100) * totalOutstanding
+          : family.sibling_discount_value;
+        
+        if (discountAmt > totalOutstanding) {
+          throw new Error(`Maximum allowed discount is ₹${Math.floor(totalOutstanding)}.`);
+        }
+      }
+
+      return base44.functions.invoke('applySiblingDiscount', { family_id, action });
+    },
     onSuccess: (res, { action }) => {
       queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
@@ -166,10 +180,10 @@ export default function FamilyManager({ academicYear, isArchived }) {
       queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
       const results = res.data?.results || [];
       const applied = results.filter(r => r.status === 'applied').length;
-      const skippedPaid = results.filter(r => r.status === 'skipped_paid').length;
+      const appliedCredit = results.filter(r => r.status === 'applied_credit').length;
       const skippedCap = results.filter(r => r.status === 'skipped_exceeds_gross').length;
       if (action === 'apply') {
-        toast.success(`Sibling discount applied to ${applied} student(s).${skippedPaid ? ` ${skippedPaid} skipped (fully paid).` : ''}${skippedCap ? ` ${skippedCap} skipped (discount > gross).` : ''}`);
+        toast.success(`Sibling discount applied to ${applied + appliedCredit} student(s).${skippedCap ? ` ${skippedCap} skipped (exceeds balance).` : ''}`);
       } else {
         toast.success('Sibling discount removed from family.');
       }
