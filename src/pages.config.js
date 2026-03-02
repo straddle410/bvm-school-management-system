@@ -93,6 +93,7 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
+import Wave3ACollectionReport from './pages/Wave3ACollectionReport';
 import __Layout from './Layout.jsx';
 
 
@@ -143,6 +144,7 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
+    "Wave3ACollectionReport": Wave3ACollectionReport,
 }
 
 export const pagesConfig = {
