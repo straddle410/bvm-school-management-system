@@ -183,7 +183,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
       }
 
       try {
-        const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action, academic_year: academicYear });
+        const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action });
         return res;
       } catch (err) {
         throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
@@ -366,9 +366,16 @@ export default function FamilyManager({ academicYear, isArchived }) {
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setApplyingFamily(null)}>Cancel</Button>
                 <Button
+                  type="button"
                   className={applyingFamily.action === 'apply' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
                   disabled={applyMutation.isPending}
-                  onClick={() => applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action })}
+                  onClick={() => {
+                    if (applyingFamily?.family?.id && applyingFamily?.action) {
+                      applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action });
+                    } else {
+                      toast.error('Missing family or action information');
+                    }
+                  }}
                 >
                   {applyMutation.isPending ? 'Processing…' : applyingFamily.action === 'apply' ? 'Yes, Apply' : 'Yes, Remove'}
                 </Button>
