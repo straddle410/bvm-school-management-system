@@ -403,13 +403,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
               <Button variant="outline" onClick={closeDialog}>Cancel</Button>
               <Button
                 onClick={() => saveMutation.mutate()}
-                disabled={
-                  saveMutation.isPending ||
-                  (studentInvoice && (
-                    studentInvoice.status === 'Paid' ||
-                    (studentInvoice.paid_amount ?? 0) >= (studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0)
-                  ))
-                }
+                disabled={saveMutation.isPending || isSettled}
               >
                 {saveMutation.isPending ? 'Saving…' : editingDiscount ? 'Update Discount' : 'Save Discount'}
               </Button>
