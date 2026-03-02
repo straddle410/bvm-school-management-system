@@ -215,18 +215,27 @@ export default function DiscountManager({ academicYear, isArchived }) {
                 <p className="text-sm text-emerald-700 font-medium mt-0.5 flex items-center gap-1">
                   {d.discount_type === 'PERCENT' ? <Percent className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}
                   {discountPreview(d)}
+                  {d.notes?.startsWith('[SIBLING]') && (
+                    <span className="ml-1 text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-semibold">👨‍👩‍👧 Sibling</span>
+                  )}
                 </p>
-                {d.notes && <p className="text-xs text-slate-400 mt-0.5 truncate">{d.notes}</p>}
+                {d.notes && <p className="text-xs text-slate-400 mt-0.5 truncate">{d.notes.startsWith('[SIBLING]') ? d.notes.replace('[SIBLING] ', '') : d.notes}</p>}
               </div>
               {!isArchived && (
-                <div className="flex gap-2 flex-shrink-0">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(d)}>
-                    <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
-                  </Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:text-red-500" onClick={() => archiveMutation.mutate(d.id)}>
-                    <Archive className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+                d.notes?.startsWith('[SIBLING]') ? (
+                  <span className="flex items-center gap-1 text-xs text-indigo-500 flex-shrink-0">
+                    <Lock className="h-3 w-3" /> Sibling
+                  </span>
+                ) : (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => openEdit(d)}>
+                      <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-slate-400 hover:text-red-500" onClick={() => archiveMutation.mutate(d.id)}>
+                      <Archive className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )
               )}
             </div>
           ))}
