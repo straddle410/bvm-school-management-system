@@ -38,8 +38,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     enabled: !!selectedStudent && !!academicYear
   });
 
-  // Split invoices by type
-  const invoice = allInvoices.find(i => i.invoice_type !== 'ADHOC') || allInvoices.find(i => !i.invoice_type) || null;
+  const invoice = allInvoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL') || null;
   const adhocInvoices = allInvoices.filter(i => i.invoice_type === 'ADHOC' && i.status !== 'Cancelled');
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
@@ -47,6 +46,13 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     queryFn: () => base44.entities.FeePayment.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
     enabled: !!selectedStudent && !!academicYear
   });
+
+  // Payments keyed by invoice_id for adhoc
+  const paymentsByInvoice = payments.reduce((acc, p) => {
+    if (!acc[p.invoice_id]) acc[p.invoice_id] = [];
+    acc[p.invoice_id].push(p);
+    return acc;
+  }, {});
 
   const { data: discounts = [] } = useQuery({
     queryKey: ['fee-discounts-student', selectedStudent?.student_id, academicYear],
@@ -64,16 +70,6 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const net = gross - discount;
   const paid = invoice?.paid_amount ?? 0;
   const balance = Math.max(net - paid, 0);
-
-  // Payments split by invoice
-  const annualPayments = payments.filter(p => !adhocInvoices.some(ai => ai.id === p.invoice_id));
-  const adhocPaymentsMap = {};
-  for (const p of payments) {
-    if (adhocInvoices.some(ai => ai.id === p.invoice_id)) {
-      if (!adhocPaymentsMap[p.invoice_id]) adhocPaymentsMap[p.invoice_id] = [];
-      adhocPaymentsMap[p.invoice_id].push(p);
-    }
-  }
 
   const filteredStudents = students.filter(s =>
     s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
@@ -126,11 +122,9 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
             </div>
           </div>
 
-          {!invoice && adhocInvoices.length === 0 && (
-            <Card><CardContent className="py-8 text-center text-slate-400">No invoices generated for this student yet.</CardContent></Card>
-          )}
-
-          {invoice && (
+          {!invoice ? (
+            <Card><CardContent className="py-8 text-center text-slate-400">No annual invoice generated for this student yet.</CardContent></Card>
+          ) : (
             <Card className="border-0 shadow-sm overflow-hidden">
               <div className="px-4 py-3 bg-slate-50 flex items-center justify-between">
                 <div>
@@ -195,10 +189,10 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                 </div>
 
                 {/* Payments list */}
-                {annualPayments.length > 0 && (
+                {payments.length > 0 && (
                   <div className="border-t pt-3 space-y-1">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Payment History</p>
-                    {annualPayments.map(p => (
+                    {payments.map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm py-1">
                         <span className="text-slate-600">{p.payment_date} · {p.payment_mode}</span>
                         <span className="font-medium text-emerald-700">
