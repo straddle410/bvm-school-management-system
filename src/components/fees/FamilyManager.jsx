@@ -29,23 +29,20 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingFamily, setEditingFamily] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [phoneSearch, setPhoneSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
   const [applyingFamily, setApplyingFamily] = useState(null);
 
   // ─── AUTHORITATIVE SELECTION STATE ───────────────────────────────────────────
-  // This is the ONLY source of truth for selected student IDs.
-  // Only the three helpers below (addStudent, removeStudent, clearStudents) may modify it.
   const [selectedIds, setSelectedIds] = useState([]);
 
   const addStudent = (student_id) => {
     const sid = String(student_id).trim();
-    console.trace('[FamilyManager] addStudent called with:', sid);
     setSelectedIds(prev => prev.includes(sid) ? prev : [...prev, sid]);
   };
 
   const removeStudent = (student_id) => {
     const sid = String(student_id).trim();
-    console.trace('[FamilyManager] removeStudent called with:', sid);
     setSelectedIds(prev => prev.filter(id => id !== sid));
   };
 
@@ -71,12 +68,40 @@ export default function FamilyManager({ academicYear, isArchived }) {
     enabled: !!academicYear
   });
 
-  // Auto-suggest: read-only derived list, NEVER writes to selectedIds
-  const suggestedByPhone = phoneSearch.length >= 6
-    ? allStudents.filter(s => s.parent_phone?.replace(/\s/g, '').includes(phoneSearch.replace(/\s/g, '')))
-    : [];
+  // Fetch all fee invoices for outstanding balance calculations
+  const { data: allInvoices = [] } = useQuery({
+    queryKey: ['fee-invoices-all', academicYear],
+    queryFn: () => base44.entities.FeeInvoice.filter({ academic_year: academicYear }),
+    enabled: !!academicYear
+  });
 
-  // Students currently selected (derived from selectedIds)
+  // Calculate outstanding balance for a student (invoice net - paid)
+  const getOutstandingBalance = (student_id) => {
+    const studentInvoices = allInvoices.filter(inv => 
+      inv.student_id === student_id && (inv.invoice_type || 'ANNUAL') === 'ANNUAL'
+    );
+    return studentInvoices.reduce((sum, inv) => {
+      const net = inv.total_amount ?? 0;
+      const paid = inv.paid_amount ?? 0;
+      return sum + Math.max(net - paid, 0);
+    }, 0);
+  };
+
+  // Calculate total outstanding for selected students
+  const totalOutstanding = selectedIds.reduce((sum, sid) => sum + getOutstandingBalance(sid), 0);
+
+  // Search & filter students
+  const searchLower = searchQuery.toLowerCase();
+  const searchResults = selectedClass
+    ? allStudents.filter(s => 
+        s.class_name === selectedClass &&
+        (s.name.toLowerCase().includes(searchLower) || s.student_id.toLowerCase().includes(searchLower))
+      )
+    : allStudents.filter(s =>
+        s.name.toLowerCase().includes(searchLower) || s.student_id.toLowerCase().includes(searchLower)
+      );
+
+  // Students currently selected
   const selectedStudents = allStudents.filter(s => selectedIds.includes(String(s.student_id).trim()));
 
   const saveMutation = useMutation({
