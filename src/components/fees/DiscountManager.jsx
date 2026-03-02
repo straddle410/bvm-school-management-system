@@ -241,9 +241,19 @@ export default function DiscountManager({ academicYear, isArchived }) {
                 </div>
               )}
               {d.notes?.startsWith('[SIBLING]') && (
-                <Badge className="bg-blue-100 text-blue-700 border-0 text-xs flex-shrink-0">
-                  <Users className="h-3 w-3 mr-1" /> Sibling
-                </Badge>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!isArchived && (
+                    <Button size="sm" variant="outline" className="text-xs text-orange-600 hover:bg-orange-50 border-orange-200"
+                      onClick={() => reverseMutation.mutate(d.id)}
+                      disabled={reverseMutation.isPending}>
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      {reverseMutation.isPending ? 'Reversing…' : 'Reverse'}
+                    </Button>
+                  )}
+                  <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">
+                    <Users className="h-3 w-3 mr-1" /> Sibling
+                  </Badge>
+                </div>
               )}
             </div>
           ))}
