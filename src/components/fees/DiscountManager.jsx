@@ -48,13 +48,35 @@ export default function DiscountManager({ academicYear, isArchived }) {
     enabled: !!filterClass && !!academicYear
   });
 
-  // Fetch invoice for selected student to enforce paid guardrails
+  // Fetch invoice + existing discount for selected student to compute settled status
   const { data: studentInvoice } = useQuery({
     queryKey: ['fee-invoice-discount-check', selectedStudent?.student_id, academicYear],
     queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear })
       .then(r => r[0] || null),
     enabled: !!selectedStudent && !!academicYear
   });
+
+  // Compute settled: paid_amount >= (gross - existingDiscount) using NET, not gross
+  const isSettled = (() => {
+    if (!studentInvoice) return false;
+    if (studentInvoice.status === 'Paid') return true;
+    const gross = studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0;
+    const paid = studentInvoice.paid_amount ?? 0;
+    // Find existing discount for this student+AY
+    const existingDiscount = discounts.find(d =>
+      d.student_id === selectedStudent?.student_id &&
+      d.academic_year === academicYear &&
+      d.status === 'Active'
+    );
+    let discountAmt = 0;
+    if (existingDiscount) {
+      discountAmt = existingDiscount.discount_type === 'PERCENT'
+        ? Math.min((existingDiscount.discount_value / 100) * gross, gross)
+        : Math.min(existingDiscount.discount_value, gross);
+    }
+    const net = Math.max(gross - discountAmt, 0);
+    return paid >= net && net >= 0;
+  })();
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -63,60 +85,30 @@ export default function DiscountManager({ academicYear, isArchived }) {
       if (form.discount_type === 'PERCENT' && parseFloat(form.discount_value) > 100) throw new Error('Percentage cannot exceed 100');
       if (form.scope === 'FEE_HEAD' && !form.fee_head_id) throw new Error('Select a fee head for fee-head scoped discount');
 
-      // Guardrail: block if invoice is fully paid
-      if (studentInvoice) {
-        const gross = studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0;
-        const paid = studentInvoice.paid_amount ?? 0;
-        const val = parseFloat(form.discount_value);
-
-        if (studentInvoice.status === 'Paid') {
-          throw new Error('Cannot set discount: invoice is already fully Paid. No refund/reversal mechanism exists.');
-        }
-        if (paid >= gross && gross > 0) {
-          throw new Error('Cannot set discount: paid amount equals or exceeds the gross fee. Adjust payments first.');
-        }
-
-        // Cap AMOUNT discount at gross
-        if (form.discount_type === 'AMOUNT' && val > gross) {
-          throw new Error(`Discount amount (₹${val.toLocaleString()}) cannot exceed gross fee (₹${gross.toLocaleString()}).`);
-        }
+      // Frontend fast-fail using correct net-based check
+      if (isSettled) {
+        throw new Error('Cannot set discount: invoice is fully settled (paid ≥ net). No refund mechanism exists.');
       }
 
-      const me = await base44.auth.me();
-      const data = {
-        academic_year: academicYear,
+      // Delegate to backend which enforces the same net-based guardrail
+      const res = await base44.functions.invoke('setStudentDiscount', {
         student_id: selectedStudent.student_id,
-        student_name: selectedStudent.name,
-        class_name: selectedStudent.class_name,
+        academic_year: academicYear,
         discount_type: form.discount_type,
         discount_value: parseFloat(form.discount_value),
         scope: form.scope,
         fee_head_id: form.scope === 'FEE_HEAD' ? form.fee_head_id : '',
         fee_head_name: form.scope === 'FEE_HEAD' ? form.fee_head_name : '',
-        notes: form.notes,
-        status: 'Active',
-        created_by: me.email
-      };
+        notes: form.notes
+      });
 
-      // Enforce unique constraint: if an existing active discount exists for this student+AY, update it
-      const targetId = editingDiscount?.id || (() => {
-        const existing = discounts.find(d =>
-          d.student_id === selectedStudent.student_id &&
-          d.academic_year === academicYear &&
-          d.status === 'Active'
-        );
-        return existing?.id || null;
-      })();
-
-      if (targetId) {
-        return base44.entities.StudentFeeDiscount.update(targetId, data);
-      }
-      return base44.entities.StudentFeeDiscount.create(data);
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
       queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
-      toast.success(editingDiscount ? 'Discount updated' : 'Discount set');
+      toast.success(data?.action === 'updated' ? 'Discount updated' : 'Discount set');
       closeDialog();
     },
     onError: (e) => toast.error(e.message)
