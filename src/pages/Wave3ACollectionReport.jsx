@@ -15,7 +15,7 @@ import moment from 'moment';
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
-export default function Wave3ACollectionReport() {
+function Wave3ACollectionReportContent() {
   const { academicYear } = useAcademicYear();
   
   // Filters
