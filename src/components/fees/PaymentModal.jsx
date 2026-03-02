@@ -11,8 +11,6 @@ const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 export default function PaymentModal({ invoice, onClose, onSuccess }) {
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
-  const enteredAmount = parseFloat(form?.amountPaid) || 0;
-  const isOverpayment = enteredAmount > outstanding;
 
   const [form, setForm] = useState({
     amountPaid: outstanding,
