@@ -20,6 +20,9 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
     remarks: ''
   });
 
+  const enteredAmount = parseFloat(form?.amountPaid) || 0;
+  const isOverpayment = enteredAmount > outstanding;
+
   const payMutation = useMutation({
     mutationFn: async () => {
       const res = await base44.functions.invoke('recordFeePayment', {
