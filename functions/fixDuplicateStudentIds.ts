@@ -75,14 +75,16 @@ Deno.serve(async (req) => {
       // Extract numeric parts and find max
       let maxNum = 0;
       yearStudents.forEach(s => {
-        const match = String(s.student_id).match(/\d+$/);
+        const sidStr = String(s.student_id).trim();
+        // S25001 → extract 1; S25008 → extract 8, etc
+        const match = sidStr.match(/(\d+)$/);
         if (match) {
-          const num = parseInt(match[0], 10);
+          const num = parseInt(match[1], 10);
           maxNum = Math.max(maxNum, num);
         }
       });
 
-      const newStudentId = `S${year.split('-')[0]}${String(maxNum + 1).padStart(3, '0')}`;
+      const newStudentId = `S25${String(maxNum + 1).padStart(3, '0')}`;
 
       await base44.asServiceRole.entities.Student.update(record_id, {
         student_id: newStudentId,
