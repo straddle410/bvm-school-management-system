@@ -139,8 +139,8 @@ Deno.serve(async (req) => {
         discountAmt = Math.min(family.sibling_discount_value, gross);
       }
 
-      // Create new sibling discount
-      await base44.asServiceRole.entities.StudentFeeDiscount.create({
+      // Create new sibling discount and capture its ID for credit reference
+      const discountRecord = await base44.asServiceRole.entities.StudentFeeDiscount.create({
         academic_year: family.academic_year,
         student_id,
         student_name: student.name,
@@ -156,6 +156,8 @@ Deno.serve(async (req) => {
         status: 'Active',
         created_by: user.email
       });
+      
+      const discount_application_id = discountRecord.id;
 
       // If fully paid, create ledger credit instead of applying to invoice
       if (isFullyPaid) {
