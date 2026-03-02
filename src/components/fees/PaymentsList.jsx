@@ -32,12 +32,14 @@ const modeColor = {
   DD: 'bg-orange-100 text-orange-800'
 };
 
-export default function PaymentsList({ academicYear }) {
+export default function PaymentsList({ academicYear, isAdmin }) {
   const [classFilter, setClassFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [activePreset, setActivePreset] = useState('Today');
   const [fromDate, setFromDate] = useState(today());
   const [toDate, setToDate] = useState(today());
+  const [reversingPayment, setReversingPayment] = useState(null);
+  const queryClient = useQueryClient();
 
   const applyPreset = (preset) => {
     setActivePreset(preset.label);
@@ -45,15 +47,8 @@ export default function PaymentsList({ academicYear }) {
     setToDate(preset.to());
   };
 
-  const handleFromChange = (val) => {
-    setFromDate(val);
-    setActivePreset(null);
-  };
-
-  const handleToChange = (val) => {
-    setToDate(val);
-    setActivePreset(null);
-  };
+  const handleFromChange = (val) => { setFromDate(val); setActivePreset(null); };
+  const handleToChange = (val) => { setToDate(val); setActivePreset(null); };
 
   const { data: payments = [], isLoading } = useQuery({
     queryKey: ['fee-payments-all', academicYear, classFilter, fromDate, toDate],
@@ -65,7 +60,6 @@ export default function PaymentsList({ academicYear }) {
     enabled: !!academicYear && !!fromDate && !!toDate
   });
 
-  // Date range filter + search (client-side, fast)
   const filtered = payments.filter(p => {
     const inRange = (!fromDate || p.payment_date >= fromDate) && (!toDate || p.payment_date <= toDate);
     const matchSearch = !search ||
@@ -75,10 +69,12 @@ export default function PaymentsList({ academicYear }) {
     return inRange && matchSearch;
   });
 
-  // Sort latest first
   const sorted = [...filtered].sort((a, b) => (b.payment_date || '').localeCompare(a.payment_date || ''));
 
-  const totalCollected = sorted.reduce((s, p) => s + (p.amount_paid || 0), 0);
+  // Only count active (non-reversed) payments in totals
+  const activePayments = sorted.filter(p => p.status !== 'REVERSED');
+  const totalCollected = activePayments.reduce((s, p) => s + (p.amount_paid || 0), 0);
+  const reversedCount = sorted.length - activePayments.length;
 
   return (
     <div className="space-y-4">
@@ -121,9 +117,12 @@ export default function PaymentsList({ academicYear }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input placeholder="Search by student, receipt…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="text-sm font-semibold text-slate-700 ml-auto whitespace-nowrap">
+        <div className="text-sm font-semibold text-slate-700 ml-auto whitespace-nowrap text-right">
           <span className="text-emerald-700">₹{totalCollected.toLocaleString()}</span>
-          <span className="text-slate-400 font-normal ml-2">({sorted.length} receipt{sorted.length !== 1 ? 's' : ''})</span>
+          <span className="text-slate-400 font-normal ml-2">({activePayments.length} receipt{activePayments.length !== 1 ? 's' : ''})</span>
+          {reversedCount > 0 && (
+            <span className="text-red-400 font-normal ml-2">· {reversedCount} reversed</span>
+          )}
         </div>
       </div>
 
@@ -137,26 +136,66 @@ export default function PaymentsList({ academicYear }) {
         </CardContent></Card>
       ) : (
         <div className="space-y-2">
-          {sorted.map(p => (
-            <Card key={p.id} className="border-0 shadow-sm">
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                  <Receipt className="h-4 w-4 text-emerald-700" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-slate-900 text-sm">{p.student_name}</p>
-                    <span className="text-xs text-slate-400">{p.student_id}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${modeColor[p.payment_mode] || 'bg-slate-100'}`}>{p.payment_mode}</span>
+          {sorted.map(p => {
+            const isReversed = p.status === 'REVERSED';
+            return (
+              <Card key={p.id} className={`border-0 shadow-sm ${isReversed ? 'opacity-60' : ''}`}>
+                <CardContent className="p-3 flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${isReversed ? 'bg-red-100' : 'bg-emerald-100'}`}>
+                    <Receipt className={`h-4 w-4 ${isReversed ? 'text-red-400' : 'text-emerald-700'}`} />
                   </div>
-                  <p className="text-xs text-slate-500">{p.installment_name} · {p.payment_date} · #{p.receipt_no}</p>
-                  {p.reference_no && <p className="text-xs text-slate-400">Ref: {p.reference_no}</p>}
-                </div>
-                <p className="font-bold text-emerald-700 flex-shrink-0">₹{(p.amount_paid || 0).toLocaleString()}</p>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`font-medium text-sm ${isReversed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                        {p.student_name}
+                      </p>
+                      <span className="text-xs text-slate-400">{p.student_id}</span>
+                      {isReversed ? (
+                        <Badge variant="destructive" className="text-xs py-0">REVERSED</Badge>
+                      ) : (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${modeColor[p.payment_mode] || 'bg-slate-100'}`}>{p.payment_mode}</span>
+                      )}
+                    </div>
+                    <p className={`text-xs ${isReversed ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
+                      {p.installment_name} · {p.payment_date} · #{p.receipt_no}
+                    </p>
+                    {p.reference_no && <p className="text-xs text-slate-400">Ref: {p.reference_no}</p>}
+                    {isReversed && p.reversal_reason && (
+                      <p className="text-xs text-red-500 mt-0.5">↩ {p.reversal_reason}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <p className={`font-bold ${isReversed ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
+                      ₹{(p.amount_paid || 0).toLocaleString()}
+                    </p>
+                    {!isReversed && isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 px-2 text-xs gap-1"
+                        onClick={() => setReversingPayment(p)}
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        Reverse
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
+      )}
+
+      {reversingPayment && (
+        <ReversalModal
+          payment={reversingPayment}
+          onClose={() => setReversingPayment(null)}
+          onSuccess={() => {
+            setReversingPayment(null);
+            queryClient.invalidateQueries({ queryKey: ['fee-payments-all'] });
+          }}
+        />
       )}
     </div>
   );
