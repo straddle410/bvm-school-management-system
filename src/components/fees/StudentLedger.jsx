@@ -168,11 +168,13 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                 {/* Discount row */}
                 {discount > 0 && (
                   <div className="flex justify-between items-center text-sm bg-emerald-50 rounded-lg px-3 py-2">
-                    <span className="text-emerald-700 font-medium flex items-center gap-2">
-                      Discount Applied
-                      {discounts.some(d => d.notes?.startsWith('[SIBLING]')) && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">Sibling</span>
-                      )}
+                    <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+                      {discounts.some(d => d.notes?.startsWith('[SIBLING]')) ? (
+                        <span className="flex items-center gap-1">
+                          <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-semibold">SIBLING</span>
+                          Sibling Discount
+                        </span>
+                      ) : 'Discount Applied'}
                     </span>
                     <span className="text-emerald-700 font-bold">−₹{discount.toLocaleString()}</span>
                   </div>
