@@ -59,9 +59,7 @@ Deno.serve(async (req) => {
         academic_year: family.academic_year
       });
       const inv = invoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL');
-      if (inv && inv.status === 'Paid') {
-        results.push({ student_id, status: 'skipped_paid' }); continue;
-      }
+      const isFullyPaid = inv && inv.status === 'Paid';
 
       // Compute cap check
       const gross = inv?.gross_total ?? inv?.total_amount ?? 0;
@@ -78,6 +76,15 @@ Deno.serve(async (req) => {
         if (d.notes?.startsWith('[SIBLING]') && d.status === 'Active') {
           await base44.asServiceRole.entities.StudentFeeDiscount.update(d.id, { status: 'Archived' });
         }
+      }
+
+      // Calculate discount amount
+      const gross = inv?.gross_total ?? inv?.total_amount ?? 0;
+      let discountAmt = 0;
+      if (family.sibling_discount_type === 'PERCENT') {
+        discountAmt = Math.min((family.sibling_discount_value / 100) * gross, gross);
+      } else {
+        discountAmt = Math.min(family.sibling_discount_value, gross);
       }
 
       // Create new sibling discount
@@ -98,32 +105,45 @@ Deno.serve(async (req) => {
         created_by: user.email
       });
 
-      // Recalculate invoice if exists
-      if (inv) {
-        const gross2 = inv.gross_total ?? inv.total_amount ?? 0;
-        let discountAmt = 0;
-        if (family.sibling_discount_type === 'PERCENT') {
-          discountAmt = Math.min((family.sibling_discount_value / 100) * gross2, gross2);
-        } else {
-          discountAmt = Math.min(family.sibling_discount_value, gross2);
-        }
-        const net = Math.max(gross2 - discountAmt, 0);
-        const paidAmt = inv.paid_amount ?? 0;
-        const balance = Math.max(net - paidAmt, 0);
-        let status = inv.status;
-        if (paidAmt >= net && net >= 0 && paidAmt > 0) status = 'Paid';
-        else if (paidAmt > 0) status = 'Partial';
-        else status = 'Pending';
-
-        await base44.asServiceRole.entities.FeeInvoice.update(inv.id, {
-          discount_total: discountAmt,
-          total_amount: net,
-          balance,
-          status
+      // If fully paid, create ledger credit instead of applying to invoice
+      if (isFullyPaid) {
+        // Create DISCOUNT_CREDIT ledger entry
+        await base44.asServiceRole.entities.FeePayment.create({
+          academic_year: family.academic_year,
+          invoice_id: inv.id,
+          student_id,
+          student_name: student.name,
+          class_name: student.class_name,
+          installment_name: inv.installment_name,
+          receipt_no: `CREDIT-${Date.now()}`,
+          amount_paid: -discountAmt, // negative = credit
+          payment_date: new Date().toISOString().split('T')[0],
+          payment_mode: 'Credit',
+          remarks: `[SIBLING] Family discount credit: ${family.family_name}`,
+          collected_by: user.email,
+          status: 'Active'
         });
-      }
+        results.push({ student_id, status: 'applied_credit', credit_amount: discountAmt });
+      } else {
+        // Recalculate invoice if not fully paid
+        if (inv) {
+          const net = Math.max(gross - discountAmt, 0);
+          const paidAmt = inv.paid_amount ?? 0;
+          const balance = Math.max(net - paidAmt, 0);
+          let status = inv.status;
+          if (paidAmt >= net && net >= 0 && paidAmt > 0) status = 'Paid';
+          else if (paidAmt > 0) status = 'Partial';
+          else status = 'Pending';
 
-      results.push({ student_id, status: 'applied' });
+          await base44.asServiceRole.entities.FeeInvoice.update(inv.id, {
+            discount_total: discountAmt,
+            total_amount: net,
+            balance,
+            status
+          });
+        }
+        results.push({ student_id, status: 'applied' });
+      }
     }
 
     await base44.asServiceRole.entities.FeeFamily.update(family_id, { sibling_discount_applied: true });
