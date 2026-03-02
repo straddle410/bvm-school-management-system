@@ -45,20 +45,11 @@ export default function FamilyManager({ academicYear, isArchived }) {
     queryFn: () => base44.entities.FeeHead.filter({ is_active: true })
   });
 
-  // Fetch all published (active) students — explicitly exclude soft-deleted students
-  const { data: allStudentsRaw = [] } = useQuery({
+  // Fetch all published, non-deleted students to find siblings by phone
+  const { data: allStudents = [] } = useQuery({
     queryKey: ['students-all-published', academicYear],
-    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear, status: 'Published' }),
+    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear, status: 'Published', is_deleted: false }),
     enabled: !!academicYear
-  });
-
-  // Hard-exclude any soft-deleted student and deduplicate by student_id (keep first occurrence)
-  const seenIds = new Set();
-  const allStudents = allStudentsRaw.filter(s => {
-    if (s.is_deleted) return false;
-    if (seenIds.has(s.student_id)) return false;
-    seenIds.add(s.student_id);
-    return true;
   });
 
   // Auto-suggest siblings by parent phone
