@@ -178,29 +178,22 @@ export default function FamilyManager({ academicYear, isArchived }) {
      }
    },
     onSuccess: (res, { action }) => {
-      console.log('Mutation onSuccess triggered with:', { res, action });
-      try {
-        queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
-        queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
-        queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
-        queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
-      } catch (err) {
-        console.warn('Query invalidation warning:', err);
-      }
+      queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
+      queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
+      queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
       
       const results = res.data?.results || [];
       const applied = results.filter(r => r.status === 'applied').length;
       const appliedCredit = results.filter(r => r.status === 'applied_credit').length;
-      const skippedCap = results.filter(r => r.status === 'skipped_exceeds_gross').length;
       if (action === 'apply') {
-        toast.success(`Sibling discount applied to ${applied + appliedCredit} student(s).${skippedCap ? ` ${skippedCap} skipped (exceeds balance).` : ''}`);
+        toast.success(`Sibling discount applied to ${applied + appliedCredit} student(s).`);
       } else {
         toast.success('Sibling discount removed from family.');
       }
       setApplyingFamily(null);
     },
     onError: (e) => {
-      console.error('Mutation onError triggered:', e);
       const msg = e?.message || e?.data?.error || 'Failed to apply discount';
       toast.error(msg);
       setApplyingFamily(null);
