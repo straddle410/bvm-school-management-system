@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No valid invoices found for family students' }, { status: 400 });
     }
 
-    // Step 2: Calculate proportional discount per student
+    // Step 2: Calculate proportional discount per student (rounded to nearest 100)
     const studentDiscountAmounts = {};
     let totalAllocated = 0;
 
@@ -152,18 +152,23 @@ Deno.serve(async (req) => {
 
       let discountAmt = 0;
 
-      if (family.sibling_discount_type === 'PERCENT') {
-        // For percentage: apply % to each student's gross
-        discountAmt = Math.round((family.sibling_discount_value / 100) * gross);
+      if (i === familyStudents.length - 1) {
+        // Last student: absorb any rounding difference to ensure sum equals total
+        discountAmt = family.sibling_discount_value - totalAllocated;
       } else {
-        // For AMOUNT: distribute proportionally
-        if (i === familyStudents.length - 1) {
-          // Last student: absorb any rounding difference
-          discountAmt = family.sibling_discount_value - totalAllocated;
+        let raw = 0;
+
+        if (family.sibling_discount_type === 'PERCENT') {
+          // For percentage: apply % to each student's gross
+          raw = (family.sibling_discount_value / 100) * gross;
         } else {
+          // For AMOUNT: distribute proportionally
           const proportion = gross / totalFamilyGross;
-          discountAmt = Math.round(family.sibling_discount_value * proportion);
+          raw = family.sibling_discount_value * proportion;
         }
+
+        // Round to nearest 100
+        discountAmt = Math.round(raw / 100) * 100;
       }
 
       // Ensure discount doesn't exceed student's due amount
