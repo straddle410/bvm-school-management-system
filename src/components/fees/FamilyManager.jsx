@@ -37,11 +37,17 @@ export default function FamilyManager({ academicYear, isArchived }) {
   // Only the three helpers below (addStudent, removeStudent, clearStudents) may modify it.
   const [selectedIds, setSelectedIds] = useState([]);
 
-  const addStudent = (student_id) =>
-    setSelectedIds(prev => prev.includes(student_id) ? prev : [...prev, student_id]);
+  const addStudent = (student_id) => {
+    const sid = String(student_id).trim();
+    console.trace('[FamilyManager] addStudent called with:', sid);
+    setSelectedIds(prev => prev.includes(sid) ? prev : [...prev, sid]);
+  };
 
-  const removeStudent = (student_id) =>
-    setSelectedIds(prev => prev.filter(id => id !== student_id));
+  const removeStudent = (student_id) => {
+    const sid = String(student_id).trim();
+    console.trace('[FamilyManager] removeStudent called with:', sid);
+    setSelectedIds(prev => prev.filter(id => id !== sid));
+  };
 
   const clearStudents = () => setSelectedIds([]);
   // ─────────────────────────────────────────────────────────────────────────────
