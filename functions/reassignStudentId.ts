@@ -34,33 +34,23 @@ Deno.serve(async (req) => {
     const normalizedId = String(new_student_id).trim().toUpperCase();
     const academic_year = targetRecord.academic_year;
 
-    // Run interceptor validation (before_update)
-    const interceptorReq = new Request('http://localhost', {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'before_update',
-        student_id: new_student_id,
-        academic_year,
-        record_id
-      })
-    });
+    // Validate uniqueness: check no other student has same normalized ID in this year
+    const conflicts = allStudents.filter(s =>
+      s.id !== record_id &&
+      s.academic_year === academic_year &&
+      !s.is_deleted &&
+      String(s.student_id).trim().toUpperCase() === normalizedId
+    );
 
-    const interceptorRes = await base44.asServiceRole.functions.invoke('studentIdInterceptor', {
-      action: 'before_update',
-      student_id: new_student_id,
-      academic_year,
-      record_id
-    });
-
-    if (!interceptorRes.allowed) {
+    if (conflicts.length > 0) {
       return Response.json({
-        error: 'Interceptor validation failed',
-        details: interceptorRes
+        error: `Student ID "${new_student_id}" already assigned in ${academic_year}`,
+        conflicts: conflicts.map(s => ({ id: s.id, name: s.name }))
       }, { status: 409 });
     }
 
     // Update record with admin privileges (bypasses RLS)
-    const updatedRecord = await base44.asServiceRole.entities.Student.update(record_id, {
+    await base44.asServiceRole.entities.Student.update(record_id, {
       student_id: new_student_id,
       student_id_norm: normalizedId,
       username: new_student_id
