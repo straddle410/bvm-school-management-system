@@ -32,6 +32,14 @@ Deno.serve(async (req) => {
     if (!payment) return Response.json({ error: 'Payment not found' }, { status: 404 });
     if (payment.status === 'REVERSED') return Response.json({ error: 'Payment is already reversed' }, { status: 400 });
 
+    // Non-admins can only reverse same-day receipts
+    if (!isAdmin) {
+      const today = new Date().toISOString().split('T')[0];
+      if (payment.payment_date !== today) {
+        return Response.json({ error: 'Non-admin users can only reverse receipts created today. Please contact an admin for older receipts.' }, { status: 403 });
+      }
+    }
+
     // Fetch the invoice
     const invoice = await base44.asServiceRole.entities.FeeInvoice.get(payment.invoice_id);
     if (!invoice) return Response.json({ error: 'Invoice not found' }, { status: 404 });

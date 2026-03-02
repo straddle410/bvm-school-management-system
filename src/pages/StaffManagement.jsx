@@ -41,6 +41,7 @@ const DEFAULT_PERMISSIONS = {
   gallery_needs_approval: true,
   quiz: false,
   quiz_needs_approval: true,
+  fees_reverse_receipt: false,
 };
 
 const emptyForm = {
