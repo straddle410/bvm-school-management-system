@@ -16,7 +16,7 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const EMPTY_FORM = {
   family_name: '',
   parent_phone: '',
-  sibling_discount_type: 'PERCENT',
+  sibling_discount_type: 'AMOUNT',
   sibling_discount_value: '',
   sibling_discount_scope: 'TOTAL',
   sibling_discount_fee_head_id: '',
@@ -240,7 +240,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
     setForm({
       family_name: family.family_name,
       parent_phone: family.parent_phone || '',
-      sibling_discount_type: family.sibling_discount_type || 'PERCENT',
+      sibling_discount_type: family.sibling_discount_type || 'AMOUNT',
       sibling_discount_value: family.sibling_discount_value != null ? String(family.sibling_discount_value) : '',
       sibling_discount_scope: family.sibling_discount_scope || 'TOTAL',
       sibling_discount_fee_head_id: family.sibling_discount_fee_head_id || '',
