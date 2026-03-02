@@ -92,6 +92,8 @@ Deno.serve(async (req) => {
         fee_head_id: family.sibling_discount_fee_head_id || '',
         fee_head_name: family.sibling_discount_fee_head_name || '',
         notes: `[SIBLING] Family: ${family.family_name}`,
+        discount_source: 'FAMILY',
+        family_id: family_id,
         status: 'Active',
         created_by: user.email
       });
