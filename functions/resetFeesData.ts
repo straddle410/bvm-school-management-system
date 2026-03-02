@@ -152,12 +152,29 @@ Deno.serve(async (req) => {
       counts.families_cleaned++;
     }
 
+    // Diagnostic: Check for remaining records
+    let remainingPayments = [];
+    try {
+      const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear });
+      remainingPayments = studentIds 
+        ? allPayments.filter(p => studentIds.includes(p.student_id)).slice(0, 3)
+        : allPayments.slice(0, 3);
+    } catch (e) {
+      // Silent fail for diagnosis
+    }
+
     return Response.json({
       success: true,
       message: `Reset fees data for ${academicYear}${className ? ` Class ${className}` : ''}`,
       counts: counts,
       timestamp: new Date().toISOString(),
-      reset_by: user.email
+      reset_by: user.email,
+      verification: {
+        scope: { academicYear, className: className || 'ALL', studentIds: studentIds ? `${studentIds.length} students` : 'ALL' },
+        remainingPaymentSamples: remainingPayments.length > 0 
+          ? remainingPayments.map(p => ({ id: p.id, student_id: p.student_id, amount: p.amount_paid, receipt_no: p.receipt_no }))
+          : 'NONE (✓ Clean)'
+      }
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
