@@ -374,16 +374,29 @@ export default function FamilyManager({ academicYear, isArchived }) {
                     return (
                       <div key={cls} className="w-full">
                         <p className="text-xs font-semibold text-slate-500 mb-1">Class {cls}</p>
-                        {classStudents.map(s => (
-                          <label key={s.student_id} className="flex items-center gap-2 cursor-pointer py-0.5">
-                            <input type="checkbox"
-                              checked={selectedIds.includes(s.student_id)}
-                              onChange={e => e.target.checked ? addStudent(s.student_id) : removeStudent(s.student_id)}
-                              className="h-3.5 w-3.5 rounded accent-indigo-600"
-                            />
-                            <span className="text-xs text-slate-700">{s.name} <span className="text-slate-400">({s.student_id})</span></span>
-                          </label>
-                        ))}
+                        {classStudents.map(s => {
+                          const sid = String(s.student_id).trim();
+                          return (
+                            <div key={sid} className="flex items-center gap-2 py-0.5">
+                              <input
+                                type="checkbox"
+                                id={`student-cb-${sid}`}
+                                checked={selectedIds.includes(sid)}
+                                onChange={e => {
+                                  console.log('[FamilyManager] checkbox onChange', sid, e.target.checked);
+                                  e.target.checked ? addStudent(sid) : removeStudent(sid);
+                                }}
+                                className="h-3.5 w-3.5 rounded accent-indigo-600 cursor-pointer"
+                              />
+                              <label
+                                htmlFor={`student-cb-${sid}`}
+                                className="text-xs text-slate-700 cursor-pointer select-none"
+                              >
+                                {s.name} <span className="text-slate-400">({sid})</span>
+                              </label>
+                            </div>
+                          );
+                        })}
                       </div>
                     );
                   })
