@@ -146,7 +146,11 @@ export default function FamilyManager({ academicYear, isArchived }) {
       toast.success(editingFamily ? 'Family updated' : 'Family created');
       closeDialog();
     },
-    onError: (e) => toast.error(e.message)
+    onError: (e) => {
+      const errorMsg = e?.message || e?.data?.error || e?.response?.data?.error || 'Failed to save family';
+      setSaveError(errorMsg);
+      toast.error(errorMsg);
+    }
   });
 
   const deleteMutation = useMutation({
