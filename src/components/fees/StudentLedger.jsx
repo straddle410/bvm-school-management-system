@@ -27,9 +27,9 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const [payingInvoice, setPayingInvoice] = useState(null);
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students-published', selectedClass, academicYear],
-    queryFn: () => base44.entities.Student.filter({ class_name: selectedClass, academic_year: academicYear, status: 'Published' }),
-    enabled: !!selectedClass && !!academicYear
+   queryKey: ['students-published', selectedClass, academicYear],
+   queryFn: () => base44.entities.Student.filter({ class_name: selectedClass, academic_year: academicYear, status: 'Published', is_deleted: false }),
+   enabled: !!selectedClass && !!academicYear
   });
 
   const { data: allInvoices = [], refetch: refetchInvoice } = useQuery({
