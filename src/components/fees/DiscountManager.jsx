@@ -409,8 +409,17 @@ export default function DiscountManager({ academicYear, isArchived }) {
 
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? 'Saving…' : 'Save Discount'}
+              <Button
+                onClick={() => saveMutation.mutate()}
+                disabled={
+                  saveMutation.isPending ||
+                  (studentInvoice && (
+                    studentInvoice.status === 'Paid' ||
+                    (studentInvoice.paid_amount ?? 0) >= (studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0)
+                  ))
+                }
+              >
+                {saveMutation.isPending ? 'Saving…' : editingDiscount ? 'Update Discount' : 'Save Discount'}
               </Button>
             </div>
           </div>
