@@ -5,10 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Plus, Users, Percent, Tag, CheckCircle2, RotateCcw, Edit2, X } from 'lucide-react';
+import { AlertCircle, Plus, Users, Percent, Tag, Trash2, Edit2, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -16,12 +16,13 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const EMPTY_FAMILY = {
   family_name: '',
   parent_phone: '',
-  notes: '',
+  student_ids: [],
   sibling_discount_type: 'PERCENT',
   sibling_discount_value: '',
   sibling_discount_scope: 'TOTAL',
   sibling_discount_fee_head_id: '',
   sibling_discount_fee_head_name: '',
+  notes: ''
 };
 
 export default function FamilyManager({ academicYear, isArchived }) {
@@ -29,23 +30,14 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingFamily, setEditingFamily] = useState(null);
   const [form, setForm] = useState(EMPTY_FAMILY);
-  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
   const [phoneSearch, setPhoneSearch] = useState('');
-  const [classFilter, setClassFilter] = useState('');
-  const [studentSearch, setStudentSearch] = useState('');
+  const [applyingFamily, setApplyingFamily] = useState(null); // confirm apply/remove
 
-  // Fetch all families
+  // Fetch all families for this AY
   const { data: families = [] } = useQuery({
     queryKey: ['fee-families', academicYear],
     queryFn: () => base44.entities.FeeFamily.filter({ academic_year: academicYear }),
     enabled: !!academicYear
-  });
-
-  // Fetch published students for adding to family
-  const { data: allStudents = [] } = useQuery({
-    queryKey: ['students-published-all', academicYear],
-    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear, status: 'Published' }),
-    enabled: !!academicYear && showDialog
   });
 
   const { data: feeHeads = [] } = useQuery({
@@ -53,36 +45,49 @@ export default function FamilyManager({ academicYear, isArchived }) {
     queryFn: () => base44.entities.FeeHead.filter({ is_active: true })
   });
 
-  // Auto-suggest siblings when phone matches
-  const suggestedStudents = phoneSearch.length >= 8
-    ? allStudents.filter(s => s.parent_phone?.includes(phoneSearch))
-    : [];
-
-  const filteredStudents = allStudents.filter(s => {
-    const matchClass = !classFilter || s.class_name === classFilter;
-    const matchSearch = !studentSearch || s.name?.toLowerCase().includes(studentSearch.toLowerCase()) || s.student_id?.includes(studentSearch);
-    return matchClass && matchSearch;
+  // Fetch all published students to find siblings by phone
+  const { data: allStudents = [] } = useQuery({
+    queryKey: ['students-all-published', academicYear],
+    queryFn: () => base44.entities.Student.filter({ academic_year: academicYear, status: 'Published' }),
+    enabled: !!academicYear
   });
 
-  const saveFamilyMutation = useMutation({
+  // Auto-suggest siblings by parent phone
+  const suggestedByPhone = phoneSearch.length >= 6
+    ? allStudents.filter(s => s.parent_phone?.replace(/\s/g, '').includes(phoneSearch.replace(/\s/g, '')))
+    : [];
+
+  // Students selected in form
+  const selectedStudents = allStudents.filter(s => form.student_ids.includes(s.student_id));
+
+  const toggleStudent = (student) => {
+    const ids = form.student_ids.includes(student.student_id)
+      ? form.student_ids.filter(id => id !== student.student_id)
+      : [...form.student_ids, student.student_id];
+    setForm({ ...form, student_ids: ids });
+  };
+
+  const saveMutation = useMutation({
     mutationFn: async () => {
       if (!form.family_name.trim()) throw new Error('Family name is required');
-      if (selectedStudentIds.length < 1) throw new Error('Add at least one student');
+      if (form.student_ids.length < 2) throw new Error('Select at least 2 students');
 
-      const studentData = allStudents.filter(s => selectedStudentIds.includes(s.student_id));
+      const studentNames = allStudents
+        .filter(s => form.student_ids.includes(s.student_id))
+        .map(s => s.name);
+
       const payload = {
         ...form,
         academic_year: academicYear,
-        student_ids: selectedStudentIds,
-        student_names: studentData.map(s => s.name),
-        sibling_discount_value: form.sibling_discount_value ? parseFloat(form.sibling_discount_value) : undefined,
-        created_by: ''
+        student_names: studentNames,
+        sibling_discount_value: form.sibling_discount_value ? parseFloat(form.sibling_discount_value) : null,
+        sibling_discount_applied: editingFamily ? (editingFamily.sibling_discount_applied ?? false) : false
       };
 
       if (editingFamily) {
-        await base44.entities.FeeFamily.update(editingFamily.id, payload);
+        return base44.entities.FeeFamily.update(editingFamily.id, payload);
       } else {
-        await base44.entities.FeeFamily.create(payload);
+        return base44.entities.FeeFamily.create(payload);
       }
     },
     onSuccess: () => {
@@ -93,29 +98,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
     onError: (e) => toast.error(e.message)
   });
 
-  const applyDiscountMutation = useMutation({
-    mutationFn: async ({ family_id, action }) => {
-      const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action });
-      if (res.data?.error) throw new Error(res.data.error);
-      return res.data;
-    },
-    onSuccess: (data, { action }) => {
-      queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
-      queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
-      queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
-      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
-      const skipped = data.results?.filter(r => r.status !== 'applied').length || 0;
-      const applied = data.results?.filter(r => r.status === 'applied').length || 0;
-      if (action === 'apply') {
-        toast.success(`Sibling discount applied to ${applied} student(s)${skipped ? ` · ${skipped} skipped (paid/capped)` : ''}`);
-      } else {
-        toast.success('Sibling discount removed');
-      }
-    },
-    onError: (e) => toast.error(e.message)
-  });
-
-  const deleteFamilyMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.FeeFamily.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
@@ -123,13 +106,32 @@ export default function FamilyManager({ academicYear, isArchived }) {
     }
   });
 
+  const applyMutation = useMutation({
+    mutationFn: ({ family_id, action }) =>
+      base44.functions.invoke('applySiblingDiscount', { family_id, action }),
+    onSuccess: (res, { action }) => {
+      queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
+      queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
+      queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+      const results = res.data?.results || [];
+      const applied = results.filter(r => r.status === 'applied').length;
+      const skippedPaid = results.filter(r => r.status === 'skipped_paid').length;
+      const skippedCap = results.filter(r => r.status === 'skipped_exceeds_gross').length;
+      if (action === 'apply') {
+        toast.success(`Sibling discount applied to ${applied} student(s).${skippedPaid ? ` ${skippedPaid} skipped (fully paid).` : ''}${skippedCap ? ` ${skippedCap} skipped (discount > gross).` : ''}`);
+      } else {
+        toast.success('Sibling discount removed from family.');
+      }
+      setApplyingFamily(null);
+    },
+    onError: (e) => { toast.error(e.message || e.data?.error || 'Failed'); setApplyingFamily(null); }
+  });
+
   const openAdd = () => {
     setEditingFamily(null);
     setForm(EMPTY_FAMILY);
-    setSelectedStudentIds([]);
     setPhoneSearch('');
-    setClassFilter('');
-    setStudentSearch('');
     setShowDialog(true);
   };
 
@@ -138,17 +140,15 @@ export default function FamilyManager({ academicYear, isArchived }) {
     setForm({
       family_name: family.family_name,
       parent_phone: family.parent_phone || '',
-      notes: family.notes || '',
+      student_ids: family.student_ids || [],
       sibling_discount_type: family.sibling_discount_type || 'PERCENT',
       sibling_discount_value: family.sibling_discount_value != null ? String(family.sibling_discount_value) : '',
       sibling_discount_scope: family.sibling_discount_scope || 'TOTAL',
       sibling_discount_fee_head_id: family.sibling_discount_fee_head_id || '',
       sibling_discount_fee_head_name: family.sibling_discount_fee_head_name || '',
+      notes: family.notes || ''
     });
-    setSelectedStudentIds(family.student_ids || []);
     setPhoneSearch(family.parent_phone || '');
-    setClassFilter('');
-    setStudentSearch('');
     setShowDialog(true);
   };
 
@@ -156,21 +156,16 @@ export default function FamilyManager({ academicYear, isArchived }) {
     setShowDialog(false);
     setEditingFamily(null);
     setForm(EMPTY_FAMILY);
-    setSelectedStudentIds([]);
     setPhoneSearch('');
-    setStudentSearch('');
-    setClassFilter('');
   };
 
-  const toggleStudent = (student_id) => {
-    setSelectedStudentIds(prev =>
-      prev.includes(student_id) ? prev.filter(id => id !== student_id) : [...prev, student_id]
-    );
-  };
-
-  const addSuggestedAll = () => {
-    const ids = suggestedStudents.map(s => s.student_id);
-    setSelectedStudentIds(prev => [...new Set([...prev, ...ids])]);
+  const discountLabel = (f) => {
+    if (!f.sibling_discount_value) return 'No discount set';
+    const val = f.sibling_discount_type === 'PERCENT'
+      ? `${f.sibling_discount_value}% off`
+      : `₹${f.sibling_discount_value} off`;
+    const scope = f.sibling_discount_scope === 'TOTAL' ? 'total' : f.sibling_discount_fee_head_name || 'fee head';
+    return `${val} on ${scope}`;
   };
 
   return (
@@ -178,12 +173,12 @@ export default function FamilyManager({ academicYear, isArchived }) {
       {isArchived && (
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          This academic year is archived. Editing is disabled.
+          This academic year is archived. Family discount editing is disabled.
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">{families.length} family group{families.length !== 1 ? 's' : ''}</p>
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-slate-500">{families.length} family group{families.length !== 1 ? 's' : ''} · Sibling discounts applied per family</p>
         {!isArchived && (
           <Button onClick={openAdd} className="bg-[#1a237e] hover:bg-[#283593]">
             <Plus className="h-4 w-4 mr-1" /> New Family
@@ -199,169 +194,195 @@ export default function FamilyManager({ academicYear, isArchived }) {
       ) : (
         <div className="space-y-3">
           {families.map(family => (
-            <Card key={family.id} className="border-0 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-slate-800">{family.family_name}</span>
-                      {family.parent_phone && <span className="text-xs text-slate-400">📞 {family.parent_phone}</span>}
-                      {family.sibling_discount_applied && (
-                        <Badge className="bg-emerald-100 text-emerald-800 border-0 text-xs">
-                          <CheckCircle2 className="h-3 w-3 mr-1" /> Discount Applied
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {(family.student_names || []).map((name, i) => (
-                        <Badge key={i} variant="outline" className="text-xs font-normal">{name}</Badge>
-                      ))}
-                    </div>
-                    {family.sibling_discount_value && (
-                      <p className="text-sm text-emerald-700 mt-2 flex items-center gap-1">
-                        {family.sibling_discount_type === 'PERCENT' ? <Percent className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}
-                        Sibling discount: {family.sibling_discount_type === 'PERCENT' ? `${family.sibling_discount_value}%` : `₹${family.sibling_discount_value}`}
-                        {family.sibling_discount_scope === 'FEE_HEAD' ? ` on ${family.sibling_discount_fee_head_name}` : ' on total'}
-                      </p>
-                    )}
-                    {family.notes && <p className="text-xs text-slate-400 mt-1">{family.notes}</p>}
-                  </div>
-
+            <Card key={family.id} className="border-0 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-indigo-50 flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-indigo-600" />
+                  <span className="font-semibold text-slate-800">{family.family_name}</span>
+                  {family.parent_phone && <span className="text-xs text-slate-500">📞 {family.parent_phone}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  {family.sibling_discount_applied ? (
+                    <Badge className="bg-emerald-100 text-emerald-800 text-xs">✓ Discount Applied</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-xs text-slate-500">Not Applied</Badge>
+                  )}
                   {!isArchived && (
-                    <div className="flex gap-2 flex-shrink-0 flex-wrap">
-                      {family.sibling_discount_value && !family.sibling_discount_applied && (
-                        <Button
-                          size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-xs"
-                          disabled={applyDiscountMutation.isPending}
-                          onClick={() => applyDiscountMutation.mutate({ family_id: family.id, action: 'apply' })}
-                        >
-                          Apply Discount
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(family)}>
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {!isArchived && (
+                    <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-600"
+                      onClick={() => deleteMutation.mutate(family.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <CardContent className="p-4 space-y-3">
+                {/* Members */}
+                <div className="flex flex-wrap gap-2">
+                  {(family.student_ids || []).map((sid, i) => (
+                    <span key={sid} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
+                      {family.student_names?.[i] || sid}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Discount info */}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-sm text-emerald-700 font-medium flex items-center gap-1">
+                    {family.sibling_discount_type === 'PERCENT'
+                      ? <Percent className="h-3.5 w-3.5" />
+                      : <Tag className="h-3.5 w-3.5" />}
+                    {discountLabel(family)}
+                  </p>
+                  {!isArchived && family.sibling_discount_value && (
+                    <div className="flex gap-2">
+                      {family.sibling_discount_applied ? (
+                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+                          onClick={() => setApplyingFamily({ family, action: 'remove' })}>
+                          <XCircle className="h-3.5 w-3.5 mr-1" /> Remove Discount
+                        </Button>
+                      ) : (
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs"
+                          onClick={() => setApplyingFamily({ family, action: 'apply' })}>
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Apply Discount
                         </Button>
                       )}
-                      {family.sibling_discount_applied && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-500 border-red-200 text-xs"
-                          disabled={applyDiscountMutation.isPending}
-                          onClick={() => applyDiscountMutation.mutate({ family_id: family.id, action: 'remove' })}
-                        >
-                          <RotateCcw className="h-3 w-3 mr-1" /> Remove Discount
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline" onClick={() => openEdit(family)}>
-                        <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
-                      </Button>
-                      <Button
-                        size="sm" variant="ghost"
-                        className="text-slate-400 hover:text-red-500"
-                        onClick={() => { if (confirm('Delete this family group?')) deleteFamilyMutation.mutate(family.id); }}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
                     </div>
                   )}
                 </div>
+                {family.notes && <p className="text-xs text-slate-400">{family.notes}</p>}
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Add/Edit Dialog */}
+      {/* Confirm Apply/Remove Dialog */}
+      {applyingFamily && (
+        <Dialog open onOpenChange={() => setApplyingFamily(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>
+                {applyingFamily.action === 'apply' ? 'Apply Sibling Discount?' : 'Remove Sibling Discount?'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">
+                {applyingFamily.action === 'apply'
+                  ? `This will create individual discount records for all ${applyingFamily.family.student_ids.length} students in "${applyingFamily.family.family_name}" with ${discountLabel(applyingFamily.family)}. Fully-paid invoices will be skipped.`
+                  : `This will archive the sibling discount for all students in "${applyingFamily.family.family_name}". Fully-paid invoices will be skipped.`}
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setApplyingFamily(null)}>Cancel</Button>
+                <Button
+                  className={applyingFamily.action === 'apply' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
+                  disabled={applyMutation.isPending}
+                  onClick={() => applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action })}
+                >
+                  {applyMutation.isPending ? 'Processing…' : applyingFamily.action === 'apply' ? 'Yes, Apply' : 'Yes, Remove'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={v => { if (!v) closeDialog(); }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingFamily ? 'Edit Family Group' : 'New Family Group'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+
             <div>
               <Label>Family Name *</Label>
-              <Input className="mt-1" value={form.family_name} onChange={e => setForm({ ...form, family_name: e.target.value })} placeholder="e.g. Sharma Family" />
+              <Input className="mt-1" placeholder="e.g. Sharma Family"
+                value={form.family_name} onChange={e => setForm({ ...form, family_name: e.target.value })} />
             </div>
 
             <div>
-              <Label>Parent Phone (for auto-suggestion)</Label>
-              <Input
-                className="mt-1" value={phoneSearch}
-                onChange={e => { setPhoneSearch(e.target.value); setForm({ ...form, parent_phone: e.target.value }); }}
-                placeholder="Enter parent mobile to find siblings"
-              />
-              {suggestedStudents.length > 0 && (
-                <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-medium text-blue-800">Suggested siblings ({suggestedStudents.length}):</p>
-                    <Button size="sm" variant="ghost" className="text-blue-700 h-6 text-xs" onClick={addSuggestedAll}>Add All</Button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {suggestedStudents.map(s => (
-                      <button
-                        key={s.student_id}
-                        onClick={() => toggleStudent(s.student_id)}
-                        className={`text-xs px-2 py-1 rounded-full border transition-colors ${selectedStudentIds.includes(s.student_id) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-700 border-blue-300'}`}
-                      >
-                        {s.name} ({s.class_name})
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <Label>Parent Phone (for auto-suggest)</Label>
+              <Input className="mt-1" placeholder="Enter phone to find siblings"
+                value={phoneSearch}
+                onChange={e => { setPhoneSearch(e.target.value); setForm({ ...form, parent_phone: e.target.value }); }} />
             </div>
 
-            {/* Manual student selection */}
-            <div>
-              <Label>Add Students Manually</Label>
-              <div className="flex gap-2 mt-1">
-                <Select value={classFilter} onValueChange={setClassFilter}>
-                  <SelectTrigger className="w-36"><SelectValue placeholder="Class" /></SelectTrigger>
-                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
-                </Select>
-                <Input className="flex-1" placeholder="Search by name/ID" value={studentSearch} onChange={e => setStudentSearch(e.target.value)} />
-              </div>
-              {(classFilter || studentSearch) && filteredStudents.length > 0 && (
-                <div className="mt-2 max-h-36 overflow-y-auto border rounded-lg divide-y">
-                  {filteredStudents.slice(0, 20).map(s => (
-                    <label key={s.student_id} className={`flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-50 ${selectedStudentIds.includes(s.student_id) ? 'bg-emerald-50' : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={selectedStudentIds.includes(s.student_id)}
-                        onChange={() => toggleStudent(s.student_id)}
-                        className="accent-emerald-600"
-                      />
-                      <span className="text-sm text-slate-800">{s.name}</span>
-                      <span className="text-xs text-slate-400">{s.student_id} · Cl.{s.class_name}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Selected students summary */}
-            {selectedStudentIds.length > 0 && (
-              <div className="bg-slate-50 rounded-lg p-3">
-                <p className="text-xs font-medium text-slate-600 mb-2">Selected ({selectedStudentIds.length}):</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedStudentIds.map(id => {
-                    const s = allStudents.find(st => st.student_id === id);
-                    return s ? (
-                      <span key={id} className="flex items-center gap-1 text-xs bg-white border rounded-full px-2 py-0.5">
-                        {s.name}
-                        <button onClick={() => toggleStudent(id)} className="text-slate-400 hover:text-red-500"><X className="h-3 w-3" /></button>
-                      </span>
-                    ) : null;
-                  })}
-                </div>
+            {/* Auto-suggest */}
+            {suggestedByPhone.length > 0 && (
+              <div className="bg-indigo-50 rounded-xl p-3 space-y-2">
+                <p className="text-xs font-medium text-indigo-700">Students with matching phone:</p>
+                {suggestedByPhone.map(s => (
+                  <label key={s.student_id} className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox"
+                      checked={form.student_ids.includes(s.student_id)}
+                      onChange={() => toggleStudent(s)}
+                      className="h-4 w-4 rounded accent-indigo-600"
+                    />
+                    <span className="text-sm text-slate-700">{s.name}</span>
+                    <span className="text-xs text-slate-400">{s.student_id} · Class {s.class_name}</span>
+                  </label>
+                ))}
               </div>
             )}
 
-            {/* Sibling Discount */}
-            <div className="border-t pt-4">
-              <p className="text-sm font-medium text-slate-700 mb-3">Sibling Discount (optional)</p>
+            {/* Manual class-based search */}
+            <div>
+              <Label>Add Students Manually</Label>
+              <div className="mt-1 flex flex-wrap gap-2 max-h-40 overflow-y-auto border rounded-lg p-2">
+                {allStudents.length === 0 ? (
+                  <p className="text-xs text-slate-400">Loading students…</p>
+                ) : (
+                  CLASSES.map(cls => {
+                    const classStudents = allStudents.filter(s => s.class_name === cls);
+                    if (classStudents.length === 0) return null;
+                    return (
+                      <div key={cls} className="w-full">
+                        <p className="text-xs font-semibold text-slate-500 mb-1">Class {cls}</p>
+                        {classStudents.map(s => (
+                          <label key={s.student_id} className="flex items-center gap-2 cursor-pointer py-0.5">
+                            <input type="checkbox"
+                              checked={form.student_ids.includes(s.student_id)}
+                              onChange={() => toggleStudent(s)}
+                              className="h-3.5 w-3.5 rounded accent-indigo-600"
+                            />
+                            <span className="text-xs text-slate-700">{s.name} <span className="text-slate-400">({s.student_id})</span></span>
+                          </label>
+                        ))}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Selected summary */}
+            {selectedStudents.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {selectedStudents.map(s => (
+                  <span key={s.student_id} className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    {s.name}
+                    <button onClick={() => toggleStudent(s)} className="ml-0.5 text-indigo-400 hover:text-red-500">×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {form.student_ids.length < 2 && (
+              <p className="text-xs text-amber-600">Select at least 2 students to form a family.</p>
+            )}
+
+            {/* Discount */}
+            <div className="border-t pt-3">
+              <p className="text-sm font-semibold text-slate-700 mb-2">Sibling Discount</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Type</Label>
-                  <Select value={form.sibling_discount_type} onValueChange={v => setForm({ ...form, sibling_discount_type: v })}>
+                  <Select value={form.sibling_discount_type}
+                    onValueChange={v => setForm({ ...form, sibling_discount_type: v })}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="PERCENT">Percentage (%)</SelectItem>
@@ -370,9 +391,8 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   </Select>
                 </div>
                 <div>
-                  <Label>Value</Label>
-                  <Input
-                    className="mt-1" type="number" min="0"
+                  <Label>Value {form.sibling_discount_type === 'PERCENT' ? '(%)' : '(₹)'}</Label>
+                  <Input className="mt-1" type="number" min="0"
                     max={form.sibling_discount_type === 'PERCENT' ? 100 : undefined}
                     value={form.sibling_discount_value}
                     onChange={e => setForm({ ...form, sibling_discount_value: e.target.value })}
@@ -380,47 +400,47 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   />
                 </div>
               </div>
+
               <div className="mt-3">
                 <Label>Apply On</Label>
-                <Select value={form.sibling_discount_scope} onValueChange={v => setForm({ ...form, sibling_discount_scope: v, sibling_discount_fee_head_id: '', sibling_discount_fee_head_name: '' })}>
+                <Select value={form.sibling_discount_scope}
+                  onValueChange={v => setForm({ ...form, sibling_discount_scope: v, sibling_discount_fee_head_id: '', sibling_discount_fee_head_name: '' })}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="TOTAL">Total Invoice</SelectItem>
+                    <SelectItem value="TOTAL">Total Invoice Amount</SelectItem>
                     <SelectItem value="FEE_HEAD">Specific Fee Head</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
               {form.sibling_discount_scope === 'FEE_HEAD' && (
                 <div className="mt-3">
                   <Label>Fee Head</Label>
-                  <Select
-                    value={form.sibling_discount_fee_head_id}
+                  <Select value={form.sibling_discount_fee_head_id}
                     onValueChange={id => {
                       const fh = feeHeads.find(f => f.id === id);
                       setForm({ ...form, sibling_discount_fee_head_id: id, sibling_discount_fee_head_name: fh?.name || '' });
-                    }}
-                  >
+                    }}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select fee head" /></SelectTrigger>
-                    <SelectContent>{feeHeads.map(fh => <SelectItem key={fh.id} value={fh.id}>{fh.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {feeHeads.map(fh => <SelectItem key={fh.id} value={fh.id}>{fh.name}</SelectItem>)}
+                    </SelectContent>
                   </Select>
-                </div>
-              )}
-              {form.sibling_discount_value && (
-                <div className="mt-2 bg-emerald-50 border border-emerald-100 rounded-lg p-2 text-xs text-emerald-700">
-                  Each sibling gets {form.sibling_discount_type === 'PERCENT' ? `${form.sibling_discount_value}%` : `₹${form.sibling_discount_value}`} off {form.sibling_discount_scope === 'TOTAL' ? 'their total invoice' : form.sibling_discount_fee_head_name || 'selected fee head'}. Apply from the family card after saving.
                 </div>
               )}
             </div>
 
             <div>
-              <Label>Notes</Label>
-              <Input className="mt-1" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Optional notes" />
+              <Label>Notes (optional)</Label>
+              <Input className="mt-1" value={form.notes}
+                onChange={e => setForm({ ...form, notes: e.target.value })}
+                placeholder="e.g. Sharma family — 3 siblings" />
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button onClick={() => saveFamilyMutation.mutate()} disabled={saveFamilyMutation.isPending}>
-                {saveFamilyMutation.isPending ? 'Saving…' : editingFamily ? 'Update Family' : 'Create Family'}
+              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? 'Saving…' : editingFamily ? 'Update Family' : 'Create Family'}
               </Button>
             </div>
           </div>
