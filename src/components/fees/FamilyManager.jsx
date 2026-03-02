@@ -109,6 +109,18 @@ export default function FamilyManager({ academicYear, isArchived }) {
       if (!form.family_name.trim()) throw new Error('Family name is required');
       if (selectedIds.length < 2) throw new Error('Select at least 2 students');
 
+      // Check single-family rule: each student can only belong to one family per AY
+      if (!editingFamily) {
+        for (const sid of selectedIds) {
+          const inOtherFamily = families.some(f => 
+            f.student_ids.includes(sid)
+          );
+          if (inOtherFamily) {
+            throw new Error(`Student already belongs to another family. Remove from that family first.`);
+          }
+        }
+      }
+
       const studentNames = allStudents
         .filter(s => selectedIds.includes(s.student_id))
         .map(s => s.name);
