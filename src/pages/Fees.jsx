@@ -12,7 +12,7 @@ import StudentLedger from '@/components/fees/StudentLedger';
 import PaymentsList from '@/components/fees/PaymentsList';
 import ReceiptSettings from '@/components/fees/ReceiptSettings';
 import DiscountManager from '@/components/fees/DiscountManager';
-import AdditionalChargesList from '@/components/fees/AdditionalChargesList';
+import AdditionalChargesTab from '@/components/fees/AdditionalChargesTab';
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
@@ -27,7 +27,7 @@ export default function Fees() {
   const isArchivedYear = selectedYearObj?.status === 'Archived';
 
   const handleTabChange = (tab) => {
-    if (!isAdmin && ['fee-heads', 'plans', 'discounts', 'receipt-settings', 'adhoc'].includes(tab)) return;
+    if (!isAdmin && ['fee-heads', 'plans', 'discounts', 'receipt-settings'].includes(tab)) return;
     setActiveTab(tab);
   };
 
@@ -55,7 +55,6 @@ export default function Fees() {
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
               {isAdmin && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
               {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
             </TabsList>
 
@@ -87,12 +86,6 @@ export default function Fees() {
             {isAdmin && (
               <TabsContent value="fee-heads">
                 <FeeHeadsManager />
-              </TabsContent>
-            )}
-
-            {isAdmin && (
-              <TabsContent value="adhoc">
-                <AdditionalChargesList academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
             )}
 
