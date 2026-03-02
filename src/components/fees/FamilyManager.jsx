@@ -230,6 +230,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
     setForm(EMPTY_FORM);
     setSearchQuery('');
     setSelectedClass('');
+    setSaveError(null);
     clearStudents();
   };
 
