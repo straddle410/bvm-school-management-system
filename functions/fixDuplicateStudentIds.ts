@@ -70,13 +70,14 @@ Deno.serve(async (req) => {
       }
 
       const year = targetRecord.academic_year;
+      const yearPrefix = year.split('-')[0]; // "2025-26" → "2025"
       const yearStudents = allStudents.filter(s => s.academic_year === year);
       
-      // Extract numeric parts and find max
+      // Find max numeric suffix (e.g., S25001 → 1, S25010 → 10)
       let maxNum = 0;
       yearStudents.forEach(s => {
         const sidStr = String(s.student_id).trim();
-        // S25001 → extract 1; S25008 → extract 8, etc
+        // Extract trailing digits: S25001 → 1, S25999 → 999
         const match = sidStr.match(/(\d+)$/);
         if (match) {
           const num = parseInt(match[1], 10);
@@ -84,7 +85,7 @@ Deno.serve(async (req) => {
         }
       });
 
-      const newStudentId = `S25${String(maxNum + 1).padStart(3, '0')}`;
+      const newStudentId = `S${yearPrefix}${String(maxNum + 1).padStart(3, '0')}`;
 
       await base44.asServiceRole.entities.Student.update(record_id, {
         student_id: newStudentId,
