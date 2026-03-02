@@ -162,8 +162,14 @@ export default function FamilyManager({ academicYear, isArchived }) {
   });
 
   const applyMutation = useMutation({
-    mutationFn: ({ family_id, action }) => {
+    mutationFn: async ({ family_id, action }) => {
+      // Validation
+      if (!family_id) throw new Error('Family ID is missing');
+      if (!academicYear) throw new Error('Academic year is missing');
+      if (!action) throw new Error('Action is missing');
+
       const family = families.find(f => f.id === family_id);
+      if (!family) throw new Error('Family not found');
       
       // Family discount cap check: total discount cannot exceed total outstanding balance
       if (action === 'apply' && family) {
@@ -176,7 +182,12 @@ export default function FamilyManager({ academicYear, isArchived }) {
         }
       }
 
-      return base44.functions.invoke('applySiblingDiscount', { family_id, action });
+      try {
+        const res = await base44.functions.invoke('applySiblingDiscount', { family_id, action, academic_year: academicYear });
+        return res;
+      } catch (err) {
+        throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
+      }
     },
     onSuccess: (res, { action }) => {
       queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
@@ -194,7 +205,11 @@ export default function FamilyManager({ academicYear, isArchived }) {
       }
       setApplyingFamily(null);
     },
-    onError: (e) => { toast.error(e.message || e.data?.error || 'Failed'); setApplyingFamily(null); }
+    onError: (e) => {
+      const msg = e?.message || e?.data?.error || 'Failed to apply discount';
+      toast.error(msg);
+      setApplyingFamily(null);
+    }
   });
 
   const openAdd = () => {
