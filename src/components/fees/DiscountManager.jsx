@@ -278,7 +278,32 @@ export default function DiscountManager({ academicYear, isArchived }) {
                     <Label>Student</Label>
                     <Select
                       value={selectedStudent?.student_id || ''}
-                      onValueChange={id => setSelectedStudent(students.find(s => s.student_id === id) || null)}
+                      onValueChange={id => {
+                        const s = students.find(st => st.student_id === id) || null;
+                        setSelectedStudent(s);
+                        // Auto-load existing active discount so save will update not duplicate
+                        if (s) {
+                          const existing = discounts.find(d =>
+                            d.student_id === s.student_id &&
+                            d.academic_year === academicYear &&
+                            d.status === 'Active'
+                          );
+                          if (existing && !editingDiscount) {
+                            setEditingDiscount(existing);
+                            setForm({
+                              discount_type: existing.discount_type,
+                              discount_value: String(existing.discount_value),
+                              scope: existing.scope,
+                              fee_head_id: existing.fee_head_id || '',
+                              fee_head_name: existing.fee_head_name || '',
+                              notes: existing.notes || ''
+                            });
+                          } else if (!existing) {
+                            setEditingDiscount(null);
+                            setForm(EMPTY_FORM);
+                          }
+                        }
+                      }}
                     >
                       <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
                       <SelectContent>
