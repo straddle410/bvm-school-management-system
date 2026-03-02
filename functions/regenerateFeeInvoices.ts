@@ -112,10 +112,10 @@ Deno.serve(async (req) => {
       discountMap[d.student_id] = d;
     }
 
-    // Regenerate invoices
-    let regenerated = 0, archived = 0;
+    // Regenerate invoices with payment guard
+    let regenerated = 0, archived = 0, blocked = [];
     for (const student of filteredStudents) {
-      // Archive old annual invoice
+      // Get old annual invoice
       const oldInvoices = await base44.asServiceRole.entities.FeeInvoice.filter({
         student_id: student.student_id,
         academic_year: academicYear,
@@ -123,10 +123,21 @@ Deno.serve(async (req) => {
       });
 
       if (oldInvoices && oldInvoices.length > 0) {
-        for (const old of oldInvoices) {
-          await base44.asServiceRole.entities.FeeInvoice.update(old.id, { status: 'Cancelled' });
-          archived++;
+        const oldInvoice = oldInvoices[0];
+        
+        // CRITICAL: Block regeneration if payments exist
+        if ((oldInvoice.paid_amount || 0) > 0) {
+          blocked.push({
+            student_id: student.student_id,
+            student_name: student.name,
+            reason: `Cannot regenerate: payments already exist (₹${oldInvoice.paid_amount} paid). Use adjustment flow instead.`
+          });
+          continue; // Skip this student, do NOT archive
         }
+
+        // Safe to archive: no payments linked
+        await base44.asServiceRole.entities.FeeInvoice.update(oldInvoice.id, { status: 'Cancelled' });
+        archived++;
       }
 
       // Generate new invoice from current plan
@@ -168,10 +179,16 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      success: true,
-      message: `Regenerated ${regenerated} invoices from current plan (₹${plan.total_amount})`,
+      success: regenerated > 0 || blocked.length === 0,
+      message: regenerated > 0 
+        ? `Regenerated ${regenerated} invoice${regenerated !== 1 ? 's' : ''} from current plan (₹${plan.total_amount})`
+        : blocked.length > 0
+        ? `No invoices regenerated. All students blocked due to existing payments.`
+        : 'No students to regenerate',
       archived: archived,
-      regenerated: regenerated
+      regenerated: regenerated,
+      blocked: blocked,
+      warning: blocked.length > 0 ? `${blocked.length} student(s) have payments and cannot be regenerated. Use the adjustment flow for paid students.` : null
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
