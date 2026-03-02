@@ -359,118 +359,119 @@ export default function FamilyManager({ academicYear, isArchived }) {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={v => { if (!v) closeDialog(); }}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingFamily ? 'Edit Family Group' : 'New Family Group'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
+       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+         <DialogHeader>
+           <DialogTitle>{editingFamily ? 'Edit Family Group' : 'New Family Group'}</DialogTitle>
+         </DialogHeader>
+         <div className="space-y-4">
 
-            <div>
-              <Label>Family Name *</Label>
-              <Input className="mt-1" placeholder="e.g. Sharma Family"
-                value={form.family_name}
-                onChange={e => setForm(f => ({ ...f, family_name: e.target.value }))} />
-            </div>
+           <div>
+             <Label>Family Name *</Label>
+             <Input className="mt-1" placeholder="e.g. Sharma Family"
+               value={form.family_name}
+               onChange={e => setForm(f => ({ ...f, family_name: e.target.value }))} />
+           </div>
 
-            <div>
-              <Label>Parent Phone (for auto-suggest)</Label>
-              {/* NOTE: phone input ONLY updates form.parent_phone and phoneSearch.
-                  It does NOT touch selectedIds. */}
-              <Input className="mt-1" placeholder="Enter phone to find siblings"
-                value={phoneSearch}
-                onChange={e => {
-                  setPhoneSearch(e.target.value);
-                  setForm(f => ({ ...f, parent_phone: e.target.value }));
-                }} />
-            </div>
+           <div>
+             <Label>Parent Phone (optional)</Label>
+             <Input className="mt-1" placeholder="e.g. 9876543210"
+               value={form.parent_phone}
+               onChange={e => setForm(f => ({ ...f, parent_phone: e.target.value }))} />
+           </div>
 
-            {/* Auto-suggest panel — display only, no checkboxes, explicit Add buttons only */}
-            {suggestedByPhone.length > 0 && (
-              <div className="bg-indigo-50 rounded-xl p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-indigo-700">Students with matching phone (suggestions):</p>
-                  <Button size="sm" variant="outline"
-                    className="text-xs h-6 px-2 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
-                    onClick={() => suggestedByPhone.forEach(s => addStudent(s.student_id))}>
-                    Add All
-                  </Button>
-                </div>
-                {suggestedByPhone.map(s => (
-                  <div key={s.student_id} className="flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-sm text-slate-700">{s.name}</span>
-                      <span className="text-xs text-slate-400 ml-2">{s.student_id} · Class {s.class_name}</span>
-                    </div>
-                    {selectedIds.includes(s.student_id) ? (
-                      <span className="text-xs text-emerald-600 font-medium">✓ Added</span>
-                    ) : (
-                      <Button size="sm" variant="outline" className="text-xs h-6 px-2"
-                        onClick={() => addStudent(s.student_id)}>
-                        Add
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+           {/* Search-first student selection UI */}
+           <div className="border-t pt-3">
+             <p className="text-sm font-semibold text-slate-700 mb-3">Add Students</p>
 
-            {/* Manual class-based checkboxes — bound to selectedIds via addStudent/removeStudent */}
-            <div>
-              <Label>Add Students Manually</Label>
-              <div className="mt-1 flex flex-wrap gap-2 max-h-40 overflow-y-auto border rounded-lg p-2">
-                {allStudents.length === 0 ? (
-                  <p className="text-xs text-slate-400">Loading students…</p>
-                ) : (
-                  CLASSES.map(cls => {
-                    const classStudents = allStudents.filter(s => s.class_name === cls);
-                    if (classStudents.length === 0) return null;
-                    return (
-                      <div key={cls} className="w-full">
-                        <p className="text-xs font-semibold text-slate-500 mb-1">Class {cls}</p>
-                        {classStudents.map(s => {
-                          const sid = String(s.student_id).trim();
-                          return (
-                            <div key={sid} className="flex items-center gap-2 py-0.5">
-                              <input
-                                type="checkbox"
-                                id={`student-cb-${sid}`}
-                                checked={selectedIds.includes(sid)}
-                                onChange={e => {
-                                  console.log('[FamilyManager] checkbox onChange', sid, e.target.checked);
-                                  e.target.checked ? addStudent(sid) : removeStudent(sid);
-                                }}
-                                className="h-3.5 w-3.5 rounded accent-indigo-600 cursor-pointer"
-                              />
-                              <label
-                                htmlFor={`student-cb-${sid}`}
-                                className="text-xs text-slate-700 cursor-pointer select-none"
-                              >
-                                {s.name} <span className="text-slate-400">({sid})</span>
-                              </label>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+             {/* Search & Filter */}
+             <div className="grid grid-cols-2 gap-3 mb-3">
+               <div>
+                 <Label className="text-xs">Search by name / ID</Label>
+                 <Input className="mt-1 text-sm" placeholder="e.g. Amit or S0001"
+                   value={searchQuery}
+                   onChange={e => setSearchQuery(e.target.value)} />
+               </div>
+               <div>
+                 <Label className="text-xs">Filter by class</Label>
+                 <Select value={selectedClass} onValueChange={setSelectedClass}>
+                   <SelectTrigger className="mt-1"><SelectValue placeholder="All classes" /></SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value={null}>All classes</SelectItem>
+                     {CLASSES.map(cls => <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+             </div>
 
-            {/* Selected summary chips */}
-            {selectedStudents.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {selectedStudents.map(s => (
-                  <span key={s.student_id} className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    {s.name}
-                    <button onClick={() => removeStudent(s.student_id)} className="ml-0.5 text-indigo-400 hover:text-red-500">×</button>
-                  </span>
-                ))}
-              </div>
-            )}
-            {selectedIds.length < 2 && (
-              <p className="text-xs text-amber-600">Select at least 2 students to form a family.</p>
-            )}
+             {/* Search Results */}
+             <div className="border rounded-lg max-h-48 overflow-y-auto bg-slate-50 p-2 space-y-1 mb-3">
+               {searchResults.length === 0 ? (
+                 <p className="text-xs text-slate-400 p-2">No students found</p>
+               ) : (
+                 searchResults.map(s => {
+                   const sid = String(s.student_id).trim();
+                   const isSelected = selectedIds.includes(sid);
+                   const outstanding = getOutstandingBalance(sid);
+                   return (
+                     <div key={sid} className="flex items-center justify-between gap-2 p-2 rounded hover:bg-slate-100 text-xs">
+                       <div className="flex-1">
+                         <div className="text-slate-700 font-medium">{s.name} ({sid})</div>
+                         <div className="text-slate-400">Class {s.class_name} · Outstanding: ₹{Math.floor(outstanding)}</div>
+                       </div>
+                       {isSelected ? (
+                         <span className="text-emerald-600 font-medium text-xs">✓</span>
+                       ) : (
+                         <Button size="sm" variant="outline" className="h-6 px-2 text-xs"
+                           onClick={() => addStudent(sid)}>
+                           Add
+                         </Button>
+                       )}
+                     </div>
+                   );
+                 })
+               )}
+             </div>
+
+             {/* Selected Students Panel */}
+             <div className="bg-indigo-50 rounded-lg border border-indigo-200 p-3">
+               <div className="flex items-center justify-between mb-2">
+                 <p className="text-xs font-semibold text-indigo-700">
+                   Selected Students ({selectedIds.length})
+                 </p>
+                 {selectedIds.length > 0 && (
+                   <Button size="sm" variant="ghost" className="h-5 px-2 text-xs text-red-600 hover:bg-red-50"
+                     onClick={clearStudents}>
+                     Clear All
+                   </Button>
+                 )}
+               </div>
+               {selectedIds.length === 0 ? (
+                 <p className="text-xs text-indigo-600">Add at least 2 students</p>
+               ) : (
+                 <div className="space-y-1">
+                   {selectedStudents.map(s => (
+                     <div key={s.student_id} className="flex items-center justify-between gap-2 bg-white p-2 rounded text-xs">
+                       <div>
+                         <span className="text-slate-700">{s.name}</span>
+                         <span className="text-slate-400 ml-2">({s.student_id})</span>
+                         <span className="text-emerald-600 ml-2 font-medium">₹{Math.floor(getOutstandingBalance(s.student_id))}</span>
+                       </div>
+                       <Button size="sm" variant="ghost" className="h-5 px-1 text-slate-400 hover:text-red-600"
+                         onClick={() => removeStudent(s.student_id)}>
+                         ✕
+                       </Button>
+                     </div>
+                   ))}
+                   {totalOutstanding > 0 && (
+                     <div className="flex items-center justify-between border-t border-indigo-200 pt-2 mt-2">
+                       <span className="text-xs font-semibold text-indigo-700">Total Outstanding Balance:</span>
+                       <span className="text-xs font-bold text-indigo-700">₹{Math.floor(totalOutstanding)}</span>
+                     </div>
+                   )}
+                 </div>
+               )}
+             </div>
+           </div>
 
             {/* Discount */}
             <div className="border-t pt-3">
