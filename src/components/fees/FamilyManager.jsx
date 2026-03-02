@@ -195,7 +195,8 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const openAdd = () => {
     setEditingFamily(null);
     setForm(EMPTY_FORM);
-    setPhoneSearch('');
+    setSearchQuery('');
+    setSelectedClass('');
     clearStudents();
     setShowDialog(true);
   };
@@ -212,8 +213,8 @@ export default function FamilyManager({ academicYear, isArchived }) {
       sibling_discount_fee_head_name: family.sibling_discount_fee_head_name || '',
       notes: family.notes || ''
     });
-    setPhoneSearch(family.parent_phone || '');
-    // Load existing student selection — this is the only place setSelectedIds is called outside the helpers
+    setSearchQuery('');
+    setSelectedClass('');
     setSelectedIds(family.student_ids || []);
     setShowDialog(true);
   };
@@ -222,7 +223,8 @@ export default function FamilyManager({ academicYear, isArchived }) {
     setShowDialog(false);
     setEditingFamily(null);
     setForm(EMPTY_FORM);
-    setPhoneSearch('');
+    setSearchQuery('');
+    setSelectedClass('');
     clearStudents();
   };
 
