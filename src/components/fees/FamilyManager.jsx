@@ -339,19 +339,19 @@ export default function FamilyManager({ academicYear, isArchived }) {
                       : <Tag className="h-3.5 w-3.5" />}
                     {discountLabel(family)}
                   </p>
-                  {!isArchived && family.sibling_discount_value && (
+                  {!isArchived && (
                     <div className="flex gap-2">
                       {family.sibling_discount_applied ? (
                         <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
                           onClick={() => setApplyingFamily({ family, action: 'remove' })}>
                           <XCircle className="h-3.5 w-3.5 mr-1" /> Remove Discount
                         </Button>
-                      ) : (
+                      ) : family.sibling_discount_value ? (
                         <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs"
                           onClick={() => setApplyingFamily({ family, action: 'apply' })}>
                           <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Apply Discount
                         </Button>
-                      )}
+                      ) : null}
                     </div>
                   )}
                 </div>
