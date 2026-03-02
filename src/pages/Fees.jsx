@@ -13,6 +13,7 @@ import PaymentsList from '@/components/fees/PaymentsList';
 import ReceiptSettings from '@/components/fees/ReceiptSettings';
 import DiscountManager from '@/components/fees/DiscountManager';
 import AdditionalChargesTab from '@/components/fees/AdditionalChargesTab';
+import FamilyManager from '@/components/fees/FamilyManager';
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
