@@ -365,11 +365,17 @@ export default function FamilyManager({ academicYear, isArchived }) {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={v => { if (!v) closeDialog(); }}>
-       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-         <DialogHeader>
-           <DialogTitle>{editingFamily ? 'Edit Family Group' : 'New Family Group'}</DialogTitle>
-         </DialogHeader>
-         <div className="space-y-4">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingFamily ? 'Edit Family Group' : 'New Family Group'}</DialogTitle>
+          </DialogHeader>
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{saveError}</p>
+            </div>
+          )}
+          <div className="space-y-4">
 
            <div>
              <Label>Family Name *</Label>
