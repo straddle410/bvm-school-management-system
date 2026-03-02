@@ -357,11 +357,7 @@ export default function FamilyManager({ academicYear, isArchived }) {
                   type="button"
                   className={applyingFamily.action === 'apply' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
                   disabled={applyMutation.isPending}
-                  onClick={() => {
-                    console.log('Button clicked - applyingFamily:', applyingFamily);
-                    console.log('family_id to send:', applyingFamily.family.id);
-                    applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action });
-                  }}
+                  onClick={() => applyMutation.mutate({ family_id: applyingFamily.family.id, action: applyingFamily.action })}
                 >
                   {applyMutation.isPending ? 'Processing…' : applyingFamily.action === 'apply' ? 'Yes, Apply' : 'Yes, Remove'}
                 </Button>
