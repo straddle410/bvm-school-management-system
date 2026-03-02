@@ -122,6 +122,17 @@ export default function DiscountManager({ academicYear, isArchived }) {
     }
   });
 
+  const reverseMutation = useMutation({
+    mutationFn: (discount_application_id) => 
+      base44.functions.invoke('reverseSiblingDiscount', { discount_application_id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
+      queryClient.invalidateQueries({ queryKey: ['fee-payments', academicYear] });
+      toast.success('Sibling discount reversed');
+    },
+    onError: (e) => toast.error(e?.message || 'Failed to reverse discount')
+  });
+
   const openAdd = () => {
     setEditingDiscount(null);
     setSelectedStudent(null);
