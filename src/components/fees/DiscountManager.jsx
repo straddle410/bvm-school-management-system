@@ -372,11 +372,11 @@ export default function DiscountManager({ academicYear, isArchived }) {
               <Input className="mt-1" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="e.g. Scholarship, Staff ward" />
             </div>
 
-            {/* Paid invoice warning */}
-            {selectedStudent && studentInvoice && (studentInvoice.status === 'Paid' || (studentInvoice.paid_amount ?? 0) >= (studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0)) && (
+            {/* Settled invoice warning — uses NET not gross */}
+            {selectedStudent && isSettled && (
               <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Invoice is fully paid — discount cannot be applied (no refund mechanism exists).</span>
+                <span>Invoice is fully settled (paid ≥ net) — discount cannot be modified. No refund mechanism exists.</span>
               </div>
             )}
 
