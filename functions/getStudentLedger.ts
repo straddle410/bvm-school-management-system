@@ -73,20 +73,31 @@ Deno.serve(async (req) => {
       const pDate = p.payment_date || (p.created_date ? p.created_date.split('T')[0] : null);
       const amount = p.amount_paid ?? 0;
 
-      // Detect reversal CHILD entry FIRST (precedence over VOID check).
-      // A reversal entry is a NEW record that un-does a payment — it ALWAYS affects balance.
-      // Key signals (any one is sufficient):
-      //   1. entry_type = 'PAYMENT_REVERSAL' | 'PAYMENT_REFUND'
-      //   2. entry_type = 'REVERSAL' with status = 'Active'  (some flows use this)
-      //   3. amount < 0 and status = 'Active' (negative cash movement, not a voided original)
+      // ── Entry classification (PRECEDENCE ORDER MATTERS) ──────────────────
+      //
+      // Priority 1 – REVERSAL ENTRY: A NEW record explicitly created to post the
+      //   reversal effect (adds back to receivable). Identified by:
+      //   • entry_type IN ('PAYMENT_REVERSAL', 'PAYMENT_REFUND')
+      //   • entry_type = 'REVERSAL' AND status = 'Active'
+      //   • amount < 0 AND status = 'Active' (negative cash movement, not voided original)
+      //
+      // Priority 2 – VOID: The ORIGINAL payment record that was cancelled.
+      //   Identified solely by status = 'REVERSED'.
+      //   CRITICAL: isReversalEntry WINS even if status would also be 'REVERSED'.
+      //   In current flow, reverseReceipt only marks originals as REVERSED (no child entry),
+      //   so a VOID row has debit=0 credit=0 and does NOT affect running balance.
+      //
+      // Priority 3 – CREDIT_ADJUSTMENT: reduces outstanding (credit column)
+      //
+      // Priority 4 – Standard CASH / UPI payment (credit column)
+      // ──────────────────────────────────────────────────────────────────────
       const isReversalEntry =
         p.entry_type === 'PAYMENT_REVERSAL' ||
         p.entry_type === 'PAYMENT_REFUND' ||
-        (p.entry_type === 'REVERSAL' && p.status === 'Active') ||
+        (p.entry_type === 'REVERSAL' && (p.status === 'Active' || !p.status)) ||
         (amount < 0 && p.status === 'Active');
 
-      // VOID: original payment record that was cancelled.
-      // CRITICAL: isReversalEntry WINS — never treat a reversal entry as VOID even if status=REVERSED.
+      // VOID: original payment marked REVERSED — isReversalEntry takes precedence
       const isVoided = !isReversalEntry && (p.status === 'REVERSED');
 
       const isCredit = !isReversalEntry && !isVoided && p.entry_type === 'CREDIT_ADJUSTMENT';
