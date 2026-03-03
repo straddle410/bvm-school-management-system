@@ -89,6 +89,7 @@ export default function More() {
    { label: 'Outstanding / Due', sub: 'Student fee balances', icon: FileText, color: '#e53935', bg: '#ffebee', page: 'OutstandingReport' },
    { label: 'Student Ledger', sub: 'Per-student fee ledger', icon: BookOpen, color: '#7b1fa2', bg: '#f3e5f5', page: 'StudentLedgerReport' },
    { label: 'Collection Report', sub: 'Cash collection details', icon: Award, color: '#388e3c', bg: '#e8f5e9', page: 'CollectionReport' },
+   { label: 'Collection by Class', sub: 'Class-wise fee summary', icon: BarChart3, color: '#0097a7', bg: '#e0f7fa', page: 'ClassCollectionSummaryReport' },
   ];
 
   const supportItems = [
