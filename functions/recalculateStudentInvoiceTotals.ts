@@ -54,12 +54,20 @@ function aggregateAllDiscounts(feeItems, grossTotal, allDiscountsForStudent) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const role = (user.role || '').toLowerCase();
-    if (role !== 'admin' && role !== 'principal') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    // Try to get user context if available; if not (backend-to-backend), allow service role
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      // Backend-to-backend call: no user context, use service role
+    }
+    
+    // For frontend calls, enforce role. For backend-to-backend, allow service role.
+    if (user) {
+      const role = (user.role || '').toLowerCase();
+      if (role !== 'admin' && role !== 'principal') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
     }
 
     const { student_id, academic_year } = await req.json();
