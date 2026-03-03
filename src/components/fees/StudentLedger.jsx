@@ -269,13 +269,15 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                 )}
 
                 {!isArchivedYear && balance > 0 && invoice.status !== 'Waived' && (
-                  <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}>
-                    Record Payment
-                  </Button>
+                   <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}>
+                     Record Payment
+                   </Button>
+                 )}
+                </CardContent>
+                </Card>
                 )}
-              </CardContent>
-            </Card>
-          )}
+                </div>
+                )}
         </div>
       )}
 
