@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       const today = new Date().toISOString().split('T')[0];
       if (payment.payment_date !== today) {
         return Response.json({
-          error: 'Non-admin users can only void receipts created today. Please contact an admin for older receipts.'
+          error: `Only receipts created today can be voided by staff. This receipt was created on ${payment.payment_date}. Contact an administrator to void older receipts.`
         }, { status: 403 });
       }
     }
