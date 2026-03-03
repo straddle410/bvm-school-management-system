@@ -39,6 +39,19 @@ Deno.serve(async (req) => {
     const payment = await base44.asServiceRole.entities.FeePayment.get(paymentId);
     if (!payment) return Response.json({ error: 'Payment not found' }, { status: 404 });
 
+    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: payment.academic_year });
+    if (academicYears && academicYears.length > 0) {
+      const ayRecord = academicYears[0];
+      if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
+        return Response.json({
+          error: `Academic year ${payment.academic_year} is archived; mutations not allowed`,
+          status: 403
+        }, { status: 403 });
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     // IDEMPOTENT: already voided → return success with current state
     if (payment.status === 'VOID') {
       // Fetch invoice to return current state
