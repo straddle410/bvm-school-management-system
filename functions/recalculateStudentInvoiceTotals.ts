@@ -125,9 +125,12 @@ Deno.serve(async (req) => {
           balance: newBalance
         });
 
-        // Re-fetch immediately to verify persistence
-        const updatedInvoices_list = await base44.asServiceRole.entities.FeeInvoice.filter({ id: inv.id });
-        const invoiceAfter = updatedInvoices_list[0] || null;
+        // Re-fetch using get() for direct DB read (no cache)
+        const invoiceAfterGet = await base44.asServiceRole.entities.FeeInvoice.get(inv.id);
+
+        // Also re-fetch using filter() to check cache behavior
+        const invoiceAfterFilterList = await base44.asServiceRole.entities.FeeInvoice.filter({ id: inv.id });
+        const invoiceAfterFilter = invoiceAfterFilterList[0] || null;
 
         updated++;
         updatedInvoices.push({
@@ -145,11 +148,17 @@ Deno.serve(async (req) => {
             balance: newBalance,
             status: inv.status
           },
-          after: invoiceAfter ? {
-            discount_total: invoiceAfter.discount_total,
-            total_amount: invoiceAfter.total_amount,
-            balance: invoiceAfter.balance,
-            status: invoiceAfter.status
+          after_get: invoiceAfterGet ? {
+            discount_total: invoiceAfterGet.discount_total,
+            total_amount: invoiceAfterGet.total_amount,
+            balance: invoiceAfterGet.balance,
+            status: invoiceAfterGet.status
+          } : null,
+          after_filter: invoiceAfterFilter ? {
+            discount_total: invoiceAfterFilter.discount_total,
+            total_amount: invoiceAfterFilter.total_amount,
+            balance: invoiceAfterFilter.balance,
+            status: invoiceAfterFilter.status
           } : null,
           discountsApplied: activeDiscounts.length
         });
