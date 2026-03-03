@@ -31,17 +31,29 @@ export default function VoidModal({ payment, onClose, onSuccess }) {
       }
     },
     onSuccess: (data) => {
-      // Invalidate all related queries to force refresh
-      queryClient.invalidateQueries({ queryKey: ['fee-payments-all'] });
-      queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
-      queryClient.invalidateQueries({ queryKey: ['student-ledger'] });
-      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
-      
-      toast.success(`Receipt #${payment.receipt_no} voided successfully`);
+      // Handle idempotent case: already voided
+      if (data.already_voided) {
+        toast.info(data.message || 'Receipt was already voided');
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['fee-payments-all'] });
+        queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
+        queryClient.invalidateQueries({ queryKey: ['student-ledger'] });
+        queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+        
+        toast.success(`Receipt #${payment.receipt_no} voided successfully`);
+      }
       onSuccess();
     },
     onError: (error) => {
-      const errorMsg = error?.response?.data?.error || error?.data?.error || error?.message || 'Failed to void receipt';
+      // Extract error message from various formats
+      let errorMsg = 'Failed to void receipt';
+      if (error?.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      } else if (error?.data?.error) {
+        errorMsg = error.data.error;
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
       toast.error(errorMsg);
       console.error('Void receipt error:', errorMsg);
     }
