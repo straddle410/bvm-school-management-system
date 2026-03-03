@@ -137,8 +137,7 @@ export default function DayBookReport() {
       dateFrom, dateTo, academicYear,
       className,
       mode: selectedModes,
-      includeReversals,
-      includeCancelled
+      includeVoided
     });
   };
 
