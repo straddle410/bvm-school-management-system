@@ -97,6 +97,7 @@ import UserProfile from './pages/UserProfile';
 import DayBookReport from './pages/DayBookReport';
 import More from './pages/More';
 import CollectionReport from './pages/CollectionReport';
+import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
 import __Layout from './Layout.jsx';
 
 
@@ -151,6 +152,7 @@ export const PAGES = {
     "DayBookReport": DayBookReport,
     "More": More,
     "CollectionReport": CollectionReport,
+    "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
 }
 
 export const pagesConfig = {
