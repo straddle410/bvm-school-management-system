@@ -118,22 +118,39 @@ Deno.serve(async (req) => {
 
       // Only update if changed
       if (newDiscountTotal !== oldDiscountTotal || newNetTotal !== oldNetTotal) {
+        // Persist update to database
         await base44.asServiceRole.entities.FeeInvoice.update(inv.id, {
           discount_total: newDiscountTotal,
           total_amount: newNetTotal,
           balance: newBalance
         });
 
+        // Re-fetch immediately to verify persistence
+        const updatedInvoices_list = await base44.asServiceRole.entities.FeeInvoice.filter({ id: inv.id });
+        const invoiceAfter = updatedInvoices_list[0] || null;
+
         updated++;
         updatedInvoices.push({
           invoiceId: inv.id,
           installment: inv.installment_name || inv.title || 'Invoice',
-          oldDiscount: oldDiscountTotal,
-          newDiscount: newDiscountTotal,
-          oldNet: oldNetTotal,
-          newNet: newNetTotal,
-          oldBalance: oldBalance,
-          newBalance,
+          before: {
+            discount_total: oldDiscountTotal,
+            total_amount: oldNetTotal,
+            balance: oldBalance,
+            status: inv.status
+          },
+          computed: {
+            discount_total: newDiscountTotal,
+            total_amount: newNetTotal,
+            balance: newBalance,
+            status: inv.status
+          },
+          after: invoiceAfter ? {
+            discount_total: invoiceAfter.discount_total,
+            total_amount: invoiceAfter.total_amount,
+            balance: invoiceAfter.balance,
+            status: invoiceAfter.status
+          } : null,
           discountsApplied: activeDiscounts.length
         });
       }
