@@ -188,6 +188,10 @@ function StudentLedgerContent() {
                 <Switch id="cred" checked={includeCredits} onCheckedChange={setIncludeCredits} />
                 <Label htmlFor="cred" className="text-xs cursor-pointer">Credits</Label>
               </div>
+              <div className="flex items-center gap-1.5">
+                <Switch id="void" checked={includeVoided} onCheckedChange={setIncludeVoided} />
+                <Label htmlFor="void" className="text-xs cursor-pointer">Voided</Label>
+              </div>
             </div>
           </div>
         </CardContent>
