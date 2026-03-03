@@ -40,9 +40,8 @@ function SummaryCard({ label, value, color = 'slate' }) {
   );
 }
 
-function DayRow({ day, filters, onDrillDown }) {
+function DayRow({ day, filters, onDrillDown, showVoided }) {
   const [expanded, setExpanded] = useState(false);
-  const hasNegative = day.grossReversed > 0;
 
   return (
     <>
@@ -53,12 +52,17 @@ function DayRow({ day, filters, onDrillDown }) {
         <td className="px-4 py-3 font-medium text-slate-800 flex items-center gap-2">
           {expanded ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
           {day.date}
+          {day.voidCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-medium">{day.voidCount} voided</span>
+          )}
         </td>
         <td className="px-4 py-3 text-right text-green-700 font-semibold tabular-nums">₹{fmt(day.grossCollected)}</td>
-        <td className="px-4 py-3 text-right tabular-nums">
-          {hasNegative ? <span className="text-red-500 font-semibold">−₹{fmt(day.grossReversed)}</span> : <span className="text-slate-300">—</span>}
-        </td>
         <td className="px-4 py-3 text-right text-slate-800 font-bold tabular-nums">₹{fmt(day.netCollected)}</td>
+        {showVoided && (
+          <td className="px-4 py-3 text-right tabular-nums">
+            {day.voidedAmount > 0 ? <span className="text-amber-600">₹{fmt(day.voidedAmount)}</span> : <span className="text-slate-300">—</span>}
+          </td>
+        )}
         <td className="px-4 py-3 text-right">
           <button
             onClick={e => { e.stopPropagation(); onDrillDown(day.date); }}
@@ -76,10 +80,8 @@ function DayRow({ day, filters, onDrillDown }) {
             <span className="ml-2 text-slate-400 text-xs">{m.count} receipt{m.count !== 1 ? 's' : ''}</span>
           </td>
           <td className="px-4 py-2 text-right text-green-600 tabular-nums">₹{fmt(m.grossCollected)}</td>
-          <td className="px-4 py-2 text-right tabular-nums">
-            {m.grossReversed > 0 ? <span className="text-red-400">−₹{fmt(m.grossReversed)}</span> : <span className="text-slate-300">—</span>}
-          </td>
           <td className="px-4 py-2 text-right text-slate-700 font-semibold tabular-nums">₹{fmt(m.netCollected)}</td>
+          {showVoided && <td className="px-4 py-2 text-right text-slate-300">—</td>}
           <td className="px-4 py-2 text-right">
             <button
               onClick={() => onDrillDown(day.date, m.mode)}
