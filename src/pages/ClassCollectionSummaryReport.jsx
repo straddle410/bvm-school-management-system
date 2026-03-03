@@ -219,8 +219,14 @@ function ClassCollectionContent() {
                     <TableCell className="font-semibold text-slate-800 pl-4">
                       Class {row.class.name}
                     </TableCell>
+                    <TableCell className="text-right text-slate-500">₹{fmt(row.totalInvoicedNet)}</TableCell>
                     <TableCell className="text-right font-bold text-emerald-700">
                       ₹{fmt(row.collectedAmount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className={`font-semibold ${row.coveragePercent >= 100 ? 'text-emerald-600' : row.coveragePercent >= 50 ? 'text-amber-600' : 'text-red-500'}`}>
+                        {(row.coveragePercent ?? 0).toFixed(1)}%
+                      </span>
                     </TableCell>
                     <TableCell className="text-right text-slate-600">{row.receiptsCount}</TableCell>
                     <TableCell className="text-right text-slate-600">{row.studentsPaidCount}</TableCell>
