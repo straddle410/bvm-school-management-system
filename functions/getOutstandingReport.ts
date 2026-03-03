@@ -11,6 +11,8 @@ Deno.serve(async (req) => {
       className,
       search,
       includeZeroOutstanding = false,
+      onlyDue = false,
+      onlyCredit = false,
       page = 1,
       pageSize = 200,
       sort = 'outstanding_desc',
