@@ -196,7 +196,9 @@ function ClassCollectionContent() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="text-xs font-semibold pl-4">Class</TableHead>
+                  <TableHead className="text-xs font-semibold text-right">Invoiced (₹)</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Collected (₹)</TableHead>
+                  <TableHead className="text-xs font-semibold text-right">Coverage %</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Receipts</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Students Paid</TableHead>
                   {appliedFilters.includeVoided && (
