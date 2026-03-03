@@ -319,6 +319,7 @@ export default function DayBookReport() {
                           day={day}
                           filters={applied}
                           onDrillDown={handleDrillDown}
+                          showVoided={applied.includeVoided}
                         />
                       ))}
                     </tbody>
