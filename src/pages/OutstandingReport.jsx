@@ -249,8 +249,11 @@ function OutstandingReportContent() {
                     <TableCell className="text-right text-amber-600">-₹{fmt(row.discountAmount)}</TableCell>
                     <TableCell className="text-right font-medium text-slate-700">₹{fmt(row.netInvoiced)}</TableCell>
                     <TableCell className="text-right text-emerald-600">₹{fmt(row.paidAmount)}</TableCell>
-                    <TableCell className={`text-right font-bold ${row.outstanding > 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                      ₹{fmt(row.outstanding)}
+                    <TableCell className={`text-right font-bold ${row.dueAmount > 0 ? 'text-red-600' : 'text-slate-300'}`}>
+                      {row.dueAmount > 0 ? `₹${fmt(row.dueAmount)}` : '—'}
+                    </TableCell>
+                    <TableCell className={`text-right font-bold ${row.creditBalance > 0 ? 'text-emerald-600' : 'text-slate-300'}`}>
+                      {row.creditBalance > 0 ? `₹${fmt(row.creditBalance)}` : '—'}
                     </TableCell>
                     <TableCell className="text-slate-500">
                       {row.lastPaymentDate ? moment(row.lastPaymentDate).format('DD MMM YY') : '—'}
