@@ -14,7 +14,7 @@ export default function VoidModal({ payment, onClose, onSuccess }) {
   const voidMutation = useMutation({
     mutationFn: async () => {
       try {
-        const res = await base44.functions.invoke('reverseReceipt', {
+        const res = await base44.functions.invoke('voidReceipt', {
           paymentId: payment.id,
           reason: reason.trim()
         });
