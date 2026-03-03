@@ -44,6 +44,12 @@ export default function Staff() {
   const [editingStaff, setEditingStaff] = useState(null);
   const [editingRole, setEditingRole] = useState(null);
   const [search, setSearch] = useState('');
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resetPasswordStaff, setResetPasswordStaff] = useState(null);
+  const [resetPasswordMode, setResetPasswordMode] = useState('auto'); // 'auto' or 'manual'
+  const [manualPassword, setManualPassword] = useState('');
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [passwordCopied, setPasswordCopied] = useState(false);
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -134,15 +140,21 @@ export default function Staff() {
   });
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async (member) => {
+    mutationFn: async ({ staff_id, temp_password }) => {
       return await base44.functions.invoke('resetStaffPassword', {
-        staff_id: member.id,
-        temp_password: generateTempPassword(),
+        staff_id,
+        temp_password,
       });
     },
-    onSuccess: (res) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] });
-      toast.success(`Password reset: ${res.data.temp_password}`);
+      toast.success('Password reset. Staff will be forced to change on next login.');
+      setShowResetPasswordModal(false);
+      setResetPasswordStaff(null);
+      setResetPasswordMode('auto');
+      setManualPassword('');
+      setGeneratedPassword('');
+      setPasswordCopied(false);
     },
   });
 
@@ -319,6 +331,60 @@ export default function Staff() {
       permissions: role.permissions || {},
     });
     setShowRoleDialog(true);
+  };
+
+  const generateStrongPassword = () => {
+    const length = 10;
+    const lower = 'abcdefghijklmnopqrstuvwxyz';
+    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*';
+    const all = lower + upper + numbers + special;
+    
+    let pwd = '';
+    pwd += lower[Math.floor(Math.random() * lower.length)];
+    pwd += upper[Math.floor(Math.random() * upper.length)];
+    pwd += numbers[Math.floor(Math.random() * numbers.length)];
+    pwd += special[Math.floor(Math.random() * special.length)];
+    
+    for (let i = 4; i < length; i++) {
+      pwd += all[Math.floor(Math.random() * all.length)];
+    }
+    
+    return pwd.split('').sort(() => Math.random() - 0.5).join('');
+  };
+
+  const openResetPasswordModal = (member) => {
+    setResetPasswordStaff(member);
+    const genPwd = generateStrongPassword();
+    setGeneratedPassword(genPwd);
+    setManualPassword('');
+    setResetPasswordMode('auto');
+    setPasswordCopied(false);
+    setShowResetPasswordModal(true);
+  };
+
+  const handleResetPasswordSubmit = () => {
+    if (resetPasswordMode === 'auto' && !passwordCopied) {
+      toast.error('Please confirm you have copied the password');
+      return;
+    }
+    
+    if (resetPasswordMode === 'manual') {
+      if (!manualPassword || manualPassword.length < 8) {
+        toast.error('Password must be at least 8 characters');
+        return;
+      }
+      resetPasswordMutation.mutate({
+        staff_id: resetPasswordStaff.id,
+        temp_password: manualPassword,
+      });
+    } else {
+      resetPasswordMutation.mutate({
+        staff_id: resetPasswordStaff.id,
+        temp_password: generatedPassword,
+      });
+    }
   };
 
   const handleSaveRole = () => {
@@ -712,8 +778,9 @@ export default function Staff() {
                               size="icon"
                               variant="ghost"
                               className="h-8 w-8 text-amber-500"
-                              onClick={() => resetPasswordMutation.mutate(member)}
+                              onClick={() => openResetPasswordModal(member)}
                               disabled={resetPasswordMutation.isPending}
+                              title="Reset Password"
                             >
                               <KeyRound className="h-4 w-4" />
                             </Button>
@@ -1071,6 +1138,100 @@ export default function Staff() {
                   className="bg-[#1a237e] hover:bg-[#283593]"
                 >
                   {saveMutation.isPending ? 'Updating...' : 'Update Staff'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reset Password Modal */}
+        <Dialog open={showResetPasswordModal} onOpenChange={setShowResetPasswordModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Reset Password</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">
+                {resetPasswordStaff?.name} will be forced to change password on next login.
+              </p>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50" onClick={() => setResetPasswordMode('auto')}>
+                  <Checkbox checked={resetPasswordMode === 'auto'} onCheckedChange={() => setResetPasswordMode('auto')} />
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm">Generate Temporary Password</p>
+                    <p className="text-xs text-slate-500">System generates a strong password</p>
+                  </div>
+                </div>
+
+                {resetPasswordMode === 'auto' && (
+                  <div className="ml-7 space-y-2 p-3 bg-slate-50 rounded border">
+                    <p className="text-xs font-semibold text-slate-700">Generated Password:</p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        value={generatedPassword}
+                        readOnly
+                        className="bg-white font-mono text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedPassword);
+                          setPasswordCopied(true);
+                          toast.success('Password copied to clipboard');
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Label className="flex items-center gap-2 mt-2">
+                      <Checkbox
+                        checked={passwordCopied}
+                        onCheckedChange={(checked) => setPasswordCopied(checked)}
+                      />
+                      <span className="text-xs">I have copied the password</span>
+                    </Label>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50" onClick={() => setResetPasswordMode('manual')}>
+                  <Checkbox checked={resetPasswordMode === 'manual'} onCheckedChange={() => setResetPasswordMode('manual')} />
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm">Set Password Manually</p>
+                    <p className="text-xs text-slate-500">Admin enters temporary password</p>
+                  </div>
+                </div>
+
+                {resetPasswordMode === 'manual' && (
+                  <div className="ml-7 p-3 bg-slate-50 rounded border">
+                    <Input
+                      type="password"
+                      placeholder="Min. 8 characters"
+                      value={manualPassword}
+                      onChange={(e) => setManualPassword(e.target.value)}
+                      className="bg-white"
+                    />
+                    <p className="text-xs text-slate-500 mt-2">Password must be at least 8 characters long</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowResetPasswordModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleResetPasswordSubmit}
+                  disabled={resetPasswordMutation.isPending}
+                  className="bg-amber-600 hover:bg-amber-700"
+                >
+                  {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
                 </Button>
               </div>
             </div>
