@@ -11,7 +11,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // Statuses that mark a payment as voided (zero financial effect)
-const VOID_STATUSES = new Set(['VOID', 'REVERSED', 'CANCELLED']);
+const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
 // Valid active statuses for payments that affect balance
 const ACTIVE_STATUSES = new Set(['', null, undefined, 'POSTED', 'Active', 'ACTIVE']);
