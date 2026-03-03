@@ -135,3 +135,33 @@
     @apply px-4;
   }
 }
+
+/* Print-specific styles */
+@media print {
+  .no-print,
+  nav,
+  footer,
+  header,
+  [class*="nav-"],
+  [class*="Nav"],
+  [class*="bottom"],
+  [class*="Bottom"] {
+    display: none !important;
+  }
+  
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  * {
+    box-shadow: none !important;
+  }
+  
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+}
