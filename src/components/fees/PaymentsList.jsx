@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Receipt, RotateCcw } from 'lucide-react';
+import { Search, Receipt, RotateCcw, Printer } from 'lucide-react';
+import { createPageUrl } from '@/utils';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import VoidModal from './ReversalModal';
 
@@ -168,6 +169,15 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
                     <p className={`font-bold ${isVoid ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
                       ₹{(p.amount_paid || 0).toLocaleString()}
                     </p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-7 px-2 text-xs gap-1"
+                      onClick={() => window.open(`${createPageUrl('PrintReceiptA5')}?paymentId=${p.id}`, '_blank')}
+                    >
+                      <Printer className="h-3 w-3" />
+                      Print
+                    </Button>
                     {!isVoid && canVoidReceipt && (
                       <Button
                         size="sm"
