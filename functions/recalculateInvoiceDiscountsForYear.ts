@@ -132,11 +132,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'academicYear is required' }, { status: 400 });
     }
 
-    // Fetch all active invoices for this year (and optional class)
-    const invFilter = { academic_year: academicYear, status: 'Pending' };
+    // Fetch all active invoices for this year (exclude Cancelled only)
+    const invFilter = { academic_year: academicYear };
     if (className) invFilter.class_name = className;
 
-    const invoices = await base44.asServiceRole.entities.FeeInvoice.filter(invFilter);
+    const allInvoices = await base44.asServiceRole.entities.FeeInvoice.filter(invFilter);
+    const invoices = allInvoices.filter(inv => inv.status !== 'Cancelled');
+    
     if (!invoices || invoices.length === 0) {
       return Response.json({ updated: 0, skipped: 0, message: 'No invoices found for this year' });
     }
