@@ -35,6 +35,7 @@ function OutstandingReportContent() {
   const [selectedClass, setSelectedClass] = useState('');
   const [search, setSearch] = useState('');
   const [includeZero, setIncludeZero] = useState(false);
+  const [viewMode, setViewMode] = useState('all'); // 'all' | 'due' | 'credit'
   const [sort, setSort] = useState('outstanding_desc');
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
