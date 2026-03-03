@@ -151,7 +151,7 @@ export default function PrintReceiptA5() {
     <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
       <style>{`
         @page {
-          size: A5 portrait;
+          size: A5 landscape;
           margin: 6mm;
         }
         
@@ -160,37 +160,33 @@ export default function PrintReceiptA5() {
           padding: 0;
           background: white;
           font-family: Arial, sans-serif;
-          font-size: 9px;
-          line-height: 1.3;
+          font-size: 10px;
+          line-height: 1.2;
         }
         
         .a5-page {
           width: 100%;
-          height: 100vh;
+          display: flex;
+          gap: 6mm;
           padding: 0;
           margin: 0;
-          overflow: hidden;
           page-break-after: always;
         }
         
         .receipt-copy {
-          width: 100%;
-          height: 48%;
+          flex: 1;
+          width: 50%;
           page-break-inside: avoid;
           break-inside: avoid;
-          padding: 8px;
+          padding: 3mm;
           box-sizing: border-box;
           position: relative;
+          border: 1px solid #333;
           overflow: hidden;
-          border: 1px solid #f0f0f0;
-        }
-        
-        .receipt-copy.first {
-          border-bottom: 2px dashed #ccc;
         }
         
         .receipt-copy.void-copy {
-          background: rgba(255, 0, 0, 0.02);
+          background: rgba(255, 0, 0, 0.03);
         }
         
         .void-watermark {
@@ -198,9 +194,9 @@ export default function PrintReceiptA5() {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%) rotate(-45deg);
-          font-size: 48px;
+          font-size: 36px;
           font-weight: bold;
-          color: rgba(255, 0, 0, 0.15);
+          color: rgba(255, 0, 0, 0.12);
           pointer-events: none;
           white-space: nowrap;
           z-index: 0;
@@ -214,27 +210,28 @@ export default function PrintReceiptA5() {
         .receipt-header {
           text-align: center;
           border-bottom: 1px solid #333;
-          padding-bottom: 4px;
-          margin-bottom: 4px;
+          padding-bottom: 2px;
+          margin-bottom: 2px;
         }
         
         .school-logo {
-          width: 24px;
-          height: 24px;
-          margin: 0 auto 2px;
+          width: 20px;
+          height: 20px;
+          margin: 0 auto 1px;
           display: block;
         }
         
         .school-name {
           font-weight: bold;
           font-size: 11px;
-          margin: 2px 0 1px;
+          margin: 1px 0 0px;
         }
         
         .school-details {
           font-size: 8px;
           color: #333;
-          margin: 1px 0;
+          margin: 0px;
+          line-height: 1.1;
         }
         
         .receipt-title-row {
@@ -242,19 +239,27 @@ export default function PrintReceiptA5() {
           justify-content: space-between;
           align-items: center;
           font-weight: bold;
-          font-size: 10px;
-          margin: 3px 0 2px;
-          border-bottom: 1px solid #ddd;
-          padding-bottom: 2px;
+          font-size: 9px;
+          margin: 2px 0 1px;
+          padding-bottom: 1px;
+          border-bottom: 1px solid #999;
+        }
+        
+        .copy-badge {
+          font-size: 8px;
+          font-weight: bold;
+          background: #f0f0f0;
+          padding: 1px 3px;
+          border-radius: 2px;
         }
         
         .receipt-info {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 2px;
+          gap: 1px;
           font-size: 8px;
-          margin-bottom: 3px;
-          padding-bottom: 2px;
+          margin-bottom: 2px;
+          padding-bottom: 1px;
           border-bottom: 1px solid #ddd;
         }
         
@@ -270,32 +275,33 @@ export default function PrintReceiptA5() {
         
         .box-section {
           border: 1px solid #ccc;
-          padding: 3px;
-          margin: 3px 0;
+          padding: 2px;
+          margin: 2px 0;
           font-size: 8px;
         }
         
         .box-title {
           font-weight: bold;
-          font-size: 9px;
+          font-size: 8px;
           border-bottom: 1px solid #ccc;
           padding-bottom: 1px;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
         }
         
         .box-row {
           display: flex;
           justify-content: space-between;
-          padding: 1px 0;
+          padding: 0.5px 0;
+          font-size: 8px;
         }
         
         .amount-highlight {
           font-weight: bold;
-          font-size: 11px;
+          font-size: 10px;
           color: #000;
           text-align: center;
-          padding: 2px;
-          margin: 2px 0;
+          padding: 1px;
+          margin: 1px 0;
           border: 1px solid #333;
         }
         
@@ -303,12 +309,12 @@ export default function PrintReceiptA5() {
           width: 100%;
           border-collapse: collapse;
           font-size: 8px;
-          margin: 2px 0;
+          margin: 1px 0;
         }
         
         .summary-table td {
           border-bottom: 1px solid #ddd;
-          padding: 1px 2px;
+          padding: 0.5px 1px;
         }
         
         .summary-table .label {
@@ -325,45 +331,32 @@ export default function PrintReceiptA5() {
           font-size: 7px;
           text-align: center;
           color: #666;
-          margin-top: 3px;
-          padding-top: 2px;
+          margin-top: 2px;
+          padding-top: 1px;
           border-top: 1px solid #ddd;
         }
         
         .signature-section {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 4px;
-          font-size: 8px;
+          gap: 2px;
+          font-size: 7px;
           margin-top: 2px;
         }
         
         .signature-line {
           text-align: center;
           border-top: 1px solid #333;
-          padding-top: 8px;
-          height: 20px;
-        }
-        
-        .stamp-area {
-          position: absolute;
-          bottom: 8px;
-          right: 8px;
-          width: 30px;
-          height: 30px;
-          border: 1px dashed #999;
-          font-size: 7px;
-          text-align: center;
-          padding-top: 10px;
-          color: #999;
+          padding-top: 4px;
+          height: 12px;
         }
         
         .void-note {
           font-size: 8px;
           color: #d32f2f;
           font-weight: bold;
-          margin-top: 2px;
-          padding: 2px;
+          margin-top: 1px;
+          padding: 1px;
           background: #ffebee;
         }
         
@@ -372,19 +365,13 @@ export default function PrintReceiptA5() {
             margin: 0;
             padding: 0;
           }
-          
-          .a5-page {
-            height: auto;
-            page-break-after: always;
-          }
         }
       `}</style>
 
       <div className="a5-page">
         {/* School Copy */}
-        <div className={`receipt-copy first ${isVoid ? 'void-copy' : ''}`}>
+        <div className={`receipt-copy ${isVoid ? 'void-copy' : ''}`}>
           {isVoid && <div className="void-watermark">VOID</div>}
-          
           <div className="receipt-content">
             <ReceiptContent school={school} receipt={receipt} copyLabel="SCHOOL COPY" />
           </div>
@@ -393,7 +380,6 @@ export default function PrintReceiptA5() {
         {/* Parent Copy */}
         <div className={`receipt-copy ${isVoid ? 'void-copy' : ''}`}>
           {isVoid && <div className="void-watermark">VOID</div>}
-          
           <div className="receipt-content">
             <ReceiptContent school={school} receipt={receipt} copyLabel="PARENT COPY" />
           </div>
