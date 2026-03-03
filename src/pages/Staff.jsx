@@ -13,8 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2 } from 'lucide-react';
+import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Textarea } from '@/components/ui/textarea';
 
 const generateUsername = (name) => {
   return name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 99 + 1);
@@ -52,7 +54,34 @@ export default function Staff() {
     role_template_id: '',
     force_password_change: true,
     is_active: true,
+    // Profile fields
+    staff_code: '',
+    gender: '',
+    dob: '',
+    joining_date: '',
+    qualification: '',
+    experience_years: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    is_teacher: false,
+    subjects: [],
+    classes: [],
+    sections: [],
+    class_teacher_of: '',
   });
+
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.list('name'),
+  });
+
+  const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+  const SECTIONS = ['A', 'B', 'C', 'D'];
   const [roleForm, setRoleForm] = useState({
     name: '',
     description: '',
@@ -166,6 +195,24 @@ export default function Staff() {
       role_template_id: '',
       force_password_change: true,
       is_active: true,
+      staff_code: '',
+      gender: '',
+      dob: '',
+      joining_date: '',
+      qualification: '',
+      experience_years: '',
+      address_line1: '',
+      address_line2: '',
+      city: '',
+      state: '',
+      pincode: '',
+      emergency_contact_name: '',
+      emergency_contact_phone: '',
+      is_teacher: false,
+      subjects: [],
+      classes: [],
+      sections: [],
+      class_teacher_of: '',
     });
     setShowDialog(true);
   };
@@ -182,6 +229,24 @@ export default function Staff() {
       role_template_id: member.role_template_id || '',
       force_password_change: member.force_password_change,
       is_active: member.is_active,
+      staff_code: member.staff_code || '',
+      gender: member.gender || '',
+      dob: member.dob || '',
+      joining_date: member.joining_date || '',
+      qualification: member.qualification || '',
+      experience_years: member.experience_years || '',
+      address_line1: member.address_line1 || '',
+      address_line2: member.address_line2 || '',
+      city: member.city || '',
+      state: member.state || '',
+      pincode: member.pincode || '',
+      emergency_contact_name: member.emergency_contact_name || '',
+      emergency_contact_phone: member.emergency_contact_phone || '',
+      is_teacher: member.is_teacher || false,
+      subjects: member.subjects || [],
+      classes: member.classes || [],
+      sections: member.sections || [],
+      class_teacher_of: member.class_teacher_of || '',
     });
     setShowDialog(true);
   };
@@ -413,6 +478,162 @@ export default function Staff() {
                         <p className="text-xs text-slate-500 mt-1">Share with staff member to login</p>
                       </div>
                     </div>
+
+                    <Accordion type="single" collapsible className="col-span-2">
+                      <AccordionItem value="profile">
+                        <AccordionTrigger className="text-sm font-semibold">Profile Details (Optional)</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-4 pt-2">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Staff Code</Label>
+                                <Input value={form.staff_code} onChange={(e) => setForm(f => ({ ...f, staff_code: e.target.value }))} placeholder="T001" />
+                              </div>
+                              <div>
+                                <Label>Gender</Label>
+                                <Select value={form.gender} onValueChange={(v) => setForm(f => ({ ...f, gender: v }))}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Male">Male</SelectItem>
+                                    <SelectItem value="Female">Female</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>DOB</Label>
+                                <Input type="date" value={form.dob} onChange={(e) => setForm(f => ({ ...f, dob: e.target.value }))} />
+                              </div>
+                              <div>
+                                <Label>Joining Date</Label>
+                                <Input type="date" value={form.joining_date} onChange={(e) => setForm(f => ({ ...f, joining_date: e.target.value }))} />
+                              </div>
+                              <div>
+                                <Label>Qualification</Label>
+                                <Input value={form.qualification} onChange={(e) => setForm(f => ({ ...f, qualification: e.target.value }))} placeholder="B.A., M.Sc." />
+                              </div>
+                              <div>
+                                <Label>Experience (years)</Label>
+                                <Input type="number" value={form.experience_years} onChange={(e) => setForm(f => ({ ...f, experience_years: e.target.value }))} placeholder="5" />
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label>Address Line 1</Label>
+                              <Input value={form.address_line1} onChange={(e) => setForm(f => ({ ...f, address_line1: e.target.value }))} placeholder="Street address" />
+                            </div>
+                            <div>
+                              <Label>Address Line 2</Label>
+                              <Input value={form.address_line2} onChange={(e) => setForm(f => ({ ...f, address_line2: e.target.value }))} placeholder="Apt, building, etc." />
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <Label>City</Label>
+                                <Input value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} />
+                              </div>
+                              <div>
+                                <Label>State</Label>
+                                <Input value={form.state} onChange={(e) => setForm(f => ({ ...f, state: e.target.value }))} />
+                              </div>
+                              <div>
+                                <Label>Pincode</Label>
+                                <Input value={form.pincode} onChange={(e) => setForm(f => ({ ...f, pincode: e.target.value }))} />
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-4">
+                              <Label className="flex items-center gap-2 mb-4">
+                                <Checkbox checked={form.is_teacher} onCheckedChange={(checked) => setForm(f => ({ ...f, is_teacher: checked }))} />
+                                This is a Teacher
+                              </Label>
+
+                              {form.is_teacher && (
+                                <div className="space-y-4 ml-6">
+                                  <div>
+                                    <Label>Subjects</Label>
+                                    <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
+                                      {subjects.map(s => (
+                                        <div key={s.id} className="flex items-center gap-2">
+                                          <Checkbox
+                                            checked={form.subjects.includes(s.name)}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
+                                              } else {
+                                                setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
+                                              }
+                                            }}
+                                          />
+                                          <span className="text-sm">{s.name}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <Label>Classes</Label>
+                                    <div className="grid grid-cols-3 gap-2 border rounded p-2">
+                                      {CLASSES.map(c => (
+                                        <div key={c} className="flex items-center gap-2">
+                                          <Checkbox
+                                            checked={form.classes.includes(c)}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setForm(f => ({ ...f, classes: [...f.classes, c] }));
+                                              } else {
+                                                setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
+                                              }
+                                            }}
+                                          />
+                                          <span className="text-sm">{c}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <Label>Sections</Label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      {SECTIONS.map(s => (
+                                        <div key={s} className="flex items-center gap-2">
+                                          <Checkbox
+                                            checked={form.sections.includes(s)}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setForm(f => ({ ...f, sections: [...f.sections, s] }));
+                                              } else {
+                                                setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
+                                              }
+                                            }}
+                                          />
+                                          <span className="text-sm">{s}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <Label>Class Teacher Of</Label>
+                                    <Input value={form.class_teacher_of} onChange={(e) => setForm(f => ({ ...f, class_teacher_of: e.target.value }))} placeholder="e.g., Class 5-A" />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Emergency Contact Name</Label>
+                              <Input value={form.emergency_contact_name} onChange={(e) => setForm(f => ({ ...f, emergency_contact_name: e.target.value }))} />
+                            </div>
+                            <div>
+                              <Label>Emergency Contact Phone</Label>
+                              <Input value={form.emergency_contact_phone} onChange={(e) => setForm(f => ({ ...f, emergency_contact_phone: e.target.value }))} />
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
 
                     <div className="flex gap-3 justify-end pt-4">
                       <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
@@ -677,6 +898,162 @@ export default function Staff() {
                   </Label>
                 </div>
               </div>
+
+              <Accordion type="single" collapsible>
+                <AccordionItem value="profile">
+                  <AccordionTrigger className="text-sm font-semibold">Profile Details</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pt-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Staff Code</Label>
+                          <Input value={form.staff_code} onChange={(e) => setForm(f => ({ ...f, staff_code: e.target.value }))} placeholder="T001" />
+                        </div>
+                        <div>
+                          <Label>Gender</Label>
+                          <Select value={form.gender} onValueChange={(v) => setForm(f => ({ ...f, gender: v }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>DOB</Label>
+                          <Input type="date" value={form.dob} onChange={(e) => setForm(f => ({ ...f, dob: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>Joining Date</Label>
+                          <Input type="date" value={form.joining_date} onChange={(e) => setForm(f => ({ ...f, joining_date: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>Qualification</Label>
+                          <Input value={form.qualification} onChange={(e) => setForm(f => ({ ...f, qualification: e.target.value }))} placeholder="B.A., M.Sc." />
+                        </div>
+                        <div>
+                          <Label>Experience (years)</Label>
+                          <Input type="number" value={form.experience_years} onChange={(e) => setForm(f => ({ ...f, experience_years: e.target.value }))} placeholder="5" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Address Line 1</Label>
+                        <Input value={form.address_line1} onChange={(e) => setForm(f => ({ ...f, address_line1: e.target.value }))} placeholder="Street address" />
+                      </div>
+                      <div>
+                        <Label>Address Line 2</Label>
+                        <Input value={form.address_line2} onChange={(e) => setForm(f => ({ ...f, address_line2: e.target.value }))} placeholder="Apt, building, etc." />
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label>City</Label>
+                          <Input value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>State</Label>
+                          <Input value={form.state} onChange={(e) => setForm(f => ({ ...f, state: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>Pincode</Label>
+                          <Input value={form.pincode} onChange={(e) => setForm(f => ({ ...f, pincode: e.target.value }))} />
+                        </div>
+                      </div>
+
+                      <div className="border-t pt-4">
+                        <Label className="flex items-center gap-2 mb-4">
+                          <Checkbox checked={form.is_teacher} onCheckedChange={(checked) => setForm(f => ({ ...f, is_teacher: checked }))} />
+                          This is a Teacher
+                        </Label>
+
+                        {form.is_teacher && (
+                          <div className="space-y-4 ml-6">
+                            <div>
+                              <Label>Subjects</Label>
+                              <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
+                                {subjects.map(s => (
+                                  <div key={s.id} className="flex items-center gap-2">
+                                    <Checkbox
+                                      checked={form.subjects.includes(s.name)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
+                                        } else {
+                                          setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{s.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label>Classes</Label>
+                              <div className="grid grid-cols-3 gap-2 border rounded p-2">
+                                {CLASSES.map(c => (
+                                  <div key={c} className="flex items-center gap-2">
+                                    <Checkbox
+                                      checked={form.classes.includes(c)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setForm(f => ({ ...f, classes: [...f.classes, c] }));
+                                        } else {
+                                          setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{c}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label>Sections</Label>
+                              <div className="grid grid-cols-4 gap-2">
+                                {SECTIONS.map(s => (
+                                  <div key={s} className="flex items-center gap-2">
+                                    <Checkbox
+                                      checked={form.sections.includes(s)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setForm(f => ({ ...f, sections: [...f.sections, s] }));
+                                        } else {
+                                          setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{s}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label>Class Teacher Of</Label>
+                              <Input value={form.class_teacher_of} onChange={(e) => setForm(f => ({ ...f, class_teacher_of: e.target.value }))} placeholder="e.g., Class 5-A" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label>Emergency Contact Name</Label>
+                        <Input value={form.emergency_contact_name} onChange={(e) => setForm(f => ({ ...f, emergency_contact_name: e.target.value }))} />
+                      </div>
+                      <div>
+                        <Label>Emergency Contact Phone</Label>
+                        <Input value={form.emergency_contact_phone} onChange={(e) => setForm(f => ({ ...f, emergency_contact_phone: e.target.value }))} />
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
 
               <div className="flex gap-3 justify-end pt-4">
                 <Button 
