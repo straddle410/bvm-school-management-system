@@ -304,9 +304,9 @@ export default function DayBookReport() {
                     <thead>
                       <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wide">
                         <th className="px-4 py-3 text-left">Date</th>
-                        <th className="px-4 py-3 text-right">Gross Collected</th>
-                        <th className="px-4 py-3 text-right">Reversed</th>
+                        <th className="px-4 py-3 text-right">Collected</th>
                         <th className="px-4 py-3 text-right">Net</th>
+                        {applied.includeVoided && <th className="px-4 py-3 text-right">Voided</th>}
                         <th className="px-4 py-3 text-right">Details</th>
                       </tr>
                     </thead>
