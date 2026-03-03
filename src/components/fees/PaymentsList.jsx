@@ -40,6 +40,7 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
   const [fromDate, setFromDate] = useState(today());
   const [toDate, setToDate] = useState(today());
   const [reversingPayment, setReversingPayment] = useState(null);
+  const [voidingPaymentId, setVoidingPaymentId] = useState(null);
   const queryClient = useQueryClient();
 
   const applyPreset = (preset) => {
