@@ -58,8 +58,10 @@ import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
 import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
 import CollectionReport from './pages/CollectionReport';
+import DailyClosingReport from './pages/DailyClosingReport';
 import Dashboard from './pages/Dashboard';
 import DayBookReport from './pages/DayBookReport';
+import DefaultersReport from './pages/DefaultersReport';
 import Diary from './pages/Diary';
 import DiaryManagement from './pages/DiaryManagement';
 import ExamManagement from './pages/ExamManagement';
@@ -98,9 +100,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import DefaultersReport from './pages/DefaultersReport';
-import DailyClosingReport from './pages/DailyClosingReport';
-import ParentStatement from './pages/ParentStatement';
 import __Layout from './Layout.jsx';
 
 
@@ -116,8 +115,10 @@ export const PAGES = {
     "Calendar": Calendar,
     "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
     "CollectionReport": CollectionReport,
+    "DailyClosingReport": DailyClosingReport,
     "Dashboard": Dashboard,
     "DayBookReport": DayBookReport,
+    "DefaultersReport": DefaultersReport,
     "Diary": Diary,
     "DiaryManagement": DiaryManagement,
     "ExamManagement": ExamManagement,
@@ -156,9 +157,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "DefaultersReport": DefaultersReport,
-    "DailyClosingReport": DailyClosingReport,
-    "ParentStatement": ParentStatement,
 }
 
 export const pagesConfig = {
