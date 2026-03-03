@@ -33,16 +33,7 @@ const roleColors = {
   Admin: 'bg-red-100 text-red-700',
 };
 
-const PERMISSION_MODULES = [
-  'attendance',
-  'marks',
-  'post_notices',
-  'gallery',
-  'quiz',
-  'student_admission_permission',
-  'fees_view_module',
-  'fee_reports_view',
-];
+import { PERMISSION_CATEGORIES } from '@/components/permissionHelper';
 
 export default function Staff() {
   const [activeTab, setActiveTab] = useState('add');
@@ -271,6 +262,28 @@ export default function Staff() {
         [perm]: !f.permissions[perm],
       },
     }));
+  };
+
+  const toggleModuleAll = (category) => {
+    const perms = category.permissions.map(p => p.key);
+    const allEnabled = perms.every(p => roleForm.permissions[p]);
+    
+    const newPerms = { ...roleForm.permissions };
+    perms.forEach(p => {
+      newPerms[p] = !allEnabled;
+    });
+    if (category.moduleKey) {
+      newPerms[category.moduleKey] = !allEnabled;
+    }
+    setRoleForm(f => ({ ...f, permissions: newPerms }));
+  };
+
+  const applyFeePreset = (preset) => {
+    const newPerms = { ...roleForm.permissions };
+    preset.perms.forEach(p => {
+      newPerms[p] = true;
+    });
+    setRoleForm(f => ({ ...f, permissions: newPerms }));
   };
 
   return (
@@ -595,19 +608,60 @@ export default function Staff() {
 
               <div>
                 <Label className="mb-3 block">Permissions</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  {PERMISSION_MODULES.map(perm => (
-                    <div key={perm} className="flex items-center gap-2">
-                      <Checkbox
-                        id={perm}
-                        checked={roleForm.permissions[perm] || false}
-                        onCheckedChange={() => togglePermission(perm)}
-                      />
-                      <label htmlFor={perm} className="text-sm font-medium cursor-pointer capitalize">
-                        {perm.replace(/_/g, ' ')}
-                      </label>
-                    </div>
-                  ))}
+                <div className="space-y-5">
+                  {PERMISSION_CATEGORIES.map(category => {
+                    const allPermEnabled = category.permissions.every(p => roleForm.permissions[p.key]);
+                    const someEnabled = category.permissions.some(p => roleForm.permissions[p.key]);
+                    
+                    return (
+                      <div key={category.label} className="border rounded-lg p-4 bg-slate-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`module-${category.label}`}
+                              checked={allPermEnabled}
+                              indeterminate={someEnabled && !allPermEnabled}
+                              onCheckedChange={() => toggleModuleAll(category)}
+                            />
+                            <label htmlFor={`module-${category.label}`} className="font-semibold text-slate-900 cursor-pointer">
+                              {category.label}
+                            </label>
+                          </div>
+                          {category.presets && (
+                            <div className="flex gap-1">
+                              {category.presets.map(preset => (
+                                <Button
+                                  key={preset.name}
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs h-7"
+                                  onClick={() => applyFeePreset(preset)}
+                                >
+                                  {preset.name}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2 ml-6">
+                          {category.permissions.map(perm => (
+                            <div key={perm.key} className="flex items-center gap-2">
+                              <Checkbox
+                                id={perm.key}
+                                checked={roleForm.permissions[perm.key] || false}
+                                onCheckedChange={() => togglePermission(perm.key)}
+                              />
+                              <label htmlFor={perm.key} className="text-sm cursor-pointer">
+                                {perm.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
