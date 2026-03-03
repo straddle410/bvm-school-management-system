@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// VOID-ONLY POLICY:
+// Reversing a receipt means marking it VOID. No negative/child entries are created.
+// A VOID receipt has zero financial effect on all reports.
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -14,29 +18,38 @@ Deno.serve(async (req) => {
 
     // Non-admins need the fees_reverse_receipt permission
     if (!isAdmin) {
-      // Look up StaffAccount to check granular permission
       const staffAccounts = await base44.asServiceRole.entities.StaffAccount.filter({ email: user.email });
       const staffAccount = staffAccounts?.[0];
       const hasPermission = staffAccount?.permissions?.fees_reverse_receipt === true;
       if (!hasPermission) {
-        return Response.json({ error: 'Forbidden: You do not have permission to reverse receipts' }, { status: 403 });
+        return Response.json({ error: 'Forbidden: You do not have permission to void receipts' }, { status: 403 });
       }
     }
 
     const { paymentId, reason } = await req.json();
     if (!paymentId) return Response.json({ error: 'paymentId is required' }, { status: 400 });
-    if (!reason?.trim()) return Response.json({ error: 'Reversal reason is required' }, { status: 400 });
+    if (!reason?.trim()) return Response.json({ error: 'Void reason is required' }, { status: 400 });
 
     // Fetch the payment
     const payment = await base44.asServiceRole.entities.FeePayment.get(paymentId);
     if (!payment) return Response.json({ error: 'Payment not found' }, { status: 404 });
-    if (payment.status === 'REVERSED') return Response.json({ error: 'Payment is already reversed' }, { status: 400 });
 
-    // Non-admins can only reverse same-day receipts
+    // IDEMPOTENT: already voided → return success with no changes
+    if (payment.status === 'VOID' || payment.status === 'REVERSED') {
+      return Response.json({
+        success: true,
+        already_voided: true,
+        message: 'Receipt was already voided — no changes made.'
+      });
+    }
+
+    // Non-admins can only void same-day receipts
     if (!isAdmin) {
       const today = new Date().toISOString().split('T')[0];
       if (payment.payment_date !== today) {
-        return Response.json({ error: 'Non-admin users can only reverse receipts created today. Please contact an admin for older receipts.' }, { status: 403 });
+        return Response.json({
+          error: 'Non-admin users can only void receipts created today. Please contact an admin for older receipts.'
+        }, { status: 403 });
       }
     }
 
@@ -44,24 +57,24 @@ Deno.serve(async (req) => {
     const invoice = await base44.asServiceRole.entities.FeeInvoice.get(payment.invoice_id);
     if (!invoice) return Response.json({ error: 'Invoice not found' }, { status: 404 });
 
-    // Mark original payment as REVERSED
+    // ── VOID the payment (no child/negative entry created) ─────────────────
     await base44.asServiceRole.entities.FeePayment.update(paymentId, {
-      status: 'REVERSED',
-      reversal_reason: reason,
-      reversed_by: user.email,
-      reversed_at: new Date().toISOString()
+      status: 'VOID',
+      void_reason: reason,
+      voided_by: user.email,
+      voided_at: new Date().toISOString()
     });
 
-    // Recalculate invoice paid_amount from all non-reversed payments
+    // ── Recalculate invoice: exclude ALL voided/reversed payments ──────────
     const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ invoice_id: payment.invoice_id });
     const totalPaid = allPayments
-      .filter(p => p.id !== paymentId && p.status !== 'REVERSED')
+      .filter(p => p.id !== paymentId && !['VOID', 'REVERSED'].includes(p.status))
       .reduce((sum, p) => sum + (p.amount_paid || 0), 0);
 
     const netAmount = invoice.total_amount || 0;
     const balance = Math.max(netAmount - totalPaid, 0);
 
-    let newStatus = invoice.status;
+    let newStatus;
     if (totalPaid <= 0) newStatus = 'Pending';
     else if (balance <= 0) newStatus = 'Paid';
     else newStatus = 'Partial';
@@ -72,7 +85,13 @@ Deno.serve(async (req) => {
       status: newStatus
     });
 
-    return Response.json({ success: true, new_paid_amount: totalPaid, new_balance: balance, new_status: newStatus });
+    return Response.json({
+      success: true,
+      already_voided: false,
+      new_paid_amount: totalPaid,
+      new_balance: balance,
+      new_status: newStatus
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

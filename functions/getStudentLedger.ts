@@ -1,4 +1,20 @@
+/**
+ * Student Ledger Report
+ *
+ * VOID-ONLY POLICY:
+ *   - VOID/REVERSED payments are excluded by default (includeVoided=false).
+ *   - When includeVoided=true, VOID rows appear with debit=0, credit=0 and do NOT
+ *     affect the running balance — purely for audit visibility.
+ *   - No negative "reversal entry" rows exist in this system.
+ *   - Running balance: Invoice debits increase it; POSTED payments decrease it.
+ */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+// Statuses that mark a payment as voided (zero financial effect)
+const VOID_STATUSES = new Set(['VOID', 'REVERSED', 'CANCELLED']);
+
+// Valid active statuses for payments that affect balance
+const ACTIVE_STATUSES = new Set(['', null, undefined, 'POSTED', 'Active', 'ACTIVE']);
 
 Deno.serve(async (req) => {
   try {
@@ -10,7 +26,6 @@ Deno.serve(async (req) => {
       academicYear,
       dateFrom,
       dateTo,
-      includeReversals = true,
       includeCredits = true,
       includeVoided = false,
       exportCsv = false,
@@ -26,7 +41,7 @@ Deno.serve(async (req) => {
     const students = await base44.asServiceRole.entities.Student.filter({ student_id: studentId });
     const student = students[0] || null;
 
-    // Build invoice + payment filter
+    // Build filters
     const invFilter = { student_id: studentId };
     const payFilter = { student_id: studentId };
     if (academicYear) {
@@ -41,7 +56,7 @@ Deno.serve(async (req) => {
 
     const rows = [];
 
-    // --- INVOICE ROWS (DEBIT) ---
+    // ── INVOICE ROWS (DEBIT) ───────────────────────────────────────────────
     for (const inv of invoices) {
       if (inv.status === 'Cancelled') continue;
 
@@ -50,6 +65,8 @@ Deno.serve(async (req) => {
 
       rows.push({
         _sortDate: invDate || '0000-00-00',
+        _sortType: 0,
+        _id: inv.id,
         date: invDate,
         type: 'INVOICE',
         refNo: inv.id ? `INV-${inv.id.slice(-6).toUpperCase()}` : null,
@@ -60,79 +77,46 @@ Deno.serve(async (req) => {
         invoiceId: inv.id,
         paymentId: null,
         status: inv.status === 'Waived' ? 'VOID' : 'POSTED',
-        _waived: inv.status === 'Waived'
       });
     }
 
-    // --- PAYMENT / REVERSAL / CREDIT ROWS ---
-    const seenPaymentIds = new Set();
+    // ── PAYMENT ROWS ──────────────────────────────────────────────────────
+    const seenIds = new Set();
     for (const p of payments) {
-      if (seenPaymentIds.has(p.id)) continue;
-      seenPaymentIds.add(p.id);
+      if (seenIds.has(p.id)) continue;
+      seenIds.add(p.id);
 
       const pDate = p.payment_date || (p.created_date ? p.created_date.split('T')[0] : null);
       const amount = p.amount_paid ?? 0;
+      const rawStatus = (p.status || '').toUpperCase();
 
-      // ── Entry classification (PRECEDENCE ORDER MATTERS) ──────────────────
-      //
-      // Priority 1 – REVERSAL ENTRY: A NEW record explicitly created to post the
-      //   reversal effect (adds back to receivable). Identified by:
-      //   • entry_type IN ('PAYMENT_REVERSAL', 'PAYMENT_REFUND')
-      //   • entry_type = 'REVERSAL' AND status = 'Active'
-      //   • amount < 0 AND status = 'Active' (negative cash movement, not voided original)
-      //
-      // Priority 2 – VOID: The ORIGINAL payment record that was cancelled.
-      //   Identified solely by status = 'REVERSED'.
-      //   CRITICAL: isReversalEntry WINS even if status would also be 'REVERSED'.
-      //   In current flow, reverseReceipt only marks originals as REVERSED (no child entry),
-      //   so a VOID row has debit=0 credit=0 and does NOT affect running balance.
-      //
-      // Priority 3 – CREDIT_ADJUSTMENT: reduces outstanding (credit column)
-      //
-      // Priority 4 – Standard CASH / UPI payment (credit column)
-      // ──────────────────────────────────────────────────────────────────────
-      const isReversalEntry =
-        p.entry_type === 'PAYMENT_REVERSAL' ||
-        p.entry_type === 'PAYMENT_REFUND' ||
-        (p.entry_type === 'REVERSAL' && (p.status === 'Active' || !p.status)) ||
-        (amount < 0 && p.status === 'Active');
-
-      // VOID: original payment marked REVERSED — isReversalEntry takes precedence
-      const isVoided = !isReversalEntry && (p.status === 'REVERSED');
-
-      const isCredit = !isReversalEntry && !isVoided && p.entry_type === 'CREDIT_ADJUSTMENT';
+      // Classify: VOID or ACTIVE
+      const isVoid = VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status);
+      const isCredit = !isVoid && p.entry_type === 'CREDIT_ADJUSTMENT';
 
       // Apply filters
-      if (isVoided && !includeVoided) continue;
-      if (isReversalEntry && !includeReversals) continue;
+      if (isVoid && !includeVoided) continue;
       if (isCredit && !includeCredits) continue;
 
       let type, debit, credit, status, description;
 
-      if (isVoided) {
-        // VOID: original payment was reversed — excluded from balance math (debit=0, credit=0)
-        status = 'VOID';
+      if (isVoid) {
+        // VOID: shown for audit only, zero financial effect
         type = 'PAYMENT';
+        status = 'VOID';
         debit = 0;
         credit = 0;
-        description = `Payment ${p.receipt_no || ''} (Voided${p.reversal_reason ? ': ' + p.reversal_reason : ''})`;
-      } else if (isReversalEntry) {
-        // REVERSAL: a posted entry that cancels a prior payment — INCREASES outstanding
-        status = 'POSTED';
-        type = 'REVERSAL';
-        debit = Math.abs(amount); // adds back to receivable
-        credit = 0;
-        description = `Reversal${p.reversal_reason ? ': ' + p.reversal_reason : ''} (${p.receipt_no || ''})`;
+        description = `Payment ${p.receipt_no || ''} (Voided${p.void_reason || p.reversal_reason ? ': ' + (p.void_reason || p.reversal_reason) : ''})`;
       } else if (isCredit) {
-        status = 'POSTED';
         type = 'CREDIT';
+        status = 'POSTED';
         debit = 0;
         credit = Math.abs(amount);
         description = `Credit Adjustment${p.remarks ? ': ' + p.remarks : ''} (${p.receipt_no || ''})`;
       } else {
-        // Standard CASH / UPI / bank payment
-        status = 'POSTED';
+        // Standard cash/UPI/bank payment
         type = 'PAYMENT';
+        status = 'POSTED';
         debit = 0;
         credit = Math.abs(amount);
         description = `${p.payment_mode || 'Payment'} received (${p.receipt_no || ''})`;
@@ -140,6 +124,8 @@ Deno.serve(async (req) => {
 
       rows.push({
         _sortDate: pDate || '0000-00-00',
+        _sortType: isVoid ? 3 : (isCredit ? 2 : 1),
+        _id: p.id,
         date: pDate,
         type,
         refNo: p.receipt_no ? `RCPT-${p.receipt_no}` : null,
@@ -150,57 +136,46 @@ Deno.serve(async (req) => {
         invoiceId: p.invoice_id || null,
         paymentId: p.id,
         status,
-        _raw: p
       });
     }
 
-    // Sort deterministically:
-    // 1. By date ascending
-    // 2. INVOICE before PAYMENT/REVERSAL on same date (logical order: charge first, then payment)
-    // 3. PAYMENT before REVERSAL on same date (logical order: payment created before it was reversed)
-    // 4. Stable tie-breaker: paymentId/invoiceId lexicographically (consistent across calls)
-    const TYPE_ORDER = { INVOICE: 0, PAYMENT: 1, CREDIT: 2, REVERSAL: 3 };
+    // Sort: date asc → type order (INVOICE=0, PAYMENT=1, CREDIT=2, VOID=3) → id
     rows.sort((a, b) => {
       if (a._sortDate < b._sortDate) return -1;
       if (a._sortDate > b._sortDate) return 1;
-      const ta = TYPE_ORDER[a.type] ?? 9;
-      const tb = TYPE_ORDER[b.type] ?? 9;
-      if (ta !== tb) return ta - tb;
-      // Stable id tie-breaker (never collapses different records)
-      const idA = a.paymentId || a.invoiceId || '';
-      const idB = b.paymentId || b.invoiceId || '';
-      return idA < idB ? -1 : idA > idB ? 1 : 0;
+      if (a._sortType !== b._sortType) return a._sortType - b._sortType;
+      return a._id < b._id ? -1 : a._id > b._id ? 1 : 0;
     });
 
-    // Apply date filters
+    // Date range filter
     let filtered = rows;
     if (dateFrom) filtered = filtered.filter(r => !r.date || r.date >= dateFrom);
-    if (dateTo) filtered = filtered.filter(r => !r.date || r.date <= dateTo);
+    if (dateTo)   filtered = filtered.filter(r => !r.date || r.date <= dateTo);
 
-    // Opening balance = net effect of all POSTED rows BEFORE dateFrom
+    // Opening balance = POSTED rows before dateFrom
     let openingBalance = 0;
     if (dateFrom) {
       const before = rows.filter(r => r.date && r.date < dateFrom && r.status === 'POSTED');
       openingBalance = before.reduce((s, r) => s + r.debit - r.credit, 0);
     }
 
-    // Compute running balances
+    // Running balance: only POSTED rows affect it
     let running = openingBalance;
     const withBalance = filtered.map(r => {
       if (r.status === 'POSTED') {
         running += r.debit - r.credit;
       }
-      const { _sortDate, _raw, _waived, ...rest } = r;
+      const { _sortDate, _sortType, _id, ...rest } = r;
       return { ...rest, runningBalance: running };
     });
 
     const closingBalance = running;
 
-    // Summary
+    // Summary: only POSTED rows count
     const postedRows = withBalance.filter(r => r.status === 'POSTED');
     const totalInvoiced = postedRows.filter(r => r.type === 'INVOICE').reduce((s, r) => s + r.debit, 0);
-    const totalPaid = postedRows.filter(r => ['PAYMENT', 'CREDIT'].includes(r.type)).reduce((s, r) => s + r.credit, 0);
-    const totalReversed = postedRows.filter(r => r.type === 'REVERSAL').reduce((s, r) => s + r.debit, 0);
+    const totalPaid     = postedRows.filter(r => ['PAYMENT', 'CREDIT'].includes(r.type)).reduce((s, r) => s + r.credit, 0);
+    const voidCount     = withBalance.filter(r => r.status === 'VOID').length;
 
     // CSV export
     if (exportCsv) {
@@ -241,7 +216,7 @@ Deno.serve(async (req) => {
       } : null,
       openingBalance,
       closingBalance,
-      summary: { totalInvoiced, totalPaid, totalReversed, netOutstanding: closingBalance },
+      summary: { totalInvoiced, totalPaid, voidCount, netOutstanding: closingBalance },
       rows: pageRows
     });
 

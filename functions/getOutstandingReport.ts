@@ -1,4 +1,13 @@
+/**
+ * Outstanding / Due Report
+ *
+ * VOID-ONLY POLICY:
+ *   - Payments with status VOID/REVERSED/CANCELLED are excluded from paid totals.
+ *   - This means voiding a payment increases the student's outstanding balance.
+ */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+const VOID_STATUSES = new Set(['VOID', 'REVERSED', 'CANCELLED']);
 
 Deno.serve(async (req) => {
   try {
@@ -25,30 +34,30 @@ Deno.serve(async (req) => {
 
     const cutoff = asOfDate || new Date().toISOString().split('T')[0];
 
-    // Fetch invoices and payments in parallel
     const [invoices, payments] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear })
     ]);
 
-    // Filter invoices: only active (not Cancelled/Waived), up to cutoff date
+    // Active invoices: not Cancelled, due on or before cutoff
     const activeInvoices = invoices.filter(inv => {
-      if (['Cancelled'].includes(inv.status)) return false;
+      if (inv.status === 'Cancelled') return false;
       const invDate = inv.due_date || inv.created_date;
       if (invDate && invDate > cutoff) return false;
       return true;
     });
 
-    // Filter payments: only active (not REVERSED), up to cutoff
+    // Active payments: EXCLUDE VOID/REVERSED, up to cutoff
     const activePayments = payments.filter(p => {
-      if (p.status === 'REVERSED') return false;
+      const rawStatus = (p.status || '').toUpperCase();
+      if (VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status)) return false;
       const pDate = p.payment_date || p.created_date;
       if (pDate && pDate > cutoff) return false;
       return true;
     });
 
     // Build per-student aggregates
-    const studentMap = {}; // studentId -> aggregate
+    const studentMap = {};
 
     const ensure = (studentId, studentName, className_) => {
       if (!studentMap[studentId]) {
@@ -89,30 +98,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Aggregate payments
+    // Aggregate payments (VOID already excluded above)
     for (const p of activePayments) {
-      // Determine contribution:
-      // CASH_PAYMENT: adds to paid (positive amount_paid)
-      // REVERSAL: reduces paid (amount_paid is negative, or we subtract it)
-      // CREDIT_ADJUSTMENT: only reduces outstanding if affects_cash is explicitly false
-      //   Wave 2 rule: credit adjustments that affect receivable ARE counted
-
       let contribution = 0;
-      if (p.entry_type === 'CASH_PAYMENT') {
+
+      if (p.entry_type === 'CREDIT_ADJUSTMENT') {
         contribution = p.amount_paid || 0;
-      } else if (p.entry_type === 'REVERSAL') {
-        // Reversals have negative amount_paid or we negate positive
-        contribution = p.amount_paid || 0; // amount_paid should already be negative
-        if (contribution > 0) contribution = -contribution; // ensure negative
-      } else if (p.entry_type === 'CREDIT_ADJUSTMENT') {
-        // Include credit adjustments that reduce receivable (affects_cash = false but reduces balance)
+      } else {
+        // Standard cash/UPI/bank payment — positive contribution
         contribution = p.amount_paid || 0;
+        if (contribution < 0) contribution = 0; // guard: no negative standard payments
       }
 
       if (contribution === 0) continue;
 
-      // Find invoice to get student info if not in studentMap
-      const inv = activeInvoices.find(i => i.id === p.invoice_id) || 
+      const inv = activeInvoices.find(i => i.id === p.invoice_id) ||
                   invoices.find(i => i.id === p.invoice_id);
       const sid = p.student_id || inv?.student_id;
       if (!sid) continue;
@@ -120,10 +120,8 @@ Deno.serve(async (req) => {
       const row = ensure(sid, p.student_name || inv?.student_name, p.class_name || inv?.class_name);
       row.paidAmount += contribution;
 
-      if (p.payment_date) {
-        if (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate) {
-          row.lastPaymentDate = p.payment_date;
-        }
+      if (p.payment_date && (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate)) {
+        row.lastPaymentDate = p.payment_date;
       }
       row.payments.push({
         id: p.id,
@@ -136,7 +134,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build rows — no clamping, signed balance
     let rows = Object.values(studentMap).map(row => {
       const rawOutstanding = row.netInvoiced - row.paidAmount;
       const dueAmount = Math.max(rawOutstanding, 0);
@@ -148,10 +145,9 @@ Deno.serve(async (req) => {
         discountAmount: row.discountAmount,
         netInvoiced: row.netInvoiced,
         paidAmount: row.paidAmount,
-        rawOutstanding,   // signed: negative = overpaid
-        dueAmount,        // positive debt only
-        creditBalance,    // overpayment only
-        // legacy compat field kept for anything reading "outstanding"
+        rawOutstanding,
+        dueAmount,
+        creditBalance,
         outstanding: dueAmount,
         lastPaymentDate: row.lastPaymentDate,
         _invoices: row.invoices,
@@ -159,10 +155,8 @@ Deno.serve(async (req) => {
       };
     });
 
-    // Apply filters
-    if (className) {
-      rows = rows.filter(r => r.class.name === className);
-    }
+    // Filters
+    if (className)  rows = rows.filter(r => r.class.name === className);
     if (search) {
       const q = search.toLowerCase();
       rows = rows.filter(r =>
@@ -170,8 +164,7 @@ Deno.serve(async (req) => {
         r.student.id.toLowerCase().includes(q)
       );
     }
-    // Exclusive mode filters
-    if (onlyDue)    rows = rows.filter(r => r.rawOutstanding > 0);
+    if (onlyDue)         rows = rows.filter(r => r.rawOutstanding > 0);
     else if (onlyCredit) rows = rows.filter(r => r.rawOutstanding < 0);
     else if (!includeZeroOutstanding) rows = rows.filter(r => r.rawOutstanding !== 0);
 
@@ -181,9 +174,8 @@ Deno.serve(async (req) => {
     else if (sort === 'name_asc') rows.sort((a, b) => a.student.name.localeCompare(b.student.name));
     else if (sort === 'name_desc') rows.sort((a, b) => b.student.name.localeCompare(a.student.name));
 
-    // Summary across all rows (before pagination)
-    const totalDue     = rows.reduce((s, r) => s + r.dueAmount, 0);
-    const totalCredit  = rows.reduce((s, r) => s + r.creditBalance, 0);
+    const totalDue    = rows.reduce((s, r) => s + r.dueAmount, 0);
+    const totalCredit = rows.reduce((s, r) => s + r.creditBalance, 0);
     const summary = {
       totalGross: rows.reduce((s, r) => s + r.grossAmount, 0),
       totalDiscount: rows.reduce((s, r) => s + r.discountAmount, 0),
@@ -192,14 +184,13 @@ Deno.serve(async (req) => {
       totalDue,
       totalCredit,
       netReceivable: totalDue - totalCredit,
-      totalOutstanding: totalDue, // legacy compat
+      totalOutstanding: totalDue,
       countDueStudents: rows.filter(r => r.rawOutstanding > 0).length,
       countCreditStudents: rows.filter(r => r.rawOutstanding < 0).length,
       countTotal: rows.length,
-      countStudents: rows.length // legacy compat
+      countStudents: rows.length
     };
 
-    // CSV export
     if (exportCsv) {
       const headers = ['Student ID', 'Student Name', 'Class', 'Gross (₹)', 'Discount (₹)', 'Net Invoiced (₹)', 'Paid (₹)', 'Raw Outstanding (₹)', 'Due (₹)', 'Credit Balance (₹)', 'Last Payment Date'];
       const csvRows = rows.map(r => [
@@ -215,7 +206,6 @@ Deno.serve(async (req) => {
         r.creditBalance.toFixed(2),
         r.lastPaymentDate || ''
       ].join(','));
-
       const csv = [headers.join(','), ...csvRows].join('\n');
       return new Response(csv, {
         headers: {
@@ -225,7 +215,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Paginate
     const totalRows = rows.length;
     const start = (page - 1) * pageSize;
     const pageRows = rows.slice(start, start + pageSize).map(r => {
