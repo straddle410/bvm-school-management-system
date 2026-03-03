@@ -86,7 +86,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   // Calculate ADHOC paid (for display below paid total)
   const adhocPaid = payments.reduce((sum, p) => {
     const isAdhocPayment = adhocInvoices.some(inv => inv.id === p.invoice_id);
-    if (isAdhocPayment && p.affects_cash === true && p.status !== 'VOID' && p.status !== 'CANCELLED') {
+    if (isAdhocPayment && p.entry_type === 'CASH_PAYMENT' && p.affects_cash === true && p.status !== 'VOID' && p.status !== 'CANCELLED') {
       return sum + (p.amount_paid || 0);
     }
     return sum;
