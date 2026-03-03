@@ -107,6 +107,7 @@ function StudentLedgerContent() {
         dateTo: dateTo || undefined,
         includeReversals,
         includeCredits,
+        includeVoided,
         exportCsv: true,
         pageSize: 9999
       });
