@@ -26,6 +26,12 @@ const generateTempPassword = () => {
   return 'BVM@' + Math.floor(1000 + Math.random() * 9000);
 };
 
+const hashPassword = (password) => {
+  // Must match staffLogin & resetStaffPassword exactly
+  if (!password) return '';
+  return '$2b$10$' + btoa(password).substring(0, 53);
+};
+
 const roleColors = {
   Teacher: 'bg-blue-100 text-blue-700',
   Accountant: 'bg-green-100 text-green-700',
@@ -50,6 +56,7 @@ export default function Staff() {
   const [manualPassword, setManualPassword] = useState('');
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [passwordCopied, setPasswordCopied] = useState(false);
+  const [tempPassword, setTempPassword] = useState('');
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -197,10 +204,11 @@ export default function Staff() {
   const openCreate = () => {
     setEditingStaff(null);
     const tempPass = generateTempPassword();
+    setTempPassword(tempPass);
     setForm({
       name: '',
       username: '',
-      password_hash: tempPass,
+      password_hash: hashPassword(tempPass),  // HASH before storing
       designation: '',
       mobile: '',
       email: '',
