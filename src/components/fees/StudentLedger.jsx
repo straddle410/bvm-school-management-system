@@ -73,10 +73,11 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const net = gross - discount;
 
   // Calculate paid: ONLY ANNUAL payments (not ADHOC)
-  // Filters: affects_cash=true, linked to ANNUAL invoice, not VOID/CANCELLED
+  // Filters: actual cash payments, linked to ANNUAL invoice, not VOID/CANCELLED
   const annualPayments = payments.filter(p => 
-    p.affects_cash === true && 
     p.invoice_id === invoice?.id && 
+    p.entry_type === 'CASH_PAYMENT' &&
+    p.affects_cash === true && 
     p.status !== 'VOID' &&
     p.status !== 'CANCELLED'
   );
