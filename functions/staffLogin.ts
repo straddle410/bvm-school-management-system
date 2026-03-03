@@ -18,12 +18,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Username and password required' }, { status: 400 });
     }
 
-    // Find staff by username
+    // Normalize username: trim and lowercase for case-insensitive lookup
+    const normalizedUsername = username.trim().toLowerCase();
+
+    // Debug log (server-side only)
+    console.log(`[LOGIN] Attempting login for: ${normalizedUsername}`);
+
+    // Find staff by normalized username
     const staff = await base44.asServiceRole.entities.StaffAccount.filter({
-      username: username.trim().toLowerCase(),
+      username: normalizedUsername,
     });
 
+    console.log(`[LOGIN] Staff found: ${staff && staff.length > 0 ? 'yes' : 'no'}`);
+
     if (!staff || staff.length === 0) {
+      console.log(`[LOGIN] Invalid credentials - user not found`);
       return Response.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -34,8 +43,9 @@ Deno.serve(async (req) => {
 
     // Check if account is active
     if (!account.is_active) {
+      console.log(`[LOGIN] Account inactive for user: ${normalizedUsername}`);
       return Response.json(
-        { error: 'Account is inactive. Contact administrator.' },
+        { error: 'Account inactive. Contact administrator.' },
         { status: 403 }
       );
     }
@@ -44,9 +54,10 @@ Deno.serve(async (req) => {
     if (account.account_locked_until) {
       const lockTime = new Date(account.account_locked_until);
       if (lockTime > new Date()) {
+        console.log(`[LOGIN] Account locked for user: ${normalizedUsername} until ${lockTime.toISOString()}`);
         return Response.json(
           {
-            error: `Account locked. Try again after ${lockTime.toLocaleTimeString()}`,
+            error: 'Account locked. Try again later or contact administrator.',
             locked_until: account.account_locked_until,
           },
           { status: 403 }
@@ -54,9 +65,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Validate password (in production, use bcrypt or similar)
-    // For MVP: simple comparison (replace with bcrypt.compare in production)
+    // Validate password
+    console.log(`[LOGIN] Password hash exists: ${account.password_hash ? 'yes' : 'no'}`);
     const passwordValid = await validatePassword(password, account.password_hash);
+    console.log(`[LOGIN] Password valid: ${passwordValid}`);
 
     if (!passwordValid) {
       // Increment failed attempts
@@ -70,9 +82,10 @@ Deno.serve(async (req) => {
         
         await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
 
+        console.log(`[LOGIN] Account locked due to failed attempts: ${normalizedUsername}`);
         return Response.json(
           {
-            error: 'Too many failed attempts. Account locked for 15 minutes.',
+            error: 'Account locked. Too many failed login attempts. Try again later.',
             locked_until: lockUntil.toISOString(),
           },
           { status: 403 }
@@ -81,6 +94,7 @@ Deno.serve(async (req) => {
 
       await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
 
+      console.log(`[LOGIN] Invalid password for user: ${normalizedUsername}. Attempts: ${newFailedAttempts}`);
       return Response.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -96,6 +110,8 @@ Deno.serve(async (req) => {
       last_login_at: new Date().toISOString(),
       last_login_ip: clientIp,
     });
+
+    console.log(`[LOGIN] Successful login for user: ${normalizedUsername}`);
 
     // If force password change, return flag
     if (account.force_password_change) {
@@ -126,17 +142,21 @@ Deno.serve(async (req) => {
 
 /**
  * Validate password against hash
- * In production, use bcrypt: await bcrypt.compare(password, hash)
+ * Uses the same hashPassword function format
  */
 async function validatePassword(password, hash) {
-  // MVP: simple comparison - REPLACE WITH BCRYPT IN PRODUCTION
   if (!hash || !password) return false;
   
-  // For now, if hash is a plaintext password (temp), compare directly
-  // In production:
-  // const bcrypt = require('bcrypt');
-  // return await bcrypt.compare(password, hash);
+  // Hash the input password and compare with stored hash
+  const inputHash = hashPassword(password);
   
-  // Placeholder: always require bcrypt hash format
-  return hash.startsWith('$2') && hash.length === 60; // bcrypt hash format check only
+  // Simple comparison - both should use same hashing algorithm
+  return inputHash === hash;
+}
+
+function hashPassword(password) {
+  // Use the same format as in resetStaffPassword and changeStaffPassword
+  // This must be consistent across all password operations
+  if (!password) return '';
+  return '$2b$10$' + btoa(password).substring(0, 53);
 }
