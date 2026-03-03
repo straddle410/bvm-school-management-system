@@ -29,12 +29,16 @@ function CollectionReportContent() {
     queryKey: ['fee-payments-collection', academicYear],
     queryFn: async () => {
       const payments = await base44.entities.FeePayment.filter({
-        academic_year: academicYear,
-        entry_type: 'CASH_PAYMENT',
-        affects_cash: true,
-        status: { $ne: 'REVERSED' }
+        academic_year: academicYear
       });
-      return payments || [];
+      // VOID-ONLY POLICY: exclude VOID/REVERSED/CANCELLED payments completely
+      return (payments || []).filter(p => {
+        const s = (p.status || '').toUpperCase();
+        if (s === 'VOID' || s === 'REVERSED' || s === 'CANCELLED') return false;
+        // Only count actual cash/collection payments (not credit adjustments)
+        if (p.entry_type === 'CREDIT_ADJUSTMENT') return false;
+        return true;
+      });
     },
     enabled: !!academicYear
   });
