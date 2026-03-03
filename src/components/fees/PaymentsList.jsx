@@ -218,9 +218,14 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
       {reversingPayment && (
         <VoidModal
           payment={reversingPayment}
-          onClose={() => setReversingPayment(null)}
+          onClose={() => {
+            setReversingPayment(null);
+            setVoidingPaymentId(null);
+          }}
+          onVoidingStart={() => setVoidingPaymentId(reversingPayment.id)}
           onSuccess={() => {
             setReversingPayment(null);
+            setVoidingPaymentId(null);
             // VoidModal now handles all query invalidations
             queryClient.invalidateQueries({ queryKey: ['fee-payments-all'] });
           }}
