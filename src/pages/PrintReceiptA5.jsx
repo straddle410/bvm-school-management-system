@@ -155,13 +155,25 @@ export default function PrintReceiptA5() {
           margin: 6mm;
         }
         
-        body {
-          margin: 0;
-          padding: 0;
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
           background: white;
           font-family: Arial, sans-serif;
           font-size: 10px;
           line-height: 1.2;
+        }
+        
+        html {
+          width: 100%;
+          height: 100%;
+        }
+        
+        body {
+          width: 100%;
+          height: 100%;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         
         .a5-page {
@@ -171,6 +183,28 @@ export default function PrintReceiptA5() {
           padding: 0;
           margin: 0;
           page-break-after: always;
+        }
+        
+        @media print {
+          .no-print, nav, footer, header, [class*="bottom"], [class*="Bottom"], [class*="nav"], [class*="Nav"] {
+            display: none !important;
+          }
+          
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          
+          * {
+            box-shadow: none !important;
+            margin: 0;
+            padding: 0;
+          }
+          
+          a {
+            text-decoration: none !important;
+            color: inherit !important;
+          }
         }
         
         .receipt-copy {
