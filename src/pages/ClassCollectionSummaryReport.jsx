@@ -149,7 +149,13 @@ function ClassCollectionContent() {
       </Card>
 
       {/* Summary Cards */}
-      <div className={`grid gap-4 ${appliedFilters.includeVoided ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
+      <div className={`grid gap-4 grid-cols-2 ${appliedFilters.includeVoided ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-5 pb-5">
+            <p className="text-xs text-slate-500">Total Invoiced (Net)</p>
+            <p className="text-xl font-bold text-slate-700 mt-1">₹{fmt(summary.totalInvoicedNetAllClasses)}</p>
+          </CardContent>
+        </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
             <p className="text-xs text-slate-500">Total Collected</p>
@@ -158,14 +164,14 @@ function ClassCollectionContent() {
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Total Receipts</p>
-            <p className="text-xl font-bold text-slate-900 mt-1">{summary.totalReceipts ?? 0}</p>
+            <p className="text-xs text-slate-500">Overall Coverage</p>
+            <p className="text-xl font-bold text-blue-600 mt-1">{(summary.overallCoveragePercent ?? 0).toFixed(1)}%</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Classes with Payments</p>
-            <p className="text-xl font-bold text-slate-900 mt-1">{summary.classesCount ?? 0}</p>
+            <p className="text-xs text-slate-500">Total Receipts</p>
+            <p className="text-xl font-bold text-slate-900 mt-1">{summary.totalReceipts ?? 0}</p>
           </CardContent>
         </Card>
         {appliedFilters.includeVoided && (
