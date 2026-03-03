@@ -329,10 +329,12 @@ export default function DayBookReport() {
                         <tr className="bg-slate-100 font-bold text-sm border-t-2 border-slate-300">
                           <td className="px-4 py-3 text-slate-700">Total</td>
                           <td className="px-4 py-3 text-right text-green-700 tabular-nums">₹{fmt(summary.grossCollected)}</td>
-                          <td className="px-4 py-3 text-right text-red-500 tabular-nums">
-                            {summary.grossReversed > 0 ? `−₹${fmt(summary.grossReversed)}` : '—'}
-                          </td>
                           <td className="px-4 py-3 text-right text-slate-800 tabular-nums">₹{fmt(summary.netCollected)}</td>
+                          {applied.includeVoided && (
+                            <td className="px-4 py-3 text-right text-amber-600 tabular-nums">
+                              {summary.voidedAmount > 0 ? `₹${fmt(summary.voidedAmount)}` : '—'}
+                            </td>
+                          )}
                           <td />
                         </tr>
                       </tfoot>
