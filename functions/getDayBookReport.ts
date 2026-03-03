@@ -25,7 +25,7 @@ const COLLECTION_TYPES = new Set([
 ]);
 
 // Entry types that are always reversals (regardless of sign)
-const REVERSAL_TYPES = new Set(['PAYMENT_REVERSAL', 'PAYMENT_REFUND', 'REVERSAL']);
+const REVERSAL_TYPES = new Set(['PAYMENT_REVERSAL', 'PAYMENT_REFUND', 'REVERSAL', 'CREDIT_REVERSAL']);
 
 function classifyPayment(p) {
   const et = p.entry_type || '';
