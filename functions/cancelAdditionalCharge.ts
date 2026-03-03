@@ -16,6 +16,19 @@ Deno.serve(async (req) => {
     if (!charge) return Response.json({ error: 'Charge not found' }, { status: 404 });
     if (charge.status === 'CANCELLED') return Response.json({ error: 'Already cancelled' }, { status: 422 });
 
+    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: charge.academic_year });
+    if (academicYears && academicYears.length > 0) {
+     const ayRecord = academicYears[0];
+     if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
+       return Response.json({
+         error: `Academic year ${charge.academic_year} is archived; mutations not allowed`,
+         status: 403
+       }, { status: 403 });
+     }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     // Check if any payments exist for invoices of this charge
     const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       charge_id: chargeId,
