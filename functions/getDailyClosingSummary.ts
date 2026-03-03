@@ -21,9 +21,17 @@ Deno.serve(async (req) => {
     }
 
     // Parse request
-    const params = new URL(req.url).searchParams;
-    const date = params.get('date');
-    const includeVoided = params.get('includeVoided') === 'true';
+    let date, includeVoided;
+    
+    if (req.method === 'POST') {
+      const body = await req.json();
+      date = body.date;
+      includeVoided = body.includeVoided === true || body.includeVoided === 'true';
+    } else {
+      const params = new URL(req.url).searchParams;
+      date = params.get('date');
+      includeVoided = params.get('includeVoided') === 'true';
+    }
 
     if (!date) {
       return Response.json({ error: 'date parameter required (YYYY-MM-DD)' }, { status: 400 });
