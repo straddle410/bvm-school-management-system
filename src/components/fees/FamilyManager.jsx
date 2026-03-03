@@ -177,22 +177,36 @@ export default function FamilyManager({ academicYear, isArchived }) {
        throw new Error(err?.data?.error || err?.message || 'Failed to apply discount');
      }
    },
-    onSuccess: (res, { action }) => {
-      queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
-      queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
-      queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
-      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
-      
+    onSuccess: async (res, { action }) => {
       const results = res.data?.results || [];
-      const applied = results.filter(r => r.status === 'applied').length;
-      const appliedCredit = results.filter(r => r.status === 'applied_credit').length;
-      if (action === 'apply') {
-        toast.success(`Sibling discount applied to ${applied + appliedCredit} student(s).`);
-      } else {
-        toast.success('Sibling discount removed from family.');
+      // Trigger dynamic invoice recalculation for all affected students
+      try {
+        for (const result of results) {
+          if (result.student_id) {
+            await base44.functions.invoke('recalculateStudentInvoiceTotals', {
+              student_id: result.student_id,
+              academic_year: academicYear
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Invoice recalculation failed for some students:', e.message);
       }
-      setApplyingFamily(null);
-    },
+      queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
+       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
+       queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
+       queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+       queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
+
+       const applied = results.filter(r => r.status === 'applied').length;
+       const appliedCredit = results.filter(r => r.status === 'applied_credit').length;
+       if (action === 'apply') {
+         toast.success(`Sibling discount applied to ${applied + appliedCredit} student(s).`);
+       } else {
+         toast.success('Sibling discount removed from family.');
+       }
+       setApplyingFamily(null);
+     },
     onError: (e) => {
       const msg = e?.message || e?.data?.error || 'Failed to apply discount';
       toast.error(msg);
