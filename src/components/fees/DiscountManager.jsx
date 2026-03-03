@@ -105,9 +105,20 @@ export default function DiscountManager({ academicYear, isArchived }) {
       if (res.data?.error) throw new Error(res.data.error);
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Trigger dynamic invoice recalculation
+      try {
+        await base44.functions.invoke('recalculateStudentInvoiceTotals', {
+          student_id: selectedStudent.student_id,
+          academic_year: academicYear
+        });
+      } catch (e) {
+        console.error('Invoice recalculation failed:', e.message);
+      }
       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
       queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
       toast.success(data?.action === 'updated' ? 'Discount updated' : 'Discount set');
       closeDialog();
     },
@@ -115,9 +126,25 @@ export default function DiscountManager({ academicYear, isArchived }) {
   });
 
   const archiveMutation = useMutation({
-    mutationFn: (id) => base44.entities.StudentFeeDiscount.update(id, { status: 'Archived' }),
+    mutationFn: async (id) => {
+      const discount = discounts.find(d => d.id === id);
+      await base44.entities.StudentFeeDiscount.update(id, { status: 'Archived' });
+      // Trigger dynamic invoice recalculation for this student
+      if (discount) {
+        try {
+          await base44.functions.invoke('recalculateStudentInvoiceTotals', {
+            student_id: discount.student_id,
+            academic_year: academicYear
+          });
+        } catch (e) {
+          console.error('Invoice recalculation failed:', e.message);
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
+      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
       toast.success('Discount archived');
     }
   });
