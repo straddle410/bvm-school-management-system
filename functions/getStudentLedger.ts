@@ -70,41 +70,50 @@ Deno.serve(async (req) => {
       if (seenPaymentIds.has(p.id)) continue;
       seenPaymentIds.add(p.id);
 
-      const isReversal = p.entry_type === 'REVERSAL' || p.status === 'REVERSED';
+      const pDate = p.payment_date || (p.created_date ? p.created_date.split('T')[0] : null);
+      const amount = p.amount_paid ?? 0;
+
+      // Detect reversal entries (entries that UNDO a prior payment — posted, affect balance)
+      const isReversalEntry = 
+        p.entry_type === 'REVERSAL' ||
+        p.entry_type === 'PAYMENT_REVERSAL' ||
+        p.entry_type === 'PAYMENT_REFUND' ||
+        (p.affects_cash === true && amount < 0);
+
+      // Detect VOID: original payment that was cancelled (the parent, not the reversal child)
+      const isVoided = p.status === 'REVERSED' && !isReversalEntry;
+
       const isCredit = p.entry_type === 'CREDIT_ADJUSTMENT';
 
-      if (isReversal && !includeReversals) continue;
+      // Apply filters
+      if (isVoided && !includeVoided) continue;
+      if (isReversalEntry && !includeReversals) continue;
       if (isCredit && !includeCredits) continue;
-
-      const pDate = p.payment_date || (p.created_date ? p.created_date.split('T')[0] : null);
-      let amount = p.amount_paid ?? 0;
 
       let type, debit, credit, status, description;
 
-      if (p.status === 'REVERSED') {
-        // This payment has been reversed — show as VOID
+      if (isVoided) {
+        // VOID: original payment was reversed — exclude from balance math
         status = 'VOID';
         type = 'PAYMENT';
         debit = 0;
-        credit = 0; // voided — no effect
-        description = `Payment ${p.receipt_no || ''} (Reversed${p.reversal_reason ? ': ' + p.reversal_reason : ''})`;
-      } else if (p.entry_type === 'REVERSAL') {
-        if (!includeReversals) continue;
-        // Reversal entry cancels prior payment — adds back to balance
+        credit = 0;
+        description = `Payment ${p.receipt_no || ''} (Voided${p.reversal_reason ? ': ' + p.reversal_reason : ''})`;
+      } else if (isReversalEntry) {
+        // REVERSAL: a posted entry that cancels a prior payment — INCREASES outstanding
         status = 'POSTED';
         type = 'REVERSAL';
-        debit = Math.abs(amount); // increases balance
+        debit = Math.abs(amount); // adds back to receivable
         credit = 0;
         description = `Reversal${p.reversal_reason ? ': ' + p.reversal_reason : ''} (${p.receipt_no || ''})`;
-      } else if (p.entry_type === 'CREDIT_ADJUSTMENT') {
-        if (!includeCredits) continue;
+      } else if (isCredit) {
         status = 'POSTED';
         type = 'CREDIT';
         debit = 0;
         credit = Math.abs(amount);
         description = `Credit Adjustment${p.remarks ? ': ' + p.remarks : ''} (${p.receipt_no || ''})`;
       } else {
-        // CASH_PAYMENT or any standard payment
+        // Standard CASH / UPI / bank payment
         status = 'POSTED';
         type = 'PAYMENT';
         debit = 0;
