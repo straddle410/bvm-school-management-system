@@ -164,7 +164,7 @@ function ClassCollectionContent() {
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Overall Coverage</p>
+            <p className="text-xs text-slate-500">Overall Coverage (Range/Annual)</p>
             <p className="text-xl font-bold text-blue-600 mt-1">{(summary.overallCoveragePercent ?? 0).toFixed(1)}%</p>
           </CardContent>
         </Card>
