@@ -21,18 +21,12 @@ Deno.serve(async (req) => {
     // Normalize username: trim and lowercase for case-insensitive lookup
     const normalizedUsername = username.trim().toLowerCase();
 
-    // Debug log (server-side only)
-    console.log(`[LOGIN] Attempting login for: ${normalizedUsername}`);
-
     // Find staff by normalized username
     const staff = await base44.asServiceRole.entities.StaffAccount.filter({
       username: normalizedUsername,
     });
 
-    console.log(`[LOGIN] Staff found: ${staff && staff.length > 0 ? 'yes' : 'no'}`);
-
     if (!staff || staff.length === 0) {
-      console.log(`[LOGIN] Invalid credentials - user not found`);
       return Response.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -43,7 +37,6 @@ Deno.serve(async (req) => {
 
     // Check if account is active
     if (!account.is_active) {
-      console.log(`[LOGIN] Account inactive for user: ${normalizedUsername}`);
       return Response.json(
         { error: 'Account inactive. Contact administrator.' },
         { status: 403 }
@@ -54,7 +47,6 @@ Deno.serve(async (req) => {
     if (account.account_locked_until) {
       const lockTime = new Date(account.account_locked_until);
       if (lockTime > new Date()) {
-        console.log(`[LOGIN] Account locked for user: ${normalizedUsername} until ${lockTime.toISOString()}`);
         return Response.json(
           {
             error: 'Account locked. Try again later or contact administrator.',
@@ -66,9 +58,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate password
-    console.log(`[LOGIN] Password hash exists: ${account.password_hash ? 'yes' : 'no'}`);
     const passwordValid = await validatePassword(password, account.password_hash);
-    console.log(`[LOGIN] Password valid: ${passwordValid}`);
 
     if (!passwordValid) {
       // Increment failed attempts
@@ -79,22 +69,10 @@ Deno.serve(async (req) => {
       if (newFailedAttempts >= 5) {
         const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
         updateData.account_locked_until = lockUntil.toISOString();
-        
-        await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
-
-        console.log(`[LOGIN] Account locked due to failed attempts: ${normalizedUsername}`);
-        return Response.json(
-          {
-            error: 'Account locked. Too many failed login attempts. Try again later.',
-            locked_until: lockUntil.toISOString(),
-          },
-          { status: 403 }
-        );
       }
 
       await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
-
-      console.log(`[LOGIN] Invalid password for user: ${normalizedUsername}. Attempts: ${newFailedAttempts}`);
+      
       return Response.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -110,8 +88,6 @@ Deno.serve(async (req) => {
       last_login_at: new Date().toISOString(),
       last_login_ip: clientIp,
     });
-
-    console.log(`[LOGIN] Successful login for user: ${normalizedUsername}`);
 
     // If force password change, return flag
     if (account.force_password_change) {
