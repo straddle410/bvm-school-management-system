@@ -32,7 +32,7 @@ const modeColor = {
   DD: 'bg-orange-100 text-orange-800'
 };
 
-export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt }) {
+export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) {
   const [classFilter, setClassFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [activePreset, setActivePreset] = useState('Today');
@@ -168,7 +168,7 @@ export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt 
                     <p className={`font-bold ${isVoid ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
                       ₹{(p.amount_paid || 0).toLocaleString()}
                     </p>
-                    {!isVoid && canReverseReceipt && (
+                    {!isVoid && canVoidReceipt && (
                       <Button
                         size="sm"
                         variant="ghost"
