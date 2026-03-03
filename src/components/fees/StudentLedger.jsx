@@ -264,7 +264,8 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                          </div>
                        );
                       })}
-                   </div>
+                    </div>
+                  </div>
                 )}
 
                 {!isArchivedYear && balance > 0 && invoice.status !== 'Waived' && (
