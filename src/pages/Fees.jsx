@@ -23,7 +23,7 @@ export default function Fees() {
   useEffect(() => { setUser(getStaffSession()); }, []);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
-  const canReverseReceipt = isAdmin || !!user?.permissions?.fees_reverse_receipt;
+  const canVoidReceipt = isAdmin || !!user?.permissions?.fees_reverse_receipt;
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
   const isArchivedYear = selectedYearObj?.status === 'Archived';
@@ -67,7 +67,7 @@ export default function Fees() {
             </TabsContent>
 
             <TabsContent value="payments">
-              <PaymentsList academicYear={academicYear} isAdmin={isAdmin} canReverseReceipt={canReverseReceipt} />
+              <PaymentsList academicYear={academicYear} isAdmin={isAdmin} canVoidReceipt={canVoidReceipt} />
             </TabsContent>
 
             {isAdmin && (
