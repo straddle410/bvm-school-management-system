@@ -102,7 +102,10 @@ Deno.serve(async (req) => {
     });
     const discountMap = {};
     for (const d of discounts) {
-      discountMap[d.student_id] = d;
+      if (!discountMap[d.student_id]) {
+        discountMap[d.student_id] = [];
+      }
+      discountMap[d.student_id].push(d);
     }
 
     let created = 0, skipped = 0;
@@ -128,8 +131,11 @@ Deno.serve(async (req) => {
 
       const feeItems = plan.fee_items || [];
       const grossTotal = plan.total_amount || 0;
-      const discount = discountMap[student.student_id] || null;
+      const discountList = discountMap[student.student_id] || [];
 
+      // Apply first matching discount from list (if any exist)
+      // TODO: Consider cumulative discounts or picking highest benefit
+      const discount = discountList.length > 0 ? discountList[0] : null;
       const { items, discountTotal, netTotal } = applyDiscount(feeItems, grossTotal, discount);
 
       await base44.asServiceRole.entities.FeeInvoice.create({
