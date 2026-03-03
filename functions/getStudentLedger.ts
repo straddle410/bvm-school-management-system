@@ -73,19 +73,23 @@ Deno.serve(async (req) => {
       const pDate = p.payment_date || (p.created_date ? p.created_date.split('T')[0] : null);
       const amount = p.amount_paid ?? 0;
 
-      // Detect reversal CHILD entry (the posted negative that cancels a prior payment — affects balance)
-      // These are NEW entries created by the reversal flow, not the original payment being cancelled.
-      // Key signal: entry_type explicitly marks it as a reversal action.
-      const isReversalEntry = 
+      // Detect reversal CHILD entry FIRST (precedence over VOID check).
+      // A reversal entry is a NEW record that un-does a payment — it ALWAYS affects balance.
+      // Key signals (any one is sufficient):
+      //   1. entry_type = 'PAYMENT_REVERSAL' | 'PAYMENT_REFUND'
+      //   2. entry_type = 'REVERSAL' with status = 'Active'  (some flows use this)
+      //   3. amount < 0 and status = 'Active' (negative cash movement, not a voided original)
+      const isReversalEntry =
         p.entry_type === 'PAYMENT_REVERSAL' ||
         p.entry_type === 'PAYMENT_REFUND' ||
-        (p.affects_cash === true && amount < 0 && p.status === 'Active');
+        (p.entry_type === 'REVERSAL' && p.status === 'Active') ||
+        (amount < 0 && p.status === 'Active');
 
-      // Detect VOID: original payment record that was cancelled (status=REVERSED, NOT a reversal child)
-      // entry_type 'REVERSAL' on the ORIGINAL record means it was reversed, so treat as VOID.
-      const isVoided = p.status === 'REVERSED' || p.entry_type === 'REVERSAL';
+      // VOID: original payment record that was cancelled.
+      // CRITICAL: isReversalEntry WINS — never treat a reversal entry as VOID even if status=REVERSED.
+      const isVoided = !isReversalEntry && (p.status === 'REVERSED');
 
-      const isCredit = p.entry_type === 'CREDIT_ADJUSTMENT';
+      const isCredit = !isReversalEntry && !isVoided && p.entry_type === 'CREDIT_ADJUSTMENT';
 
       // Apply filters
       if (isVoided && !includeVoided) continue;
@@ -95,7 +99,7 @@ Deno.serve(async (req) => {
       let type, debit, credit, status, description;
 
       if (isVoided) {
-        // VOID: original payment was reversed — exclude from balance math
+        // VOID: original payment was reversed — excluded from balance math (debit=0, credit=0)
         status = 'VOID';
         type = 'PAYMENT';
         debit = 0;
