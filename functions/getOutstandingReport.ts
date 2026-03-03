@@ -201,7 +201,7 @@ Deno.serve(async (req) => {
 
     // CSV export
     if (exportCsv) {
-      const headers = ['Student ID', 'Student Name', 'Class', 'Gross (₹)', 'Discount (₹)', 'Net Invoiced (₹)', 'Paid (₹)', 'Outstanding (₹)', 'Last Payment Date'];
+      const headers = ['Student ID', 'Student Name', 'Class', 'Gross (₹)', 'Discount (₹)', 'Net Invoiced (₹)', 'Paid (₹)', 'Raw Outstanding (₹)', 'Due (₹)', 'Credit Balance (₹)', 'Last Payment Date'];
       const csvRows = rows.map(r => [
         r.student.id,
         `"${r.student.name}"`,
@@ -210,7 +210,9 @@ Deno.serve(async (req) => {
         r.discountAmount.toFixed(2),
         r.netInvoiced.toFixed(2),
         r.paidAmount.toFixed(2),
-        r.outstanding.toFixed(2),
+        r.rawOutstanding.toFixed(2),
+        r.dueAmount.toFixed(2),
+        r.creditBalance.toFixed(2),
         r.lastPaymentDate || ''
       ].join(','));
 
