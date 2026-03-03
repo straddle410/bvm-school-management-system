@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,20 +9,42 @@ import { toast } from 'sonner';
 
 export default function VoidModal({ payment, onClose, onSuccess }) {
   const [reason, setReason] = useState('');
+  const queryClient = useQueryClient();
 
   const voidMutation = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke('reverseReceipt', {
-        paymentId: payment.id,
-        reason: reason.trim()
-      });
-      return res.data;
+      try {
+        const res = await base44.functions.invoke('reverseReceipt', {
+          paymentId: payment.id,
+          reason: reason.trim()
+        });
+        
+        // Check for error in response data
+        if (res.data?.error) {
+          throw new Error(res.data.error);
+        }
+        
+        return res.data;
+      } catch (err) {
+        // Re-throw to be handled by onError
+        throw err;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate all related queries to force refresh
+      queryClient.invalidateQueries({ queryKey: ['fee-payments-all'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
+      queryClient.invalidateQueries({ queryKey: ['student-ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+      
       toast.success(`Receipt #${payment.receipt_no} voided successfully`);
       onSuccess();
     },
-    onError: (e) => toast.error(e.response?.data?.error || e.message)
+    onError: (error) => {
+      const errorMsg = error?.response?.data?.error || error?.data?.error || error?.message || 'Failed to void receipt';
+      toast.error(errorMsg);
+      console.error('Void receipt error:', errorMsg);
+    }
   });
 
   return (
