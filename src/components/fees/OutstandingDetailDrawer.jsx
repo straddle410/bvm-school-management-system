@@ -40,10 +40,16 @@ export default function OutstandingDetailDrawer({ row, academicYear, asOfDate, o
             {row?.student?.name}
             <span className="ml-2 text-sm font-normal text-slate-500">Class {row?.class?.name}</span>
           </SheetTitle>
-          <div className="flex gap-4 text-sm">
+          <div className="flex flex-wrap gap-3 text-sm">
             <span className="text-slate-500">Net Invoiced: <strong>₹{fmt(row?.netInvoiced)}</strong></span>
             <span className="text-slate-500">Paid: <strong className="text-emerald-600">₹{fmt(row?.paidAmount)}</strong></span>
-            <span className="text-slate-500">Outstanding: <strong className="text-red-600">₹{fmt(row?.outstanding)}</strong></span>
+            {(row?.creditBalance ?? 0) > 0 ? (
+              <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full text-xs">
+                ✓ Credit Balance: ₹{fmt(row?.creditBalance)}
+              </span>
+            ) : (
+              <span className="text-slate-500">Due: <strong className="text-red-600">₹{fmt(row?.dueAmount ?? row?.outstanding)}</strong></span>
+            )}
           </div>
         </SheetHeader>
 
