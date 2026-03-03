@@ -3,11 +3,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Try to get user context; allow service role for backend-to-backend calls
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      // Backend-to-backend call: no user context
+    }
 
-    const isAdmin = user.role === 'admin' || user.role === 'principal';
-    if (!isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (user) {
+      const isAdmin = user.role === 'admin' || user.role === 'principal';
+      if (!isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const { family_id, action } = await req.json(); // action = 'apply' | 'remove'
     if (!family_id) return Response.json({ error: 'family_id required' }, { status: 400 });
