@@ -43,7 +43,7 @@ function OutstandingReportContent() {
   const effectiveDate = asOfDate || today;
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['outstanding-report', academicYear, effectiveDate, selectedClass, search, includeZero, sort],
+    queryKey: ['outstanding-report', academicYear, effectiveDate, selectedClass, search, includeZero, viewMode, sort],
     queryFn: async () => {
       const res = await base44.functions.invoke('getOutstandingReport', {
         academicYear,
