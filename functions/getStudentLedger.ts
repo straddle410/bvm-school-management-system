@@ -12,6 +12,7 @@ Deno.serve(async (req) => {
       dateTo,
       includeReversals = true,
       includeCredits = true,
+      includeVoided = false,
       exportCsv = false,
       page = 1,
       pageSize = 200,
