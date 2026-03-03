@@ -214,7 +214,10 @@ Deno.serve(async (req) => {
 
     // ── DETAILS MODE ──────────────────────────────────────────────────────
     if (reportMode === 'details' || (reportMode === 'summary' && detailDate)) {
-      const dateRows = allRows.filter(r => r.date === detailDate);
+      // In detail mode, exclude void rows unless includeCancelled
+      const dateRows = allRows.filter(r =>
+        r.date === detailDate && !(r.isVoid && !includeCancelled)
+      );
       const total = dateRows.length;
       const start = (page - 1) * pageSize;
       const paged = dateRows.slice(start, start + pageSize);
