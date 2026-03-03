@@ -32,14 +32,16 @@ function classifyPayment(p) {
   const status = p.status || '';
   const amount = p.amount_paid ?? 0;
 
-  // VOID: the original payment record that was cancelled (status=REVERSED, not a reversal entry)
+  // VOID: the original payment record that was marked REVERSED (and is NOT itself a reversal entry)
+  // A REVERSAL entry (entry_type=REVERSAL) with status=Active should NOT be treated as void
   const isVoid = status === 'REVERSED' && !REVERSAL_TYPES.has(et);
 
-  // REVERSAL ENTRY: an explicitly created row to post the reversal debit
+  // REVERSAL ENTRY: explicitly created reversal row (entry_type is in REVERSAL_TYPES)
+  // OR a negative amount cash payment (legacy negative rows)
   const isReversal = REVERSAL_TYPES.has(et) ||
-    (amount < 0 && status !== 'REVERSED'); // negative cash_payment
+    (!isVoid && amount < 0 && COLLECTION_TYPES.has(et));
 
-  // CREDIT ADJUSTMENT: discounts etc.
+  // CREDIT ADJUSTMENT: discounts etc. — excluded from cash day book
   const isCredit = et === 'CREDIT_ADJUSTMENT' && !isReversal && !isVoid;
 
   // Standard collection
