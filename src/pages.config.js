@@ -56,9 +56,11 @@ import AttendanceReport from './pages/AttendanceReport';
 import AttendanceReports from './pages/AttendanceReports';
 import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
+import ChangeStaffPassword from './pages/ChangeStaffPassword';
 import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
 import CollectionReport from './pages/CollectionReport';
 import DailyClosingReport from './pages/DailyClosingReport';
+import Dashboard from './pages/Dashboard';
 import DayBookReport from './pages/DayBookReport';
 import DefaultersReport from './pages/DefaultersReport';
 import Diary from './pages/Diary';
@@ -77,6 +79,7 @@ import More from './pages/More';
 import Notices from './pages/Notices';
 import OutstandingReport from './pages/OutstandingReport';
 import ParentStatement from './pages/ParentStatement';
+import PostingDashboard from './pages/PostingDashboard';
 import PrintReceiptA5 from './pages/PrintReceiptA5';
 import ProductionReset from './pages/ProductionReset';
 import PublicAdmission from './pages/PublicAdmission';
@@ -86,6 +89,7 @@ import Reports from './pages/Reports';
 import ReportsManagement from './pages/ReportsManagement';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
+import Staff from './pages/Staff';
 import StaffLogin from './pages/StaffLogin';
 import StaffManagement from './pages/StaffManagement';
 import StudentDashboard from './pages/StudentDashboard';
@@ -101,10 +105,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import PostingDashboard from './pages/PostingDashboard';
-import Dashboard from './pages/Dashboard';
-import Staff from './pages/Staff';
-import ChangeStaffPassword from './pages/ChangeStaffPassword';
 import __Layout from './Layout.jsx';
 
 
@@ -118,9 +118,11 @@ export const PAGES = {
     "AttendanceReports": AttendanceReports,
     "AttendanceSummaryReport": AttendanceSummaryReport,
     "Calendar": Calendar,
+    "ChangeStaffPassword": ChangeStaffPassword,
     "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
     "CollectionReport": CollectionReport,
     "DailyClosingReport": DailyClosingReport,
+    "Dashboard": Dashboard,
     "DayBookReport": DayBookReport,
     "DefaultersReport": DefaultersReport,
     "Diary": Diary,
@@ -139,6 +141,7 @@ export const PAGES = {
     "Notices": Notices,
     "OutstandingReport": OutstandingReport,
     "ParentStatement": ParentStatement,
+    "PostingDashboard": PostingDashboard,
     "PrintReceiptA5": PrintReceiptA5,
     "ProductionReset": ProductionReset,
     "PublicAdmission": PublicAdmission,
@@ -148,6 +151,7 @@ export const PAGES = {
     "ReportsManagement": ReportsManagement,
     "Results": Results,
     "Settings": Settings,
+    "Staff": Staff,
     "StaffLogin": StaffLogin,
     "StaffManagement": StaffManagement,
     "StudentDashboard": StudentDashboard,
@@ -163,10 +167,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "PostingDashboard": PostingDashboard,
-    "Dashboard": Dashboard,
-    "Staff": Staff,
-    "ChangeStaffPassword": ChangeStaffPassword,
 }
 
 export const pagesConfig = {
