@@ -207,7 +207,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                   {[
                     { label: 'Gross', value: gross, color: 'text-slate-800' },
                     { label: 'Discount', value: discount, color: 'text-emerald-700' },
-                    { label: 'Paid', value: paid, color: 'text-blue-700' },
+                    { label: 'Fee Paid', value: paid, color: 'text-blue-700' },
                     { label: 'Balance', value: balance, color: balance > 0 ? 'text-red-600' : 'text-emerald-700' }
                   ].map(({ label, value, color }) => (
                     <div key={label} className="bg-slate-50 rounded-lg p-2.5 text-center">
@@ -215,6 +215,20 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                       <p className={`text-sm font-bold ${color}`}>₹{value.toLocaleString()}</p>
                     </div>
                   ))}
+                </div>
+
+                {/* Total Collected (All receipts) */}
+                <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
+                  <p className="text-xs text-slate-500 mb-1">Total Collected (All Receipts)</p>
+                  <p className="text-lg font-bold text-indigo-700">₹{(paid + adhocPaid).toLocaleString()}</p>
+                  <p className="text-xs text-slate-400 mt-1">Annual: ₹{paid.toLocaleString()} + ADHOC: ₹{adhocPaid.toLocaleString()}</p>
+                </div>
+
+                {/* Helper text */}
+                <div className="bg-amber-50 rounded-lg p-2.5 border border-amber-100">
+                  <p className="text-xs text-amber-700">
+                    💡 <span className="font-medium">ADHOC payments do not reduce Annual Fee balance.</span> They are collected separately.
+                  </p>
                 </div>
 
                 {/* Paid section with ADHOC note */}
