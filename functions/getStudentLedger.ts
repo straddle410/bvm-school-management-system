@@ -73,15 +73,17 @@ Deno.serve(async (req) => {
       const pDate = p.payment_date || (p.created_date ? p.created_date.split('T')[0] : null);
       const amount = p.amount_paid ?? 0;
 
-      // Detect reversal entries (entries that UNDO a prior payment — posted, affect balance)
+      // Detect reversal CHILD entry (the posted negative that cancels a prior payment — affects balance)
+      // These are NEW entries created by the reversal flow, not the original payment being cancelled.
+      // Key signal: entry_type explicitly marks it as a reversal action.
       const isReversalEntry = 
-        p.entry_type === 'REVERSAL' ||
         p.entry_type === 'PAYMENT_REVERSAL' ||
         p.entry_type === 'PAYMENT_REFUND' ||
-        (p.affects_cash === true && amount < 0);
+        (p.affects_cash === true && amount < 0 && p.status === 'Active');
 
-      // Detect VOID: original payment that was cancelled (the parent, not the reversal child)
-      const isVoided = p.status === 'REVERSED' && !isReversalEntry;
+      // Detect VOID: original payment record that was cancelled (status=REVERSED, NOT a reversal child)
+      // entry_type 'REVERSAL' on the ORIGINAL record means it was reversed, so treat as VOID.
+      const isVoided = p.status === 'REVERSED' || p.entry_type === 'REVERSAL';
 
       const isCredit = p.entry_type === 'CREDIT_ADJUSTMENT';
 
