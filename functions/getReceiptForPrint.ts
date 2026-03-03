@@ -29,25 +29,43 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.FeeInvoice.filter({ id: p.invoice_id }).catch(() => []),
       base44.asServiceRole.entities.Student.filter({ student_id: p.student_id }).catch(() => []),
       base44.asServiceRole.entities.SchoolProfile.list().catch(() => []),
-      base44.asServiceRole.entities.FeePayment.filter({ invoice_id: p.invoice_id, status: 'Active' }, 'payment_date').catch(() => [])
+      base44.asServiceRole.entities.FeePayment.filter({ invoice_id: p.invoice_id }).catch(() => [])
     ]);
 
     const invoice = invoices?.[0];
     const student = students?.[0];
     const school = profiles?.[0];
 
-    // If critical data missing, still return with defaults
+    // OPTION A: Show CURRENT paid/balance (VOID excluded)
+    // For VOID receipts: display current truth, not "after this payment"
+    // For ACTIVE receipts: display "after this payment" cumulative state
     step = 'calculate_totals';
-    let totalPaidBeforeThis = 0;
-    if (allPayments && allPayments.length > 0) {
-      for (const pmt of allPayments) {
-        if (pmt.id === paymentId) break;
-        totalPaidBeforeThis += pmt.amount_paid || 0;
+    let totalPaidAfterThis = 0;
+    let balanceDueAfterThis = 0;
+
+    if (p.status === 'VOID' || p.status === 'void') {
+      // VOID receipt: sum only Active payments (exclude VOID itself and all other VOIDs)
+      if (allPayments && allPayments.length > 0) {
+        const activePaid = allPayments
+          .filter(pmt => pmt.status === 'Active')
+          .reduce((sum, pmt) => sum + (pmt.amount_paid || 0), 0);
+        totalPaidAfterThis = activePaid;
+      }
+    } else {
+      // ACTIVE receipt: show cumulative "after this payment" (all non-VOID before + including this one)
+      if (allPayments && allPayments.length > 0) {
+        let totalBefore = 0;
+        for (const pmt of allPayments) {
+          if (pmt.id === paymentId) break;
+          if (pmt.status !== 'VOID') {
+            totalBefore += pmt.amount_paid || 0;
+          }
+        }
+        totalPaidAfterThis = totalBefore + (p.amount_paid || 0);
       }
     }
 
-    const totalPaidAfterThis = totalPaidBeforeThis + (p.amount_paid || 0);
-    const balanceDueAfterThis = Math.max(0, (invoice?.total_amount || 0) - totalPaidAfterThis);
+    balanceDueAfterThis = Math.max(0, (invoice?.total_amount || 0) - totalPaidAfterThis);
 
     // Void info (use denormalized names only, no user lookups)
     step = 'void_info';
