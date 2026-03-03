@@ -28,8 +28,10 @@ Deno.serve(async (req) => {
       return true;
     });
 
+    const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
     const activePayments = payments.filter(p => {
-      if (p.status === 'REVERSED') return false;
+      const rawStatus = (p.status || '').toUpperCase();
+      if (VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status)) return false;
       const d = p.payment_date || p.created_date;
       if (d && d > cutoff) return false;
       return true;
@@ -49,7 +51,10 @@ Deno.serve(async (req) => {
 
     const paymentRows = activePayments.map(p => {
       let amount = p.amount_paid || 0;
-      if (p.entry_type === 'REVERSAL' && amount > 0) amount = -amount;
+      // Only CREDIT_ADJUSTMENT entries may be negative (credits reduce due amount)
+      if (p.entry_type === 'CREDIT_ADJUSTMENT' && amount > 0) {
+        // already positive, no change needed
+      }
       return {
         id: p.id,
         receiptNo: p.receipt_no,
@@ -57,6 +62,7 @@ Deno.serve(async (req) => {
         mode: p.payment_mode,
         amount,
         entryType: p.entry_type,
+        status: p.status,
         remarks: p.remarks
       };
     });
