@@ -2,7 +2,7 @@
  * Collection Summary by Class Report
  *
  * VOID-ONLY POLICY:
- *   - VOID/REVERSED/CANCELLED payments are NEVER counted in totals.
+ *   - VOID/CANCELLED payments are NEVER counted in totals.
  *   - includeVoided=true shows them for audit only (voidedReceiptsCount/voidedAmount).
  *
  * Body params:
@@ -18,7 +18,7 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const VOID_STATUSES = new Set(['VOID', 'REVERSED', 'CANCELLED']);
+const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
 function isVoidPayment(p) {
   return VOID_STATUSES.has((p.status || '').toUpperCase());

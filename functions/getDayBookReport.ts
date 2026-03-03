@@ -2,7 +2,7 @@
  * Day Book Report
  *
  * VOID-ONLY POLICY:
- *   - VOID/REVERSED payments are excluded from totals always.
+ *   - VOID payments are excluded from totals always.
  *   - Toggle "includeVoided" (default false) shows VOID rows for audit but they
  *     are NEVER added to gross/net totals.
  *   - No negative reversal rows in this system.
@@ -20,7 +20,7 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const VOID_STATUSES = new Set(['VOID', 'REVERSED', 'CANCELLED']);
+const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
 function classifyPayment(p) {
   const rawStatus = (p.status || '').toUpperCase();
