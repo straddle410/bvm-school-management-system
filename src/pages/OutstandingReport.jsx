@@ -152,9 +152,20 @@ function OutstandingReportContent() {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label className="text-xs">Show</Label>
+              <Select value={viewMode} onValueChange={setViewMode}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Due + Credit</SelectItem>
+                  <SelectItem value="due">Due Only</SelectItem>
+                  <SelectItem value="credit">Credit Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center gap-2 pt-5">
               <Switch id="incl-zero" checked={includeZero} onCheckedChange={setIncludeZero} />
-              <Label htmlFor="incl-zero" className="text-xs cursor-pointer">Include Fully Paid</Label>
+              <Label htmlFor="incl-zero" className="text-xs cursor-pointer">Include Zero</Label>
             </div>
           </div>
         </CardContent>
