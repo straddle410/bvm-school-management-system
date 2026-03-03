@@ -84,6 +84,13 @@ export default function More() {
    { label: 'Settings', sub: 'School configuration', icon: Settings, color: '#78909c', bg: '#eceff1', page: 'Settings' },
   ];
 
+  const financeReportItems = [
+   { label: 'Day Book', sub: 'Daily collections by mode', icon: TrendingUp, color: '#1976d2', bg: '#e3f2fd', page: 'DayBookReport' },
+   { label: 'Outstanding / Due', sub: 'Student fee balances', icon: FileText, color: '#e53935', bg: '#ffebee', page: 'OutstandingReport' },
+   { label: 'Student Ledger', sub: 'Per-student fee ledger', icon: BookOpen, color: '#7b1fa2', bg: '#f3e5f5', page: 'StudentLedgerReport' },
+   { label: 'Collection Report', sub: 'Cash collection details', icon: Award, color: '#388e3c', bg: '#e8f5e9', page: 'CollectionReport' },
+  ];
+
   const supportItems = [
     { label: 'Contact School', sub: schoolProfile?.phone || '+91 98765 43210', icon: Phone, color: '#e53935', bg: '#ffebee' },
     { label: 'School Website', sub: schoolProfile?.website || 'www.bvmschool.edu', icon: Globe, color: '#1e88e5', bg: '#e3f2fd' },
@@ -93,6 +100,7 @@ export default function More() {
   ];
 
   const [expandedExams, setExpandedExams] = useState(false);
+  const [expandedFinance, setExpandedFinance] = useState(false);
 
   const MenuItem = ({ item, onClick, showArrow = true }) => {
     const inner = (
@@ -233,6 +241,33 @@ export default function More() {
                      <div className="divide-y divide-gray-50">
                        {contentItems.map(item => <MenuItem key={item.label} item={item} />)}
                      </div>
+                   </div>
+                 )}
+
+                 {/* Finance Reports - Admin */}
+                 {isAdmin && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <div onClick={() => setExpandedFinance(!expandedFinance)}>
+                       <MenuItem
+                         item={{
+                           label: 'Finance Reports',
+                           sub: 'Day Book, Outstanding, Ledger',
+                           icon: TrendingUp,
+                           color: '#1976d2',
+                           bg: '#e3f2fd'
+                         }}
+                         showArrow={true}
+                       />
+                     </div>
+                     {expandedFinance && (
+                       <div className="divide-y divide-gray-50 bg-gray-50">
+                         {financeReportItems.map(item => (
+                           <div key={item.label} className="pl-4">
+                             <MenuItem item={item} />
+                           </div>
+                         ))}
+                       </div>
+                     )}
                    </div>
                  )}
 
