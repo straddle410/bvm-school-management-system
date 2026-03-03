@@ -231,24 +231,15 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                   </p>
                 </div>
 
-                {/* Paid section with ADHOC note */}
-                <div className="border-t pt-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Fee Paid</p>
-                    <span className="text-sm font-semibold text-blue-700">₹{paid.toLocaleString()}</span>
-                  </div>
-                  {adhocPaid > 0 && (
-                    <p className="text-xs text-slate-500">
-                      <span className="text-amber-600 font-medium">ADHOC Paid (not counted): ₹{adhocPaid.toLocaleString()}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Payments list */}
+                {/* Payments list with filter tabs */}
                 {annualPayments.length > 0 && (
-                  <div className="border-t pt-3 space-y-1.5">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Annual Fee Payments</p>
-                    {annualPayments.map(p => {
+                  <div className="border-t pt-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Annual Fee Payments</p>
+                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">({annualPayments.length})</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {annualPayments.map(p => {
                        const isVoid = p.status === 'VOID' || p.status === 'CANCELLED';
                        return (
                          <div key={p.id} className={`rounded-lg px-2 py-1.5 ${isVoid ? 'bg-red-50 border border-red-100' : ''}`}>
