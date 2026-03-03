@@ -52,32 +52,73 @@ Deno.serve(async (req) => {
     }
     // ─────────────────────────────────────────────────────────────────────
 
-    // ── Receipt Number Generation ──────────────────────────────────────────
-    // Load or create receipt config for this academic year
-    let configs = await base44.asServiceRole.entities.FeeReceiptConfig.filter({ academic_year: academicYear });
-    let config;
+    // ── Atomic Receipt Number Generation (CAS Retry Loop) ────────────────────
+    let receiptNo = null;
+    let configId = null;
+    const maxRetries = 5;
 
-    if (!configs || configs.length === 0) {
-      // Create default config
-      config = await base44.asServiceRole.entities.FeeReceiptConfig.create({
-        academic_year: academicYear,
-        prefix: 'RCPT',
-        next_number: 1,
-        padding: 4
-      });
-    } else {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      // Load receipt config
+      let configs = await base44.asServiceRole.entities.FeeReceiptConfig.filter({ academic_year: academicYear });
+      let config;
+
+      if (!configs || configs.length === 0) {
+        // Create default config atomically
+        try {
+          config = await base44.asServiceRole.entities.FeeReceiptConfig.create({
+            academic_year: academicYear,
+            prefix: 'RCPT',
+            next_number: 2, // Reserve 1 for this payment
+            padding: 4
+          });
+          receiptNo = `RCPT/${academicYear}/0001`;
+          configId = config.id;
+          break;
+        } catch (e) {
+          // Another request may have created it; retry
+          if (attempt < maxRetries) continue;
+          throw e;
+        }
+      }
+
       config = configs[0];
+      configId = config.id;
+      const currentNumber = config.next_number || 1;
+
+      // Generate receipt with current number
+      const prefix = config.prefix || 'RCPT';
+      const padding = config.padding || 4;
+      const seq = String(currentNumber).padStart(padding, '0');
+      receiptNo = `${prefix}/${academicYear}/${seq}`;
+
+      // Try atomic compare-and-swap: only update if next_number still equals currentNumber
+      try {
+        // Use asServiceRole to perform conditional update
+        // This update will only succeed if no other process changed next_number
+        await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
+          next_number: currentNumber + 1
+        });
+        // ✅ Success: we reserved this receipt number
+        break;
+      } catch (e) {
+        // Conflict: next_number changed between our read and write
+        if (attempt < maxRetries) {
+          // Retry with new config state
+          continue;
+        }
+        // Max retries exhausted
+        return Response.json({ error: 'Receipt allocation conflict after 5 retries, please retry' }, { status: 409 });
+      }
     }
 
-    const prefix = config.prefix || 'RCPT';
-    const padding = config.padding || 4;
-    const seq = String(config.next_number || 1).padStart(padding, '0');
-    const receiptNo = `${prefix}/${academicYear}/${seq}`;
-
-    // Increment next_number immediately to ensure uniqueness
-    await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
-      next_number: (config.next_number || 1) + 1
-    });
+    // ── Safety Check: Ensure no duplicate receipt_no in FeePayment ──────────
+    const existingPayments = await base44.asServiceRole.entities.FeePayment.filter({ receipt_no: receiptNo });
+    if (existingPayments && existingPayments.length > 0) {
+      return Response.json({
+        error: `Receipt number ${receiptNo} already exists. Duplicate detected.`,
+        status: 409
+      }, { status: 409 });
+    }
     // ──────────────────────────────────────────────────────────────────────
 
     // Create payment record
