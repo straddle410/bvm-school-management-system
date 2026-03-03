@@ -174,7 +174,11 @@ Deno.serve(async (req) => {
     // Summary: only POSTED rows count
     const postedRows = withBalance.filter(r => r.status === 'POSTED');
     const totalInvoiced = postedRows.filter(r => r.type === 'INVOICE').reduce((s, r) => s + r.debit, 0);
+    
+    // Paid total: SUM of ALL CASH_PAYMENT + CREDIT_ADJUSTMENT (ANNUAL + ADHOC)
+    // This includes payments linked to ADHOC invoices
     const totalPaid     = postedRows.filter(r => ['PAYMENT', 'CREDIT'].includes(r.type)).reduce((s, r) => s + r.credit, 0);
+    
     const voidCount     = withBalance.filter(r => r.status === 'VOID').length;
 
     // CSV export
