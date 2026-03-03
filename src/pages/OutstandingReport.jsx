@@ -226,9 +226,10 @@ function OutstandingReportContent() {
                   <TableHead className="text-xs font-semibold text-right">Discount</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Net Inv.</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Paid</TableHead>
-                  <TableHead className="text-xs font-semibold text-right cursor-pointer" onClick={() => toggleSort('outstanding')}>
-                    Outstanding <SortIcon field="outstanding" sort={sort} />
+                  <TableHead className="text-xs font-semibold text-right cursor-pointer text-red-600" onClick={() => toggleSort('outstanding')}>
+                    Due <SortIcon field="outstanding" sort={sort} />
                   </TableHead>
+                  <TableHead className="text-xs font-semibold text-right text-emerald-600">Credit</TableHead>
                   <TableHead className="text-xs font-semibold">Last Payment</TableHead>
                 </TableRow>
               </TableHeader>
