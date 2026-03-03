@@ -78,10 +78,24 @@ Deno.serve(async (req) => {
       ? (Array.isArray(filterMode) ? filterMode : [filterMode]).map(m => m.toUpperCase())
       : null;
 
-    // ── Fetch payments ──────────────────────────────────────────────────────
-    let payments = await base44.asServiceRole.entities.FeePayment.filter(
-      academicYear ? { academic_year: academicYear } : {}
-    );
+    // ── Fetch payments + invoices in parallel ───────────────────────────────
+    const invoiceFilter = academicYear ? { academic_year: academicYear } : {};
+    const [payments_raw, invoices_raw] = await Promise.all([
+      base44.asServiceRole.entities.FeePayment.filter(
+        academicYear ? { academic_year: academicYear } : {}
+      ),
+      base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter),
+    ]);
+    let payments = payments_raw;
+
+    // Build class → invoiced net map (exclude Cancelled/Waived)
+    const EXCLUDED_INVOICE_STATUSES = new Set(['Cancelled', 'Waived']);
+    const classInvoicedNet = {};
+    for (const inv of invoices_raw) {
+      if (EXCLUDED_INVOICE_STATUSES.has(inv.status)) continue;
+      const cls = inv.class_name || 'Unknown';
+      classInvoicedNet[cls] = (classInvoicedNet[cls] || 0) + (inv.total_amount ?? 0);
+    }
 
     // Date filter
     payments = payments.filter(p => {
