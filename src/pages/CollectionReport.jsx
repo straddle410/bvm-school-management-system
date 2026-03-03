@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import LoginRequired from '@/components/LoginRequired';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, Filter } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
@@ -14,249 +16,242 @@ import moment from 'moment';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
+const REVERSAL_TYPES = new Set(['PAYMENT_REVERSAL', 'PAYMENT_REFUND', 'REVERSAL', 'CREDIT_REVERSAL']);
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString('en-IN');
+}
 
 function CollectionReportContent() {
   const { academicYear } = useAcademicYear();
-  
-  // Filters
+
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [includeReversals, setIncludeReversals] = useState(true);
+  const [includeVoided, setIncludeVoided] = useState(false);
 
-  // Fetch all cash payments for this AY
+  // Fetch all cash-affecting payments for this AY (including reversal entries)
   const { data: allPayments = [], isLoading } = useQuery({
     queryKey: ['fee-payments-collection', academicYear],
     queryFn: async () => {
+      // Fetch ALL payments; we classify client-side
       const payments = await base44.entities.FeePayment.filter({
-        academic_year: academicYear,
-        entry_type: 'CASH_PAYMENT',
-        affects_cash: true,
-        status: { $ne: 'REVERSED' }
+        academic_year: academicYear
       });
       return payments || [];
     },
     enabled: !!academicYear
   });
 
-  // Apply client-side filters
-  const filteredPayments = allPayments.filter(p => {
-    // Date range filter
+  // Classify and filter payments
+  const classifiedPayments = allPayments
+    .map(p => {
+      const et = p.entry_type || '';
+      const status = p.status || '';
+      const isVoid = status === 'REVERSED' && !REVERSAL_TYPES.has(et);
+      const isReversal = REVERSAL_TYPES.has(et) || (!isVoid && (p.amount_paid ?? 0) < 0 && !REVERSAL_TYPES.has(et) && et !== 'CREDIT_ADJUSTMENT');
+      const isCredit = et === 'CREDIT_ADJUSTMENT' && !isReversal && !isVoid;
+      const isCash = !isReversal && !isCredit && !isVoid;
+
+      // Signed amount: reversals are negative in the ledger
+      let signedAmount = p.amount_paid ?? 0;
+      if (isReversal && signedAmount > 0) signedAmount = -signedAmount;
+      if (isVoid) signedAmount = 0;
+
+      return { ...p, isVoid, isReversal, isCredit, isCash, signedAmount };
+    })
+    .filter(p => {
+      // Always skip pure credit adjustments
+      if (p.isCredit) return false;
+      // Skip voided originals unless requested
+      if (p.isVoid && !includeVoided) return false;
+      // Skip reversal entries unless requested
+      if (p.isReversal && !includeReversals) return false;
+      return true;
+    });
+
+  // Apply user filters
+  const filteredPayments = classifiedPayments.filter(p => {
     if (dateRange.start && p.payment_date < dateRange.start) return false;
     if (dateRange.end && p.payment_date > dateRange.end) return false;
-
-    // Class filter
     if (selectedClass && p.class_name !== selectedClass) return false;
-
-    // Payment mode filter
     if (selectedMode && p.payment_mode !== selectedMode) return false;
-
-    // Search filter (receipt_no, student_name)
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      if (!p.receipt_no?.toLowerCase().includes(query) &&
-          !p.student_name?.toLowerCase().includes(query)) {
-        return false;
-      }
+      const q = searchQuery.toLowerCase();
+      if (!p.receipt_no?.toLowerCase().includes(q) &&
+          !p.student_name?.toLowerCase().includes(q)) return false;
     }
-
     return true;
   });
 
-  // Calculate summary
-  const summary = {
-    totalAmount: filteredPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0),
-    receiptCount: filteredPayments.length,
-    avgPerReceipt: filteredPayments.length > 0 
-      ? filteredPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0) / filteredPayments.length 
-      : 0
-  };
+  // Summary — only cash (non-void, non-reversal) in positive totals; reversals reduce net
+  const grossCollected = filteredPayments.filter(p => p.isCash).reduce((s, p) => s + (p.amount_paid || 0), 0);
+  const grossReversed = filteredPayments.filter(p => p.isReversal).reduce((s, p) => s + Math.abs(p.amount_paid || 0), 0);
+  const netCollected = grossCollected - grossReversed;
 
-  // Mode breakdown
+  // Mode breakdown (on signed amounts, for net-correct view)
   const modeBreakdown = {};
-  filteredPayments.forEach(p => {
+  filteredPayments.filter(p => !p.isVoid).forEach(p => {
     const mode = p.payment_mode || 'Unknown';
-    modeBreakdown[mode] = (modeBreakdown[mode] || 0) + (p.amount_paid || 0);
+    if (!modeBreakdown[mode]) modeBreakdown[mode] = 0;
+    modeBreakdown[mode] += p.signedAmount;
   });
 
-  // Export to CSV
   const exportCSV = () => {
-    const headers = ['Date', 'Receipt No.', 'Student', 'Class', 'Mode', 'Amount (₹)'];
+    const headers = ['Date', 'Receipt No.', 'Student', 'Class', 'Mode', 'Amount (₹)', 'Type', 'Status'];
     const rows = filteredPayments.map(p => [
-      moment(p.payment_date).format('YYYY-MM-DD'),
+      p.payment_date || '',
       p.receipt_no || '',
-      p.student_name || '',
+      `"${(p.student_name || '').replace(/"/g, '""')}"`,
       p.class_name || '',
       p.payment_mode || '',
-      p.amount_paid || 0
+      p.signedAmount,
+      p.isReversal ? 'REVERSAL' : p.isVoid ? 'VOID' : 'PAYMENT',
+      p.isVoid ? 'VOID' : 'POSTED'
     ]);
 
-    // Summary section
     const summaryRows = [
       [],
       ['SUMMARY'],
-      ['Total Receipts:', filteredPayments.length],
-      ['Total Amount:', summary.totalAmount],
-      ['Average Per Receipt:', summary.avgPerReceipt.toFixed(2)]
-    ];
-
-    // Mode breakdown
-    const modeRows = [
+      ['Gross Collected:', grossCollected],
+      ['Gross Reversed:', grossReversed],
+      ['Net Collected:', netCollected],
       [],
-      ['BREAKDOWN BY MODE']
+      ['BREAKDOWN BY MODE'],
+      ...Object.entries(modeBreakdown).map(([mode, amt]) => [mode, amt])
     ];
-    Object.entries(modeBreakdown).forEach(([mode, amount]) => {
-      modeRows.push([mode, amount]);
-    });
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => 
-        typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell
-      ).join(',')),
-      ...summaryRows.map(row => row.join(',')),
-      ...modeRows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+    const csv = [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Wave3A-Collection-${moment().format('YYYY-MM-DD')}.csv`;
+    a.download = `collection-report-${moment().format('YYYY-MM-DD')}.csv`;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
     a.remove();
   };
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Wave 3A Collection Report</h1>
-        <p className="text-sm text-slate-500 mt-1">Cash payments collected (excluding reversals, credits, adjustments)</p>
+    <div className="p-4 space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Collection Report</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Cash collections for {academicYear}</p>
+        </div>
+        <Button onClick={exportCSV} className="gap-2 bg-[#1a237e] hover:bg-[#283593] text-sm">
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Filters */}
       <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-600" />
-            <h2 className="font-semibold text-slate-700">Filters</h2>
+        <CardHeader className="pb-2 pt-4 px-4">
+          <div className="flex items-center gap-2 text-slate-600 font-semibold text-sm">
+            <Filter className="h-4 w-4" /> Filters
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <CardContent className="px-4 pb-4 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <div>
               <Label className="text-xs">From Date</Label>
-              <Input 
-                type="date" 
-                className="mt-1"
-                value={dateRange.start}
-                onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-              />
+              <Input type="date" className="mt-1 h-9" value={dateRange.start}
+                onChange={e => setDateRange(p => ({ ...p, start: e.target.value }))} />
             </div>
             <div>
               <Label className="text-xs">To Date</Label>
-              <Input 
-                type="date" 
-                className="mt-1"
-                value={dateRange.end}
-                onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-              />
+              <Input type="date" className="mt-1 h-9" value={dateRange.end}
+                onChange={e => setDateRange(p => ({ ...p, end: e.target.value }))} />
             </div>
             <div>
               <Label className="text-xs">Class</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="All classes" /></SelectTrigger>
+              <Select value={selectedClass || '__all__'} onValueChange={v => setSelectedClass(v === '__all__' ? '' : v)}>
+                <SelectTrigger className="mt-1 h-9"><SelectValue placeholder="All classes" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>All classes</SelectItem>
+                  <SelectItem value="__all__">All classes</SelectItem>
                   {CLASSES.map(cls => <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-xs">Payment Mode</Label>
-              <Select value={selectedMode} onValueChange={setSelectedMode}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="All modes" /></SelectTrigger>
+              <Label className="text-xs">Mode</Label>
+              <Select value={selectedMode || '__all__'} onValueChange={v => setSelectedMode(v === '__all__' ? '' : v)}>
+                <SelectTrigger className="mt-1 h-9"><SelectValue placeholder="All modes" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>All modes</SelectItem>
-                  {PAYMENT_MODES.map(mode => <SelectItem key={mode} value={mode}>{mode}</SelectItem>)}
+                  <SelectItem value="__all__">All modes</SelectItem>
+                  {PAYMENT_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label className="text-xs">Receipt / Student</Label>
-              <Input 
-                className="mt-1"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
+              <Input className="mt-1 h-9" placeholder="Search…" value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 pt-1">
+            <div className="flex items-center gap-2">
+              <Switch id="incl-rev" checked={includeReversals} onCheckedChange={setIncludeReversals} />
+              <Label htmlFor="incl-rev" className="text-xs cursor-pointer text-slate-600">Include Reversals</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch id="incl-void" checked={includeVoided} onCheckedChange={setIncludeVoided} />
+              <Label htmlFor="incl-void" className="text-xs cursor-pointer text-slate-600">Include Voided (audit)</Label>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-6">
-            <p className="text-xs text-slate-500">Total Receipts</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">{summary.receiptCount}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <Card className="border-0 shadow-sm bg-green-50 border-green-200">
+          <CardContent className="pt-4 pb-3">
+            <p className="text-[11px] text-green-600">Gross Collected</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">₹{fmt(grossCollected)}</p>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-6">
-            <p className="text-xs text-slate-500">Total Amount Collected</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-2">₹{summary.totalAmount.toLocaleString('en-IN')}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-6">
-            <p className="text-xs text-slate-500">Average Per Receipt</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">₹{summary.avgPerReceipt.toFixed(0).toLocaleString('en-IN')}</p>
+        {grossReversed > 0 && (
+          <Card className="border-0 shadow-sm bg-red-50 border-red-200">
+            <CardContent className="pt-4 pb-3">
+              <p className="text-[11px] text-red-500">Gross Reversed</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">−₹{fmt(grossReversed)}</p>
+            </CardContent>
+          </Card>
+        )}
+        <Card className="border-0 shadow-sm bg-blue-50 border-blue-200">
+          <CardContent className="pt-4 pb-3">
+            <p className="text-[11px] text-blue-600">Net Collected</p>
+            <p className="text-2xl font-bold text-blue-700 mt-1">₹{fmt(netCollected)}</p>
+            <p className="text-[10px] text-blue-400 mt-0.5">{filteredPayments.filter(p => !p.isVoid).length} entries</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Mode Breakdown */}
+      {/* Mode breakdown */}
       {Object.keys(modeBreakdown).length > 0 && (
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-3">
-            <h3 className="font-semibold text-slate-700">Breakdown by Payment Mode</h3>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {Object.entries(modeBreakdown).map(([mode, amount]) => (
-                <div key={mode} className="bg-slate-50 rounded-lg p-3">
-                  <p className="text-xs text-slate-500">{mode}</p>
-                  <p className="text-lg font-semibold text-slate-900 mt-1">₹{amount.toLocaleString('en-IN')}</p>
-                </div>
-              ))}
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(modeBreakdown).map(([mode, amt]) => (
+            <div key={mode} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs shadow-sm">
+              <span className="font-semibold text-slate-700">{mode}</span>
+              <span className="mx-1 text-slate-400">·</span>
+              <span className={amt < 0 ? 'text-red-500' : 'text-emerald-600'}>₹{fmt(amt)}</span>
             </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       )}
-
-      {/* Export Button */}
-      <div className="flex justify-end">
-        <Button onClick={exportCSV} className="gap-2 bg-[#1a237e] hover:bg-[#283593]">
-          <Download className="h-4 w-4" />
-          Export to CSV
-        </Button>
-      </div>
 
       {/* Table */}
       <Card className="border-0 shadow-sm overflow-hidden">
-        <CardHeader className="pb-3">
-          <h3 className="font-semibold text-slate-700">Collection Details</h3>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="p-0 overflow-x-auto">
           {isLoading ? (
-            <div className="text-center py-8 text-slate-400">Loading...</div>
+            <div className="text-center py-12 text-slate-400">Loading…</div>
           ) : filteredPayments.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">No payments found for the selected filters.</div>
+            <div className="text-center py-12 text-slate-400">No payments found for the selected filters.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -267,17 +262,36 @@ function CollectionReportContent() {
                   <TableHead className="text-xs font-semibold">Class</TableHead>
                   <TableHead className="text-xs font-semibold">Mode</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Amount (₹)</TableHead>
+                  <TableHead className="text-xs font-semibold">Type</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map(payment => (
-                  <TableRow key={payment.id} className="text-xs border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell>{moment(payment.payment_date).format('YYYY-MM-DD')}</TableCell>
-                    <TableCell className="font-mono text-slate-600">{payment.receipt_no || '—'}</TableCell>
-                    <TableCell>{payment.student_name || '—'}</TableCell>
-                    <TableCell>{payment.class_name || '—'}</TableCell>
-                    <TableCell className="text-slate-600">{payment.payment_mode || '—'}</TableCell>
-                    <TableCell className="text-right font-medium">{(payment.amount_paid || 0).toLocaleString('en-IN')}</TableCell>
+                {filteredPayments.map(p => (
+                  <TableRow key={p.id}
+                    className={`text-xs border-b border-slate-100 ${p.isVoid ? 'opacity-40' : 'hover:bg-slate-50'}`}
+                  >
+                    <TableCell className="text-slate-600 whitespace-nowrap">
+                      {p.payment_date ? moment(p.payment_date).format('DD MMM YY') : '—'}
+                    </TableCell>
+                    <TableCell className="font-mono text-slate-600">{p.receipt_no || '—'}</TableCell>
+                    <TableCell className="font-medium text-slate-800">{p.student_name || '—'}</TableCell>
+                    <TableCell className="text-slate-600">{p.class_name || '—'}</TableCell>
+                    <TableCell className="text-slate-600">{p.payment_mode || '—'}</TableCell>
+                    <TableCell className={`text-right font-semibold tabular-nums ${
+                      p.isVoid ? 'text-slate-400 line-through' :
+                      p.isReversal ? 'text-red-600' : 'text-emerald-700'
+                    }`}>
+                      {p.isReversal ? `−₹${fmt(Math.abs(p.signedAmount))}` : `₹${fmt(p.signedAmount)}`}
+                    </TableCell>
+                    <TableCell>
+                      {p.isVoid ? (
+                        <Badge className="text-[10px] bg-slate-200 text-slate-500 line-through">VOID</Badge>
+                      ) : p.isReversal ? (
+                        <Badge className="text-[10px] bg-red-100 text-red-700">Reversal</Badge>
+                      ) : (
+                        <Badge className="text-[10px] bg-emerald-100 text-emerald-700">Payment</Badge>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -291,7 +305,7 @@ function CollectionReportContent() {
 
 export default function CollectionReport() {
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Finance Reports">
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Collection Report">
       <CollectionReportContent />
     </LoginRequired>
   );
