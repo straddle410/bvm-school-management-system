@@ -61,6 +61,7 @@ const quickActions = [
 
 const adminActions = [
    { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
+   { label: 'Staff',            icon: Users,         gradient: 'from-blue-400 to-indigo-600',    page: 'Staff' },
    { label: 'Approvals',        icon: ClipboardCheck, gradient: 'from-orange-400 to-red-600',     page: 'Approvals' },
    { label: 'Fees',             icon: Wallet,        gradient: 'from-green-400 to-emerald-600',  page: 'Fees' },
    { label: 'Collection',       icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport' },

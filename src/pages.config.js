@@ -59,7 +59,6 @@ import Calendar from './pages/Calendar';
 import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
 import CollectionReport from './pages/CollectionReport';
 import DailyClosingReport from './pages/DailyClosingReport';
-import Dashboard from './pages/Dashboard';
 import DayBookReport from './pages/DayBookReport';
 import DefaultersReport from './pages/DefaultersReport';
 import Diary from './pages/Diary';
@@ -103,6 +102,8 @@ import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import PostingDashboard from './pages/PostingDashboard';
+import Dashboard from './pages/Dashboard';
+import Staff from './pages/Staff';
 import __Layout from './Layout.jsx';
 
 
@@ -119,7 +120,6 @@ export const PAGES = {
     "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
     "CollectionReport": CollectionReport,
     "DailyClosingReport": DailyClosingReport,
-    "Dashboard": Dashboard,
     "DayBookReport": DayBookReport,
     "DefaultersReport": DefaultersReport,
     "Diary": Diary,
@@ -163,6 +163,8 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "PostingDashboard": PostingDashboard,
+    "Dashboard": Dashboard,
+    "Staff": Staff,
 }
 
 export const pagesConfig = {
