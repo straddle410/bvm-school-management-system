@@ -52,12 +52,13 @@ export default function StaffLogin() {
 
       // If password change required, redirect to change password
       if (response.data.force_password_change) {
-        navigate('/change-password');
+        sessionStorage.setItem('postLoginRedirect', createPageUrl('ChangeStaffPassword'));
+        navigate(createPageUrl('ChangeStaffPassword'));
         return;
       }
 
       toast.success('Login successful');
-      navigate('/staff-dashboard');
+      navigate(createPageUrl('Dashboard'));
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
