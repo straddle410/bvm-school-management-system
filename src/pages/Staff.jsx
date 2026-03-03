@@ -194,19 +194,33 @@ export default function Staff() {
     }));
   };
 
-  const handleSave = () => {
-   if (!form.name || !form.username) {
-     toast.error('Name and username are required');
-     return;
-   }
+  const handleSave = async () => {
+    if (!form.name || !form.username) {
+      toast.error('Name and username are required');
+      return;
+    }
 
-   // Normalize username to lowercase before saving (case-insensitive)
-   const dataToSave = { 
-     ...form,
-     username: form.username.trim().toLowerCase()
-   };
+    // Normalize username
+    const normalizedUsername = form.username.trim().toLowerCase();
 
-   saveMutation.mutate(dataToSave);
+    // Check for duplicate username if editing
+    if (editingStaff) {
+      const existingWithUsername = staffList.filter(s => 
+        s.id !== editingStaff.id && 
+        s.username.toLowerCase() === normalizedUsername
+      );
+      if (existingWithUsername.length > 0) {
+        toast.error('Username already exists');
+        return;
+      }
+    }
+
+    const dataToSave = { 
+      ...form,
+      username: normalizedUsername
+    };
+
+    saveMutation.mutate(dataToSave);
   };
 
   const filtered = staffList.filter(s => {
@@ -578,6 +592,113 @@ export default function Staff() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Edit Staff Dialog */}
+        <Dialog open={showDialog && editingStaff} onOpenChange={(open) => {
+          if (!open) {
+            setShowDialog(false);
+            setEditingStaff(null);
+          }
+        }}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Staff: {editingStaff?.name}</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Full Name *</Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div>
+                  <Label>Username *</Label>
+                  <Input
+                    value={form.username}
+                    onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
+                    placeholder="john.doe01"
+                  />
+                </div>
+
+                <div>
+                  <Label>Designation</Label>
+                  <Input
+                    value={form.designation}
+                    onChange={(e) => setForm(f => ({ ...f, designation: e.target.value }))}
+                    placeholder="Teacher"
+                  />
+                </div>
+                <div>
+                  <Label>Role Template *</Label>
+                  <Select
+                    value={form.role_template_id}
+                    onValueChange={(v) => setForm(f => ({ ...f, role_template_id: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleTemplates.map(r => (
+                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Mobile</Label>
+                  <Input
+                    value={form.mobile}
+                    onChange={(e) => setForm(f => ({ ...f, mobile: e.target.value }))}
+                    placeholder="+91 9876543210"
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="john@school.com"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={form.is_active}
+                      onCheckedChange={(checked) => setForm(f => ({ ...f, is_active: checked }))}
+                    />
+                    Active Account
+                  </Label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowDialog(false);
+                    setEditingStaff(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={saveMutation.isPending}
+                  className="bg-[#1a237e] hover:bg-[#283593]"
+                >
+                  {saveMutation.isPending ? 'Updating...' : 'Update Staff'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Role Dialog */}
         <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
