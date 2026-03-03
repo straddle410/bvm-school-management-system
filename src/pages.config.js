@@ -77,6 +77,8 @@ import Messaging from './pages/Messaging';
 import More from './pages/More';
 import Notices from './pages/Notices';
 import OutstandingReport from './pages/OutstandingReport';
+import ParentStatement from './pages/ParentStatement';
+import PrintReceiptA5 from './pages/PrintReceiptA5';
 import ProductionReset from './pages/ProductionReset';
 import PublicAdmission from './pages/PublicAdmission';
 import PublicAdmissionForm from './pages/PublicAdmissionForm';
@@ -100,8 +102,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import ParentStatement from './pages/ParentStatement';
-import PrintReceiptA5 from './pages/PrintReceiptA5';
 import __Layout from './Layout.jsx';
 
 
@@ -136,6 +136,8 @@ export const PAGES = {
     "More": More,
     "Notices": Notices,
     "OutstandingReport": OutstandingReport,
+    "ParentStatement": ParentStatement,
+    "PrintReceiptA5": PrintReceiptA5,
     "ProductionReset": ProductionReset,
     "PublicAdmission": PublicAdmission,
     "PublicAdmissionForm": PublicAdmissionForm,
@@ -159,8 +161,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "ParentStatement": ParentStatement,
-    "PrintReceiptA5": PrintReceiptA5,
 }
 
 export const pagesConfig = {

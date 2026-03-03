@@ -37,7 +37,12 @@ export default function PrintReceiptA5() {
   // Auto print after data loads
   useEffect(() => {
     if (data && !isLoading) {
-      setTimeout(() => window.print(), 500);
+      setTimeout(() => {
+        window.print();
+        window.addEventListener('afterprint', () => {
+          window.close();
+        }, { once: true });
+      }, 300);
     }
   }, [data, isLoading]);
 
