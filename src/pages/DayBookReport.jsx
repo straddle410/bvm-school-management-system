@@ -262,9 +262,14 @@ export default function DayBookReport() {
           {/* Summary cards */}
           {summary && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <SummaryCard label="Gross Collected" value={summary.grossCollected} color="green" />
-              <SummaryCard label="Gross Reversed" value={summary.grossReversed} color="red" />
+              <SummaryCard label="Total Collected" value={summary.grossCollected} color="green" />
               <SummaryCard label="Net Collected" value={summary.netCollected} color="blue" />
+              {summary.voidedAmount > 0 && (
+                <div className="rounded-xl border px-4 py-3 bg-amber-50 border-amber-200 text-amber-700">
+                  <div className="text-xs font-medium opacity-70 mb-1">Voided (not counted)</div>
+                  <div className="text-xl font-bold tabular-nums">₹{summary.voidedAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</div>
+                </div>
+              )}
             </div>
           )}
 
