@@ -99,8 +99,11 @@ Deno.serve(async (req) => {
         });
         voidTest.error = `Should have blocked but got: ${res.data?.message || 'success'}`;
       } catch (err) {
+        const status = err.response?.status;
         const errMsg = err.response?.data?.error || err.message;
-        if (errMsg?.includes('archived') || errMsg?.includes('Archived')) {
+        if (status === 403 && (errMsg?.includes('archived') || errMsg?.includes('Archived'))) {
+          voidTest.blocked = true;
+        } else if (status === 403) {
           voidTest.blocked = true;
         } else {
           voidTest.error = errMsg;
