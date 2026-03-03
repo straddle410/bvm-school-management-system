@@ -187,16 +187,26 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
                        Print
                      </Button>
                     {!isVoid && canVoidReceipt && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 px-2 text-xs gap-1"
-                        onClick={() => setReversingPayment(p)}
-                      >
-                        <RotateCcw className="h-3 w-3" />
-                        Void
-                      </Button>
-                    )}
+                       <Button
+                         size="sm"
+                         variant="ghost"
+                         className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 px-2 text-xs gap-1"
+                         disabled={voidingPaymentId === p.id}
+                         onClick={() => setReversingPayment(p)}
+                       >
+                         {voidingPaymentId === p.id ? (
+                           <>
+                             <div className="h-3 w-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                             Voiding...
+                           </>
+                         ) : (
+                           <>
+                             <RotateCcw className="h-3 w-3" />
+                             Void
+                           </>
+                         )}
+                       </Button>
+                     )}
                   </div>
                 </CardContent>
               </Card>
