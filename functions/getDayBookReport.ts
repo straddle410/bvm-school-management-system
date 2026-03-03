@@ -136,6 +136,8 @@ Deno.serve(async (req) => {
       if (isCredit) continue;
       // Voided rows only if requested
       if (isVoid && !showVoided) continue;
+      // Guard: skip negative-amount non-void entries (old test/legacy data)
+      if (!isVoid && (p.amount_paid ?? 0) <= 0) continue;
 
       const inv = invoiceMap[p.invoice_id];
       const payDate = p.payment_date || (p.created_date || '').split('T')[0];
