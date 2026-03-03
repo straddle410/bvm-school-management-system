@@ -208,20 +208,22 @@ Deno.serve(async (req) => {
 
     // ── EXPORT MODE ──────────────────────────────────────────────────────────
     if (reportMode === 'export') {
-      const headers = ['Class', 'Collected Amount (₹)', 'Receipts Count', 'Students Paid', 'Voided Receipts', 'Voided Amount (₹)'];
+      const headers = ['Class', 'Invoiced Net (₹)', 'Collected (₹)', 'Coverage %', 'Receipts', 'Students Paid', 'Voided Receipts', 'Voided Amount (₹)'];
       const csvRows = rows.map(r => [
         r.class.name,
-        r.collectedAmount,
+        r.totalInvoicedNet.toFixed(2),
+        r.collectedAmount.toFixed(2),
+        r.coveragePercent.toFixed(1) + '%',
         r.receiptsCount,
         r.studentsPaidCount,
         r.voidedReceiptsCount,
-        r.voidedAmount,
+        r.voidedAmount.toFixed(2),
       ]);
       const csvLines = [
         headers.join(','),
         ...csvRows.map(row => row.join(',')),
         '',
-        `Total,${totalCollected},${totalReceipts}`,
+        `Total,${totalInvoicedNetAllClasses.toFixed(2)},${totalCollected.toFixed(2)},${overallCoveragePercent.toFixed(1)}%,${totalReceipts}`,
       ];
       return new Response(csvLines.join('\n'), {
         headers: {
