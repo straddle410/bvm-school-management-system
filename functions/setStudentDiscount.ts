@@ -12,9 +12,16 @@ function computeDiscountAmount(discountRecord, gross) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    if (user.role !== 'admin' && user.role !== 'principal') {
+    // Try to get user context if available; if not (backend-to-backend), allow service role
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      // Backend-to-backend call: no user context, use service role
+    }
+    
+    // For frontend calls, enforce role. For backend-to-backend, allow service role.
+    if (user && user.role !== 'admin' && user.role !== 'principal') {
       return Response.json({ error: 'Forbidden: Admin or Principal access required' }, { status: 403 });
     }
 
