@@ -7,12 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function VoidModal({ payment, onClose, onSuccess }) {
+export default function VoidModal({ payment, onClose, onSuccess, onVoidingStart }) {
   const [reason, setReason] = useState('');
   const queryClient = useQueryClient();
 
   const voidMutation = useMutation({
     mutationFn: async () => {
+      onVoidingStart?.();
       try {
         const res = await base44.functions.invoke('voidReceipt', {
           paymentId: payment.id,
