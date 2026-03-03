@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const generateUsername = (name) => {
@@ -32,10 +33,23 @@ const roleColors = {
   Admin: 'bg-red-100 text-red-700',
 };
 
+const PERMISSION_MODULES = [
+  'attendance',
+  'marks',
+  'post_notices',
+  'gallery',
+  'quiz',
+  'student_admission_permission',
+  'fees_view_module',
+  'fee_reports_view',
+];
+
 export default function Staff() {
   const [activeTab, setActiveTab] = useState('add');
   const [showDialog, setShowDialog] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
+  const [editingRole, setEditingRole] = useState(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -47,6 +61,11 @@ export default function Staff() {
     role_template_id: '',
     force_password_change: true,
     is_active: true,
+  });
+  const [roleForm, setRoleForm] = useState({
+    name: '',
+    description: '',
+    permissions: {},
   });
   const queryClient = useQueryClient();
 
@@ -116,6 +135,30 @@ export default function Staff() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] });
       toast.success('Account unlocked');
+    },
+  });
+
+  const saveRoleMutation = useMutation({
+    mutationFn: async (data) => {
+      if (editingRole) {
+        return base44.entities.RoleTemplate.update(editingRole.id, data);
+      }
+      return base44.entities.RoleTemplate.create({ ...data, is_system: false });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['role-templates'] });
+      setShowRoleDialog(false);
+      setEditingRole(null);
+      setRoleForm({ name: '', description: '', permissions: {} });
+      toast.success(editingRole ? 'Role updated' : 'Role created');
+    },
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: (roleId) => base44.entities.RoleTemplate.delete(roleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['role-templates'] });
+      toast.success('Role deleted');
     },
   });
 
@@ -190,6 +233,44 @@ export default function Staff() {
       return <Badge className="bg-orange-100 text-orange-700">Locked</Badge>;
     }
     return <Badge className="bg-green-100 text-green-700">Active</Badge>;
+  };
+
+  const openCreateRole = () => {
+    setEditingRole(null);
+    setRoleForm({ name: '', description: '', permissions: {} });
+    setShowRoleDialog(true);
+  };
+
+  const openEditRole = (role) => {
+    setEditingRole(role);
+    setRoleForm({
+      name: role.name,
+      description: role.description || '',
+      permissions: role.permissions || {},
+    });
+    setShowRoleDialog(true);
+  };
+
+  const handleSaveRole = () => {
+    if (!roleForm.name.trim()) {
+      toast.error('Role name is required');
+      return;
+    }
+    saveRoleMutation.mutate({
+      name: roleForm.name.trim(),
+      description: roleForm.description.trim(),
+      permissions: roleForm.permissions,
+    });
+  };
+
+  const togglePermission = (perm) => {
+    setRoleForm(f => ({
+      ...f,
+      permissions: {
+        ...f.permissions,
+        [perm]: !f.permissions[perm],
+      },
+    }));
   };
 
   return (
