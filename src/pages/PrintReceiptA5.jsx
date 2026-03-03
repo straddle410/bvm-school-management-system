@@ -469,9 +469,17 @@ function ReceiptContent({ school, receipt, copyLabel }) {
         </div>
         {amountInWords && <div style={{ textAlign: 'center', fontSize: '8px', marginTop: '2px' }}>({amountInWords})</div>}
         
+        {receipt.payment.collectedByName && (
+          <div className="box-row" style={{ marginTop: '2px', paddingTop: '2px', borderTop: '1px solid #ddd' }}>
+            <span className="label">Received By:</span>
+            <span>{receipt.payment.collectedByName}</span>
+          </div>
+        )}
+        
         {isVoid && receipt.voidInfo && (
           <div className="void-note">
             VOIDED - {receipt.voidInfo.void_reason || 'No reason'}
+            {receipt.voidInfo.voided_by_name && <div style={{ marginTop: '2px' }}>By: {receipt.voidInfo.voided_by_name}</div>}
           </div>
         )}
       </div>

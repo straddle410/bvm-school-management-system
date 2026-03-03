@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
       status: 'VOID',
       void_reason: reason,
       voided_by: user.email,
+      voided_by_name: user.full_name || user.email,
       voided_at: new Date().toISOString()
     });
 

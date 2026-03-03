@@ -89,7 +89,8 @@ Deno.serve(async (req) => {
       payment_mode: paymentMode || 'Cash',
       reference_no: referenceNo || '',
       remarks: remarks || '',
-      collected_by: user.email
+      collected_by: user.email,
+      collected_by_name: user.full_name || user.email
     });
 
     // Update invoice paid_amount and status
