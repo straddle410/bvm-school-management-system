@@ -149,6 +149,9 @@ Deno.serve(async (req) => {
     }
 
     // ── Build enriched rows ───────────────────────────────────────────────
+    // We always need VOID rows in the date aggregation so gross collected is
+    // correctly attributed to the original payment date.  We just exclude them
+    // from the detail/export list when includeCancelled=false.
     const allRows = [];
     const seenIds = new Set();
 
@@ -159,21 +162,21 @@ Deno.serve(async (req) => {
 
       const { isVoid, isReversal, isCredit, isCollection } = classifyPayment(p);
 
-      // Skip void/cancelled unless includeCancelled
-      if (isVoid && !includeCancelled) continue;
-      // Skip reversal entries unless includeReversals
-      if (isReversal && !includeReversals) continue;
       // Skip pure credit adjustments (they don't appear in cash day book)
       if (isCredit) continue;
+      // Skip reversal entries unless includeReversals (but still include for aggregation — handled below)
+      if (isReversal && !includeReversals) continue;
 
       const inv = invoiceMap[p.invoice_id];
       const payDate = p.payment_date || (p.created_date || '').split('T')[0];
       const modeRaw = (p.payment_mode || 'Cash');
 
-      // Signed amount: reversals are negative
+      // Signed amount:
+      //   - void (original reversed): use positive original amount for grossCollected aggregation
+      //   - reversal entry: negative (debit)
       let amount = p.amount_paid ?? 0;
       if (isReversal && amount > 0) amount = -amount;
-      if (isVoid) amount = 0; // void rows show as 0
+      // void rows keep their positive amount for date aggregation
 
       const status = isVoid ? 'VOID' : (isReversal ? 'REVERSAL' : 'POSTED');
 
