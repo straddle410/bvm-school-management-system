@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
-export default function ParentStatementPage() {
+export default function ParentStatement() {
   const { studentId } = useParams();
   const navigate = useNavigate();
   const { academicYear } = useAcademicYear();
