@@ -96,7 +96,6 @@ import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import StudentLedgerReport from './pages/StudentLedgerReport';
-import DayBookReport from './pages/DayBookReport';
 import __Layout from './Layout.jsx';
 
 
@@ -150,7 +149,6 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "StudentLedgerReport": StudentLedgerReport,
-    "DayBookReport": DayBookReport,
 }
 
 export const pagesConfig = {
