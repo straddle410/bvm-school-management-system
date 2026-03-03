@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
       academicYear ? { academic_year: academicYear } : {}
     );
 
-    // Date filtering — use payment_date
+    // Date filtering — use payment_date (reversal entries also use payment_date = reversal date)
     payments = payments.filter(p => {
       const d = p.payment_date || (p.created_date || '').split('T')[0];
       if (!d) return false;
