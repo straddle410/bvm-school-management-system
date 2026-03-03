@@ -136,10 +136,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build rows
+    // Build rows — no clamping, signed balance
     let rows = Object.values(studentMap).map(row => {
-      const outstanding = Math.max(row.netInvoiced - row.paidAmount, 0);
-      const creditBalance = row.paidAmount > row.netInvoiced ? row.paidAmount - row.netInvoiced : 0;
+      const rawOutstanding = row.netInvoiced - row.paidAmount;
+      const dueAmount = Math.max(rawOutstanding, 0);
+      const creditBalance = Math.max(-rawOutstanding, 0);
       return {
         student: { id: row.studentId, name: row.studentName },
         class: { name: row.className },
@@ -147,8 +148,11 @@ Deno.serve(async (req) => {
         discountAmount: row.discountAmount,
         netInvoiced: row.netInvoiced,
         paidAmount: row.paidAmount,
-        outstanding,
-        creditBalance,
+        rawOutstanding,   // signed: negative = overpaid
+        dueAmount,        // positive debt only
+        creditBalance,    // overpayment only
+        // legacy compat field kept for anything reading "outstanding"
+        outstanding: dueAmount,
         lastPaymentDate: row.lastPaymentDate,
         _invoices: row.invoices,
         _payments: row.payments
@@ -166,24 +170,33 @@ Deno.serve(async (req) => {
         r.student.id.toLowerCase().includes(q)
       );
     }
-    if (!includeZeroOutstanding) {
-      rows = rows.filter(r => r.outstanding > 0);
-    }
+    // Exclusive mode filters
+    if (onlyDue)    rows = rows.filter(r => r.rawOutstanding > 0);
+    else if (onlyCredit) rows = rows.filter(r => r.rawOutstanding < 0);
+    else if (!includeZeroOutstanding) rows = rows.filter(r => r.rawOutstanding !== 0);
 
     // Sort
-    if (sort === 'outstanding_desc') rows.sort((a, b) => b.outstanding - a.outstanding);
-    else if (sort === 'outstanding_asc') rows.sort((a, b) => a.outstanding - b.outstanding);
+    if (sort === 'outstanding_desc') rows.sort((a, b) => b.dueAmount - a.dueAmount);
+    else if (sort === 'outstanding_asc') rows.sort((a, b) => a.dueAmount - b.dueAmount);
     else if (sort === 'name_asc') rows.sort((a, b) => a.student.name.localeCompare(b.student.name));
     else if (sort === 'name_desc') rows.sort((a, b) => b.student.name.localeCompare(a.student.name));
 
-    // Summary
+    // Summary across all rows (before pagination)
+    const totalDue     = rows.reduce((s, r) => s + r.dueAmount, 0);
+    const totalCredit  = rows.reduce((s, r) => s + r.creditBalance, 0);
     const summary = {
       totalGross: rows.reduce((s, r) => s + r.grossAmount, 0),
       totalDiscount: rows.reduce((s, r) => s + r.discountAmount, 0),
       totalNetInvoiced: rows.reduce((s, r) => s + r.netInvoiced, 0),
       totalPaid: rows.reduce((s, r) => s + r.paidAmount, 0),
-      totalOutstanding: rows.reduce((s, r) => s + r.outstanding, 0),
-      countStudents: rows.length
+      totalDue,
+      totalCredit,
+      netReceivable: totalDue - totalCredit,
+      totalOutstanding: totalDue, // legacy compat
+      countDueStudents: rows.filter(r => r.rawOutstanding > 0).length,
+      countCreditStudents: rows.filter(r => r.rawOutstanding < 0).length,
+      countTotal: rows.length,
+      countStudents: rows.length // legacy compat
     };
 
     // CSV export
