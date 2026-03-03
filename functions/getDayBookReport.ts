@@ -250,8 +250,10 @@ Deno.serve(async (req) => {
     }
 
     const computeTotals = (rows) => {
-      const gross = rows.filter(r => r.amount > 0).reduce((s, r) => s + r.amount, 0);
-      const reversed = rows.filter(r => r.amount < 0).reduce((s, r) => s + Math.abs(r.amount), 0);
+      // Only non-void rows participate in financial totals
+      const active = rows.filter(r => !r.isVoid);
+      const gross = active.filter(r => r.amount > 0).reduce((s, r) => s + r.amount, 0);
+      const reversed = active.filter(r => r.amount < 0).reduce((s, r) => s + Math.abs(r.amount), 0);
       return { grossCollected: gross, grossReversed: reversed, netCollected: gross - reversed };
     };
 
