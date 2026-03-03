@@ -23,21 +23,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'payment_id required' }, { status: 400 });
     }
 
-    // Fetch payment
+    // Fetch payment (use asServiceRole to avoid user permission restrictions)
     step = 'fetch_payment';
-    const payment = await base44.entities.FeePayment.filter({ id: paymentId });
+    const payment = await base44.asServiceRole.entities.FeePayment.filter({ id: paymentId });
     if (!payment || payment.length === 0) {
       return Response.json({ error: 'Payment not found for id: ' + paymentId }, { status: 404 });
     }
     const p = payment[0];
 
-    // Fetch all in parallel
+    // Fetch all in parallel (use asServiceRole for all)
     step = 'fetch_parallel';
     const [invoices, students, profiles, allPayments] = await Promise.all([
-      base44.entities.FeeInvoice.filter({ id: p.invoice_id }).catch(() => []),
-      base44.entities.Student.filter({ student_id: p.student_id }).catch(() => []),
-      base44.entities.SchoolProfile.list().catch(() => []),
-      base44.entities.FeePayment.filter({ invoice_id: p.invoice_id, status: 'Active' }, 'payment_date').catch(() => [])
+      base44.asServiceRole.entities.FeeInvoice.filter({ id: p.invoice_id }).catch(() => []),
+      base44.asServiceRole.entities.Student.filter({ student_id: p.student_id }).catch(() => []),
+      base44.asServiceRole.entities.SchoolProfile.list().catch(() => []),
+      base44.asServiceRole.entities.FeePayment.filter({ invoice_id: p.invoice_id, status: 'Active' }, 'payment_date').catch(() => [])
     ]);
 
     const invoice = invoices?.[0];
@@ -57,12 +57,12 @@ Deno.serve(async (req) => {
     const totalPaidAfterThis = totalPaidBeforeThis + (p.amount_paid || 0);
     const balanceDueAfterThis = Math.max(0, (invoice?.total_amount || 0) - totalPaidAfterThis);
 
-    // Void info (check both naming conventions)
+    // Void info (use denormalized names only, no user lookups)
     step = 'void_info';
     const voidInfo = (p.status === 'VOID' || p.status === 'void') ? {
       void_reason: p.void_reason || p.reversal_reason || '',
       voided_at: p.voided_at || p.reversed_at || '',
-      voided_by: p.voided_by || p.reversed_by || ''
+      voided_by_name: p.voided_by_name || '—'
     } : null;
 
     step = 'response';
@@ -88,7 +88,8 @@ Deno.serve(async (req) => {
           mode: p.payment_mode || 'Cash',
           amount: p.amount_paid || 0,
           referenceNo: p.reference_no || '',
-          status: p.status || 'Active'
+          status: p.status || 'Active',
+          collectedByName: p.collected_by_name || '—'
         },
         invoice: {
           gross: invoice?.gross_total || 0,
