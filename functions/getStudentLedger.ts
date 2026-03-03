@@ -143,14 +143,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Sort chronologically
+    // Sort deterministically:
+    // 1. By date ascending
+    // 2. INVOICE before PAYMENT/REVERSAL on same date (logical order: charge first, then payment)
+    // 3. PAYMENT before REVERSAL on same date (logical order: payment created before it was reversed)
+    // 4. Stable tie-breaker: paymentId/invoiceId lexicographically (consistent across calls)
+    const TYPE_ORDER = { INVOICE: 0, PAYMENT: 1, CREDIT: 2, REVERSAL: 3 };
     rows.sort((a, b) => {
       if (a._sortDate < b._sortDate) return -1;
       if (a._sortDate > b._sortDate) return 1;
-      // invoices before payments on same day
-      if (a.type === 'INVOICE' && b.type !== 'INVOICE') return -1;
-      if (a.type !== 'INVOICE' && b.type === 'INVOICE') return 1;
-      return 0;
+      const ta = TYPE_ORDER[a.type] ?? 9;
+      const tb = TYPE_ORDER[b.type] ?? 9;
+      if (ta !== tb) return ta - tb;
+      // Stable id tie-breaker (never collapses different records)
+      const idA = a.paymentId || a.invoiceId || '';
+      const idB = b.paymentId || b.invoiceId || '';
+      return idA < idB ? -1 : idA > idB ? 1 : 0;
     });
 
     // Apply date filters
