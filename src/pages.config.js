@@ -101,6 +101,7 @@ import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import ParentStatement from './pages/ParentStatement';
+import PrintReceiptA5 from './pages/PrintReceiptA5';
 import __Layout from './Layout.jsx';
 
 
@@ -159,6 +160,7 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "ParentStatement": ParentStatement,
+    "PrintReceiptA5": PrintReceiptA5,
 }
 
 export const pagesConfig = {
