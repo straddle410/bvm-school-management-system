@@ -100,9 +100,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Determine role: use designation as role, default to "admin" for backward compat
-    const userRole = account.designation || 'admin';
-    
     // Create session (store in localStorage on client)
     return Response.json({
       success: true,
@@ -110,10 +107,12 @@ Deno.serve(async (req) => {
       username: account.username,
       name: account.name,
       full_name: account.name,
-      role: userRole,
+      role: account.role,
+      designation: account.designation,
       role_template_id: account.role_template_id,
       permissions: account.permissions,
       permissions_override: account.permissions_override,
+      force_password_change: account.force_password_change,
     });
   } catch (error) {
     console.error('Login error:', error);

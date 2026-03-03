@@ -174,7 +174,7 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
     .slice(0, 3);
 
-  const isAdmin = user?.role === 'Admin' || user?.role === 'admin' || user?.role === 'Principal' || user?.role === 'principal';
+  const isAdmin = user?.role === 'admin' || user?.role === 'principal';
   const isStaff = user && (isAdmin || ['Teacher', 'teacher', 'Staff', 'staff', 'Librarian', 'Accountant'].includes(user?.role));
 
   const { badges: staffBadges } = useStaffNotificationBadges(isStaff ? user?.email : null);
