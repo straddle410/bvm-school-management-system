@@ -9,7 +9,7 @@ import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
   Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare,
-  Ticket, Calendar, TrendingUp, FileText, Award, BarChart3
+  Ticket, Calendar, TrendingUp, FileText, Award, BarChart3, AlertCircle
 } from 'lucide-react';
 
 export default function More() {
@@ -90,7 +90,8 @@ export default function More() {
    { label: 'Student Ledger', sub: 'Per-student fee ledger', icon: BookOpen, color: '#7b1fa2', bg: '#f3e5f5', page: 'StudentLedgerReport' },
    { label: 'Collection Report', sub: 'Cash collection details', icon: Award, color: '#388e3c', bg: '#e8f5e9', page: 'CollectionReport' },
    { label: 'Collection by Class', sub: 'Class-wise fee summary', icon: BarChart3, color: '#0097a7', bg: '#e0f7fa', page: 'ClassCollectionSummaryReport' },
-  ];
+   { label: 'Defaulters', sub: 'Follow-up & contact tracking', icon: AlertCircle, color: '#d32f2f', bg: '#ffebee', page: 'DefaultersReport' },
+   ];
 
   const supportItems = [
     { label: 'Contact School', sub: schoolProfile?.phone || '+91 98765 43210', icon: Phone, color: '#e53935', bg: '#ffebee' },
