@@ -274,10 +274,8 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                    </Button>
                  )}
                 </CardContent>
-                </Card>
-                )}
-                </div>
-                )}
+              </Card>
+            )}
         </div>
       )}
 
