@@ -74,7 +74,6 @@ const examModuleActions = [
    { label: 'Marks Entry',      icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks' },
    { label: 'Results',          icon: GraduationCap, gradient: 'from-indigo-400 to-indigo-600', page: 'Results' },
    { label: 'Progress Cards',   icon: Award,         gradient: 'from-amber-400 to-orange-500',  page: 'ExamManagement', tab: 'progress-cards' },
-   { label: 'Post Quiz',        icon: Brain,         gradient: 'from-purple-400 to-violet-600', page: 'PostingDashboard', tab: 'quiz' },
 ];
 
 function GradientIcon({ gradient, icon: Icon, size = 'md' }) {
