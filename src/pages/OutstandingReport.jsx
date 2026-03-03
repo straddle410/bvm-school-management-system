@@ -56,8 +56,7 @@ function OutstandingReportContent() {
       });
       return res.data;
     },
-    enabled: !!academicYear,
-    keepPreviousData: true
+    enabled: !!academicYear
   });
 
   const rows = data?.rows || [];
