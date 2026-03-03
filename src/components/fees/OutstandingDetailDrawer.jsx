@@ -128,20 +128,38 @@ export default function OutstandingDetailDrawer({ row, academicYear, asOfDate, o
             </div>
 
             {/* Totals */}
-            <div className="bg-slate-50 rounded-lg p-3 grid grid-cols-3 gap-3 text-xs">
-              <div>
-                <p className="text-slate-500">Net Invoiced</p>
-                <p className="font-bold text-slate-800">₹{fmt(data?.netInvoiced)}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Total Paid</p>
-                <p className="font-bold text-emerald-600">₹{fmt(data?.totalPaid)}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Outstanding</p>
-                <p className="font-bold text-red-600">₹{fmt(data?.outstanding)}</p>
-              </div>
-            </div>
+            {(() => {
+              const netInv = data?.netInvoiced ?? 0;
+              const paid   = data?.totalPaid ?? data?.paidAmount ?? 0;
+              const raw    = netInv - paid;
+              const due    = Math.max(raw, 0);
+              const credit = Math.max(-raw, 0);
+              return (
+                <div className={`rounded-lg p-3 grid grid-cols-3 gap-3 text-xs ${credit > 0 ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+                  <div>
+                    <p className="text-slate-500">Net Invoiced</p>
+                    <p className="font-bold text-slate-800">₹{fmt(netInv)}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Total Paid</p>
+                    <p className="font-bold text-emerald-600">₹{fmt(paid)}</p>
+                  </div>
+                  <div>
+                    {credit > 0 ? (
+                      <>
+                        <p className="text-emerald-600 font-semibold">Credit Balance</p>
+                        <p className="font-bold text-emerald-600">₹{fmt(credit)}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-slate-500">Due</p>
+                        <p className="font-bold text-red-600">₹{fmt(due)}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </SheetContent>
