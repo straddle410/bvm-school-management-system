@@ -56,7 +56,10 @@ import AttendanceReport from './pages/AttendanceReport';
 import AttendanceReports from './pages/AttendanceReports';
 import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
+import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
+import CollectionReport from './pages/CollectionReport';
 import Dashboard from './pages/Dashboard';
+import DayBookReport from './pages/DayBookReport';
 import Diary from './pages/Diary';
 import DiaryManagement from './pages/DiaryManagement';
 import ExamManagement from './pages/ExamManagement';
@@ -69,6 +72,7 @@ import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
 import MarksReview from './pages/MarksReview';
 import Messaging from './pages/Messaging';
+import More from './pages/More';
 import Notices from './pages/Notices';
 import OutstandingReport from './pages/OutstandingReport';
 import ProductionReset from './pages/ProductionReset';
@@ -94,10 +98,7 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import DayBookReport from './pages/DayBookReport';
-import More from './pages/More';
-import CollectionReport from './pages/CollectionReport';
-import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
+import DefaultersReport from './pages/DefaultersReport';
 import __Layout from './Layout.jsx';
 
 
@@ -111,7 +112,10 @@ export const PAGES = {
     "AttendanceReports": AttendanceReports,
     "AttendanceSummaryReport": AttendanceSummaryReport,
     "Calendar": Calendar,
+    "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
+    "CollectionReport": CollectionReport,
     "Dashboard": Dashboard,
+    "DayBookReport": DayBookReport,
     "Diary": Diary,
     "DiaryManagement": DiaryManagement,
     "ExamManagement": ExamManagement,
@@ -124,6 +128,7 @@ export const PAGES = {
     "Marks": Marks,
     "MarksReview": MarksReview,
     "Messaging": Messaging,
+    "More": More,
     "Notices": Notices,
     "OutstandingReport": OutstandingReport,
     "ProductionReset": ProductionReset,
@@ -149,10 +154,7 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "DayBookReport": DayBookReport,
-    "More": More,
-    "CollectionReport": CollectionReport,
-    "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
+    "DefaultersReport": DefaultersReport,
 }
 
 export const pagesConfig = {
