@@ -156,8 +156,7 @@ export default function DayBookReport() {
         academicYear: applied.academicYear || undefined,
         className: applied.className || undefined,
         mode: applied.mode?.length ? applied.mode : undefined,
-        includeReversals: applied.includeReversals,
-        includeCancelled: applied.includeCancelled,
+        includeVoided: applied.includeVoided,
         exportCsv: true
       });
       const blob = new Blob([res.data], { type: 'text/csv' });
