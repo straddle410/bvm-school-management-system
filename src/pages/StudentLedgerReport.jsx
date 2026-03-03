@@ -70,7 +70,7 @@ function StudentLedgerContent() {
 
   // Ledger data
   const { data, isLoading } = useQuery({
-    queryKey: ['student-ledger', selectedStudent?.student_id, academicYear, dateFrom, dateTo, includeReversals, includeCredits],
+    queryKey: ['student-ledger', selectedStudent?.student_id, academicYear, dateFrom, dateTo, includeReversals, includeCredits, includeVoided],
     queryFn: async () => {
       const res = await base44.functions.invoke('getStudentLedger', {
         studentId: selectedStudent.student_id,
@@ -79,6 +79,7 @@ function StudentLedgerContent() {
         dateTo: dateTo || undefined,
         includeReversals,
         includeCredits,
+        includeVoided,
         pageSize: 500
       });
       return res.data;
