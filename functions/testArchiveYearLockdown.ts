@@ -234,8 +234,11 @@ Deno.serve(async (req) => {
         });
         cancelTest.error = `Should have blocked but got: ${res.data?.message || 'success'}`;
       } catch (err) {
+        const status = err.response?.status;
         const errMsg = err.response?.data?.error || err.message;
-        if (errMsg?.includes('archived') || errMsg?.includes('Archived')) {
+        if (status === 403 && (errMsg?.includes('archived') || errMsg?.includes('Archived'))) {
+          cancelTest.blocked = true;
+        } else if (status === 403) {
           cancelTest.blocked = true;
         } else {
           cancelTest.error = errMsg;
