@@ -24,6 +24,19 @@ Deno.serve(async (req) => {
     const family = families[0];
     if (!family) return Response.json({ error: 'Family not found' }, { status: 404 });
 
+    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: family.academic_year });
+    if (academicYears && academicYears.length > 0) {
+     const ayRecord = academicYears[0];
+     if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
+       return Response.json({
+         error: `Academic year ${family.academic_year} is archived; mutations not allowed`,
+         status: 403
+       }, { status: 403 });
+     }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     if (action === 'remove') {
       // Archive all sibling discounts for these students in this AY
       const existingDiscounts = await base44.asServiceRole.entities.StudentFeeDiscount.filter({
