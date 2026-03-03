@@ -501,23 +501,62 @@ export default function Staff() {
 
             {/* Roles Tab */}
             <TabsContent value="roles" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-slate-600">
+                  Manage role templates and assign them to staff members. System roles cannot be deleted.
+                </p>
+                <Button onClick={openCreateRole} className="bg-[#1a237e] hover:bg-[#283593]">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Role
+                </Button>
+              </div>
+
               <Card>
                 <CardContent className="pt-6">
-                  <p className="text-sm text-slate-600 mb-4">
-                    Manage role templates and assign them to staff members. System roles cannot be deleted.
-                  </p>
                   <div className="space-y-3">
                     {roleTemplates.map(role => (
-                      <div key={role.id} className="border rounded-lg p-3 bg-slate-50">
-                        <div className="flex items-center justify-between">
-                          <div>
+                      <div key={role.id} className="border rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
                             <p className="font-semibold text-slate-900">{role.name}</p>
-                            <p className="text-xs text-slate-500">{role.description}</p>
+                            <p className="text-xs text-slate-500 mt-1">{role.description}</p>
                           </div>
-                          {role.is_system && (
-                            <Badge className="bg-blue-100 text-blue-700">System</Badge>
-                          )}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {role.is_system && (
+                              <Badge className="bg-blue-100 text-blue-700">System</Badge>
+                            )}
+                            {!role.is_system && (
+                              <>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  onClick={() => openEditRole(role)}
+                                >
+                                  <Edit className="h-4 w-4 text-slate-500" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-red-500"
+                                  onClick={() => {
+                                    if (confirm(`Delete role "${role.name}"?`)) {
+                                      deleteRoleMutation.mutate(role.id);
+                                    }
+                                  }}
+                                  disabled={deleteRoleMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
+                        {role.permissions && Object.keys(role.permissions).length > 0 && (
+                          <div className="text-xs text-slate-600">
+                            <span className="font-medium">Permissions:</span> {Object.entries(role.permissions).filter(([,v]) => v).map(([k]) => k).join(', ') || 'None'}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -526,6 +565,67 @@ export default function Staff() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Role Dialog */}
+        <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingRole ? 'Edit Role' : 'Create New Role'}</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <Label>Role Name *</Label>
+                <Input
+                  value={roleForm.name}
+                  onChange={(e) => setRoleForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="e.g., Exam Coordinator"
+                  disabled={editingRole?.is_system}
+                />
+              </div>
+
+              <div>
+                <Label>Description</Label>
+                <Input
+                  value={roleForm.description}
+                  onChange={(e) => setRoleForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="Brief description of this role"
+                />
+              </div>
+
+              <div>
+                <Label className="mb-3 block">Permissions</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  {PERMISSION_MODULES.map(perm => (
+                    <div key={perm} className="flex items-center gap-2">
+                      <Checkbox
+                        id={perm}
+                        checked={roleForm.permissions[perm] || false}
+                        onCheckedChange={() => togglePermission(perm)}
+                      />
+                      <label htmlFor={perm} className="text-sm font-medium cursor-pointer capitalize">
+                        {perm.replace(/_/g, ' ')}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <Button variant="outline" onClick={() => setShowRoleDialog(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveRole}
+                  disabled={saveRoleMutation.isPending}
+                  className="bg-[#1a237e] hover:bg-[#283593]"
+                >
+                  {saveRoleMutation.isPending ? 'Saving...' : 'Save Role'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </LoginRequired>
   );
