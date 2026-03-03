@@ -100,6 +100,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Determine redirect based on role
+    const isAdmin = ['admin', 'principal'].includes((account.role || '').toLowerCase());
+    
     // Create session (store in localStorage on client)
     return Response.json({
       success: true,
@@ -113,6 +116,7 @@ Deno.serve(async (req) => {
       permissions: account.permissions,
       permissions_override: account.permissions_override,
       force_password_change: account.force_password_change,
+      redirect_to: 'Dashboard',  // Always redirect to Dashboard (no staff-dashboard)
     });
   } catch (error) {
     console.error('Login error:', error);
