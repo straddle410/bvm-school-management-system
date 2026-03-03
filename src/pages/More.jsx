@@ -244,6 +244,33 @@ export default function More() {
                    </div>
                  )}
 
+                 {/* Finance Reports - Admin */}
+                 {isAdmin && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <div onClick={() => setExpandedFinance(!expandedFinance)}>
+                       <MenuItem
+                         item={{
+                           label: 'Finance Reports',
+                           sub: 'Day Book, Outstanding, Ledger',
+                           icon: TrendingUp,
+                           color: '#1976d2',
+                           bg: '#e3f2fd'
+                         }}
+                         showArrow={true}
+                       />
+                     </div>
+                     {expandedFinance && (
+                       <div className="divide-y divide-gray-50 bg-gray-50">
+                         {financeReportItems.map(item => (
+                           <div key={item.label} className="pl-4">
+                             <MenuItem item={item} />
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                 )}
+
                  {/* Admin Controls */}
                  {isAdmin && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
