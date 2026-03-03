@@ -129,7 +129,8 @@ export default function DayBookReport() {
       includeReversals: applied.includeReversals,
       includeCancelled: applied.includeCancelled
     }).then(r => r.data),
-    enabled: !!applied.dateFrom && !!applied.dateTo
+    enabled: !!applied.dateFrom && !!applied.dateTo,
+    staleTime: 0
   });
 
   const handleApply = () => {
