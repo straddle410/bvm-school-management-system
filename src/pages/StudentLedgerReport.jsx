@@ -37,6 +37,7 @@ function StudentLedgerContent() {
   const [dateTo, setDateTo] = useState('');
   const [includeReversals, setIncludeReversals] = useState(true);
   const [includeCredits, setIncludeCredits] = useState(true);
+  const [includeVoided, setIncludeVoided] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
