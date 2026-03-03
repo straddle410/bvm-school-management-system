@@ -39,12 +39,24 @@ Deno.serve(async (req) => {
     const payment = await base44.asServiceRole.entities.FeePayment.get(paymentId);
     if (!payment) return Response.json({ error: 'Payment not found' }, { status: 404 });
 
-    // IDEMPOTENT: already voided → return success with no changes
+    // IDEMPOTENT: already voided → return success with current state
     if (payment.status === 'VOID') {
+      // Fetch invoice to return current state
+      const invoice = await base44.asServiceRole.entities.FeeInvoice.get(payment.invoice_id);
+      const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ invoice_id: payment.invoice_id });
+      const totalPaid = allPayments
+        .filter(p => p.status !== 'VOID')
+        .reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+      const netAmount = invoice?.total_amount || 0;
+      const balance = Math.max(netAmount - totalPaid, 0);
+
       return Response.json({
         success: true,
         already_voided: true,
-        message: 'Receipt was already voided — no changes made.'
+        message: 'Receipt was already voided — no changes made.',
+        new_paid_amount: totalPaid,
+        new_balance: balance,
+        new_status: invoice?.status || 'Pending'
       });
     }
 
