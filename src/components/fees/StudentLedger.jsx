@@ -72,15 +72,25 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const discount = Math.min(discountSum, gross);
   const net = gross - discount;
 
-  // CRITICAL FIX: Calculate paid from actual FeePayment entries linked to ACTIVE invoice
-  // Exclude: VOID/CANCELLED payments (zero financial effect)
-  const activeInvoicePayments = payments.filter(p => 
+  // Calculate paid: ONLY ANNUAL payments (not ADHOC)
+  // Filters: CASH_PAYMENT, linked to ANNUAL invoice, not VOID/CANCELLED
+  const annualPayments = payments.filter(p => 
     p.entry_type === 'CASH_PAYMENT' && 
     p.invoice_id === invoice?.id && 
     p.status !== 'VOID' &&
     p.status !== 'CANCELLED'
   );
-  const paid = activeInvoicePayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+  const paid = annualPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+
+  // Calculate ADHOC paid (for display below paid total)
+  const adhocPaid = payments.reduce((sum, p) => {
+    const isAdhocPayment = adhocInvoices.some(inv => inv.id === p.invoice_id);
+    if (isAdhocPayment && p.entry_type === 'CASH_PAYMENT' && p.status !== 'VOID' && p.status !== 'CANCELLED') {
+      return sum + (p.amount_paid || 0);
+    }
+    return sum;
+  }, 0);
+
   const balance = Math.max(net - paid, 0);
 
   const filteredStudents = students.filter(s =>
