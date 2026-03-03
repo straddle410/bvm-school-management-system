@@ -183,6 +183,8 @@ Deno.serve(async (req) => {
       const collected = data.validPayments.reduce((s, p) => s + (p.amount_paid ?? 0), 0);
       const uniqueStudents = new Set(data.validPayments.map(p => p.student_id).filter(Boolean));
       const voidedAmt = data.voidedPayments.reduce((s, p) => s + Math.abs(p.amount_paid ?? 0), 0);
+      const totalInvoicedNet = classInvoicedNet[cls] || 0;
+      const coveragePercent = totalInvoicedNet > 0 ? (collected / totalInvoicedNet) * 100 : 0;
       return {
         class: { id: cls, name: cls },
         collectedAmount: collected,
@@ -190,6 +192,8 @@ Deno.serve(async (req) => {
         studentsPaidCount: uniqueStudents.size,
         voidedReceiptsCount: data.voidedPayments.length,
         voidedAmount: voidedAmt,
+        totalInvoicedNet,
+        coveragePercent,
       };
     });
 
@@ -197,6 +201,10 @@ Deno.serve(async (req) => {
 
     const totalCollected = rows.reduce((s, r) => s + r.collectedAmount, 0);
     const totalReceipts = rows.reduce((s, r) => s + r.receiptsCount, 0);
+    const totalInvoicedNetAllClasses = rows.reduce((s, r) => s + r.totalInvoicedNet, 0);
+    const overallCoveragePercent = totalInvoicedNetAllClasses > 0
+      ? (totalCollected / totalInvoicedNetAllClasses) * 100
+      : 0;
 
     // ── EXPORT MODE ──────────────────────────────────────────────────────────
     if (reportMode === 'export') {
