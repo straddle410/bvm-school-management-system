@@ -6,15 +6,7 @@ Deno.serve(async (req) => {
   
   try {
     const base44 = createClientFromRequest(req);
-    step = 'auth';
-    const user = await base44.auth.me();
-
-    // Role check: admin, principal, accountant
-    const allowedRoles = ['admin', 'principal', 'accountant'];
-    if (!user || !allowedRoles.includes((user.role || '').toLowerCase())) {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
+    
     // Parse payment_id
     const body = await req.json().catch(() => ({}));
     paymentId = body.payment_id;
