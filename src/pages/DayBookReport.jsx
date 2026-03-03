@@ -249,15 +249,11 @@ export default function DayBookReport() {
                     {m}
                   </button>
                 ))}
-                <div className="ml-auto flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={includeReversals} onCheckedChange={setIncludeReversals} id="inc-rev" />
-                    <Label htmlFor="inc-rev" className="text-xs text-slate-600 cursor-pointer">Include Reversals</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={includeCancelled} onCheckedChange={setIncludeCancelled} id="inc-can" />
-                    <Label htmlFor="inc-can" className="text-xs text-slate-600 cursor-pointer">Include Cancelled</Label>
-                  </div>
+                <div className="ml-auto flex items-center gap-2">
+                  <Switch checked={includeVoided} onCheckedChange={setIncludeVoided} id="inc-void" />
+                  <Label htmlFor="inc-void" className="text-xs text-slate-600 cursor-pointer">
+                    Show Voided (audit only, not counted)
+                  </Label>
                 </div>
               </div>
             </CardContent>
