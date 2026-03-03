@@ -25,23 +25,21 @@ const COLLECTION_TYPES = new Set([
 ]);
 
 // Entry types that are always reversals (regardless of sign)
-const REVERSAL_TYPES = new Set(['PAYMENT_REVERSAL', 'PAYMENT_REFUND', 'REVERSAL', 'CREDIT_REVERSAL']);
+const REVERSAL_TYPES = new Set(['PAYMENT_REVERSAL', 'PAYMENT_REFUND', 'REVERSAL']);
 
 function classifyPayment(p) {
   const et = p.entry_type || '';
   const status = p.status || '';
   const amount = p.amount_paid ?? 0;
 
-  // VOID: the original payment record that was marked REVERSED (and is NOT itself a reversal entry)
-  // A REVERSAL entry (entry_type=REVERSAL) with status=Active should NOT be treated as void
+  // VOID: the original payment record that was cancelled (status=REVERSED, not a reversal entry)
   const isVoid = status === 'REVERSED' && !REVERSAL_TYPES.has(et);
 
-  // REVERSAL ENTRY: explicitly created reversal row (entry_type is in REVERSAL_TYPES)
-  // OR a negative amount cash payment (legacy negative rows)
+  // REVERSAL ENTRY: an explicitly created row to post the reversal debit
   const isReversal = REVERSAL_TYPES.has(et) ||
-    (!isVoid && amount < 0 && COLLECTION_TYPES.has(et));
+    (amount < 0 && status !== 'REVERSED'); // negative cash_payment
 
-  // CREDIT ADJUSTMENT: discounts etc. — excluded from cash day book
+  // CREDIT ADJUSTMENT: discounts etc.
   const isCredit = et === 'CREDIT_ADJUSTMENT' && !isReversal && !isVoid;
 
   // Standard collection
@@ -110,10 +108,7 @@ Deno.serve(async (req) => {
       academicYear ? { academic_year: academicYear } : {}
     );
 
-    // Date filtering — use payment_date.
-    // VOID originals (status=REVERSED, not a reversal entry) are always fetched across the full AY
-    // so that their original payment date falls within the range correctly.
-    // We fetch ALL payments and filter by date here (no pre-status filter).
+    // Date filtering — use payment_date
     payments = payments.filter(p => {
       const d = p.payment_date || (p.created_date || '').split('T')[0];
       if (!d) return false;
@@ -152,9 +147,6 @@ Deno.serve(async (req) => {
     }
 
     // ── Build enriched rows ───────────────────────────────────────────────
-    // We always need VOID rows in the date aggregation so gross collected is
-    // correctly attributed to the original payment date.  We just exclude them
-    // from the detail/export list when includeCancelled=false.
     const allRows = [];
     const seenIds = new Set();
 
@@ -165,21 +157,21 @@ Deno.serve(async (req) => {
 
       const { isVoid, isReversal, isCredit, isCollection } = classifyPayment(p);
 
+      // Skip void/cancelled unless includeCancelled
+      if (isVoid && !includeCancelled) continue;
+      // Skip reversal entries unless includeReversals
+      if (isReversal && !includeReversals) continue;
       // Skip pure credit adjustments (they don't appear in cash day book)
       if (isCredit) continue;
-      // Skip reversal entries unless includeReversals (but still include for aggregation — handled below)
-      if (isReversal && !includeReversals) continue;
 
       const inv = invoiceMap[p.invoice_id];
       const payDate = p.payment_date || (p.created_date || '').split('T')[0];
       const modeRaw = (p.payment_mode || 'Cash');
 
-      // Signed amount:
-      //   - void (original reversed): use positive original amount for grossCollected aggregation
-      //   - reversal entry: negative (debit)
+      // Signed amount: reversals are negative
       let amount = p.amount_paid ?? 0;
       if (isReversal && amount > 0) amount = -amount;
-      // void rows keep their positive amount for date aggregation
+      if (isVoid) amount = 0; // void rows show as 0
 
       const status = isVoid ? 'VOID' : (isReversal ? 'REVERSAL' : 'POSTED');
 
@@ -217,10 +209,7 @@ Deno.serve(async (req) => {
 
     // ── DETAILS MODE ──────────────────────────────────────────────────────
     if (reportMode === 'details' || (reportMode === 'summary' && detailDate)) {
-      // In detail mode, exclude void rows unless includeCancelled
-      const dateRows = allRows.filter(r =>
-        r.date === detailDate && !(r.isVoid && !includeCancelled)
-      );
+      const dateRows = allRows.filter(r => r.date === detailDate);
       const total = dateRows.length;
       const start = (page - 1) * pageSize;
       const paged = dateRows.slice(start, start + pageSize);
@@ -253,10 +242,8 @@ Deno.serve(async (req) => {
     }
 
     const computeTotals = (rows) => {
-      // Only non-void rows participate in financial totals
-      const active = rows.filter(r => !r.isVoid);
-      const gross = active.filter(r => r.amount > 0).reduce((s, r) => s + r.amount, 0);
-      const reversed = active.filter(r => r.amount < 0).reduce((s, r) => s + Math.abs(r.amount), 0);
+      const gross = rows.filter(r => r.amount > 0).reduce((s, r) => s + r.amount, 0);
+      const reversed = rows.filter(r => r.amount < 0).reduce((s, r) => s + Math.abs(r.amount), 0);
       return { grossCollected: gross, grossReversed: reversed, netCollected: gross - reversed };
     };
 
