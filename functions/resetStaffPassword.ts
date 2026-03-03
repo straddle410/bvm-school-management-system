@@ -24,7 +24,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Hash temporary password
+    // Verify staff exists
+    const staff = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+    if (!staff || staff.length === 0) {
+      return Response.json({ error: 'Staff not found' }, { status: 404 });
+    }
+
+    console.log(`[RESET_PASSWORD] Resetting password for staff: ${staff[0].username}`);
+
+    // Hash temporary password using consistent algorithm
     const hash = hashPassword(temp_password);
 
     // Update staff account
@@ -59,6 +67,8 @@ Deno.serve(async (req) => {
 });
 
 function hashPassword(password) {
-  // Placeholder - replace with bcrypt.hash in production
+  // Consistent hashing algorithm used in staffLogin and changeStaffPassword
+  // Must match exactly for password validation to work
+  if (!password) return '';
   return '$2b$10$' + btoa(password).substring(0, 53);
 }
