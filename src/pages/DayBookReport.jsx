@@ -101,8 +101,7 @@ export default function DayBookReport() {
   const [dateTo, setDateTo] = useState(today());
   const [selectedModes, setSelectedModes] = useState([]);
   const [className, setClassName] = useState('');
-  const [includeReversals, setIncludeReversals] = useState(true);
-  const [includeCancelled, setIncludeCancelled] = useState(false);
+  const [includeVoided, setIncludeVoided] = useState(false);
 
   // Applied filters state (only update on Apply)
   const [applied, setApplied] = useState({
@@ -111,8 +110,7 @@ export default function DayBookReport() {
     academicYear,
     className: '',
     mode: [],
-    includeReversals: true,
-    includeCancelled: false
+    includeVoided: false
   });
 
   const [drawerDate, setDrawerDate] = useState(null);

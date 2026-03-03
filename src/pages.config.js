@@ -56,7 +56,6 @@ import AttendanceReport from './pages/AttendanceReport';
 import AttendanceReports from './pages/AttendanceReports';
 import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
-import CollectionReport from './pages/CollectionReport';
 import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
 import DiaryManagement from './pages/DiaryManagement';
@@ -70,7 +69,6 @@ import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
 import MarksReview from './pages/MarksReview';
 import Messaging from './pages/Messaging';
-import More from './pages/More';
 import Notices from './pages/Notices';
 import OutstandingReport from './pages/OutstandingReport';
 import ProductionReset from './pages/ProductionReset';
@@ -86,6 +84,7 @@ import StaffManagement from './pages/StaffManagement';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
+import StudentLedgerReport from './pages/StudentLedgerReport';
 import StudentLogin from './pages/StudentLogin';
 import StudentMessaging from './pages/StudentMessaging';
 import StudentNotifications from './pages/StudentNotifications';
@@ -95,8 +94,9 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import StudentLedgerReport from './pages/StudentLedgerReport';
 import DayBookReport from './pages/DayBookReport';
+import More from './pages/More';
+import CollectionReport from './pages/CollectionReport';
 import __Layout from './Layout.jsx';
 
 
@@ -110,7 +110,6 @@ export const PAGES = {
     "AttendanceReports": AttendanceReports,
     "AttendanceSummaryReport": AttendanceSummaryReport,
     "Calendar": Calendar,
-    "CollectionReport": CollectionReport,
     "Dashboard": Dashboard,
     "Diary": Diary,
     "DiaryManagement": DiaryManagement,
@@ -124,7 +123,6 @@ export const PAGES = {
     "Marks": Marks,
     "MarksReview": MarksReview,
     "Messaging": Messaging,
-    "More": More,
     "Notices": Notices,
     "OutstandingReport": OutstandingReport,
     "ProductionReset": ProductionReset,
@@ -140,6 +138,7 @@ export const PAGES = {
     "StudentDashboard": StudentDashboard,
     "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
+    "StudentLedgerReport": StudentLedgerReport,
     "StudentLogin": StudentLogin,
     "StudentMessaging": StudentMessaging,
     "StudentNotifications": StudentNotifications,
@@ -149,8 +148,9 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "StudentLedgerReport": StudentLedgerReport,
     "DayBookReport": DayBookReport,
+    "More": More,
+    "CollectionReport": CollectionReport,
 }
 
 export const pagesConfig = {
