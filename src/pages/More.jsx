@@ -100,6 +100,7 @@ export default function More() {
   ];
 
   const [expandedExams, setExpandedExams] = useState(false);
+  const [expandedFinance, setExpandedFinance] = useState(false);
 
   const MenuItem = ({ item, onClick, showArrow = true }) => {
     const inner = (
