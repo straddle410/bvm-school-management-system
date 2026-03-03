@@ -100,6 +100,7 @@ import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import DefaultersReport from './pages/DefaultersReport';
 import DailyClosingReport from './pages/DailyClosingReport';
+import ParentStatement from './pages/ParentStatement';
 import __Layout from './Layout.jsx';
 
 
@@ -157,6 +158,7 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "DefaultersReport": DefaultersReport,
     "DailyClosingReport": DailyClosingReport,
+    "ParentStatement": ParentStatement,
 }
 
 export const pagesConfig = {
