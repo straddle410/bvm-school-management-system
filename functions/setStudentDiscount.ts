@@ -41,8 +41,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Discount value cannot be negative' }, { status: 422 });
     }
     if (scope === 'FEE_HEAD' && !fee_head_id) {
-      return Response.json({ error: 'fee_head_id is required for FEE_HEAD scoped discounts' }, { status: 422 });
+       return Response.json({ error: 'fee_head_id is required for FEE_HEAD scoped discounts' }, { status: 422 });
+     }
+
+    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year });
+    if (academicYears && academicYears.length > 0) {
+      const ayRecord = academicYears[0];
+      if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
+        return Response.json({
+          error: `Academic year ${academic_year} is archived; mutations not allowed`,
+          status: 403
+        }, { status: 403 });
+      }
     }
+    // ──────────────────────────────────────────────────────────────────────
 
     // ── Settled invoice guardrail ─────────────────────────────────────────
     // Load invoice for this student+AY
