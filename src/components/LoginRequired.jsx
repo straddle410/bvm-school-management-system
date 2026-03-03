@@ -9,6 +9,8 @@ import { createPageUrl } from '@/utils';
  * If not logged in → shows a login prompt.
  * If logged in but wrong role → shows access denied.
  * allowedRoles: if omitted, any logged-in user is allowed.
+ * 
+ * On successful login, checks sessionStorage for postLoginRedirect and redirects there.
  */
 export default function LoginRequired({ children, allowedRoles, pageName }) {
   const [user, setUser] = useState(undefined); // undefined = loading
@@ -16,6 +18,15 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
   useEffect(() => {
     const session = getStaffSession();
     setUser(session);
+
+    // If user just logged in, redirect to the stored URL if available
+    if (session && typeof window !== 'undefined') {
+      const postLoginUrl = sessionStorage.getItem('postLoginRedirect');
+      if (postLoginUrl) {
+        sessionStorage.removeItem('postLoginRedirect');
+        window.location.href = postLoginUrl;
+      }
+    }
   }, []);
 
   if (user === undefined) {

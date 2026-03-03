@@ -1,12 +1,22 @@
 import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import LoginRequired from '@/components/LoginRequired';
 
 export default function PrintReceiptA5() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const paymentId = searchParams.get('paymentId');
+
+  // Store current URL in sessionStorage for post-login redirect
+  useEffect(() => {
+    if (paymentId) {
+      sessionStorage.setItem('postLoginRedirect', window.location.pathname + window.location.search);
+    }
+  }, [paymentId]);
 
   console.log('[PrintReceiptA5] paymentId from query:', paymentId);
 
@@ -34,8 +44,21 @@ export default function PrintReceiptA5() {
   if (!paymentId) {
     return (
       <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-red-600">Error: paymentId not provided in URL</div>
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md text-center">
+            <h2 className="text-lg font-bold text-red-700 mb-3">Missing Payment ID</h2>
+            <p className="text-sm text-red-600 mb-4">
+              No payment ID provided in the URL. Please return to the payments list and click Print again.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Payments
+            </Button>
+          </div>
         </div>
       </LoginRequired>
     );
@@ -53,32 +76,53 @@ export default function PrintReceiptA5() {
   }
 
   if (error) {
+    const status = error?.response?.status;
     const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
     const errorStack = error?.response?.data?.stack || '';
     const errorContext = error?.response?.data?.context || {};
+
+    let title = 'Error Loading Receipt';
+    let userMsg = errorMsg;
+
+    if (status === 401) {
+      title = 'Not Authenticated';
+      userMsg = 'Your session has expired. Please log in again.';
+    } else if (status === 403) {
+      title = 'Not Authorized';
+      userMsg = 'You do not have permission to print receipts.';
+    } else if (status === 404) {
+      title = 'Receipt Not Found';
+      userMsg = `Payment with ID ${paymentId} does not exist.`;
+    }
     
     return (
       <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
         <div className="flex items-center justify-center min-h-screen p-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-            <h2 className="text-lg font-bold text-red-700 mb-2">Error Loading Receipt</h2>
-            <p className="text-sm text-red-600 mb-2">
+            <h2 className="text-lg font-bold text-red-700 mb-2">{title}</h2>
+            <p className="text-sm text-red-600 mb-3">{userMsg}</p>
+            <p className="text-xs text-red-500 mb-3">
               <strong>Payment ID:</strong> {paymentId}
             </p>
-            <p className="text-sm text-red-600 mb-2">
-              <strong>Error:</strong> {errorMsg}
-            </p>
             {errorContext.step && (
-              <p className="text-sm text-red-600 mb-2">
-                <strong>Failed at step:</strong> {errorContext.step}
+              <p className="text-xs text-red-500 mb-3">
+                <strong>Failed at:</strong> {errorContext.step}
               </p>
             )}
             {errorStack && (
               <details className="mt-3 text-xs">
-                <summary className="cursor-pointer text-red-700 font-semibold">Stack Trace</summary>
-                <pre className="bg-red-100 p-2 rounded mt-1 overflow-auto text-red-700">{errorStack}</pre>
+                <summary className="cursor-pointer text-red-700 font-semibold">Details</summary>
+                <pre className="bg-red-100 p-2 rounded mt-1 overflow-auto text-red-700 max-h-48">{errorStack}</pre>
               </details>
             )}
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="w-full mt-4 gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Payments
+            </Button>
           </div>
         </div>
       </LoginRequired>
