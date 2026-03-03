@@ -16,6 +16,19 @@ Deno.serve(async (req) => {
     if (!charge) return Response.json({ error: 'Charge not found' }, { status: 404 });
     if (charge.status !== 'DRAFT') return Response.json({ error: 'Only DRAFT charges can be published' }, { status: 422 });
 
+    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: charge.academic_year });
+    if (academicYears && academicYears.length > 0) {
+     const ayRecord = academicYears[0];
+     if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
+       return Response.json({
+         error: `Academic year ${charge.academic_year} is archived; mutations not allowed`,
+         status: 403
+       }, { status: 403 });
+     }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     // Get target students
     let students = [];
     if (charge.applies_to === 'SELECTED') {
