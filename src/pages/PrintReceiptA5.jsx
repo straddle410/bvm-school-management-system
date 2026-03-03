@@ -396,131 +396,145 @@ function ReceiptContent({ school, receipt, copyLabel }) {
   const isVoid = receipt.payment.status === 'VOID';
   const amountInWords = numberToWords(receipt.payment.amount);
 
+  // Determine Fee Type
+  const feeType = receipt.invoice.type === 'ANNUAL' 
+    ? 'Annual Fee'
+    : receipt.invoice.chargeName || 'Additional Charge';
+
   return (
-    <div>
-      {/* Header */}
-      <div className="receipt-header">
-        {school.logoUrl && <img src={school.logoUrl} alt="Logo" className="school-logo" />}
-        <div className="school-name">{school.name}</div>
-        {school.addressLine1 && <div className="school-details">{school.addressLine1}</div>}
-        {school.phone && <div className="school-details">Ph: {school.phone}</div>}
-      </div>
+    <div style={{ position: 'relative' }}>
+      {isVoid && <div className="void-watermark">VOID</div>}
+      
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Header */}
+        <div className="header">
+          {school.logoUrl && <img src={school.logoUrl} alt="Logo" className="logo" />}
+          <div className="school-name">{school.name}</div>
+          {school.addressLine1 && <div className="school-info">{school.addressLine1}</div>}
+          {school.phone && <div className="school-info">Ph: {school.phone}</div>}
+        </div>
 
-      {/* Title Row */}
-      <div className="receipt-title-row">
-        <span>FEE RECEIPT</span>
-        <span className="copy-badge">{copyLabel}</span>
-      </div>
+        {/* Title Row */}
+        <div className="receipt-title">
+          <span>FEE RECEIPT</span>
+          <span className="copy-badge">{copyLabel}</span>
+        </div>
 
-      {/* Receipt Info */}
-      <div className="receipt-info">
-        <div className="receipt-info-item">
-          <span className="label">Receipt No:</span>
-          <span>{receipt.receiptNo}</span>
+        {/* Receipt Info Grid */}
+        <div className="info-grid">
+          <div className="info-row">
+            <span className="label">Receipt No:</span>
+            <span>{receipt.receiptNo}</span>
+          </div>
+          <div className="info-row">
+            <span className="label">Date:</span>
+            <span>{formatDate(receipt.dateTime)}</span>
+          </div>
+          <div className="info-row">
+            <span className="label">Year:</span>
+            <span>{receipt.academicYear}</span>
+          </div>
+          <div className="info-row">
+            <span className="label">Fee Type:</span>
+            <span>{feeType}</span>
+          </div>
         </div>
-        <div className="receipt-info-item">
-          <span className="label">Date:</span>
-          <span>{formatDate(receipt.dateTime)}</span>
-        </div>
-        <div className="receipt-info-item">
-          <span className="label">Year:</span>
-          <span>{receipt.academicYear}</span>
-        </div>
-      </div>
 
-      {/* Student Details Box */}
-      <div className="box-section">
-        <div className="box-title">STUDENT DETAILS</div>
-        <div className="box-row">
-          <span className="label">Name:</span>
-          <span>{receipt.student.name}</span>
-        </div>
-        <div className="box-row">
-          <span className="label">Adm No:</span>
-          <span>{receipt.student.admissionNo}</span>
-        </div>
-        <div className="box-row">
-          <span className="label">Class:</span>
-          <span>{receipt.student.className}-{receipt.student.sectionName}</span>
-        </div>
-      </div>
-
-      {/* Payment Details Box */}
-      <div className="box-section">
-        <div className="box-title">PAYMENT DETAILS</div>
-        <div className="box-row">
-          <span className="label">Mode:</span>
-          <span>{receipt.payment.mode}</span>
-        </div>
-        {receipt.payment.referenceNo && (
+        {/* Student Details Box */}
+        <div className="box">
+          <div className="box-title">STUDENT DETAILS</div>
           <div className="box-row">
-            <span className="label">Ref No:</span>
-            <span>{receipt.payment.referenceNo}</span>
+            <span className="label">Name:</span>
+            <span>{receipt.student.name}</span>
           </div>
-        )}
-        <div className="amount-highlight">
-          Amount Paid: ₹{receipt.payment.amount.toLocaleString('en-IN')}
-        </div>
-        {amountInWords && <div style={{ textAlign: 'center', fontSize: '8px', marginTop: '2px' }}>({amountInWords})</div>}
-        
-        {receipt.payment.collectedByName && (
-          <div className="box-row" style={{ marginTop: '2px', paddingTop: '2px', borderTop: '1px solid #ddd' }}>
-            <span className="label">Received By:</span>
-            <span>{receipt.payment.collectedByName}</span>
+          <div className="box-row">
+            <span className="label">ID:</span>
+            <span>{receipt.student.admissionNo}</span>
           </div>
-        )}
-        
-        {isVoid && receipt.voidInfo && (
-          <div className="void-note">
-            VOIDED - {receipt.voidInfo.void_reason || 'No reason'}
-            {receipt.voidInfo.voided_by_name && <div style={{ marginTop: '2px' }}>By: {receipt.voidInfo.voided_by_name}</div>}
+          <div className="box-row">
+            <span className="label">Class:</span>
+            <span>{receipt.student.className}-{receipt.student.sectionName}</span>
           </div>
-        )}
-      </div>
-
-      {/* Fee Summary */}
-      <table className="summary-table">
-        <tbody>
-          <tr>
-            <td className="label">Gross Amount:</td>
-            <td className="value">₹{receipt.invoice.gross.toLocaleString('en-IN')}</td>
-          </tr>
-          <tr>
-            <td className="label">Discount:</td>
-            <td className="value">-₹{receipt.invoice.discount.toLocaleString('en-IN')}</td>
-          </tr>
-          <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-            <td className="label">Net Fee:</td>
-            <td className="value">₹{receipt.invoice.net.toLocaleString('en-IN')}</td>
-          </tr>
-          <tr>
-            <td className="label">Total Paid:</td>
-            <td className="value">₹{receipt.invoice.totalPaidAfterThis.toLocaleString('en-IN')}</td>
-          </tr>
-          <tr style={{ backgroundColor: '#fff3e0' }}>
-            <td className="label">Balance Due:</td>
-            <td className="value">₹{receipt.invoice.balanceDueAfterThis.toLocaleString('en-IN')}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      {/* Footer */}
-      <div className="receipt-footer">
-        This is a computer generated receipt
-      </div>
-
-      {/* Signature Section */}
-      <div className="signature-section">
-        <div className="signature-line" style={{ borderWidth: '1px 0 0 0' }}>
-          <div style={{ fontSize: '7px', marginBottom: '2px' }}>Accountant</div>
         </div>
-        <div className="signature-line" style={{ borderWidth: '1px 0 0 0' }}>
-          <div style={{ fontSize: '7px', marginBottom: '2px' }}>Authorized By</div>
+
+        {/* Payment Details Box */}
+        <div className="box">
+          <div className="box-title">PAYMENT DETAILS</div>
+          <div className="box-row">
+            <span className="label">Payment Mode:</span>
+            <span>{receipt.payment.mode}</span>
+          </div>
+          {receipt.payment.referenceNo && (
+            <div className="box-row">
+              <span className="label">Ref No:</span>
+              <span>{receipt.payment.referenceNo}</span>
+            </div>
+          )}
+          <div className="amount-box">
+            Amount Paid: ₹{receipt.payment.amount.toLocaleString('en-IN')}
+          </div>
+          {amountInWords && (
+            <div style={{ textAlign: 'center', fontSize: '10px', marginTop: '1mm' }}>
+              ({amountInWords})
+            </div>
+          )}
+          
+          {receipt.payment.collectedByName && (
+            <div className="box-row" style={{ marginTop: '1mm', paddingTop: '1mm', borderTop: '1px solid #ddd' }}>
+              <span className="label">Received By:</span>
+              <span>{receipt.payment.collectedByName}</span>
+            </div>
+          )}
+          
+          {isVoid && receipt.voidInfo && (
+            <div className="void-note">
+              VOIDED - {receipt.voidInfo.void_reason || 'No reason'}
+              {receipt.voidInfo.voided_by_name && <div style={{ marginTop: '1mm' }}>By: {receipt.voidInfo.voided_by_name}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Fee Summary */}
+        <table className="summary">
+          <tbody>
+            <tr>
+              <td className="label">Gross Amount:</td>
+              <td className="value">₹{receipt.invoice.gross.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td className="label">Discount:</td>
+              <td className="value">-₹{receipt.invoice.discount.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+              <td className="label">Net Fee:</td>
+              <td className="value">₹{receipt.invoice.net.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td className="label">Total Paid:</td>
+              <td className="value">₹{receipt.invoice.totalPaidAfterThis.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr style={{ backgroundColor: '#fff3e0' }}>
+              <td className="label">Balance Due:</td>
+              <td className="value">₹{receipt.invoice.balanceDueAfterThis.toLocaleString('en-IN')}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Footer */}
+        <div className="footer">
+          This is a computer generated receipt
+        </div>
+
+        {/* Signature Section */}
+        <div className="signatures">
+          <div className="sig-line">
+            <div style={{ fontSize: '10px' }}>Accountant</div>
+          </div>
+          <div className="sig-line">
+            <div style={{ fontSize: '10px' }}>Authorized By</div>
+          </div>
         </div>
       </div>
-
-      {/* Stamp Area */}
-      <div className="stamp-area">STAMP</div>
     </div>
   );
 }
