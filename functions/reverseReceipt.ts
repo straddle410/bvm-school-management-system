@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // VOID-ONLY POLICY:
-// Reversing a receipt means marking it VOID. No negative/child entries are created.
+// Voiding a receipt marks it VOID. No negative/child entries are created.
 // A VOID receipt has zero financial effect on all reports.
 
 Deno.serve(async (req) => {
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     if (!payment) return Response.json({ error: 'Payment not found' }, { status: 404 });
 
     // IDEMPOTENT: already voided → return success with no changes
-    if (payment.status === 'VOID' || payment.status === 'REVERSED') {
+    if (payment.status === 'VOID') {
       return Response.json({
         success: true,
         already_voided: true,
@@ -65,10 +65,10 @@ Deno.serve(async (req) => {
       voided_at: new Date().toISOString()
     });
 
-    // ── Recalculate invoice: exclude ALL voided/reversed payments ──────────
+    // ── Recalculate invoice: exclude ALL voided payments ──────────────────
     const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ invoice_id: payment.invoice_id });
     const totalPaid = allPayments
-      .filter(p => p.id !== paymentId && !['VOID', 'REVERSED'].includes(p.status))
+      .filter(p => p.id !== paymentId && p.status !== 'VOID')
       .reduce((sum, p) => sum + (p.amount_paid || 0), 0);
 
     const netAmount = invoice.total_amount || 0;
