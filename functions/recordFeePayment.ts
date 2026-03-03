@@ -25,6 +25,19 @@ Deno.serve(async (req) => {
     const invoice = invoices[0];
     const academicYear = invoice.academic_year;
 
+    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
+    if (academicYears && academicYears.length > 0) {
+      const ayRecord = academicYears[0];
+      if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
+        return Response.json({
+          error: `Academic year ${academicYear} is archived; mutations not allowed`,
+          status: 403
+        }, { status: 403 });
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     // Load student to validate academic_year integrity
     const students = await base44.asServiceRole.entities.Student.filter({ student_id: invoice.student_id });
     if (students && students.length > 0) {
