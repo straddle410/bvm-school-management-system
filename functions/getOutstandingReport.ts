@@ -2,12 +2,12 @@
  * Outstanding / Due Report
  *
  * VOID-ONLY POLICY:
- *   - Payments with status VOID/REVERSED/CANCELLED are excluded from paid totals.
+ *   - Payments with status VOID/CANCELLED are excluded from paid totals.
  *   - This means voiding a payment increases the student's outstanding balance.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const VOID_STATUSES = new Set(['VOID', 'REVERSED', 'CANCELLED']);
+const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
 Deno.serve(async (req) => {
   try {
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       return true;
     });
 
-    // Active payments: EXCLUDE VOID/REVERSED, up to cutoff
+    // Active payments: EXCLUDE VOID, up to cutoff
     const activePayments = payments.filter(p => {
       const rawStatus = (p.status || '').toUpperCase();
       if (VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status)) return false;
