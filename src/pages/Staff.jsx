@@ -526,7 +526,7 @@ export default function Staff() {
                         <div className="flex gap-2">
                           <Input
                             type="text"
-                            value={form.password_hash}
+                            value={tempPassword}
                             readOnly
                             className="bg-slate-100"
                           />
@@ -535,13 +535,14 @@ export default function Staff() {
                             variant="outline"
                             onClick={() => {
                               const newPass = generateTempPassword();
-                              setForm(f => ({ ...f, password_hash: newPass }));
+                              setTempPassword(newPass);
+                              setForm(f => ({ ...f, password_hash: hashPassword(newPass) }));
                             }}
                           >
                             Generate
                           </Button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">Share with staff member to login</p>
+                        <p className="text-xs text-slate-500 mt-1">Share with staff member to login (auto-hashed)</p>
                       </div>
                     </div>
 
