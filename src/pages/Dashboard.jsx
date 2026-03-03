@@ -68,6 +68,7 @@ const adminActions = [
   { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
   { label: 'Collection',       icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport' },
   { label: 'Outstanding',      icon: BarChart3,     gradient: 'from-red-400 to-rose-600',       page: 'OutstandingReport' },
+  { label: 'Ledger',           icon: BookOpen,      gradient: 'from-violet-400 to-purple-600',  page: 'StudentLedgerReport' },
   { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'Reports' },
 ];
 
