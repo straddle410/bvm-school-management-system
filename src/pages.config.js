@@ -100,7 +100,7 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import parentstatementStudentid from './pages/ParentStatement[studentId]';
+import ParentStatement from './pages/ParentStatement';
 import __Layout from './Layout.jsx';
 
 
@@ -158,7 +158,7 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "ParentStatement[studentId]": parentstatementStudentid,
+    "ParentStatement": ParentStatement,
 }
 
 export const pagesConfig = {

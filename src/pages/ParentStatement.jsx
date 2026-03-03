@@ -1,34 +1,68 @@
 import React, { useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Printer, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Printer, ArrowLeft, Search } from 'lucide-react';
 import LoginRequired from '@/components/LoginRequired';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
 export default function ParentStatement() {
-  const { studentId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { academicYear } = useAcademicYear();
+  const { academicYear: contextYear } = useAcademicYear();
+  
+  const studentId = searchParams.get('studentId');
+  const year = searchParams.get('year') || contextYear;
+  
   const [showVoided, setShowVoided] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [studentSuggestions, setStudentSuggestions] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const printRef = useRef(null);
 
-  // Fetch parent statement
+  // Student search
+  const { data: searchResults = [] } = useQuery({
+    queryKey: ['student-search-ps', searchInput],
+    queryFn: async () => {
+      if (!searchInput || searchInput.length < 2) return [];
+      const students = await base44.entities.Student.filter({ is_deleted: false });
+      const q = searchInput.toLowerCase();
+      return students.filter(s =>
+        s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q)
+      ).slice(0, 10);
+    },
+    enabled: searchInput.length >= 2,
+    staleTime: 30000
+  });
+
+  React.useEffect(() => {
+    setStudentSuggestions(searchResults);
+  }, [searchResults]);
+
+  // Fetch parent statement if studentId exists
   const { data, isLoading, error } = useQuery({
-    queryKey: ['parent-statement', studentId, academicYear, showVoided],
+    queryKey: ['parent-statement', studentId, year, showVoided],
     queryFn: async () => {
       const res = await base44.functions.invoke('getParentStatement', {
         student_id: studentId,
-        academic_year: academicYear,
+        academic_year: year,
         includeVoided: showVoided
       });
       return res.data;
     },
-    enabled: !!studentId && !!academicYear
+    enabled: !!studentId && !!year
   });
+
+  const handleSelectStudent = (student) => {
+    setSelectedStudent(student);
+    setSearchInput(student.name);
+    setStudentSuggestions([]);
+    // Navigate with query params
+    window.location.href = `${window.location.pathname}?studentId=${student.student_id}&year=${year || contextYear}`;
+  };
 
   const handlePrint = () => {
     if (!printRef.current) return;
@@ -37,6 +71,51 @@ export default function ParentStatement() {
     printWindow.document.close();
     printWindow.print();
   };
+
+  // If no studentId provided, show picker
+  if (!studentId) {
+    return (
+      <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Parent Statement">
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+          <div className="max-w-md mx-auto mt-12">
+            <Card>
+              <CardHeader>
+                <CardTitle>Parent Fee Statement</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">Search for a student to view their fee statement.</p>
+                
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    className="pl-9"
+                    placeholder="Search by name or ID..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </div>
+
+                {studentSuggestions.length > 0 && !selectedStudent && (
+                  <div className="border rounded-lg max-h-64 overflow-y-auto">
+                    {studentSuggestions.map(s => (
+                      <button
+                        key={s.id}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b last:border-0 text-sm"
+                        onClick={() => handleSelectStudent(s)}
+                      >
+                        <div className="font-medium text-gray-900">{s.name}</div>
+                        <div className="text-xs text-gray-500">ID: {s.student_id} · Class {s.class_name}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </LoginRequired>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -105,7 +184,7 @@ export default function ParentStatement() {
 
           {/* Main Content */}
           <div ref={printRef} className="print:p-0">
-            <ParentStatementContent student={student} summary={summary} payments={payments} academicYear={data.academicYear} />
+            <ParentStatementContent student={student} summary={summary} payments={payments} academicYear={year} />
           </div>
         </div>
       </div>
@@ -129,11 +208,11 @@ function ParentStatementContent({ student, summary, payments, academicYear }) {
             </div>
             <div>
               <p className="text-gray-600 text-xs uppercase tracking-wide">Admission No</p>
-              <p className="font-semibold text-gray-900">{student.admissionNo}</p>
+              <p className="font-semibold text-gray-900">{student.student_id}</p>
             </div>
             <div>
               <p className="text-gray-600 text-xs uppercase tracking-wide">Class</p>
-              <p className="font-semibold text-gray-900">{student.class} {student.section}</p>
+              <p className="font-semibold text-gray-900">{student.class_name} {student.section}</p>
             </div>
             <div>
               <p className="text-gray-600 text-xs uppercase tracking-wide">Academic Year</p>
