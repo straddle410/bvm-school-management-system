@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     const student = students[0];
 
-    // Fetch annual invoice
+    // Fetch annual invoice (for display)
     const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       student_id: studentId,
       academic_year: academicYear,
@@ -64,26 +64,29 @@ Deno.serve(async (req) => {
 
     const invoice = invoices[0];
 
-    // Fetch payments
+    // Fetch ALL payments for the academic year (ANNUAL + ADHOC)
     const allPayments = await base44.asServiceRole.entities.FeePayment.filter({
       student_id: studentId,
       academic_year: academicYear
     });
 
-    // Filter payments
+    // Filter payments (ADHOC payments included in calculation)
     const validPayments = includeVoided 
       ? allPayments.sort((a, b) => new Date(a.payment_date) - new Date(b.payment_date))
       : allPayments.filter(p => p.status !== 'VOID' && p.status !== 'CANCELLED')
           .sort((a, b) => new Date(a.payment_date) - new Date(b.payment_date));
 
-    // Calculate totals (valid only, never count VOID)
+    // Calculate totals: SUM of ALL non-VOID payments (ANNUAL + ADHOC)
+    // Excludes: VOID, CANCELLED, reversed payments
     let totalPaid = 0;
     allPayments.forEach(p => {
-      if (p.status !== 'VOID' && p.status !== 'CANCELLED') {
+      if (p.status !== 'VOID' && p.status !== 'CANCELLED' && !p.is_reversed) {
+        // Include all entry types: CASH_PAYMENT, CREDIT_ADJUSTMENT, etc.
         totalPaid += p.amount_paid || 0;
       }
     });
 
+    // Balance due: only against ANNUAL invoice
     const net = invoice.total_amount || 0;
     const balanceDue = Math.max(net - totalPaid, 0);
 
