@@ -35,7 +35,7 @@ const LogoWithFallback = ({ src, alt, schoolProfile }) => {
 };
 
 // Pages that don't use the app shell
-const NO_LAYOUT_PAGES = ['PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentHallTicketView', 'StudentMessaging', 'StudentProfile', 'UserProfile'];
+const NO_LAYOUT_PAGES = ['PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentHallTicketView', 'StudentMessaging', 'StudentProfile', 'UserProfile', 'PrintReceiptA5'];
 
 // Pages students CAN visit through the layout (using bottom nav)
 const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Quiz', 'Results', 'More'];
