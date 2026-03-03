@@ -10,13 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, Filter } from 'lucide-react';
+import { Download, Filter, Loader2 } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import moment from 'moment';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
-const REVERSAL_TYPES = new Set(['PAYMENT_REVERSAL', 'PAYMENT_REFUND', 'REVERSAL', 'CREDIT_REVERSAL']);
 
 function fmt(n) {
   return Number(n || 0).toLocaleString('en-IN');
@@ -32,103 +31,50 @@ function CollectionReportContent() {
   const [includeReversals, setIncludeReversals] = useState(true);
   const [includeVoided, setIncludeVoided] = useState(false);
 
-  // Fetch all cash-affecting payments for this AY (including reversal entries)
-  const { data: allPayments = [], isLoading } = useQuery({
-    queryKey: ['fee-payments-collection', academicYear],
+  // Backend-classified data via getCollectionReport
+  const { data, isLoading } = useQuery({
+    queryKey: ['collection-report', academicYear, dateRange, selectedClass, selectedMode, searchQuery, includeReversals, includeVoided],
     queryFn: async () => {
-      // Fetch ALL payments; we classify client-side
-      const payments = await base44.entities.FeePayment.filter({
-        academic_year: academicYear
+      const res = await base44.functions.invoke('getCollectionReport', {
+        academicYear,
+        dateFrom: dateRange.start || undefined,
+        dateTo: dateRange.end || undefined,
+        className: selectedClass || undefined,
+        paymentMode: selectedMode || undefined,
+        search: searchQuery || undefined,
+        includeReversals,
+        includeVoided,
+        reportMode: 'list',
+        pageSize: 1000
       });
-      return payments || [];
+      return res.data;
     },
-    enabled: !!academicYear
+    enabled: !!academicYear,
+    keepPreviousData: true
   });
 
-  // Classify and filter payments
-  const classifiedPayments = allPayments
-    .map(p => {
-      const et = p.entry_type || '';
-      const status = p.status || '';
-      const isVoid = status === 'REVERSED' && !REVERSAL_TYPES.has(et);
-      const isReversal = REVERSAL_TYPES.has(et) || (!isVoid && (p.amount_paid ?? 0) < 0 && !REVERSAL_TYPES.has(et) && et !== 'CREDIT_ADJUSTMENT');
-      const isCredit = et === 'CREDIT_ADJUSTMENT' && !isReversal && !isVoid;
-      const isCash = !isReversal && !isCredit && !isVoid;
+  const rows = data?.rows || [];
+  const summary = data?.summary || { grossCollected: 0, grossReversed: 0, netCollected: 0, modeBreakdown: {} };
 
-      // Signed amount: reversals are negative in the ledger
-      let signedAmount = p.amount_paid ?? 0;
-      if (isReversal && signedAmount > 0) signedAmount = -signedAmount;
-      if (isVoid) signedAmount = 0;
-
-      return { ...p, isVoid, isReversal, isCredit, isCash, signedAmount };
-    })
-    .filter(p => {
-      // Always skip pure credit adjustments
-      if (p.isCredit) return false;
-      // Skip voided originals unless requested
-      if (p.isVoid && !includeVoided) return false;
-      // Skip reversal entries unless requested
-      if (p.isReversal && !includeReversals) return false;
-      return true;
+  const exportCSV = async () => {
+    const res = await base44.functions.invoke('getCollectionReport', {
+      academicYear,
+      dateFrom: dateRange.start || undefined,
+      dateTo: dateRange.end || undefined,
+      className: selectedClass || undefined,
+      paymentMode: selectedMode || undefined,
+      search: searchQuery || undefined,
+      includeReversals,
+      includeVoided,
+      reportMode: 'export'
     });
-
-  // Apply user filters
-  const filteredPayments = classifiedPayments.filter(p => {
-    if (dateRange.start && p.payment_date < dateRange.start) return false;
-    if (dateRange.end && p.payment_date > dateRange.end) return false;
-    if (selectedClass && p.class_name !== selectedClass) return false;
-    if (selectedMode && p.payment_mode !== selectedMode) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      if (!p.receipt_no?.toLowerCase().includes(q) &&
-          !p.student_name?.toLowerCase().includes(q)) return false;
-    }
-    return true;
-  });
-
-  // Summary — only cash (non-void, non-reversal) in positive totals; reversals reduce net
-  const grossCollected = filteredPayments.filter(p => p.isCash).reduce((s, p) => s + (p.amount_paid || 0), 0);
-  const grossReversed = filteredPayments.filter(p => p.isReversal).reduce((s, p) => s + Math.abs(p.amount_paid || 0), 0);
-  const netCollected = grossCollected - grossReversed;
-
-  // Mode breakdown (on signed amounts, for net-correct view)
-  const modeBreakdown = {};
-  filteredPayments.filter(p => !p.isVoid).forEach(p => {
-    const mode = p.payment_mode || 'Unknown';
-    if (!modeBreakdown[mode]) modeBreakdown[mode] = 0;
-    modeBreakdown[mode] += p.signedAmount;
-  });
-
-  const exportCSV = () => {
-    const headers = ['Date', 'Receipt No.', 'Student', 'Class', 'Mode', 'Amount (₹)', 'Type', 'Status'];
-    const rows = filteredPayments.map(p => [
-      p.payment_date || '',
-      p.receipt_no || '',
-      `"${(p.student_name || '').replace(/"/g, '""')}"`,
-      p.class_name || '',
-      p.payment_mode || '',
-      p.signedAmount,
-      p.isReversal ? 'REVERSAL' : p.isVoid ? 'VOID' : 'PAYMENT',
-      p.isVoid ? 'VOID' : 'POSTED'
-    ]);
-
-    const summaryRows = [
-      [],
-      ['SUMMARY'],
-      ['Gross Collected:', grossCollected],
-      ['Gross Reversed:', grossReversed],
-      ['Net Collected:', netCollected],
-      [],
-      ['BREAKDOWN BY MODE'],
-      ...Object.entries(modeBreakdown).map(([mode, amt]) => [mode, amt])
-    ];
-
-    const csv = [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    // Response is CSV text
+    const csv = res.data;
+    const blob = new Blob([typeof csv === 'string' ? csv : JSON.stringify(csv)], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `collection-report-${moment().format('YYYY-MM-DD')}.csv`;
+    a.download = `collection-report-${academicYear}-${moment().format('YYYY-MM-DD')}.csv`;
     document.body.appendChild(a);
     a.click();
     URL.revokeObjectURL(url);
@@ -209,33 +155,33 @@ function CollectionReportContent() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <Card className="border-0 shadow-sm bg-green-50 border-green-200">
+        <Card className="border-0 shadow-sm bg-green-50">
           <CardContent className="pt-4 pb-3">
             <p className="text-[11px] text-green-600">Gross Collected</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">₹{fmt(grossCollected)}</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">₹{fmt(summary.grossCollected)}</p>
           </CardContent>
         </Card>
-        {grossReversed > 0 && (
-          <Card className="border-0 shadow-sm bg-red-50 border-red-200">
+        {summary.grossReversed > 0 && (
+          <Card className="border-0 shadow-sm bg-red-50">
             <CardContent className="pt-4 pb-3">
               <p className="text-[11px] text-red-500">Gross Reversed</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">−₹{fmt(grossReversed)}</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">−₹{fmt(summary.grossReversed)}</p>
             </CardContent>
           </Card>
         )}
-        <Card className="border-0 shadow-sm bg-blue-50 border-blue-200">
+        <Card className="border-0 shadow-sm bg-blue-50">
           <CardContent className="pt-4 pb-3">
             <p className="text-[11px] text-blue-600">Net Collected</p>
-            <p className="text-2xl font-bold text-blue-700 mt-1">₹{fmt(netCollected)}</p>
-            <p className="text-[10px] text-blue-400 mt-0.5">{filteredPayments.filter(p => !p.isVoid).length} entries</p>
+            <p className="text-2xl font-bold text-blue-700 mt-1">₹{fmt(summary.netCollected)}</p>
+            <p className="text-[10px] text-blue-400 mt-0.5">{rows.filter(r => !r.isVoid).length} entries</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Mode breakdown */}
-      {Object.keys(modeBreakdown).length > 0 && (
+      {Object.keys(summary.modeBreakdown || {}).length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {Object.entries(modeBreakdown).map(([mode, amt]) => (
+          {Object.entries(summary.modeBreakdown).map(([mode, amt]) => (
             <div key={mode} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs shadow-sm">
               <span className="font-semibold text-slate-700">{mode}</span>
               <span className="mx-1 text-slate-400">·</span>
@@ -249,8 +195,10 @@ function CollectionReportContent() {
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardContent className="p-0 overflow-x-auto">
           {isLoading ? (
-            <div className="text-center py-12 text-slate-400">Loading…</div>
-          ) : filteredPayments.length === 0 ? (
+            <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" /> Loading…
+            </div>
+          ) : rows.length === 0 ? (
             <div className="text-center py-12 text-slate-400">No payments found for the selected filters.</div>
           ) : (
             <Table>
@@ -263,34 +211,40 @@ function CollectionReportContent() {
                   <TableHead className="text-xs font-semibold">Mode</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Amount (₹)</TableHead>
                   <TableHead className="text-xs font-semibold">Type</TableHead>
+                  <TableHead className="text-xs font-semibold">Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map(p => (
-                  <TableRow key={p.id}
-                    className={`text-xs border-b border-slate-100 ${p.isVoid ? 'opacity-40' : 'hover:bg-slate-50'}`}
+                {rows.map(r => (
+                  <TableRow key={r.id}
+                    className={`text-xs border-b border-slate-100 ${r.isVoid ? 'opacity-40' : 'hover:bg-slate-50'}`}
                   >
                     <TableCell className="text-slate-600 whitespace-nowrap">
-                      {p.payment_date ? moment(p.payment_date).format('DD MMM YY') : '—'}
+                      {r.date ? moment(r.date).format('DD MMM YY') : '—'}
                     </TableCell>
-                    <TableCell className="font-mono text-slate-600">{p.receipt_no || '—'}</TableCell>
-                    <TableCell className="font-medium text-slate-800">{p.student_name || '—'}</TableCell>
-                    <TableCell className="text-slate-600">{p.class_name || '—'}</TableCell>
-                    <TableCell className="text-slate-600">{p.payment_mode || '—'}</TableCell>
+                    <TableCell className="font-mono text-slate-600">{r.receiptNo || '—'}</TableCell>
+                    <TableCell className="font-medium text-slate-800">{r.studentName || '—'}</TableCell>
+                    <TableCell className="text-slate-600">{r.className || '—'}</TableCell>
+                    <TableCell className="text-slate-600">{r.mode || '—'}</TableCell>
                     <TableCell className={`text-right font-semibold tabular-nums ${
-                      p.isVoid ? 'text-slate-400 line-through' :
-                      p.isReversal ? 'text-red-600' : 'text-emerald-700'
+                      r.isVoid ? 'text-slate-400 line-through' :
+                      r.isReversal ? 'text-red-600' : 'text-emerald-700'
                     }`}>
-                      {p.isReversal ? `−₹${fmt(Math.abs(p.signedAmount))}` : `₹${fmt(p.signedAmount)}`}
+                      {r.isReversal ? `−₹${fmt(Math.abs(r.signedAmount))}` : `₹${fmt(r.signedAmount)}`}
                     </TableCell>
                     <TableCell>
-                      {p.isVoid ? (
-                        <Badge className="text-[10px] bg-slate-200 text-slate-500 line-through">VOID</Badge>
-                      ) : p.isReversal ? (
+                      {r.isVoid ? (
+                        <Badge className="text-[10px] bg-slate-200 text-slate-500">VOID</Badge>
+                      ) : r.isReversal ? (
                         <Badge className="text-[10px] bg-red-100 text-red-700">Reversal</Badge>
                       ) : (
                         <Badge className="text-[10px] bg-emerald-100 text-emerald-700">Payment</Badge>
                       )}
+                    </TableCell>
+                    <TableCell className="text-slate-400 text-[10px] max-w-[160px]">
+                      {r.notes
+                        ? <span title={r.notes} className="truncate block max-w-[160px]">{r.notes}</span>
+                        : '—'}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -305,7 +259,7 @@ function CollectionReportContent() {
 
 export default function CollectionReport() {
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Collection Report">
+    <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Collection Report">
       <CollectionReportContent />
     </LoginRequired>
   );
