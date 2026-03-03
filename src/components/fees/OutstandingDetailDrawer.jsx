@@ -27,7 +27,7 @@ export default function OutstandingDetailDrawer({ row, academicYear, asOfDate, o
   });
 
   const entryBadge = (type) => {
-    if (type === 'REVERSAL') return <Badge className="bg-red-100 text-red-700 text-[10px]">Reversal</Badge>;
+    if (type === 'REVERSAL') return <Badge className="bg-red-100 text-red-700 text-[10px]">Voided</Badge>;
     if (type === 'CREDIT_ADJUSTMENT') return <Badge className="bg-blue-100 text-blue-700 text-[10px]">Credit</Badge>;
     return <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">Payment</Badge>;
   };
