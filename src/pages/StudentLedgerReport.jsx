@@ -309,9 +309,13 @@ function StudentLedgerContent() {
                       </TableCell>
                       <TableCell className="text-slate-500">{row.mode || '—'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={`text-[10px] ${row.status === 'VOID' ? 'text-slate-400' : ''}`}>
-                          {row.status}
-                        </Badge>
+                        {row.status === 'VOID' ? (
+                          <Badge className="text-[10px] bg-slate-200 text-slate-500 line-through">VOID</Badge>
+                        ) : row.type === 'REVERSAL' ? (
+                          <Badge className="text-[10px] bg-red-100 text-red-700">Reversal</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-slate-500">Posted</Badge>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
