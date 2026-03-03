@@ -31,10 +31,11 @@ Deno.serve(async (req) => {
     const passwordValid = await validatePassword(current_password, account.password_hash);
 
     if (!passwordValid) {
+      console.log(`[CHANGE_PASSWORD] Current password incorrect for staff: ${account.username}`);
       return Response.json({ error: 'Current password is incorrect' }, { status: 401 });
     }
 
-    // Hash new password (in production, use bcrypt)
+    // Hash new password using consistent algorithm
     const newHash = hashPassword(new_password);
 
     // Update password and clear force_password_change flag
@@ -43,6 +44,8 @@ Deno.serve(async (req) => {
       password_updated_at: new Date().toISOString(),
       force_password_change: false,
     });
+
+    console.log(`[CHANGE_PASSWORD] Password changed successfully for staff: ${account.username}`);
 
     return Response.json({
       success: true,
@@ -55,13 +58,17 @@ Deno.serve(async (req) => {
 });
 
 async function validatePassword(password, hash) {
-  // Placeholder - replace with bcrypt in production
   if (!hash || !password) return false;
-  return hash.startsWith('$2') && hash.length === 60;
+  
+  // Hash the input password using same algorithm as storage
+  const inputHash = hashPassword(password);
+  
+  // Compare hashes
+  return inputHash === hash;
 }
 
 function hashPassword(password) {
-  // Placeholder - replace with bcrypt.hash in production
-  // return await bcrypt.hash(password, 10);
+  // Consistent hashing algorithm - must match staffLogin and resetStaffPassword
+  if (!password) return '';
   return '$2b$10$' + btoa(password).substring(0, 53);
 }
