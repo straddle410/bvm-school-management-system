@@ -175,26 +175,34 @@ function OutstandingReportContent() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4 pb-3">
-            <p className="text-[11px] text-slate-500">Students</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{summary.countStudents ?? 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-4 pb-3">
-            <p className="text-[11px] text-slate-500">Net Invoiced</p>
-            <p className="text-xl font-bold text-slate-700 mt-1">₹{fmt(summary.totalNetInvoiced)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-4 pb-3">
-            <p className="text-[11px] text-slate-500">Total Paid</p>
-            <p className="text-xl font-bold text-emerald-600 mt-1">₹{fmt(summary.totalPaid)}</p>
+            <p className="text-[11px] text-slate-500">Total Students</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{summary.countTotal ?? 0}</p>
+            {(summary.countCreditStudents ?? 0) > 0 && (
+              <p className="text-[10px] text-emerald-600 mt-0.5">{summary.countCreditStudents} with credit</p>
+            )}
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm bg-red-50 border-red-100">
           <CardContent className="pt-4 pb-3">
-            <p className="text-[11px] text-red-600">Total Outstanding</p>
-            <p className="text-xl font-bold text-red-600 mt-1">₹{fmt(summary.totalOutstanding)}</p>
+            <p className="text-[11px] text-red-500">Total Due</p>
+            <p className="text-xl font-bold text-red-600 mt-1">₹{fmt(summary.totalDue)}</p>
+            <p className="text-[10px] text-red-400 mt-0.5">{summary.countDueStudents ?? 0} students</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm bg-emerald-50 border-emerald-100">
+          <CardContent className="pt-4 pb-3">
+            <p className="text-[11px] text-emerald-600">Credit Balances</p>
+            <p className="text-xl font-bold text-emerald-600 mt-1">₹{fmt(summary.totalCredit)}</p>
+            <p className="text-[10px] text-emerald-500 mt-0.5">{summary.countCreditStudents ?? 0} overpaid</p>
+          </CardContent>
+        </Card>
+        <Card className={`border-0 shadow-sm ${(summary.netReceivable ?? 0) > 0 ? 'bg-orange-50 border-orange-100' : 'bg-slate-50'}`}>
+          <CardContent className="pt-4 pb-3">
+            <p className="text-[11px] text-slate-500">Net Receivable</p>
+            <p className={`text-xl font-bold mt-1 ${(summary.netReceivable ?? 0) > 0 ? 'text-orange-600' : 'text-slate-700'}`}>
+              ₹{fmt(summary.netReceivable)}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Due − Credit</p>
           </CardContent>
         </Card>
       </div>
