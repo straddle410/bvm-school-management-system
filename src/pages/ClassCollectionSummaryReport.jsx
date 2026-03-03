@@ -241,7 +241,9 @@ function ClassCollectionContent() {
                 {/* Totals row */}
                 <TableRow className="bg-slate-50 font-bold">
                   <TableCell className="pl-4 text-slate-700">Total</TableCell>
+                  <TableCell className="text-right text-slate-600">₹{fmt(summary.totalInvoicedNetAllClasses)}</TableCell>
                   <TableCell className="text-right text-emerald-700">₹{fmt(summary.totalCollected)}</TableCell>
+                  <TableCell className="text-right text-blue-600">{(summary.overallCoveragePercent ?? 0).toFixed(1)}%</TableCell>
                   <TableCell className="text-right text-slate-700">{summary.totalReceipts ?? 0}</TableCell>
                   <TableCell className="text-right text-slate-500">—</TableCell>
                   {appliedFilters.includeVoided && (
