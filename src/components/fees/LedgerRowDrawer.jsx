@@ -14,7 +14,7 @@ const TYPE_COLORS = {
   REVERSAL: 'bg-red-100 text-red-700',
   CREDIT: 'bg-purple-100 text-purple-700',
   ADJUSTMENT: 'bg-amber-100 text-amber-700',
-  VOID: 'bg-slate-100 text-slate-500'
+  VOIDED: 'bg-slate-100 text-slate-500'
 };
 
 export default function LedgerRowDrawer({ row, invoices, onClose }) {

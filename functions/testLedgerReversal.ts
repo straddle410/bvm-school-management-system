@@ -1,5 +1,5 @@
 /**
- * Test: Ledger Reversal Hardening
+ * Test: Ledger Voiding Hardening
  *
  * Creates 4 synthetic ledger rows for a test student (NO real DB writes):
  *   A) Invoice net 30,000  → DEBIT 30,000  | balance: 30,000
@@ -74,8 +74,8 @@ Deno.serve(async (req) => {
       _isVoid: false
     };
 
-    // B: Payment ACTIVE record (amount=5000, entry_type=CASH_PAYMENT) → will become VOID when reversed
-    const paymentVoidRaw = { id: 'pay-test-001', amount_paid: 5000, entry_type: 'CASH_PAYMENT', status: 'REVERSED', payment_date: '2026-01-05' };
+    // B: Payment VOID record (amount=5000, entry_type=CASH_PAYMENT, status='VOID')
+     const paymentVoidRaw = { id: 'pay-test-001', amount_paid: 5000, entry_type: 'CASH_PAYMENT', status: 'VOID', payment_date: '2026-01-05' };
     const cvoid = classify(paymentVoidRaw);
     const paymentVoidRow = {
       id: paymentVoidRaw.id,
