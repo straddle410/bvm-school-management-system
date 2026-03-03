@@ -55,8 +55,9 @@ Deno.serve(async (req) => {
       reversed_at: reversalTimestamp
     });
 
-    // Create a PAYMENT_REVERSAL entry so it shows up in Day Book / Collection Report
+    // Create a REVERSAL entry so it shows up in Day Book / Collection Report
     // This is the authoritative debit event in the cash ledger
+    const reversalReceiptNo = `REV/${payment.receipt_no || payment.id.slice(-6).toUpperCase()}`;
     await base44.asServiceRole.entities.FeePayment.create({
       academic_year: payment.academic_year,
       invoice_id: payment.invoice_id,
@@ -64,16 +65,23 @@ Deno.serve(async (req) => {
       student_name: payment.student_name,
       class_name: payment.class_name,
       installment_name: payment.installment_name,
-      receipt_no: `REV/${payment.receipt_no || payment.id.slice(-6).toUpperCase()}`,
+      receipt_no: reversalReceiptNo,
       amount_paid: -(Math.abs(payment.amount_paid || 0)), // negative — debit back
       payment_date: reversalDate,
       payment_mode: payment.payment_mode || 'Cash',
       entry_type: 'REVERSAL',
       affects_cash: true,
       status: 'Active',
+      // Audit trail linkage
       reference_no: payment.receipt_no || payment.id,
+      original_payment_id: paymentId,
+      original_receipt_no: payment.receipt_no || null,
+      reversal_receipt_no: reversalReceiptNo,
+      reversed_at: reversalTimestamp,
       remarks: `Reversal of ${payment.receipt_no || paymentId}. Reason: ${reason}`,
-      collected_by: user.email
+      collected_by: user.email,
+      reversed_by: user.email,
+      reversal_reason: reason
     });
 
     // Recalculate invoice paid_amount from all non-reversed payments
