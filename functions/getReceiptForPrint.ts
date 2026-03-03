@@ -1,8 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
+  let paymentId = null;
+  let step = 'init';
+  
   try {
     const base44 = createClientFromRequest(req);
+    step = 'auth';
     const user = await base44.auth.me();
 
     // Role check: admin, principal, accountant
@@ -13,58 +17,57 @@ Deno.serve(async (req) => {
 
     // Parse payment_id
     const body = await req.json().catch(() => ({}));
-    const paymentId = body.payment_id;
+    paymentId = body.payment_id;
 
     if (!paymentId) {
       return Response.json({ error: 'payment_id required' }, { status: 400 });
     }
 
     // Fetch payment
+    step = 'fetch_payment';
     const payment = await base44.entities.FeePayment.filter({ id: paymentId });
     if (!payment || payment.length === 0) {
-      return Response.json({ error: 'Payment not found' }, { status: 404 });
+      return Response.json({ error: 'Payment not found for id: ' + paymentId }, { status: 404 });
     }
     const p = payment[0];
 
-    // Fetch invoice
-    const invoices = await base44.entities.FeeInvoice.filter({ id: p.invoice_id });
+    // Fetch all in parallel
+    step = 'fetch_parallel';
+    const [invoices, students, profiles, allPayments] = await Promise.all([
+      base44.entities.FeeInvoice.filter({ id: p.invoice_id }).catch(() => []),
+      base44.entities.Student.filter({ student_id: p.student_id }).catch(() => []),
+      base44.entities.SchoolProfile.list().catch(() => []),
+      base44.entities.FeePayment.filter({ invoice_id: p.invoice_id, status: 'Active' }, 'payment_date').catch(() => [])
+    ]);
+
     const invoice = invoices?.[0];
-
-    if (!invoice) {
-      return Response.json({ error: 'Invoice not found' }, { status: 404 });
-    }
-
-    // Fetch student
-    const students = await base44.entities.Student.filter({ student_id: p.student_id });
     const student = students?.[0];
-
-    // Fetch school profile
-    const profiles = await base44.entities.SchoolProfile.list();
     const school = profiles?.[0];
 
-    // Calculate totals after this payment
-    const allPayments = await base44.entities.FeePayment.filter({
-      invoice_id: p.invoice_id,
-      status: 'Active'
-    }, 'payment_date');
-
+    // If critical data missing, still return with defaults
+    step = 'calculate_totals';
     let totalPaidBeforeThis = 0;
-    for (const pmt of allPayments) {
-      if (pmt.id === paymentId) break;
-      totalPaidBeforeThis += pmt.amount_paid || 0;
+    if (allPayments && allPayments.length > 0) {
+      for (const pmt of allPayments) {
+        if (pmt.id === paymentId) break;
+        totalPaidBeforeThis += pmt.amount_paid || 0;
+      }
     }
 
     const totalPaidAfterThis = totalPaidBeforeThis + (p.amount_paid || 0);
-    const balanceDueAfterThis = Math.max(0, (invoice.total_amount || 0) - totalPaidAfterThis);
+    const balanceDueAfterThis = Math.max(0, (invoice?.total_amount || 0) - totalPaidAfterThis);
 
-    // Void info
-    const voidInfo = p.status === 'VOID' ? {
-      void_reason: p.void_reason || '',
-      voided_at: p.voided_at || '',
-      voided_by: p.voided_by || ''
+    // Void info (check both naming conventions)
+    step = 'void_info';
+    const voidInfo = (p.status === 'VOID' || p.status === 'void') ? {
+      void_reason: p.void_reason || p.reversal_reason || '',
+      voided_at: p.voided_at || p.reversed_at || '',
+      voided_by: p.voided_by || p.reversed_by || ''
     } : null;
 
+    step = 'response';
     return Response.json({
+      success: true,
       school: {
         name: school?.school_name || 'School Name',
         addressLine1: school?.address || '',
@@ -98,6 +101,12 @@ Deno.serve(async (req) => {
       }
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(`getReceiptForPrint error at step: ${step}`, error);
+    return Response.json({
+      success: false,
+      error: error.message || 'Unknown error',
+      stack: error.stack || '',
+      context: { payment_id: paymentId, step }
+    }, { status: 500 });
   }
 });

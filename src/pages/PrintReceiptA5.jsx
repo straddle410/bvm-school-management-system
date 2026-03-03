@@ -8,15 +8,20 @@ export default function PrintReceiptA5() {
   const [searchParams] = useSearchParams();
   const paymentId = searchParams.get('paymentId');
 
+  console.log('[PrintReceiptA5] paymentId from query:', paymentId);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['receipt-print', paymentId],
     queryFn: async () => {
+      console.log('[PrintReceiptA5] Calling getReceiptForPrint with paymentId:', paymentId);
       const res = await base44.functions.invoke('getReceiptForPrint', {
         payment_id: paymentId
       });
+      console.log('[PrintReceiptA5] Response:', res.data);
       return res.data;
     },
-    enabled: !!paymentId
+    enabled: !!paymentId,
+    retry: 1
   });
 
   // Auto print after data loads
@@ -26,21 +31,65 @@ export default function PrintReceiptA5() {
     }
   }, [data, isLoading]);
 
-  if (isLoading) {
+  if (!paymentId) {
     return (
       <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-red-600">Error: paymentId not provided in URL</div>
         </div>
       </LoginRequired>
     );
   }
 
-  if (error || !data) {
+  if (isLoading) {
+    return (
+      <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 text-sm">Loading receipt {paymentId}...</p>
+        </div>
+      </LoginRequired>
+    );
+  }
+
+  if (error) {
+    const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+    const errorStack = error?.response?.data?.stack || '';
+    const errorContext = error?.response?.data?.context || {};
+    
+    return (
+      <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+            <h2 className="text-lg font-bold text-red-700 mb-2">Error Loading Receipt</h2>
+            <p className="text-sm text-red-600 mb-2">
+              <strong>Payment ID:</strong> {paymentId}
+            </p>
+            <p className="text-sm text-red-600 mb-2">
+              <strong>Error:</strong> {errorMsg}
+            </p>
+            {errorContext.step && (
+              <p className="text-sm text-red-600 mb-2">
+                <strong>Failed at step:</strong> {errorContext.step}
+              </p>
+            )}
+            {errorStack && (
+              <details className="mt-3 text-xs">
+                <summary className="cursor-pointer text-red-700 font-semibold">Stack Trace</summary>
+                <pre className="bg-red-100 p-2 rounded mt-1 overflow-auto text-red-700">{errorStack}</pre>
+              </details>
+            )}
+          </div>
+        </div>
+      </LoginRequired>
+    );
+  }
+
+  if (!data) {
     return (
       <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-red-600">Error loading receipt: {error?.message || 'Unknown error'}</div>
+          <div className="text-red-600">No data received from server</div>
         </div>
       </LoginRequired>
     );
