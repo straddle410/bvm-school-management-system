@@ -371,21 +371,15 @@ export default function PrintReceiptA5() {
         }
       `}</style>
 
-      <div className="a5-page">
+      <div className="copiesRow">
         {/* School Copy */}
-        <div className={`receipt-copy ${isVoid ? 'void-copy' : ''}`}>
-          {isVoid && <div className="void-watermark">VOID</div>}
-          <div className="receipt-content">
-            <ReceiptContent school={school} receipt={receipt} copyLabel="SCHOOL COPY" />
-          </div>
+        <div className={`copy ${isVoid ? 'void' : ''}`}>
+          <ReceiptContent school={school} receipt={receipt} copyLabel="SCHOOL COPY" />
         </div>
 
         {/* Parent Copy */}
-        <div className={`receipt-copy ${isVoid ? 'void-copy' : ''}`}>
-          {isVoid && <div className="void-watermark">VOID</div>}
-          <div className="receipt-content">
-            <ReceiptContent school={school} receipt={receipt} copyLabel="PARENT COPY" />
-          </div>
+        <div className={`copy ${isVoid ? 'void' : ''}`}>
+          <ReceiptContent school={school} receipt={receipt} copyLabel="PARENT COPY" />
         </div>
       </div>
     </LoginRequired>
