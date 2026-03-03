@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Edit, Power, Copy, Mail, Search, Users, KeyRound, Send } from 'lucide-react';
 import { toast } from "sonner";
+import { DEFAULT_PERMISSIONS, PERMISSION_CATEGORIES } from '@/components/permissionHelper';
 
 const ROLES = ['Principal', 'Teacher', 'Staff', 'Librarian', 'Accountant', 'Admin'];
 
@@ -28,20 +29,6 @@ const roleColors = {
 
 const generateUsername = (name) => {
   return name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 99 + 1);
-};
-
-const DEFAULT_PERMISSIONS = {
-  attendance: false,
-  attendance_needs_approval: true,
-  marks: false,
-  marks_needs_approval: true,
-  post_notices: false,
-  notices_needs_approval: true,
-  gallery: false,
-  gallery_needs_approval: true,
-  quiz: false,
-  quiz_needs_approval: true,
-  fees_reverse_receipt: false,
 };
 
 const emptyForm = {
