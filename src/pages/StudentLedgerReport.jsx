@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, Search } from 'lucide-react';
+import { Download, Search, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import LedgerRowDrawer from '@/components/fees/LedgerRowDrawer';
 import moment from 'moment';
@@ -28,6 +30,7 @@ const TYPE_STYLES = {
 
 function StudentLedgerContent() {
   const { academicYear } = useAcademicYear();
+  const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -134,11 +137,18 @@ function StudentLedgerContent() {
           <p className="text-xs text-slate-500 mt-0.5">Chronological fee ledger with running balance</p>
         </div>
         {selectedStudent && (
-          <Button onClick={handleExport} disabled={exporting || rows.length === 0}
-            className="gap-2 bg-[#1a237e] hover:bg-[#283593] text-sm">
-            <Download className="h-4 w-4" />
-            {exporting ? 'Exporting…' : 'Export CSV'}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate(createPageUrl('ParentStatement') + `/${selectedStudent.student_id}`)}
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-sm">
+              <FileText className="h-4 w-4" />
+              Print Statement
+            </Button>
+            <Button onClick={handleExport} disabled={exporting || rows.length === 0}
+              className="gap-2 bg-[#1a237e] hover:bg-[#283593] text-sm">
+              <Download className="h-4 w-4" />
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </Button>
+          </div>
         )}
       </div>
 
