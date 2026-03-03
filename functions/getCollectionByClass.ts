@@ -239,6 +239,8 @@ Deno.serve(async (req) => {
         totalCollected,
         totalReceipts,
         classesCount: rows.length,
+        totalInvoicedNetAllClasses,
+        overallCoveragePercent,
         voidedAmount: showVoided ? rows.reduce((s, r) => s + r.voidedAmount, 0) : undefined,
       },
       rows,
