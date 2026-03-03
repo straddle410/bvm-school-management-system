@@ -209,14 +209,15 @@ export default function PrintReceiptA5() {
         
         .receipt-copy {
           flex: 1;
-          width: 50%;
+          width: calc(50% - 3mm);
           page-break-inside: avoid;
           break-inside: avoid;
-          padding: 3mm;
+          padding: 4mm;
           box-sizing: border-box;
           position: relative;
-          border: 1px solid #333;
+          border: 1px solid #111;
           overflow: hidden;
+          background: white;
         }
         
         .receipt-copy.void-copy {
