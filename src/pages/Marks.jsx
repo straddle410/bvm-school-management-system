@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
@@ -299,21 +300,10 @@ export default function Marks() {
     }));
   };
 
-  const addNewSubject = async () => {
-    if (!newSubjectName.trim()) {
-      toast.error('Please enter subject name');
-      return;
-    }
-
-    try {
-      await base44.entities.Subject.create({ name: newSubjectName.trim() });
-      queryClient.invalidateQueries(['subjects']);
-      toast.success(`${newSubjectName} added successfully`);
-      setNewSubjectName('');
-      setShowAddSubject(false);
-    } catch (error) {
-      toast.error('Failed to add subject');
-    }
+  const addNewSubject = () => {
+    // Subjects are now managed only from Settings → Subjects tab
+    toast.info('Please add subjects from Settings → Subjects');
+    setShowAddSubject(false);
   };
 
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
@@ -878,33 +868,30 @@ export default function Marks() {
             )}
       </div>
 
-      {/* Add Subject Dialog */}
+      {/* Add Subject Info - Moved to Settings */}
       <Dialog open={showAddSubject} onOpenChange={setShowAddSubject}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Subject</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="subjectName">Subject Name</Label>
-              <Input
-                id="subjectName"
-                placeholder="e.g., Computer Science"
-                value={newSubjectName}
-                onChange={(e) => setNewSubjectName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addNewSubject()}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowAddSubject(false)}>
-                Cancel
-              </Button>
-              <Button onClick={addNewSubject}>
-                Add Subject
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
+      <DialogContent>
+      <DialogHeader>
+      <DialogTitle>Add Subjects in Settings</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4">
+      <p className="text-sm text-slate-600">
+      Subjects are managed in <strong>Settings → Subjects</strong>. Please navigate to Settings to add or edit subjects.
+      </p>
+      <Button 
+      onClick={() => {
+      setShowAddSubject(false);
+      window.location.href = createPageUrl('Settings') + '?tab=subjects';
+      }}
+      className="w-full"
+      >
+      Go to Settings → Subjects
+      </Button>
+      <Button variant="outline" onClick={() => setShowAddSubject(false)}>
+      Close
+      </Button>
+      </div>
+      </DialogContent>
       </Dialog>
 
       {/* Submit Marks Confirmation Dialog */}

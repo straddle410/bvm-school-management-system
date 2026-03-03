@@ -60,14 +60,13 @@ const quickActions = [
 ];
 
 const adminActions = [
-  { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
-  { label: 'Approvals',        icon: ClipboardCheck, gradient: 'from-orange-400 to-red-600',     page: 'Approvals' },
-  { label: 'Fees',             icon: Wallet,        gradient: 'from-green-400 to-emerald-600',  page: 'Fees' },
-  { label: 'Subjects',         icon: Book,          gradient: 'from-violet-400 to-purple-600', page: 'SubjectManagement' },
-  { label: 'Collection',       icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport' },
-  { label: 'Outstanding',      icon: BarChart3,     gradient: 'from-red-400 to-rose-600',       page: 'OutstandingReport' },
-  { label: 'Ledger',           icon: BookOpen,      gradient: 'from-violet-400 to-purple-600',  page: 'StudentLedgerReport' },
-  { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'Reports' },
+   { label: 'Students',         icon: Users,         gradient: 'from-emerald-400 to-teal-600',   page: 'Students' },
+   { label: 'Approvals',        icon: ClipboardCheck, gradient: 'from-orange-400 to-red-600',     page: 'Approvals' },
+   { label: 'Fees',             icon: Wallet,        gradient: 'from-green-400 to-emerald-600',  page: 'Fees' },
+   { label: 'Collection',       icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport' },
+   { label: 'Outstanding',      icon: BarChart3,     gradient: 'from-red-400 to-rose-600',       page: 'OutstandingReport' },
+   { label: 'Ledger',           icon: BookOpen,      gradient: 'from-violet-400 to-purple-600',  page: 'StudentLedgerReport' },
+   { label: 'Analytics',        icon: BarChart3,     gradient: 'from-teal-400 to-cyan-600',     page: 'Reports' },
 ];
 
 const examModuleActions = [
