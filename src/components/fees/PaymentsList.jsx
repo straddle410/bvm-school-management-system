@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Receipt, RotateCcw } from 'lucide-react';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
-import ReversalModal from './ReversalModal';
+import VoidModal from './ReversalModal';
 
 const CLASSES = ['All', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
@@ -71,10 +71,10 @@ export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt 
 
   const sorted = [...filtered].sort((a, b) => (b.payment_date || '').localeCompare(a.payment_date || ''));
 
-  // Only count active (non-reversed) payments in totals
-  const activePayments = sorted.filter(p => p.status !== 'REVERSED');
+  // Only count active (non-voided) payments in totals
+  const activePayments = sorted.filter(p => p.status !== 'VOID');
   const totalCollected = activePayments.reduce((s, p) => s + (p.amount_paid || 0), 0);
-  const reversedCount = sorted.length - activePayments.length;
+  const voidCount = sorted.length - activePayments.length;
 
   return (
     <div className="space-y-4">
@@ -120,8 +120,8 @@ export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt 
         <div className="text-sm font-semibold text-slate-700 ml-auto whitespace-nowrap text-right">
           <span className="text-emerald-700">₹{totalCollected.toLocaleString()}</span>
           <span className="text-slate-400 font-normal ml-2">({activePayments.length} receipt{activePayments.length !== 1 ? 's' : ''})</span>
-          {reversedCount > 0 && (
-            <span className="text-red-400 font-normal ml-2">· {reversedCount} reversed</span>
+          {voidCount > 0 && (
+            <span className="text-red-400 font-normal ml-2">· {voidCount} voided</span>
           )}
         </div>
       </div>
@@ -137,38 +137,38 @@ export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt 
       ) : (
         <div className="space-y-2">
           {sorted.map(p => {
-            const isReversed = p.status === 'REVERSED';
+            const isVoid = p.status === 'VOID';
             return (
-              <Card key={p.id} className={`border-0 shadow-sm ${isReversed ? 'opacity-60' : ''}`}>
+              <Card key={p.id} className={`border-0 shadow-sm ${isVoid ? 'opacity-60' : ''}`}>
                 <CardContent className="p-3 flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${isReversed ? 'bg-red-100' : 'bg-emerald-100'}`}>
-                    <Receipt className={`h-4 w-4 ${isReversed ? 'text-red-400' : 'text-emerald-700'}`} />
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${isVoid ? 'bg-red-100' : 'bg-emerald-100'}`}>
+                    <Receipt className={`h-4 w-4 ${isVoid ? 'text-red-400' : 'text-emerald-700'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`font-medium text-sm ${isReversed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                      <p className={`font-medium text-sm ${isVoid ? 'line-through text-slate-400' : 'text-slate-900'}`}>
                         {p.student_name}
                       </p>
                       <span className="text-xs text-slate-400">{p.student_id}</span>
-                      {isReversed ? (
-                        <Badge variant="destructive" className="text-xs py-0">REVERSED</Badge>
+                      {isVoid ? (
+                        <Badge variant="destructive" className="text-xs py-0">VOID</Badge>
                       ) : (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${modeColor[p.payment_mode] || 'bg-slate-100'}`}>{p.payment_mode}</span>
                       )}
                     </div>
-                    <p className={`text-xs ${isReversed ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
+                    <p className={`text-xs ${isVoid ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
                       {p.installment_name} · {p.payment_date} · #{p.receipt_no}
                     </p>
                     {p.reference_no && <p className="text-xs text-slate-400">Ref: {p.reference_no}</p>}
-                    {isReversed && p.reversal_reason && (
-                      <p className="text-xs text-red-500 mt-0.5">↩ {p.reversal_reason}</p>
+                    {isVoid && p.void_reason && (
+                      <p className="text-xs text-red-500 mt-0.5">↩ {p.void_reason}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <p className={`font-bold ${isReversed ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
+                    <p className={`font-bold ${isVoid ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
                       ₹{(p.amount_paid || 0).toLocaleString()}
                     </p>
-                    {!isReversed && canReverseReceipt && (
+                    {!isVoid && canReverseReceipt && (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -176,7 +176,7 @@ export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt 
                         onClick={() => setReversingPayment(p)}
                       >
                         <RotateCcw className="h-3 w-3" />
-                        Reverse
+                        Void
                       </Button>
                     )}
                   </div>
@@ -188,7 +188,7 @@ export default function PaymentsList({ academicYear, isAdmin, canReverseReceipt 
       )}
 
       {reversingPayment && (
-        <ReversalModal
+        <VoidModal
           payment={reversingPayment}
           onClose={() => setReversingPayment(null)}
           onSuccess={() => {
