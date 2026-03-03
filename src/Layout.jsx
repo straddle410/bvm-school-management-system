@@ -149,7 +149,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
+      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-2">
           {getBottomNav(isAdmin).map((item) => {
               const isActive = currentPageName === item.page;
