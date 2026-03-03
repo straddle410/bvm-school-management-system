@@ -161,16 +161,18 @@ export default function Staff() {
   };
 
   const handleSave = () => {
-    if (!form.name || !form.username) {
-      toast.error('Name and username are required');
-      return;
-    }
+   if (!form.name || !form.username) {
+     toast.error('Name and username are required');
+     return;
+   }
 
-    const dataToSave = { ...form };
-    // In production, hash the password with bcrypt
-    // For MVP, we're storing directly - MUST BE FIXED IN PRODUCTION
-    
-    saveMutation.mutate(dataToSave);
+   // Normalize username to lowercase before saving (case-insensitive)
+   const dataToSave = { 
+     ...form,
+     username: form.username.trim().toLowerCase()
+   };
+
+   saveMutation.mutate(dataToSave);
   };
 
   const filtered = staffList.filter(s => {
