@@ -406,7 +406,7 @@ function ReceiptContent({ school, receipt, copyLabel }) {
       {/* Title Row */}
       <div className="receipt-title-row">
         <span>FEE RECEIPT</span>
-        <span>{copyLabel}</span>
+        <span className="copy-badge">{copyLabel}</span>
       </div>
 
       {/* Receipt Info */}
