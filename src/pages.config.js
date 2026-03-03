@@ -104,6 +104,7 @@ import UserProfile from './pages/UserProfile';
 import PostingDashboard from './pages/PostingDashboard';
 import Dashboard from './pages/Dashboard';
 import Staff from './pages/Staff';
+import ChangeStaffPassword from './pages/ChangeStaffPassword';
 import __Layout from './Layout.jsx';
 
 
@@ -165,6 +166,7 @@ export const PAGES = {
     "PostingDashboard": PostingDashboard,
     "Dashboard": Dashboard,
     "Staff": Staff,
+    "ChangeStaffPassword": ChangeStaffPassword,
 }
 
 export const pagesConfig = {

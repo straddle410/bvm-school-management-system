@@ -1,322 +1,169 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Eye, EyeOff, LogIn, GraduationCap, Lock, ArrowLeft } from 'lucide-react';
-import { createPageUrl } from '@/utils';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Building2, Lock, User, AlertTriangle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function StaffLogin() {
-  const [step, setStep] = useState('credentials'); // 'credentials' or 'otp'
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [otpTimer, setOtpTimer] = useState(0);
-  const [staffForOtp, setStaffForOtp] = useState(null);
-  const [sentOtp, setSentOtp] = useState(null);
+  const [lockedUntil, setLockedUntil] = useState(null);
 
-  // OTP timer effect
-  useEffect(() => {
-    if (otpTimer > 0) {
-      const interval = setInterval(() => setOtpTimer(t => t - 1), 1000);
-      return () => clearInterval(interval);
-    }
-  }, [otpTimer]);
-
-  const handleCredentialsSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // Find staff by username (normalized to UPPERCASE)
-      const normalizedUsername = username.trim().toUpperCase();
-      const staffResults = await base44.entities.StaffAccount.filter({ username: normalizedUsername }, '-created_date', 1);
-      const staff = staffResults[0] || null;
-
-       if (!staff) {
-         setError('Invalid username or password');
-         setLoading(false);
-         return;
-       }
-
-      if (staff.temp_password !== password) {
-        setError('Invalid username or password');
-        setLoading(false);
-        return;
-      }
-
-      if (staff.is_active === false) {
-        setError('Your account has been deactivated. Contact admin.');
-        setLoading(false);
-        return;
-      }
-
-      // Only admin requires OTP (if enabled)
-      if (staff.role === 'Admin' && staff.enable_otp_login !== false) {
-        try {
-          const response = await base44.functions.invoke('sendStaffOtp', {
-            email: staff.email,
-            staffName: staff.full_name
-          });
-
-          const responseData = response.data || response;
-
-          if (responseData.success) {
-            setStaffForOtp(staff);
-            setStep('otp');
-            setOtpTimer(600); // 10 minutes
-            setOtp('');
-          } else {
-            setError(responseData.error || 'Failed to send OTP. Please try again.');
-            setLoading(false);
-            return;
-          }
-        } catch (otpError) {
-          setError('Failed to send OTP. Please try again.');
-          setLoading(false);
-          return;
-        }
-      } else {
-        // Other staff login directly
-        console.log('Staff object:', staff);
-        localStorage.setItem('staff_session', JSON.stringify({
-          id: staff.id,
-          full_name: staff.full_name,
-          username: staff.username,
-          email: staff.email,
-          role: staff.role,
-          subjects: staff.subjects || [],
-          classes_assigned: staff.classes_assigned || [],
-          permissions: staff.permissions || {},
-        }));
-        window.location.href = createPageUrl('Dashboard');
-      }
-    } catch (err) {
-      setError('Failed to send OTP. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      // Check if OTP expired (10 minutes = 600 seconds)
-      if (otpTimer <= 0) {
-        setError('OTP has expired. Please request a new OTP.');
-        setLoading(false);
-        return;
-      }
-
-      // Fetch latest staff data to verify OTP server-side
-      const allStaff = await base44.entities.StaffAccount.list();
-      const latestStaff = allStaff.find(s => s.id === staffForOtp.id);
-
-      if (!latestStaff || !latestStaff.otp_code || !latestStaff.otp_generated_at) {
-        setError('OTP not found. Please request a new OTP.');
-        setLoading(false);
-        return;
-      }
-
-      // Verify OTP matches
-      if (otp !== latestStaff.otp_code) {
-        setError('Invalid OTP. Please try again.');
-        setLoading(false);
-        return;
-      }
-
-      // Verify OTP hasn't expired (10 minutes)
-      const generatedTime = new Date(latestStaff.otp_generated_at).getTime();
-      const currentTime = new Date().getTime();
-      const elapsedSeconds = (currentTime - generatedTime) / 1000;
-
-      if (elapsedSeconds > 600) {
-        setError('OTP has expired. Please request a new OTP.');
-        setLoading(false);
-        return;
-      }
-
-      // Clear OTP from database
-      await base44.entities.StaffAccount.update(staffForOtp.id, {
-        otp_code: null,
-        otp_generated_at: null
+      const response = await base44.functions.invoke('staffLogin', {
+        username,
+        password,
       });
 
-      // Store staff session in localStorage
-      localStorage.setItem('staff_session', JSON.stringify({
-        id: staffForOtp.id,
-        full_name: staffForOtp.full_name,
-        username: staffForOtp.username,
-        email: staffForOtp.email,
-        role: staffForOtp.role,
-        subjects: staffForOtp.subjects,
-        classes_assigned: staffForOtp.classes_assigned,
-        permissions: staffForOtp.permissions,
-      }));
-      window.location.href = createPageUrl('Dashboard');
+      if (!response.data.success) {
+        if (response.data.locked_until) {
+          setLockedUntil(response.data.locked_until);
+        }
+        setError(response.data.error || 'Login failed');
+        return;
+      }
+
+      // Store session
+      const session = {
+        staff_id: response.data.staff_id,
+        username: response.data.username,
+        name: response.data.name,
+        role_template_id: response.data.role_template_id,
+        permissions: response.data.permissions,
+        permissions_override: response.data.permissions_override,
+        logged_in_at: new Date().toISOString(),
+      };
+
+      localStorage.setItem('staff_session', JSON.stringify(session));
+
+      // If password change required, redirect to change password
+      if (response.data.force_password_change) {
+        navigate('/change-password');
+        return;
+      }
+
+      toast.success('Login successful');
+      navigate('/staff-dashboard');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a237e] to-[#283593] flex flex-col items-center justify-center px-4 relative">
-      {/* Back Button */}
-      <Link 
-        to={createPageUrl('Dashboard')}
-        className="absolute top-6 left-6 text-white hover:text-blue-200 transition-colors z-50 p-2"
-        title="Go back to home"
-      >
-        <ArrowLeft className="h-7 w-7" />
-      </Link>
+    <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
+      {/* Locked Account Dialog */}
+      <AlertDialog open={!!lockedUntil} onOpenChange={() => setLockedUntil(null)}>
+        <AlertDialogContent>
+          <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Account Locked
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Your account has been locked due to too many failed login attempts. Please try again after the lockout period expires.
+          </AlertDialogDescription>
+          <div className="p-3 bg-red-50 rounded-lg mt-2">
+            <p className="text-sm font-mono text-red-700">
+              Locked until: {new Date(lockedUntil).toLocaleTimeString()}
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <AlertDialogAction onClick={() => setLockedUntil(null)}>
+              OK
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* Logo / Branding */}
-      <div className="flex flex-col items-center mb-8">
-        <img
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg"
-          alt="BVM Logo"
-          className="h-20 w-20 rounded-full object-contain bg-white p-1 shadow-lg mb-4"
-        />
-        <h1 className="text-white text-2xl font-bold tracking-tight">BVM School of Excellence</h1>
-        <p className="text-blue-200 text-sm mt-1">Staff & Teacher Portal</p>
-      </div>
+      <Card className="w-full max-w-md shadow-2xl border-0">
+        <CardHeader className="bg-gradient-to-r from-[#1a237e] to-[#283593] text-white rounded-t-lg">
+          <div className="flex items-center justify-center mb-3">
+            <Building2 className="h-10 w-10" />
+          </div>
+          <CardTitle className="text-center text-2xl">Staff Login</CardTitle>
+          <CardDescription className="text-center text-blue-100 mt-1">
+            BVM School Management System
+          </CardDescription>
+        </CardHeader>
 
-      {/* Login Card */}
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6">
-        {step === 'credentials' ? (
-          <>
-            <h2 className="text-xl font-bold text-gray-800 mb-1">Welcome Back</h2>
-            <p className="text-sm text-gray-500 mb-6">Login with your username and password</p>
-
-            <form onSubmit={handleCredentialsSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Username</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="e.g. ravi.kumar"
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a237e] bg-gray-50"
-                />
+        <CardContent className="pt-8">
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">{error}</p>
               </div>
+            )}
 
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a237e] bg-gray-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-slate-700 font-medium">
+                <User className="inline h-4 w-4 mr-1" />
+                Username
+              </Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g., ravi.kumar01"
+                className="border-slate-300"
                 disabled={loading}
-                className="w-full bg-[#1a237e] text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#283593] transition-colors disabled:opacity-60"
-              >
-                {loading ? (
-                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <LogIn className="h-5 w-5" />
-                    Login
-                  </>
-                )}
-              </button>
-            </form>
-
-            <p className="text-center text-xs text-gray-400 mt-6">
-              Contact admin if you forgot your credentials
-            </p>
-          </>
-        ) : (
-          <>
-            <div className="flex justify-center mb-4">
-              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Lock className="h-6 w-6 text-[#1a237e]" />
-              </div>
+                autoFocus
+                required
+              />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-1 text-center">Verify OTP</h2>
-            <p className="text-sm text-gray-500 mb-6 text-center">Enter the OTP sent to {staffForOtp?.email}</p>
 
-            <form onSubmit={handleOtpSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Enter OTP</label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  maxLength="6"
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-[#1a237e] bg-gray-50"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-slate-700 font-medium">
+                <Lock className="inline h-4 w-4 mr-1" />
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="border-slate-300"
+                disabled={loading}
+                required
+              />
+            </div>
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || otp.length < 6}
-                className="w-full bg-[#1a237e] text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#283593] transition-colors disabled:opacity-60"
-              >
-                {loading ? (
-                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Lock className="h-5 w-5" />
-                    Verify OTP
-                  </>
-                )}
-              </button>
-            </form>
-
-            <button
-              onClick={() => {
-                setStep('credentials');
-                setError('');
-                setOtp('');
-                setOtpTimer(0);
-              }}
-              className="w-full text-center text-sm text-[#1a237e] hover:underline mt-4"
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-10 bg-gradient-to-r from-[#1a237e] to-[#283593] hover:from-[#0d1b5e] hover:to-[#1a2673] text-white font-semibold"
             >
-              Back to Login
-            </button>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
+            </Button>
 
-            <p className="text-center text-xs text-gray-400 mt-4">
-              OTP expires in {Math.floor(otpTimer / 60)}:{String(otpTimer % 60).padStart(2, '0')}
+            <p className="text-center text-xs text-slate-500 mt-6">
+              For account issues, contact your administrator.
             </p>
-          </>
-        )}
-        </div>
-        </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
