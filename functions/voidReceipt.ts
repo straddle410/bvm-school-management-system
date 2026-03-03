@@ -87,14 +87,38 @@ Deno.serve(async (req) => {
     const invoice = await base44.asServiceRole.entities.FeeInvoice.get(payment.invoice_id);
     if (!invoice) return Response.json({ error: 'Invoice not found' }, { status: 404 });
 
-    // ── VOID the payment (no child/negative entry created) ─────────────────
-    await base44.asServiceRole.entities.FeePayment.update(paymentId, {
-      status: 'VOID',
-      void_reason: reason,
-      voided_by: user.email,
-      voided_by_name: user.full_name || user.email,
-      voided_at: new Date().toISOString()
-    });
+    // ── ATOMIC: Try to mark VOID (conditional) to prevent race conditions ──
+    // This ensures only ONE concurrent request actually voids
+    try {
+      await base44.asServiceRole.entities.FeePayment.update(paymentId, {
+        status: 'VOID',
+        void_reason: reason,
+        voided_by: user.email,
+        voided_by_name: user.full_name || user.email,
+        voided_at: new Date().toISOString()
+      });
+    } catch (err) {
+      // If update fails (e.g., concurrent void), reload and return already_voided
+      const reloadPayment = await base44.asServiceRole.entities.FeePayment.get(paymentId);
+      if (reloadPayment.status === 'VOID') {
+        // Another request already voided it—treat as idempotent success
+        const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ invoice_id: payment.invoice_id });
+        const totalPaid = allPayments
+          .filter(p => p.status !== 'VOID')
+          .reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+        const netAmount = invoice?.total_amount || 0;
+        const balance = Math.max(netAmount - totalPaid, 0);
+        return Response.json({
+          success: true,
+          already_voided: true,
+          message: 'Receipt was already voided by concurrent request.',
+          new_paid_amount: totalPaid,
+          new_balance: balance,
+          new_status: invoice?.status || 'Pending'
+        });
+      }
+      throw err;
+    }
 
     // ── Recalculate invoice: exclude ALL voided payments ──────────────────
     const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ invoice_id: payment.invoice_id });
