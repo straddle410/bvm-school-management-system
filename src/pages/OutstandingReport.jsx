@@ -79,6 +79,8 @@ function OutstandingReportContent() {
         className: selectedClass || undefined,
         search: search || undefined,
         includeZeroOutstanding: includeZero,
+        onlyDue: viewMode === 'due',
+        onlyCredit: viewMode === 'credit',
         sort,
         exportCsv: true,
         pageSize: 9999
