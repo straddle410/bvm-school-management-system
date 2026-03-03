@@ -85,6 +85,7 @@ export default function More() {
   ];
 
   const financeReportItems = [
+   { label: 'Daily Closing', sub: 'End-of-day summary', icon: FileText, color: '#0288d1', bg: '#e1f5fe', page: 'DailyClosingReport' },
    { label: 'Day Book', sub: 'Daily collections by mode', icon: TrendingUp, color: '#1976d2', bg: '#e3f2fd', page: 'DayBookReport' },
    { label: 'Outstanding / Due', sub: 'Student fee balances', icon: FileText, color: '#e53935', bg: '#ffebee', page: 'OutstandingReport' },
    { label: 'Student Ledger', sub: 'Per-student fee ledger', icon: BookOpen, color: '#7b1fa2', bg: '#f3e5f5', page: 'StudentLedgerReport' },
