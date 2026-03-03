@@ -84,6 +84,13 @@ export default function More() {
    { label: 'Settings', sub: 'School configuration', icon: Settings, color: '#78909c', bg: '#eceff1', page: 'Settings' },
   ];
 
+  const financeReportItems = [
+   { label: 'Day Book', sub: 'Daily collections by mode', icon: TrendingUp, color: '#1976d2', bg: '#e3f2fd', page: 'DayBookReport' },
+   { label: 'Outstanding / Due', sub: 'Student fee balances', icon: FileText, color: '#e53935', bg: '#ffebee', page: 'OutstandingReport' },
+   { label: 'Student Ledger', sub: 'Per-student fee ledger', icon: BookOpen, color: '#7b1fa2', bg: '#f3e5f5', page: 'StudentLedgerReport' },
+   { label: 'Collection Report', sub: 'Cash collection details', icon: Award, color: '#388e3c', bg: '#e8f5e9', page: 'CollectionReport' },
+  ];
+
   const supportItems = [
     { label: 'Contact School', sub: schoolProfile?.phone || '+91 98765 43210', icon: Phone, color: '#e53935', bg: '#ffebee' },
     { label: 'School Website', sub: schoolProfile?.website || 'www.bvmschool.edu', icon: Globe, color: '#1e88e5', bg: '#e3f2fd' },
