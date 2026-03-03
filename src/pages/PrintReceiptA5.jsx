@@ -152,253 +152,221 @@ export default function PrintReceiptA5() {
       <style>{`
         @page {
           size: A5 landscape;
-          margin: 6mm;
+          margin: 4mm;
         }
-        
+
         html, body {
           margin: 0 !important;
           padding: 0 !important;
           background: white;
           font-family: Arial, sans-serif;
-          font-size: 10px;
-          line-height: 1.2;
+          font-size: 12px;
+          line-height: 1.18;
         }
-        
-        html {
-          width: 100%;
-          height: 100%;
-        }
-        
+
         body {
-          width: 100%;
-          height: 100%;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        
-        .a5-page {
-          width: 100%;
+
+        .copiesRow {
           display: flex;
-          gap: 6mm;
-          padding: 0;
-          margin: 0;
-          page-break-after: always;
+          gap: 4mm;
         }
-        
-        @media print {
-          .no-print, nav, footer, header, [class*="bottom"], [class*="Bottom"], [class*="nav"], [class*="Nav"] {
-            display: none !important;
-          }
-          
-          body {
-            margin: 0;
-            padding: 0;
-          }
-          
-          * {
-            box-shadow: none !important;
-            margin: 0;
-            padding: 0;
-          }
-          
-          a {
-            text-decoration: none !important;
-            color: inherit !important;
-          }
-        }
-        
-        .receipt-copy {
+
+        .copy {
           flex: 1;
-          width: calc(50% - 3mm);
-          page-break-inside: avoid;
-          break-inside: avoid;
-          padding: 4mm;
-          box-sizing: border-box;
-          position: relative;
           border: 1px solid #111;
+          border-radius: 4px;
+          padding: 3.5mm;
+          box-sizing: border-box;
           overflow: hidden;
           background: white;
         }
-        
-        .receipt-copy.void-copy {
+
+        .copy.void {
           background: rgba(255, 0, 0, 0.03);
         }
-        
+
         .void-watermark {
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%) rotate(-45deg);
-          font-size: 36px;
+          font-size: 48px;
           font-weight: bold;
-          color: rgba(255, 0, 0, 0.12);
+          color: rgba(255, 0, 0, 0.1);
           pointer-events: none;
-          white-space: nowrap;
           z-index: 0;
         }
-        
-        .receipt-content {
-          position: relative;
-          z-index: 1;
-        }
-        
-        .receipt-header {
+
+        .header {
           text-align: center;
           border-bottom: 1px solid #333;
-          padding-bottom: 2px;
-          margin-bottom: 2px;
+          padding-bottom: 1.5mm;
+          margin-bottom: 1.5mm;
         }
-        
-        .school-logo {
-          width: 20px;
-          height: 20px;
-          margin: 0 auto 1px;
+
+        .logo {
+          width: 70px;
+          height: auto;
+          margin: 0 auto 2px;
           display: block;
         }
-        
+
         .school-name {
-          font-weight: bold;
+          font-size: 15px;
+          font-weight: 800;
+          margin: 1mm 0 0;
+        }
+
+        .school-info {
           font-size: 11px;
-          margin: 1px 0 0px;
-        }
-        
-        .school-details {
-          font-size: 8px;
           color: #333;
-          margin: 0px;
-          line-height: 1.1;
+          margin: 0.5mm 0 0;
         }
-        
-        .receipt-title-row {
+
+        .receipt-title {
           display: flex;
           justify-content: space-between;
           align-items: center;
           font-weight: bold;
-          font-size: 9px;
-          margin: 2px 0 1px;
-          padding-bottom: 1px;
+          font-size: 13px;
+          margin: 1.5mm 0 1mm;
+          padding-bottom: 0.5mm;
           border-bottom: 1px solid #999;
         }
-        
+
         .copy-badge {
-          font-size: 8px;
+          font-size: 10px;
           font-weight: bold;
           background: #f0f0f0;
-          padding: 1px 3px;
+          padding: 1px 4px;
           border-radius: 2px;
         }
-        
-        .receipt-info {
+
+        .info-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1px;
-          font-size: 8px;
-          margin-bottom: 2px;
-          padding-bottom: 1px;
+          gap: 1mm;
+          font-size: 11px;
+          margin-bottom: 1.5mm;
+          padding-bottom: 1mm;
           border-bottom: 1px solid #ddd;
         }
-        
-        .receipt-info-item {
+
+        .info-row {
           display: flex;
           justify-content: space-between;
         }
-        
+
         .label {
           font-weight: bold;
           color: #333;
         }
-        
-        .box-section {
+
+        .box {
           border: 1px solid #ccc;
-          padding: 2px;
-          margin: 2px 0;
-          font-size: 8px;
+          padding: 2mm;
+          margin: 1.5mm 0;
+          font-size: 11px;
         }
-        
+
         .box-title {
           font-weight: bold;
-          font-size: 8px;
+          font-size: 11px;
           border-bottom: 1px solid #ccc;
-          padding-bottom: 1px;
-          margin-bottom: 1px;
+          padding-bottom: 0.5mm;
+          margin-bottom: 0.5mm;
         }
-        
+
         .box-row {
           display: flex;
           justify-content: space-between;
-          padding: 0.5px 0;
-          font-size: 8px;
+          padding: 0.5mm 0;
+          font-size: 11px;
         }
-        
-        .amount-highlight {
+
+        .amount-box {
           font-weight: bold;
-          font-size: 10px;
+          font-size: 12px;
           color: #000;
           text-align: center;
-          padding: 1px;
-          margin: 1px 0;
+          padding: 1mm;
+          margin: 1mm 0;
           border: 1px solid #333;
+          background: #fafafa;
         }
-        
-        .summary-table {
+
+        .summary {
           width: 100%;
           border-collapse: collapse;
-          font-size: 8px;
-          margin: 1px 0;
+          font-size: 11px;
+          margin: 1mm 0;
         }
-        
-        .summary-table td {
+
+        .summary td {
           border-bottom: 1px solid #ddd;
-          padding: 0.5px 1px;
+          padding: 0.5mm 1mm;
         }
-        
-        .summary-table .label {
+
+        .summary .label {
           text-align: left;
           font-weight: bold;
         }
-        
-        .summary-table .value {
+
+        .summary .value {
           text-align: right;
           font-weight: bold;
         }
-        
-        .receipt-footer {
-          font-size: 7px;
+
+        .footer {
+          font-size: 10px;
           text-align: center;
           color: #666;
-          margin-top: 2px;
-          padding-top: 1px;
+          margin-top: 1.5mm;
+          padding-top: 0.5mm;
           border-top: 1px solid #ddd;
         }
-        
-        .signature-section {
+
+        .signatures {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 2px;
-          font-size: 7px;
-          margin-top: 2px;
+          gap: 2mm;
+          font-size: 10px;
+          margin-top: 1.5mm;
         }
-        
-        .signature-line {
+
+        .sig-line {
           text-align: center;
           border-top: 1px solid #333;
-          padding-top: 4px;
-          height: 12px;
+          padding-top: 3mm;
+          height: 10mm;
         }
-        
+
         .void-note {
-          font-size: 8px;
+          font-size: 11px;
           color: #d32f2f;
           font-weight: bold;
-          margin-top: 1px;
-          padding: 1px;
+          margin-top: 1mm;
+          padding: 1mm;
           background: #ffebee;
         }
-        
+
         @media print {
+          .no-print, nav, header, footer {
+            display: none !important;
+          }
+
           body {
             margin: 0;
             padding: 0;
+            max-height: 100%;
+            overflow: hidden;
+          }
+
+          * {
+            box-shadow: none !important;
           }
         }
       `}</style>
