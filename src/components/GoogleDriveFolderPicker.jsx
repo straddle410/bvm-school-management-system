@@ -74,28 +74,64 @@ export function useGoogleDriveFolderPicker() {
 
 export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelect }) {
   const [loading, setLoading] = useState(false);
+  const [creatingFolder, setCreatingFolder] = useState(false);
   const [error, setError] = useState('');
-  const accessTokenRef = useRef(null);
+  const gapiLoadedRef = useRef(false);
 
-  // Load Google API and Picker
+  // Load Google API once
   useEffect(() => {
-    if (!isOpen) return;
-
-    if (!window.gapi) {
+    if (!window.gapi && !gapiLoadedRef.current) {
+      gapiLoadedRef.current = true;
       const script = document.createElement('script');
       script.src = 'https://apis.google.com/js/api.js';
       script.async = true;
       script.defer = true;
       script.onload = () => {
+        console.log('Google API script loaded');
         if (window.gapi) {
-          window.gapi.load('picker', {});
+          window.gapi.load('picker', {
+            callback: () => console.log('Google Picker API loaded'),
+          });
+          window.gapi.load('client', {
+            callback: () => console.log('Google Client API loaded'),
+          });
         }
       };
+      script.onerror = () => {
+        console.error('Failed to load Google API script');
+        gapiLoadedRef.current = false;
+      };
       document.body.appendChild(script);
-    } else if (window.gapi) {
-      window.gapi.load('picker', {});
     }
-  }, [isOpen]);
+  }, []);
+
+  // Create folder in Drive
+  const createBackupFolder = async () => {
+    setError('');
+    setCreatingFolder(true);
+
+    try {
+      const res = await base44.functions.invoke('createFullBackupFolder', {});
+
+      if (res.data?.success) {
+        onSelect({
+          folderId: res.data.folderId,
+          folderName: res.data.folderName,
+        });
+        toast.success('Backup folder created successfully');
+        onClose();
+      } else {
+        throw new Error(res.data?.error || 'Failed to create folder');
+      }
+    } catch (err) {
+      console.error('Create folder error:', err);
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to create backup folder';
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setCreatingFolder(false);
+    }
+  };
 
   // Open folder picker
   const openFolderPicker = async () => {
@@ -103,38 +139,43 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
     setLoading(true);
 
     try {
+      console.log('Checking gapi status:', { gapiReady: !!window.gapi, pickerReady: !!window.google?.picker });
+
+      if (!window.gapi) {
+        throw new Error('Google API not loaded. Please refresh and try again.');
+      }
+
+      if (!window.google?.picker) {
+        throw new Error('Google Picker API not ready. Please try again.');
+      }
+
       // Get access token from backend
       const tokenRes = await base44.functions.invoke('selectDriveFolder', {});
 
       if (!tokenRes.data?.accessToken) {
-        setError('Google Drive not connected. Please authorize access first.');
-        toast.error('Google Drive not connected');
-        setLoading(false);
-        return;
+        throw new Error('Google Drive not authorized. Please authorize access first.');
       }
 
-      accessTokenRef.current = tokenRes.data.accessToken;
+      const accessToken = tokenRes.data.accessToken;
+      console.log('Got access token, opening picker');
 
-      // Build and open picker
-      const buildPicker = () => {
-        if (window.google?.picker && accessTokenRef.current) {
-          const picker = new window.google.picker.PickerBuilder()
-            .addView(new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS))
-            .setOAuthToken(accessTokenRef.current)
-            .setCallback(handlePickerCallback)
-            .build();
+      // Create and open picker immediately
+      const docsView = new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS);
+      docsView.setSelectFolderEnabled(true);
+      docsView.setIncludeFolders(true);
 
-          picker.setVisible(true);
-          setLoading(false);
-        } else {
-          setTimeout(buildPicker, 100);
-        }
-      };
+      const picker = new window.google.picker.PickerBuilder()
+        .addView(docsView)
+        .setOAuthToken(accessToken)
+        .setCallback(handlePickerCallback)
+        .build();
 
-      buildPicker();
+      picker.setVisible(true);
+      setLoading(false);
+      console.log('Picker opened');
     } catch (err) {
       console.error('Picker error:', err);
-      const errorMsg = err.response?.data?.error || err.message || 'Failed to open folder picker';
+      const errorMsg = err.message || 'Failed to open folder picker. Please allow popups or reconnect Google Drive.';
       setError(errorMsg);
       toast.error(errorMsg);
       setLoading(false);
@@ -143,15 +184,15 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
 
   // Handle picker callback
   const handlePickerCallback = (data) => {
+    console.log('Picker callback:', data);
     if (data[window.google.picker.Response.ACTION] === window.google.picker.Action.PICKED) {
       const folder = data[window.google.picker.Response.DOCUMENTS][0];
+      console.log('Folder selected:', folder);
       onSelect({
         folderId: folder.id,
-        folderName: folder.name
+        folderName: folder.name,
       });
       onClose();
-    } else if (data[window.google.picker.Response.ACTION] === window.google.picker.Action.CANCEL) {
-      // User cancelled the picker
     }
   };
 
