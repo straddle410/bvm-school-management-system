@@ -649,6 +649,10 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="transport" className="mt-6">
+            <TransportFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} />
+          </TabsContent>
+
           <TabsContent value="class-subjects" className="mt-6">
             <ClassSubjectConfigTab />
           </TabsContent>
