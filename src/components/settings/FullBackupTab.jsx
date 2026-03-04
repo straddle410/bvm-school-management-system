@@ -123,6 +123,16 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     });
   };
 
+  // Extract folder ID from URL or direct ID
+  const extractFolderId = (input) => {
+    const trimmed = input.trim();
+    if (trimmed.includes('/folders/')) {
+      const match = trimmed.match(/\/folders\/([^/?]+)/);
+      return match ? match[1] : trimmed;
+    }
+    return trimmed;
+  };
+
   // Verify and save folder from manual input
   const handleVerifyFolder = async () => {
     if (!folderIdInput.trim()) {
@@ -132,14 +142,15 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
 
     setVerifyLoading(true);
     try {
+      const extractedId = extractFolderId(folderIdInput);
       const res = await base44.functions.invoke('verifyDriveFolder', {
-        folderId: folderIdInput.trim()
+        folderId: extractedId
       });
 
       if (res.data?.success) {
         saveFolderMutation.mutate({
-          folderId: res.data.folderId,
-          folderName: res.data.folderName
+          folderId: res.data.folder_id,
+          folderName: res.data.folder_name
         });
         setFolderIdInput('');
       } else {
@@ -150,6 +161,16 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     } finally {
       setVerifyLoading(false);
     }
+  };
+
+  // Test export: upload latest manual backup to verify Drive write access
+  const testExportLatestManual = async () => {
+    const latestManual = backups.find(b => b.backup_type === 'MANUAL' && b.status === 'COMPLETED');
+    if (!latestManual) {
+      toast.error('No manual backups available to test with');
+      return;
+    }
+    exportToDevMutation.mutate(latestManual.id);
   };
 
   // Download backup JSON
