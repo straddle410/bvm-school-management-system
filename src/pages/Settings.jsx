@@ -341,6 +341,9 @@ export default function Settings() {
             <TabsTrigger value="notifications">
               <Bell className="h-4 w-4 mr-2" /> Notifications
             </TabsTrigger>
+            <TabsTrigger value="fees-backup">
+              <HardDrive className="h-4 w-4 mr-2" /> Fees Backup
+            </TabsTrigger>
             <TabsTrigger value="data-reset" className="text-red-600">
               <AlertTriangle className="h-4 w-4 mr-2" /> Data Reset
             </TabsTrigger>
@@ -724,6 +727,13 @@ export default function Settings() {
 
           <TabsContent value="class-subjects" className="mt-6">
             <ClassSubjectConfigTab />
+          </TabsContent>
+
+          <TabsContent value="fees-backup" className="mt-6">
+            <FeesBackupTab
+              isAdmin={true}
+              schoolProfile={schoolProfiles[0]}
+            />
           </TabsContent>
 
           <TabsContent value="data-reset" className="mt-6">
