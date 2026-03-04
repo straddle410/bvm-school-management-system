@@ -133,12 +133,24 @@ Deno.serve(async (req) => {
       });
       if (existing && existing.length > 0) { skipped++; continue; }
 
-      const feeItems = plan.fee_items || [];
-      const grossTotal = plan.total_amount || 0;
-      const discountList = discountMap[student.student_id] || [];
+      let feeItems = [...(plan.fee_items || [])];
+      let grossTotal = plan.total_amount || 0;
 
-      // Apply first matching discount from list (if any exist)
-      // TODO: Consider cumulative discounts or picking highest benefit
+      // Add transport fee line if student has transport enabled
+      if (student.transport_enabled && transportFeeAmount > 0) {
+        feeItems = [
+          ...feeItems,
+          {
+            fee_head_name: 'Transport',
+            fee_head_id: 'transport',
+            amount: transportFeeAmount,
+            is_transport: true
+          }
+        ];
+        grossTotal += transportFeeAmount;
+      }
+
+      const discountList = discountMap[student.student_id] || [];
       const discount = discountList.length > 0 ? discountList[0] : null;
       const { items, discountTotal, netTotal } = applyDiscount(feeItems, grossTotal, discount);
 
