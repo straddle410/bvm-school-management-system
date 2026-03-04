@@ -276,8 +276,8 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Banner - hidden for admin */}
-      {!isAdmin && (
+      {/* Banner - only for guests (not logged in) */}
+      {!user && (
         <div className="relative w-full overflow-hidden" style={{ height: 180 }}>
           {banners.map((img, i) => (
             <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === bannerIndex ? 1 : 0 }}>
