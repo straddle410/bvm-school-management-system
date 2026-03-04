@@ -67,14 +67,15 @@ const quickActions = [
 
 // Finance tiles for accountant role — permission-gated
 const accountantFinanceActions = [
-  { label: 'Fees',           icon: Wallet,    gradient: 'from-green-400 to-emerald-600', page: 'Fees',                       permKey: 'fees_view_module' },
-  { label: 'Collection',     icon: BarChart3, gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport',           permKey: 'fee_reports_collection' },
-  { label: 'Outstanding',    icon: TrendingUp,gradient: 'from-red-400 to-rose-600',      page: 'OutstandingReport',          permKey: 'fee_reports_outstanding' },
-  { label: 'Ledger',         icon: BookOpen,  gradient: 'from-violet-400 to-purple-600', page: 'StudentLedgerReport',        permKey: 'fees_view_ledger' },
-  { label: 'Daily Closing',  icon: FileText,  gradient: 'from-cyan-400 to-teal-600',     page: 'DailyClosingReport',         permKey: 'fee_reports_view' },
-  { label: 'Defaulters',     icon: AlertCircle, gradient: 'from-orange-400 to-red-500',  page: 'DefaultersReport',           permKey: 'fee_reports_view' },
-  { label: 'Discount',       icon: Award,     gradient: 'from-amber-400 to-yellow-500',  page: 'Reports',                    permKey: 'fee_reports_discount' },
-  { label: 'Day Book',       icon: BookMarked,gradient: 'from-indigo-400 to-indigo-600', page: 'DayBookReport',              permKey: 'fee_reports_view' },
+  { label: 'Fees',           icon: Wallet,      gradient: 'from-green-400 to-emerald-600', page: 'Fees',                permKey: 'fees_view_module' },
+  { label: 'Additional Fee', icon: AlertCircle, gradient: 'from-orange-400 to-amber-500',  page: 'Fees', tab: 'adhoc', permKey: 'fees_apply_charge' },
+  { label: 'Collection',     icon: BarChart3,   gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport',    permKey: 'fee_reports_view' },
+  { label: 'Outstanding',    icon: TrendingUp,  gradient: 'from-red-400 to-rose-600',      page: 'OutstandingReport',   permKey: 'fee_reports_view' },
+  { label: 'Ledger',         icon: BookOpen,    gradient: 'from-violet-400 to-purple-600', page: 'StudentLedgerReport', permKey: 'fees_view_ledger' },
+  { label: 'Daily Closing',  icon: FileText,    gradient: 'from-cyan-400 to-teal-600',     page: 'DailyClosingReport',  permKey: 'fee_reports_view' },
+  { label: 'Defaulters',     icon: Users,       gradient: 'from-rose-400 to-red-600',      page: 'DefaultersReport',    permKey: 'fee_reports_view' },
+  { label: 'Discount',       icon: Award,       gradient: 'from-amber-400 to-yellow-500',  page: 'Reports',             permKey: 'fee_reports_view' },
+  { label: 'Day Book',       icon: BookMarked,  gradient: 'from-indigo-400 to-indigo-600', page: 'DayBookReport',       permKey: 'fee_reports_view' },
 ];
 
 const adminActions = [
