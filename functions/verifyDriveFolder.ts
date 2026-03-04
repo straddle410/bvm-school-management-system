@@ -69,8 +69,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      folderId: folderData.id,
-      folderName: folderData.name || 'Untitled Folder'
+      folder_id: folderData.id,
+      folder_name: folderData.name || 'Untitled Folder'
     });
   } catch (error) {
     console.error('Verify folder error:', error);
