@@ -24,11 +24,17 @@ Deno.serve(async (req) => {
     let folderId = extractFolderId(body.folderId);
 
     if (!folderId) {
-      return Response.json({ error: 'Folder ID required' }, { status: 400 });
+      return Response.json({ error: 'Invalid folder URL or ID. Please enter a valid Google Drive folder link or folder ID.' }, { status: 400 });
     }
 
     // Get Google Drive access token
-    const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
+    let accessToken;
+    try {
+      const conn = await base44.asServiceRole.connectors.getConnection('googledrive');
+      accessToken = conn?.accessToken;
+    } catch (e) {
+      return Response.json({ error: 'Google Drive connector not authorized. Please connect your Google Drive account in settings first.' }, { status: 401 });
+    }
 
     if (!accessToken) {
       return Response.json({ error: 'Google Drive not authorized' }, { status: 401 });
