@@ -320,31 +320,31 @@ export default function Settings() {
       <div className="p-4 lg:p-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
            <TabsList className="bg-white border shadow-sm flex flex-wrap justify-start h-auto gap-2 p-2">
-            <TabsTrigger value="school">
+            <TabsTrigger value="school" className="px-4 py-2 text-sm whitespace-nowrap">
               <School className="h-4 w-4 mr-2" /> School Profile
             </TabsTrigger>
-            <TabsTrigger value="academic">
+            <TabsTrigger value="academic" className="px-4 py-2 text-sm whitespace-nowrap">
               <Calendar className="h-4 w-4 mr-2" /> Academic Years
             </TabsTrigger>
-            <TabsTrigger value="subjects">
+            <TabsTrigger value="subjects" className="px-4 py-2 text-sm whitespace-nowrap">
               <Database className="h-4 w-4 mr-2" /> Subjects
             </TabsTrigger>
-            <TabsTrigger value="banners">
+            <TabsTrigger value="banners" className="px-4 py-2 text-sm whitespace-nowrap">
               <Layers className="h-4 w-4 mr-2" /> Banners
             </TabsTrigger>
-            <TabsTrigger value="transport">
+            <TabsTrigger value="transport" className="px-4 py-2 text-sm whitespace-nowrap">
               <Bus className="h-4 w-4 mr-2" /> Transport
             </TabsTrigger>
-            <TabsTrigger value="class-subjects">
+            <TabsTrigger value="class-subjects" className="px-4 py-2 text-sm whitespace-nowrap">
               <BookOpen className="h-4 w-4 mr-2" /> Class Subjects
             </TabsTrigger>
-            <TabsTrigger value="notifications">
+            <TabsTrigger value="notifications" className="px-4 py-2 text-sm whitespace-nowrap">
               <Bell className="h-4 w-4 mr-2" /> Notifications
             </TabsTrigger>
-            <TabsTrigger value="fees-backup">
+            <TabsTrigger value="fees-backup" className="px-4 py-2 text-sm whitespace-nowrap">
               <HardDrive className="h-4 w-4 mr-2" /> Fees Backup
             </TabsTrigger>
-            <TabsTrigger value="data-reset" className="text-red-600">
+            <TabsTrigger value="data-reset" className="px-4 py-2 text-sm whitespace-nowrap text-red-600">
               <AlertTriangle className="h-4 w-4 mr-2" /> Data Reset
             </TabsTrigger>
           </TabsList>
