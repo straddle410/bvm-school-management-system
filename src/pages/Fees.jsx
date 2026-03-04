@@ -67,7 +67,7 @@ export default function Fees() {
           </div>
         )}
 
-        <div className="px-3 sm:px-4 lg:px-8 py-4">
+        <div className={`px-3 sm:px-4 lg:px-8 py-4 ${isAccountant ? 'accountant-fees-view' : ''}`}>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
 
             {/* ── ACCOUNTANT: big scrollable tabs ── */}
