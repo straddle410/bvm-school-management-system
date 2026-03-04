@@ -33,6 +33,55 @@ import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
 
+function TransportFeeSettings({ schoolProfiles, queryClient }) {
+  const [amount, setAmount] = useState('');
+  React.useEffect(() => {
+    if (schoolProfiles.length > 0) {
+      setAmount(String(schoolProfiles[0].transport_fee_amount || 0));
+    }
+  }, [schoolProfiles]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const val = parseInt(amount) || 0;
+      if (schoolProfiles.length > 0) {
+        return base44.entities.SchoolProfile.update(schoolProfiles[0].id, { transport_fee_amount: val });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['school-profile']);
+      toast.success('Transport fee saved');
+    }
+  });
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Bus className="h-5 w-5 text-amber-600" /> Transport Fee</CardTitle>
+        <CardDescription>Set a fixed school-wide transport fee. Students with transport enabled will have this added as a separate line item in their annual invoice.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 max-w-sm">
+        <div>
+          <Label>Transport Fee Amount (₹)</Label>
+          <Input
+            type="number"
+            min="0"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            placeholder="e.g., 10000"
+            className="mt-1"
+          />
+          <p className="text-xs text-slate-500 mt-1">Applied as a "Transport" line item in the annual invoice for transport-enabled students only.</p>
+        </div>
+        <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+          <Save className="mr-2 h-4 w-4" />
+          {saveMutation.isPending ? 'Saving...' : 'Save Transport Fee'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('school');
   const [logoFile, setLogoFile] = useState(null);
