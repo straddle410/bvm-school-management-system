@@ -70,6 +70,7 @@ import Fees from './pages/Fees';
 import Gallery from './pages/Gallery';
 import HallTicketManagement from './pages/HallTicketManagement';
 import HolidayCalendar from './pages/HolidayCalendar';
+import Homework from './pages/Homework';
 import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
 import Marks from './pages/Marks';
@@ -85,6 +86,7 @@ import ProductionReset from './pages/ProductionReset';
 import PublicAdmission from './pages/PublicAdmission';
 import PublicAdmissionForm from './pages/PublicAdmissionForm';
 import Quiz from './pages/Quiz';
+import RbacTest from './pages/RbacTest';
 import Reports from './pages/Reports';
 import ReportsManagement from './pages/ReportsManagement';
 import Results from './pages/Results';
@@ -105,8 +107,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import RbacTest from './pages/RbacTest';
-import Homework from './pages/Homework';
 import __Layout from './Layout.jsx';
 
 
@@ -134,6 +134,7 @@ export const PAGES = {
     "Gallery": Gallery,
     "HallTicketManagement": HallTicketManagement,
     "HolidayCalendar": HolidayCalendar,
+    "Homework": Homework,
     "HomeworkManage": HomeworkManage,
     "IDCards": IDCards,
     "Marks": Marks,
@@ -149,6 +150,7 @@ export const PAGES = {
     "PublicAdmission": PublicAdmission,
     "PublicAdmissionForm": PublicAdmissionForm,
     "Quiz": Quiz,
+    "RbacTest": RbacTest,
     "Reports": Reports,
     "ReportsManagement": ReportsManagement,
     "Results": Results,
@@ -169,8 +171,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "RbacTest": RbacTest,
-    "Homework": Homework,
 }
 
 export const pagesConfig = {

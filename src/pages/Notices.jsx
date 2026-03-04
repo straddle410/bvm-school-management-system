@@ -119,8 +119,8 @@ export default function Notices() {
     } catch {}
   };
 
-  const isStaff = user && ['Admin', 'Principal', 'Teacher', 'Staff'].includes(user.role);
-  const isAdmin = user && ['Admin', 'Principal'].includes(user.role);
+  const isStaff = user && ['admin', 'principal', 'teacher', 'staff'].includes((user.role || '').toLowerCase());
+  const isAdmin = user && ['admin', 'principal'].includes((user.role || '').toLowerCase());
 
   const { data: notices = [], isLoading } = useQuery({
     queryKey: ['notices'],
@@ -426,8 +426,9 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
   const [rejectReason, setRejectReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const typeColor = TYPE_COLORS[notice.notice_type] || 'bg-slate-100 text-slate-700';
-  const isCreator = user && notice.created_by_name === (user.full_name || user.name);
+  const isCreator = user && (notice.created_by_name === (user.full_name || user.name) || notice.created_by_name === user.email);
   const canEdit = (isCreator && (notice.status === 'Draft' || notice.status === 'Rejected')) || isAdmin;
+  const canSubmit = isCreator && (notice.status === 'Draft' || notice.status === 'Rejected') && !isAdmin;
 
   const handleExpand = () => {
     setExpanded(true);
@@ -491,7 +492,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
                 Edit
               </Button>
             )}
-            {isCreator && (notice.status === 'Draft' || notice.status === 'Rejected') && !isAdmin && (
+            {canSubmit && (
               <Button size="sm" className="flex-1 bg-amber-600 hover:bg-amber-700 text-xs" disabled={isSubmitting}
                 onClick={async () => {
                   setIsSubmitting(true);
