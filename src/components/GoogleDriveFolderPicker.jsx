@@ -35,36 +35,37 @@ export function useGoogleDriveFolderPicker() {
 
   const openFolderPicker = async (onSelect, onCancel) => {
     try {
-      // Check if Google Drive is authorized
-      const authCheck = await base44.functions.invoke('selectDriveFolder', {});
+      // Get access token from backend
+      const tokenRes = await base44.functions.invoke('selectDriveFolder', {});
       
-      if (!authCheck.data.hasAccessToken) {
-        toast.error('Connect Google Drive first');
+      if (!tokenRes.data?.accessToken) {
+        toast.error('Google Drive not connected');
         return;
       }
 
-      // Since we can't get the token from frontend and Picker API is complex,
-      // we'll use a simpler approach: open Google Drive web picker via redirect
-      // This is more reliable and works with Base44's OAuth flow
+      accessTokenRef.current = tokenRes.data.accessToken;
 
-      // For now, show a simple dialog to paste folder link
-      // In production, you'd use Google Drive's official picker
-
-      return {
-        folderId: null,
-        folderName: null,
-        cancelled: true
-      };
+      // Open Google's official Picker using the connector's access token
+      if (window.google?.picker) {
+        const picker = new window.google.picker.PickerBuilder()
+          .addView(new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS))
+          .setOAuthToken(accessTokenRef.current)
+          .setCallback((data) => {
+            if (data[window.google.picker.Response.ACTION] === window.google.picker.Action.PICKED) {
+              const folder = data[window.google.picker.Response.DOCUMENTS][0];
+              onSelect({
+                folderId: folder.id,
+                folderName: folder.name
+              });
+            }
+          })
+          .build();
+        picker.setVisible(true);
+      }
     } catch (error) {
       console.error('Folder picker error:', error);
-      toast.error('Google Drive picker failed');
+      toast.error('Failed to open folder picker');
       onCancel?.();
-      return {
-        folderId: null,
-        folderName: null,
-        cancelled: true,
-        error
-      };
     }
   };
 
