@@ -39,6 +39,7 @@ import NotificationSettingsSection from '@/components/NotificationSettingsSectio
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
 import DataResetTab from '@/components/settings/DataResetTab';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
+import FullBackupTab from '@/components/settings/FullBackupTab';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
 
 function TransportFeeSettings({ schoolProfiles, queryClient }) {
@@ -364,6 +365,7 @@ export default function Settings() {
       'notifications': 'Notifications',
       'banners': 'Banners',
       'fees-backup': 'Fees Backup',
+      'full-backup': 'Full School Backup',
       'data-reset': 'Data Reset',
     };
     return titles[activeItem] || 'Settings';
@@ -811,6 +813,16 @@ export default function Settings() {
             <FeesBackupTab
               isAdmin={true}
               schoolProfile={schoolProfiles[0]}
+            />
+          )}
+
+          {/* Full School Backup */}
+          {activeItem === 'full-backup' && (
+            <FullBackupTab 
+              profile={schoolProfiles[0]}
+              onProfileUpdate={(updated) => {
+                queryClient.invalidateQueries(['school-profile']);
+              }}
             />
           )}
 
