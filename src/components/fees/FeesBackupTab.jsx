@@ -203,7 +203,7 @@ export default function FeesBackupTab({ isAdmin, schoolProfile }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-slate-800">
-                        {b.created_date ? format(new Date(b.created_date), 'dd MMM yyyy, hh:mm a') : 'Unknown date'}
+                        {formatIST(b.created_date, 'long')}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.backup_type === 'DAILY_AUTO' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
                         {b.backup_type === 'DAILY_AUTO' ? 'Auto' : 'Manual'}
