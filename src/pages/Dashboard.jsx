@@ -182,7 +182,7 @@ export default function Dashboard() {
         )}
 
         {/* Latest Diaries */}
-        {!isAdmin && latestDiaries.length > 0 && (
+        {isAdmin && latestDiaries.length > 0 && (
           <section className="mb-8">
             <h2 className="text-lg font-bold text-gray-700 mb-4">Latest Diary Entries</h2>
             <div className="space-y-3">
