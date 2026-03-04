@@ -40,9 +40,9 @@ export default function More() {
     }
   }, []);
 
-  const role = user?.role || '';
-  const isAdmin = ['Admin', 'Principal'].includes(role);
-  const isTeacher = ['Admin', 'Principal', 'Teacher', 'Staff'].includes(role);
+  const role = (user?.role || '').toLowerCase();
+  const isAdmin = ['admin', 'principal'].includes(role);
+  const isTeacher = ['admin', 'principal', 'teacher', 'staff'].includes(role);
 
   const permissions = user?.permissions || {};
 
