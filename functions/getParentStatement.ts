@@ -51,18 +51,20 @@ Deno.serve(async (req) => {
 
     const student = students[0];
 
-    // Fetch annual invoice (for display)
-    const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
+    // Fetch ALL invoices for this student/year (ANNUAL + ADHOC)
+    const allInvoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       student_id: studentId,
-      academic_year: academicYear,
-      invoice_type: 'ANNUAL'
+      academic_year: academicYear
     });
 
-    if (!invoices || invoices.length === 0) {
+    const annualInvoice = allInvoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL') || null;
+
+    if (!annualInvoice) {
       return Response.json({ error: 'No annual invoice found for this student' }, { status: 404 });
     }
 
-    const invoice = invoices[0];
+    // Adhoc (additional fee) invoices — exclude cancelled
+    const adhocInvoices = allInvoices.filter(i => i.invoice_type === 'ADHOC' && i.status !== 'Cancelled');
 
     // Fetch ALL payments for the academic year (ANNUAL + ADHOC)
     const allPayments = await base44.asServiceRole.entities.FeePayment.filter({
@@ -70,25 +72,29 @@ Deno.serve(async (req) => {
       academic_year: academicYear
     });
 
-    // Filter payments (ADHOC payments included in calculation)
-    const validPayments = includeVoided 
+    // Filter payments for display
+    const validPayments = includeVoided
       ? allPayments.sort((a, b) => new Date(a.payment_date) - new Date(b.payment_date))
       : allPayments.filter(p => p.status !== 'VOID' && p.status !== 'CANCELLED')
           .sort((a, b) => new Date(a.payment_date) - new Date(b.payment_date));
 
-    // Calculate totals: SUM of ALL non-VOID payments (ANNUAL + ADHOC)
-    // Excludes: VOID, CANCELLED, reversed payments
+    // Calculate total paid: ALL non-VOID payments (ANNUAL + ADHOC)
     let totalPaid = 0;
     allPayments.forEach(p => {
       if (p.status !== 'VOID' && p.status !== 'CANCELLED' && !p.is_reversed) {
-        // Include all entry types: CASH_PAYMENT, CREDIT_ADJUSTMENT, etc.
         totalPaid += p.amount_paid || 0;
       }
     });
 
-    // Balance due: only against ANNUAL invoice
-    const net = invoice.total_amount || 0;
-    const balanceDue = Math.max(net - totalPaid, 0);
+    // ── Correct summary calculation (matches on-screen ledger) ──
+    // Gross = Annual invoice gross + sum of adhoc invoice amounts
+    const annualGross = annualInvoice.gross_total || annualInvoice.total_amount || 0;
+    const adhocGross  = adhocInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+    const grossTotal  = annualGross + adhocGross;
+
+    const discountTotal = annualInvoice.discount_total || 0;
+    const netTotal      = grossTotal - discountTotal;
+    const balanceDue    = Math.max(netTotal - totalPaid, 0);
 
     // Build payment records
     const payments = validPayments.map(p => ({
@@ -109,9 +115,9 @@ Deno.serve(async (req) => {
       },
       academicYear: academicYear,
       summary: {
-        gross: invoice.gross_total || 0,
-        discount: invoice.discount_total || 0,
-        net: net,
+        gross: grossTotal,
+        discount: discountTotal,
+        net: netTotal,
         totalPaid: totalPaid,
         balanceDue: balanceDue
       },
