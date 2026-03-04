@@ -80,7 +80,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
 
       if (recipientType === 'individual') {
         if (!selectedRecipient) { setSending(false); return; }
-        await base44.entities.Message.create({
+        const res = await base44.functions.invoke('sendMessage', {
           sender_id: sender.id,
           sender_name: sender.name,
           sender_role: sender.role,
@@ -89,41 +89,63 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
           recipient_name: selectedRecipient.name,
           subject: subject.trim(),
           body: body.trim(),
-          is_read: false,
           thread_id: threadId,
           parent_message_id: replyTo?.id || null,
           academic_year: academicYear,
           subject_area: subjectArea || null,
         });
+        if (res.status !== 200) {
+          const errorMsg = res.data?.error || 'Failed to send message';
+          if (res.status === 429) {
+            const retryAfter = res.data?.retryAfterSeconds;
+            const retryMsg = retryAfter ? ` Try again in ${Math.ceil(retryAfter / 60)} minutes.` : '';
+            alert(`Rate limit: ${errorMsg}.${retryMsg}`);
+          } else {
+            alert(errorMsg);
+          }
+          setSending(false);
+          return;
+        }
       } else {
         if (!targetClass) { setSending(false); return; }
         const filter = { class_name: targetClass, status: 'Published' };
         if (recipientType === 'section') filter.section = targetSection;
         const students = await base44.entities.Student.filter(filter).catch(() => []);
         if (students.length === 0) { setSending(false); return; }
-        await base44.entities.Message.bulkCreate(
-          students.map(s => ({
-            sender_id: sender.id,
-            sender_name: sender.name,
-            sender_role: sender.role,
-            recipient_type: recipientType,
+        const res = await base44.functions.invoke('sendMessage', {
+          sender_id: sender.id,
+          sender_name: sender.name,
+          sender_role: sender.role,
+          recipient_type: recipientType,
+          academic_year: academicYear,
+          subject: subject.trim(),
+          body: body.trim(),
+          thread_id: threadId,
+          messages: students.map(s => ({
             recipient_id: s.student_id,
             recipient_name: s.name,
             recipient_class: targetClass,
             recipient_section: s.section,
-            subject: subject.trim(),
-            body: body.trim(),
-            is_read: false,
-            thread_id: threadId,
-            academic_year: academicYear,
-            subject_area: subjectArea || null,
-          }))
-        );
+          })),
+        });
+        if (res.status !== 200) {
+          const errorMsg = res.data?.error || 'Failed to send message';
+          if (res.status === 429) {
+            const retryAfter = res.data?.retryAfterSeconds;
+            const retryMsg = retryAfter ? ` Try again in ${Math.ceil(retryAfter / 60)} minutes.` : '';
+            alert(`Rate limit: ${errorMsg}.${retryMsg}`);
+          } else {
+            alert(errorMsg);
+          }
+          setSending(false);
+          return;
+        }
       }
       onSent?.();
       onClose();
     } catch (error) {
       console.error('Failed to send message:', error);
+      alert('Error sending message');
     } finally {
       setSending(false);
     }
