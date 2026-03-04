@@ -78,12 +78,18 @@ Deno.serve(async (req) => {
       : allPayments.filter(p => p.status !== 'VOID' && p.status !== 'CANCELLED')
           .sort((a, b) => new Date(a.payment_date) - new Date(b.payment_date));
 
-    // Calculate total paid: ALL non-VOID payments (ANNUAL + ADHOC)
+    // Calculate total paid (cash only): excludes TRANSPORT_ADJUSTMENT entries
     let totalPaid = 0;
+    // Track transport adjustments separately (they affect balance but not cash)
+    let transportAdjustmentTotal = 0;
     allPayments.forEach(p => {
-      if (p.status !== 'VOID' && p.status !== 'CANCELLED' && !p.is_reversed) {
-        totalPaid += p.amount_paid || 0;
+      if (p.status === 'VOID' || p.status === 'CANCELLED' || p.is_reversed) return;
+      if (p.entry_type === 'TRANSPORT_ADJUSTMENT') {
+        // Positive = extra charge (increases balance), negative = credit (reduces balance)
+        transportAdjustmentTotal += p.amount_paid || 0;
+        return;
       }
+      totalPaid += p.amount_paid || 0;
     });
 
     // ── Correct summary calculation (matches on-screen ledger) ──
@@ -93,7 +99,8 @@ Deno.serve(async (req) => {
     const grossTotal  = annualGross + adhocGross;
 
     const discountTotal = annualInvoice.discount_total || 0;
-    const netTotal      = grossTotal - discountTotal;
+    // Transport adjustments (for locked invoices) modify the effective net total
+    const netTotal      = grossTotal - discountTotal + transportAdjustmentTotal;
     const balanceDue    = Math.max(netTotal - totalPaid, 0);
 
     // Build payment records
