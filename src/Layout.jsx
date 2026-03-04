@@ -178,28 +178,26 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation */}
       <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
-        {/* DEBUG: remove after testing */}
-        <div className="text-[9px] text-center text-gray-400 pt-0.5">role={userRole || 'none'}</div>
+        {/* DEBUG label — remove after confirming role detection */}
+        <div className="text-[9px] text-center text-gray-400 pt-0.5 leading-none">
+          role={userRole || 'none'}
+        </div>
         <div className="flex items-center justify-around py-1">
           {getBottomNav(isAdmin, userRole).map((item) => {
               const isActive = currentPageName === item.page;
+              const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
               return (
                 <Link
-                  key={item.page}
-                  to={createPageUrl(item.page)}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all relative ${
-                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`
-                  }>
-
-                <item.icon className={`h-6 w-6 ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
-                <span className={`text-[10px] font-medium ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                  {item.name}
-                </span>
-                {isActive &&
-                  <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />
-                  }
-              </Link>);
-
+                  key={item.name}
+                  to={href}
+                  className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-h-[48px] justify-center ${
+                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
+                  <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                    {item.name}
+                  </span>
+                  {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
+                </Link>);
             })}
         </div>
       </nav>
