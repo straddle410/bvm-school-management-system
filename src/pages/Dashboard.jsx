@@ -339,6 +339,25 @@ export default function Dashboard() {
           </section>
         )}
 
+        {/* Finance Dashboard - accountant only */}
+        {userRole === 'accountant' && (
+          <section>
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Finance</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {accountantFinanceActions
+                .filter(item => !!userPermissions[item.permKey])
+                .map((item) => (
+                  <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        )}
+
         {/* Quick Actions - staff only */}
         {isStaff && visibleQuickActions.length > 0 && (
           <section>
