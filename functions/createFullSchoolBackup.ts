@@ -26,14 +26,10 @@ Deno.serve(async (req) => {
     }
 
     const counts = {};
-    // Get current time in IST (UTC+5:30)
-    const now = new Date();
-    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-    
     const payload = {
       meta: {
         schoolName: profile.school_name,
-        createdAt: istTime.toISOString(),
+        createdAt: new Date().toISOString(),
         backupType,
         academicYear: academicYear || null
       },

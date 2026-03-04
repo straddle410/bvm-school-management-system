@@ -3,7 +3,22 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
-import { formatIST } from '@/components/utils/istFormatter';
+// Display timestamps in IST using toLocaleString
+const formatTimestampIST = (timestamp, format = 'short') => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (format === 'short') {
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+  return date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+};
 
 export default function BackupHealthIndicator() {
   const [health, setHealth] = useState(null);
@@ -41,18 +56,20 @@ export default function BackupHealthIndicator() {
         overall: 'healthy'
       };
 
-      // Fees Backup Health (last 24 hours)
+      // Fees Backup Health (last 24 hours) - compare using UTC timestamps
       if (lastFeesBackup) {
-        const hoursAgo = (Date.now() - new Date(lastFeesBackup.created_date)) / (1000 * 60 * 60);
-        statuses.fees = hoursAgo < 24 ? 'ok' : 'warning';
+        const lastBackupTime = new Date(lastFeesBackup.created_date);
+        const hoursAgo = (Date.now() - lastBackupTime.getTime()) / (1000 * 60 * 60);
+        statuses.fees = hoursAgo <= 24 ? 'ok' : 'warning';
       } else {
         statuses.fees = 'warning';
       }
 
-      // Full Backup Health (last 7 days)
+      // Full Backup Health (last 7 days) - compare using UTC timestamps
       if (lastFullBackup) {
-        const daysAgo = (Date.now() - new Date(lastFullBackup.created_date)) / (1000 * 60 * 60 * 24);
-        statuses.full = daysAgo < 7 ? 'ok' : 'warning';
+        const lastBackupTime = new Date(lastFullBackup.created_date);
+        const daysAgo = (Date.now() - lastBackupTime.getTime()) / (1000 * 60 * 60 * 24);
+        statuses.full = daysAgo <= 7 ? 'ok' : 'warning';
       } else {
         statuses.full = 'warning';
       }
@@ -184,7 +201,7 @@ export default function BackupHealthIndicator() {
           </div>
           {health?.lastFeesBackup ? (
             <p className="text-xs text-gray-600">
-              Last: {formatIST(health.lastFeesBackup.created_date, 'short')}
+              Last: {formatTimestampIST(health.lastFeesBackup.created_date, 'short')}
             </p>
           ) : (
             <p className="text-xs text-gray-500">No backup found</p>
@@ -199,7 +216,7 @@ export default function BackupHealthIndicator() {
           </div>
           {health?.lastFullBackup ? (
             <p className="text-xs text-gray-600">
-              Last: {formatIST(health.lastFullBackup.created_date, 'short')}
+              Last: {formatTimestampIST(health.lastFullBackup.created_date, 'short')}
             </p>
           ) : (
             <p className="text-xs text-gray-500">No backup found</p>
