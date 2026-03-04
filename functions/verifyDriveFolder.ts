@@ -1,0 +1,61 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { folderId } = await req.json();
+
+    if (!folderId) {
+      return Response.json({ error: 'Folder ID required' }, { status: 400 });
+    }
+
+    // Get Google Drive access token
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
+
+    if (!accessToken) {
+      return Response.json({ error: 'Google Drive not authorized' }, { status: 401 });
+    }
+
+    // Verify folder exists and is accessible
+    const verifyResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${folderId}?fields=id,name,mimeType`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    if (!verifyResponse.ok) {
+      if (verifyResponse.status === 404) {
+        return Response.json({ error: 'Folder not found or not accessible' }, { status: 404 });
+      }
+      return Response.json({ error: 'Failed to verify folder' }, { status: 400 });
+    }
+
+    const folderData = await verifyResponse.json();
+
+    // Verify it's actually a folder
+    if (folderData.mimeType !== 'application/vnd.google-apps.folder') {
+      return Response.json({ error: 'Selected item is not a folder' }, { status: 400 });
+    }
+
+    return Response.json({
+      success: true,
+      folderId: folderData.id,
+      folderName: folderData.name
+    });
+  } catch (error) {
+    console.error('Verify folder error:', error);
+    return Response.json(
+      { error: 'Failed to verify folder' },
+      { status: 500 }
+    );
+  }
+});
