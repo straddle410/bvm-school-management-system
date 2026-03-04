@@ -216,54 +216,21 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    setFolderIdInput('');
-                    setShowFolderPickerDialog(true);
-                  }}
+                  onClick={() => setShowFolderPickerDialog(true)}
                   className="text-green-600 hover:text-green-700"
                 >
                   Change
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <p className="text-xs text-gray-600 mb-2">Paste Google Drive folder ID or share URL:</p>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="e.g., 1a2b3c4d5e6f7g8h9i or https://drive.google.com/drive/folders/..."
-                      value={folderIdInput}
-                      onChange={(e) => setFolderIdInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleVerifyFolder()}
-                      className="text-sm"
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleVerifyFolder}
-                      disabled={verifyLoading || !folderIdInput.trim()}
-                    >
-                      {verifyLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}
-                    </Button>
-                  </div>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="px-2 bg-gray-50 text-gray-500">Or</span>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setShowFolderPickerDialog(true)}
-                >
-                  <HardDrive className="h-4 w-4 mr-2" />
-                  Browse Google Drive
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowFolderPickerDialog(true)}
+              >
+                <HardDrive className="h-4 w-4 mr-2" />
+                Select Google Drive Folder
+              </Button>
             )}
           </div>
 
