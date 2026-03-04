@@ -24,11 +24,12 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock, CheckCheck
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from "sonner";
-import { Link, useNavigate } from 'react-router-dom';
+   Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock, CheckCheck
+ } from 'lucide-react';
+ import { format } from 'date-fns';
+ import { toast } from "sonner";
+ import { Link, useNavigate } from 'react-router-dom';
+ import LoginRequired from '@/components/LoginRequired';
 import { createPageUrl } from '@/utils';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
@@ -276,7 +277,8 @@ export default function Quiz() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'student']} pageName="Quiz">
+     <div className="min-h-screen bg-slate-50">
       <PageHeader 
         title="Daily Quiz"
         subtitle="Test your knowledge"
@@ -557,57 +559,77 @@ export default function Quiz() {
             </TabsContent>
 
             <TabsContent value="manage" className="mt-6">
-                <div className="space-y-4">
-                  {quizzes.map(quiz => {
-                    const attemptCount = attempts.filter(a => a.quiz_id === quiz.id).length;
-                    return (
-                      <Card key={quiz.id} className="border-0 shadow-sm">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                              <HelpCircle className="h-6 w-6 text-amber-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold">{quiz.title}</h3>
-                              <p className="text-sm text-slate-500">
-                                {quiz.subject} • {quiz.quiz_date}
-                              </p>
-                              {quiz.status === 'Published' && (
-                                <p className="text-xs text-blue-600 font-semibold mt-1">
-                                  {attemptCount} student{attemptCount !== 1 ? 's' : ''} answered
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <StatusBadge status={quiz.status} />
-                            {quiz.status === 'Draft' && (
-                              <Button 
-                                size="sm"
-                                onClick={() => submitQuizMutation.mutate(quiz.id)}
-                              >
-                                Publish
-                              </Button>
-                            )}
-                            {(userPermissions.quiz || user?.role === 'admin' || user?.role === 'Admin') && (
-                              <Button 
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => {
-                                  if (confirm('Are you sure you want to delete this quiz?')) {
-                                    deleteQuizMutation.mutate(quiz.id);
-                                  }
-                                }}
-                                disabled={deleteQuizMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                         <div className="space-y-4">
+                           {quizzes.map(quiz => {
+                             const attemptCount = attempts.filter(a => a.quiz_id === quiz.id).length;
+                             const isCreator = user && user.email && quiz.created_by_name && quiz.created_by_name.includes(user.email);
+                             const isAdmin = ['admin', 'principal', 'Admin', 'Principal'].includes(user?.role);
+                             const canSubmit = isCreator && (quiz.status === 'Draft' || quiz.status === 'Rejected') && !isAdmin;
+                             return (
+                               <Card key={quiz.id} className="border-0 shadow-sm">
+                                 <CardContent className="p-4 flex items-center justify-between">
+                                   <div className="flex items-center gap-4 flex-1">
+                                     <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                                       <HelpCircle className="h-6 w-6 text-amber-600" />
+                                     </div>
+                                     <div className="flex-1">
+                                       <h3 className="font-semibold">{quiz.title}</h3>
+                                       <p className="text-sm text-slate-500">
+                                         {quiz.subject} • {quiz.quiz_date}
+                                       </p>
+                                       {quiz.status === 'Published' && (
+                                         <p className="text-xs text-blue-600 font-semibold mt-1">
+                                           {attemptCount} student{attemptCount !== 1 ? 's' : ''} answered
+                                         </p>
+                                       )}
+                                       {quiz.status === 'Rejected' && quiz.rejection_reason && (
+                                         <p className="text-xs text-red-600 font-semibold mt-1">
+                                           Rejected: {quiz.rejection_reason}
+                                         </p>
+                                       )}
+                                     </div>
+                                   </div>
+                                   <div className="flex items-center gap-3">
+                                     <StatusBadge status={quiz.status} />
+                                     {canSubmit && (
+                                       <Button 
+                                         size="sm"
+                                         className="bg-amber-600 hover:bg-amber-700"
+                                         onClick={() => {
+                                           base44.functions.invoke('submitQuizForApproval', { quizId: quiz.id })
+                                             .then(res => {
+                                               if (res.status === 200) {
+                                                 toast.success('Quiz submitted for approval');
+                                                 queryClient.invalidateQueries(['quizzes']);
+                                               } else {
+                                                 toast.error(res.data?.error || 'Failed to submit');
+                                               }
+                                             })
+                                             .catch(() => toast.error('Error submitting quiz'));
+                                         }}
+                                       >
+                                         Submit for Approval
+                                       </Button>
+                                     )}
+                                     {(userPermissions.quiz || isAdmin) && (
+                                       <Button 
+                                         size="sm"
+                                         variant="destructive"
+                                         onClick={() => {
+                                           if (confirm('Are you sure you want to delete this quiz?')) {
+                                             deleteQuizMutation.mutate(quiz.id);
+                                           }
+                                         }}
+                                         disabled={deleteQuizMutation.isPending}
+                                       >
+                                         <Trash2 className="h-4 w-4" />
+                                       </Button>
+                                     )}
+                                   </div>
+                                 </CardContent>
+                               </Card>
+                             );
+                           })}
 
                   {quizzes.length === 0 && (
                     <div className="py-16 text-center">
@@ -804,5 +826,6 @@ export default function Quiz() {
         </DialogContent>
       </Dialog>
     </div>
+    </LoginRequired>
   );
 }
