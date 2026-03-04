@@ -9,12 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Notebook, Trash2 } from 'lucide-react';
+import { Plus, BookMarked, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { format } from 'date-fns';
 
-export default function Diary() {
+export default function Homework() {
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -24,7 +24,7 @@ export default function Diary() {
     class_name: '',
     section: 'A',
     subject: '',
-    diary_date: format(new Date(), 'yyyy-MM-dd'),
+    due_date: '',
   });
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
@@ -34,38 +34,38 @@ export default function Diary() {
     setUser(staffData);
   }, []);
 
-  const { data: diaryList = [], isLoading } = useQuery({
-    queryKey: ['diary', academicYear],
-    queryFn: () => base44.entities.Diary.filter({ academic_year: academicYear }, '-created_date'),
+  const { data: homeworkList = [], isLoading } = useQuery({
+    queryKey: ['homework', academicYear],
+    queryFn: () => base44.entities.Homework.filter({ academic_year: academicYear }, '-created_date'),
     enabled: !!academicYear,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Diary.create({ ...data, created_by: user?.email }),
+    mutationFn: (data) => base44.entities.Homework.create({ ...data, created_by: user?.email }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diary'] });
+      queryClient.invalidateQueries({ queryKey: ['homework'] });
       setShowForm(false);
       resetForm();
-      toast.success('Diary entry posted');
+      toast.success('Homework added');
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.Diary.update(editingItem.id, data),
+    mutationFn: (data) => base44.entities.Homework.update(editingItem.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diary'] });
+      queryClient.invalidateQueries({ queryKey: ['homework'] });
       setShowForm(false);
       setEditingItem(null);
       resetForm();
-      toast.success('Diary entry updated');
+      toast.success('Homework updated');
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Diary.delete(id),
+    mutationFn: (id) => base44.entities.Homework.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diary'] });
-      toast.success('Diary entry deleted');
+      queryClient.invalidateQueries({ queryKey: ['homework'] });
+      toast.success('Homework deleted');
     },
   });
 
@@ -76,7 +76,7 @@ export default function Diary() {
       class_name: '',
       section: 'A',
       subject: '',
-      diary_date: format(new Date(), 'yyyy-MM-dd'),
+      due_date: '',
     });
   };
 
@@ -97,7 +97,7 @@ export default function Diary() {
       class_name: item.class_name,
       section: item.section || 'A',
       subject: item.subject,
-      diary_date: item.diary_date,
+      due_date: item.due_date,
     });
     setShowForm(true);
   };
@@ -105,16 +105,16 @@ export default function Diary() {
   const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Diary">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Homework">
       <div className="min-h-screen bg-gray-50 py-6 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <Notebook className="h-8 w-8 text-pink-600" />
+              <BookMarked className="h-8 w-8 text-purple-600" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Class Diary</h1>
-                <p className="text-gray-600 text-sm">Daily class updates and activities</p>
+                <h1 className="text-3xl font-bold text-gray-900">Homework</h1>
+                <p className="text-gray-600 text-sm">Manage and assign homework</p>
               </div>
             </div>
             <Button
@@ -123,43 +123,43 @@ export default function Diary() {
                 resetForm();
                 setShowForm(true);
               }}
-              className="bg-pink-600 hover:bg-pink-700"
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              <Plus className="h-4 w-4 mr-2" /> Post Diary
+              <Plus className="h-4 w-4 mr-2" /> Add Homework
             </Button>
           </div>
 
           {/* List */}
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="inline-block w-8 h-8 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin" />
+              <div className="inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
             </div>
-          ) : diaryList.length === 0 ? (
+          ) : homeworkList.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-              <Notebook className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No diary entries yet</p>
-              <Button onClick={() => setShowForm(true)} className="bg-pink-600 hover:bg-pink-700">
-                <Plus className="h-4 w-4 mr-2" /> Post First Entry
+              <BookMarked className="h-12 w-12 text-gray-200 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No homework assigned yet</p>
+              <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="h-4 w-4 mr-2" /> Create First Homework
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
-              {diaryList.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow border-l-4 border-pink-500">
+              {homeworkList.map((item) => (
+                <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900">{item.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                       <div className="flex gap-2 mt-2 flex-wrap">
-                        <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                           Class {item.class_name}-{item.section}
                         </span>
                         {item.subject && (
                           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject}</span>
                         )}
-                        {item.diary_date && (
-                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                            {format(new Date(item.diary_date + 'T00:00:00'), 'MMM d, yyyy')}
+                        {item.due_date && (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                            Due: {format(new Date(item.due_date), 'MMM d, yyyy')}
                           </span>
                         )}
                       </div>
@@ -175,7 +175,7 @@ export default function Diary() {
                       </Button>
                       <Button
                         onClick={() => {
-                          if (confirm('Delete this entry?')) {
+                          if (confirm('Delete this homework?')) {
                             deleteMutation.mutate(item.id);
                           }
                         }}
@@ -196,7 +196,7 @@ export default function Diary() {
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>{editingItem ? 'Edit Entry' : 'Post Diary Entry'}</DialogTitle>
+                <DialogTitle>{editingItem ? 'Edit Homework' : 'Add Homework'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -204,7 +204,7 @@ export default function Diary() {
                   <Input
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="e.g., Today's Lesson on Fractions"
+                    placeholder="e.g., Chapter 5 Exercises"
                     required
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function Diary() {
                   <Textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="What was taught, activities, homework, etc."
+                    placeholder="Assignment details"
                     rows={3}
                     required
                   />
@@ -257,12 +257,11 @@ export default function Diary() {
                   />
                 </div>
                 <div>
-                  <Label>Date *</Label>
+                  <Label>Due Date</Label>
                   <Input
                     type="date"
-                    value={form.diary_date}
-                    onChange={(e) => setForm({ ...form, diary_date: e.target.value })}
-                    required
+                    value={form.due_date}
+                    onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                   />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
@@ -279,10 +278,10 @@ export default function Diary() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-pink-600 hover:bg-pink-700"
+                    className="bg-purple-600 hover:bg-purple-700"
                     disabled={createMutation.isPending || updateMutation.isPending}
                   >
-                    {editingItem ? 'Update' : 'Post'} Entry
+                    {editingItem ? 'Update' : 'Add'} Homework
                   </Button>
                 </div>
               </form>

@@ -106,6 +106,7 @@ import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import RbacTest from './pages/RbacTest';
+import Homework from './pages/Homework';
 import __Layout from './Layout.jsx';
 
 
@@ -169,6 +170,7 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "RbacTest": RbacTest,
+    "Homework": Homework,
 }
 
 export const pagesConfig = {
