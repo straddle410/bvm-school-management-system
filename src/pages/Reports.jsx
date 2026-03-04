@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 import LoginRequired from '@/components/LoginRequired';
 import { useQuery } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
@@ -25,6 +26,7 @@ const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 export default function Reports() {
+  const { academicYear } = useAcademicYear();
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedExam, setSelectedExam] = useState('all');
 
