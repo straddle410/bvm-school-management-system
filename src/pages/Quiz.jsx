@@ -291,9 +291,12 @@ export default function Quiz() {
                 <CheckCheck className="mr-1.5 h-3.5 w-3.5" /> Mark All Read
               </Button>
             )}
-            {userPermissions.quiz && (
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Post Quiz
+            {(userPermissions.quiz || isTeacher) && (
+              <Button onClick={() => {
+                resetQuizForm();
+                setShowCreateDialog(true);
+              }} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="mr-2 h-4 w-4" /> Create Quiz
               </Button>
             )}
           </div>

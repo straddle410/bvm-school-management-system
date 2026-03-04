@@ -222,10 +222,14 @@ export default function Notices() {
             )}
             {isStaff && (
               <Button
-                onClick={() => setShowDialog(true)}
-                className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-bold text-sm"
+                onClick={() => {
+                  setEditingNotice(null);
+                  resetForm();
+                  setShowDialog(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
               >
-                <Plus className="h-4 w-4 mr-1" /> Post
+                <Plus className="h-4 w-4 mr-1" /> {isAdmin ? 'Post Notice' : 'Create Notice'}
               </Button>
             )}
           </div>
