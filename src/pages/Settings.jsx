@@ -713,6 +713,10 @@ export default function Settings() {
             <ClassSubjectConfigTab />
           </TabsContent>
 
+          <TabsContent value="data-reset" className="mt-6">
+            <DataResetTab schoolProfiles={schoolProfiles} academicYears={academicYears} />
+          </TabsContent>
+
           <TabsContent value="notifications" className="mt-6 space-y-6">
             <NotificationSettingsSection />
 
