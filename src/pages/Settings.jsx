@@ -812,9 +812,10 @@ export default function Settings() {
               isAdmin={true}
               schoolProfile={schoolProfiles[0]}
             />
-          </TabsContent>
+          )}
 
-          <TabsContent value="data-reset" className="mt-6">
+          {/* Data Reset */}
+          {activeItem === 'data-reset' && (
             <DataResetTab schoolProfiles={schoolProfiles} academicYears={academicYears} />
           </TabsContent>
 
