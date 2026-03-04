@@ -673,9 +673,10 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            )}
 
-          <TabsContent value="subjects" className="mt-6">
+            {/* Subjects */}
+            {activeItem === 'subjects' && (
             <Card className="border-0 shadow-sm">
               <CardHeader>
                 <CardTitle>Subjects</CardTitle>
