@@ -1,0 +1,41 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userRole = (user.role || '').toLowerCase();
+    if (!['admin', 'principal'].includes(userRole)) {
+      return Response.json({ error: 'Forbidden: Admin/Principal only' }, { status: 403 });
+    }
+
+    const { noticeId } = await req.json();
+    if (!noticeId) {
+      return Response.json({ error: 'noticeId required' }, { status: 400 });
+    }
+
+    const notice = await base44.entities.Notice.get(noticeId);
+    if (!notice) {
+      return Response.json({ error: 'Notice not found' }, { status: 404 });
+    }
+
+    if (notice.status !== 'PendingApproval') {
+      return Response.json({ error: `Cannot approve from ${notice.status} status` }, { status: 400 });
+    }
+
+    await base44.entities.Notice.update(noticeId, { 
+      status: 'Published',
+      publish_date: new Date().toISOString().split('T')[0]
+    });
+    
+    return Response.json({ success: true, status: 'Published' });
+
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
