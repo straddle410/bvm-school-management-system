@@ -87,10 +87,20 @@ Deno.serve(async (req) => {
 
     // If auto-export enabled, export to Drive
     if (profile.auto_export_full_backup_to_drive && profile.full_backup_drive_folder_id) {
-      await base44.asServiceRole.functions.invoke('exportFullSchoolBackupToDrive', {
-        backupId: backup.id,
-        folderId: profile.full_backup_drive_folder_id
-      });
+     console.log(`[CreateBackup] Auto-export enabled. Triggering export for backup ${backup.id}`);
+     console.log(`[CreateBackup] auto_export_full_backup_to_drive=${profile.auto_export_full_backup_to_drive}, folder=${profile.full_backup_drive_folder_id}`);
+     try {
+       const exportRes = await base44.asServiceRole.functions.invoke('exportFullSchoolBackupToDrive', {
+         backupId: backup.id,
+         folderId: profile.full_backup_drive_folder_id
+       });
+       console.log(`[CreateBackup] Export triggered successfully`);
+     } catch (exportErr) {
+       console.error(`[CreateBackup] Export failed: ${exportErr.message}`);
+       // Don't rethrow - backup is already created, just export failed (will be marked FAILED by export function)
+     }
+    } else {
+     console.log(`[CreateBackup] Auto-export disabled or no folder configured. auto_export=${profile.auto_export_full_backup_to_drive}, folder=${profile.full_backup_drive_folder_id}`);
     }
 
     // Retention: keep last 12 WEEKLY_AUTO backups
