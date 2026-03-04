@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Filter } from 'lucide-react';
+import { ArrowLeft, Filter, Lock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import AttendanceAnalytics from '@/components/analytics/AttendanceAnalytics.jsx';
 import PerformanceAnalytics from '@/components/analytics/PerformanceAnalytics.jsx';
 import StudentAnalyticsModal from '@/components/analytics/StudentAnalyticsModal.jsx';
@@ -86,7 +87,7 @@ export default function AnalyticsDashboard() {
   const isAdmin = user?.role?.toLowerCase() === 'admin';
   const isTeacher = user?.role?.toLowerCase() === 'teacher';
   const isPrincipal = user?.role?.toLowerCase() === 'principal';
-  const hasAccess = isAdmin || isPrincipal || isTeacher;
+  const hasAccess = isAdmin || isPrincipal;
 
   if (loading) {
     return (
@@ -100,9 +101,12 @@ export default function AnalyticsDashboard() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center max-w-md mx-auto">
-        <div className="text-center">
-          <p className="text-gray-600">You don't have access to Analytics</p>
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center p-4">
+        <div className="text-center bg-white rounded-lg p-8 max-w-sm shadow-sm">
+          <Lock className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+          <p className="text-sm text-gray-600 mb-6">You do not have permission to access this page.</p>
+          <Button onClick={() => window.history.back()} variant="outline">Go Back</Button>
         </div>
       </div>
     );
