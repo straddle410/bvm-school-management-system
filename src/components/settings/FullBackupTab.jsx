@@ -148,12 +148,10 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     const a = document.createElement('a');
     a.href = url;
     const istDate = formatISTDate(backup.created_date);
-    const istTime = new Date(backup.created_date).toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(':', '');
+    // Parse timestamp as local time already (no timezone conversion)
+    const timestampStr = typeof backup.created_date === 'string' ? backup.created_date : backup.created_date.toString();
+    const timeParts = timestampStr.split('T')[1].split(':');
+    const istTime = `${timeParts[0]}${timeParts[1]}`;
     a.download = `FullBackup_${backup.academic_year || 'ALL'}_${istDate}_${istTime}.json`;
     a.click();
     window.URL.revokeObjectURL(url);
