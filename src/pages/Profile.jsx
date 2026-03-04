@@ -155,7 +155,7 @@ export default function Profile() {
   }
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher']}>
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'accountant']}>
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-2xl mx-auto">
           <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 text-[#1a237e] hover:opacity-70 font-medium">
