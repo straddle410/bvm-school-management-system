@@ -18,15 +18,6 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
   useEffect(() => {
     const session = getStaffSession();
     setUser(session);
-
-    // If user just logged in, redirect to the stored URL if available
-    if (session && typeof window !== 'undefined') {
-      const postLoginUrl = sessionStorage.getItem('postLoginRedirect');
-      if (postLoginUrl) {
-        sessionStorage.removeItem('postLoginRedirect');
-        window.location.href = postLoginUrl;
-      }
-    }
   }, []);
 
   if (user === undefined) {
@@ -50,7 +41,11 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
           </p>
           <Button
             className="w-full bg-[#1a237e] hover:bg-[#283593] text-white rounded-xl"
-            onClick={() => window.location.href = createPageUrl('StaffLogin')}
+            onClick={() => {
+              // Save intended destination so StaffLogin can redirect back after login
+              sessionStorage.setItem('postLoginRedirect', window.location.href);
+              window.location.href = createPageUrl('StaffLogin');
+            }}
           >
             <LogIn className="h-4 w-4 mr-2" />
             Login
