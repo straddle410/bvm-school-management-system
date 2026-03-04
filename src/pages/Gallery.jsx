@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Upload, X, Check, ChevronLeft, Image, ChevronRight } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
+import LoginRequired from '@/components/LoginRequired';
+import { toast } from 'sonner';
 
 export default function Gallery() {
   const [user, setUser] = useState(undefined);
@@ -30,11 +32,11 @@ export default function Gallery() {
     }
   }, []);
 
-  const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin';
-  const hasGalleryPermission = user?.permissions?.gallery === true;
-  const canUpload = isAdmin || hasGalleryPermission;
-  const canCreateAlbum = isAdmin || hasGalleryPermission;
-  const needsApproval = !isAdmin && user?.permissions?.gallery_needs_approval !== false;
+  const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin' || user?.role === 'principal';
+   const hasGalleryPermission = user?.permissions?.gallery === true;
+   const canUpload = isAdmin || hasGalleryPermission;
+   const canCreateAlbum = isAdmin || hasGalleryPermission;
+   const needsApproval = !isAdmin;
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums'],
@@ -58,15 +60,34 @@ export default function Gallery() {
 
   const visiblePhotos = isAdmin
     ? allPhotos
-    : allPhotos.filter(p => p.status === 'Published' || p.status === 'Approved' || (canUpload && p.uploaded_by === user?.email));
+    : allPhotos.filter(p => p.status === 'Published' || (canUpload && p.uploaded_by === user?.email));
 
   const handleUploadSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
   };
 
+  const submitMutation = useMutation({
+    mutationFn: async (id) => {
+      const res = await base44.functions.invoke('submitGalleryForApproval', { photoId: id });
+      if (res.status !== 200) throw new Error(res.data?.error || 'Failed to submit');
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
+      toast.success('Photo submitted for approval');
+    }
+  });
+
   const approveMutation = useMutation({
-    mutationFn: (id) => base44.entities.GalleryPhoto.update(id, { status: 'Published' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] })
+    mutationFn: async (id) => {
+      const res = await base44.functions.invoke('approveGallery', { photoId: id });
+      if (res.status !== 200) throw new Error(res.data?.error || 'Failed to approve');
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
+      toast.success('Photo approved');
+    }
   });
 
   const deleteMutation = useMutation({
@@ -128,9 +149,10 @@ export default function Gallery() {
 
   // ── Album Photo Grid ──────────────────────────────────────────────────────
   if (selectedAlbum) {
-    const pendingCount = allPhotos.filter(p => p.status === 'Pending').length;
+    const pendingCount = allPhotos.filter(p => ['Draft', 'PendingApproval'].includes(p.status)).length;
 
     return (
+      <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Gallery">
       <div className="bg-white min-h-screen">
         {/* Album header */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
@@ -175,26 +197,36 @@ export default function Gallery() {
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
-                  {photo.status === 'Pending' && (
+                  {['Draft', 'PendingApproval'].includes(photo.status) && (
                     <div className="absolute inset-0 bg-black/30 flex items-end p-1">
-                      <span className="text-white text-[8px] font-bold bg-amber-500 px-1.5 py-0.5 rounded-full">Pending</span>
+                      <span className={`text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                        photo.status === 'Draft' ? 'bg-gray-500' : 'bg-amber-500'
+                      }`}>{photo.status === 'Draft' ? 'Draft' : 'Pending'}</span>
                     </div>
                   )}
-                  {isAdmin && (
+                  {isAdmin && photo.status === 'PendingApproval' && (
                     <div className="absolute top-1 right-1 flex gap-0.5">
-                      {photo.status === 'Pending' && (
-                        <button
-                          onClick={e => { e.stopPropagation(); approveMutation.mutate(photo.id); }}
-                          className="bg-green-500 text-white rounded-full p-1 shadow"
-                        >
-                          <Check className="h-2.5 w-2.5" />
-                        </button>
-                      )}
+                      <button
+                        onClick={e => { e.stopPropagation(); approveMutation.mutate(photo.id); }}
+                        className="bg-green-500 text-white rounded-full p-1 shadow"
+                      >
+                        <Check className="h-2.5 w-2.5" />
+                      </button>
                       <button
                         onClick={e => { e.stopPropagation(); deleteMutation.mutate(photo.id); }}
                         className="bg-red-500 text-white rounded-full p-1 shadow"
                       >
                         <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  )}
+                  {!isAdmin && canUpload && photo.status === 'Draft' && (
+                    <div className="absolute top-1 right-1">
+                      <button
+                        onClick={e => { e.stopPropagation(); submitMutation.mutate(photo.id); }}
+                        className="bg-amber-500 text-white rounded-full p-1 shadow"
+                      >
+                        <Check className="h-2.5 w-2.5" />
                       </button>
                     </div>
                   )}
@@ -256,13 +288,15 @@ export default function Gallery() {
           needsApproval={needsApproval}
           onUploadSuccess={handleUploadSuccess}
         />
-      </div>
-    );
-  }
+        </div>
+        </LoginRequired>
+        );
+        }
 
-  // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
-  return (
-    <div className="bg-white min-h-screen">
+        // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
+        return (
+        <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Gallery">
+        <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-end justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Albums</h1>
@@ -356,7 +390,8 @@ export default function Gallery() {
             </Button>
           </div>
         </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+        </Dialog>
+        </div>
+        </LoginRequired>
+        );
+        }
