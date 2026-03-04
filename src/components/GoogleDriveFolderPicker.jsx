@@ -135,13 +135,14 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
       };
 
       tryOpenPicker();
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Failed to open folder picker';
+      } catch (err) {
+      console.error('Picker error:', err);
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to open folder picker';
       setError(errorMsg);
       toast.error(errorMsg);
       setLoading(false);
-    }
-  };
+      }
+      };
 
   // Handle picker callback
   const handlePickerCallback = (data) => {
