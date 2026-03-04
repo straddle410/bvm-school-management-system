@@ -96,9 +96,10 @@ export default function FeesBackupTab({ isAdmin, schoolProfile }) {
     },
     onSuccess: (val) => {
       setAutoExportEnabled(val);
-      qc.invalidateQueries(['school-profile']);
+      qc.invalidateQueries(['fees-backups']);
       toast.success(val ? 'Auto Drive export enabled' : 'Auto Drive export disabled');
-    }
+    },
+    onError: (err) => toast.error(`Failed to save setting: ${err.message}`)
   });
 
   const handleDownload = (backup) => {
