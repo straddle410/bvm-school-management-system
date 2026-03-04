@@ -90,8 +90,8 @@ export default function Dashboard() {
   const quickActions = [
     { label: 'Attendance', icon: CheckSquare, page: 'Attendance', gradient: 'from-blue-400 to-blue-600' },
     { label: 'Marks Entry', icon: BookOpen, page: 'Marks', gradient: 'from-green-400 to-green-600' },
-    { label: 'Homework', icon: BookMarked, page: 'HomeworkManage', gradient: 'from-purple-400 to-purple-600' },
-    { label: 'Diary', icon: Notebook, page: 'DiaryManagement', gradient: 'from-pink-400 to-pink-600' },
+    { label: 'Homework', icon: BookMarked, page: 'Homework', gradient: 'from-purple-400 to-purple-600' },
+    { label: 'Diary', icon: Notebook, page: 'Diary', gradient: 'from-pink-400 to-pink-600' },
     { label: 'Notices', icon: Bell, page: 'Notices', gradient: 'from-yellow-400 to-yellow-600' },
     { label: 'Quiz', icon: ListChecks, page: 'Quiz', gradient: 'from-indigo-400 to-indigo-600' },
     { label: 'Gallery', icon: Image, page: 'Gallery', gradient: 'from-orange-400 to-orange-600' },
