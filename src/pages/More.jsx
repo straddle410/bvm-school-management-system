@@ -318,6 +318,13 @@ export default function More() {
                    </div>
                  )}
 
+                 {/* Profile - Teachers & Staff (non-admin) */}
+                 {!isAdmin && isTeacher && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <MenuItem item={{ label: 'Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' }} showArrow={false} />
+                   </div>
+                 )}
+
                  {/* Support */}
                  <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                    <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Support</p>
