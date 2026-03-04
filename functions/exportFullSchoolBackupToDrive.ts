@@ -36,19 +36,25 @@ Deno.serve(async (req) => {
 
     // Upload to Google Drive
     const fileContent = JSON.stringify(backup.file_json, null, 2);
-    const blob = new Blob([fileContent], { type: 'application/json' });
-    const formData = new FormData();
-    formData.append('metadata', JSON.stringify({
-      name: filename,
-      parents: [folderId],
-      mimeType: 'application/json'
-    }));
-    formData.append('file', blob, filename);
+    const boundary = '===============7330845974216740156==';
+    const bodyParts = [
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({
+        name: filename,
+        parents: [folderId],
+        mimeType: 'application/json'
+      })}\r\n`,
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${fileContent}\r\n`,
+      `--${boundary}--`
+    ];
+    const body = bodyParts.join('');
 
     const uploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${accessToken}` },
-      body: formData
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': `multipart/related; boundary="${boundary}"`
+      },
+      body: body
     });
 
     if (!uploadRes.ok) {
