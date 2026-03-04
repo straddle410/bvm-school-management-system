@@ -232,12 +232,12 @@ Deno.serve(async (req) => {
         }
       };
 
-      // Step 7: Cleanup
+      // Step 7: Cleanup (soft-delete students, cancel invoices)
       await Promise.all([
-        base44.asServiceRole.entities.Student.delete(noTransStudent.id),
-        base44.asServiceRole.entities.Student.delete(withTransStudent.id),
-        base44.asServiceRole.entities.FeeInvoice.delete(invNoTrans.id),
-        base44.asServiceRole.entities.FeeInvoice.delete(invWithTrans.id)
+        base44.asServiceRole.entities.Student.update(noTransStudent.id, { is_deleted: true, is_active: false }),
+        base44.asServiceRole.entities.Student.update(withTransStudent.id, { is_deleted: true, is_active: false }),
+        base44.asServiceRole.entities.FeeInvoice.update(invNoTrans.id, { status: 'Cancelled' }),
+        base44.asServiceRole.entities.FeeInvoice.update(invWithTrans.id, { status: 'Cancelled' })
       ]);
       // Leave transport_fee_amount = 10000 as requested by user
 
