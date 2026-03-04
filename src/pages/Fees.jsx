@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
