@@ -72,92 +72,162 @@ export function useGoogleDriveFolderPicker() {
   return { openFolderPicker };
 }
 
-// For now, we'll use a simple approach: a modal dialog where users paste their folder ID
-// This works with Base44's OAuth constraints and doesn't require complex Picker API setup
 export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelect }) {
-  const [folderId, setFolderId] = React.useState('');
-  const [folderName, setFolderName] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const pickerRef = useRef(null);
+  const accessTokenRef = useRef(null);
 
-  const handleSelectFolder = async () => {
-    if (!folderId.trim()) {
-      toast.error('Please enter a folder ID');
-      return;
-    }
+  // Load Google API and Picker scripts
+  useEffect(() => {
+    if (!isOpen) return;
 
-    setLoading(true);
-    try {
-      // Verify the folder exists and is accessible
-      const response = await base44.functions.invoke('verifyDriveFolder', {
-        folderId: folderId.trim()
-      });
-
-      if (response.data.success) {
-        onSelect({
-          folderId: folderId.trim(),
-          folderName: folderName.trim() || response.data.folderName || 'Full Backups Folder'
-        });
-        setFolderId('');
-        setFolderName('');
-        onClose();
+    const loadScripts = () => {
+      // Load Google API
+      if (!window.gapi) {
+        const gapiScript = document.createElement('script');
+        gapiScript.src = 'https://apis.google.com/js/api.js';
+        gapiScript.async = true;
+        gapiScript.defer = true;
+        gapiScript.onload = () => initGooglePicker();
+        document.body.appendChild(gapiScript);
       } else {
-        toast.error('Folder not accessible or invalid');
+        initGooglePicker();
       }
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to verify folder');
-    } finally {
+
+      // Load Google Platform
+      if (!window.google?.picker) {
+        const platformScript = document.createElement('script');
+        platformScript.src = 'https://apis.google.com/js/platform.js';
+        platformScript.async = true;
+        platformScript.defer = true;
+        document.body.appendChild(platformScript);
+      }
+    };
+
+    const initGooglePicker = () => {
+      if (window.gapi && window.gapi.load) {
+        window.gapi.load('picker', {
+          callback: () => {
+            // Picker API loaded
+          }
+        });
+      }
+    };
+
+    loadScripts();
+  }, [isOpen]);
+
+  // Open folder picker
+  const openFolderPicker = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      // Get access token from backend
+      const tokenRes = await base44.functions.invoke('selectDriveFolder', {});
+
+      if (!tokenRes.data?.accessToken) {
+        setError('Google Drive not connected. Please authorize access first.');
+        toast.error('Google Drive not connected');
+        setLoading(false);
+        return;
+      }
+
+      accessTokenRef.current = tokenRes.data.accessToken;
+
+      // Wait for Picker API to be ready
+      const maxAttempts = 20;
+      let attempts = 0;
+
+      const tryOpenPicker = () => {
+        if (window.google?.picker && accessTokenRef.current) {
+          const picker = new window.google.picker.PickerBuilder()
+            .addView(new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS))
+            .setOAuthToken(accessTokenRef.current)
+            .setCallback(handlePickerCallback)
+            .build();
+
+          picker.setVisible(true);
+          setLoading(false);
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(tryOpenPicker, 100);
+        } else {
+          setError('Failed to load Google Picker. Please refresh and try again.');
+          toast.error('Google Picker failed to load');
+          setLoading(false);
+        }
+      };
+
+      tryOpenPicker();
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Failed to open folder picker';
+      setError(errorMsg);
+      toast.error(errorMsg);
       setLoading(false);
     }
   };
 
-  if (!isOpen) return null;
+  // Handle picker callback
+  const handlePickerCallback = (data) => {
+    if (data[window.google.picker.Response.ACTION] === window.google.picker.Action.PICKED) {
+      const folder = data[window.google.picker.Response.DOCUMENTS][0];
+      onSelect({
+        folderId: folder.id,
+        folderName: folder.name
+      });
+      onClose();
+    } else if (data[window.google.picker.Response.ACTION] === window.google.picker.Action.CANCEL) {
+      // User cancelled the picker
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 space-y-4">
-        <h2 className="text-lg font-semibold">Select Google Drive Folder</h2>
-        
-        <div>
-          <label className="text-sm font-medium">Folder ID</label>
-          <input
-            type="text"
-            value={folderId}
-            onChange={(e) => setFolderId(e.target.value)}
-            placeholder="Paste folder ID from Drive URL"
-            className="w-full px-3 py-2 border rounded-lg text-sm mt-1"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Open the folder in Google Drive, copy the ID from the URL (the part after /folders/)
-          </p>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Select Google Drive Folder</DialogTitle>
+          <DialogDescription>
+            Choose a folder where weekly backups will be stored
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {error && (
+            <div className="flex gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          <div className="text-center py-6">
+            <Button
+              onClick={openFolderPicker}
+              disabled={loading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Opening Google Drive...
+                </>
+              ) : (
+                'Browse Google Drive'
+              )}
+            </Button>
+            <p className="text-xs text-gray-500 mt-3">
+              Click the button to open Google Drive folder browser
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label className="text-sm font-medium">Folder Name (optional)</label>
-          <input
-            type="text"
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            placeholder="e.g., School Backups"
-            className="w-full px-3 py-2 border rounded-lg text-sm mt-1"
-          />
-        </div>
-
-        <div className="flex gap-3 justify-end pt-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-          >
+        <div className="flex gap-3 justify-end pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            onClick={handleSelectFolder}
-            disabled={loading || !folderId.trim()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {loading ? 'Verifying...' : 'Select Folder'}
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
