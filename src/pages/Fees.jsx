@@ -14,6 +14,7 @@ import ReceiptSettings from '@/components/fees/ReceiptSettings';
 import DiscountManager from '@/components/fees/DiscountManager';
 import AdditionalChargesTab from '@/components/fees/AdditionalChargesTab';
 import FamilyManager from '@/components/fees/FamilyManager';
+import RecalculateTransportModal from '@/components/fees/RecalculateTransportModal';
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
