@@ -168,6 +168,25 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
         </div>
       </div>
 
+      {/* Transport */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Transport</p>
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Bus className="h-4 w-4 text-amber-600" />
+            <div>
+              <p className="text-sm font-medium text-slate-800">School Transport</p>
+              <p className="text-xs text-slate-500">Transport fee will be added to annual invoice</p>
+            </div>
+          </div>
+          <Switch
+            checked={!!formData.transport_enabled}
+            onCheckedChange={v => set('transport_enabled', v)}
+            disabled={dis}
+          />
+        </div>
+      </div>
+
       {/* Parent */}
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Parent / Guardian</p>
