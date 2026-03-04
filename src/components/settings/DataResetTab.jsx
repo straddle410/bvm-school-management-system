@@ -216,7 +216,24 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
     setConfirmSchool('');
     setConfirmDate('');
     setResetResult(null);
+    setBackupId(null);
     setSelectedModules(MODULES.filter(m => m.default).map(m => m.id));
+  };
+
+  const restoreFromBackup = async () => {
+    if (!backupId) return;
+    try {
+      await base44.functions.invoke('restoreFeesBackup', {
+        backupId,
+        restoreMode: 'MERGE',
+        confirmation_phrase: 'RESTORE FEES BACKUP',
+        confirmation_school_name: profile?.school_name,
+        confirmation_date: today
+      });
+      toast.success('Backup restored successfully!');
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message);
+    }
   };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
