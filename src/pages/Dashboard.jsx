@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
-import { ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, Notebook, ListChecks, Calendar, MoreHorizontal, AlertCircle } from 'lucide-react';
+import { ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, Notebook, ListChecks, Calendar, MessageSquare, MoreHorizontal, AlertCircle } from 'lucide-react';
 
 export default function Dashboard() {
   const { academicYear } = useAcademicYear();
@@ -95,6 +95,7 @@ export default function Dashboard() {
     { label: 'Notices', icon: Bell, page: 'Notices', gradient: 'from-yellow-400 to-yellow-600' },
     { label: 'Quiz', icon: ListChecks, page: 'Quiz', gradient: 'from-indigo-400 to-indigo-600' },
     { label: 'Gallery', icon: Image, page: 'Gallery', gradient: 'from-orange-400 to-orange-600' },
+    { label: 'Messages', icon: MessageSquare, page: 'Messaging', gradient: 'from-teal-400 to-teal-600' },
     { label: 'Timetable', icon: Calendar, page: 'TimetableManagement', gradient: 'from-cyan-400 to-cyan-600' },
   ];
 
