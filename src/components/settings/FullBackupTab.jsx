@@ -21,8 +21,7 @@ const DriveStatusBadge = ({ status }) => {
 
 export default function FullBackupTab({ profile, onProfileUpdate }) {
   const queryClient = useQueryClient();
-  const [showFolderDialog, setShowFolderDialog] = useState(false);
-  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [showFolderPickerDialog, setShowFolderPickerDialog] = useState(false);
 
   // Fetch backups
   const { data: backups = [], isLoading } = useQuery({
