@@ -206,15 +206,22 @@ export default function Dashboard() {
 
   const pendingApplicationsCount = yearReport?.summary?.total_pending || 0;
 
-  // For non-admin staff, filter quick actions based on their permissions
+  // For non-admin staff, filter quick actions based on their permissions.
+  // Permission key takes priority — if an item has a permKey, that permission must be granted.
+  // Role-name matching is used only as a fallback for items WITHOUT a permKey.
   const visibleQuickActions = quickActions.filter(item => {
+    if (!isStaff) return false;
+    if (isAdmin) {
+      // Admins see all items regardless of permKey or role
+      return true;
+    }
+    if (item.permKey) {
+      // Permission-gated: only show if permission is granted (ignores role name)
+      return !!userPermissions[item.permKey];
+    }
+    // No permKey: fall back to role-name matching
     if (!item.roleRequired) return false;
-    // Case-insensitive role check
-    const roleMatches = item.roleRequired.some(r => r.toLowerCase() === userRole);
-    if (!roleMatches) return false;
-    if (isAdmin) return true; // Admins see everything
-    if (!item.permKey) return true; // No permission key = always visible to role
-    return !!userPermissions[item.permKey]; // Check specific permission
+    return item.roleRequired.some(r => r.toLowerCase() === userRole);
   });
 
   const eventTypeColor = (type) => {
