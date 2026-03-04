@@ -16,13 +16,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Google Drive not authorized' }, { status: 401 });
     }
 
-    // The user will call this endpoint after selecting a folder in the browser
-    // The browser-side code will use the Google Picker API (which requires client-side auth)
-    // So this endpoint just returns the access token to verify auth status
+    // Return access token to frontend for Google Picker API
     return Response.json({
       success: true,
-      message: 'Google Drive is authorized. Ready for folder selection.',
-      hasAccessToken: !!accessToken
+      accessToken
     });
   } catch (error) {
     console.error('Drive folder selection error:', error);
