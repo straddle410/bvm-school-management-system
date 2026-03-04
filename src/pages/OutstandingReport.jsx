@@ -42,28 +42,45 @@ function OutstandingReportContent() {
 
   const effectiveDate = asOfDate || today;
 
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, error: fetchError } = useQuery({
     queryKey: ['outstanding-report', academicYear, effectiveDate, selectedClass, search, includeZero, viewMode, sort],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getOutstandingReport', {
-        academicYear,
-        asOfDate: asOfDate || undefined,
-        className: selectedClass || undefined,
-        search: search || undefined,
-        includeZeroOutstanding: includeZero,
-        onlyDue: viewMode === 'due',
-        onlyCredit: viewMode === 'credit',
-        sort,
-        page: 1,
-        pageSize: 500
-      });
-      return res.data;
+      try {
+        const res = await base44.functions.invoke('getOutstandingReport', {
+          academicYear,
+          asOfDate: asOfDate || undefined,
+          className: selectedClass || undefined,
+          search: search || undefined,
+          includeZeroOutstanding: includeZero,
+          onlyDue: viewMode === 'due',
+          onlyCredit: viewMode === 'credit',
+          sort,
+          page: 1,
+          pageSize: 500
+        });
+        return res.data;
+      } catch (err) {
+        if (err.response?.status === 403) return null;
+        throw err;
+      }
     },
     enabled: !!academicYear
   });
 
   const rows = data?.rows || [];
   const summary = data?.summary || {};
+
+  // Show access denied on 403
+  if (fetchError?.response?.status === 403) {
+    return (
+      <div className="p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+          <p className="text-sm text-red-600">You do not have permission to view financial reports.</p>
+        </div>
+      </div>
+    );
+  }
 
   const toggleSort = (field) => {
     const next = sort === `${field}_desc` ? `${field}_asc` : `${field}_desc`;
