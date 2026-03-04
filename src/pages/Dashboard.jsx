@@ -459,8 +459,8 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Upcoming Events */}
-        {upcomingEvents.length > 0 && (
+        {/* Upcoming Events - hidden for accountant */}
+        {userRole !== 'accountant' && upcomingEvents.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Upcoming Events</h2>
