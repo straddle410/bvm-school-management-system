@@ -432,8 +432,8 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Notices */}
-        {recentNotices.length > 0 && (
+        {/* Notices - hidden for accountant */}
+        {userRole !== 'accountant' && recentNotices.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Notices</h2>
