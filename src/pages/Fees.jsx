@@ -41,7 +41,7 @@ export default function Fees() {
   };
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Fees">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'accountant']} pageName="Fees">
       <div className="min-h-screen bg-slate-50">
         <PageHeader title="Fees" subtitle={`Annual fee management — ${academicYear}`} />
 
@@ -59,23 +59,27 @@ export default function Fees() {
         <div className="px-3 sm:px-4 lg:px-8 py-4">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="flex flex-wrap gap-1 h-auto mb-6">
-              <TabsTrigger value="ledger">Student Ledger</TabsTrigger>
-              <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>
+              {canViewLedger && <TabsTrigger value="ledger">Student Ledger</TabsTrigger>}
+              {canViewPayments && <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>}
               {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="families">Families</TabsTrigger>}
+              {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
+              {(isAdmin || canManageFamilies) && <TabsTrigger value="families">Families</TabsTrigger>}
               {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
+              {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
               {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
             </TabsList>
 
-            <TabsContent value="ledger">
-              <StudentLedger academicYear={academicYear} isArchivedYear={isArchivedYear} />
-            </TabsContent>
+            {canViewLedger && (
+              <TabsContent value="ledger">
+                <StudentLedger academicYear={academicYear} isArchivedYear={isArchivedYear} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="payments">
-              <PaymentsList academicYear={academicYear} isAdmin={isAdmin} canVoidReceipt={canVoidReceipt} />
-            </TabsContent>
+            {canViewPayments && (
+              <TabsContent value="payments">
+                <PaymentsList academicYear={academicYear} isAdmin={isAdmin} canVoidReceipt={canVoidReceipt} />
+              </TabsContent>
+            )}
 
             {isAdmin && (
               <TabsContent value="plans">
@@ -88,19 +92,19 @@ export default function Fees() {
               </TabsContent>
             )}
 
-            {isAdmin && (
+            {(isAdmin || canApplyDiscount) && (
               <TabsContent value="discounts">
                 <DiscountManager academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
             )}
 
-            {isAdmin && (
+            {(isAdmin || canManageFamilies) && (
               <TabsContent value="families">
                 <FamilyManager academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
             )}
 
-            {isAdmin && (
+            {(isAdmin || canApplyCharge) && (
               <TabsContent value="adhoc">
                 <AdditionalChargesTab academicYear={academicYear} isArchived={isArchivedYear} />
               </TabsContent>
