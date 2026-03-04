@@ -20,10 +20,19 @@ Deno.serve(async (req) => {
     // Get Google Drive access token
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
 
-    // Build file name
-    const meta = backup.file_json?.meta || {};
-    const dateStr = new Date(backup.created_date).toISOString().replace('T', '_').slice(0, 16).replace(':', '-');
-    const fileName = `FeesBackup_${(meta.schoolName || 'School').replace(/\s+/g, '_')}_${meta.academicYear || 'ALL'}_${dateStr}_${backup.backup_type}.json`;
+    // Build filename with IST timestamp: FEES_BACKUP_YYYY-MM-DD_HH-MM_IST.json
+    const backupDate = new Date(backup.created_date);
+    const ist = backupDate.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    const formattedIST = ist.replace(/\//g, '-').replace(/:/g, '-').replace(/,/, '').replace(/\s/g, '_');
+    const fileName = `FEES_BACKUP_${formattedIST}_IST.json`;
 
     const jsonContent = JSON.stringify(backup.file_json, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
