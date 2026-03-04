@@ -75,20 +75,25 @@ export function useGoogleDriveFolderPicker() {
 export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelect }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const pickerRef = useRef(null);
   const accessTokenRef = useRef(null);
 
-  // Load Google Picker script
+  // Load Google API and Picker
   useEffect(() => {
     if (!isOpen) return;
 
-    // Load Google Picker API
-    if (!window.google?.picker) {
+    if (!window.gapi) {
       const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/platform.js';
+      script.src = 'https://apis.google.com/js/api.js';
       script.async = true;
       script.defer = true;
+      script.onload = () => {
+        if (window.gapi) {
+          window.gapi.load('picker', {});
+        }
+      };
       document.body.appendChild(script);
+    } else if (window.gapi) {
+      window.gapi.load('picker', {});
     }
   }, [isOpen]);
 
@@ -110,11 +115,8 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
 
       accessTokenRef.current = tokenRes.data.accessToken;
 
-      // Wait for Picker API to be ready
-      const maxAttempts = 20;
-      let attempts = 0;
-
-      const tryOpenPicker = () => {
+      // Build and open picker
+      const buildPicker = () => {
         if (window.google?.picker && accessTokenRef.current) {
           const picker = new window.google.picker.PickerBuilder()
             .addView(new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS))
@@ -124,25 +126,20 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
 
           picker.setVisible(true);
           setLoading(false);
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(tryOpenPicker, 100);
         } else {
-          setError('Failed to load Google Picker. Please refresh and try again.');
-          toast.error('Google Picker failed to load');
-          setLoading(false);
+          setTimeout(buildPicker, 100);
         }
       };
 
-      tryOpenPicker();
-      } catch (err) {
+      buildPicker();
+    } catch (err) {
       console.error('Picker error:', err);
       const errorMsg = err.response?.data?.error || err.message || 'Failed to open folder picker';
       setError(errorMsg);
       toast.error(errorMsg);
       setLoading(false);
-      }
-      };
+    }
+  };
 
   // Handle picker callback
   const handlePickerCallback = (data) => {
