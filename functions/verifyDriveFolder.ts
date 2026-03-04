@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+// Extract folder ID from Google Drive URL or return as-is if already an ID
+const extractFolderId = (input) => {
+  if (!input) return null;
+  // Handle full Drive URL: https://drive.google.com/drive/folders/FOLDER_ID
+  const match = input.match(/\/folders\/([a-zA-Z0-9-_]+)/);
+  if (match) return match[1];
+  // If it looks like an ID (alphanumeric with hyphens/underscores), return as-is
+  if (/^[a-zA-Z0-9-_]+$/.test(input.trim())) return input.trim();
+  return null;
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,7 +20,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { folderId } = await req.json();
+    const body = await req.json();
+    let folderId = extractFolderId(body.folderId);
 
     if (!folderId) {
       return Response.json({ error: 'Folder ID required' }, { status: 400 });
