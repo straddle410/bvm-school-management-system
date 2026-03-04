@@ -120,6 +120,35 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     });
   };
 
+  // Verify and save folder from manual input
+  const handleVerifyFolder = async () => {
+    if (!folderIdInput.trim()) {
+      toast.error('Please enter a folder ID or URL');
+      return;
+    }
+
+    setVerifyLoading(true);
+    try {
+      const res = await base44.functions.invoke('verifyDriveFolder', {
+        folderId: folderIdInput.trim()
+      });
+
+      if (res.data?.success) {
+        saveFolderMutation.mutate({
+          folderId: res.data.folderId,
+          folderName: res.data.folderName
+        });
+        setFolderIdInput('');
+      } else {
+        toast.error(res.data?.error || 'Failed to verify folder');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to verify folder');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   // Download backup JSON
   const downloadBackup = (backup) => {
     const json = JSON.stringify(backup.file_json, null, 2);
