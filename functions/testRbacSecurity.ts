@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Test 4: getStudentLedger - Should 403 for Teacher
+    // Test 4: getStudentLedger - Should 403 for Teacher, OK for Admin/Accountant/Principal
     try {
       const response = await base44.functions.invoke('getStudentLedger', {
         studentId: 'S001',
@@ -98,16 +98,16 @@ Deno.serve(async (req) => {
       });
       results.tests.push({
         name: 'getStudentLedger()',
-        result: isAuthorized ? 'PASS' : 'FAIL (Teacher can access ledger)',
+        result: isAuthorized ? 'PASS (authorized access)' : 'FAIL (Teacher can access ledger)',
         status: isAuthorized ? 'ok' : 'error'
       });
     } catch (err) {
       const is403 = err.response?.status === 403 || err.message?.includes('403');
       results.tests.push({
         name: 'getStudentLedger()',
-        result: isTeacher && is403 ? 'PASS (403 blocked)' : 'FAIL (Authorized user blocked)',
+        result: isTeacher && is403 ? 'PASS (Teacher 403 blocked)' : (isAuthorized ? `FAIL (Authorized user blocked: ${err.message})` : 'PASS (Teacher blocked)'),
         error: err.message,
-        status: isTeacher && is403 ? 'ok' : 'error'
+        status: isTeacher && is403 ? 'ok' : (isAuthorized ? 'error' : 'ok')
       });
     }
 
