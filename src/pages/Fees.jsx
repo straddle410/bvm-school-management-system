@@ -171,7 +171,7 @@ export default function Fees() {
             )}
           </Tabs>
         </div>
-      </div>
+
         {isAdmin && (
           <RecalculateTransportModal
             open={showTransportModal}
