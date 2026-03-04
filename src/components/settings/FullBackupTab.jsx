@@ -284,7 +284,7 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
                 <p className={`text-sm font-medium ${daysAgo > 7 ? 'text-yellow-800' : 'text-green-800'}`}>
                   Last Weekly Backup: {daysAgo} days ago
                 </p>
-                <p className="text-xs text-gray-600">{format(new Date(lastWeeklyBackup.created_date), 'PPp')}</p>
+                <p className="text-xs text-gray-600">{lastBackupIST}</p>
               </div>
             </div>
           </CardContent>
