@@ -131,7 +131,7 @@ export default function FeesBackupTab({ isAdmin, schoolProfile }) {
     && restoreDate === today;
 
   const totalRecords = (b) => {
-    if (!b.counts_summary) return '-';
+    if (!b || !b.counts_summary) return '-';
     return Object.values(b.counts_summary).reduce((a, c) => a + c, 0);
   };
 
