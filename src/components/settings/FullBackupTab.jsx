@@ -333,15 +333,15 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
 
       {/* Info Card */}
       <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex gap-3">
-            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium">Weekly Backup Schedule</p>
-              <p className="text-xs mt-1">Automated backups run every Sunday at 11:59 PM IST. Last 12 weekly backups are retained; all manual backups are kept indefinitely.</p>
-            </div>
-          </div>
-        </CardContent>
+      <CardContent className="pt-6">
+      <div className="flex gap-3">
+       <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+       <div className="text-sm text-blue-800">
+         <p className="font-medium">Weekly Backup Schedule</p>
+         <p className="text-xs mt-1">Automated backups run every Sunday at 11:59 PM IST. Last 12 weekly backups are retained; all manual backups are kept indefinitely. (All times shown in IST)</p>
+       </div>
+      </div>
+      </CardContent>
       </Card>
 
       {/* Folder Picker Dialog */}
