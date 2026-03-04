@@ -122,6 +122,7 @@ export default function Fees() {
                 {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
                 {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
                 {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
+                {isAdmin && <TabsTrigger value="backup">🗄 Backup</TabsTrigger>}
               </TabsList>
             )}
 
