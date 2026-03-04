@@ -49,14 +49,20 @@ export default function Messaging() {
 
   const { data: inbox = [], isLoading: loadingInbox } = useQuery({
     queryKey: ['messages-inbox', user?.email],
-    queryFn: () => base44.entities.Message.filter({ recipient_id: user.email }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('listMyMessages', { folder: 'inbox', limit: 100 });
+      return res.data.messages || [];
+    },
     enabled: !!user,
     refetchInterval: 15000,
   });
 
   const { data: sent = [], isLoading: loadingSent } = useQuery({
     queryKey: ['messages-sent', user?.email],
-    queryFn: () => base44.entities.Message.filter({ sender_id: user.email }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('listMyMessages', { folder: 'sent', limit: 100 });
+      return res.data.messages || [];
+    },
     enabled: !!user,
   });
 
@@ -75,13 +81,16 @@ export default function Messaging() {
   };
 
   const handleSelectMessage = async (msg) => {
-    // Group by thread
-    const allMessages = [...inbox, ...sent];
+    // Fetch thread from server (enforces privacy)
     const threadId = msg.thread_id || msg.id;
-    const threadMessages = allMessages
-      .filter(m => m.thread_id === threadId || m.id === threadId)
-      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-    setSelectedThread(threadMessages.length > 0 ? threadMessages : [msg]);
+    const res = await base44.functions.invoke('getMessageThread', { thread_id: threadId });
+    
+    if (res.status !== 200) {
+      console.error('Cannot access this thread');
+      return;
+    }
+
+    setSelectedThread(res.data.messages);
 
     // Mark as read
     if (!msg.is_read && msg.recipient_id === user?.email) {
