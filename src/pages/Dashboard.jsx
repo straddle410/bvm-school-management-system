@@ -298,31 +298,33 @@ export default function Dashboard() {
       <main className="flex-1 overflow-y-auto pb-24 px-3 sm:px-4 py-5 space-y-4 sm:space-y-6 w-full">
 
         {/* Quick Access */}
-        {userRole !== 'accountant' && <section>
-          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Access</h2>
-          <div className="grid grid-cols-4 gap-3">
-            {quickAccess
-              .filter(item => !(item.guestOnly && user) && !(item.staffOnly && !isStaff) && !(item.label === 'Results' && isAdmin))
-              .map((item) => (
-                <Link key={item.label} to={createPageUrl(item.page)} className="block">
-                  <div className="flex flex-col items-center gap-1.5 relative">
-                    <GradientIcon gradient={item.gradient} icon={item.icon} />
-                    {item.label === 'Diary' && unreadDiaryCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
-                        {unreadDiaryCount > 9 ? '9+' : unreadDiaryCount}
-                      </span>
-                    )}
-                    {item.label === 'Messages' && unreadMessageCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
-                        {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                      </span>
-                    )}
-                    <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
-                  </div>
-                </Link>
-              ))}
-          </div>
-        </section>
+        {userRole !== 'accountant' && (
+          <section>
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Access</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {quickAccess
+                .filter(item => !(item.guestOnly && user) && !(item.staffOnly && !isStaff) && !(item.label === 'Results' && isAdmin))
+                .map((item) => (
+                  <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                    <div className="flex flex-col items-center gap-1.5 relative">
+                      <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      {item.label === 'Diary' && unreadDiaryCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
+                          {unreadDiaryCount > 9 ? '9+' : unreadDiaryCount}
+                        </span>
+                      )}
+                      {item.label === 'Messages' && unreadMessageCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
+                          {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        )}
 
         {/* Quick Actions - staff only */}
         {isStaff && visibleQuickActions.length > 0 && (
