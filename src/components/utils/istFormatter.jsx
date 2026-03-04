@@ -8,32 +8,26 @@ export const formatIST = (timestamp, format = 'short') => {
   if (!timestamp) return 'Unknown date';
 
   try {
-    // Always treat timestamps as UTC and convert to IST (UTC+5:30)
-    let date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+    const timestampStr = typeof timestamp === 'string' ? timestamp : timestamp.toString();
+    
+    // Parse timestamp as-is (already in local time, not UTC)
+    const parts = timestampStr.split('T');
+    const [year, month, day] = parts[0].split('-');
+    const timeParts = parts[1].split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1]);
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthName = monthNames[parseInt(month) - 1];
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
 
     if (format === 'short') {
-      const formatted = date.toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-      return `${formatted} IST`;
+      return `${day} ${monthName}, ${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${ampm} IST`;
     }
 
     // 'long' format
-    const formatted = date.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    return `${formatted} IST`;
+    return `${day} ${monthName} ${year}, ${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${ampm} IST`;
   } catch (e) {
     return 'Invalid date';
   }
