@@ -108,7 +108,7 @@ export default function FeesBackupTab({ isAdmin, schoolProfile }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const meta = backup.file_json?.meta || {};
-    const dateStr = backup.created_date ? new Date(backup.created_date).toISOString().slice(0, 10) : 'unknown';
+    const dateStr = formatISTDate(backup.created_date);
     a.href = url;
     a.download = `FeesBackup_${(meta.schoolName || 'School').replace(/\s+/g, '_')}_${meta.academicYear || 'ALL'}_${dateStr}_${backup.backup_type}.json`;
     document.body.appendChild(a);
