@@ -12,6 +12,17 @@ const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    // ── RBAC: Only Admin/Principal/Accountant can access ──
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userRole = (user.role || '').toLowerCase();
+    const allowedRoles = ['admin', 'principal', 'accountant'];
+    if (!allowedRoles.includes(userRole)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const body = await req.json().catch(() => ({}));
     const {
