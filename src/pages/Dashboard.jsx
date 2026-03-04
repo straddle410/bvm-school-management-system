@@ -12,6 +12,7 @@ import {
   FileText, Award, BookOpen, Palmtree, Clock, Book, BookMarked, NotebookPen, LogOut,
   CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2, TrendingUp, BarChart4, ClipboardCheck, UserCheck, Wallet
 } from 'lucide-react';
+// AlertCircle already imported above
 import { format } from 'date-fns';
 
 import { getProxiedImageUrl } from '@/components/imageProxy';
