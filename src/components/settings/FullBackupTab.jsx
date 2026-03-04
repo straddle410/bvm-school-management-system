@@ -121,45 +121,7 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     });
   };
 
-  // Extract folder ID from URL or direct ID
-  const extractFolderId = (input) => {
-    const trimmed = input.trim();
-    if (trimmed.includes('/folders/')) {
-      const match = trimmed.match(/\/folders\/([^/?]+)/);
-      return match ? match[1] : trimmed;
-    }
-    return trimmed;
-  };
 
-  // Verify and save folder from manual input
-  const handleVerifyFolder = async () => {
-    if (!folderIdInput.trim()) {
-      toast.error('Please enter a folder ID or URL');
-      return;
-    }
-
-    setVerifyLoading(true);
-    try {
-      const extractedId = extractFolderId(folderIdInput);
-      const res = await base44.functions.invoke('verifyDriveFolder', {
-        folderId: extractedId
-      });
-
-      if (res.data?.success) {
-        saveFolderMutation.mutate({
-          folderId: res.data.folder_id,
-          folderName: res.data.folder_name
-        });
-        setFolderIdInput('');
-      } else {
-        toast.error(res.data?.error || 'Failed to verify folder');
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to verify folder');
-    } finally {
-      setVerifyLoading(false);
-    }
-  };
 
   // Test export: upload latest manual backup to verify Drive write access
   const testExportLatestManual = async () => {
