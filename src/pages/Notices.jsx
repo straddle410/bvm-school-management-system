@@ -31,25 +31,26 @@ const TYPE_COLORS = {
 };
 
 export default function Notices() {
-  const [user, setUser] = useState(null);
-  const [showDialog, setShowDialog] = useState(false);
-  const [filterType, setFilterType] = useState('all');
-  const [readNoticeIds, setReadNoticeIds] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('read_notice_ids') || '[]')); } catch { return new Set(); }
-  });
-  const [unreadNotifMap, setUnreadNotifMap] = useState({}); // noticeId -> notifId
-  const [form, setForm] = useState({
-    title: '',
-    content: '',
-    notice_type: 'General',
-    target_audience: 'All',
-    target_classes: [],
-    publish_date: format(new Date(), 'yyyy-MM-dd'),
-    expiry_date: '',
-    is_pinned: false
-  });
-  const [showTableBuilder, setShowTableBuilder] = useState(false);
-  const [editingNotice, setEditingNotice] = useState(null);
+   const [user, setUser] = useState(null);
+   const [showDialog, setShowDialog] = useState(false);
+   const [filterType, setFilterType] = useState('all');
+   const [readNoticeIds, setReadNoticeIds] = useState(() => {
+     try { return new Set(JSON.parse(localStorage.getItem('read_notice_ids') || '[]')); } catch { return new Set(); }
+   });
+   const [unreadNotifMap, setUnreadNotifMap] = useState({}); 
+   const [form, setForm] = useState({
+     title: '',
+     content: '',
+     notice_type: 'General',
+     target_audience: 'All',
+     target_classes: [],
+     publish_date: format(new Date(), 'yyyy-MM-dd'),
+     expiry_date: '',
+     is_pinned: false,
+     status: 'Draft'
+   });
+   const [showTableBuilder, setShowTableBuilder] = useState(false);
+   const [editingNotice, setEditingNotice] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -166,7 +167,7 @@ export default function Notices() {
     setForm({
       title: '', content: '', notice_type: 'General', target_audience: 'All',
       target_classes: [],
-      publish_date: format(new Date(), 'yyyy-MM-dd'), expiry_date: '', is_pinned: false
+      publish_date: format(new Date(), 'yyyy-MM-dd'), expiry_date: '', is_pinned: false, status: 'Draft'
     });
   };
 
@@ -196,7 +197,8 @@ export default function Notices() {
   const totalUnread = Object.keys(unreadNotifMap).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-6 w-full overflow-x-hidden">
+     <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Notices">
+     <div className="min-h-screen bg-gray-50 pb-6 w-full overflow-x-hidden">
       {/* Header */}
       <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-6">
         <div className="flex items-center justify-between gap-3">
@@ -303,10 +305,10 @@ export default function Notices() {
               updateMutation.mutate(form);
             } else {
               createMutation.mutate({
-                ...form,
-                status: isAdmin ? 'Published' : 'Draft',
-                created_by_name: user?.name || user?.full_name
-              });
+                   ...form,
+                   status: 'Draft',
+                   created_by_name: user?.name || user?.full_name
+                 });
             }
           }} className="space-y-4">
             <div>
@@ -409,6 +411,7 @@ export default function Notices() {
         </DialogContent>
       </Dialog>
     </div>
+    </LoginRequired>
   );
 }
 
