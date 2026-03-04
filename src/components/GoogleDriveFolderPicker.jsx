@@ -82,37 +82,31 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
   useEffect(() => {
     if (!isOpen) return;
 
-    const loadScripts = () => {
-      // Load Google API
-      if (!window.gapi) {
-        const gapiScript = document.createElement('script');
-        gapiScript.src = 'https://apis.google.com/js/api.js';
-        gapiScript.async = true;
-        gapiScript.defer = true;
-        gapiScript.onload = () => initGooglePicker();
-        document.body.appendChild(gapiScript);
-      } else {
-        initGooglePicker();
-      }
-
-      // Load Google Platform
-      if (!window.google?.picker) {
-        const platformScript = document.createElement('script');
-        platformScript.src = 'https://apis.google.com/js/platform.js';
-        platformScript.async = true;
-        platformScript.defer = true;
-        document.body.appendChild(platformScript);
-      }
-    };
-
-    const initGooglePicker = () => {
-      if (window.gapi && window.gapi.load) {
-        window.gapi.load('picker', {
-          callback: () => {
-            // Picker API loaded
-          }
-        });
-      }
+    const loadScripts = async () => {
+      return new Promise((resolve) => {
+        // Load Google API
+        if (!window.gapi) {
+          const gapiScript = document.createElement('script');
+          gapiScript.src = 'https://apis.google.com/js/api.js';
+          gapiScript.async = true;
+          gapiScript.onload = () => {
+            if (window.gapi && window.gapi.load) {
+              window.gapi.load('picker', {
+                callback: resolve
+              });
+            } else {
+              resolve();
+            }
+          };
+          document.body.appendChild(gapiScript);
+        } else if (window.gapi && window.gapi.load) {
+          window.gapi.load('picker', {
+            callback: resolve
+          });
+        } else {
+          resolve();
+        }
+      });
     };
 
     loadScripts();
