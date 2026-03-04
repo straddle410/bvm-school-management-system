@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getStaffSession } from '@/components/useStaffSession';
+import LoginRequired from '@/components/LoginRequired';
 import PageHeader from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,6 +119,7 @@ export default function TimetableManagement() {
   const uniqueTeachers = [...new Set(timetables.map(t => t.teacher_name))];
 
   return (
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Timetable Management">
     <div className="min-h-screen bg-gray-100 p-4">
       <PageHeader
         title="Timetable Management"
@@ -259,6 +261,7 @@ export default function TimetableManagement() {
         )}
       </div>
     </div>
+    </LoginRequired>
   );
 }
 
