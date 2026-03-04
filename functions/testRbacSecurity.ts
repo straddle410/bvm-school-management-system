@@ -142,6 +142,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Test 7: generateProgressCards - Should 403 for Teacher, OK for Admin/Principal
+    try {
+      const response = await base44.functions.invoke('generateProgressCards', {
+        academicYear: '2025-26'
+      });
+      results.tests.push({
+        name: 'generateProgressCards()',
+        result: userRole === 'principal' || userRole === 'admin' ? 'PASS' : 'FAIL (Teacher can generate cards)',
+        status: (userRole === 'principal' || userRole === 'admin') ? 'ok' : 'error'
+      });
+    } catch (err) {
+      const is403 = err.response?.status === 403 || err.message?.includes('403') || err.message?.includes('Forbidden');
+      results.tests.push({
+        name: 'generateProgressCards()',
+        result: isTeacher && is403 ? 'PASS (403 blocked)' : 'FAIL (Authorized user blocked)',
+        error: err.message,
+        status: isTeacher && is403 ? 'ok' : 'error'
+      });
+    }
+
     const passCount = results.tests.filter(t => t.status === 'ok').length;
     results.summary = {
       totalTests: results.tests.length,
