@@ -8,6 +8,16 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+function getRoleDebugInfo(user) {
+  return {
+    role: user?.role,
+    roleName: user?.roleName,
+    user_metadata_role: user?.user_metadata?.role,
+    app_metadata_role: user?.app_metadata?.role,
+    userKeys: user ? Object.keys(user).filter(k => !k.includes('secret') && !k.includes('token')) : []
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -17,12 +27,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userRole = (user.role || '').toLowerCase();
+    const userRole = (user.role || '').toLowerCase().trim();
     const isTeacher = userRole === 'teacher';
     const isAuthorized = ['admin', 'principal', 'accountant'].includes(userRole);
 
     const results = {
-      user: { email: user.email, role: userRole },
+      user: { email: user.email, role: userRole, id: user.id },
+      effectiveRoleDebug: getRoleDebugInfo(user),
       isTeacher,
       isAuthorized,
       tests: []
