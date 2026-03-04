@@ -61,7 +61,7 @@ export default function StaffLogin() {
       }
 
       toast.success('Login successful');
-      navigate(createPageUrl('Dashboard'));
+      navigate(createPageUrl(response.data.redirect_to || 'Dashboard'));
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
