@@ -185,8 +185,8 @@ export default function FeesBackupTab({ isAdmin, schoolProfile }) {
       {/* Backup list */}
       <Card className="border-0 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base">Backup History</CardTitle>
-           <CardDescription>Last 50 backups. Daily auto-backups run at 11:59 PM IST. Last 30 daily backups are retained.</CardDescription>
+         <CardTitle className="text-base">Backup History</CardTitle>
+          <CardDescription>Last 50 backups. Daily auto-backups run at 11:59 PM IST. Last 30 daily backups are retained. (All times shown in IST)</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
