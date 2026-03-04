@@ -32,6 +32,8 @@ export default function TimetableManagement() {
 
   // Check if user has edit permissions (admin or principal)
   const canEdit = user && ['admin', 'principal'].includes(user.role);
+  const isTeacher = user && user.role === 'teacher';
+  const viewOnly = isTeacher;
 
   const { data: timetables = [], isLoading } = useQuery({
     queryKey: ['timetables', academicYear, filters],
@@ -119,7 +121,7 @@ export default function TimetableManagement() {
   const uniqueTeachers = [...new Set(timetables.map(t => t.teacher_name))];
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Timetable Management">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Timetable Management">
     <div className="min-h-screen bg-gray-100 p-4">
       <PageHeader
         title="Timetable Management"
@@ -127,14 +129,22 @@ export default function TimetableManagement() {
       />
 
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Add Entry Button */}
-          {!showForm && canEdit && (
+        {/* Add Entry Button - Only for admin/principal */}
+          {!showForm && canEdit && !viewOnly && (
            <Button
              onClick={() => setShowForm(true)}
              className="bg-blue-600 hover:bg-blue-700"
            >
              <Plus className="h-4 w-4 mr-2" /> Add Timetable Entry
            </Button>
+         )}
+         
+         {viewOnly && (
+           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+             <p className="text-sm text-blue-800">
+               📖 <strong>View Only:</strong> Teachers can view timetables but cannot edit. Contact admin to make changes.
+             </p>
+           </div>
          )}
 
         {/* Form */}
@@ -229,7 +239,7 @@ export default function TimetableManagement() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onView={handleEdit}
-                canEdit={canEdit}
+                canEdit={canEdit && !viewOnly}
               />
             </TabsContent>
 
