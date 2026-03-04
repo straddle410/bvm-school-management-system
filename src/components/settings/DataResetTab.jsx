@@ -424,12 +424,12 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
         </Card>
       )}
 
-      {/* STEP 4: Confirmation */}
+      {/* STEP 4: Confirmation with Backup Progress */}
       {isTestSchool && step === 4 && (
         <Card className="border-2 border-red-300">
           <CardHeader>
             <CardTitle className="text-red-700 flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Step 4: Final Confirmation</CardTitle>
-            <CardDescription>Type each value exactly to unlock the reset button.</CardDescription>
+            <CardDescription>Type each value exactly to unlock the reset button. A safety backup will be created before deletion.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-w-md">
             <div className="bg-green-50 border border-green-200 rounded px-3 py-2 text-sm text-green-800 flex items-center gap-2">
@@ -460,8 +460,14 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
               </div>
             )}
 
+            {creatingBackup && (
+              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded px-3 py-2 text-sm text-blue-800">
+                <Loader2 className="h-4 w-4 animate-spin" /> Creating safety backup…
+              </div>
+            )}
+
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setStep(3)}>← Back</Button>
+              <Button variant="outline" onClick={() => setStep(3)} disabled={resetting}>← Back</Button>
               <Button
                 onClick={runReset}
                 disabled={!confirmationsValid || resetting}
