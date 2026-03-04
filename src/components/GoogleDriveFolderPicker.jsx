@@ -214,7 +214,7 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
             </div>
           )}
 
-          <div className="text-center py-6">
+          <div className="space-y-3">
             <Button
               onClick={openFolderPicker}
               disabled={loading}
@@ -229,8 +229,29 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
                 'Browse Google Drive'
               )}
             </Button>
-            <p className="text-xs text-gray-500 mt-3">
-              Click the button to open Google Drive folder browser
+            <p className="text-xs text-gray-400 text-center">
+              Or create a new folder for backups
+            </p>
+            <Button
+              onClick={createBackupFolder}
+              disabled={creatingFolder}
+              variant="outline"
+              className="w-full"
+            >
+              {creatingFolder ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating Folder...
+                </>
+              ) : (
+                <>
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  Create Backup Folder
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-gray-500">
+              Creates "School ERP Backups/Full Weekly Backups" in your Drive
             </p>
           </div>
         </div>
