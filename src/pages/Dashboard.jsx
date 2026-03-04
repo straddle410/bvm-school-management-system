@@ -298,7 +298,7 @@ export default function Dashboard() {
       <main className="flex-1 overflow-y-auto pb-24 px-3 sm:px-4 py-5 space-y-4 sm:space-y-6 w-full">
 
         {/* Quick Access */}
-        <section>
+        {userRole !== 'accountant' && <section>
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Access</h2>
           <div className="grid grid-cols-4 gap-3">
             {quickAccess
