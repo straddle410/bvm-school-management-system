@@ -90,9 +90,10 @@ Deno.serve(async (req) => {
       const amount = p.amount_paid ?? 0;
       const rawStatus = (p.status || '').toUpperCase();
 
-      // Classify: VOID or ACTIVE
+      // Classify payment type
       const isVoid = VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status);
-      const isCredit = !isVoid && p.entry_type === 'CREDIT_ADJUSTMENT';
+      const isTransportAdj = !isVoid && p.entry_type === 'TRANSPORT_ADJUSTMENT';
+      const isCredit = !isVoid && !isTransportAdj && p.entry_type === 'CREDIT_ADJUSTMENT';
 
       // Apply filters
       if (isVoid && !includeVoided) continue;
@@ -107,6 +108,20 @@ Deno.serve(async (req) => {
         debit = 0;
         credit = 0;
         description = `Payment ${p.receipt_no || ''} (Voided${p.void_reason || p.reversal_reason ? ': ' + (p.void_reason || p.reversal_reason) : ''})`;
+      } else if (isTransportAdj) {
+        // TRANSPORT_ADJUSTMENT: affects balance but NOT cash collection
+        // Positive amount_paid = DEBIT (owed more) | Negative = CREDIT (owed less)
+        type = 'TRANSPORT_ADJUSTMENT';
+        status = 'POSTED';
+        if (amount > 0) {
+          debit = Math.abs(amount);
+          credit = 0;
+          description = `Transport adjustment: +₹${Math.abs(amount).toLocaleString()} (${p.remarks || ''})`;
+        } else {
+          debit = 0;
+          credit = Math.abs(amount);
+          description = `Transport adjustment: -₹${Math.abs(amount).toLocaleString()} (${p.remarks || ''})`;
+        }
       } else if (isCredit) {
         type = 'CREDIT';
         status = 'POSTED';
@@ -124,18 +139,19 @@ Deno.serve(async (req) => {
 
       rows.push({
         _sortDate: pDate || '0000-00-00',
-        _sortType: isVoid ? 3 : (isCredit ? 2 : 1),
+        _sortType: isVoid ? 3 : (isTransportAdj ? 2 : isCredit ? 2 : 1),
         _id: p.id,
         date: pDate,
         type,
-        refNo: p.receipt_no ? `RCPT-${p.receipt_no}` : null,
+        refNo: p.receipt_no || null,
         description,
         debit,
         credit,
-        mode: p.payment_mode || null,
+        mode: isTransportAdj ? 'Adjustment' : (p.payment_mode || null),
         invoiceId: p.invoice_id || null,
         paymentId: p.id,
         status,
+        affects_cash: isTransportAdj ? false : true,
       });
     }
 
