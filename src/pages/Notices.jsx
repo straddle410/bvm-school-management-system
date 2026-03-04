@@ -412,10 +412,14 @@ export default function Notices() {
   );
 }
 
-function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnread, onRead }) {
+function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnread, onRead, onSubmit, onReject }) {
   const [expanded, setExpanded] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const typeColor = TYPE_COLORS[notice.notice_type] || 'bg-slate-100 text-slate-700';
-  const canEdit = isAdmin || (user && notice.created_by_name === (user.full_name || user.name));
+  const isCreator = user && notice.created_by_name === (user.full_name || user.name);
+  const canEdit = (isCreator && (notice.status === 'Draft' || notice.status === 'Rejected')) || isAdmin;
 
   const handleExpand = () => {
     setExpanded(true);
@@ -429,12 +433,15 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
           {isUnread && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <Badge className={`text-xs ${typeColor} border-0`}>{notice.notice_type}</Badge>
-              {notice.status !== 'Published' && isAdmin && (
-                <Badge className="text-xs bg-amber-100 text-amber-700 border-0">{notice.status}</Badge>
-              )}
-              {notice.is_pinned && <Pin className="h-3 w-3 text-yellow-500" />}
-            </div>
+               <Badge className={`text-xs ${typeColor} border-0`}>{notice.notice_type}</Badge>
+               <Badge className={`text-xs border-0 ${
+                 notice.status === 'Draft' ? 'bg-gray-100 text-gray-700' :
+                 notice.status === 'PendingApproval' ? 'bg-amber-100 text-amber-700' :
+                 notice.status === 'Published' ? 'bg-green-100 text-green-700' :
+                 'bg-red-100 text-red-700'
+               }`}>{notice.status}</Badge>
+               {notice.is_pinned && <Pin className="h-3 w-3 text-yellow-500" />}
+             </div>
             <h3 className={`text-sm ${isUnread ? 'font-extrabold text-gray-900' : 'font-bold text-gray-900'}`}>{notice.title}</h3>
             <div className={`text-gray-600 text-sm mt-1 ${!expanded ? 'line-clamp-2' : ''}`} dangerouslySetInnerHTML={{ __html: notice.content }}>
             </div>
@@ -444,35 +451,57 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
               </button>
             )}
             <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-              {notice.created_by_name && <span>By {notice.created_by_name}</span>}
-              {notice.publish_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {format(new Date(notice.publish_date), 'MMM d, yyyy')}
-                </span>
-              )}
-              {notice.target_audience && (
-                <span className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {notice.target_audience}
-                  {notice.target_audience === 'Students' && notice.target_classes?.length > 0
-                    ? ` (Class ${notice.target_classes.join(', ')})`
-                    : notice.target_audience === 'Students' ? ' (All Classes)' : ''}
-                </span>
-              )}
-            </div>
+               {notice.created_by_name && <span>By {notice.created_by_name}</span>}
+               {notice.publish_date && (
+                 <span className="flex items-center gap-1">
+                   <Calendar className="h-3 w-3" />
+                   {format(new Date(notice.publish_date), 'MMM d, yyyy')}
+                 </span>
+               )}
+               {notice.target_audience && (
+                 <span className="flex items-center gap-1">
+                   <Users className="h-3 w-3" />
+                   {notice.target_audience}
+                   {notice.target_audience === 'Students' && notice.target_classes?.length > 0
+                     ? ` (Class ${notice.target_classes.join(', ')})`
+                     : notice.target_audience === 'Students' ? ' (All Classes)' : ''}
+                 </span>
+               )}
+             </div>
+             {notice.status === 'Rejected' && notice.rejection_reason && (
+               <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+                 <p className="font-semibold">Rejected: {notice.rejection_reason}</p>
+                 {notice.rejected_at && <p className="text-[10px] text-red-600">at {format(new Date(notice.rejected_at), 'MMM d, HH:mm')}</p>}
+               </div>
+             )}
           </div>
         </div>
         {(isAdmin || canEdit) && (
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-3 flex-wrap">
             {canEdit && (
               <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => onEdit(notice)}>
                 Edit
               </Button>
             )}
-            {isAdmin && notice.status !== 'Published' && (
-              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" onClick={() => onPublish(notice.id)}>
-                Publish
+            {isCreator && (notice.status === 'Draft' || notice.status === 'Rejected') && !isAdmin && (
+              <Button size="sm" className="flex-1 bg-amber-600 hover:bg-amber-700 text-xs" disabled={isSubmitting}
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    const res = await base44.functions.invoke('submitNoticeForApproval', { noticeId: notice.id });
+                    if (res.status === 200) {
+                      toast.success('Notice submitted for approval');
+                      onSubmit?.(notice.id);
+                    } else {
+                      toast.error(res.data?.error || 'Failed to submit');
+                    }
+                  } catch (e) {
+                    toast.error('Error submitting notice');
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}>
+                {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
               </Button>
             )}
             {(isAdmin || canEdit) && (
