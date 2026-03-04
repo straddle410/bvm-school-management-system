@@ -24,21 +24,29 @@ function CollectionReportContent() {
   const [selectedMode, setSelectedMode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch all cash payments for this AY
-  const { data: allPayments = [], isLoading } = useQuery({
-    queryKey: ['fee-payments-collection', academicYear],
+  // Fetch via protected server function (not direct entity access)
+  const { data: allPayments = [], isLoading, error: fetchError } = useQuery({
+    queryKey: ['fee-payments-collection', academicYear, dateRange, selectedClass, selectedMode, searchQuery],
     queryFn: async () => {
-      const payments = await base44.entities.FeePayment.filter({
-        academic_year: academicYear
-      });
-      // VOID-ONLY POLICY: exclude VOID/REVERSED/CANCELLED payments completely
-      return (payments || []).filter(p => {
-        const s = (p.status || '').toUpperCase();
-        if (s === 'VOID' || s === 'REVERSED' || s === 'CANCELLED') return false;
-        // Only count actual cash/collection payments (not credit adjustments)
-        if (p.entry_type === 'CREDIT_ADJUSTMENT') return false;
-        return true;
-      });
+      try {
+        const res = await base44.functions.invoke('getCollectionByClass', {
+          academicYear,
+          dateFrom: dateRange.start || undefined,
+          dateTo: dateRange.end || undefined,
+          className: selectedClass || undefined,
+          mode: selectedMode || undefined,
+          reportMode: 'details',
+          classId: selectedClass || undefined,
+          pageSize: 9999
+        });
+        return res.data?.rows || [];
+      } catch (err) {
+        if (err.response?.status === 403) {
+          // Teacher or unauthorized access
+          return [];
+        }
+        throw err;
+      }
     },
     enabled: !!academicYear
   });
@@ -132,6 +140,18 @@ function CollectionReportContent() {
     window.URL.revokeObjectURL(url);
     a.remove();
   };
+
+  // Show access denied on 403
+  if (fetchError?.response?.status === 403) {
+    return (
+      <div className="p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+          <p className="text-sm text-red-600">You do not have permission to view financial reports.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-6">
