@@ -29,7 +29,7 @@ export default function Fees() {
   const canViewLedger = isAdmin || !!permissions.fees_view_ledger || !!permissions.fees_view_module;
   const canViewPayments = isAdmin || !!permissions.fees_record_payment || !!permissions.fees_view_module;
   const canApplyDiscount = isAdmin || !!permissions.fees_apply_discount;
-  const canApplyCharge = isAdmin || !!permissions.fees_apply_charge;
+  const canApplyCharge = isAdmin || role === 'accountant' || !!permissions.fees_apply_charge;
   const canManageFamilies = isAdmin || !!permissions.fees_manage_families;
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
