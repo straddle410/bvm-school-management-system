@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-
-const GOOGLE_API_KEY = 'AIzaSyA9RHVINNb9YmZlC9T6CqB6RfXj4DgFZJ8'; // Public key for picker
-const CLIENT_ID = '546873827360-1a2m7c0pjk1j4c2f5j5l5f5j5l5j5l5.apps.googleusercontent.com'; // Placeholder - will use connector token
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 export function useGoogleDriveFolderPicker() {
   const pickerRef = useRef(null);
