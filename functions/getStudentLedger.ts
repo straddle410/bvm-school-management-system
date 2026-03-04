@@ -191,8 +191,8 @@ Deno.serve(async (req) => {
     const postedRows = withBalance.filter(r => r.status === 'POSTED');
     const totalInvoiced = postedRows.filter(r => r.type === 'INVOICE').reduce((s, r) => s + r.debit, 0);
     
-    // Paid total: SUM of ALL CASH_PAYMENT + CREDIT_ADJUSTMENT (ANNUAL + ADHOC)
-    // This includes payments linked to ADHOC invoices
+    // Paid total: SUM of real payments + credit adjustments (excludes TRANSPORT_ADJUSTMENT)
+    // TRANSPORT_ADJUSTMENT entries affect balance but NOT cash collection totals
     const totalPaid     = postedRows.filter(r => ['PAYMENT', 'CREDIT'].includes(r.type)).reduce((s, r) => s + r.credit, 0);
     
     const voidCount     = withBalance.filter(r => r.status === 'VOID').length;
