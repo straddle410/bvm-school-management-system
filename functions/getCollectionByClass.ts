@@ -49,8 +49,18 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
-    if (!allowedRoles.includes((user.role || '').toLowerCase())) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    // Extract effective role with normalization
+    const candidates = [
+      user?.role,
+      user?.roleName,
+      user?.user_metadata?.role,
+      user?.app_metadata?.role
+    ].filter(v => v !== null && v !== undefined && v !== '');
+    const userRole = String(candidates[0] || '').trim().toLowerCase();
+    
+    if (!allowedRoles.includes(userRole)) {
+      console.log(`[RBAC-BLOCK] ${user.email} role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
+      return Response.json({ error: 'Forbidden', userRole, allowedRoles, email: user.email }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
