@@ -40,6 +40,17 @@ export default function Fees() {
     setActiveTab(tab);
   };
 
+  const isAccountant = role === 'accountant';
+
+  // Accountant tab list (only their relevant tabs)
+  const accountantTabs = [
+    canViewLedger    && { value: 'ledger',    label: 'Ledger' },
+    canViewPayments  && { value: 'payments',  label: 'Receipts' },
+    canApplyDiscount && { value: 'discounts', label: 'Discount' },
+    canApplyCharge   && { value: 'adhoc',     label: 'Add Fee' },
+    canManageFamilies&& { value: 'families',  label: 'Families' },
+  ].filter(Boolean);
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'accountant']} pageName="Fees">
       <div className="min-h-screen bg-slate-50">
@@ -58,16 +69,39 @@ export default function Fees() {
 
         <div className="px-3 sm:px-4 lg:px-8 py-4">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="flex flex-wrap gap-1 h-auto mb-6">
-              {canViewLedger && <TabsTrigger value="ledger">Student Ledger</TabsTrigger>}
-              {canViewPayments && <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
-              {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
-              {(isAdmin || canManageFamilies) && <TabsTrigger value="families">Families</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
-              {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
-            </TabsList>
+
+            {/* ── ACCOUNTANT: big scrollable tabs ── */}
+            {isAccountant ? (
+              <div className="overflow-x-auto mb-4 -mx-3 px-3">
+                <div className="flex gap-2 min-w-max">
+                  {accountantTabs.map(tab => (
+                    <button
+                      key={tab.value}
+                      onClick={() => handleTabChange(tab.value)}
+                      className={`flex-shrink-0 px-5 py-3 rounded-xl text-base font-semibold border transition-all min-h-[52px] ${
+                        activeTab === tab.value
+                          ? 'bg-[#1a237e] text-white border-[#1a237e] shadow'
+                          : 'bg-white text-gray-700 border-gray-200'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* ── OTHER ROLES: existing compact tabs ── */
+              <TabsList className="flex flex-wrap gap-1 h-auto mb-6">
+                {canViewLedger && <TabsTrigger value="ledger">Student Ledger</TabsTrigger>}
+                {canViewPayments && <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>}
+                {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
+                {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
+                {(isAdmin || canManageFamilies) && <TabsTrigger value="families">Families</TabsTrigger>}
+                {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
+                {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
+                {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
+              </TabsList>
+            )}
 
             {canViewLedger && (
               <TabsContent value="ledger">
