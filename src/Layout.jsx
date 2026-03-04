@@ -82,33 +82,36 @@ export default function Layout({ children, currentPageName }) {
       } catch {}
       return;
     }
-    // Check staff session in localStorage first (used by StaffLogin)
+
+    // Staff session in localStorage is the AUTHORITATIVE source for role/nav.
+    // base44.auth.me() may return a different role — do NOT overwrite staff role.
+    let staffRoleFromSession = '';
     try {
       const staffRaw = localStorage.getItem('staff_session');
       if (staffRaw) {
         const staffUser = JSON.parse(staffRaw);
-        const role = (staffUser.role || '').toLowerCase();
-        setUserRole(role);
-        setIsAdmin(role === 'admin' || role === 'principal');
+        staffRoleFromSession = (staffUser.role || '').toLowerCase();
+        setUserRole(staffRoleFromSession);
+        setIsAdmin(staffRoleFromSession === 'admin' || staffRoleFromSession === 'principal');
+        setUser(staffUser);
       }
     } catch {}
 
     try {
-      const [currentUser, profiles] = await Promise.all([
-      base44.auth.me().catch(() => null),
-      base44.entities.SchoolProfile.list()]
-      );
-      if (currentUser) {
-        currentUser.role = currentUser.role?.toLowerCase();
-        setIsAdmin(currentUser.role === 'admin' || currentUser.role === 'principal');
-        setUserRole(currentUser.role || '');
-      }
-      setUser(currentUser);
+      const profiles = await base44.entities.SchoolProfile.list();
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
-    } catch (e) {
+    } catch {}
+
+    // Only use auth.me() role if no staff session exists
+    if (!staffRoleFromSession) {
       try {
-        const profiles = await base44.entities.SchoolProfile.list();
-        if (profiles.length > 0) setSchoolProfile(profiles[0]);
+        const currentUser = await base44.auth.me().catch(() => null);
+        if (currentUser) {
+          currentUser.role = (currentUser.role || '').toLowerCase();
+          setIsAdmin(currentUser.role === 'admin' || currentUser.role === 'principal');
+          setUserRole(currentUser.role || '');
+          setUser(currentUser);
+        }
       } catch {}
     }
   };
