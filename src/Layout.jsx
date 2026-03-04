@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp } from 'lucide-react';
+import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp, User } from 'lucide-react';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
@@ -168,7 +168,19 @@ export default function Layout({ children, currentPageName }) {
             {schoolProfile?.school_name || 'BVM School of Excellence'}
           </span>
         </div>
-        <AcademicYearSelector />
+        <div className="flex items-center gap-3">
+          <AcademicYearSelector />
+          {user && (
+            <button
+              onClick={() => navigate(createPageUrl('Profile'))}
+              className="flex items-center gap-2 hover:bg-white/20 px-3 py-1 rounded-lg transition text-sm"
+              title={user.name || user.email}
+            >
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline truncate max-w-[100px]">{user.name || user.email}</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}
