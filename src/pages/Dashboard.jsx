@@ -7,7 +7,7 @@ import PushNotificationManager from '@/components/PushNotificationManager';
 import { useStaffNotificationBadges } from '@/components/StaffNotificationBadges';
 import ExamResultsModal from '@/components/exam/ExamResultsModal';
 import {
-  GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal,
+  GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal, Home,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
   FileText, Award, BookOpen, Palmtree, Clock, Book, BookMarked, NotebookPen, LogOut,
   CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2, TrendingUp, BarChart4, ClipboardCheck, UserCheck, Wallet
@@ -357,8 +357,8 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Quick Actions - staff only */}
-        {isStaff && visibleQuickActions.length > 0 && (
+        {/* Quick Actions - staff only, NEVER shown to accountant */}
+        {isStaff && userRole !== 'accountant' && visibleQuickActions.length > 0 && (
           <section>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
             <div className="grid grid-cols-4 gap-3">
@@ -527,7 +527,7 @@ export default function Dashboard() {
       <nav className="fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-2 px-2 sm:px-4">
           {(userRole === 'accountant' ? [
-            { name: 'Home', icon: MoreHorizontal, page: 'Dashboard' },
+            { name: 'Home', icon: Home, page: 'Dashboard' },
             { name: 'Fees', icon: Wallet, page: 'Fees' },
             { name: 'Collection', icon: BarChart3, page: 'CollectionReport' },
             { name: 'Outstanding', icon: TrendingUp, page: 'OutstandingReport' },
