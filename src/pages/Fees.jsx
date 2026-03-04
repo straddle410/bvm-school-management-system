@@ -58,6 +58,7 @@ export default function Fees() {
     canApplyDiscount && { value: 'discounts', label: 'Discount' },
     canApplyCharge   && { value: 'adhoc',     label: 'Add Fee' },
     canManageFamilies&& { value: 'families',  label: 'Families' },
+    { value: 'backup', label: '🗄 Backup' },
   ].filter(Boolean);
 
   return (
