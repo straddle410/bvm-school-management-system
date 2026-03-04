@@ -78,38 +78,18 @@ export default function GoogleDriveFolderPickerDialog({ isOpen, onClose, onSelec
   const pickerRef = useRef(null);
   const accessTokenRef = useRef(null);
 
-  // Load Google API and Picker scripts
+  // Load Google Picker script
   useEffect(() => {
     if (!isOpen) return;
 
-    const loadScripts = async () => {
-      return new Promise((resolve) => {
-        // Load Google API
-        if (!window.gapi) {
-          const gapiScript = document.createElement('script');
-          gapiScript.src = 'https://apis.google.com/js/api.js';
-          gapiScript.async = true;
-          gapiScript.onload = () => {
-            if (window.gapi && window.gapi.load) {
-              window.gapi.load('picker', {
-                callback: resolve
-              });
-            } else {
-              resolve();
-            }
-          };
-          document.body.appendChild(gapiScript);
-        } else if (window.gapi && window.gapi.load) {
-          window.gapi.load('picker', {
-            callback: resolve
-          });
-        } else {
-          resolve();
-        }
-      });
-    };
-
-    loadScripts();
+    // Load Google Picker API
+    if (!window.google?.picker) {
+      const script = document.createElement('script');
+      script.src = 'https://apis.google.com/js/platform.js';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
   }, [isOpen]);
 
   // Open folder picker
