@@ -482,12 +482,31 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
 
       {/* STEP 5: Done */}
       {isTestSchool && step === 5 && resetResult && (
-        <Card className="border-2 border-green-300 bg-green-50">
-          <CardHeader>
-            <CardTitle className="text-green-700 flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Reset Complete</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="overflow-auto rounded-lg border bg-white">
+       <Card className="border-2 border-green-300 bg-green-50">
+         <CardHeader>
+           <CardTitle className="text-green-700 flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Reset Complete</CardTitle>
+         </CardHeader>
+         <CardContent className="space-y-4">
+           {backupId && (
+             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+               <p className="text-sm text-blue-800 mb-2">
+                 <strong>✓ Safety Backup Created:</strong> {backupId}
+               </p>
+               <p className="text-xs text-blue-700 mb-3">
+                 If you need to recover from this reset, you can restore from the backup using the Fees Backup tab.
+               </p>
+               <Button
+                 size="sm"
+                 variant="outline"
+                 className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                 onClick={restoreFromBackup}
+               >
+                 Restore from Pre-Reset Backup
+               </Button>
+             </div>
+           )}
+
+           <div className="overflow-auto rounded-lg border bg-white">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50">
                   <tr>
