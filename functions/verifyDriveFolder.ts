@@ -61,13 +61,13 @@ Deno.serve(async (req) => {
 
     // Verify it's actually a folder
     if (folderData.mimeType !== 'application/vnd.google-apps.folder') {
-      return Response.json({ error: 'Selected item is not a folder' }, { status: 400 });
+      return Response.json({ error: 'The selected item is not a folder. Please select a Google Drive folder.' }, { status: 400 });
     }
 
     return Response.json({
       success: true,
       folderId: folderData.id,
-      folderName: folderData.name
+      folderName: folderData.name || 'Untitled Folder'
     });
   } catch (error) {
     console.error('Verify folder error:', error);
