@@ -23,9 +23,11 @@ export default function Diary() {
     description: '',
     class_name: '',
     section: 'A',
-    subject: '',
+    subject_id: '',
+    subject_name: '',
     diary_date: format(new Date(), 'yyyy-MM-dd'),
   });
+  const [formErrors, setFormErrors] = useState({});
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
 
@@ -33,6 +35,12 @@ export default function Diary() {
     const staffData = getStaffSession();
     setUser(staffData);
   }, []);
+
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects', form.class_name],
+    queryFn: () => base44.entities.Subject.filter({ classes: { $contains: form.class_name } }),
+    enabled: !!form.class_name,
+  });
 
   const { data: diaryList = [], isLoading } = useQuery({
     queryKey: ['diary', academicYear],
@@ -75,13 +83,27 @@ export default function Diary() {
       description: '',
       class_name: '',
       section: 'A',
-      subject: '',
+      subject_id: '',
+      subject_name: '',
       diary_date: format(new Date(), 'yyyy-MM-dd'),
     });
+    setFormErrors({});
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errors = {};
+    if (!form.subject_id) errors.subject = 'Please select a subject';
+    if (!form.title) errors.title = 'Title is required';
+    if (!form.description) errors.description = 'Description is required';
+    if (!form.class_name) errors.class = 'Class is required';
+    if (!form.diary_date) errors.diary_date = 'Date is required';
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    
     if (editingItem) {
       updateMutation.mutate(form);
     } else {
@@ -96,7 +118,8 @@ export default function Diary() {
       description: item.description,
       class_name: item.class_name,
       section: item.section || 'A',
-      subject: item.subject,
+      subject_id: item.subject_id || '',
+      subject_name: item.subject_name || '',
       diary_date: item.diary_date,
     });
     setShowForm(true);
@@ -154,8 +177,8 @@ export default function Diary() {
                         <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
                           Class {item.class_name}-{item.section}
                         </span>
-                        {item.subject && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject}</span>
+                        {item.subject_name && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject_name}</span>
                         )}
                         {item.diary_date && (
                           <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
@@ -249,12 +272,37 @@ export default function Diary() {
                   </div>
                 </div>
                 <div>
-                  <Label>Subject</Label>
-                  <Input
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    placeholder="e.g., Mathematics"
-                  />
+                  <Label>Subject *</Label>
+                  {!form.class_name ? (
+                    <div className="text-xs text-gray-500 py-2 px-3 bg-gray-100 rounded-lg">
+                      Select class first
+                    </div>
+                  ) : subjects.length === 0 ? (
+                    <div className="text-xs text-red-600 py-2 px-3 bg-red-50 rounded-lg">
+                      No subjects configured. Contact admin.
+                    </div>
+                  ) : (
+                    <Select
+                      value={form.subject_id}
+                      onValueChange={(v) => {
+                        const selected = subjects.find((s) => s.id === v);
+                        setForm({ ...form, subject_id: v, subject_name: selected?.name || '' });
+                        setFormErrors({ ...formErrors, subject: '' });
+                      }}
+                    >
+                      <SelectTrigger className={formErrors.subject ? 'border-red-500' : ''}>
+                        <SelectValue placeholder="Select a subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects.map((subj) => (
+                          <SelectItem key={subj.id} value={subj.id}>
+                            {subj.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {formErrors.subject && <p className="text-xs text-red-600 mt-1">{formErrors.subject}</p>}
                 </div>
                 <div>
                   <Label>Date *</Label>
