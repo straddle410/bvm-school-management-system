@@ -15,7 +15,7 @@ import {
   AlertTriangle, Cloud, ShieldCheck, Database, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatIST, formatISTDate } from '@/components/utils/istFormatter';
 
 const DRIVE_EXPORT_STATUS = {
   NOT_EXPORTED: { label: 'Not Exported', color: 'bg-slate-100 text-slate-600' },
