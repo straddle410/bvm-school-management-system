@@ -20,7 +20,14 @@ Deno.serve(async (req) => {
     }
 
     // ── EXPLICIT ROLE GUARD (admin/principal only) ──
-    const role = (user.role || '').toLowerCase().trim();
+    // Extract effective role with normalization
+    const candidates = [
+      user?.role,
+      user?.roleName,
+      user?.user_metadata?.role,
+      user?.app_metadata?.role
+    ].filter(v => v !== null && v !== undefined && v !== '');
+    const role = String(candidates[0] || '').trim().toLowerCase();
     const allowedRoles = ['admin', 'principal'];
     if (!allowedRoles.includes(role)) {
       return Response.json({ error: 'Forbidden', userRole: role, allowedRoles }, { status: 403 });
