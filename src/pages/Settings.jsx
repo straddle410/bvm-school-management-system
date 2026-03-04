@@ -91,9 +91,47 @@ function TransportFeeSettings({ schoolProfiles, queryClient }) {
 }
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('school');
+  const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState('admin');
+  const [activeItem, setActiveItem] = useState(() => {
+    try {
+      return localStorage.getItem('settings_active_item') || 'school-profile';
+    } catch {
+      return 'school-profile';
+    }
+  });
   const [logoFile, setLogoFile] = useState(null);
   const [showYearDialog, setShowYearDialog] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // Fetch user role on mount
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const session = localStorage.getItem('staff_session');
+        if (session) {
+          const parsed = JSON.parse(session);
+          setUserRole((parsed?.role || 'admin').toLowerCase());
+          setUser(parsed);
+          return;
+        }
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const currentUser = await base44.auth.me();
+          setUserRole((currentUser?.role || 'admin').toLowerCase());
+          setUser(currentUser);
+        }
+      } catch {}
+    };
+    init();
+  }, []);
+
+  const handleItemSelect = (itemId) => {
+    setActiveItem(itemId);
+    try {
+      localStorage.setItem('settings_active_item', itemId);
+    } catch {}
+  };
   const [schoolForm, setSchoolForm] = useState({
     school_name: 'BVM School of Excellence',
     address: '',
