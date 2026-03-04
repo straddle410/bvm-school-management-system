@@ -227,8 +227,8 @@ export default function More() {
                    </div>
                  )}
 
-                 {/* Exam Section - Teachers */}
-                 {isTeacher && !isAdmin && examItems.teacher.length > 0 && (
+                 {/* Exam Section - Teachers (not accountant) */}
+                  {isTeacher && !isAdmin && role !== 'accountant' && examItems.teacher.length > 0 && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Exams</p>
                      <div className="divide-y divide-gray-50">
@@ -237,8 +237,8 @@ export default function More() {
                    </div>
                  )}
 
-                 {/* Create Content - Teachers & Staff */}
-                 {isTeacher && (
+                 {/* Create Content - Teachers & Staff (not accountant) */}
+                 {isTeacher && role !== 'accountant' && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Create Content</p>
                      <div className="divide-y divide-gray-50">
@@ -303,8 +303,8 @@ export default function More() {
                    </div>
                  )}
 
-                 {/* Fees Module shortcut for non-admin fee staff */}
-                 {!isAdmin && !!permissions.fees_view_module && (
+                 {/* Fees Module shortcut for non-admin, non-accountant fee staff */}
+                  {!isAdmin && role !== 'accountant' && !!permissions.fees_view_module && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Fees</p>
                      <div className="divide-y divide-gray-50">
