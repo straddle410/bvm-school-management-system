@@ -320,7 +320,7 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
                 <tbody className="divide-y">
                   {backups.map((backup) => (
                     <tr key={backup.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2">{format(new Date(backup.created_date), 'dd MMM HH:mm')}</td>
+                      <td className="px-4 py-2">{formatIST(backup.created_date, 'short')}</td>
                       <td className="px-4 py-2">
                         <Badge variant={backup.backup_type === 'MANUAL' ? 'default' : 'secondary'}>
                           {backup.backup_type === 'MANUAL' ? '✋ Manual' : '⏰ Weekly'}
