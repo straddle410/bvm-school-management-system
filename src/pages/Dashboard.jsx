@@ -60,8 +60,8 @@ const quickActions = [
    { label: 'Notices',             icon: Bell,          gradient: 'from-sky-400 to-blue-500',      page: 'Notices',                permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
    { label: 'Quiz',                icon: Brain,         gradient: 'from-purple-400 to-violet-600', page: 'Quiz',                   permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
    { label: 'Gallery',             icon: Image,         gradient: 'from-fuchsia-400 to-pink-500',  page: 'Gallery',                permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',    permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'], tab: 'view' },
    { label: 'Manage Admissions',   icon: UserCheck,     gradient: 'from-indigo-400 to-purple-600', page: 'Admissions',             permKey: 'student_admission_permission', roleRequired: ['admin', 'principal'] },
-   { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',    permKey: null,                          roleRequired: ['admin', 'principal'] },
 ];
 
 // Finance tiles for accountant role — permission-gated
@@ -223,19 +223,20 @@ export default function Dashboard() {
   // Permission key takes priority — if an item has a permKey, that permission must be granted.
   // Role-name matching is used only as a fallback for items WITHOUT a permKey.
   const visibleQuickActions = quickActions.filter(item => {
-    if (!isStaff) return false;
-    if (isAdmin) {
-      // Admins see all items regardless of permKey or role
-      return true;
-    }
-    if (item.permKey) {
-      // Permission-gated: only show if permission is granted (ignores role name)
-      return !!userPermissions[item.permKey];
-    }
-    // No permKey: fall back to role-name matching
-    if (!item.roleRequired) return false;
-    return item.roleRequired.some(r => r.toLowerCase() === userRole);
-  });
+     if (!isStaff) return false;
+     if (isAdmin) {
+       // Admins see all items EXCEPT teacher-only ones like Timetable(view)
+       if (item.label === 'Timetable' && item.tab === 'view') return false;
+       return true;
+     }
+     if (item.permKey) {
+       // Permission-gated: only show if permission is granted (ignores role name)
+       return !!userPermissions[item.permKey];
+     }
+     // No permKey: fall back to role-name matching
+     if (!item.roleRequired) return false;
+     return item.roleRequired.some(r => r.toLowerCase() === userRole);
+   });
 
   const eventTypeColor = (type) => {
     const map = { Holiday: '#e53935', Exam: '#7e57c2', PTM: '#1e88e5', Event: '#43a047', Meeting: '#f9a825', General: '#26a69a', Urgent: '#d32f2f', Fee: '#f9a825', Notice: '#1e88e5' };
@@ -369,11 +370,13 @@ export default function Dashboard() {
              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
              <div className="grid grid-cols-4 gap-3">
                {visibleQuickActions.filter(item => {
-                 // Hide from admin: Marks Entry (teachers use it), Homework, Diary, Notices, Quiz, Gallery (teachers use), Post
-                 const adminHiddenLabels = ['Marks Entry', 'Homework', 'Diary', 'Notices', 'Quiz', 'Gallery', 'Post', 'Messages'];
-                 return !(isAdmin && adminHiddenLabels.includes(item.label));
-               }).map((item) => (
-                   <Link key={item.label} to={createPageUrl(item.page)} className="block">
+                   // Hide from admin: Marks Entry (teachers use it), Homework, Diary, Notices, Quiz, Gallery (teachers use), Post, Timetable(view)
+                   const adminHiddenLabels = ['Marks Entry', 'Homework', 'Diary', 'Notices', 'Quiz', 'Gallery', 'Post', 'Messages', 'Timetable'];
+                   return !(isAdmin && adminHiddenLabels.includes(item.label));
+                 }).map((item) => {
+                     const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
+                     return (
+                      <Link key={item.label} to={href} className="block">
                     <div className="flex flex-col items-center gap-1.5 relative">
                       <GradientIcon gradient={item.gradient} icon={item.icon} />
                       {item.label === 'Messages' && unreadMessageCount > 0 && (
