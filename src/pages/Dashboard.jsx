@@ -532,6 +532,7 @@ export default function Dashboard() {
             { name: 'Fees', icon: Wallet, page: 'Fees' },
             { name: 'Collection', icon: BarChart3, page: 'CollectionReport' },
             { name: 'Outstanding', icon: TrendingUp, page: 'OutstandingReport' },
+            { name: 'Ledger', icon: BookOpen, page: 'StudentLedgerReport' },
             { name: 'More', icon: MoreHorizontal, page: 'More' },
           ] : [
             { name: 'Home', icon: MoreHorizontal, page: 'Dashboard', adminOnly: false },
