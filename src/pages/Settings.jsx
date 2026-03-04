@@ -319,7 +319,7 @@ export default function Settings() {
 
       <div className="p-4 lg:p-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-white border shadow-sm">
+           <TabsList className="bg-white border shadow-sm flex flex-wrap justify-start h-auto gap-2 p-2">
             <TabsTrigger value="school">
               <School className="h-4 w-4 mr-2" /> School Profile
             </TabsTrigger>
