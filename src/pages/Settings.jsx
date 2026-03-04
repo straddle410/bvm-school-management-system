@@ -794,9 +794,10 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            )}
 
-          <TabsContent value="transport" className="mt-6">
+            {/* Transport */}
+            {activeItem === 'transport' && (
             <TransportFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} />
           </TabsContent>
 
