@@ -53,10 +53,15 @@ const quickAccess = [
 // roleRequired uses lowercase for consistent matching after normalization
 // Removed duplicate items (Students, Fees, Collection, Outstanding, Ledger)
 const quickActions = [
-  { label: 'Attendance',          icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',                  roleRequired: ['admin', 'principal', 'teacher'] },
-  { label: 'Post',                icon: NotebookPen,   gradient: 'from-purple-400 to-pink-600',   page: 'PostingDashboard',       permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
-  { label: 'Manage Admissions',   icon: UserCheck,     gradient: 'from-indigo-400 to-purple-600', page: 'Admissions',             permKey: 'student_admission_permission', roleRequired: ['admin', 'principal'] },
-  { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',    permKey: null,                          roleRequired: ['admin', 'principal'] },
+   { label: 'Attendance',          icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',                  roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                  permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Homework',            icon: BookMarked,    gradient: 'from-amber-400 to-orange-500',  page: 'HomeworkManage',         permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Diary',               icon: BookOpen,      gradient: 'from-pink-400 to-rose-500',     page: 'DiaryManagement',        permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Notices',             icon: Bell,          gradient: 'from-sky-400 to-blue-500',      page: 'Notices',                permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Quiz',                icon: Brain,         gradient: 'from-purple-400 to-violet-600', page: 'Quiz',                   permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Gallery',             icon: Image,         gradient: 'from-fuchsia-400 to-pink-500',  page: 'Gallery',                permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
+   { label: 'Manage Admissions',   icon: UserCheck,     gradient: 'from-indigo-400 to-purple-600', page: 'Admissions',             permKey: 'student_admission_permission', roleRequired: ['admin', 'principal'] },
+   { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',    permKey: null,                          roleRequired: ['admin', 'principal'] },
 ];
 
 // Finance tiles for accountant role — permission-gated
@@ -359,11 +364,15 @@ export default function Dashboard() {
         )}
 
         {/* Quick Actions - staff only, NEVER shown to accountant */}
-        {isStaff && userRole !== 'accountant' && visibleQuickActions.length > 0 && (
-          <section>
-            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
-            <div className="grid grid-cols-4 gap-3">
-              {visibleQuickActions.filter(item => !(isAdmin && (item.label === 'Marks Entry' || item.label === 'Messages'))).map((item) => (
+         {isStaff && userRole !== 'accountant' && visibleQuickActions.length > 0 && (
+           <section>
+             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
+             <div className="grid grid-cols-4 gap-3">
+               {visibleQuickActions.filter(item => {
+                 // Hide from admin: Marks Entry (teachers use it), Homework, Diary, Notices, Quiz, Gallery (teachers use), Post
+                 const adminHiddenLabels = ['Marks Entry', 'Homework', 'Diary', 'Notices', 'Quiz', 'Gallery', 'Post', 'Messages'];
+                 return !(isAdmin && adminHiddenLabels.includes(item.label));
+               }).map((item) => (
                    <Link key={item.label} to={createPageUrl(item.page)} className="block">
                     <div className="flex flex-col items-center gap-1.5 relative">
                       <GradientIcon gradient={item.gradient} icon={item.icon} />
