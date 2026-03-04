@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Test 6: recordFeePayment - Should 403 for Teacher
+    // Test 6: recordFeePayment - Should 403 for Teacher, 400+ for Admin/Accountant/Principal (no valid invoice)
     try {
       const response = await base44.functions.invoke('recordFeePayment', {
         invoiceId: 'inv_fake',
@@ -140,16 +140,17 @@ Deno.serve(async (req) => {
       });
       results.tests.push({
         name: 'recordFeePayment()',
-        result: isAuthorized ? 'PASS' : 'FAIL (Teacher can create payments)',
+        result: isAuthorized ? 'PASS (authorized access)' : 'FAIL (Teacher can create payments)',
         status: isAuthorized ? 'ok' : 'error'
       });
     } catch (err) {
       const is403 = err.response?.status === 403 || err.message?.includes('403');
+      const status = err.response?.status;
       results.tests.push({
         name: 'recordFeePayment()',
-        result: isTeacher && is403 ? 'PASS (403 blocked)' : 'FAIL (Authorized user blocked)',
+        result: isTeacher && is403 ? 'PASS (Teacher 403 blocked)' : (isAuthorized && (status === 404 || status === 400) ? 'PASS (authorized, non-permission error)' : 'FAIL (Authorized user blocked)'),
         error: err.message,
-        status: isTeacher && is403 ? 'ok' : 'error'
+        status: isTeacher && is403 ? 'ok' : (isAuthorized && (status === 404 || status === 400) ? 'ok' : 'error')
       });
     }
 
