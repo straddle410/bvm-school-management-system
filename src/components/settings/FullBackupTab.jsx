@@ -5,9 +5,10 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertCircle, Download, Upload, Clock, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertCircle, Download, Upload, Clock, CheckCircle2, AlertTriangle, Loader2, HardDrive } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import GoogleDriveFolderPickerDialog from '@/components/GoogleDriveFolderPicker';
 
 const DriveStatusBadge = ({ status }) => {
   const config = {
