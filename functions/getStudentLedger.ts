@@ -25,10 +25,19 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const userRole = (user.role || '').toLowerCase();
+    
+    // Extract effective role with normalization
+    const candidates = [
+      user?.role,
+      user?.roleName,
+      user?.user_metadata?.role,
+      user?.app_metadata?.role
+    ].filter(v => v !== null && v !== undefined && v !== '');
+    const userRole = String(candidates[0] || '').trim().toLowerCase();
     const allowedRoles = ['admin', 'principal', 'accountant'];
+    
     if (!allowedRoles.includes(userRole)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+      return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
