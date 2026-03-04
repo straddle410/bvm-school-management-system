@@ -89,33 +89,46 @@ Deno.serve(async (req) => {
       last_login_ip: clientIp,
     });
 
-    // If force password change, return flag
+    // Resolve effective permissions:
+    // Merge role template permissions + legacy permissions + overrides
+    let effectivePermissions = {};
+    if (account.role_template_id) {
+      try {
+        const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
+        if (templates && templates.length > 0 && templates[0].permissions) {
+          effectivePermissions = { ...templates[0].permissions };
+        }
+      } catch (e) {
+        // Ignore template fetch error
+      }
+    }
+    // Legacy permissions on top of template
+    if (account.permissions) {
+      effectivePermissions = { ...effectivePermissions, ...account.permissions };
+    }
+    // Explicit overrides take highest priority
+    if (account.permissions_override) {
+      effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
+    }
+
+    // Normalize role to lowercase for consistent permission checks
+    const normalizedRole = (account.role || '').trim().toLowerCase();
+
+    // If force password change, return minimal session so client can store it
     if (account.force_password_change) {
       return Response.json({
         success: true,
         force_password_change: true,
         staff_id: account.id,
         username: account.username,
-        message: 'Password change required',
+        name: account.name,
+        full_name: account.name,
+        role: normalizedRole,
+        designation: account.designation,
+        role_template_id: account.role_template_id,
+        permissions: effectivePermissions,
+        redirect_to: 'ChangeStaffPassword',
       });
-    }
-
-    // Resolve effective permissions:
-    // Merge role template permissions + legacy permissions + overrides
-    let effectivePermissions = { ...(account.permissions || {}) };
-    if (account.role_template_id) {
-      try {
-        const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
-        if (templates && templates.length > 0 && templates[0].permissions) {
-          // Template is base, overrides on top
-          effectivePermissions = { ...templates[0].permissions, ...effectivePermissions };
-        }
-      } catch (e) {
-        // Ignore template fetch error - proceed with existing permissions
-      }
-    }
-    if (account.permissions_override) {
-      effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
     }
 
     // Create session (store in localStorage on client)
@@ -125,12 +138,12 @@ Deno.serve(async (req) => {
       username: account.username,
       name: account.name,
       full_name: account.name,
-      role: (account.role || '').toLowerCase(),
+      role: normalizedRole,
       designation: account.designation,
       role_template_id: account.role_template_id,
       permissions: effectivePermissions,
       permissions_override: account.permissions_override,
-      force_password_change: account.force_password_change,
+      force_password_change: false,
       redirect_to: 'Dashboard',
     });
   } catch (error) {
