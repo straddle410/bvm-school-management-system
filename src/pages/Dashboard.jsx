@@ -51,19 +51,12 @@ const quickAccess = [
 
 // quickActions now uses permission-aware filtering in the component
 // roleRequired uses lowercase for consistent matching after normalization
+// Removed duplicate items (Students, Fees, Collection, Outstanding, Ledger)
 const quickActions = [
-  { label: 'Students',            icon: Users,         gradient: 'from-emerald-400 to-teal-600',  page: 'Students',               permKey: null,                          roleRequired: ['teacher', 'staff'] },
   { label: 'Attendance',          icon: Check,         gradient: 'from-blue-400 to-blue-600',     page: 'Attendance',             permKey: 'attendance',                  roleRequired: ['admin', 'principal', 'teacher'] },
   { label: 'Post',                icon: NotebookPen,   gradient: 'from-purple-400 to-pink-600',   page: 'PostingDashboard',       permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
-  { label: 'Marks Entry',         icon: ClipboardList, gradient: 'from-cyan-400 to-teal-500',     page: 'Marks',                  permKey: 'marks',                       roleRequired: ['admin', 'principal', 'teacher'] },
-  { label: 'Messages',            icon: Mail,          gradient: 'from-green-400 to-emerald-500', page: 'Messaging',              permKey: null,                          roleRequired: ['admin', 'principal', 'teacher'] },
   { label: 'Manage Admissions',   icon: UserCheck,     gradient: 'from-indigo-400 to-purple-600', page: 'Admissions',             permKey: 'student_admission_permission', roleRequired: ['admin', 'principal'] },
   { label: 'Timetable',           icon: Clock,         gradient: 'from-sky-400 to-indigo-500',    page: 'TimetableManagement',    permKey: null,                          roleRequired: ['admin', 'principal'] },
-  // Fees tiles — visible to any staff with the respective permission (permKey required, so always gated)
-  { label: 'Fees',                icon: Wallet,        gradient: 'from-green-400 to-emerald-600', page: 'Fees',                   permKey: 'fees_view_module',            roleRequired: ['admin', 'principal', 'accountant', 'staff', 'teacher'] },
-  { label: 'Collection',          icon: BarChart3,     gradient: 'from-sky-400 to-blue-600',      page: 'CollectionReport',       permKey: 'fee_reports_view',            roleRequired: ['admin', 'principal', 'accountant', 'staff', 'teacher'] },
-  { label: 'Outstanding',         icon: TrendingUp,    gradient: 'from-red-400 to-rose-600',      page: 'OutstandingReport',      permKey: 'fee_reports_view',            roleRequired: ['admin', 'principal', 'accountant', 'staff', 'teacher'] },
-  { label: 'Ledger',              icon: BookOpen,      gradient: 'from-violet-400 to-purple-600', page: 'StudentLedgerReport',    permKey: 'fees_view_ledger',            roleRequired: ['admin', 'principal', 'accountant', 'staff', 'teacher'] },
 ];
 
 // Finance tiles for accountant role — permission-gated
