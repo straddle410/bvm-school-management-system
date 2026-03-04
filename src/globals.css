@@ -136,6 +136,31 @@
   }
 }
 
+/* ── Accountant Fees View: larger, senior-friendly text ── */
+.accountant-fees-view table td,
+.accountant-fees-view table th {
+  font-size: 0.95rem !important;
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.7rem !important;
+}
+.accountant-fees-view table th {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+}
+.accountant-fees-view .text-sm { font-size: 0.95rem !important; }
+.accountant-fees-view .text-xs { font-size: 0.8rem !important; }
+.accountant-fees-view .text-base { font-size: 1.05rem !important; }
+.accountant-fees-view .text-lg { font-size: 1.2rem !important; }
+.accountant-fees-view .font-bold,
+.accountant-fees-view .font-semibold { font-size: inherit !important; }
+.accountant-fees-view input,
+.accountant-fees-view select,
+.accountant-fees-view button:not([class*="text-"]) {
+  min-height: 44px;
+}
+.accountant-fees-view .p-2 { padding: 0.6rem !important; }
+.accountant-fees-view .p-3 { padding: 0.85rem !important; }
+
 /* Print-specific styles */
 @media print {
   .no-print,
