@@ -359,7 +359,7 @@ function StudentLedgerContent() {
 
 export default function StudentLedgerReport() {
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Student Ledger">
+    <LoginRequired allowedRoles={['admin', 'principal', 'accountant', 'staff', 'teacher']} pageName="Student Ledger">
       <StudentLedgerContent />
     </LoginRequired>
   );

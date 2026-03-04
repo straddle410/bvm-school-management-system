@@ -295,7 +295,7 @@ function CollectionReportContent() {
 
 export default function CollectionReport() {
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Finance Reports">
+    <LoginRequired allowedRoles={['admin', 'principal', 'accountant', 'staff', 'teacher']} pageName="Finance Reports">
       <CollectionReportContent />
     </LoginRequired>
   );
