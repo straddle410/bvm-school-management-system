@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import LoginRequired from '@/components/LoginRequired';
 import PageHeader from '@/components/ui/PageHeader';
 import ExamTypeManager from '@/components/hallTicket/ExamTypeManager';
 import TimetableManager from '@/components/hallTicket/TimetableManager';
@@ -11,31 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
 export default function HallTicketManagement() {
-  const [user, setUser] = useState(null);
-  const { academicYear } = useAcademicYear();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (e) {
-        console.error('Failed to load user');
-      }
-    };
-    loadUser();
-  }, []);
-
-  // Only admin can access this page
-  if (user && user.role !== 'admin') {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-red-600 font-semibold">Access Denied: Only administrators can manage hall tickets</p>
-      </div>
-    );
-  }
-
   return (
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Hall Ticket Management">
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <PageHeader
         title="Exam Hall Ticket Management"
@@ -90,6 +68,6 @@ export default function HallTicketManagement() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </LoginRequired>
   );
 }
