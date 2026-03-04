@@ -300,9 +300,14 @@ export default function Staff() {
       }
     }
 
+    // Derive the `role` field from the selected role template name
+    const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
+    const derivedRole = selectedTemplate ? selectedTemplate.name.charAt(0).toUpperCase() + selectedTemplate.name.slice(1).toLowerCase() : '';
+
     const dataToSave = { 
       ...form,
-      username: normalizedUsername
+      username: normalizedUsername,
+      role: derivedRole,
     };
 
     saveMutation.mutate(dataToSave);
