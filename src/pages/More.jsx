@@ -85,6 +85,7 @@ export default function More() {
   ];
 
   const financeReportItems = [
+   { label: 'Additional Fee', sub: 'Add adhoc charges', icon: AlertCircle, color: '#f57c00', bg: '#fff3e0', page: 'Fees', tab: 'adhoc' },
    { label: 'Daily Closing', sub: 'End-of-day summary', icon: FileText, color: '#0288d1', bg: '#e1f5fe', page: 'DailyClosingReport' },
    { label: 'Day Book', sub: 'Daily collections by mode', icon: TrendingUp, color: '#1976d2', bg: '#e3f2fd', page: 'DayBookReport' },
    { label: 'Outstanding / Due', sub: 'Student fee balances', icon: FileText, color: '#e53935', bg: '#ffebee', page: 'OutstandingReport' },
