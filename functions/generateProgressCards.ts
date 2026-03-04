@@ -20,10 +20,10 @@ Deno.serve(async (req) => {
     }
 
     // ── EXPLICIT ROLE GUARD (admin/principal only) ──
-    const role = (user.role || '').toLowerCase();
+    const role = (user.role || '').toLowerCase().trim();
     const allowedRoles = ['admin', 'principal'];
     if (!allowedRoles.includes(role)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+      return Response.json({ error: 'Forbidden', userRole: role, allowedRoles }, { status: 403 });
     }
 
     const { academicYear, classNameFilter, sectionFilter } = await req.json();
