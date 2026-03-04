@@ -54,6 +54,9 @@ Deno.serve(async (req) => {
       if (verifyResponse.status === 404) {
         return Response.json({ error: 'Folder not found or not accessible' }, { status: 404 });
       }
+      if (verifyResponse.status === 403) {
+        return Response.json({ error: 'Google Drive permission denied' }, { status: 403 });
+      }
       return Response.json({ error: 'Failed to verify folder' }, { status: 400 });
     }
 
