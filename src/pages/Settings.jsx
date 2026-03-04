@@ -799,9 +799,10 @@ export default function Settings() {
             {/* Transport */}
             {activeItem === 'transport' && (
             <TransportFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} />
-          </TabsContent>
+          )}
 
-          <TabsContent value="class-subjects" className="mt-6">
+          {/* Class Subjects */}
+          {activeItem === 'class-subjects' && (
             <ClassSubjectConfigTab />
           </TabsContent>
 
