@@ -12,13 +12,26 @@ import { getProxiedImageUrl } from '@/components/imageProxy';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
-const getBottomNav = (isAdmin) => [
-{ name: 'Home', icon: Home, page: 'Dashboard' },
-{ name: 'Marks', icon: BookOpen, page: 'Marks' },
-{ name: 'Notices', icon: Bell, page: 'Notices' },
-{ name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
-...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
-{ name: 'More', icon: MoreHorizontal, page: 'More' }];
+const getBottomNav = (isAdmin, userRole) => {
+  if (userRole === 'accountant') {
+    return [
+      { name: 'Home', icon: Home, page: 'Dashboard' },
+      { name: 'Fees', icon: Home, page: 'Fees' },
+      { name: 'Collection', icon: Home, page: 'CollectionReport' },
+      { name: 'Outstanding', icon: Home, page: 'OutstandingReport' },
+      { name: 'Ledger', icon: Home, page: 'StudentLedgerReport' },
+      { name: 'More', icon: MoreHorizontal, page: 'More' },
+    ];
+  }
+  return [
+    { name: 'Home', icon: Home, page: 'Dashboard' },
+    { name: 'Marks', icon: BookOpen, page: 'Marks' },
+    { name: 'Notices', icon: Bell, page: 'Notices' },
+    { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
+    ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
+    { name: 'More', icon: MoreHorizontal, page: 'More' },
+  ];
+};
 
 
 const LogoWithFallback = ({ src, alt, schoolProfile }) => {
