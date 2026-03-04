@@ -15,17 +15,16 @@ import { getProxiedImageUrl } from '@/components/imageProxy';
 const getBottomNav = (isAdmin, userRole) => {
   if (userRole === 'accountant') {
     return [
-      { name: 'Home', icon: Home, page: 'Dashboard' },
-      { name: 'Fees', icon: Wallet, page: 'Fees' },
-      { name: 'Collection', icon: BarChart3, page: 'CollectionReport' },
-      { name: 'Outstanding', icon: TrendingUp, page: 'OutstandingReport' },
-      { name: 'Ledger', icon: BookOpen, page: 'StudentLedgerReport' },
-      { name: 'More', icon: MoreHorizontal, page: 'More' },
+      { name: 'Home',    icon: Home,          page: 'Dashboard' },
+      { name: 'Fees',    icon: Wallet,         page: 'Fees' },
+      { name: 'Add Fee', icon: TrendingUp,     page: 'Fees', tab: 'adhoc' },
+      { name: 'Collect', icon: BarChart3,      page: 'CollectionReport' },
+      { name: 'Due',     icon: BookOpen,       page: 'OutstandingReport' },
+      { name: 'More',    icon: MoreHorizontal, page: 'More' },
     ];
   }
   return [
     { name: 'Home', icon: Home, page: 'Dashboard' },
-    { name: 'Marks', icon: BookOpen, page: 'Marks' },
     { name: 'Notices', icon: Bell, page: 'Notices' },
     { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
     ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
