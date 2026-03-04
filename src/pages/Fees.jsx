@@ -56,7 +56,19 @@ export default function Fees() {
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'accountant']} pageName="Fees">
       <div className="min-h-screen bg-slate-50">
-        <PageHeader title="Fees" subtitle={`Annual fee management — ${academicYear}`} />
+        <PageHeader
+          title="Fees"
+          subtitle={`Annual fee management — ${academicYear}`}
+          actions={isAdmin ? (
+            <button
+              onClick={() => setShowTransportModal(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition"
+            >
+              <Bus className="h-4 w-4" />
+              Recalculate Transport
+            </button>
+          ) : null}
+        />
 
         {isArchivedYear && (
           <div className="px-4 lg:px-8 pt-4">
