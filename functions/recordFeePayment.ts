@@ -11,6 +11,13 @@ Deno.serve(async (req) => {
     }
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // ── RBAC: Only Admin/Principal/Accountant can create payments ──
+    const userRole = (user.role || '').toLowerCase();
+    const allowedRoles = ['admin', 'principal', 'accountant'];
+    if (!allowedRoles.includes(userRole)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks } = await req.json();
 
     if (!invoiceId || !amountPaid || !paymentDate) {
