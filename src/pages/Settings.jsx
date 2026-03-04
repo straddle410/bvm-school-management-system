@@ -727,8 +727,10 @@ export default function Settings() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-          <TabsContent value="banners" className="mt-6">
+            )}
+
+            {/* Banners */}
+            {activeItem === 'banners' && (
             <Card className="border-0 shadow-sm">
               <CardHeader>
                 <CardTitle>Homepage Banner Slides</CardTitle>
