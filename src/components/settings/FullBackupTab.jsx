@@ -158,7 +158,14 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `FullBackup_${backup.academic_year || 'ALL'}_${format(new Date(backup.created_date), 'yyyy-MM-dd_HHmm')}.json`;
+    const istDate = formatISTDate(backup.created_date);
+    const istTime = new Date(backup.created_date).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).replace(':', '');
+    a.download = `FullBackup_${backup.academic_year || 'ALL'}_${istDate}_${istTime}.json`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
