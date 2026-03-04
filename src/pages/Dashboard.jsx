@@ -10,7 +10,7 @@ import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal, Home,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
   FileText, Award, BookOpen, Palmtree, Clock, Book, BookMarked, NotebookPen, LogOut,
-  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2, TrendingUp, BarChart4, ClipboardCheck, UserCheck, Wallet
+  CheckCircle, AlertCircle, MessageSquare, Trophy, Mail, Users, Building2, TrendingUp, BarChart4, ClipboardCheck, UserCheck, Wallet, HardDrive
 } from 'lucide-react';
 import { format } from 'date-fns';
 
