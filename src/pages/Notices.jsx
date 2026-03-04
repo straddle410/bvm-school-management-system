@@ -19,6 +19,7 @@ import { Bell, Pin, Plus, Megaphone, Calendar, Users, Check, CheckCheck } from '
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import TableBuilder from '@/components/TableBuilder';
+import LoginRequired from '@/components/LoginRequired';
 
 const TYPE_COLORS = {
   General: 'bg-blue-100 text-blue-700',
