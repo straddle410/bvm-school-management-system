@@ -860,10 +860,11 @@ export default function Settings() {
                   </div>
                 )}
               </CardContent>
-            </Card>
-          )}
-          </div>
-          </div>
+              </Card>
+              </>
+              )}
+              </div>
+              </div>
 
           {/* Add Year Dialog */}
       <Dialog open={showYearDialog} onOpenChange={setShowYearDialog}>
