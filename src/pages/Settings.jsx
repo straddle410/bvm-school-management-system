@@ -462,6 +462,18 @@ export default function Settings() {
                   </div>
                 </div>
 
+                {/* Test School Flag */}
+                <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-orange-800">Test School Mode</p>
+                    <p className="text-xs text-orange-600 mt-0.5">Enable only for test/demo environments. Unlocks the Data Reset tool.</p>
+                  </div>
+                  <Switch
+                    checked={!!schoolForm.is_test_school}
+                    onCheckedChange={(v) => setSchoolForm({...schoolForm, is_test_school: v})}
+                  />
+                </div>
+
                 <div className="flex justify-end">
                   <Button 
                     onClick={() => saveSchoolMutation.mutate()}
