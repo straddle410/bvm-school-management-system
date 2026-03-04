@@ -201,9 +201,12 @@ export default function Dashboard() {
 
   // For non-admin staff, filter quick actions based on their permissions
   const visibleQuickActions = quickActions.filter(item => {
-    if (!item.roleRequired || !item.roleRequired.includes(user?.role)) return false;
+    if (!item.roleRequired) return false;
+    // Case-insensitive role check
+    const roleMatches = item.roleRequired.some(r => r.toLowerCase() === userRole);
+    if (!roleMatches) return false;
     if (isAdmin) return true; // Admins see everything
-    if (!item.permKey) return true; // No permission key = always visible to staff
+    if (!item.permKey) return true; // No permission key = always visible to role
     return !!userPermissions[item.permKey]; // Check specific permission
   });
 
