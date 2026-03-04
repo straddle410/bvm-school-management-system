@@ -343,17 +343,22 @@ export default function Dashboard() {
         {userRole === 'accountant' && (
           <section>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Finance</h2>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {accountantFinanceActions
-                .filter(item => !!userPermissions[item.permKey])
-                .map((item) => (
-                  <Link key={item.label} to={createPageUrl(item.page)} className="block">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <GradientIcon gradient={item.gradient} icon={item.icon} />
-                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{item.label}</span>
-                    </div>
-                  </Link>
-                ))}
+                .filter(item => isAdmin || !!userPermissions[item.permKey])
+                .map((item) => {
+                  const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
+                  return (
+                    <Link key={item.label} to={href} className="block">
+                      <div className="bg-white rounded-2xl p-4 flex flex-col items-center gap-3 shadow-sm active:scale-95 transition-transform min-h-[96px] justify-center">
+                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md`}>
+                          <item.icon className="h-8 w-8 text-white" />
+                        </div>
+                        <span className="text-sm font-bold text-gray-700 text-center leading-tight">{item.label}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
             </div>
           </section>
         )}
