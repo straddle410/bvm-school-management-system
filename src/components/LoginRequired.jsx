@@ -41,11 +41,7 @@ export default function LoginRequired({ children, allowedRoles, pageName }) {
           </p>
           <Button
             className="w-full bg-[#1a237e] hover:bg-[#283593] text-white rounded-xl"
-            onClick={() => {
-              // Save intended destination so StaffLogin can redirect back after login
-              sessionStorage.setItem('postLoginRedirect', window.location.href);
-              window.location.href = createPageUrl('StaffLogin');
-            }}
+            onClick={() => window.location.href = createPageUrl('StaffLogin')}
           >
             <LogIn className="h-4 w-4 mr-2" />
             Login
