@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { modules = [], academicYear, dryRun = false, reset_token, record_id,
-            confirmation_phrase, confirmation_school_name, confirmation_date } = body;
+            confirmation_phrase, confirmation_school_name, confirmation_date, pre_reset_backup_id } = body;
 
     if (modules.length === 0) {
       return Response.json({ error: 'No modules selected' }, { status: 400 });
@@ -227,7 +227,8 @@ Deno.serve(async (req) => {
         otp_used: true,
         confirmation_phrase_ok: confirmation_phrase === 'RESET SCHOOL DATA',
         confirmation_schoolname_ok: confirmation_school_name === (profile?.school_name || ''),
-        confirmation_date_ok: confirmation_date === today
+        confirmation_date_ok: confirmation_date === today,
+        pre_reset_backup_id: pre_reset_backup_id || null
       });
     } else {
       // Log dry run separately (create new record for dry-run previews)
