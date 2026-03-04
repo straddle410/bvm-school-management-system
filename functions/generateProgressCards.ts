@@ -30,7 +30,8 @@ Deno.serve(async (req) => {
     const role = String(candidates[0] || '').trim().toLowerCase();
     const allowedRoles = ['admin', 'principal'];
     if (!allowedRoles.includes(role)) {
-      return Response.json({ error: 'Forbidden', userRole: role, allowedRoles }, { status: 403 });
+      console.log(`[RBAC-BLOCK] ${user.email} role="${role}" not in ${JSON.stringify(allowedRoles)}`);
+      return Response.json({ error: 'Forbidden', userRole: role, allowedRoles, email: user.email }, { status: 403 });
     }
 
     const { academicYear, classNameFilter, sectionFilter } = await req.json();
