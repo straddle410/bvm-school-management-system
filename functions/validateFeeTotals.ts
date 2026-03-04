@@ -139,8 +139,8 @@ Deno.serve(async (req) => {
         base44.asServiceRole.entities.FeeInvoice.filter({ student_id: { '$in': testIds } })
       ]);
       await Promise.all([
-        ...oldStudents.map(s => base44.asServiceRole.entities.Student.delete(s.id)),
-        ...oldInvoices.map(i => base44.asServiceRole.entities.FeeInvoice.delete(i.id))
+        ...oldStudents.map(s => base44.asServiceRole.entities.Student.update(s.id, { is_deleted: true, status: 'Archived' })),
+        ...oldInvoices.map(i => base44.asServiceRole.entities.FeeInvoice.update(i.id, { status: 'Cancelled' }))
       ]);
 
       // Step 4: Create two test students
