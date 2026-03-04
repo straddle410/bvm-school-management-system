@@ -45,6 +45,7 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
   const daysAgo = lastWeeklyBackup 
     ? Math.floor((Date.now() - new Date(lastWeeklyBackup.created_date)) / (1000 * 60 * 60 * 24))
     : null;
+  const lastBackupIST = lastWeeklyBackup ? formatIST(lastWeeklyBackup.created_date, 'long') : null;
 
   // Create backup mutation
   const createBackupMutation = useMutation({
