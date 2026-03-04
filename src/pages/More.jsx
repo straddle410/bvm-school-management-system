@@ -248,8 +248,8 @@ export default function More() {
                    </div>
                  )}
 
-                 {/* Finance Reports - Admin */}
-                 {isAdmin && (
+                 {/* Finance Reports - Admin or staff with fee permissions */}
+                 {canViewFinance && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                      <div onClick={() => setExpandedFinance(!expandedFinance)}>
                        <MenuItem
@@ -265,7 +265,17 @@ export default function More() {
                      </div>
                      {expandedFinance && (
                        <div className="divide-y divide-gray-50 bg-gray-50">
-                         {financeReportItems.map(item => (
+                         {financeReportItems
+                           .filter(item => {
+                             if (isAdmin) return true;
+                             // Show only relevant report items based on permissions
+                             if (item.page === 'OutstandingReport') return !!permissions.fee_reports_view || !!permissions.fees_view_ledger;
+                             if (item.page === 'StudentLedgerReport') return !!permissions.fees_view_ledger;
+                             if (item.page === 'CollectionReport' || item.page === 'DailyClosingReport' || item.page === 'DayBookReport' || item.page === 'ClassCollectionSummaryReport') return !!permissions.fee_reports_view;
+                             if (item.page === 'DefaultersReport') return !!permissions.fee_reports_view;
+                             return false;
+                           })
+                           .map(item => (
                            <div key={item.label} className="pl-4">
                              <MenuItem item={item} />
                            </div>
