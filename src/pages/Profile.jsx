@@ -9,17 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Upload, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-function getCurrentUser() {
-  try {
-    const ss = localStorage.getItem('staff_session');
-    if (ss) {
-      const staff = JSON.parse(ss);
-      if (staff?.email) return staff;
-    }
-  } catch {}
-  return null;
-}
-
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -36,7 +25,19 @@ export default function Profile() {
   const loadProfile = async () => {
     try {
       setIsLoading(true);
-      const staffUser = getCurrentUser();
+      // Try staff_session first (StaffLogin), then fall back to base44.auth.me()
+      let staffUser = null;
+      try {
+        const ss = localStorage.getItem('staff_session');
+        if (ss) {
+          staffUser = JSON.parse(ss);
+        }
+      } catch {}
+      
+      if (!staffUser) {
+        staffUser = await base44.auth.me().catch(() => null);
+      }
+      
       if (!staffUser) {
         toast.error('Not authenticated');
         navigate('/');
