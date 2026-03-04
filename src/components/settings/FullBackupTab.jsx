@@ -304,6 +304,13 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Folder Picker Dialog */}
+      <GoogleDriveFolderPickerDialog
+        isOpen={showFolderPickerDialog}
+        onClose={() => setShowFolderPickerDialog(false)}
+        onSelect={handleFolderSelected}
+      />
     </div>
   );
 }
