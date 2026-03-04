@@ -78,6 +78,7 @@ export default function More() {
     : allContentItems.filter(item => !item.permKey || !!permissions[item.permKey]);
 
   const adminItems = [
+   { label: 'Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' },
    { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
    { label: 'Staff Management', sub: 'Create & manage accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'StaffManagement' },
    { label: 'Reports', sub: 'Analytics & insights', icon: BookOpen, color: '#78909c', bg: '#eceff1', page: 'ReportsManagement' },
