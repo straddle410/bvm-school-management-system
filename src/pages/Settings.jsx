@@ -27,12 +27,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   School, Save, Upload, Image as ImageIcon, Calendar, 
-  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen, Bus, AlertTriangle
+  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen, Bus, AlertTriangle, HardDrive
 } from 'lucide-react';
 import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
 import DataResetTab from '@/components/settings/DataResetTab';
+import FeesBackupTab from '@/components/fees/FeesBackupTab';
 
 function TransportFeeSettings({ schoolProfiles, queryClient }) {
   const [amount, setAmount] = useState('');
