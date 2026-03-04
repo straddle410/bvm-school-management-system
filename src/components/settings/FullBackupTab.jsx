@@ -273,15 +273,27 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
               <label className="text-sm font-medium">Auto-export Weekly Backups</label>
               <p className="text-xs text-gray-500">Automatically upload weekly backups to Google Drive</p>
             </div>
-            <Button
-              variant={profile?.auto_export_full_backup_to_drive ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleAutoExportMutation.mutate(!profile?.auto_export_full_backup_to_drive)}
-              disabled={!profile?.full_backup_drive_folder_id || toggleAutoExportMutation.isPending}
-              className="ml-2"
-            >
-              {toggleAutoExportMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (profile?.auto_export_full_backup_to_drive ? '✓ On' : 'Off')}
-            </Button>
+            <div className="flex gap-2 ml-2">
+              {profile?.full_backup_drive_folder_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={testExportLatestManual}
+                  disabled={exportToDevMutation.isPending}
+                  title="Export latest manual backup to verify Drive access"
+                >
+                  {exportToDevMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : '⚡ Test'}
+                </Button>
+              )}
+              <Button
+                variant={profile?.auto_export_full_backup_to_drive ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => toggleAutoExportMutation.mutate(!profile?.auto_export_full_backup_to_drive)}
+                disabled={!profile?.full_backup_drive_folder_id || toggleAutoExportMutation.isPending}
+              >
+                {toggleAutoExportMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (profile?.auto_export_full_backup_to_drive ? '✓ On' : 'Off')}
+              </Button>
+            </div>
           </div>
 
           {/* Manual Backup Button */}
