@@ -100,9 +100,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Determine redirect based on role
-    const isAdmin = ['admin', 'principal'].includes((account.role || '').toLowerCase());
-    
+    // Resolve effective permissions:
+    // Merge role template permissions + legacy permissions + overrides
+    let effectivePermissions = { ...(account.permissions || {}) };
+    if (account.role_template_id) {
+      try {
+        const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
+        if (templates && templates.length > 0 && templates[0].permissions) {
+          // Template is base, overrides on top
+          effectivePermissions = { ...templates[0].permissions, ...effectivePermissions };
+        }
+      } catch (e) {
+        // Ignore template fetch error - proceed with existing permissions
+      }
+    }
+    if (account.permissions_override) {
+      effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
+    }
+
     // Create session (store in localStorage on client)
     return Response.json({
       success: true,
@@ -110,13 +125,13 @@ Deno.serve(async (req) => {
       username: account.username,
       name: account.name,
       full_name: account.name,
-      role: account.role,
+      role: (account.role || '').toLowerCase(),
       designation: account.designation,
       role_template_id: account.role_template_id,
-      permissions: account.permissions,
+      permissions: effectivePermissions,
       permissions_override: account.permissions_override,
       force_password_change: account.force_password_change,
-      redirect_to: 'Dashboard',  // Always redirect to Dashboard (no staff-dashboard)
+      redirect_to: 'Dashboard',
     });
   } catch (error) {
     console.error('Login error:', error);
