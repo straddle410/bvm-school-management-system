@@ -248,21 +248,14 @@ export default function More() {
                    </div>
                  )}
 
-                 {/* Finance Reports - Accountant: show shortcuts directly (expanded by default) */}
-                  {role === 'accountant' && canViewFinance && (
+                 {/* Finance Reports - Accountant: big buttons, always visible */}
+                  {role === 'accountant' && (
                     <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Finance Reports</p>
+                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Finance</p>
                       <div className="divide-y divide-gray-50">
-                        {financeReportItems
-                          .filter(item => {
-                            if (item.page === 'OutstandingReport') return !!permissions.fee_reports_view || !!permissions.fees_view_ledger || !!permissions.fee_reports_outstanding;
-                            if (item.page === 'StudentLedgerReport') return !!permissions.fees_view_ledger || !!permissions.fee_reports_student_ledger;
-                            if (item.page === 'CollectionReport') return !!permissions.fee_reports_view || !!permissions.fee_reports_collection;
-                            if (item.page === 'DailyClosingReport' || item.page === 'DayBookReport' || item.page === 'ClassCollectionSummaryReport') return !!permissions.fee_reports_view;
-                            if (item.page === 'DefaultersReport') return !!permissions.fee_reports_view;
-                            return false;
-                          })
-                          .map(item => <MenuItem key={item.label} item={item} />)}
+                        {financeReportItems.map(item => (
+                          <MenuItem key={item.label} item={item} />
+                        ))}
                       </div>
                     </div>
                   )}
