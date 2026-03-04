@@ -46,6 +46,11 @@ export default function Fees() {
 
   const isAccountant = role === 'accountant';
 
+  const { data: schoolProfiles = [] } = useQuery({
+    queryKey: ['school-profile'],
+    queryFn: () => base44.entities.SchoolProfile.list()
+  });
+
   // Accountant tab list (only their relevant tabs)
   const accountantTabs = [
     canViewLedger    && { value: 'ledger',    label: 'Ledger' },
