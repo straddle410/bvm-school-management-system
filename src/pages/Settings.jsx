@@ -817,9 +817,11 @@ export default function Settings() {
           {/* Data Reset */}
           {activeItem === 'data-reset' && (
             <DataResetTab schoolProfiles={schoolProfiles} academicYears={academicYears} />
-          </TabsContent>
+          )}
 
-          <TabsContent value="notifications" className="mt-6 space-y-6">
+          {/* Notifications */}
+          {activeItem === 'notifications' && (
+            <>
             <NotificationSettingsSection />
 
             <Card className="border-0 shadow-sm">
