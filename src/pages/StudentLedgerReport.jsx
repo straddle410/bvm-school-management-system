@@ -72,33 +72,48 @@ function StudentLedgerContent() {
   }, [studentResults]);
 
   // Ledger data
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: fetchError } = useQuery({
     queryKey: ['student-ledger', selectedStudent?.student_id, academicYear, dateFrom, dateTo, includeReversals, includeCredits, includeVoided],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getStudentLedger', {
-        studentId: selectedStudent.student_id,
-        academicYear: academicYear || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        includeReversals,
-        includeCredits,
-        includeVoided,
-        pageSize: 500
-      });
-      return res.data;
+      try {
+        const res = await base44.functions.invoke('getStudentLedger', {
+          studentId: selectedStudent.student_id,
+          academicYear: academicYear || undefined,
+          dateFrom: dateFrom || undefined,
+          dateTo: dateTo || undefined,
+          includeReversals,
+          includeCredits,
+          includeVoided,
+          pageSize: 500
+        });
+        return res.data;
+      } catch (err) {
+        if (err.response?.status === 403) return null;
+        throw err;
+      }
     },
     enabled: !!selectedStudent
   });
 
-  // Fetch invoices for drawer line items
+  // Fetch invoices for drawer line items (via protected getStudentLedger, not direct entity)
   useEffect(() => {
-    if (!selectedStudent) return;
-    base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear })
-      .then(setInvoicesCache).catch(() => {});
+    // Invoices are returned within ledger data
   }, [selectedStudent, academicYear]);
 
   const rows = data?.rows || [];
   const summary = data?.summary || {};
+
+  // Show access denied on 403
+  if (fetchError?.response?.status === 403) {
+    return (
+      <div className="p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+          <p className="text-sm text-red-600">You do not have permission to view financial reports.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleExport = async () => {
     setExporting(true);
