@@ -177,6 +177,13 @@ export default function Fees() {
                 <ReceiptSettings />
               </TabsContent>
             )}
+
+            {/* Fees Backup — visible to Admin + Accountant */}
+            {(isAdmin || isAccountant) && (
+              <TabsContent value="backup">
+                <FeesBackupTab isAdmin={isAdmin} schoolProfile={schoolProfiles[0]} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 
