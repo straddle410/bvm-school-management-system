@@ -82,6 +82,17 @@ export default function Layout({ children, currentPageName }) {
       } catch {}
       return;
     }
+    // Check staff session in localStorage first (used by StaffLogin)
+    try {
+      const staffRaw = localStorage.getItem('staff_session');
+      if (staffRaw) {
+        const staffUser = JSON.parse(staffRaw);
+        const role = (staffUser.role || '').toLowerCase();
+        setUserRole(role);
+        setIsAdmin(role === 'admin' || role === 'principal');
+      }
+    } catch {}
+
     try {
       const [currentUser, profiles] = await Promise.all([
       base44.auth.me().catch(() => null),
