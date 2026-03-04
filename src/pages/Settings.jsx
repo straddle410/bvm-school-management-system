@@ -353,47 +353,74 @@ export default function Settings() {
     }
   });
 
+  // Map activeItem to section title
+  const getSectionTitle = () => {
+    const titles = {
+      'school-profile': 'School Profile',
+      'academic-years': 'Academic Years',
+      'subjects': 'Subjects',
+      'class-subjects': 'Class Subjects',
+      'transport': 'Transport',
+      'notifications': 'Notifications',
+      'banners': 'Banners',
+      'fees-backup': 'Fees Backup',
+      'data-reset': 'Data Reset',
+    };
+    return titles[activeItem] || 'Settings';
+  };
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Settings">
-      <div className="min-h-screen bg-slate-50">
-      <PageHeader 
-        title="Settings"
-        subtitle="Manage school configuration"
-      />
+      <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex md:w-64 lg:w-72 flex-col md:h-screen md:border-r md:border-slate-200">
+          <SettingsSidebar
+            activeItem={activeItem}
+            onItemSelect={handleItemSelect}
+            userRole={userRole}
+          />
+        </div>
 
-      <div className="p-4 lg:p-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-           <TabsList className="bg-white border shadow-sm flex flex-wrap justify-start h-auto gap-2 p-2">
-            <TabsTrigger value="school" className="px-4 py-2 text-sm whitespace-nowrap">
-              <School className="h-4 w-4 mr-2" /> School Profile
-            </TabsTrigger>
-            <TabsTrigger value="academic" className="px-4 py-2 text-sm whitespace-nowrap">
-              <Calendar className="h-4 w-4 mr-2" /> Academic Years
-            </TabsTrigger>
-            <TabsTrigger value="subjects" className="px-4 py-2 text-sm whitespace-nowrap">
-              <Database className="h-4 w-4 mr-2" /> Subjects
-            </TabsTrigger>
-            <TabsTrigger value="banners" className="px-4 py-2 text-sm whitespace-nowrap">
-              <Layers className="h-4 w-4 mr-2" /> Banners
-            </TabsTrigger>
-            <TabsTrigger value="transport" className="px-4 py-2 text-sm whitespace-nowrap">
-              <Bus className="h-4 w-4 mr-2" /> Transport
-            </TabsTrigger>
-            <TabsTrigger value="class-subjects" className="px-4 py-2 text-sm whitespace-nowrap">
-              <BookOpen className="h-4 w-4 mr-2" /> Class Subjects
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="px-4 py-2 text-sm whitespace-nowrap">
-              <Bell className="h-4 w-4 mr-2" /> Notifications
-            </TabsTrigger>
-            <TabsTrigger value="fees-backup" className="px-4 py-2 text-sm whitespace-nowrap">
-              <HardDrive className="h-4 w-4 mr-2" /> Fees Backup
-            </TabsTrigger>
-            <TabsTrigger value="data-reset" className="px-4 py-2 text-sm whitespace-nowrap text-red-600">
-              <AlertTriangle className="h-4 w-4 mr-2" /> Data Reset
-            </TabsTrigger>
-          </TabsList>
+        {/* Mobile Menu Button */}
+        <div className="md:hidden">
+          <div className="sticky top-0 z-50 bg-white border-b border-slate-200 flex items-center gap-3 px-4 py-3">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={() => setMobileDrawerOpen(true)}
+            >
+              <Menu className="h-4 w-4" /> Settings Menu
+            </Button>
+            <div className="flex-1" />
+          </div>
+          <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Settings</DrawerTitle>
+              </DrawerHeader>
+              <div className="h-96 overflow-y-auto">
+                <SettingsSidebar
+                  activeItem={activeItem}
+                  onItemSelect={handleItemSelect}
+                  userRole={userRole}
+                  onClose={() => setMobileDrawerOpen(false)}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </div>
 
-          <TabsContent value="school" className="mt-6">
+        {/* Content Panel */}
+        <div className="flex-1 md:overflow-y-auto">
+          <PageHeader 
+            title={getSectionTitle()}
+            subtitle="Manage settings"
+          />
+
+          <div className="p-4 lg:p-8">
+            {/* School Profile */}
+            {activeItem === 'school-profile' && (
             <Card className="border-0 shadow-sm">
               <CardHeader>
                 <CardTitle>School Profile</CardTitle>
