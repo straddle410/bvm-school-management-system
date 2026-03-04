@@ -11,6 +11,7 @@ import { formatIST, formatISTDate } from '@/components/utils/istFormatter';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import GoogleDriveFolderPickerDialog from '@/components/GoogleDriveFolderPicker';
+import BackupHealthIndicator from '@/components/system/BackupHealthIndicator';
 
 const DriveStatusBadge = ({ status }) => {
   const config = {
@@ -159,6 +160,9 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
 
   return (
     <div className="space-y-6">
+      {/* Backup Health Monitor */}
+      <BackupHealthIndicator />
+
       {/* Settings Section */}
       <Card>
         <CardHeader>
