@@ -11,7 +11,7 @@ export const formatIST = (timestamp, format = 'short') => {
     const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
 
     if (format === 'short') {
-      return date.toLocaleString('en-IN', {
+      const formatted = date.toLocaleString('en-IN', {
         timeZone: 'Asia/Kolkata',
         day: '2-digit',
         month: 'short',
@@ -19,10 +19,11 @@ export const formatIST = (timestamp, format = 'short') => {
         minute: '2-digit',
         hour12: true
       });
+      return `${formatted} IST`;
     }
 
     // 'long' format
-    return date.toLocaleString('en-IN', {
+    const formatted = date.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       day: '2-digit',
       month: 'short',
@@ -31,6 +32,7 @@ export const formatIST = (timestamp, format = 'short') => {
       minute: '2-digit',
       hour12: true
     });
+    return `${formatted} IST`;
   } catch (e) {
     return 'Invalid date';
   }
