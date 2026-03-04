@@ -32,6 +32,12 @@ const MENU_GROUPS = [
     ],
   },
   {
+    label: 'Backups',
+    items: [
+      { id: 'full-backup', label: 'Full School Backup', requiredRoles: ['admin', 'principal'] },
+    ],
+  },
+  {
     label: 'System',
     items: [
       { id: 'data-reset', label: 'Data Reset', requiredRoles: ['admin', 'principal'], isDanger: true },
