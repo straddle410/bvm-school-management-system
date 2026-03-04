@@ -186,7 +186,8 @@ export default function Dashboard() {
 
   const { badges: staffBadges } = useStaffNotificationBadges(isStaff ? user?.email : null);
   const unreadMessageCount = staffBadges.Messages || 0;
-  const userPermissions = user?.permissions || {};
+  // Admin/Principal have all permissions implicitly
+  const userPermissions = isAdmin ? new Proxy({}, { get: () => true }) : (user?.permissions || {});
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
   const { data: yearReport = null } = useQuery({
