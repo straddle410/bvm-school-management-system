@@ -340,6 +340,9 @@ export default function Settings() {
             <TabsTrigger value="notifications">
               <Bell className="h-4 w-4 mr-2" /> Notifications
             </TabsTrigger>
+            <TabsTrigger value="data-reset" className="text-red-600">
+              <AlertTriangle className="h-4 w-4 mr-2" /> Data Reset
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="school" className="mt-6">
