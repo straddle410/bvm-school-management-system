@@ -171,12 +171,13 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Drive Folder Selection */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm font-medium">Google Drive Folder for Full Backups</label>
+
             {profile?.full_backup_drive_folder_id ? (
               <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-green-900">
                     ✓ {profile.full_backup_drive_folder_name || 'Full Weekly Backups'}
                   </p>
@@ -185,24 +186,54 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setShowFolderPickerDialog(true)}
-                  className="ml-auto text-green-600 hover:text-green-700"
+                  onClick={() => {
+                    setFolderIdInput('');
+                    setShowFolderPickerDialog(true);
+                  }}
+                  className="text-green-600 hover:text-green-700"
                 >
                   Change
                 </Button>
               </div>
             ) : (
-              <>
-                <p className="text-xs text-gray-500">No folder selected yet</p>
-                <Button 
+              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">Paste Google Drive folder ID or share URL:</p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g., 1a2b3c4d5e6f7g8h9i or https://drive.google.com/drive/folders/..."
+                      value={folderIdInput}
+                      onChange={(e) => setFolderIdInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleVerifyFolder()}
+                      className="text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleVerifyFolder}
+                      disabled={verifyLoading || !folderIdInput.trim()}
+                    >
+                      {verifyLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}
+                    </Button>
+                  </div>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="px-2 bg-gray-50 text-gray-500">Or</span>
+                  </div>
+                </div>
+                <Button
                   variant="outline"
-                  onClick={() => setShowFolderPickerDialog(true)}
                   className="w-full"
+                  onClick={() => setShowFolderPickerDialog(true)}
                 >
                   <HardDrive className="h-4 w-4 mr-2" />
-                  Select Google Drive Folder
+                  Browse Google Drive
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
