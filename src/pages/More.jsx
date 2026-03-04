@@ -285,6 +285,16 @@ export default function More() {
                    </div>
                  )}
 
+                 {/* Fees Module shortcut for non-admin fee staff */}
+                 {!isAdmin && !!permissions.fees_view_module && (
+                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Fees</p>
+                     <div className="divide-y divide-gray-50">
+                       <MenuItem item={{ label: 'Fees Module', sub: 'Collect & manage fee payments', icon: TrendingUp, color: '#388e3c', bg: '#e8f5e9', page: 'Fees' }} />
+                     </div>
+                   </div>
+                 )}
+
                  {/* Admin Controls */}
                  {isAdmin && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
