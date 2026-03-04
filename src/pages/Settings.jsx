@@ -281,6 +281,9 @@ export default function Settings() {
             <TabsTrigger value="banners">
               <Layers className="h-4 w-4 mr-2" /> Banners
             </TabsTrigger>
+            <TabsTrigger value="transport">
+              <Bus className="h-4 w-4 mr-2" /> Transport
+            </TabsTrigger>
             <TabsTrigger value="class-subjects">
               <BookOpen className="h-4 w-4 mr-2" /> Class Subjects
             </TabsTrigger>
