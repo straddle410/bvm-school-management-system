@@ -804,9 +804,10 @@ export default function Settings() {
           {/* Class Subjects */}
           {activeItem === 'class-subjects' && (
             <ClassSubjectConfigTab />
-          </TabsContent>
+          )}
 
-          <TabsContent value="fees-backup" className="mt-6">
+          {/* Fees Backup */}
+          {activeItem === 'fees-backup' && (
             <FeesBackupTab
               isAdmin={true}
               schoolProfile={schoolProfiles[0]}
