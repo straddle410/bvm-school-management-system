@@ -22,14 +22,21 @@ export default function Fees() {
 
   useEffect(() => { setUser(getStaffSession()); }, []);
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
-  const canVoidReceipt = isAdmin || !!user?.permissions?.fees_reverse_receipt;
+  const role = (user?.role || '').toLowerCase();
+  const isAdmin = role === 'admin' || role === 'principal';
+  const permissions = user?.permissions || {};
+  const canVoidReceipt = isAdmin || !!permissions.fees_reverse_receipt;
+  const canViewLedger = isAdmin || !!permissions.fees_view_ledger || !!permissions.fees_view_module;
+  const canViewPayments = isAdmin || !!permissions.fees_record_payment || !!permissions.fees_view_module;
+  const canApplyDiscount = isAdmin || !!permissions.fees_apply_discount;
+  const canApplyCharge = isAdmin || !!permissions.fees_apply_charge;
+  const canManageFamilies = isAdmin || !!permissions.fees_manage_families;
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
   const isArchivedYear = selectedYearObj?.status === 'Archived';
 
   const handleTabChange = (tab) => {
-    if (!isAdmin && ['fee-heads', 'plans', 'discounts', 'receipt-settings'].includes(tab)) return;
+    if (!isAdmin && ['fee-heads', 'plans', 'receipt-settings'].includes(tab)) return;
     setActiveTab(tab);
   };
 
