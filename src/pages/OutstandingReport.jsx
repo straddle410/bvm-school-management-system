@@ -282,7 +282,7 @@ function OutstandingReportContent() {
 
 export default function OutstandingReport() {
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'accountant', 'staff', 'teacher']} pageName="Outstanding Report">
+    <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Outstanding Report">
       <OutstandingReportContent />
     </LoginRequired>
   );
