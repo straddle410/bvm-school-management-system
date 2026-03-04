@@ -43,6 +43,7 @@ export default function More() {
   const role = (user?.role || '').toLowerCase();
   const isAdmin = ['admin', 'principal'].includes(role);
   const isTeacher = ['admin', 'principal', 'teacher', 'staff'].includes(role);
+  const canViewFinance = isAdmin || !!permissions.fees_view_module || !!permissions.fee_reports_view || !!permissions.fees_view_ledger;
 
   const permissions = user?.permissions || {};
 
