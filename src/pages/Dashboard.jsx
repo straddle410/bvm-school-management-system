@@ -495,13 +495,19 @@ export default function Dashboard() {
       {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-2 px-2 sm:px-4">
-          {[
+          {(userRole === 'accountant' ? [
+            { name: 'Home', icon: MoreHorizontal, page: 'Dashboard' },
+            { name: 'Fees', icon: Wallet, page: 'Fees' },
+            { name: 'Collection', icon: BarChart3, page: 'CollectionReport' },
+            { name: 'Outstanding', icon: TrendingUp, page: 'OutstandingReport' },
+            { name: 'More', icon: MoreHorizontal, page: 'More' },
+          ] : [
             { name: 'Home', icon: MoreHorizontal, page: 'Dashboard', adminOnly: false },
             { name: 'Notices', icon: Bell, page: 'Notices', adminOnly: false },
             { name: 'Gallery', icon: Image, page: 'Gallery', adminOnly: false },
             ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals', adminOnly: true }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar', adminOnly: false }]),
             { name: 'More', icon: MoreHorizontal, page: 'More', adminOnly: false },
-          ].map((item) => {
+          ]).map((item) => {
             const isActive = false;
             return (
               <Link key={item.page} to={createPageUrl(item.page)}
