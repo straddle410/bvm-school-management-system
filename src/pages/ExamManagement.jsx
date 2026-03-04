@@ -33,7 +33,8 @@ export default function ExamManagement() {
             <ProgressCardsList />
           </TabsContent>
         </Tabs>
-      </div>
-    </LoginRequired>
+        </div>
+        </div>
+        </LoginRequired>
   );
 }

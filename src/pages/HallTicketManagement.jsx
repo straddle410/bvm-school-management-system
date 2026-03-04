@@ -67,7 +67,8 @@ export default function HallTicketManagement() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
-    </LoginRequired>
+        </div>
+        </div>
+        </LoginRequired>
   );
 }
