@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck } from 'lucide-react';
+import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp } from 'lucide-react';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
@@ -16,10 +16,10 @@ const getBottomNav = (isAdmin, userRole) => {
   if (userRole === 'accountant') {
     return [
       { name: 'Home', icon: Home, page: 'Dashboard' },
-      { name: 'Fees', icon: Home, page: 'Fees' },
-      { name: 'Collection', icon: Home, page: 'CollectionReport' },
-      { name: 'Outstanding', icon: Home, page: 'OutstandingReport' },
-      { name: 'Ledger', icon: Home, page: 'StudentLedgerReport' },
+      { name: 'Fees', icon: Wallet, page: 'Fees' },
+      { name: 'Collection', icon: BarChart3, page: 'CollectionReport' },
+      { name: 'Outstanding', icon: TrendingUp, page: 'OutstandingReport' },
+      { name: 'Ledger', icon: BookOpen, page: 'StudentLedgerReport' },
       { name: 'More', icon: MoreHorizontal, page: 'More' },
     ];
   }
@@ -59,6 +59,7 @@ export default function Layout({ children, currentPageName }) {
   const [studentSession, setStudentSession] = useState(null);
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState('');
   const { academicYear } = useAcademicYear();
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
@@ -89,6 +90,7 @@ export default function Layout({ children, currentPageName }) {
       if (currentUser) {
         currentUser.role = currentUser.role?.toLowerCase();
         setIsAdmin(currentUser.role === 'admin' || currentUser.role === 'principal');
+        setUserRole(currentUser.role || '');
       }
       setUser(currentUser);
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
@@ -164,7 +166,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom Navigation */}
       <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-2">
-          {getBottomNav(isAdmin).map((item) => {
+          {getBottomNav(isAdmin, userRole).map((item) => {
               const isActive = currentPageName === item.page;
               return (
                 <Link
