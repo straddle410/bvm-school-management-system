@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 
 export default function HallTicketManagement() {
+  const { academicYear } = useAcademicYear();
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Hall Ticket Management">
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
