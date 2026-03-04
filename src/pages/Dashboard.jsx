@@ -529,37 +529,34 @@ export default function Dashboard() {
 
       </main>
 
-      {/* Bottom Nav */}
+      {/* Bottom Nav — role-based */}
       <nav className="fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
-        <div className="flex items-center justify-around py-2 px-2 sm:px-4">
+        <div className="flex items-center justify-around py-2 px-1">
           {(userRole === 'accountant' ? [
-            { name: 'Home', icon: Home, page: 'Dashboard' },
-            { name: 'Fees', icon: Wallet, page: 'Fees' },
-            { name: 'Collection', icon: BarChart3, page: 'CollectionReport' },
-            { name: 'Outstanding', icon: TrendingUp, page: 'OutstandingReport' },
-            { name: 'Ledger', icon: BookOpen, page: 'StudentLedgerReport' },
-            { name: 'More', icon: MoreHorizontal, page: 'More' },
+            { name: 'Home',        icon: Home,          page: 'Dashboard' },
+            { name: 'Fees',        icon: Wallet,        page: 'Fees' },
+            { name: 'Collection',  icon: BarChart3,     page: 'CollectionReport' },
+            { name: 'Outstanding', icon: TrendingUp,    page: 'OutstandingReport' },
+            { name: 'Ledger',      icon: BookOpen,      page: 'StudentLedgerReport' },
+            { name: 'More',        icon: MoreHorizontal,page: 'More' },
           ] : [
-            { name: 'Home', icon: MoreHorizontal, page: 'Dashboard', adminOnly: false },
-            { name: 'Notices', icon: Bell, page: 'Notices', adminOnly: false },
-            { name: 'Gallery', icon: Image, page: 'Gallery', adminOnly: false },
-            ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals', adminOnly: true }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar', adminOnly: false }]),
-            { name: 'More', icon: MoreHorizontal, page: 'More', adminOnly: false },
-          ]).map((item) => {
-            const isActive = false;
-            return (
-              <Link key={item.page} to={createPageUrl(item.page)}
-                 className="flex flex-col items-center gap-0.5 px-2 sm:px-3 py-1 rounded-xl transition-all text-gray-400 flex-1 max-w-[80px] sm:max-w-none relative">
-                 <item.icon className="h-5 sm:h-6 w-5 sm:w-6" />
-                 {item.name === 'Approvals' && approvalsCount > 0 && (
-                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow">
-                     {approvalsCount > 9 ? '9+' : approvalsCount}
-                   </span>
-                 )}
-                 <span className="text-[9px] sm:text-[10px] font-medium text-center leading-tight">{item.name}</span>
-              </Link>
-            );
-          })}
+            { name: 'Home',      icon: Home,          page: 'Dashboard' },
+            { name: 'Notices',   icon: Bell,          page: 'Notices' },
+            { name: 'Gallery',   icon: Image,         page: 'Gallery' },
+            ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
+            { name: 'More',      icon: MoreHorizontal,page: 'More' },
+          ]).map((item) => (
+            <Link key={item.name} to={createPageUrl(item.page)}
+               className="flex flex-col items-center gap-0.5 px-1 py-1 rounded-xl transition-all text-gray-400 flex-1 relative min-h-[48px] justify-center">
+               <item.icon className="h-6 w-6" />
+               {item.name === 'Approvals' && approvalsCount > 0 && (
+                 <span className="absolute top-0 right-0 bg-red-500 text-white text-[9px] rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-bold px-0.5 shadow">
+                   {approvalsCount > 9 ? '9+' : approvalsCount}
+                 </span>
+               )}
+               <span className="text-[10px] font-medium text-center leading-tight">{item.name}</span>
+            </Link>
+          ))}
         </div>
       </nav>
 
