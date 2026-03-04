@@ -22,7 +22,7 @@ export default function ChangeStaffPassword() {
     try {
       return JSON.parse(localStorage.getItem('staff_session') || '{}');
     } catch {
-      navigate('/staff-login');
+      navigate(createPageUrl('StaffLogin'));
       return {};
     }
   })();
@@ -53,7 +53,7 @@ export default function ChangeStaffPassword() {
       if (response.data.success) {
         setSuccess(true);
         toast.success('Password changed successfully');
-        setTimeout(() => navigate('/staff-dashboard'), 2000);
+        setTimeout(() => navigate(createPageUrl('Dashboard')), 2000);
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Password change failed');
