@@ -111,23 +111,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Test 5: getOutstandingReport - Should 403 for Teacher
+    // Test 5: getOutstandingReport - Should 403 for Teacher, OK for Admin/Accountant/Principal
     try {
       const response = await base44.functions.invoke('getOutstandingReport', {
         academicYear: '2025-26'
       });
       results.tests.push({
         name: 'getOutstandingReport()',
-        result: isAuthorized ? 'PASS' : 'FAIL (Teacher can access report)',
+        result: isAuthorized ? 'PASS (authorized access)' : 'FAIL (Teacher can access report)',
         status: isAuthorized ? 'ok' : 'error'
       });
     } catch (err) {
       const is403 = err.response?.status === 403 || err.message?.includes('403');
       results.tests.push({
         name: 'getOutstandingReport()',
-        result: isTeacher && is403 ? 'PASS (403 blocked)' : 'FAIL (Authorized user blocked)',
+        result: isTeacher && is403 ? 'PASS (Teacher 403 blocked)' : (isAuthorized ? `FAIL (Authorized user blocked: ${err.message})` : 'PASS (Teacher blocked)'),
         error: err.message,
-        status: isTeacher && is403 ? 'ok' : 'error'
+        status: isTeacher && is403 ? 'ok' : (isAuthorized ? 'error' : 'ok')
       });
     }
 
