@@ -560,9 +560,10 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            )}
 
-          <TabsContent value="academic" className="mt-6 space-y-6">
+            {/* Academic Years */}
+            {activeItem === 'academic-years' && (
             <Card className="border-0 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
