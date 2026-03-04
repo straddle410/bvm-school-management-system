@@ -141,19 +141,37 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
           {/* Drive Folder Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Google Drive Folder for Full Backups</label>
-            <p className="text-xs text-gray-500 mb-2">
-              {profile?.full_backup_drive_folder_id 
-                ? `Folder selected: ${profile.full_backup_drive_folder_id}`
-                : 'No folder selected yet'}
-            </p>
-            <Button 
-              variant="outline"
-              onClick={handleSelectFolder}
-              className="w-full"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Select Google Drive Folder
-            </Button>
+            {profile?.full_backup_drive_folder_id ? (
+              <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-green-900">
+                    ✓ {profile.full_backup_drive_folder_name || 'Full Weekly Backups'}
+                  </p>
+                  <p className="text-xs text-green-700">{profile.full_backup_drive_folder_id}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowFolderPickerDialog(true)}
+                  className="ml-auto text-green-600 hover:text-green-700"
+                >
+                  Change
+                </Button>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-gray-500">No folder selected yet</p>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowFolderPickerDialog(true)}
+                  className="w-full"
+                >
+                  <HardDrive className="h-4 w-4 mr-2" />
+                  Select Google Drive Folder
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Auto-export Toggle */}
