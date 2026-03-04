@@ -55,7 +55,7 @@ export default function StaffLogin() {
 
       // If password change required, redirect to change password
       if (response.data.force_password_change) {
-        sessionStorage.setItem('postLoginRedirect', createPageUrl('ChangeStaffPassword'));
+        toast.success('Login successful. Please change your password.');
         navigate(createPageUrl('ChangeStaffPassword'));
         return;
       }
