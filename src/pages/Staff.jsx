@@ -304,10 +304,22 @@ export default function Staff() {
     const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
     const derivedRole = selectedTemplate ? selectedTemplate.name.charAt(0).toUpperCase() + selectedTemplate.name.slice(1).toLowerCase() : '';
 
+    // Coerce experience_years: empty string → null, otherwise parse as number
+    let experienceYears = null;
+    if (form.experience_years !== '' && form.experience_years !== null && form.experience_years !== undefined) {
+      const parsed = Number(form.experience_years);
+      if (isNaN(parsed)) {
+        toast.error('Experience years must be a valid number');
+        return;
+      }
+      experienceYears = parsed;
+    }
+
     const dataToSave = { 
       ...form,
       username: normalizedUsername,
       role: derivedRole,
+      experience_years: experienceYears,
     };
 
     saveMutation.mutate(dataToSave);
