@@ -37,7 +37,10 @@ export default function StaffLogin() {
         return;
       }
 
-      // Store session
+      // Always clear any student session — staff must never fall into student flow
+      localStorage.removeItem('student_session');
+
+      // Store staff session (always, even for force_password_change)
       const session = {
         staff_id: response.data.staff_id,
         username: response.data.username,
@@ -46,8 +49,8 @@ export default function StaffLogin() {
         role: response.data.role,
         designation: response.data.designation,
         role_template_id: response.data.role_template_id,
-        permissions: response.data.permissions,
-        permissions_override: response.data.permissions_override,
+        permissions: response.data.permissions || {},
+        permissions_override: response.data.permissions_override || {},
         logged_in_at: new Date().toISOString(),
       };
 
@@ -61,7 +64,7 @@ export default function StaffLogin() {
       }
 
       toast.success('Login successful');
-      navigate(createPageUrl(response.data.redirect_to || 'Dashboard'));
+      navigate(createPageUrl('Dashboard'));
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
