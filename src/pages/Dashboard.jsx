@@ -76,6 +76,7 @@ const accountantFinanceActions = [
   { label: 'Defaulters',     icon: Users,       gradient: 'from-rose-400 to-red-600',      page: 'DefaultersReport',    permKey: 'fee_reports_view' },
   { label: 'Discount',       icon: Award,       gradient: 'from-amber-400 to-yellow-500',  page: 'Reports',             permKey: 'fee_reports_view' },
   { label: 'Day Book',       icon: BookMarked,  gradient: 'from-indigo-400 to-indigo-600', page: 'DayBookReport',       permKey: 'fee_reports_view' },
+  { label: 'Backup',         icon: HardDrive,   gradient: 'from-slate-400 to-slate-600',    page: 'Fees', tab: 'backup',   permKey: 'fees_view_module' },
 ];
 
 const adminActions = [
