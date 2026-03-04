@@ -20,6 +20,7 @@ export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('ledger');
+  const [showTransportModal, setShowTransportModal] = useState(false);
 
   useEffect(() => { setUser(getStaffSession()); }, []);
 
