@@ -51,9 +51,16 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
       const res = await base44.functions.invoke('createFullSchoolBackup', { backupType: 'MANUAL' });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (backupData) => {
       queryClient.invalidateQueries({ queryKey: ['fullSchoolBackups'] });
       toast.success('Full school backup created');
+      
+      // Auto-export to Drive if enabled and folder is configured
+      if (profile?.auto_export_full_backup_to_drive && profile?.full_backup_drive_folder_id && backupData?.id) {
+        setTimeout(() => {
+          exportToDevMutation.mutate(backupData.id);
+        }, 500);
+      }
     },
     onError: (e) => {
       toast.error(e.response?.data?.error || 'Backup failed');
