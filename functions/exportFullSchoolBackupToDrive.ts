@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
+  let backupId = null;
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -9,19 +10,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { backupId, folderId } = body;
+    const bodyPayload = await req.json();
+    const { backupId: bid, folderId } = bodyPayload;
+    backupId = bid;
 
     if (!backupId || !folderId) {
       return Response.json({ error: 'backupId and folderId required' }, { status: 400 });
     }
 
+    console.log(`[Export] Starting export for backup ${backupId} to folder ${folderId}`);
+
     // Get backup record
     const backups = await base44.asServiceRole.entities.FullSchoolBackup.filter({ id: backupId });
     if (!backups || backups.length === 0) {
-      return Response.json({ error: 'Backup not found' }, { status: 404 });
+      throw new Error('Backup not found');
     }
     const backup = backups[0];
+    console.log(`[Export] Found backup: ${backup.id}, type=${backup.backup_type}, status=${backup.status}`);
 
     // Get school profile for name
     const profile = (await base44.asServiceRole.entities.SchoolProfile.list())[0];
@@ -30,12 +35,17 @@ Deno.serve(async (req) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('Z')[0];
     const year = backup.academic_year || 'ALL';
     const filename = `FullBackup_${profile?.school_name || 'School'}_${year}_${timestamp}_${backup.backup_type}.json`;
+    console.log(`[Export] Filename: ${filename}`);
 
     // Get Google Drive access token
+    console.log('[Export] Getting Google Drive access token...');
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
+    console.log(`[Export] Got access token, length=${accessToken?.length || 0}`);
 
     // Upload to Google Drive
     const fileContent = JSON.stringify(backup.file_json, null, 2);
+    console.log(`[Export] File content size: ${fileContent.length} bytes`);
+    
     const boundary = '===============7330845974216740156==';
     const bodyParts = [
       `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({
@@ -47,7 +57,9 @@ Deno.serve(async (req) => {
       `--${boundary}--`
     ];
     const body = bodyParts.join('');
+    console.log(`[Export] Multipart body size: ${body.length} bytes`);
 
+    console.log(`[Export] Uploading to Drive API...`);
     const uploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
       method: 'POST',
       headers: {
@@ -57,14 +69,24 @@ Deno.serve(async (req) => {
       body: body
     });
 
+    console.log(`[Export] Drive API response: status=${uploadRes.status}`);
+    
     if (!uploadRes.ok) {
-      const err = await uploadRes.json();
-      throw new Error(err.error?.message || 'Drive upload failed');
+      const errText = await uploadRes.text();
+      console.log(`[Export] Drive API error: ${errText}`);
+      let errMsg = 'Drive upload failed';
+      try {
+        const errJson = JSON.parse(errText);
+        errMsg = errJson.error?.message || errText;
+      } catch {}
+      throw new Error(`[Drive ${uploadRes.status}] ${errMsg}`);
     }
 
     const driveFile = await uploadRes.json();
+    console.log(`[Export] Upload successful! File ID: ${driveFile.id}`);
 
-    // Update backup record
+    // Update backup record - MARK AS EXPORTED
+    console.log(`[Export] Updating backup record to EXPORTED...`);
     await base44.asServiceRole.entities.FullSchoolBackup.update(backupId, {
       drive_file_id: driveFile.id,
       drive_file_name: filename,
@@ -72,6 +94,7 @@ Deno.serve(async (req) => {
       drive_exported_at: new Date().toISOString(),
       drive_error: null
     });
+    console.log(`[Export] Backup ${backupId} marked as EXPORTED`);
 
     return Response.json({ 
       success: true,
@@ -79,17 +102,23 @@ Deno.serve(async (req) => {
       file_name: filename
     });
   } catch (error) {
-    // If we have a backupId from body, mark export as failed
-    const body = await req.json().catch(() => ({}));
-    if (body.backupId) {
+    const errorMsg = error.message || 'Unknown error';
+    console.error(`[Export] Error: ${errorMsg}`);
+    
+    // Mark export as FAILED if we have backupId
+    if (backupId) {
       try {
         const base44 = createClientFromRequest(req);
-        await base44.asServiceRole.entities.FullSchoolBackup.update(body.backupId, {
+        console.log(`[Export] Marking backup ${backupId} as FAILED with error: ${errorMsg}`);
+        await base44.asServiceRole.entities.FullSchoolBackup.update(backupId, {
           drive_export_status: 'FAILED',
-          drive_error: error.message
+          drive_error: errorMsg
         });
-      } catch {}
+        console.log(`[Export] Backup ${backupId} marked as FAILED`);
+      } catch (updateErr) {
+        console.error(`[Export] Failed to update backup status: ${updateErr.message}`);
+      }
     }
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: errorMsg }, { status: 500 });
   }
 });
