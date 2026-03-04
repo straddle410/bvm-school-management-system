@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, FolderPlus } from 'lucide-react';
 
 export function useGoogleDriveFolderPicker() {
   const pickerRef = useRef(null);
