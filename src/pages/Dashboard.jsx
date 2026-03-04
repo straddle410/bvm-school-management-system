@@ -6,6 +6,7 @@ import { createPageUrl } from '@/utils';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import { useStaffNotificationBadges } from '@/components/StaffNotificationBadges';
 import ExamResultsModal from '@/components/exam/ExamResultsModal';
+import BackupHealthIndicator from '@/components/system/BackupHealthIndicator';
 import {
   GraduationCap, Image, Calendar, Brain, Bell, MoreHorizontal, Home,
   ClipboardList, Megaphone, ChevronRight, User, BarChart3, Check,
@@ -413,6 +414,13 @@ export default function Dashboard() {
                  );
                })}
             </div>
+          </section>
+        )}
+
+        {/* Backup Health - admin only */}
+        {isAdmin && (
+          <section className="max-w-sm">
+            <BackupHealthIndicator />
           </section>
         )}
 
