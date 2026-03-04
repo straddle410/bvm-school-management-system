@@ -92,16 +92,30 @@ export default function FullBackupTab({ profile, onProfileUpdate }) {
     }
   });
 
-  // Select folder logic
-  const handleSelectFolder = async () => {
-    try {
-      const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
-      // In real scenario, would open Google Drive folder picker
-      // For now, simulating with a direct update
-      toast.info('Google Drive folder selection would open here');
-    } catch (e) {
-      toast.error('Google Drive not authorized');
+  // Save folder mutation
+  const saveFolderMutation = useMutation({
+    mutationFn: async ({ folderId, folderName }) => {
+      return base44.entities.SchoolProfile.update(profile.id, {
+        full_backup_drive_folder_id: folderId,
+        full_backup_drive_folder_name: folderName
+      });
+    },
+    onSuccess: (data) => {
+      onProfileUpdate(data);
+      toast.success('Google Drive folder connected successfully');
+      setShowFolderPickerDialog(false);
+    },
+    onError: (e) => {
+      toast.error('Failed to save folder');
     }
+  });
+
+  // Handle folder selection from picker dialog
+  const handleFolderSelected = (folder) => {
+    saveFolderMutation.mutate({
+      folderId: folder.folderId,
+      folderName: folder.folderName
+    });
   };
 
   // Download backup JSON
