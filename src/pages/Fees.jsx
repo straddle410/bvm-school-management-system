@@ -172,6 +172,15 @@ export default function Fees() {
           </Tabs>
         </div>
       </div>
+        {isAdmin && (
+          <RecalculateTransportModal
+            open={showTransportModal}
+            onClose={() => setShowTransportModal(false)}
+            academicYear={academicYear}
+            academicYears={academicYears}
+          />
+        )}
+      </div>
     </LoginRequired>
   );
 }
