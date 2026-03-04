@@ -1,191 +1,219 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp } from 'lucide-react';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
-import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
-import AcademicYearSelector from '@/components/AcademicYearSelector';
-import StudentBottomNav from '@/components/StudentBottomNav';
-import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
-import { getProxiedImageUrl } from '@/components/imageProxy';
+import { ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, Notebook, ListChecks, Calendar, MoreHorizontal, AlertCircle } from 'lucide-react';
 
-const getBottomNav = (isAdmin, userRole) => {
-  if (userRole === 'accountant') {
-    return [
-      { name: 'Home',        icon: Home,          page: 'Dashboard' },
-      { name: 'Fees',        icon: Wallet,        page: 'Fees' },
-      { name: 'Collection',  icon: BarChart3,     page: 'CollectionReport' },
-      { name: 'Due',         icon: TrendingUp,    page: 'OutstandingReport' },
-      { name: 'Ledger',      icon: BookOpen,      page: 'StudentLedgerReport' },
-      { name: 'More',        icon: MoreHorizontal,page: 'More' },
-    ];
-  }
-  return [
-    { name: 'Home', icon: Home, page: 'Dashboard' },
-    { name: 'Notices', icon: Bell, page: 'Notices' },
-    { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
-    ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
-    { name: 'More', icon: MoreHorizontal, page: 'More' },
-  ];
-};
-
-const LogoWithFallback = ({ src, alt, schoolProfile }) => {
-  const [imgError, setImgError] = useState(false);
-  const logoUrl = src || schoolProfile?.logo_url;
-  const proxiedLogoUrl = getProxiedImageUrl(logoUrl);
-  return imgError || !logoUrl ?
-  <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow">
-      <Building2 className="h-5 w-5 text-[#1a237e]" />
-    </div> :
-
-  <img src={proxiedLogoUrl} alt={alt} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" onError={() => setImgError(true)} />;
-};
-
-const NO_LAYOUT_PAGES = ['PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentHallTicketView', 'StudentMessaging', 'StudentProfile', 'UserProfile', 'PrintReceiptA5'];
-
-const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Quiz', 'Results', 'More'];
-
-export default function Layout({ children, currentPageName }) {
-  const [user, setUser] = useState(null);
-  const [schoolProfile, setSchoolProfile] = useState(null);
-  const [studentSession, setStudentSession] = useState(null);
-  const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userRole, setUserRole] = useState('');
+export default function Dashboard() {
   const { academicYear } = useAcademicYear();
+  const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [latestDiaries, setLatestDiaries] = useState([]);
+  const [recentNotices, setRecentNotices] = useState([]);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
   useEffect(() => {
-    let ss = null;
-    try {
-      const raw = localStorage.getItem('student_session');
-      if (raw) {ss = JSON.parse(raw);setStudentSession(ss);}
-    } catch {}
-    loadData(!!ss);
-  }, []);
+    loadDashboard();
+  }, [academicYear]);
 
-  const loadData = async (hasStudentSession) => {
-    if (hasStudentSession) {
+  const loadDashboard = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get user role from staff session
+      let staffRole = '';
       try {
-        const profiles = await base44.entities.SchoolProfile.list();
-        if (profiles.length > 0) setSchoolProfile(profiles[0]);
-      } catch {}
-      return;
-    }
-
-    let staffRoleFromSession = '';
-    try {
-      const staffRaw = localStorage.getItem('staff_session');
-      if (staffRaw) {
-        const staffUser = JSON.parse(staffRaw);
-        staffRoleFromSession = (staffUser.role || '').toLowerCase();
-        setUserRole(staffRoleFromSession);
-        setIsAdmin(staffRoleFromSession === 'admin' || staffRoleFromSession === 'principal');
-        setUser(staffUser);
-      }
-    } catch {}
-
-    try {
-      const profiles = await base44.entities.SchoolProfile.list();
-      if (profiles.length > 0) setSchoolProfile(profiles[0]);
-    } catch {}
-
-    if (!staffRoleFromSession) {
-      try {
-        const currentUser = await base44.auth.me().catch(() => null);
-        if (currentUser) {
-          currentUser.role = (currentUser.role || '').toLowerCase();
-          setIsAdmin(currentUser.role === 'admin' || currentUser.role === 'principal');
-          setUserRole(currentUser.role || '');
-          setUser(currentUser);
+        const staffRaw = localStorage.getItem('staff_session');
+        if (staffRaw) {
+          const staffUser = JSON.parse(staffRaw);
+          staffRole = (staffUser.role || '').toLowerCase();
+          setUser(staffUser);
         }
-      } catch {}
+      } catch (e) {
+        console.log('No staff session:', e);
+      }
+
+      // Fall back to auth.me() if no staff session
+      if (!staffRole) {
+        try {
+          const currentUser = await base44.auth.me().catch(() => null);
+          if (currentUser) {
+            staffRole = (currentUser.role || '').toLowerCase();
+            setUser(currentUser);
+          }
+        } catch (e) {
+          console.log('No auth session:', e);
+        }
+      }
+
+      setUserRole(staffRole);
+      setIsAdmin(staffRole === 'admin' || staffRole === 'principal');
+      setIsTeacher(staffRole === 'teacher');
+
+      console.log('DEBUG Dashboard:', {
+        userRole: staffRole,
+        isTeacher: staffRole === 'teacher',
+        isAdmin: staffRole === 'admin' || staffRole === 'principal',
+        academicYear,
+      });
+
+      // Load latest diaries and notices if not accountant
+      if (staffRole !== 'accountant') {
+        try {
+          const diaries = await base44.entities.Diary.list('-created_date', 3);
+          setLatestDiaries(diaries || []);
+        } catch (e) {
+          console.log('Error loading diaries:', e);
+        }
+
+        try {
+          const notices = await base44.entities.Notice.list('-publish_date', 5);
+          setRecentNotices(notices || []);
+        } catch (e) {
+          console.log('Error loading notices:', e);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading dashboard:', e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (NO_LAYOUT_PAGES.includes(currentPageName)) {
-    return <AcademicYearProvider>{children}</AcademicYearProvider>;
-  }
+  // Quick actions for teachers
+  const quickActions = [
+    { label: 'Attendance', icon: CheckSquare, page: 'Attendance', gradient: 'from-blue-400 to-blue-600' },
+    { label: 'Marks Entry', icon: BookOpen, page: 'Marks', gradient: 'from-green-400 to-green-600' },
+    { label: 'Homework', icon: BookMarked, page: 'HomeworkManage', gradient: 'from-purple-400 to-purple-600' },
+    { label: 'Diary', icon: Notebook, page: 'DiaryManagement', gradient: 'from-pink-400 to-pink-600' },
+    { label: 'Notices', icon: Bell, page: 'Notices', gradient: 'from-yellow-400 to-yellow-600' },
+    { label: 'Quiz', icon: ListChecks, page: 'Quiz', gradient: 'from-indigo-400 to-indigo-600' },
+    { label: 'Gallery', icon: Image, page: 'Gallery', gradient: 'from-orange-400 to-orange-600' },
+    { label: 'Timetable', icon: Calendar, page: 'TimetableManagement', gradient: 'from-cyan-400 to-cyan-600' },
+  ];
 
-  const STUDENT_ALLOWED_PAGES = ['Quiz', 'Results', 'Notices', 'Gallery', 'Calendar', 'Diary', 'More'];
+  const GradientIcon = ({ gradient, icon: Icon }) => (
+    <div className={`bg-gradient-to-br ${gradient} p-3 rounded-2xl text-white`}>
+      <Icon className="h-6 w-6" />
+    </div>
+  );
 
-  if (studentSession && !STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
-    window.location.replace(createPageUrl('StudentDashboard'));
-    return null;
-  }
-
-  if (studentSession && STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
+  if (isLoading) {
     return (
-      <AcademicYearProvider>
-        <div className="min-h-screen bg-gray-100 flex flex-col relative pb-20">
-          <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-            <div className="flex items-center gap-2">
-              <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" schoolProfile={schoolProfile} />
-              <span className="font-bold text-base tracking-tight leading-tight">
-                {schoolProfile?.school_name || 'BVM School of Excellence'}
-              </span>
-            </div>
-          </header>
-          <main className="flex-1 overflow-y-auto">
-            {children}
-          </main>
-          <StudentBottomNav currentPage={currentPageName} />
-        </div>
-      </AcademicYearProvider>);
-
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#1a237e] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <AcademicYearProvider>
-      <MessageNotificationListener />
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
-      {/* Top Header */}
-      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
-        {currentPageName !== 'Dashboard' && (
-          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+    <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Welcome section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome, {user?.name || 'Teacher'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {academicYear && `Academic Year: ${academicYear}`}
+          </p>
+        </div>
+
+        {/* Quick Actions Section */}
+        <section className="mb-8">
+          <h2 className="text-lg font-bold text-gray-700 mb-4">Quick Actions</h2>
+          
+          {isTeacher && quickActions.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {quickActions.map((item) => {
+                const href = createPageUrl(item.page);
+                return (
+                  <Link key={item.label} to={href} className="block">
+                    <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                      <GradientIcon gradient={item.gradient} icon={item.icon} />
+                      <span className="text-[11px] font-semibold text-gray-700 text-center leading-tight">
+                        {item.label}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : isTeacher ? (
+            <div className="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-amber-500 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-900">No actions available</p>
+                <p className="text-sm text-gray-600">Contact your administrator for permissions.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-blue-500">
+              <p className="text-gray-600">Dashboard content for your role will appear here.</p>
+            </div>
+          )}
+        </section>
+
+        {/* Approvals for admin */}
+        {isAdmin && approvalsCount > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-gray-700 mb-4">Pending Approvals</h2>
+            <Link to={createPageUrl('Approvals')} className="block">
+              <div className="bg-red-50 rounded-2xl p-4 shadow-sm border border-red-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {approvalsCount > 9 ? '9+' : approvalsCount}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Pending Items</p>
+                    <p className="text-sm text-gray-600">Review and approve pending submissions</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </section>
         )}
-        <div className="flex items-center gap-2">
-          <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
-          <span className="font-bold text-base tracking-tight leading-tight">
-            {schoolProfile?.school_name || 'BVM School of Excellence'}
-          </span>
-        </div>
-        <AcademicYearSelector />
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
-        {children}
-      </main>
+        {/* Latest Diaries */}
+        {!isAdmin && latestDiaries.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-gray-700 mb-4">Latest Diary Entries</h2>
+            <div className="space-y-3">
+              {latestDiaries.map((diary) => (
+                <div key={diary.id} className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-pink-500">
+                  <p className="font-semibold text-gray-900">{diary.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Class {diary.class_name} • {diary.subject}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{diary.description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Bottom Navigation */}
-      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
-        <div className="text-[9px] text-center text-gray-400 pt-0.5 leading-none">
-          role={userRole || 'none'}
-        </div>
-        <div className="flex items-center justify-around py-1">
-          {getBottomNav(isAdmin, userRole).map((item) => {
-              const isActive = currentPageName === item.page;
-              const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
-              return (
-                <Link
-                  key={item.name}
-                  to={href}
-                  className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-h-[48px] justify-center ${
-                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
-                  <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                    {item.name}
-                  </span>
-                  {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
-                </Link>);
-            })}
-        </div>
-      </nav>
+        {/* Recent Notices */}
+        {!isAdmin && recentNotices.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold text-gray-700 mb-4">Recent Notices</h2>
+            <div className="space-y-3">
+              {recentNotices.slice(0, 3).map((notice) => (
+                <div key={notice.id} className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-yellow-500">
+                  <p className="font-semibold text-gray-900">{notice.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">{notice.notice_type}</p>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{notice.description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
-    </AcademicYearProvider>);
-
+  );
 }
