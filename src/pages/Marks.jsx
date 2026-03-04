@@ -62,9 +62,11 @@ export default function Marks() {
   const [viewMode, setViewMode] = useState('entry'); // 'entry' or 'review'
   const [reviewSortBy, setReviewSortBy] = useState('rank'); // 'rank', 'name', 'total'
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
-  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
-  const [revokeExamType, setRevokeExamType] = useState(null);
-  const [showPastYearWarning, setShowPastYearWarning] = useState(false);
+   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+   const [revokeExamType, setRevokeExamType] = useState(null);
+   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
+   const [showValidationError, setShowValidationError] = useState(false);
+   const [validationError, setValidationError] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -207,88 +209,109 @@ export default function Marks() {
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
-        throw new Error('PAST_YEAR_WARNING');
-      }
-      const promises = [];
-      let enteredCount = 0;
+     mutationFn: async () => {
+       if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
+         throw new Error('PAST_YEAR_WARNING');
+       }
 
-      filteredStudents.forEach(student => {
-        const studentMarks = marksData[student.student_id || student.id];
-        if (!studentMarks) return;
-        
-        subjectList.forEach(subject => {
-          const existing = studentMarks[subject];
-          if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
-          
-          enteredCount++;
-          const marks = parseFloat(existing.marks_obtained);
-          const percentage = (marks / maxMarks) * 100;
-          let grade = 'F';
-          if (percentage >= 90) grade = 'A+';
-          else if (percentage >= 80) grade = 'A';
-          else if (percentage >= 70) grade = 'B+';
-          else if (percentage >= 60) grade = 'B';
-          else if (percentage >= 50) grade = 'C';
-          else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
+       // Validation: check if all students have marks for submit mode
+       if (saveMode === 'submit') {
+         const missingStudents = filteredStudents.filter(student => {
+           const studentMarks = marksData[student.student_id || student.id];
+           if (!studentMarks) return true;
+           return subjectList.some(subject => {
+             const existing = studentMarks[subject];
+             return existing?.marks_obtained === undefined || existing.marks_obtained === '';
+           });
+         });
 
-          const data = {
-            student_id: student.student_id || student.id,
-            student_name: student.name,
-            class_name: selectedClass,
-            section: selectedSection,
-            subject: subject,
-            exam_type: selectedExamType?.id || selectedExam,
-            marks_obtained: marks,
-            max_marks: maxMarks,
-            grade,
-            academic_year: academicYear,
-            entered_by: user?.email,
-            status: saveMode === 'submit' ? 'Submitted' : 'Draft',
-            remarks: existing.remarks
-          };
-          
-          // Route exclusively through backend function (server-side validation + create/update)
-          const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
-            markData: data,
-            markId: existing?.id,
-            operation: existing?.id ? 'update' : 'create'
-          }).then(res => {
-            if (res.status >= 400) {
-              throw new Error(res.data?.error || 'Failed to save mark');
-            }
-            return res.data;
-          });
-          
-          promises.push(backendPromise);
-        });
-      });
+         if (missingStudents.length > 0) {
+           setValidationError({
+             missingCount: missingStudents.length,
+             missingStudents: missingStudents.slice(0, 10).map(s => s.name || s.student_id)
+           });
+           setShowValidationError(true);
+           throw new Error('VALIDATION_ERROR');
+         }
+       }
 
-      if (enteredCount === 0) {
-        throw new Error('No marks entered');
-      }
+       const promises = [];
+       let enteredCount = 0;
 
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['marks']);
-      if (saveMode === 'submit') {
-        toast.success('Marks submitted successfully. Once submitted, marks cannot be edited unless Admin grants permission.');
-      } else {
-        toast.success('Marks saved as draft');
-      }
-      setSaveMode('draft');
-      setShowSubmitConfirm(false);
-    },
-    onError: (error) => {
-      if (error.message === 'PAST_YEAR_WARNING') {
-        setShowPastYearWarning(true);
-      } else {
-        toast.error(error.message || 'Failed to save marks');
-      }
-    }
-  });
+       filteredStudents.forEach(student => {
+         const studentMarks = marksData[student.student_id || student.id];
+         if (!studentMarks) return;
+
+         subjectList.forEach(subject => {
+           const existing = studentMarks[subject];
+           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
+
+           enteredCount++;
+           const marks = parseFloat(existing.marks_obtained);
+           const percentage = (marks / maxMarks) * 100;
+           let grade = 'F';
+           if (percentage >= 90) grade = 'A+';
+           else if (percentage >= 80) grade = 'A';
+           else if (percentage >= 70) grade = 'B+';
+           else if (percentage >= 60) grade = 'B';
+           else if (percentage >= 50) grade = 'C';
+           else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
+
+           const data = {
+             student_id: student.student_id || student.id,
+             student_name: student.name,
+             class_name: selectedClass,
+             section: selectedSection,
+             subject: subject,
+             exam_type: selectedExamType?.id || selectedExam,
+             marks_obtained: marks,
+             max_marks: maxMarks,
+             grade,
+             academic_year: academicYear,
+             entered_by: user?.email,
+             status: saveMode === 'submit' ? 'Submitted' : 'Draft',
+             remarks: existing.remarks
+           };
+
+           const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
+             markData: data,
+             markId: existing?.id,
+             operation: existing?.id ? 'update' : 'create'
+           }).then(res => {
+             if (res.status >= 400) {
+               throw new Error(res.data?.error || 'Failed to save mark');
+             }
+             return res.data;
+           });
+
+           promises.push(backendPromise);
+         });
+       });
+
+       if (enteredCount === 0) {
+         throw new Error('No marks entered');
+       }
+
+       return Promise.all(promises);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries(['marks']);
+       if (saveMode === 'submit') {
+         toast.success('Marks submitted successfully!');
+       } else {
+         toast.success('Marks saved as draft');
+       }
+       setSaveMode('draft');
+       setShowSubmitConfirm(false);
+     },
+     onError: (error) => {
+       if (error.message === 'PAST_YEAR_WARNING') {
+         setShowPastYearWarning(true);
+       } else if (error.message !== 'VALIDATION_ERROR') {
+         toast.error(error.message || 'Failed to save marks');
+       }
+     }
+   });
 
   const updateMarks = (studentId, subject, value) => {
     setMarksData(prev => ({
@@ -944,6 +967,34 @@ export default function Marks() {
             >
               {revokePublicationMutation.isPending ? 'Revoking...' : 'Revoke Publication'}
             </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Validation Error Modal */}
+      <AlertDialog open={showValidationError} onOpenChange={setShowValidationError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Cannot Submit - Missing Marks
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {validationError?.missingCount} student{validationError?.missingCount !== 1 ? 's' : ''} {validationError?.missingCount === 1 ? 'is' : 'are'} missing marks:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 max-h-40 overflow-y-auto">
+              <ul className="text-sm text-red-700 space-y-1">
+                {validationError?.missingStudents?.map((name, idx) => (
+                  <li key={idx}>• {name}</li>
+                ))}
+              </ul>
+              {validationError?.missingCount > 10 && (
+                <p className="text-xs text-red-600 mt-2">...and {validationError.missingCount - 10} more</p>
+              )}
+            </div>
+            <AlertDialogCancel className="w-full">Close</AlertDialogCancel>
           </div>
         </AlertDialogContent>
       </AlertDialog>
