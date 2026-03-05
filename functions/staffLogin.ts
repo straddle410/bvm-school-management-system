@@ -132,6 +132,8 @@ Deno.serve(async (req) => {
         role_template_id: account.role_template_id,
         permissions: effectivePermissions,
         redirect_to: 'ChangeStaffPassword',
+        link_status: linkStatus,
+        base44_user_id: linkBase44UserId,
       });
     }
 
@@ -148,6 +150,8 @@ Deno.serve(async (req) => {
       permissions_override: account.permissions_override,
       force_password_change: false,
       redirect_to: 'Dashboard',
+      link_status: linkStatus,
+      base44_user_id: linkBase44UserId,
     });
   } catch (error) {
     console.error('Login error:', error);
