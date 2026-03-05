@@ -31,8 +31,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Academic year "${data.academic_year}" is archived — student creation blocked` }, { status: 422 });
     }
 
-    // Generate student_id and use it as username (login ID)
-    const studentId = `S${Date.now().toString().slice(-5)}`; // e.g., S25001
+    // Generate student_id using authoritative generator
+    const genRes = await base44.asServiceRole.functions.invoke('generateStudentIdAuthoritative', {
+      academic_year: data.academic_year
+    });
+    if (!genRes.data || !genRes.data.student_id) {
+      return Response.json({ error: 'Failed to generate student ID' }, { status: 500 });
+    }
+    const studentId = genRes.data.student_id;
+    const studentIdNorm = genRes.data.student_id_norm;
     const defaultPassword = 'BVM123'; // Default password from spec
 
     // Auto-assign roll_no
@@ -51,6 +58,7 @@ Deno.serve(async (req) => {
     const newStudent = await base44.asServiceRole.entities.Student.create({
       name: data.student_name,
       student_id: studentId,
+      student_id_norm: studentIdNorm,
       username: studentId,
       password: defaultPassword,
       class_name: data.applying_for_class,
