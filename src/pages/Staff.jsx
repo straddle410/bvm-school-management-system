@@ -58,6 +58,7 @@ export default function Staff() {
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [passwordCopied, setPasswordCopied] = useState(false);
   const [tempPassword, setTempPassword] = useState('');
+  const [showResetSuccessModal, setShowResetSuccessModal] = useState(false);
   const [form, setForm] = useState({
     name: '',
     username: '',
