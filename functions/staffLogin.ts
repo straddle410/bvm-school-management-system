@@ -1,9 +1,45 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+// ── HMAC helpers ────────────────────────────────────────────────────────────
+const REPAIR_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+async function getHmacKey() {
+  const secret = Deno.env.get('BASE44_APP_ID') || 'fallback-secret';
+  const keyMaterial = new TextEncoder().encode(secret);
+  return crypto.subtle.importKey('raw', keyMaterial, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+}
+
+async function signRepairToken(staffId) {
+  const key = await getHmacKey();
+  const payload = `${staffId}:${Date.now()}`;
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+  return `${btoa(payload)}.${sigB64}`;
+}
+
+async function verifyRepairToken(token) {
+  try {
+    const [payloadB64, sigB64] = token.split('.');
+    if (!payloadB64 || !sigB64) return null;
+    const payload = atob(payloadB64);
+    const [staffId, iatStr] = payload.split(':');
+    if (!staffId || !iatStr) return null;
+    const iat = parseInt(iatStr, 10);
+    if (Date.now() - iat > REPAIR_TOKEN_TTL_MS) return null; // expired
+
+    const key = await getHmacKey();
+    const sigBytes = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
+    return valid ? staffId : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Staff login via username + password.
  * On success, upserts a StaffAuthLink record linking base44_user_id -> staff_id.
- * This is the ONLY authoritative server-side identity mapping.
+ * Also issues a short-lived HMAC-signed repair token for auto-repair in getMyStaffProfile.
  */
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
