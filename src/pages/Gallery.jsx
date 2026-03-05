@@ -389,7 +389,7 @@ export default function Gallery() {
             </Button>
           </div>
         </DialogContent>
-        </Dialog>
-        </div>
-        );
-        }
+      </Dialog>
+      </div>
+      );
+      }
