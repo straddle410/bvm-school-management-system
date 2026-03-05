@@ -40,12 +40,14 @@ const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'General Knowledge'];
 
 export default function Quiz() {
+   const { academicYear } = useAcademicYear();
    const [studentSession, setStudentSession] = useState(null);
    const [sessionLoaded, setSessionLoaded] = useState(false);
    const [user, setUser] = useState(null);
    const [userPermissions, setUserPermissions] = useState({});
    const [activeTab, setActiveTab] = useState('quizzes');
    const [showCreateDialog, setShowCreateDialog] = useState(false);
+   const [showAIAssist, setShowAIAssist] = useState(false);
    const [selectedQuiz, setSelectedQuiz] = useState(null);
    const [showResults, setShowResults] = useState(null);
    const [answers, setAnswers] = useState({});
