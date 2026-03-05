@@ -20,24 +20,51 @@ async function getSessionKey() {
 async function verifySessionToken(token) {
   try {
     const dotIdx = token.lastIndexOf('.');
-    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
+    if (dotIdx < 0) {
+      console.error('[getMyStaffProfile] TOKEN_INVALID: no dot separator found, token_length=', token.length);
+      return { error: 'TOKEN_INVALID' };
+    }
     const payloadB64 = token.slice(0, dotIdx);
     const sigB64 = token.slice(dotIdx + 1);
+
+    // Decode payload first for logging before signature check
+    let payload = null;
+    try {
+      payload = JSON.parse(b64urlDecode(payloadB64));
+      const { staff_id, exp, iat } = payload;
+      const now = Date.now();
+      console.log(`[getMyStaffProfile] TOKEN_DECODE: staff_id=${staff_id} iat=${iat} exp=${exp} now=${now} exp_iso=${exp ? new Date(exp).toISOString() : 'N/A'} expired=${now > exp}`);
+    } catch (decodeErr) {
+      console.error('[getMyStaffProfile] TOKEN_INVALID: payload decode failed:', decodeErr.message);
+      return { error: 'TOKEN_INVALID' };
+    }
 
     const key = await getSessionKey();
     const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
-    if (!valid) return { error: 'TOKEN_INVALID' };
+    if (!valid) {
+      console.error(`[getMyStaffProfile] TOKEN_INVALID: signature mismatch for staff_id=${payload?.staff_id}`);
+      return { error: 'TOKEN_INVALID' };
+    }
 
-    const payload = JSON.parse(b64urlDecode(payloadB64));
     const { staff_id, exp, iat } = payload;
+    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') {
+      console.error('[getMyStaffProfile] TOKEN_INVALID: missing required fields', { staff_id, exp, iat });
+      return { error: 'TOKEN_INVALID' };
+    }
+    if (iat > Date.now() + CLOCK_SKEW_MS) {
+      console.error(`[getMyStaffProfile] TOKEN_INVALID: future iat=${iat} now=${Date.now()}`);
+      return { error: 'TOKEN_INVALID' };
+    }
+    if (Date.now() > exp) {
+      console.error(`[getMyStaffProfile] TOKEN_EXPIRED: staff_id=${staff_id} expired_at=${new Date(exp).toISOString()}`);
+      return { error: 'TOKEN_EXPIRED' };
+    }
 
-    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
-    if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' }; // future token
-    if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
-
+    console.log(`[getMyStaffProfile] TOKEN_OK: staff_id=${staff_id} role=${payload.role}`);
     return { staff_id, role: payload.role };
-  } catch {
+  } catch (err) {
+    console.error('[getMyStaffProfile] TOKEN_INVALID: unexpected error:', err.message);
     return { error: 'TOKEN_INVALID' };
   }
 }
@@ -67,8 +94,10 @@ Deno.serve(async (req) => {
     }
 
     if (!token) {
-      return Response.json({ error: 'No session token provided. Please login again.', code: 'TOKEN_INVALID' }, { status: 401 });
+      console.error('[getMyStaffProfile] No token in body or Authorization header');
+      return Response.json({ error: 'No session token provided. Please login again.', code: 'TOKEN_MISSING' }, { status: 401 });
     }
+    console.log(`[getMyStaffProfile] Token received, length=${token.length}, prefix=${token.substring(0, 20)}...`);
 
     const verified = await verifySessionToken(token);
     if (verified.error) {
@@ -79,8 +108,10 @@ Deno.serve(async (req) => {
     const { staff_id } = verified;
 
     // Load StaffAccount
+    console.log(`[getMyStaffProfile] Looking up StaffAccount id=${staff_id}`);
     const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
     if (!accounts || accounts.length === 0) {
+      console.error(`[getMyStaffProfile] STAFF_NOT_FOUND: no account with id=${staff_id}`);
       return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND' }, { status: 404 });
     }
 
