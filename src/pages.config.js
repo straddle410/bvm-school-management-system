@@ -108,6 +108,11 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
+import StudentAttendance from './pages/StudentAttendance';
+import StudentMarks from './pages/StudentMarks';
+import StudentDiary from './pages/StudentDiary';
+import StudentNotices from './pages/StudentNotices';
+import StudentMore from './pages/StudentMore';
 import __Layout from './Layout.jsx';
 
 
@@ -173,6 +178,11 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
+    "StudentAttendance": StudentAttendance,
+    "StudentMarks": StudentMarks,
+    "StudentDiary": StudentDiary,
+    "StudentNotices": StudentNotices,
+    "StudentMore": StudentMore,
 }
 
 export const pagesConfig = {
