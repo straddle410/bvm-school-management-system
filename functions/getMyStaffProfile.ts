@@ -1,51 +1,41 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
- * Returns authoritative role + permissions for a staff member.
- *
- * Lookup priority (most → least stable):
- *   1. staff_id  — direct record ID lookup (never changes, most reliable)
- *   2. email     — unique per person, stable across username renames
- *   3. username  — last resort (usernames can change or be reused)
- *
- * At least one of staff_id / email / username must be provided.
+ * Returns authoritative role + permissions for the currently logged-in staff member.
+ * Identity is derived SOLELY from StaffAuthLink (base44_user_id -> staff_id).
+ * No client-supplied staff_id, email, or username is trusted.
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_id, email, username } = await req.json();
 
-    if (!staff_id && !email && !username) {
-      return Response.json({ error: 'staff_id, email, or username required' }, { status: 400 });
+    // Step 1: Get base44 platform identity (JWT — cannot be spoofed by client)
+    const authUser = await base44.auth.me().catch(() => null);
+    if (!authUser?.id) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    let account = null;
+    // Step 2: Resolve staff_id from the auth link table
+    const links = await base44.asServiceRole.entities.StaffAuthLink.filter({
+      base44_user_id: authUser.id,
+    });
 
-    // 1) Direct ID lookup — most stable
-    if (staff_id) {
-      try {
-        const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
-        if (accounts && accounts.length > 0) account = accounts[0];
-      } catch {}
+    if (!links || links.length === 0) {
+      return Response.json(
+        { error: 'Staff session not linked. Please log in again.', code: 'LINK_MISSING' },
+        { status: 403 }
+      );
     }
 
-    // 2) Email lookup — stable even if username changes
-    if (!account && email) {
-      const normalized = email.trim().toLowerCase();
-      const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ email: normalized });
-      if (accounts && accounts.length > 0) account = accounts[0];
-    }
+    const staffId = links[0].staff_id;
 
-    // 3) Username lookup — last resort fallback
-    if (!account && username) {
-      const normalized = username.trim().toLowerCase();
-      const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ username: normalized });
-      if (accounts && accounts.length > 0) account = accounts[0];
-    }
-
-    if (!account) {
+    // Step 3: Fetch the StaffAccount
+    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staffId });
+    if (!accounts || accounts.length === 0) {
       return Response.json({ error: 'Staff account not found' }, { status: 404 });
     }
+
+    const account = accounts[0];
 
     if (!account.is_active) {
       return Response.json({ error: 'Account inactive' }, { status: 403 });
@@ -55,23 +45,27 @@ Deno.serve(async (req) => {
 
     // Merge permissions: template → legacy → override
     let effectivePermissions = {};
-    if (account.permissions) {
-      effectivePermissions = { ...effectivePermissions, ...account.permissions };
+    if (account.role_template_id) {
+      try {
+        const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
+        if (templates && templates.length > 0 && templates[0].permissions) {
+          effectivePermissions = { ...templates[0].permissions };
+        }
+      } catch {}
     }
-    if (account.permissions_override) {
-      effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
-    }
+    if (account.permissions) effectivePermissions = { ...effectivePermissions, ...account.permissions };
+    if (account.permissions_override) effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
+
     const permissionsCount = Object.keys(effectivePermissions).filter(k => effectivePermissions[k] === true).length;
 
     return Response.json({
-      staff_id: account.id,   // echo back canonical ID so client can correct stale session
+      staff_id: account.id,
       role,
       name: account.name,
       designation: account.designation || '',
       permissionsCount,
-      lookup_method: staff_id && account.id === staff_id
-        ? 'staff_id'
-        : (email ? 'email' : 'username'),
+      permissions: effectivePermissions,
+      identity_source: 'StaffAuthLink',
     });
   } catch (error) {
     console.error('getMyStaffProfile error:', error);

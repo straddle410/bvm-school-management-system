@@ -1,9 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
- * Staff login via username + password
- * Returns session token if successful
- * Handles account locking, password hashing validation
+ * Staff login via username + password.
+ * On success, upserts a StaffAuthLink record linking base44_user_id -> staff_id.
+ * This is the ONLY authoritative server-side identity mapping.
  */
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -18,70 +18,46 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Username and password required' }, { status: 400 });
     }
 
-    // Normalize username: trim and lowercase for case-insensitive lookup
     const normalizedUsername = username.trim().toLowerCase();
 
-    // Find staff by normalized username
     const staff = await base44.asServiceRole.entities.StaffAccount.filter({
       username: normalizedUsername,
     });
 
     if (!staff || staff.length === 0) {
-      return Response.json(
-        { error: 'Invalid username or password' },
-        { status: 401 }
-      );
+      return Response.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 
     const account = staff[0];
 
-    // Check if account is active
     if (!account.is_active) {
-      return Response.json(
-        { error: 'Account inactive. Contact administrator.' },
-        { status: 403 }
-      );
+      return Response.json({ error: 'Account inactive. Contact administrator.' }, { status: 403 });
     }
 
-    // Check if account is locked
     if (account.account_locked_until) {
       const lockTime = new Date(account.account_locked_until);
       if (lockTime > new Date()) {
-        return Response.json(
-          {
-            error: 'Account locked. Try again later or contact administrator.',
-            locked_until: account.account_locked_until,
-          },
-          { status: 403 }
-        );
+        return Response.json({
+          error: 'Account locked. Try again later or contact administrator.',
+          locked_until: account.account_locked_until,
+        }, { status: 403 });
       }
     }
 
-    // Validate password
-    const passwordValid = await validatePassword(password, account.password_hash);
+    const passwordValid = validatePassword(password, account.password_hash);
 
     if (!passwordValid) {
-      // Increment failed attempts
       const newFailedAttempts = (account.failed_login_attempts || 0) + 1;
       const updateData = { failed_login_attempts: newFailedAttempts };
-
-      // Lock account if >= 5 attempts
       if (newFailedAttempts >= 5) {
-        const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-        updateData.account_locked_until = lockUntil.toISOString();
+        updateData.account_locked_until = new Date(Date.now() + 15 * 60 * 1000).toISOString();
       }
-
       await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
-      
-      return Response.json(
-        { error: 'Invalid username or password' },
-        { status: 401 }
-      );
+      return Response.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 
-    // Successful login: reset attempts, update last login
+    // Successful auth — update login metadata
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
-    
     await base44.asServiceRole.entities.StaffAccount.update(account.id, {
       failed_login_attempts: 0,
       account_locked_until: null,
@@ -89,8 +65,34 @@ Deno.serve(async (req) => {
       last_login_ip: clientIp,
     });
 
-    // Resolve effective permissions:
-    // Merge role template permissions + legacy permissions + overrides
+    // ── Upsert StaffAuthLink ─────────────────────────────────────────────────
+    // base44.auth.me() returns the platform user making this request.
+    // This binds the base44 session identity -> StaffAccount.id permanently.
+    const authUser = await base44.auth.me().catch(() => null);
+    if (authUser?.id) {
+      const existing = await base44.asServiceRole.entities.StaffAuthLink.filter({
+        base44_user_id: authUser.id,
+      });
+      const now = new Date().toISOString();
+      if (existing && existing.length > 0) {
+        // Update: re-bind to current staff_id and refresh last_login_at
+        await base44.asServiceRole.entities.StaffAuthLink.update(existing[0].id, {
+          staff_id: account.id,
+          last_login_at: now,
+        });
+      } else {
+        // Create new link
+        await base44.asServiceRole.entities.StaffAuthLink.create({
+          base44_user_id: authUser.id,
+          staff_id: account.id,
+          last_login_at: now,
+        });
+      }
+    }
+    // If auth.me() fails (no platform session) we skip the link — profile/update
+    // will return 401 until a proper session is established.
+
+    // Resolve effective permissions
     let effectivePermissions = {};
     if (account.role_template_id) {
       try {
@@ -98,23 +100,13 @@ Deno.serve(async (req) => {
         if (templates && templates.length > 0 && templates[0].permissions) {
           effectivePermissions = { ...templates[0].permissions };
         }
-      } catch (e) {
-        // Ignore template fetch error
-      }
+      } catch {}
     }
-    // Legacy permissions on top of template
-    if (account.permissions) {
-      effectivePermissions = { ...effectivePermissions, ...account.permissions };
-    }
-    // Explicit overrides take highest priority
-    if (account.permissions_override) {
-      effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
-    }
+    if (account.permissions) effectivePermissions = { ...effectivePermissions, ...account.permissions };
+    if (account.permissions_override) effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
 
-    // Normalize role to lowercase for consistent permission checks
     const normalizedRole = (account.role || '').trim().toLowerCase();
 
-    // If force password change, return minimal session so client can store it
     if (account.force_password_change) {
       return Response.json({
         success: true,
@@ -131,7 +123,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create session (store in localStorage on client)
     return Response.json({
       success: true,
       staff_id: account.id,
@@ -152,25 +143,12 @@ Deno.serve(async (req) => {
   }
 });
 
-/**
- * Validate password against hash
- * Handles both legacy and new hashing
- */
-async function validatePassword(password, hash) {
+function validatePassword(password, hash) {
   if (!hash || !password) return false;
-  
-  // Try new hash format first
-  const newHash = hashPassword(password);
-  if (newHash === hash) return true;
-  
-  // Fallback for legacy/corrupted hashes - just do basic check
-  // This is temporary until all passwords are rehashed
-  return false;
+  return hashPassword(password) === hash;
 }
 
 function hashPassword(password) {
-  // Simple consistent hash for password validation
   if (!password) return '';
-  const encoded = btoa(password); // base64 encode
-  return '$2b$10$' + encoded.substring(0, 53);
+  return '$2b$10$' + btoa(password).substring(0, 53);
 }

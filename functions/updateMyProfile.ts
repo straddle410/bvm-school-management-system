@@ -6,68 +6,48 @@ const ALLOWED_FIELDS = [
   'emergency_contact_phone', 'photo_url'
 ];
 
+/**
+ * Updates the profile of the currently logged-in staff member.
+ * Identity is derived SOLELY from StaffAuthLink (base44_user_id -> staff_id).
+ * All client-supplied identity fields are ignored.
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // ── Server-side identity resolution ─────────────────────────────────────
-    // Step 1: Authenticate via base44 platform auth (JWT in Authorization header).
-    //         This is signed server-side and cannot be spoofed by the client.
+    // Step 1: Platform auth — signed JWT, cannot be spoofed
     const authUser = await base44.auth.me().catch(() => null);
-
-    let account = null;
-    let identitySource = '';
-
-    if (authUser?.email) {
-      // Step 2a: Look up StaffAccount by platform email (most reliable path).
-      const rows = await base44.asServiceRole.entities.StaffAccount.filter({
-        email: authUser.email.trim().toLowerCase()
-      });
-      if (rows && rows.length > 0) {
-        account = rows[0];
-        identitySource = 'base44_auth_email';
-      }
+    if (!authUser?.id) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    // Step 2b: Fallback — if platform auth returned no email (custom staff login flow),
-    //          check the x-staff-id request header that the frontend SDK sets when
-    //          base44.functions.invoke is called while a staff_session is active.
-    //          NOTE: This is a last resort; the email path is preferred.
-    if (!account) {
-      const staffIdHeader = req.headers.get('x-staff-id');
-      if (staffIdHeader) {
-        const rows = await base44.asServiceRole.entities.StaffAccount.filter({ id: staffIdHeader });
-        if (rows && rows.length > 0) {
-          account = rows[0];
-          identitySource = 'x-staff-id-header';
-        }
-      }
+    // Step 2: Resolve staff_id via StaffAuthLink
+    const links = await base44.asServiceRole.entities.StaffAuthLink.filter({
+      base44_user_id: authUser.id,
+    });
+
+    if (!links || links.length === 0) {
+      return Response.json(
+        { error: 'Staff session not linked. Please log in again.', code: 'LINK_MISSING' },
+        { status: 403 }
+      );
     }
 
-    // All _caller_* fields from the request body are IGNORED for identity.
-    // They may exist in the payload but will be stripped below.
+    const staffId = links[0].staff_id;
 
-    if (!account) {
-      return Response.json({ error: 'Could not resolve staff identity server-side' }, { status: 401 });
+    // Step 3: Verify account exists and is active
+    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staffId });
+    if (!accounts || accounts.length === 0) {
+      return Response.json({ error: 'Staff account not found' }, { status: 404 });
     }
 
+    const account = accounts[0];
     if (!account.is_active) {
       return Response.json({ error: 'Account inactive' }, { status: 403 });
     }
 
-    // ── Parse and sanitise payload ────────────────────────────────────────────
+    // Step 4: Parse payload — only whitelist, ignore everything else (incl. any id/role fields)
     const rawPayload = await req.json();
-
-    // Strip any caller identity or privilege-escalation fields — never trust them
-    const STRIP_FIELDS = [
-      '_caller_staff_id', '_caller_email', '_caller_username',
-      'staff_id', 'target_id', 'id', 'role', 'email', 'username',
-      'password_hash', 'permissions', 'permissions_override',
-      'joining_date', 'staff_code', 'classes', 'subjects', 'sections',
-      'is_active', 'role_template_id', 'account_locked_until',
-      'failed_login_attempts', 'force_password_change'
-    ];
-
     const updateData = {};
     for (const field of ALLOWED_FIELDS) {
       if (field in rawPayload) updateData[field] = rawPayload[field];
@@ -77,13 +57,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    // ── Update ONLY the resolved account ────────────────────────────────────
+    // Step 5: Update ONLY the server-resolved account
     await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
 
     return Response.json({
       success: true,
       message: 'Profile updated',
-      identity_source: identitySource,   // for debugging; harmless to expose
+      identity_source: 'StaffAuthLink',
     });
   } catch (error) {
     console.error('updateMyProfile error:', error);
