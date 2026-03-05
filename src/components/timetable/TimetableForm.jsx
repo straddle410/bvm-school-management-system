@@ -39,7 +39,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
         const subs = await base44.entities.Subject.list();
         return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
       }
-      console.log('[TIMETABLE_FORM]', { year: academicYear, classRaw: formData.class_name });
+      console.log('[SUBJECT_FETCH]', {
+        module: 'Timetable',
+        year: academicYear,
+        classRaw: formData.class_name,
+      });
       const result = await getSubjectsForClass(academicYear, formData.class_name);
       console.log('[TIMETABLE_FORM_RESULT]', { source: result.source, subjects: result.subjects });
       return result.subjects;

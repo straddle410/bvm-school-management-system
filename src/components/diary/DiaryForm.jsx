@@ -47,7 +47,11 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
   useEffect(() => {
     const fetchSubjects = async () => {
       if (formData.class_name && finalAcademicYear) {
-        console.log('[DIARY_FORM]', { year: finalAcademicYear, classRaw: formData.class_name });
+        console.log('[SUBJECT_FETCH]', {
+          module: 'Diary',
+          year: finalAcademicYear,
+          classRaw: formData.class_name,
+        });
         const result = await getSubjectsForClass(finalAcademicYear, formData.class_name);
         console.log('[DIARY_FORM_RESULT]', { source: result.source, subjects: result.subjects });
         setSubjects(result.subjects);
