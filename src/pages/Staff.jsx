@@ -672,25 +672,26 @@ export default function Staff() {
                               {form.is_teacher && (
                                 <div className="space-y-4 ml-6">
                                   <div>
-                                    <Label>Subjects</Label>
-                                    <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
-                                      {subjects.map(s => (
-                                        <div key={s.id} className="flex items-center gap-2">
-                                          <Checkbox
-                                            checked={form.subjects.includes(s.name)}
-                                            onCheckedChange={(checked) => {
-                                              if (checked) {
-                                                setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
-                                              } else {
-                                                setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
-                                              }
-                                            }}
-                                          />
-                                          <span className="text-sm">{s.name}</span>
-                                        </div>
-                                      ))}
+                                      <Label>Subjects</Label>
+                                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
+                                        {subjects.map(s => (
+                                          <div key={s.id} className="flex items-center gap-2">
+                                            <Checkbox
+                                              checked={form.subjects.includes(s.name)}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
+                                                } else {
+                                                  setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
+                                                }
+                                              }}
+                                            />
+                                            <span className="text-sm">{s.name}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <p className="text-xs text-slate-500 mt-2">Subjects will be saved when you update staff</p>
                                     </div>
-                                  </div>
 
                                   <div>
                                     <Label>Classes</Label>
