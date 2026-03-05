@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-   Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock, CheckCheck
+   Plus, HelpCircle, Calendar, CheckCircle2, XCircle, Send, Trash2, Lock, CheckCheck, Sparkles
  } from 'lucide-react';
  import { format } from 'date-fns';
  import { toast } from "sonner";
@@ -33,6 +33,8 @@ import {
 import { createPageUrl } from '@/utils';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
+import AIAssistDrawer from '@/components/AIAssistDrawer';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 
 const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'General Knowledge'];
