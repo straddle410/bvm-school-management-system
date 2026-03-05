@@ -137,7 +137,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   if (NO_LAYOUT_PAGES.includes(currentPageName)) {
-    return <AcademicYearProvider>{children}</AcademicYearProvider>;
+    return <AcademicYearProvider>{WrappedChildren}</AcademicYearProvider>;
   }
 
   // Pages students are allowed to visit via layout
