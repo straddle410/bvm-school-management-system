@@ -150,21 +150,14 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      range_start: startDate,
-      range_end: endDate,
-      working_days: workingDays,
-      full_days_present: fullDays,
-      half_days_present: halfDays,
-      absent_days: absentDays,
-      total_present_days: Math.round(totalPresent * 100) / 100,
-      attendance_percentage: percentage,
-      month_wise_breakdown: months
+      data: {
+        attendance_percentage: percentage,
+        present: Math.round(totalPresent * 100) / 100,
+        total: workingDays
+      }
     });
   } catch (error) {
     console.error('Attendance summary calculation error:', error);
-    return Response.json(
-      { error: error.message || 'Failed to calculate attendance summary' },
-      { status: 500 }
-    );
+    return Response.json({ data: { attendance_percentage: 0, present: 0, total: 0 } });
   }
 });
