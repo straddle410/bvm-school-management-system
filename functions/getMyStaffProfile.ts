@@ -51,20 +51,12 @@ async function verifySessionToken(token) {
      }
 
     const key = await getSessionKey();
-    let sigBytes;
-    try {
-      const sigDecoded = b64urlDecode(sigB64);
-      sigBytes = new Uint8Array(sigDecoded.length);
-      for (let i = 0; i < sigDecoded.length; i++) {
-        sigBytes[i] = sigDecoded.charCodeAt(i);
-      }
-      console.log(`[getMyStaffProfile] Signature decoded: length=${sigBytes.length}`);
-    } catch (sigErr) {
-      console.error(`[getMyStaffProfile] TOKEN_INVALID: failed to decode signature: ${sigErr.message}`);
-      return { error: 'TOKEN_INVALID' };
+    const sigDecoded = b64urlDecode(sigB64);
+    const sigBytes = new Uint8Array(sigDecoded.length);
+    for (let i = 0; i < sigDecoded.length; i++) {
+      sigBytes[i] = sigDecoded.charCodeAt(i);
     }
     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
-    console.log(`[getMyStaffProfile] Signature verification result: ${valid}`);
     if (!valid) {
       console.error(`[getMyStaffProfile] TOKEN_INVALID: signature mismatch for staff_id=${payload?.staff_id}`);
       return { error: 'TOKEN_INVALID' };
