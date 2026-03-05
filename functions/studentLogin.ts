@@ -87,25 +87,18 @@ Deno.serve(async (req) => {
   }
 });
 
-// Password hashing using PBKDF2 (bcrypt-like)
+// Password hashing using SHA-256 with consistent salt
 async function hashPasswordBcrypt(password) {
   const encoder = new TextEncoder();
-  const salt = 'student_salt_bvm';
-  const data = encoder.encode(password + salt);
+  const data = encoder.encode(password + 'bvm_student_salt_2024');
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return '$2b$12$' + hashHex.substring(0, 53);
+  return hashHex;
 }
 
 // Compare password with hash
 async function comparePassword(password, hash) {
-  const encoder = new TextEncoder();
-  const salt = 'student_salt_bvm';
-  const data = encoder.encode(password + salt);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  const computedHash = '$2b$12$' + hashHex.substring(0, 53);
+  const computedHash = await hashPasswordBcrypt(password);
   return computedHash === hash;
 }
