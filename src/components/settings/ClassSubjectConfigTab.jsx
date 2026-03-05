@@ -265,7 +265,6 @@ export default function ClassSubjectConfigTab() {
                       {selected.length === allSubjects.length && allSubjects.length > 0 ? 'Deselect All' : 'Select All'}
                     </Button>
                   )}
-                </p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {/* Existing subjects from master list */}
