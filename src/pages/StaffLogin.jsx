@@ -77,6 +77,54 @@ export default function StaffLogin() {
     }
   };
 
+  // LINK_CONFLICT full-screen view
+  if (linkConflict) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0">
+          <CardHeader className="bg-red-600 text-white rounded-t-lg">
+            <div className="flex items-center justify-center mb-3">
+              <ShieldAlert className="h-10 w-10" />
+            </div>
+            <CardTitle className="text-center text-xl">Session Conflict</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <p className="text-gray-800 font-medium">
+              This browser session is already linked to a <strong>different staff account</strong>.
+            </p>
+            <p className="text-sm text-gray-600">
+              This can happen when two staff members share the same device or browser profile.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 space-y-1">
+              <p className="font-semibold">What to do:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Use a <strong>different browser</strong> or an incognito / private window.</li>
+                <li>Or ask your <strong>administrator</strong> to reset your session link.</li>
+              </ul>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full flex items-center gap-2"
+              onClick={() => {
+                localStorage.removeItem('staff_session');
+                base44.auth.logout();
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              Log out &amp; start fresh
+            </Button>
+            <button
+              className="w-full text-xs text-gray-400 hover:text-gray-600 text-center"
+              onClick={() => setLinkConflict(false)}
+            >
+              ← Back to login
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
       {/* Locked Account Dialog */}
