@@ -18,8 +18,9 @@
 export const canStaff = (user, permissionKey, roleTemplates = null) => {
   if (!user) return false;
 
-  // Admin/Principal bypass - full access
-  if (user.role === 'admin' || user.role === 'principal') {
+  // Admin/Principal bypass - full access (principal === admin permissions)
+  const role = (user.role || '').toLowerCase();
+  if (role === 'admin' || role === 'principal') {
     return true;
   }
 
@@ -171,6 +172,30 @@ export const DEFAULT_ROLE_TEMPLATES = [
     name: 'Staff',
     description: 'Basic staff access',
     permissions: {},
+    is_system: true,
+  },
+  {
+    // Principal: full admin access — role check bypasses permission lookup
+    name: 'Principal',
+    description: 'Full admin access — same as Admin role',
+    permissions: {},  // not needed; role bypass handles it
+    is_system: true,
+  },
+  {
+    // Exam Staff: marks + attendance only
+    name: 'Exam Staff',
+    description: 'Limited to Marks/Exams and Attendance modules only',
+    permissions: {
+      attendance_view_module: true,
+      attendance_mark: true,
+      attendance_view_summary: true,
+      marks_view_module: true,
+      marks_enter: true,
+      marks_publish: false,
+      // Legacy keys
+      attendance: true,
+      marks: true,
+    },
     is_system: true,
   },
 ];

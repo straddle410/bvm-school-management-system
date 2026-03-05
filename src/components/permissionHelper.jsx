@@ -18,12 +18,25 @@ const LEGACY_PERMISSION_MAP = {
   fees_reverse_receipt: 'fees_void_receipt',
 };
 
+/**
+ * Role checks — centralised so one change propagates everywhere.
+ * principal has full admin access.
+ * exam_staff has access only to marks/exams + attendance.
+ */
+export function isAdminRole(role) {
+  const r = (role || '').toLowerCase();
+  return r === 'admin' || r === 'principal';
+}
+
+export function isExamStaffRole(role) {
+  return (role || '').toLowerCase() === 'exam_staff';
+}
+
 export function can(user, permissionKey) {
   if (!user) return false;
 
   // Admin/Principal override (bypass all checks)
-  const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || 
-                  user?.role === 'principal' || user?.role === 'Principal';
+  const isAdmin = isAdminRole(user?.role);
   if (isAdmin) return true;
 
   // Direct permission check
