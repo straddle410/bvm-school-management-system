@@ -1292,6 +1292,29 @@ export default function Staff() {
           </DialogContent>
         </Dialog>
 
+        {/* Password Reset Success Modal */}
+        <Dialog open={showResetSuccessModal} onOpenChange={setShowResetSuccessModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-green-600">✓ Password Reset Complete</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-slate-700">
+                Password for <span className="font-semibold">{resetPasswordStaff?.name}</span> has been successfully reset.
+              </p>
+              <p className="text-sm text-slate-600">
+                The staff member will be forced to change their password on next login.
+              </p>
+              <Button
+                onClick={() => setShowResetSuccessModal(false)}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                Done
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Role Dialog */}
         <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
