@@ -19,6 +19,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
     section: 'All',
     due_date: '',
     homework_type: 'Assignment',
+    submission_mode: 'VIEW_ONLY',
     description: '',
     max_marks: '',
     mcq_questions: [emptyMCQ()],
@@ -39,6 +40,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
         section: editItem.section || 'All',
         due_date: editItem.due_date || '',
         homework_type: editItem.homework_type || 'Assignment',
+        submission_mode: editItem.submission_mode || 'VIEW_ONLY',
         description: editItem.description || '',
         max_marks: editItem.max_marks || '',
         mcq_questions: editItem.mcq_questions?.length ? editItem.mcq_questions : [emptyMCQ()],
@@ -140,6 +142,13 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Max Marks</label>
               <input type="number" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.max_marks} onChange={e => set('max_marks', e.target.value)} />
             </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1 block">Homework Type</label>
+            <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.submission_mode} onChange={e => set('submission_mode', e.target.value)}>
+              <option value="VIEW_ONLY">View Only</option>
+              <option value="SUBMISSION_REQUIRED">Students Must Submit</option>
+            </select>
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-600 mb-1 block">Instructions</label>
