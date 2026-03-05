@@ -77,8 +77,6 @@ Deno.serve(async (req) => {
       if (existing && existing.length > 0) {
         const link = existing[0];
         if (link.staff_id !== account.id) {
-          // CONFLICT: this base44 session is already bound to a different StaffAccount.
-          // Silently rebinding would allow shared-device mix-ups to hijack accounts.
           console.error(
             `LINK_CONFLICT: base44_user_id=${authUser.id} already linked to staff_id=${link.staff_id}, ` +
             `attempted login as staff_id=${account.id} (username=${account.username})`
@@ -89,10 +87,9 @@ Deno.serve(async (req) => {
             code: 'LINK_CONFLICT',
           }, { status: 403 });
         }
-        // Same staff_id — just refresh last_login_at
-        await base44.asServiceRole.entities.StaffAuthLink.update(link.id, {
-          last_login_at: now,
-        });
+        // Same staff_id — refresh timestamp
+        await base44.asServiceRole.entities.StaffAuthLink.update(link.id, { last_login_at: now });
+        linkStatus = 'EXISTING';
       } else {
         // No link yet — create one
         await base44.asServiceRole.entities.StaffAuthLink.create({
@@ -100,7 +97,9 @@ Deno.serve(async (req) => {
           staff_id: account.id,
           last_login_at: now,
         });
+        linkStatus = 'CREATED';
       }
+      linkBase44UserId = authUser.id;
     }
     // If auth.me() fails (no platform session) we skip the link — profile/update
     // will return 401 until a proper session is established.

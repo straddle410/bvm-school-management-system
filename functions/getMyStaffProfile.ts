@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     // Step 3: Fetch the StaffAccount
     const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staffId });
     if (!accounts || accounts.length === 0) {
-      return Response.json({ error: 'Staff account not found' }, { status: 404 });
+      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND', staff_id: staffId }, { status: 404 });
     }
 
     const account = accounts[0];
