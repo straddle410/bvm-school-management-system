@@ -134,29 +134,32 @@ export default function Profile() {
   }
 
   if (error || !staffAccount) {
-    const isLinkMissing = error?.includes('TOKEN') || error?.includes('login again') || error?.includes('LINK_MISSING');
+    const isTokenMissing = errorCode === 'TOKEN_MISSING';
+    const isStaffNotFound = errorCode === 'STAFF_NOT_FOUND';
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-2xl mx-auto">
           <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-[#1a237e] hover:opacity-70">
             <ArrowLeft className="h-5 w-5" /> Back
           </button>
-          <Card className={isLinkMissing ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}>
+          <Card className={isTokenMissing || isStaffNotFound ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}>
             <CardContent className="pt-6 flex flex-col gap-3">
               <div className="flex items-start gap-3">
-                <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${isLinkMissing ? 'text-red-600' : 'text-amber-600'}`} />
+                <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${isTokenMissing || isStaffNotFound ? 'text-red-600' : 'text-amber-600'}`} />
                 <div>
                   <p className="font-semibold text-gray-900">
-                    {isLinkMissing ? 'Session not linked' : 'Profile not found'}
+                    {isTokenMissing ? 'Session expired' : isStaffNotFound ? 'Staff record missing' : 'Profile not found'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {isLinkMissing
-                      ? 'Your session is not linked to a staff account. Please log out and log in again.'
+                    {isTokenMissing
+                      ? 'Please log out and log in again.'
+                      : isStaffNotFound 
+                      ? 'Staff record not found. Please contact admin to re-create staff account.'
                       : (error || 'Your staff account could not be loaded.')}
                   </p>
                 </div>
               </div>
-              {isLinkMissing && (
+              {(isTokenMissing || isStaffNotFound) && (
                 <button
                   onClick={() => {
                     localStorage.removeItem('staff_session');
