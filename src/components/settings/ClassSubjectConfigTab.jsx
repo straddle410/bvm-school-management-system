@@ -51,16 +51,20 @@ export default function ClassSubjectConfigTab() {
     }
   });
 
-  const { data: config, isLoading } = useQuery({
+  const { data: config, isLoading, refetch: refetchConfig } = useQuery({
     queryKey: ['class-subject-config', academicYear, selectedClass],
     queryFn: async () => {
+      const normalized = normalizeClassName(selectedClass);
+      console.log('[CLASS_CFG_LOAD] year=', academicYear, 'class=', normalized);
       const configs = await base44.entities.ClassSubjectConfig.filter({
         academic_year: academicYear,
-        class_name: selectedClass
+        class_name: normalized
       });
       if (configs.length > 0 && configs[0].subject_names) {
+        console.log('[CLASS_CFG_LOAD_RES] found subjects:', configs[0].subject_names);
         return { exists: true, subject_names: configs[0].subject_names };
       }
+      console.log('[CLASS_CFG_LOAD_RES] not configured');
       return { exists: false, subject_names: [] };
     },
     enabled: !!academicYear && !!selectedClass
