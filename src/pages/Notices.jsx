@@ -41,24 +41,26 @@ function getStudentSession() {
 }
 
 export default function Notices() {
+   const { academicYear } = useAcademicYear();
    const [user, setUser] = useState(null);
    const [studentSession, setStudentSession] = useState(null);
    const [showDialog, setShowDialog] = useState(false);
+   const [showAIAssist, setShowAIAssist] = useState(false);
    const [filterType, setFilterType] = useState('all');
    const [readNoticeIds, setReadNoticeIds] = useState(() => {
-     try { return new Set(JSON.parse(localStorage.getItem('read_notice_ids') || '[]')); } catch { return new Set(); }
+      try { return new Set(JSON.parse(localStorage.getItem('read_notice_ids') || '[]')); } catch { return new Set(); }
    });
    const [unreadNotifMap, setUnreadNotifMap] = useState({}); 
    const [form, setForm] = useState({
-     title: '',
-     content: '',
-     notice_type: 'General',
-     target_audience: 'All',
-     target_classes: [],
-     publish_date: format(new Date(), 'yyyy-MM-dd'),
-     expiry_date: '',
-     is_pinned: false,
-     status: 'Draft'
+      title: '',
+      content: '',
+      notice_type: 'General',
+      target_audience: 'All',
+      target_classes: [],
+      publish_date: format(new Date(), 'yyyy-MM-dd'),
+      expiry_date: '',
+      is_pinned: false,
+      status: 'Draft'
    });
    const [showTableBuilder, setShowTableBuilder] = useState(false);
    const [editingNotice, setEditingNotice] = useState(null);
