@@ -13,6 +13,46 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 // Import canonical normalizer from helper
 import { getSubjectsForClass, getAllSubjectsForYear } from '@/components/subjectHelper';
 
+// Drag-and-drop list item component
+const SubjectListItem = ({ index, subject, isNew, onMoveUp, onMoveDown, onRemove }) => (
+  <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors group">
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={onMoveUp}
+        className="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-100 transition"
+        title="Move up"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+          <path d="M10.293 5.293a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L8.707 9.707a1 1 0 01-1.414-1.414l3-3z" />
+        </svg>
+      </button>
+      <button
+        onClick={onMoveDown}
+        className="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-100 transition"
+        title="Move down"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+          <path d="M10.707 14.707a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9 12.586V5a1 1 0 012 0v7.586l1.293-1.293a1 1 0 011.414 1.414l-3 3z" />
+        </svg>
+      </button>
+    </div>
+    <GripVertical className="w-4 h-4 text-slate-400 flex-shrink-0" />
+    <span className={`flex-1 text-sm font-medium ${isNew ? 'text-green-700' : 'text-slate-700'}`}>
+      {subject}
+      {isNew && <span className="ml-2 text-xs text-green-600">(new)</span>}
+    </span>
+    <button
+      onClick={onRemove}
+      className="text-slate-400 hover:text-red-600 p-0.5 rounded hover:bg-red-50 transition opacity-0 group-hover:opacity-100"
+      title="Remove subject"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
+  </div>
+);
+
 // Inline canonical normalizer (same as subjectHelper)
 const normalizeClassName = (cls) => {
   if (!cls) return '';
