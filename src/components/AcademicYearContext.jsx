@@ -31,6 +31,31 @@ export function AcademicYearProvider({ children }) {
     const init = async () => {
       // Step 1: Resolve role fully before anything else (no race condition)
       let resolvedRole = null;
+      
+      // CRITICAL: Check student_session FIRST — students never call base44.auth.me()
+      try {
+        const studentSession = localStorage.getItem('student_session');
+        if (studentSession) {
+          // Student session exists — skip all Base44 auth calls
+          resolvedRole = 'student'; // Students are never admin
+          setIsAdmin(false);
+          setRoleLoaded(true);
+          // Load years with no role requirement
+          try {
+            const allYears = await base44.entities.AcademicYear.list('-start_date');
+            const seen = new Set();
+            const years = allYears
+              .filter(y => (y.status || '').toLowerCase() !== 'archived')
+              .filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
+            setAcademicYears(years);
+            const saved = localStorage.getItem('selected_academic_year') || getDefaultYear();
+            setAcademicYearState(saved);
+          } catch {}
+          return; // Exit early — don't call auth.me()
+        }
+      } catch {}
+
+      // Staff/Admin: Check staff_session
       try {
         const session = localStorage.getItem('staff_session');
         if (session) {
@@ -39,6 +64,7 @@ export function AcademicYearProvider({ children }) {
         }
       } catch {}
 
+      // Only call auth.me() if NO student_session AND NO staff_session
       if (!resolvedRole) {
         try {
           const isAuth = await base44.auth.isAuthenticated();
