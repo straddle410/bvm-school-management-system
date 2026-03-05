@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { getStaffSession } from '@/components/useStaffSession';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getSubjectsForClass } from '@/components/subjectHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -55,9 +56,14 @@ export default function Diary() {
   }, []);
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects', form.class_name],
-    queryFn: () => base44.entities.Subject.filter({ classes: { $contains: form.class_name } }),
-    enabled: !!form.class_name,
+    queryKey: ['subjects', academicYear, form.class_name],
+    queryFn: async () => {
+      console.log('[SUBJECT_CALLSITE] pages/Diary:57');
+      if (!form.class_name || !academicYear) return [];
+      const result = await getSubjectsForClass(academicYear, form.class_name);
+      return result.subjects.map(name => ({ id: name, name }));
+    },
+    enabled: !!form.class_name && !!academicYear,
   });
 
   const { data: diaryList = [], isLoading } = useQuery({
