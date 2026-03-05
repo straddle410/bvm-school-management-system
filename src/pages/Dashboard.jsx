@@ -64,11 +64,14 @@ export default function Dashboard() {
             setStaffRole(resolvedRole);
             setStaffName(res.data.name || session.name || '');
             setPermissionsCount(res.data.permissionsCount || 0);
-            setRoleSource('StaffAccount (server)');
+            setRoleSource(`StaffAccount (${res.data.lookup_method || 'server'})`);
 
-            // If role changed vs stored session, update it silently
-            if (normaliseRole(session.role) !== resolvedRole) {
-              const updated = { ...session, role: resolvedRole };
+            // Patch stale session: update role and canonical staff_id if needed
+            const needsPatch =
+              normaliseRole(session.role) !== resolvedRole ||
+              (res.data.staff_id && session.staff_id !== res.data.staff_id);
+            if (needsPatch) {
+              const updated = { ...session, role: resolvedRole, staff_id: res.data.staff_id };
               localStorage.setItem('staff_session', JSON.stringify(updated));
             }
           } else {
