@@ -90,24 +90,35 @@ export default function ClassSubjectConfigTab() {
 
   const handleSave = async () => {
     setSaving(true);
+    const normalized = normalizeClassName(selectedClass);
+    console.log('[CLASS_CFG_SAVE] year=', academicYear, 'class=', normalized, 'subjects=', selected);
+    
     try {
       const response = await base44.functions.invoke('setSubjectsForClass', {
         academic_year: academicYear,
-        class_name: selectedClass,
+        class_name: normalized,
         subject_names: selected
       });
 
-      if (!response.data.success) {
-        toast.error(response.data.error || 'Save failed');
+      console.log('[CLASS_CFG_SAVE_RES]', response.data);
+
+      // STRICT validation: response must contain config with matching class & year
+      if (!response?.data?.success || 
+          !response?.data?.config || 
+          response.data.config.class_name !== normalized ||
+          response.data.config.academic_year !== academicYear) {
+        toast.error('Save failed: invalid server response');
+        console.error('[CLASS_CFG_SAVE] Invalid response:', response.data);
         return;
       }
 
       // Immediately update local state from server response
-      if (response.data.config && response.data.config.subject_names) {
-        setSelected(response.data.config.subject_names);
-      }
+      setSelected(response.data.config.subject_names || []);
 
-      // Invalidate queries to re-fetch fresh data
+      // Force refetch from DB to confirm persistence
+      await refetchConfig();
+
+      // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['class-subject-config', academicYear, selectedClass] });
       queryClient.invalidateQueries({ queryKey: ['class-subjects'] });
       
@@ -115,7 +126,7 @@ export default function ClassSubjectConfigTab() {
       setShowSuccessModal(true);
     } catch (err) {
       toast.error(`Error: ${err.message || 'Failed to save'}`);
-      console.error('Save error:', err);
+      console.error('[CLASS_CFG_SAVE_ERR]', err);
     } finally {
       setSaving(false);
     }
