@@ -43,7 +43,7 @@ export default function ClassSubjectConfigTab() {
   const [selected, setSelected] = useState(null); // null = loading/unknown
 
   // Reset selection whenever year, class, or fetched config changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (config === undefined) return; // query not yet resolved
     if (config === null || !config.exists) {
       setSelected([]); // not configured → empty
