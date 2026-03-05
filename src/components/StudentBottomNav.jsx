@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { GraduationCap, BookOpen, MessageSquare, MoreHorizontal, Bell } from 'lucide-react';
+import { Home, BarChart3, BookMarked, MessageSquare, MoreHorizontal } from 'lucide-react';
 
 const navItems = [
-  { label: 'Home',     icon: GraduationCap, page: 'StudentDashboard' },
-  { label: 'Notices', icon: Bell,          page: 'Notices' },
-  { label: 'Diary',    icon: BookOpen,     page: 'Diary' },
-  { label: 'Messages', icon: MessageSquare,  page: 'StudentMessaging', messagesBadge: true },
-  { label: 'More',     icon: MoreHorizontal, page: 'More' },
+  { label: 'Home',       icon: Home,           page: 'StudentDashboard' },
+  { label: 'Attendance', icon: BookMarked,     page: 'Attendance' },
+  { label: 'Marks',      icon: BarChart3,      page: 'Marks' },
+  { label: 'Messages',   icon: MessageSquare,  page: 'StudentMessaging', messagesBadge: true },
+  { label: 'More',       icon: MoreHorizontal, page: 'More' },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
