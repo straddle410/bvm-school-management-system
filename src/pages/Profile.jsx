@@ -27,6 +27,21 @@ export default function Profile() {
     try {
       const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
       const token = session?.staff_session_token;
+      // Client-side debug — visible in browser console
+      console.log('[Profile] staff_session keys:', Object.keys(session));
+      console.log('[Profile] token present:', !!token, 'length:', token?.length ?? 0);
+      console.log('[Profile] token_exp:', session?.token_exp, '→', session?.token_exp ? new Date(session.token_exp).toISOString() : 'N/A');
+      console.log('[Profile] staff_id in session:', session?.staff_id);
+      if (token) {
+        try {
+          const payloadB64 = token.slice(0, token.lastIndexOf('.'));
+          const pad = payloadB64.length % 4 === 0 ? '' : '='.repeat(4 - payloadB64.length % 4);
+          const decoded = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/') + pad));
+          console.log('[Profile] token payload:', decoded);
+        } catch (e) {
+          console.warn('[Profile] could not decode token payload:', e.message);
+        }
+      }
       if (!token) {
         setError('No session token found. Please login again. [TOKEN_MISSING]');
         setIsLoading(false);
