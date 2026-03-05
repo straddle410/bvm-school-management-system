@@ -83,6 +83,7 @@ import ParentStatement from './pages/ParentStatement';
 import PostingDashboard from './pages/PostingDashboard';
 import PrintReceiptA5 from './pages/PrintReceiptA5';
 import ProductionReset from './pages/ProductionReset';
+import Profile from './pages/Profile';
 import PublicAdmission from './pages/PublicAdmission';
 import PublicAdmissionForm from './pages/PublicAdmissionForm';
 import Quiz from './pages/Quiz';
@@ -107,7 +108,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -148,6 +148,7 @@ export const PAGES = {
     "PostingDashboard": PostingDashboard,
     "PrintReceiptA5": PrintReceiptA5,
     "ProductionReset": ProductionReset,
+    "Profile": Profile,
     "PublicAdmission": PublicAdmission,
     "PublicAdmissionForm": PublicAdmissionForm,
     "Quiz": Quiz,
@@ -172,7 +173,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "Profile": Profile,
 }
 
 export const pagesConfig = {
