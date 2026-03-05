@@ -31,6 +31,10 @@ export default function StaffLogin() {
       });
 
       if (!response.data.success) {
+        if (response.data.code === 'LINK_CONFLICT') {
+          setLinkConflict(true);
+          return;
+        }
         if (response.data.locked_until) {
           setLockedUntil(response.data.locked_until);
         }
