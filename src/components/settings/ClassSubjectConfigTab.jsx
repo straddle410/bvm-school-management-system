@@ -11,7 +11,7 @@ import { Save, Check, Zap } from 'lucide-react';
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 // Import canonical normalizer from helper
-import { getSubjectsForClass } from '@/components/subjectHelper';
+import { getSubjectsForClass, getAllSubjectsForYear } from '@/components/subjectHelper';
 
 // Inline canonical normalizer (same as subjectHelper)
 const normalizeClassName = (cls) => {
@@ -67,12 +67,16 @@ export default function ClassSubjectConfigTab() {
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const [newSubjectInput, setNewSubjectInput] = useState('');
+
   const { data: allSubjects = [] } = useQuery({
-    queryKey: ['subjects-global'],
+    queryKey: ['all-subjects-for-year', academicYear],
     queryFn: async () => {
-      const subs = await base44.entities.Subject.list();
-      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-    }
+      const subjects = await getAllSubjectsForYear(academicYear);
+      // Map strings to objects for compatibility with existing UI
+      return subjects.map(name => ({ id: name, name }));
+    },
+    enabled: !!academicYear
   });
 
   const { data: config, isLoading, refetch: refetchConfig } = useQuery({
@@ -110,6 +114,24 @@ export default function ClassSubjectConfigTab() {
     setSelected(prev =>
       prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
     );
+  };
+
+  const handleAddNewSubject = () => {
+    const trimmed = newSubjectInput.trim();
+    if (!trimmed) {
+      toast.error('Please enter a subject name');
+      return;
+    }
+    if (selected.includes(trimmed)) {
+      toast.error('Subject already added to this class');
+      setNewSubjectInput('');
+      return;
+    }
+    // Add to current class selection
+    setSelected(prev => [...prev, trimmed]);
+    // Clear input
+    setNewSubjectInput('');
+    toast.success(`Subject "${trimmed}" added`);
   };
 
   const handleSave = async () => {
@@ -188,58 +210,109 @@ export default function ClassSubjectConfigTab() {
         </div>
 
         {/* Subject Checkboxes */}
-        {isLoading || selected === null ? (
+         {isLoading || selected === null ? (
           <p className="text-slate-400 text-sm">Loading...</p>
-        ) : allSubjects.length === 0 ? (
-          <p className="text-slate-400 text-sm">No subjects in the global master list yet. Add them in the Subjects tab first.</p>
         ) : (
           <>
             {!config?.exists && (
               <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                Not configured — Marks &amp; Timetable will fall back to the global subjects list until you save a configuration here.
+                Not configured — Marks &amp; Timetable will have no subjects for this class until you save a configuration here.
               </div>
             )}
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-slate-700">
-                Select subjects for Class {selectedClass}
-                <span className="ml-2 text-xs text-slate-400">({selected.length}/{allSubjects.length} selected)</span>
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelected(
-                  selected.length === allSubjects.length ? [] : allSubjects.map(s => s.name)
-                )}
-                className="text-xs h-7"
-              >
-                {selected.length === allSubjects.length ? 'Deselect All' : 'Select All'}
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {allSubjects.map(sub => (
-                <label
-                  key={sub.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selected.includes(sub.name)
-                      ? 'bg-blue-50 border-blue-300'
-                      : 'bg-white border-slate-200 hover:bg-slate-50'
-                  }`}
+
+            {/* Add New Subject */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-medium text-blue-900 mb-2">Add a new subject to the school</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g., Computer Science, Art"
+                  value={newSubjectInput}
+                  onChange={(e) => setNewSubjectInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddNewSubject()}
+                  className="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button
+                  onClick={handleAddNewSubject}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  <div className={`h-5 w-5 rounded flex items-center justify-center flex-shrink-0 ${
-                    selected.includes(sub.name) ? 'bg-[#1a237e]' : 'border-2 border-slate-300'
-                  }`}>
-                    {selected.includes(sub.name) && <Check className="h-3 w-3 text-white" />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={selected.includes(sub.name)}
-                    onChange={() => toggle(sub.name)}
-                  />
-                  <span className="text-sm font-medium text-slate-700">{sub.name}</span>
-                </label>
-              ))}
+                  Add
+                </Button>
+              </div>
             </div>
+
+            {/* Existing & New Subjects Checkboxes */}
+            {allSubjects.length === 0 && selected.length === 0 ? (
+              <p className="text-slate-400 text-sm">No subjects yet. Add one using the text input above.</p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-slate-700">
+                    Select subjects for Class {selectedClass}
+                    <span className="ml-2 text-xs text-slate-400">({selected.length} selected)</span>
+                  </p>
+                  {(allSubjects.length > 0 || selected.length > 0) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const allNames = [...new Set([...allSubjects.map(s => s.name), ...selected])];
+                        setSelected(selected.length === allNames.length ? [] : allNames);
+                      }}
+                      className="text-xs h-7"
+                    >
+                      {selected.length === allSubjects.length && allSubjects.length > 0 ? 'Deselect All' : 'Select All'}
+                    </Button>
+                  )}
+                </p>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {/* Existing subjects from master list */}
+                  {allSubjects.map(sub => (
+                    <label
+                      key={sub.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selected.includes(sub.name)
+                          ? 'bg-blue-50 border-blue-300'
+                          : 'bg-white border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className={`h-5 w-5 rounded flex items-center justify-center flex-shrink-0 ${
+                        selected.includes(sub.name) ? 'bg-[#1a237e]' : 'border-2 border-slate-300'
+                      }`}>
+                        {selected.includes(sub.name) && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={selected.includes(sub.name)}
+                        onChange={() => toggle(sub.name)}
+                      />
+                      <span className="text-sm font-medium text-slate-700">{sub.name}</span>
+                    </label>
+                  ))}
+                  {/* Newly added subjects only in this class */}
+                  {selected.filter(s => !allSubjects.find(x => x.name === s)).map(subName => (
+                    <label
+                      key={subName}
+                      className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors bg-green-50 border-green-300"
+                    >
+                      <div className="h-5 w-5 rounded flex items-center justify-center flex-shrink-0 bg-green-600">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={true}
+                        onChange={() => toggle(subName)}
+                      />
+                      <span className="text-sm font-medium text-slate-700">{subName} <span className="text-xs text-green-600">(new)</span></span>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 
