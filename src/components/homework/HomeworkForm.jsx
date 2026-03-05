@@ -13,6 +13,7 @@ const emptyMCQ = () => ({ question: '', option_a: '', option_b: '', option_c: ''
 const emptyDesc = () => ({ question: '' });
 
 export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
+  const { academicYear } = useAcademicYear();
   const [form, setForm] = useState({
     title: '',
     subject: '',
@@ -31,6 +32,9 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
   });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [subjectSource, setSubjectSource] = useState('GLOBAL');
+  const [subjectSourceLabel, setSubjectSourceLabel] = useState('');
 
   useEffect(() => {
     if (editItem) {
