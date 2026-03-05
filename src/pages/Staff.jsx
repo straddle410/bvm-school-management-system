@@ -149,10 +149,14 @@ export default function Staff() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ staff_id, temp_password }) => {
-      return await base44.functions.invoke('resetStaffPassword', {
+      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const res = await base44.functions.invoke('resetStaffPassword', {
         staff_id,
         temp_password,
+        staff_session_token: session?.staff_session_token || null,
       });
+      if (!res.data?.success) throw new Error(res.data?.error || 'Password reset failed');
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] });
@@ -163,6 +167,9 @@ export default function Staff() {
       setManualPassword('');
       setGeneratedPassword('');
       setPasswordCopied(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to reset password');
     },
   });
 

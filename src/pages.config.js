@@ -70,6 +70,7 @@ import Fees from './pages/Fees';
 import Gallery from './pages/Gallery';
 import HallTicketManagement from './pages/HallTicketManagement';
 import HolidayCalendar from './pages/HolidayCalendar';
+import Home from './pages/Home';
 import Homework from './pages/Homework';
 import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
@@ -114,7 +115,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -142,6 +142,7 @@ export const PAGES = {
     "Gallery": Gallery,
     "HallTicketManagement": HallTicketManagement,
     "HolidayCalendar": HolidayCalendar,
+    "Home": Home,
     "Homework": Homework,
     "HomeworkManage": HomeworkManage,
     "IDCards": IDCards,
@@ -186,7 +187,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "Home": Home,
 }
 
 export const pagesConfig = {
