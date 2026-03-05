@@ -14,8 +14,16 @@ import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { format } from 'date-fns';
 
+function getStudentSession() {
+  try {
+    const s = localStorage.getItem('student_session');
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+}
+
 export default function Diary() {
   const [user, setUser] = useState(null);
+  const [studentSession, setStudentSession] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [form, setForm] = useState({
@@ -34,6 +42,16 @@ export default function Diary() {
   useEffect(() => {
     const staffData = getStaffSession();
     setUser(staffData);
+    const ss = getStudentSession();
+    setStudentSession(ss);
+    
+    // If student, mark diary as read
+    if (ss?.student_id) {
+      base44.functions.invoke('markStudentNotificationsRead', {
+        student_id: ss.student_id,
+        event_types: ['DIARY_PUBLISHED'],
+      }).catch(() => {});
+    }
   }, []);
 
   const { data: subjects = [] } = useQuery({
