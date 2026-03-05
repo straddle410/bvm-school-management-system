@@ -32,12 +32,15 @@ export default function Gallery() {
     }
   }, []);
 
+  // Check if student session exists — students can only view (not upload)
+  const isStudent = !!studentSession;
+
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin' || user?.role === 'principal';
-   const hasGalleryPermission = user?.permissions?.gallery === true;
-   // Students can only view; staff can upload
-   const canUpload = !isStudent && (isAdmin || hasGalleryPermission);
-   const canCreateAlbum = !isStudent && (isAdmin || hasGalleryPermission);
-   const needsApproval = !isAdmin;
+    const hasGalleryPermission = user?.permissions?.gallery === true;
+    // Students can only view; staff can upload
+    const canUpload = !isStudent && (isAdmin || hasGalleryPermission);
+    const canCreateAlbum = !isStudent && (isAdmin || hasGalleryPermission);
+    const needsApproval = !isAdmin;
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums'],
@@ -124,9 +127,6 @@ export default function Gallery() {
     setSelectedPhotoIndex(newIndex);
     setSelectedPhoto(visiblePhotos[newIndex]);
   };
-
-  // Check if student session exists — students can only view (not upload)
-  const isStudent = !!studentSession;
 
   if (user === null && !isStudent) {
     return (
