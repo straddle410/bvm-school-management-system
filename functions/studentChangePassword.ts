@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
   try {
@@ -29,7 +30,7 @@ Deno.serve(async (req) => {
     let passwordValid = false;
 
     if (student.password_hash) {
-      passwordValid = await comparePassword(current_password, student.password_hash);
+      passwordValid = await bcrypt.compare(current_password, student.password_hash);
     } else if (student.password) {
       passwordValid = current_password === student.password;
     }
@@ -38,8 +39,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Current password is incorrect' }, { status: 401 });
     }
 
-    // Hash new password
-    const newPasswordHash = await hashPasswordBcrypt(new_password);
+    // Hash new password with bcrypt
+    const newPasswordHash = await bcrypt.hash(new_password, 10);
 
     // Update student record
     await base44.asServiceRole.entities.Student.update(student_id, {
@@ -56,19 +57,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
-
-// Password hashing using SHA-256 with consistent salt
-async function hashPasswordBcrypt(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'bvm_student_salt_2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
-
-// Compare password with hash
-async function comparePassword(password, hash) {
-  const computedHash = await hashPasswordBcrypt(password);
-  return computedHash === hash;
-}

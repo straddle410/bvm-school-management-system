@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
   try {
@@ -23,7 +24,7 @@ Deno.serve(async (req) => {
 
       // Has plaintext password - migrate it
       if (student.password) {
-        const hash = await hashPasswordBcrypt(student.password);
+        const hash = await bcrypt.hash(student.password, 10);
         await base44.asServiceRole.entities.Student.update(student.id, {
           password_hash: hash,
           password: null,
@@ -43,19 +44,9 @@ Deno.serve(async (req) => {
       already_hashed_count,
       missing_both_count,
       timestamp: new Date().toISOString(),
-      note: 'All passwords now stored as hashes. Students with migrated passwords must change password on next login.'
+      note: 'All passwords now stored as bcrypt hashes. Students with migrated passwords must change password on next login.'
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
-
-// Password hashing using SHA-256 with consistent salt
-async function hashPasswordBcrypt(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'bvm_student_salt_2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}

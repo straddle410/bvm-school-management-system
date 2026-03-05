@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
   try {
@@ -29,42 +30,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'ACCOUNT_INACTIVE' }, { status: 401 });
     }
 
-    // Verify password with backward compatibility
+    // Verify password
     let passwordValid = false;
-    let needsMigration = false;
-
-    // First try hashed password (new method)
     if (student.password_hash) {
-      passwordValid = await comparePassword(password, student.password_hash);
-    } 
-    // Fallback to plaintext for backward compatibility
-    else if (student.password) {
+      passwordValid = await bcrypt.compare(password, student.password_hash);
+    } else if (student.password) {
+      // Fallback for very old plaintext passwords
       passwordValid = password === student.password;
-      if (passwordValid) {
-        needsMigration = true; // Mark for migration
-      }
     }
 
     if (!passwordValid) {
       return Response.json({ error: 'PASSWORD_MISMATCH' }, { status: 401 });
-    }
-
-    // If plaintext password matched, migrate to hash immediately
-    if (needsMigration) {
-      const newHash = await hashPasswordBcrypt(password);
-      await base44.asServiceRole.entities.Student.update(student.id, {
-        password_hash: newHash,
-        password: null,
-        must_change_password: true
-      });
-      // Refresh student record
-      const updated = await base44.asServiceRole.entities.Student.filter({ 
-        student_id_norm: studentIdNorm 
-      });
-      if (updated.length > 0) {
-        student.must_change_password = updated[0].must_change_password;
-        student.password_hash = updated[0].password_hash;
-      }
     }
 
     // Successful login
@@ -86,19 +62,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
-
-// Password hashing using SHA-256 with consistent salt
-async function hashPasswordBcrypt(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'bvm_student_salt_2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
-
-// Compare password with hash
-async function comparePassword(password, hash) {
-  const computedHash = await hashPasswordBcrypt(password);
-  return computedHash === hash;
-}
