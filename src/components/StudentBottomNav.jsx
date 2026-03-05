@@ -6,10 +6,10 @@ import { Home, BarChart3, BookMarked, MessageSquare, MoreHorizontal } from 'luci
 
 const navItems = [
   { label: 'Home',       icon: Home,           page: 'StudentDashboard' },
-  { label: 'Attendance', icon: BookMarked,     page: 'Attendance' },
-  { label: 'Marks',      icon: BarChart3,      page: 'Marks' },
+  { label: 'Attendance', icon: BookMarked,     page: 'StudentAttendance' },
+  { label: 'Marks',      icon: BarChart3,      page: 'StudentMarks' },
   { label: 'Messages',   icon: MessageSquare,  page: 'StudentMessaging', messagesBadge: true },
-  { label: 'More',       icon: MoreHorizontal, page: 'More' },
+  { label: 'More',       icon: MoreHorizontal, page: 'StudentMore' },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
