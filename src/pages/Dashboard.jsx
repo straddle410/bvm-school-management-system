@@ -9,6 +9,7 @@ import {
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser,
 } from 'lucide-react';
+// Note: Notebook may not exist in lucide-react — using FileText as fallback handled inline
 
 // Read staff session from localStorage — this is the source of truth for role
 function getStaffSession() {
