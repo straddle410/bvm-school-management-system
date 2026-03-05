@@ -294,7 +294,6 @@ export default function Gallery() {
 
         // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
         return (
-        <div>
         <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-end justify-between">
