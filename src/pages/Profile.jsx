@@ -27,26 +27,13 @@ export default function Profile() {
   const loadProfile = async () => {
     setIsLoading(true);
     setError('');
+    setErrorCode('');
     try {
       const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
       const token = session?.staff_session_token;
-      // Client-side debug — visible in browser console
-      console.log('[Profile] staff_session keys:', Object.keys(session));
-      console.log('[Profile] token present:', !!token, 'length:', token?.length ?? 0);
-      console.log('[Profile] token_exp:', session?.token_exp, '→', session?.token_exp ? new Date(session.token_exp).toISOString() : 'N/A');
-      console.log('[Profile] staff_id in session:', session?.staff_id);
-      if (token) {
-        try {
-          const payloadB64 = token.slice(0, token.lastIndexOf('.'));
-          const pad = payloadB64.length % 4 === 0 ? '' : '='.repeat(4 - payloadB64.length % 4);
-          const decoded = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/') + pad));
-          console.log('[Profile] token payload:', decoded);
-        } catch (e) {
-          console.warn('[Profile] could not decode token payload:', e.message);
-        }
-      }
       if (!token) {
-        setError('No session token found. Please login again. [TOKEN_MISSING]');
+        setError('No session token found. Please login again.');
+        setErrorCode('TOKEN_MISSING');
         setIsLoading(false);
         return;
       }
@@ -56,7 +43,11 @@ export default function Profile() {
 
       if (!res.data || res.data.error) {
         const code = res.data?.code || 'UNKNOWN';
-        setError(`${res.data?.error || 'Could not load profile'} [${code}]`);
+        setError(res.data?.error || 'Could not load profile');
+        setErrorCode(code);
+        if (code === 'PROFILE_AUTO_CREATED') {
+          toast.success('Profile created automatically');
+        }
         setIsLoading(false);
         return;
       }
@@ -79,6 +70,7 @@ export default function Profile() {
     } catch (err) {
       console.error('Profile load error:', err);
       setError('Failed to load profile');
+      setErrorCode('ERROR');
     } finally {
       setIsLoading(false);
     }
