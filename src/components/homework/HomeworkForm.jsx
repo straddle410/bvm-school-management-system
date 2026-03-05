@@ -149,8 +149,9 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Subject *</label>
               <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.subject} onChange={e => set('subject', e.target.value)}>
                 <option value="">Select</option>
-                {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
+              {subjectSourceLabel && <p className="text-xs text-gray-500 mt-1">{subjectSourceLabel}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Due Date *</label>
