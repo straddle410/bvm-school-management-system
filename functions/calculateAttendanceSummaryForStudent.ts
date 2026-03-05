@@ -26,28 +26,10 @@ Deno.serve(async (req) => {
     const startDate = yearConfig?.start_date || new Date().toISOString().split('T')[0];
     const endDate = yearConfig?.end_date || new Date().toISOString().split('T')[0];
 
-    // ── ACADEMIC YEAR BOUNDARY CHECK ──
-    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
-    if (yearConfigs.length > 0) {
-      const yearConfig = yearConfigs[0];
-      if (!validateAcademicYearBoundary(startDate, yearConfig.start_date, yearConfig.end_date)) {
-        return Response.json({
-          error: `Action not allowed outside selected Academic Year. Start date "${startDate}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
-        }, { status: 400 });
-      }
-      if (!validateAcademicYearBoundary(endDate, yearConfig.start_date, yearConfig.end_date)) {
-        return Response.json({
-          error: `Action not allowed outside selected Academic Year. End date "${endDate}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
-        }, { status: 400 });
-      }
-    }
-
     const allAttendance = await base44.asServiceRole.entities.Attendance.filter({
-      student_id: studentId,
-      class_name: classname,
-      section: section,
-      academic_year: academicYear
-    });
+      student_id: student_id,
+      academic_year: academic_year
+    }).catch(() => []);
 
     const start = new Date(startDate);
     const end = new Date(endDate);
