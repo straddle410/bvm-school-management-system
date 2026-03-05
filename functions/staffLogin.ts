@@ -95,30 +95,34 @@ Deno.serve(async (req) => {
 
     // ── Upsert StaffAuthLink (best-effort, non-blocking) ─────────────────────
     let linkStatus = 'SKIPPED';
-    const authUser = await base44.auth.me().catch(() => null);
-    if (authUser?.id) {
-      const existing = await base44.asServiceRole.entities.StaffAuthLink.filter({
-        base44_user_id: authUser.id,
-      });
-      const now = new Date().toISOString();
-      if (existing && existing.length > 0) {
-        const link = existing[0];
-        if (link.staff_id !== account.id) {
-          // Conflict — but don't block login, session token is the authority
-          console.warn(`LINK_CONFLICT: base44_user_id=${authUser.id} linked to ${link.staff_id}, logging in as ${account.id}`);
-          linkStatus = 'CONFLICT';
-        } else {
-          await base44.asServiceRole.entities.StaffAuthLink.update(link.id, { last_login_at: now });
-          linkStatus = 'EXISTING';
-        }
-      } else {
-        await base44.asServiceRole.entities.StaffAuthLink.create({
+    try {
+      const authUser = await base44.auth.me().catch(() => null);
+      if (authUser?.id) {
+        const existing = await base44.asServiceRole.entities.StaffAuthLink.filter({
           base44_user_id: authUser.id,
-          staff_id: account.id,
-          last_login_at: now,
         });
-        linkStatus = 'CREATED';
+        const now = new Date().toISOString();
+        if (existing && existing.length > 0) {
+          const link = existing[0];
+          if (link.staff_id !== account.id) {
+            console.warn(`LINK_CONFLICT: base44_user_id=${authUser.id} linked to ${link.staff_id}, logging in as ${account.id}`);
+            linkStatus = 'CONFLICT';
+          } else {
+            await base44.asServiceRole.entities.StaffAuthLink.update(link.id, { last_login_at: now });
+            linkStatus = 'EXISTING';
+          }
+        } else {
+          await base44.asServiceRole.entities.StaffAuthLink.create({
+            base44_user_id: authUser.id,
+            staff_id: account.id,
+            last_login_at: now,
+          });
+          linkStatus = 'CREATED';
+        }
       }
+    } catch (linkErr) {
+      console.warn('StaffAuthLink upsert skipped (no Base44 session):', linkErr?.message || linkErr);
+      linkStatus = 'SKIPPED';
     }
 
     // Resolve effective permissions
