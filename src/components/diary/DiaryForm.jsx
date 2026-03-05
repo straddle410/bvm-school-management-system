@@ -153,10 +153,11 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map(sub => (
-                    <SelectItem key={sub.id} value={sub.name}>{sub.name}</SelectItem>
+                    <SelectItem key={sub} value={sub}>{sub}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {subjectSourceLabel && <p className="text-xs text-gray-500 mt-1">{subjectSourceLabel}</p>}
             </div>
           </div>
 
