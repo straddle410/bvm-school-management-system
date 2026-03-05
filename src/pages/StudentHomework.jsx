@@ -58,6 +58,7 @@ export default function StudentHomework() {
   const getStatus = (hw) => {
     const sub = submittedMap[hw.id];
     if (sub) return { label: sub.status === 'Graded' ? `Graded: ${sub.teacher_marks !== undefined ? sub.teacher_marks : '?'}/${hw.max_marks || '?'}` : 'Submitted', color: 'bg-green-100 text-green-700', done: true };
+    if (hw.submission_mode === 'VIEW_ONLY') return { label: 'View Only', color: 'bg-blue-100 text-blue-700', done: true };
     if (hw.due_date && new Date(hw.due_date) < today) return { label: 'Late', color: 'bg-red-100 text-red-700', done: false };
     return { label: 'Pending', color: 'bg-amber-100 text-amber-700', done: false };
   };
@@ -113,7 +114,14 @@ export default function StudentHomework() {
                         <Clock className="h-3 w-3" />
                         Due: {hw.due_date ? format(new Date(hw.due_date), 'dd MMM yyyy') : 'No date'}
                       </span>
-                      {!status.done ? (
+                      {hw.submission_mode === 'VIEW_ONLY' ? (
+                        <button
+                          onClick={() => setActiveHW(hw)}
+                          className="text-xs font-semibold text-[#1a237e] border border-[#1a237e] px-3 py-1.5 rounded-lg"
+                        >
+                          View
+                        </button>
+                      ) : !status.done ? (
                         <button
                           onClick={() => setActiveHW(hw)}
                           className="text-xs font-semibold text-white bg-[#1a237e] px-3 py-1.5 rounded-lg flex items-center gap-1"
