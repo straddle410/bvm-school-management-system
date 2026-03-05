@@ -219,16 +219,28 @@ export default function ClassSubjectConfigTab() {
           </>
         )}
 
-        <div className="flex justify-end pt-2">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-[#1a237e] hover:bg-[#283593] gap-2"
-          >
-            <Save className="h-4 w-4" />
-            {saving ? 'Saving...' : `Save for Class ${selectedClass}`}
-          </Button>
-        </div>
+        <div className="flex justify-between items-center pt-2">
+           <Button
+             onClick={handleSave}
+             disabled={saving}
+             className="bg-[#1a237e] hover:bg-[#283593] gap-2"
+           >
+             <Save className="h-4 w-4" />
+             {saving ? 'Saving...' : `Save for Class ${selectedClass}`}
+           </Button>
+           {/* Dev-only test button */}
+           {process.env.NODE_ENV === 'development' && (
+             <Button
+               onClick={() => testClassMapping(selectedClass, selected)}
+               variant="outline"
+               size="sm"
+               className="gap-2 text-xs"
+             >
+               <Zap className="h-3 w-3" />
+               Test Save
+             </Button>
+           )}
+         </div>
       </CardContent>
 
       {/* Success Modal */}
