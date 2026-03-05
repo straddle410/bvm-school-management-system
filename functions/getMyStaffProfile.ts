@@ -1,7 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-// ── HMAC helpers (must match staffLogin) ────────────────────────────────────
-const TOKEN_TTL_MS = 10 * 60 * 1000;
+// ── Token verification ───────────────────────────────────────────────────────
 const CLOCK_SKEW_MS = 2 * 60 * 1000;
 
 function b64urlDecode(str) {
@@ -9,109 +8,86 @@ function b64urlDecode(str) {
   return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
 }
 
-async function getHmacKey() {
-  const secret = Deno.env.get('STAFF_TOKEN_SECRET');
-  if (!secret) throw new Error('STAFF_TOKEN_SECRET env var is not set');
-  const keyMaterial = new TextEncoder().encode(secret);
-  return crypto.subtle.importKey('raw', keyMaterial, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+async function getSessionKey() {
+  const secret = Deno.env.get('STAFF_SESSION_SECRET');
+  if (!secret) throw new Error('STAFF_SESSION_SECRET is not set');
+  return crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+  );
 }
 
-async function verifyRepairToken(token) {
+async function verifySessionToken(token) {
   try {
     const dotIdx = token.lastIndexOf('.');
-    if (dotIdx < 0) return null;
+    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
     const payloadB64 = token.slice(0, dotIdx);
     const sigB64 = token.slice(dotIdx + 1);
 
-    // Constant-time signature verify
-    const key = await getHmacKey();
+    const key = await getSessionKey();
     const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
-    if (!valid) return null;
+    if (!valid) return { error: 'TOKEN_INVALID' };
 
-    const { staff_id, iat } = JSON.parse(b64urlDecode(payloadB64));
-    if (!staff_id || typeof iat !== 'number') return null;
+    const payload = JSON.parse(b64urlDecode(payloadB64));
+    const { staff_id, exp, iat } = payload;
 
-    const now = Date.now();
-    if (iat > now + CLOCK_SKEW_MS) return null;
-    if (now - iat > TOKEN_TTL_MS) return null;
+    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
+    if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' }; // future token
+    if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
 
-    return staff_id;
+    return { staff_id, role: payload.role };
   } catch {
-    return null;
+    return { error: 'TOKEN_INVALID' };
   }
 }
 
 /**
- * Returns authoritative role + permissions for the currently logged-in staff member.
- * Identity is derived from StaffAuthLink (base44_user_id -> staff_id).
+ * Returns profile for the logged-in staff member.
+ * Identity is derived SOLELY from the signed staff_session_token.
+ * Does NOT depend on base44.auth.me() — works on all devices in published app.
  *
- * Auto-repair: If no StaffAuthLink exists yet, accepts a short-lived HMAC-signed
- * staff_session_token (issued by staffLogin, TTL 10 min) to auto-create the link.
- * Raw staff_id from localStorage is NEVER trusted.
+ * Token passed via: body.staff_session_token OR Authorization: Bearer <token>
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Step 1: Get base44 platform identity (JWT — cannot be spoofed by client)
-    const authUser = await base44.auth.me().catch(() => null);
-    if (!authUser?.id) {
-      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    // Extract token from body or Authorization header
+    let token = null;
+    const authHeader = req.headers.get('Authorization') || '';
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7).trim();
     }
-
-    // Step 2: Resolve staff_id from the auth link table
-    let links = await base44.asServiceRole.entities.StaffAuthLink.filter({
-      base44_user_id: authUser.id,
-    });
-
-    // ── Auto-repair via verified HMAC token (10-min TTL, signed by staffLogin) ──
-    if (!links || links.length === 0) {
-      let repairStaffId = null;
+    if (!token) {
       try {
-        const body = await req.json().catch(() => ({}));
-        const token = body?.staff_session_token;
-        if (token) {
-          repairStaffId = await verifyRepairToken(token);
-        }
+        const body = await req.json();
+        token = body?.staff_session_token || null;
       } catch {}
-
-      if (repairStaffId) {
-        // Verify the StaffAccount exists before creating the link
-        const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: repairStaffId });
-        if (accounts && accounts.length > 0) {
-          console.log(`AUTO-REPAIR: creating StaffAuthLink base44_user_id=${authUser.id} -> staff_id=${repairStaffId}`);
-          await base44.asServiceRole.entities.StaffAuthLink.create({
-            base44_user_id: authUser.id,
-            staff_id: repairStaffId,
-            last_login_at: new Date().toISOString(),
-          });
-          links = await base44.asServiceRole.entities.StaffAuthLink.filter({
-            base44_user_id: authUser.id,
-          });
-        }
-      }
     }
 
-    if (!links || links.length === 0) {
-      return Response.json(
-        { error: 'Staff session not linked. Please log in again.', code: 'LINK_MISSING' },
-        { status: 403 }
-      );
+    if (!token) {
+      return Response.json({ error: 'No session token provided. Please login again.', code: 'TOKEN_INVALID' }, { status: 401 });
     }
 
-    const staffId = links[0].staff_id;
+    const verified = await verifySessionToken(token);
+    if (verified.error) {
+      const status = verified.error === 'TOKEN_EXPIRED' ? 401 : 401;
+      return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status });
+    }
 
-    // Step 3: Fetch the StaffAccount
-    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staffId });
+    const { staff_id } = verified;
+
+    // Load StaffAccount
+    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
     if (!accounts || accounts.length === 0) {
-      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND', staff_id: staffId }, { status: 404 });
+      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND' }, { status: 404 });
     }
 
     const account = accounts[0];
 
     if (!account.is_active) {
-      return Response.json({ error: 'Account inactive' }, { status: 403 });
+      return Response.json({ error: 'Account inactive', code: 'ACCOUNT_INACTIVE' }, { status: 403 });
     }
 
     const role = (account.role || '').trim().toLowerCase();
@@ -129,16 +105,13 @@ Deno.serve(async (req) => {
     if (account.permissions) effectivePermissions = { ...effectivePermissions, ...account.permissions };
     if (account.permissions_override) effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
 
-    const permissionsCount = Object.keys(effectivePermissions).filter(k => effectivePermissions[k] === true).length;
-
     return Response.json({
       staff_id: account.id,
       role,
       name: account.name,
       designation: account.designation || '',
-      permissionsCount,
       permissions: effectivePermissions,
-      identity_source: 'StaffAuthLink',
+      identity_source: 'staff_session_token',
     });
   } catch (error) {
     console.error('getMyStaffProfile error:', error);

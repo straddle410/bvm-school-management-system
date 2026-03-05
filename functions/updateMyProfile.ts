@@ -6,39 +6,73 @@ const ALLOWED_FIELDS = [
   'emergency_contact_phone', 'photo_url'
 ];
 
+const CLOCK_SKEW_MS = 2 * 60 * 1000;
+
+function b64urlDecode(str) {
+  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
+  return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
+}
+
+async function getSessionKey() {
+  const secret = Deno.env.get('STAFF_SESSION_SECRET');
+  if (!secret) throw new Error('STAFF_SESSION_SECRET is not set');
+  return crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+  );
+}
+
+async function verifySessionToken(token) {
+  try {
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
+
+    const key = await getSessionKey();
+    const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return { error: 'TOKEN_INVALID' };
+
+    const payload = JSON.parse(b64urlDecode(payloadB64));
+    const { staff_id, exp, iat } = payload;
+
+    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
+    if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' };
+    if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
+
+    return { staff_id };
+  } catch {
+    return { error: 'TOKEN_INVALID' };
+  }
+}
+
 /**
- * Updates the profile of the currently logged-in staff member.
- * Identity is derived SOLELY from StaffAuthLink (base44_user_id -> staff_id).
- * All client-supplied identity fields are ignored.
+ * Updates the profile of the logged-in staff member.
+ * Identity derived SOLELY from signed staff_session_token — no auth.me() needed.
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Step 1: Platform auth — signed JWT, cannot be spoofed
-    const authUser = await base44.auth.me().catch(() => null);
-    if (!authUser?.id) {
-      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    // Extract token + payload from body
+    const rawBody = await req.json();
+    const token = rawBody?.staff_session_token || null;
+
+    if (!token) {
+      return Response.json({ error: 'No session token. Please login again.', code: 'TOKEN_INVALID' }, { status: 401 });
     }
 
-    // Step 2: Resolve staff_id via StaffAuthLink
-    const links = await base44.asServiceRole.entities.StaffAuthLink.filter({
-      base44_user_id: authUser.id,
-    });
-
-    if (!links || links.length === 0) {
-      return Response.json(
-        { error: 'Staff session not linked. Please log in again.', code: 'LINK_MISSING' },
-        { status: 403 }
-      );
+    const verified = await verifySessionToken(token);
+    if (verified.error) {
+      return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status: 401 });
     }
 
-    const staffId = links[0].staff_id;
+    const { staff_id } = verified;
 
-    // Step 3: Verify account exists and is active
-    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staffId });
+    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
     if (!accounts || accounts.length === 0) {
-      return Response.json({ error: 'Staff account not found' }, { status: 404 });
+      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND' }, { status: 404 });
     }
 
     const account = accounts[0];
@@ -46,25 +80,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Account inactive' }, { status: 403 });
     }
 
-    // Step 4: Parse payload — only whitelist, ignore everything else (incl. any id/role fields)
-    const rawPayload = await req.json();
+    // Whitelist only allowed fields — ignore everything else including token
     const updateData = {};
     for (const field of ALLOWED_FIELDS) {
-      if (field in rawPayload) updateData[field] = rawPayload[field];
+      if (field in rawBody) updateData[field] = rawBody[field];
     }
 
     if (Object.keys(updateData).length === 0) {
       return Response.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    // Step 5: Update ONLY the server-resolved account
     await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
 
-    return Response.json({
-      success: true,
-      message: 'Profile updated',
-      identity_source: 'StaffAuthLink',
-    });
+    return Response.json({ success: true, message: 'Profile updated' });
   } catch (error) {
     console.error('updateMyProfile error:', error);
     return Response.json({ error: error.message }, { status: 500 });
