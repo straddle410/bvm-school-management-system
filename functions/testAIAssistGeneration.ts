@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
 
     for (const test of tests) {
       try {
-        const response = await base44.functions.invoke('generateStaffContent', test.payload);
+        const response = await base44.asServiceRole.functions.invoke('generateStaffContent', test.payload);
 
         if (response.status >= 400) {
           results.push({
