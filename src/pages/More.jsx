@@ -215,7 +215,7 @@ export default function More() {
                  {/* Exam Management - Admin */}
                  {isAdmin && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <div onClick={() => setExpandedExams(!expandedExams)}>
+                     <button onClick={() => setExpandedExams(!expandedExams)} className="w-full text-left">
                        <MenuItem 
                          item={{ 
                            label: 'Exam Management', 
@@ -226,7 +226,7 @@ export default function More() {
                          }} 
                          showArrow={true}
                        />
-                     </div>
+                     </button>
                      {expandedExams && (
                        <div className="divide-y divide-gray-50 bg-gray-50">
                          {examItems.admin.map(item => (
@@ -274,7 +274,7 @@ export default function More() {
                   {/* Finance Reports - Admin or other staff with fee permissions (collapsible) */}
                   {role !== 'accountant' && canViewFinance && (
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <div onClick={() => setExpandedFinance(!expandedFinance)}>
+                     <button onClick={() => setExpandedFinance(!expandedFinance)} className="w-full text-left">
                        <MenuItem
                          item={{
                            label: 'Finance Reports',
@@ -285,7 +285,7 @@ export default function More() {
                          }}
                          showArrow={true}
                        />
-                     </div>
+                     </button>
                      {expandedFinance && (
                        <div className="divide-y divide-gray-50 bg-gray-50">
                          {financeReportItems
