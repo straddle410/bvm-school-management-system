@@ -15,6 +15,7 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState('');
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
