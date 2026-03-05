@@ -155,6 +155,10 @@ Deno.serve(async (req) => {
 
     const normalizedRole = (account.role || '').trim().toLowerCase();
 
+    // Issue a short-lived HMAC-signed repair token so getMyStaffProfile can
+    // auto-create StaffAuthLink for staff who logged in before the link system existed.
+    const repairToken = await signRepairToken(account.id);
+
     if (account.force_password_change) {
       return Response.json({
         success: true,
@@ -170,6 +174,7 @@ Deno.serve(async (req) => {
         redirect_to: 'ChangeStaffPassword',
         link_status: linkStatus,
         base44_user_id: linkBase44UserId,
+        staff_session_token: repairToken,
       });
     }
 
@@ -188,6 +193,7 @@ Deno.serve(async (req) => {
       redirect_to: 'Dashboard',
       link_status: linkStatus,
       base44_user_id: linkBase44UserId,
+      staff_session_token: repairToken,
     });
   } catch (error) {
     console.error('Login error:', error);
