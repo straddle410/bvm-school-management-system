@@ -31,6 +31,10 @@ Deno.serve(async (req) => {
       academic_year: academic_year
     }).catch(() => []);
 
+    if (!allAttendance || allAttendance.length === 0) {
+      return Response.json({ data: { attendance_percentage: 0, present: 0, total: 0 } });
+    }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     start.setUTCHours(0, 0, 0, 0);
@@ -41,6 +45,10 @@ Deno.serve(async (req) => {
       attDate.setUTCHours(0, 0, 0, 0);
       return attDate >= start && attDate <= end;
     });
+
+    if (!recordsInRange || recordsInRange.length === 0) {
+      return Response.json({ data: { attendance_percentage: 0, present: 0, total: 0 } });
+    }
 
     const uniqueWorkingDates = new Set();
     recordsInRange.forEach(a => {
