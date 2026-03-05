@@ -301,12 +301,17 @@ export default function Quiz() {
               </Button>
             )}
             {(userPermissions.quiz || isTeacher) && (
-              <Button onClick={() => {
-                resetQuizForm();
-                setShowCreateDialog(true);
-              }} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="mr-2 h-4 w-4" /> Create Quiz
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowAIAssist(true)} className="bg-purple-600 hover:bg-purple-700">
+                  <Sparkles className="mr-2 h-4 w-4" /> AI Assist
+                </Button>
+                <Button onClick={() => {
+                  resetQuizForm();
+                  setShowCreateDialog(true);
+                }} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="mr-2 h-4 w-4" /> Create Quiz
+                </Button>
+              </div>
             )}
           </div>
         }
