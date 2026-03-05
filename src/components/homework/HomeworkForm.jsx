@@ -14,7 +14,7 @@ const TYPES = ['MCQ','Descriptive','Project','Assignment','Other'];
 const emptyMCQ = () => ({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'A' });
 const emptyDesc = () => ({ question: '' });
 
-export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
+export default function HomeworkForm({ editItem, user, onClose, onSaved, isInline = false }) {
    const { academicYear } = useAcademicYear();
    const [showAIAssist, setShowAIAssist] = useState(false);
    const [form, setForm] = useState({
@@ -33,6 +33,12 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
     assigned_by: user?.full_name || '',
     status: 'Draft',
   });
+
+   // Debug logging
+   useEffect(() => {
+     const staffSession = localStorage.getItem('staff_session');
+     console.log('[AI_ASSIST_RENDER]', { page: 'Homework', staff: !!staffSession, isInline });
+   }, [isInline]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [subjects, setSubjects] = useState([]);
