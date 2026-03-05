@@ -66,8 +66,8 @@ Deno.serve(async (req) => {
     });
 
     // ── Upsert StaffAuthLink ─────────────────────────────────────────────────
-    // base44.auth.me() returns the platform user making this request.
-    // This binds the base44 session identity -> StaffAccount.id permanently.
+    let linkStatus = 'SKIPPED';
+    let linkBase44UserId = null;
     const authUser = await base44.auth.me().catch(() => null);
     if (authUser?.id) {
       const existing = await base44.asServiceRole.entities.StaffAuthLink.filter({
