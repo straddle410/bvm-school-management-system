@@ -64,7 +64,7 @@ export default function More() {
       { label: 'Progress Card', sub: 'View progress reports', icon: FileText, color: '#e91e63', bg: '#fce4ec', page: 'Results' },
       { label: 'Quiz', sub: 'Daily quizzes', icon: HelpCircle, color: '#f57c00', bg: '#fff3e0', page: 'Quiz' },
       { label: 'Gallery', sub: 'School photos', icon: Image, color: '#00796b', bg: '#e0f2f1', page: 'Gallery' },
-      { label: 'Profile', sub: 'My profile & details', icon: User, color: '#5c6bc0', bg: '#e8eaf6', page: 'UserProfile' },
+      { label: 'Profile', sub: 'My profile & details', icon: UserIcon, color: '#5c6bc0', bg: '#e8eaf6', page: 'UserProfile' },
       { label: 'Change Password', sub: 'Update your password', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'StudentProfile' },
     ],
   };
