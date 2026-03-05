@@ -272,7 +272,26 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
-  );
-}
+        </CardContent>
+        </Card>
+
+        {showAIAssist && (
+        <AIAssistDrawer
+        type="diary"
+        className={formData.class_name}
+        section={formData.section}
+        academicYear={finalAcademicYear}
+        onInsert={(generated) => {
+          setFormData(f => ({
+            ...f,
+            title: generated.title || f.title,
+            description: generated.body || f.description
+          }));
+          toast.success('Content inserted!');
+        }}
+        onClose={() => setShowAIAssist(false)}
+        />
+        )}
+        </>
+        );
+        }
