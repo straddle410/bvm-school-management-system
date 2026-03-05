@@ -13,19 +13,18 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const { student_id, academic_year } = await req.json();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!student_id || !academic_year) {
+      return Response.json({ data: { attendance_percentage: 0, present: 0, total: 0 } });
     }
 
-    const { studentId, classname, section, academicYear, startDate, endDate } = await req.json();
-
-    if (!studentId || !classname || !section || !academicYear || !startDate || !endDate) {
-      return Response.json({ 
-        error: 'Missing required parameters: studentId, classname, section, academicYear, startDate, endDate' 
-      }, { status: 400 });
-    }
+    // Fetch current academic year dates
+    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year }).catch(() => []);
+    const yearConfig = yearConfigs?.[0];
+    
+    const startDate = yearConfig?.start_date || new Date().toISOString().split('T')[0];
+    const endDate = yearConfig?.end_date || new Date().toISOString().split('T')[0];
 
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
     const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
