@@ -1,36 +1,56 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // ── HMAC helpers ────────────────────────────────────────────────────────────
-const REPAIR_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const TOKEN_TTL_MS = 10 * 60 * 1000;    // 10 minutes
+const CLOCK_SKEW_MS = 2 * 60 * 1000;   // 2 minutes future tolerance
+
+function b64url(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function b64urlDecode(str) {
+  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
+  return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
+}
 
 async function getHmacKey() {
-  const secret = Deno.env.get('BASE44_APP_ID') || 'fallback-secret';
+  const secret = Deno.env.get('STAFF_TOKEN_SECRET');
+  if (!secret) throw new Error('STAFF_TOKEN_SECRET env var is not set');
   const keyMaterial = new TextEncoder().encode(secret);
   return crypto.subtle.importKey('raw', keyMaterial, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 
 async function signRepairToken(staffId) {
+  const nonce = b64url(crypto.getRandomValues(new Uint8Array(16)));
+  const payload = JSON.stringify({ staff_id: staffId, iat: Date.now(), nonce });
+  const payloadB64 = b64url(new TextEncoder().encode(payload));
   const key = await getHmacKey();
-  const payload = `${staffId}:${Date.now()}`;
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
-  return `${btoa(payload)}.${sigB64}`;
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payloadB64));
+  return `${payloadB64}.${b64url(sig)}`;
 }
 
 async function verifyRepairToken(token) {
   try {
-    const [payloadB64, sigB64] = token.split('.');
-    if (!payloadB64 || !sigB64) return null;
-    const payload = atob(payloadB64);
-    const [staffId, iatStr] = payload.split(':');
-    if (!staffId || !iatStr) return null;
-    const iat = parseInt(iatStr, 10);
-    if (Date.now() - iat > REPAIR_TOKEN_TTL_MS) return null; // expired
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return null;
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
 
+    // Constant-time signature verify
     const key = await getHmacKey();
-    const sigBytes = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
-    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
-    return valid ? staffId : null;
+    const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return null;
+
+    const { staff_id, iat } = JSON.parse(b64urlDecode(payloadB64));
+    if (!staff_id || typeof iat !== 'number') return null;
+
+    const now = Date.now();
+    if (iat > now + CLOCK_SKEW_MS) return null;   // reject future tokens (allow 2 min skew)
+    if (now - iat > TOKEN_TTL_MS) return null;    // expired
+
+    return staff_id;
   } catch {
     return null;
   }
