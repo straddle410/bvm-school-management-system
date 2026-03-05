@@ -66,13 +66,25 @@ export function AcademicYearProvider({ children }) {
 
       // Only call auth.me() if NO student_session AND NO staff_session
       if (!resolvedRole) {
+        // HARD BLOCK: Double-check student_session NOT in sessionStorage either
         try {
-          const isAuth = await base44.auth.isAuthenticated();
-          if (isAuth) {
-            const user = await base44.auth.me();
-            resolvedRole = (user?.role || '').trim().toLowerCase();
+          const studentSessionSession = sessionStorage.getItem('student_session');
+          if (studentSessionSession) {
+            resolvedRole = 'student'; // Student in sessionStorage — skip auth.me()
           }
         } catch {}
+        
+        if (!resolvedRole) {
+          try {
+            const isAuth = await base44.auth.isAuthenticated();
+            if (isAuth) {
+              const user = await base44.auth.me();
+              resolvedRole = (user?.role || '').trim().toLowerCase();
+            }
+          } catch (error) {
+            console.error('[AcademicYearContext] auth.me() error:', error.message);
+          }
+        }
       }
 
       const adminAccess = resolvedRole === 'admin' || resolvedRole === 'principal';
