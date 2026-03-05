@@ -23,11 +23,12 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
 export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: propAcademicYear }) {
-  const contextAcademicYear = useAcademicYear();
-  const finalAcademicYear = propAcademicYear || contextAcademicYear.academicYear;
-  const todayDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+   const contextAcademicYear = useAcademicYear();
+   const finalAcademicYear = propAcademicYear || contextAcademicYear.academicYear;
+   const todayDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+   const [showAIAssist, setShowAIAssist] = useState(false);
 
-  const [formData, setFormData] = useState(entry || {
+   const [formData, setFormData] = useState(entry || {
     title: '',
     description: '',
     class_name: '',
