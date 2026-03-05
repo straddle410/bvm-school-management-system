@@ -234,9 +234,9 @@ export default function Layout({ children, currentPageName }) {
                 </Link>);
             })}
         </div>
-      </nav>
-    </div>
-      </StaffAuthGuard>
-    </AcademicYearProvider>);
+        </nav>
+        </div>
+        </StaffAuthGuard>
+        </AcademicYearProvider>);
 
 }
