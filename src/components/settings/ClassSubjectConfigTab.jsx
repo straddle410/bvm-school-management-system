@@ -10,8 +10,32 @@ import { Save, Check, Zap } from 'lucide-react';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-// Normalize class name to match entity enum
-const normalizeClassName = (cls) => cls?.trim() || '';
+// Import canonical normalizer from helper
+import { getSubjectsForClass } from '@/components/subjectHelper';
+
+// Inline canonical normalizer (same as subjectHelper)
+const normalizeClassName = (cls) => {
+  if (!cls) return '';
+  
+  const input = cls.toString().trim().toLowerCase();
+  
+  // Return early for special cases
+  if (input === 'nursery') return 'Nursery';
+  if (input === 'lkg') return 'LKG';
+  if (input === 'ukg') return 'UKG';
+  
+  // Strip "class" prefix if present
+  let stripped = input.replace(/^class\s*/, '').trim();
+  
+  // Return numeric string (1-12)
+  const num = parseInt(stripped, 10);
+  if (!isNaN(num) && num >= 1 && num <= 12) {
+    return String(num);
+  }
+  
+  // Fallback to original trimmed input if no match
+  return cls.toString().trim();
+};
 
 // Dev-only test helper
 const testClassMapping = async (cls, subjects) => {
