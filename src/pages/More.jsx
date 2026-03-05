@@ -73,7 +73,7 @@ export default function More() {
    { label: 'Take Attendance', sub: 'Mark daily attendance', icon: ClipboardCheck, color: '#26a69a', bg: '#e0f2f1', page: 'Attendance', permKey: 'attendance' },
    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices', permKey: 'post_notices' },
    { label: 'Messages', sub: 'Inbox & send messages', icon: MessageSquare, color: '#1a237e', bg: '#e8eaf6', page: 'Messaging', permKey: null },
-   { label: 'Diary', sub: 'Post class diary entries', icon: BookOpen, color: '#e91e63', bg: '#fce4ec', page: 'DiaryManagement', permKey: null },
+   { label: 'Diary', sub: 'Post class diary entries', icon: BookOpen, color: '#e91e63', bg: '#fce4ec', page: 'Diary', permKey: null },
    { label: 'Homework', sub: 'Assign homework', icon: ClipboardList, color: '#f57c00', bg: '#fff3e0', page: 'HomeworkManage', permKey: null },
   ];
 
