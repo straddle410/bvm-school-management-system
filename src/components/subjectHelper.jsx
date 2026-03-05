@@ -108,9 +108,53 @@ export const getSubjectsForClass = async (academic_year, class_name) => {
  * @param {string} academicYear - The academic year
  * @returns {string} Human-readable label
  */
+/**
+ * Get a brief label for the source of subjects (for UI display).
+ * @param {string} source - 'MAPPING' or 'EMPTY'
+ * @param {string} academicYear - The academic year
+ * @returns {string} Human-readable label
+ */
 export const getSubjectSourceLabel = (source, academicYear) => {
   if (source === 'MAPPING') {
     return `Subjects loaded from Class Subject Mapping (${academicYear})`;
   }
-  return 'Not configured — using global subjects';
+  return 'Not configured';
+};
+
+/**
+ * Get all subjects for an academic year (de-duplicated union across all classes).
+ * This is the whole-school "master subjects" list derived from ClassSubjectConfig.
+ * 
+ * @param {string} academic_year - Academic year (e.g., "2025-26")
+ * @returns {Promise<string[]>} Sorted de-duplicated array of subject names
+ */
+export const getAllSubjectsForYear = async (academic_year) => {
+  try {
+    if (!academic_year) {
+      return [];
+    }
+
+    // Fetch all ClassSubjectConfig records for this year
+    const configs = await base44.entities.ClassSubjectConfig.filter({
+      academic_year
+    });
+
+    // Collect all unique subject names
+    const subjectSet = new Set();
+    configs.forEach(config => {
+      if (Array.isArray(config.subject_names)) {
+        config.subject_names.forEach(name => {
+          if (name && name.trim()) {
+            subjectSet.add(name.trim());
+          }
+        });
+      }
+    });
+
+    // Return sorted array
+    return Array.from(subjectSet).sort();
+  } catch (error) {
+    console.error('[SUBJECT_HELPER] Error fetching all subjects:', error);
+    return [];
+  }
 };
