@@ -39,14 +39,11 @@ export default function StudentBottomNav({ currentPage }) {
           }),
         ]);
 
-        const counts = { quiz_posted: 0, results_posted: 0, messages: 0 };
+        const counts = { messages: 0 };
         for (const n of notifs) {
-          if (n.type === 'quiz_posted') counts.quiz_posted++;
-          else if (n.type === 'results_posted' || n.type === 'marks_published') counts.results_posted++;
-          else if (n.type === 'class_message') counts.messages++;
+          if (n.type === 'class_message') counts.messages++;
         }
-        // FIX #2: Only count message notifications, don't double-count with unreadMsgs
-        // Message notifications already captured in class_message count above
+        counts.messages += unreadMsgs.length;
         setBadges(counts);
       } catch {}
     };
