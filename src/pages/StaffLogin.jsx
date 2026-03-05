@@ -57,6 +57,8 @@ export default function StaffLogin() {
         permissions: response.data.permissions || {},
         permissions_override: response.data.permissions_override || {},
         logged_in_at: new Date().toISOString(),
+        // HMAC-signed short-lived token for auto-repair of missing StaffAuthLink
+        staff_session_token: response.data.staff_session_token || null,
       };
 
       localStorage.setItem('staff_session', JSON.stringify(session));
