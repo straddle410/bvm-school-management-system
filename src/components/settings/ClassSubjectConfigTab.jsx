@@ -61,16 +61,31 @@ export default function ClassSubjectConfigTab() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await base44.functions.invoke('setSubjectsForClass', {
+      const response = await base44.functions.invoke('setSubjectsForClass', {
         academic_year: academicYear,
         class_name: selectedClass,
         subject_names: selected
       });
+
+      if (!response.data.success) {
+        toast.error(response.data.error || 'Save failed');
+        return;
+      }
+
+      // Immediately update local state from server response
+      if (response.data.config && response.data.config.subject_names) {
+        setSelected(response.data.config.subject_names);
+      }
+
+      // Invalidate queries to re-fetch fresh data
       queryClient.invalidateQueries({ queryKey: ['class-subject-config', academicYear, selectedClass] });
       queryClient.invalidateQueries({ queryKey: ['class-subjects'] });
+      
+      toast.success(`✓ Saved subjects for Class ${selectedClass}`);
       setShowSuccessModal(true);
     } catch (err) {
-      toast.error(err.message || 'Failed to save');
+      toast.error(`Error: ${err.message || 'Failed to save'}`);
+      console.error('Save error:', err);
     } finally {
       setSaving(false);
     }
