@@ -175,13 +175,16 @@ Deno.serve(async (req) => {
     if (account.permissions_override) effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
 
     const normalizedRole = (account.role || '').trim().toLowerCase();
-    const iat = Date.now();
-    const exp = iat + SESSION_TTL_MS;
+    // iat and exp are in SECONDS (not milliseconds) — JWT standard
+    const nowSec = Math.floor(Date.now() / 1000);
+    const iat = nowSec;
+    const exp = iat + (90 * 24 * 60 * 60); // 90 days in seconds
 
     // Sign long-lived session token — includes permissions so profile loads don't need extra queries
     const sessionToken = await signSessionToken({
       staff_id: account.id,
       role: normalizedRole,
+      username: account.username,
       iat,
       exp,
     });
@@ -203,7 +206,7 @@ Deno.serve(async (req) => {
       // Long-lived session token — source of truth for staff identity on all devices
       staff_session_token: sessionToken,
       token_exp: exp,
-      token_exp_iso: new Date(exp).toISOString(),
+      token_exp_iso: new Date(exp * 1000).toISOString(),
     };
 
     return Response.json(responsePayload);
