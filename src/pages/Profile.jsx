@@ -132,7 +132,7 @@ export default function Profile() {
   }
 
   if (error || !staffAccount) {
-    const isLinkMissing = error?.includes('LINK_MISSING') || error?.includes('not linked') || error?.includes('log in again');
+    const isLinkMissing = error?.includes('TOKEN') || error?.includes('login again') || error?.includes('LINK_MISSING');
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-2xl mx-auto">
