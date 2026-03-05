@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 const SESSION_TTL_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
@@ -84,8 +85,29 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Password not set. Contact administrator to reset your password.', code: 'PASSWORD_NOT_SET' }, { status: 401 });
     }
 
-    const passwordValid = validatePassword(password, account.password_hash);
-    console.log(`[staffLogin] passwordValid=${passwordValid} for staff_id=${account.id}`);
+    let passwordValid = false;
+    let wasLegacyHash = false;
+
+    // Try bcrypt first (current standard)
+    if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$')) {
+      passwordValid = await bcrypt.compare(password, account.password_hash);
+    } else if (account.password_hash) {
+      // Legacy fake bcrypt fallback
+      wasLegacyHash = true;
+      passwordValid = validatePasswordLegacy(password, account.password_hash);
+
+      // If valid legacy password, upgrade to bcrypt
+      if (passwordValid) {
+        const newBcryptHash = await bcrypt.hash(password, 10);
+        await base44.asServiceRole.entities.StaffAccount.update(account.id, {
+          password_hash: newBcryptHash,
+          force_password_change: true
+        });
+        console.log(`[staffLogin] LEGACY_PASSWORD_UPGRADED to bcrypt for staff_id=${account.id}`);
+      }
+    }
+
+    console.log(`[staffLogin] passwordValid=${passwordValid} for staff_id=${account.id} (legacy=${wasLegacyHash})`);
 
     if (!passwordValid) {
       const newFailedAttempts = (account.failed_login_attempts || 0) + 1;
@@ -191,15 +213,12 @@ Deno.serve(async (req) => {
   }
 });
 
-function validatePassword(password, hash) {
+function validatePasswordLegacy(password, hash) {
   if (!hash || !password) return false;
-  return hashPassword(password) === hash;
+  return hashPasswordLegacy(password) === hash;
 }
 
-function hashPassword(password) {
+function hashPasswordLegacy(password) {
   if (!password) return '';
-  const encoded = new TextEncoder().encode(password + 'staff_auth_salt');
-  // Deterministic hash for consistency across calls
-  const arr = Array.from(new Uint8Array(crypto.getRandomValues(new Uint8Array(16))));
   return '$2b$10$' + btoa(password).substring(0, 53);
 }
