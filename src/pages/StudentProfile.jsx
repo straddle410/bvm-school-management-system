@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StudentAuditHistory from '@/components/students/StudentAuditHistory';
+import StudentChangePassword from '@/components/StudentChangePassword';
+import { Button } from '@/components/ui/button';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -182,6 +184,7 @@ export default function StudentProfile() {
   const studentId = searchParams.get('id');
   const [isAdmin, setIsAdmin] = useState(false);
   const [sessionStudent, setSessionStudent] = useState(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
@@ -264,6 +267,7 @@ export default function StudentProfile() {
               <TabsTrigger value="audit">
                 <ShieldCheck className="h-4 w-4 mr-1.5" />Audit History
               </TabsTrigger>
+              {sessionStudent && <TabsTrigger value="password"><Lock className="h-4 w-4 mr-1.5" />Change Password</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="profile">
@@ -283,10 +287,44 @@ export default function StudentProfile() {
                 </CardContent>
               </Card>
             </TabsContent>
-          </Tabs>
-        ) : (
-          <ProfileContent student={student} attendance={attendance} marks={marks} />
-        )}
+            {sessionStudent && (
+              <TabsContent value="password">
+                <StudentChangePassword 
+                  student={student} 
+                  onClose={() => {}} 
+                  onSuccess={() => {}} 
+                />
+              </TabsContent>
+            )}
+            </Tabs>
+            ) : (
+            <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">My Profile</h2>
+              {sessionStudent && (
+                <Button 
+                  onClick={() => setShowChangePassword(true)}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Lock className="h-4 w-4" />
+                  Change Password
+                </Button>
+              )}
+            </div>
+            <ProfileContent student={student} attendance={attendance} marks={marks} />
+            </div>
+            )}
+            </div>
+
+            {/* Change Password Modal */}
+            {showChangePassword && (
+            <StudentChangePassword 
+            student={student} 
+            onClose={() => setShowChangePassword(false)} 
+            onSuccess={() => setShowChangePassword(false)}
+            />
+            )}
       </div>
     </div>
   );
