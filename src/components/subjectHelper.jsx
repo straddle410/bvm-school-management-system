@@ -1,7 +1,34 @@
 import { base44 } from '@/api/base44Client';
 
-// Normalize class name to match entity enum (same as backend)
-const normalizeClassName = (cls) => cls?.toString().trim() || '';
+/**
+ * Canonicalize class name to standard format:
+ * "Nursery", "LKG", "UKG" → as-is
+ * "Class 7", "7", "class7" → "7"
+ * "Class 10" → "10"
+ * "VII" → "7" (if applicable)
+ */
+const normalizeClassName = (cls) => {
+  if (!cls) return '';
+  
+  const input = cls.toString().trim().toLowerCase();
+  
+  // Return early for special cases
+  if (input === 'nursery') return 'Nursery';
+  if (input === 'lkg') return 'LKG';
+  if (input === 'ukg') return 'UKG';
+  
+  // Strip "class" prefix if present
+  let stripped = input.replace(/^class\s*/, '').trim();
+  
+  // Return numeric string (1-12)
+  const num = parseInt(stripped, 10);
+  if (!isNaN(num) && num >= 1 && num <= 12) {
+    return String(num);
+  }
+  
+  // Fallback to original trimmed input if no match
+  return cls.toString().trim();
+};
 
 /**
  * Fetch subjects for a given class from ClassSubjectConfig.
