@@ -209,7 +209,7 @@ export default function Staff() {
     setForm({
       name: '',
       username: '',
-      password_hash: hashPassword(tempPass),  // HASH before storing
+      password_hash: hashPassword(tempPass),
       designation: '',
       mobile: '',
       email: '',
