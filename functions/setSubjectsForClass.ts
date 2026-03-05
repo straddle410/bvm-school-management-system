@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // Normalize class name to match entity enum
 const normalizeClassName = (cls) => cls?.toString().trim() || '';
