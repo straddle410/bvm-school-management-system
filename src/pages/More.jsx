@@ -9,7 +9,7 @@ import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
   Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare,
-  Ticket, Calendar, TrendingUp, FileText, Award, BarChart3, AlertCircle, User as UserIcon
+  Ticket, Calendar, TrendingUp, FileText, Award, BarChart3, AlertCircle, User as UserIcon, Image
 } from 'lucide-react';
 
 export default function More() {
