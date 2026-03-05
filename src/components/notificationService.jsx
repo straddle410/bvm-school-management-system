@@ -68,13 +68,21 @@ export const notificationService = {
   // Get notification preferences for current user
   async getPreferences() {
     try {
+      // CRITICAL: Block students from calling auth.me() — return null immediately
+      const studentSessionLocal = localStorage.getItem('student_session');
+      const studentSessionSession = sessionStorage.getItem('student_session');
+      if (studentSessionLocal || studentSessionSession) {
+        console.warn('[notificationService] Student session detected. Blocking auth.me() call in getPreferences().');
+        return null;
+      }
+
       // Check for staff session first
       const staffSession = localStorage.getItem('staff_session');
       const staffData = staffSession ? JSON.parse(staffSession) : null;
       
       let userEmail = staffData?.email;
       
-      // If no staff session, try regular auth
+      // If no staff session, try regular auth (staff/admin only)
       if (!userEmail) {
         const user = await base44.auth.me();
         if (!user) {
@@ -104,13 +112,21 @@ export const notificationService = {
   // Save/update notification preferences
   async savePreferences(preferences) {
     try {
+      // CRITICAL: Block students from calling auth.me() — return null immediately
+      const studentSessionLocal = localStorage.getItem('student_session');
+      const studentSessionSession = sessionStorage.getItem('student_session');
+      if (studentSessionLocal || studentSessionSession) {
+        console.warn('[notificationService] Student session detected. Blocking auth.me() call in savePreferences().');
+        return null;
+      }
+
       // Check for staff session first
       const staffSession = localStorage.getItem('staff_session');
       const staffData = staffSession ? JSON.parse(staffSession) : null;
       
       let userEmail = staffData?.email;
       
-      // If no staff session, try regular auth
+      // If no staff session, try regular auth (staff/admin only)
       if (!userEmail) {
         const user = await base44.auth.me();
         if (!user) return null;
