@@ -189,7 +189,14 @@ export default function More() {
                              {user?.role || 'User'}
                            </span>
                        <button
-                         onClick={() => { clearStaffSession(); window.location.reload(); }}
+                         onClick={() => {
+                           clearStaffSession();
+                           // Clear all cached profile data on logout
+                           Object.keys(localStorage).forEach(k => {
+                             if (k.startsWith('staff_profile_')) localStorage.removeItem(k);
+                           });
+                           window.location.replace(createPageUrl('StaffLogin'));
+                         }}
                          className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors"
                        >
                          <LogOut className="h-4 w-4" />
