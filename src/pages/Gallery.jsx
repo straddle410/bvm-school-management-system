@@ -34,8 +34,9 @@ export default function Gallery() {
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin' || user?.role === 'principal';
    const hasGalleryPermission = user?.permissions?.gallery === true;
-   const canUpload = isAdmin || hasGalleryPermission;
-   const canCreateAlbum = isAdmin || hasGalleryPermission;
+   // Students can only view; staff can upload
+   const canUpload = !isStudent && (isAdmin || hasGalleryPermission);
+   const canCreateAlbum = !isStudent && (isAdmin || hasGalleryPermission);
    const needsApproval = !isAdmin;
 
   const { data: albums = [] } = useQuery({
@@ -124,7 +125,10 @@ export default function Gallery() {
     setSelectedPhoto(visiblePhotos[newIndex]);
   };
 
-  if (user === null) {
+  // Check if student session exists — students can only view (not upload)
+  const isStudent = !!studentSession;
+
+  if (user === null && !isStudent) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
