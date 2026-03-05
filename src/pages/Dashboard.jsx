@@ -90,8 +90,8 @@ export default function Dashboard() {
           setPermissionsCount(0);
           setRoleSource('staff_session (fallback — server unreachable)');
         }
-      } else if (session) {
-        // Session exists but no username (legacy) — use as-is
+      } else if (false) {
+        // (dead branch — kept for structure only)
         resolvedRole = normaliseRole(session.role);
         setStaffRole(resolvedRole);
         setStaffName(session.name || '');
