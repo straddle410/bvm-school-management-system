@@ -184,11 +184,10 @@ export default function StudentProfile() {
 
   useEffect(() => {
     const studentSession = localStorage.getItem('student_session');
-    if (!studentSession) {
-      base44.auth.me().then(u => {
-        const role = (u?.role || '').toLowerCase();
-        setIsAdmin(['admin', 'principal'].includes(role));
-      }).catch(() => {});
+    // Students never call auth.me() - it always returns 401
+    // Only staff can be admin here
+    if (studentSession) {
+      setIsAdmin(false); // Students viewing this page are never admin
     }
   }, []);
 

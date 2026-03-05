@@ -94,12 +94,17 @@ import Results from './pages/Results';
 import Settings from './pages/Settings';
 import Staff from './pages/Staff';
 import StaffLogin from './pages/StaffLogin';
+import StudentAttendance from './pages/StudentAttendance';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentDiary from './pages/StudentDiary';
 import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
 import StudentLedgerReport from './pages/StudentLedgerReport';
 import StudentLogin from './pages/StudentLogin';
+import StudentMarks from './pages/StudentMarks';
 import StudentMessaging from './pages/StudentMessaging';
+import StudentMore from './pages/StudentMore';
+import StudentNotices from './pages/StudentNotices';
 import StudentNotifications from './pages/StudentNotifications';
 import StudentProfile from './pages/StudentProfile';
 import StudentTimetable from './pages/StudentTimetable';
@@ -108,11 +113,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import StudentAttendance from './pages/StudentAttendance';
-import StudentMarks from './pages/StudentMarks';
-import StudentDiary from './pages/StudentDiary';
-import StudentNotices from './pages/StudentNotices';
-import StudentMore from './pages/StudentMore';
 import __Layout from './Layout.jsx';
 
 
@@ -164,12 +164,17 @@ export const PAGES = {
     "Settings": Settings,
     "Staff": Staff,
     "StaffLogin": StaffLogin,
+    "StudentAttendance": StudentAttendance,
     "StudentDashboard": StudentDashboard,
+    "StudentDiary": StudentDiary,
     "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
     "StudentLedgerReport": StudentLedgerReport,
     "StudentLogin": StudentLogin,
+    "StudentMarks": StudentMarks,
     "StudentMessaging": StudentMessaging,
+    "StudentMore": StudentMore,
+    "StudentNotices": StudentNotices,
     "StudentNotifications": StudentNotifications,
     "StudentProfile": StudentProfile,
     "StudentTimetable": StudentTimetable,
@@ -178,11 +183,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "StudentAttendance": StudentAttendance,
-    "StudentMarks": StudentMarks,
-    "StudentDiary": StudentDiary,
-    "StudentNotices": StudentNotices,
-    "StudentMore": StudentMore,
 }
 
 export const pagesConfig = {
