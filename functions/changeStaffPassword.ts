@@ -1,10 +1,65 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Staff password change
- * Called after login if force_password_change is true
- * Or manually by staff member
- */
+// ── Token verification (same as getMyStaffProfile) ───────────────────────────
+const CLOCK_SKEW_MS = 2 * 60 * 1000;
+
+function b64urlDecode(str) {
+  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
+  return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
+}
+
+async function getSessionKey() {
+  const secret = Deno.env.get('STAFF_SESSION_SECRET');
+  if (!secret) throw new Error('STAFF_SESSION_SECRET is not set');
+  return crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+  );
+}
+
+async function verifySessionToken(token) {
+  try {
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
+
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
+
+    let payload = null;
+    try {
+      payload = JSON.parse(b64urlDecode(payloadB64));
+    } catch {
+      return { error: 'TOKEN_INVALID' };
+    }
+
+    const key = await getSessionKey();
+    const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return { error: 'TOKEN_INVALID' };
+
+    const { staff_id, exp, iat } = payload;
+    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
+    if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' };
+    if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
+
+    return { staff_id, role: payload.role };
+  } catch {
+    return { error: 'TOKEN_INVALID' };
+  }
+}
+
+// ── Password helpers (must match staffLogin exactly) ─────────────────────────
+function hashPassword(password) {
+  if (!password) return '';
+  return '$2b$10$' + btoa(password).substring(0, 53);
+}
+
+function validatePassword(password, hash) {
+  if (!hash || !password) return false;
+  return hashPassword(password) === hash;
+}
+
+// ── Handler ───────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
@@ -12,63 +67,74 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_id, current_password, new_password } = await req.json();
 
-    if (!staff_id || !current_password || !new_password) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    // 1. Extract token from Authorization header OR body
+    let token = null;
+    const authHeader = req.headers.get('Authorization') || '';
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7).trim();
     }
 
-    // Verify staff exists and current password is correct
-    const staff = await base44.asServiceRole.entities.StaffAccount.filter({
-      id: staff_id,
-    });
+    let body = {};
+    try { body = await req.json(); } catch {}
 
-    if (!staff || staff.length === 0) {
-      return Response.json({ error: 'Staff not found' }, { status: 404 });
+    if (!token && body.staff_session_token) {
+      token = body.staff_session_token;
     }
 
-    const account = staff[0];
-    const passwordValid = await validatePassword(current_password, account.password_hash);
+    if (!token) {
+      console.error('[changeStaffPassword] TOKEN_MISSING');
+      return Response.json({ error: 'Session token missing. Please login again.', code: 'TOKEN_MISSING' }, { status: 401 });
+    }
 
+    // 2. Verify token
+    const verified = await verifySessionToken(token);
+    if (verified.error) {
+      console.error(`[changeStaffPassword] ${verified.error}`);
+      return Response.json({ error: 'Session expired or invalid. Please login again.', code: 'STAFF_SESSION_INVALID' }, { status: 401 });
+    }
+
+    const { staff_id } = verified;
+    const { currentPassword, newPassword } = body;
+
+    if (!currentPassword || !newPassword) {
+      return Response.json({ error: 'Missing required fields', code: 'MISSING_FIELDS' }, { status: 400 });
+    }
+
+    // 3. Validate new password strength
+    if (newPassword.length < 8) {
+      return Response.json({ error: 'Password must be at least 8 characters.', code: 'WEAK_PASSWORD' }, { status: 400 });
+    }
+
+    // 4. Load staff account
+    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+    if (!accounts || accounts.length === 0) {
+      console.error(`[changeStaffPassword] STAFF_NOT_FOUND: id=${staff_id}`);
+      return Response.json({ error: 'Staff account not found.', code: 'STAFF_SESSION_INVALID' }, { status: 401 });
+    }
+
+    const account = accounts[0];
+
+    // 5. Verify current password
+    const passwordValid = validatePassword(currentPassword, account.password_hash);
     if (!passwordValid) {
-      console.log(`[CHANGE_PASSWORD] Current password incorrect for staff: ${account.username}`);
-      return Response.json({ error: 'Current password is incorrect' }, { status: 401 });
+      console.log(`[changeStaffPassword] CURRENT_PASSWORD_INCORRECT for ${account.username}`);
+      return Response.json({ error: 'Current password is incorrect.', code: 'CURRENT_PASSWORD_INCORRECT' }, { status: 400 });
     }
 
-    // Hash new password using consistent algorithm
-    const newHash = hashPassword(new_password);
-
-    // Update password and clear force_password_change flag
+    // 6. Update password and clear force_password_change
+    const newHash = hashPassword(newPassword);
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
       password_hash: newHash,
       password_updated_at: new Date().toISOString(),
       force_password_change: false,
     });
 
-    console.log(`[CHANGE_PASSWORD] Password changed successfully for staff: ${account.username}`);
+    console.log(`[changeStaffPassword] SUCCESS for staff: ${account.username} (${account.role})`);
 
-    return Response.json({
-      success: true,
-      message: 'Password changed successfully',
-    });
+    return Response.json({ success: true });
   } catch (error) {
-    console.error('Password change error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('[changeStaffPassword] Unexpected error:', error.message);
+    return Response.json({ error: 'Internal server error', code: 'UNKNOWN_ERROR' }, { status: 500 });
   }
 });
-
-async function validatePassword(password, hash) {
-  if (!hash || !password) return false;
-  
-  // Hash the input password using same algorithm as storage
-  const inputHash = hashPassword(password);
-  
-  // Compare hashes
-  return inputHash === hash;
-}
-
-function hashPassword(password) {
-  // Consistent hashing algorithm - must match staffLogin and resetStaffPassword
-  if (!password) return '';
-  return '$2b$10$' + btoa(password).substring(0, 53);
-}
