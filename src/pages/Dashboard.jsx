@@ -313,7 +313,7 @@ export default function Dashboard() {
       {
         title: 'Administration',
         actions: [
-          { label: 'Staff',          icon: BookUser,     page: 'Staff',               gradient: 'from-green-400 to-green-600' },
+          { label: 'Staff',          icon: BookUser,     page: 'Staff',               gradient: 'from-amber-400 to-amber-600' },
           { label: 'Settings',       icon: Settings,     page: 'Settings',            gradient: 'from-gray-400 to-gray-600' },
         ],
       },
