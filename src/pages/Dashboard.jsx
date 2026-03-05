@@ -282,7 +282,7 @@ export default function Dashboard() {
           { label: 'Exams',        icon: BookMarked,     page: 'ExamManagement',      gradient: 'from-purple-400 to-purple-600' },
           { label: 'Timetable',    icon: Calendar,       page: 'TimetableManagement', gradient: 'from-cyan-400 to-cyan-600' },
           { label: 'Homework',     icon: BookMarked,     page: 'Homework',            gradient: 'from-pink-400 to-pink-600' },
-          { label: 'Diary',        icon: Notebook,       page: 'DiaryManagement',     gradient: 'from-rose-400 to-rose-600' },
+          { label: 'Diary',        icon: NotebookPen,    page: 'DiaryManagement',     gradient: 'from-rose-400 to-rose-600' },
           { label: 'Admissions',   icon: FileText,       page: 'Admissions',          gradient: 'from-amber-400 to-amber-600' },
         ],
       },
