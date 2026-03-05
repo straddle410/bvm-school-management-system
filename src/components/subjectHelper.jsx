@@ -40,9 +40,8 @@ const normalizeClassName = (cls) => {
 };
 
 /**
- * Fetch subjects for a given class from ClassSubjectConfig.
- * If mapping exists and has subjects, return that list (the source of truth).
- * Otherwise, fallback to global subjects.
+ * Fetch subjects for a given class from ClassSubjectConfig in their STORED ORDER.
+ * Do NOT sort or reorder — return exactly as stored in subject_names array.
  * 
  * @param {string} academic_year - Academic year (e.g., "2025-26")
  * @param {string} class_name - Class name (e.g., "LKG", "1", "5")
@@ -80,7 +79,9 @@ export const getSubjectsForClass = async (academic_year, class_name) => {
     });
 
     if (configs.length > 0 && Array.isArray(configs[0].subject_names) && configs[0].subject_names.length > 0) {
-      console.log(`[SUBJECT_HELPER] Loaded ${configs[0].subject_names.length} subjects from mapping for ${academic_year}/${normalizedClass}`);
+      // IMPORTANT: Return subjects in EXACT order stored in ClassSubjectConfig.subject_names
+      // NO sorting, NO reordering — preserve admin's drag-drop arrangement
+      console.log(`[SUBJECT_HELPER] Loaded ${configs[0].subject_names.length} subjects (in stored order) from mapping for ${academic_year}/${normalizedClass}`);
       return {
         subjects: configs[0].subject_names,
         source: 'MAPPING',
@@ -90,7 +91,7 @@ export const getSubjectsForClass = async (academic_year, class_name) => {
       };
     }
 
-    // No mapping found: return empty list (no fallback to global subjects)
+    // No mapping found: return empty list
     console.log(`[SUBJECT_HELPER] No mapping found for ${academic_year}/${normalizedClass}. Admin must configure ClassSubjectConfig.`);
     return {
       subjects: [],
