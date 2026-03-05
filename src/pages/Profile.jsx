@@ -18,7 +18,9 @@ export default function Profile() {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    loadProfile();
+    let isMounted = true;
+    if (isMounted) loadProfile();
+    return () => { isMounted = false; };
   }, []);
 
   const loadProfile = async () => {
