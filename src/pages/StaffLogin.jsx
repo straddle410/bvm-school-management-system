@@ -35,10 +35,18 @@ export default function StaffLogin() {
           setLinkConflict(true);
           return;
         }
-        if (response.data.locked_until) {
+        if (response.data.locked_until || response.data.code === 'ACCOUNT_LOCKED') {
           setLockedUntil(response.data.locked_until);
         }
-        setError(response.data.error || 'Login failed');
+        const code = response.data.code;
+        const codeMessages = {
+          USER_NOT_FOUND: 'Username not found. Please check and try again.',
+          PASSWORD_MISMATCH: 'Incorrect password. Please try again.',
+          ACCOUNT_INACTIVE: 'Your account is inactive. Contact your administrator.',
+          ACCOUNT_LOCKED: 'Account locked due to too many attempts. Try again in 15 minutes.',
+          PASSWORD_NOT_SET: 'Password not set. Ask your administrator to reset your password.',
+        };
+        setError(codeMessages[code] || response.data.error || 'Login failed');
         return;
       }
 
