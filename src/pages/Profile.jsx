@@ -25,8 +25,9 @@ export default function Profile() {
     setIsLoading(true);
     setError('');
     try {
-      // Identity is resolved server-side via StaffAuthLink — no client fields needed.
-      const res = await base44.functions.invoke('getMyStaffProfile', {});
+      // Pass staff_id from local session so server can auto-repair a missing StaffAuthLink
+      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const res = await base44.functions.invoke('getMyStaffProfile', { staff_id: session?.staff_id || null });
 
       if (!res.data || res.data.error) {
         setError(res.data?.error || 'Could not load profile');
