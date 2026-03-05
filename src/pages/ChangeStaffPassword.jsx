@@ -68,15 +68,12 @@ export default function ChangeStaffPassword() {
     setLoading(true);
 
     try {
+      // Send token both in body (fallback) and via staff_session_token field
+      // The backend reads it from body.staff_session_token
       const response = await base44.functions.invoke('changeStaffPassword', {
         currentPassword,
         newPassword,
-        // also send in body as fallback
         staff_session_token: token,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (response.data?.success) {
