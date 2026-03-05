@@ -23,6 +23,14 @@ const getBottomNav = (isAdmin, userRole) => {
       { name: 'More',        icon: MoreHorizontal,page: 'More' },
     ];
   }
+  if (userRole === 'exam_staff') {
+    return [
+      { name: 'Home',       icon: Home,          page: 'Dashboard' },
+      { name: 'Attendance', icon: ClipboardCheck, page: 'Attendance' },
+      { name: 'Marks',      icon: BookOpen,       page: 'Marks' },
+      { name: 'Exams',      icon: Calendar,       page: 'ExamManagement' },
+    ];
+  }
   return [
     { name: 'Home', icon: Home, page: 'Dashboard' },
     { name: 'Notices', icon: Bell, page: 'Notices' },
