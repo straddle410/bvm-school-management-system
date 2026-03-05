@@ -301,9 +301,9 @@ export default function Staff() {
       }
     }
 
-    // Derive the `role` field from the selected role template name
+    // Derive the `role` field from the selected role template name (lowercase to match enum)
     const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
-    const derivedRole = selectedTemplate ? selectedTemplate.name.charAt(0).toUpperCase() + selectedTemplate.name.slice(1).toLowerCase() : '';
+    const derivedRole = selectedTemplate ? selectedTemplate.name.trim().toLowerCase() : '';
 
     // Coerce experience_years: empty string → null, otherwise parse as number
     let experienceYears = null;
