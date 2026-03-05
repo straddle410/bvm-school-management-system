@@ -214,10 +214,6 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation */}
       <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
-        {/* Role debug — sourced from staff_session only */}
-        <div className="text-[9px] text-center text-gray-400 pt-0.5 leading-none">
-          roleSource=staff_session staffRole={userRole || 'none'}
-        </div>
         <div className="flex items-center justify-around py-1">
           {getBottomNav(isAdmin, userRole).map((item) => {
               const isActive = currentPageName === item.page;
