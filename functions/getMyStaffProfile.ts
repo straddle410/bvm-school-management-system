@@ -9,15 +9,9 @@ function b64urlDecode(str) {
   // Add padding
   const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
   const padded = standard + pad;
+  // Simply decode as UTF-8 string (JSON will be ASCII-compatible)
   try {
-    // Decode bytes from base64
-    const binary = atob(padded);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    // Convert bytes to UTF-8 string
-    return new TextDecoder().decode(bytes);
+    return atob(padded);
   } catch (err) {
     throw new Error(`Base64 decode failed: ${err.message}`);
   }
