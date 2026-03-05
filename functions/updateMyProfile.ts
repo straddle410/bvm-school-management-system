@@ -9,8 +9,13 @@ const ALLOWED_FIELDS = [
 const CLOCK_SKEW_MS = 2 * 60 * 1000;
 
 function b64urlDecode(str) {
-  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
-  return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
+  // Convert URL-safe base64 to standard base64
+  const standard = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding
+  const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
+  // Use Deno's base64 decoder
+  const bytes = new Uint8Array(atob(standard + pad).split('').map(c => c.charCodeAt(0)));
+  return new TextDecoder().decode(bytes);
 }
 
 async function getSessionKey() {
@@ -23,29 +28,29 @@ async function getSessionKey() {
 }
 
 async function verifySessionToken(token) {
-  try {
-    const dotIdx = token.lastIndexOf('.');
-    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
-    const payloadB64 = token.slice(0, dotIdx);
-    const sigB64 = token.slice(dotIdx + 1);
+   try {
+     const dotIdx = token.lastIndexOf('.');
+     if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
+     const payloadB64 = token.slice(0, dotIdx);
+     const sigB64 = token.slice(dotIdx + 1);
 
-    const key = await getSessionKey();
-    const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
-    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
-    if (!valid) return { error: 'TOKEN_INVALID' };
+     const key = await getSessionKey();
+     const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
+     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+     if (!valid) return { error: 'TOKEN_INVALID' };
 
-    const payload = JSON.parse(b64urlDecode(payloadB64));
-    const { staff_id, exp, iat } = payload;
+     const payload = JSON.parse(b64urlDecode(payloadB64));
+     const { staff_id, exp, iat, username, role } = payload;
 
-    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
-    if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' };
-    if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
+     if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
+     if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' };
+     if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
 
-    return { staff_id };
-  } catch {
-    return { error: 'TOKEN_INVALID' };
-  }
-}
+     return { staff_id, username, role };
+   } catch {
+     return { error: 'TOKEN_INVALID' };
+   }
+ }
 
 /**
  * Updates the profile of the logged-in staff member.
@@ -68,11 +73,33 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status: 401 });
     }
 
-    const { staff_id } = verified;
+    const { staff_id, username, role } = verified;
 
-    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+    // Lookup StaffAccount — try id first, then fallback to username
+    let accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+
+    // Fallback: search by username
     if (!accounts || accounts.length === 0) {
-      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND' }, { status: 404 });
+      if (username) {
+        accounts = await base44.asServiceRole.entities.StaffAccount.filter({ username });
+      }
+    }
+
+    // Auto-create if still not found
+    if (!accounts || accounts.length === 0) {
+      try {
+        const newAccount = await base44.asServiceRole.entities.StaffAccount.create({
+          id: staff_id,
+          name: username || 'Staff Member',
+          username: username || `staff_${staff_id}`,
+          password_hash: '$2b$10$disabled',
+          role: role || 'staff',
+          is_active: true,
+        });
+        accounts = [newAccount];
+      } catch {
+        return Response.json({ error: 'Staff account not found and creation failed', code: 'STAFF_NOT_FOUND' }, { status: 404 });
+      }
     }
 
     const account = accounts[0];

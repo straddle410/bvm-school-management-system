@@ -112,21 +112,35 @@ Deno.serve(async (req) => {
 
     const { staff_id } = verified;
 
-    // Load StaffAccount
+    // Decode payload to get username & role from token
+    const payloadB64 = token.slice(0, token.lastIndexOf('.'));
+    const tokenPayload = JSON.parse(b64urlDecode(payloadB64));
+    const tokenUsername = tokenPayload.username;
+    const tokenRole = tokenPayload.role;
+
+    // Load StaffAccount — try id first, then fallback to username
     console.log(`[getMyStaffProfile] Looking up StaffAccount id=${staff_id}`);
     let accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
-    
+
+    // Fallback: search by username
+    if (!accounts || accounts.length === 0) {
+      console.log(`[getMyStaffProfile] Staff id not found, trying username=${tokenUsername}`);
+      if (tokenUsername) {
+        accounts = await base44.asServiceRole.entities.StaffAccount.filter({ username: tokenUsername });
+      }
+    }
+
     let isProfileCreated = false;
     if (!accounts || accounts.length === 0) {
-      console.warn(`[getMyStaffProfile] Staff not found, auto-creating minimal account for staff_id=${staff_id}`);
+      console.warn(`[getMyStaffProfile] Staff not found anywhere, auto-creating account for id=${staff_id} username=${tokenUsername}`);
       try {
         // Create minimal staff account (upsert behavior)
         const newAccount = await base44.asServiceRole.entities.StaffAccount.create({
           id: staff_id,
-          name: 'Staff Member',
-          username: `staff_${staff_id}`,
+          name: tokenUsername || 'Staff Member',
+          username: tokenUsername || `staff_${staff_id}`,
           password_hash: '$2b$10$disabled', // Disabled — login via token only
-          role: verified.role || 'staff',
+          role: tokenRole || 'staff',
           is_active: true,
         });
         accounts = [newAccount];
