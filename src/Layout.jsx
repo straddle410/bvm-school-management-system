@@ -128,7 +128,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // Pages students are allowed to visit via layout
-  const STUDENT_ALLOWED_PAGES = ['StudentAttendance', 'StudentMarks', 'StudentDiary', 'StudentNotices', 'StudentTimetable', 'StudentHomework', 'StudentMessaging', 'StudentHallTicketView', 'More'];
+  const STUDENT_ALLOWED_PAGES = ['StudentAttendance', 'StudentMarks', 'StudentDiary', 'StudentNotices', 'StudentTimetable', 'StudentHomework', 'StudentMessaging', 'StudentHallTicketView', 'StudentMore'];
 
   // If student session exists and NOT on an allowed page, redirect instantly
   if (studentSession && !STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
