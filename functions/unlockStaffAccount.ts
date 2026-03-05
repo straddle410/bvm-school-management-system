@@ -10,14 +10,32 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const admin = await base44.auth.me();
+    const { staff_id, staff_session_token } = await req.json();
 
-    // Verify admin/principal
-    if (!admin || (admin.role?.toLowerCase() !== 'admin' && admin.role?.toLowerCase() !== 'principal')) {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    if (!staff_id) {
+      return Response.json({ error: 'Staff ID required' }, { status: 400 });
     }
 
-    const { staff_id } = await req.json();
+    // Verify admin via staff token
+    let adminRole = null;
+    if (staff_session_token) {
+      try {
+        const tokenParts = staff_session_token.split('.');
+        if (tokenParts.length === 3) {
+          const payloadB64 = tokenParts[0] + '.' + tokenParts[1];
+          const pad = payloadB64.length % 4 === 0 ? '' : '='.repeat(4 - payloadB64.length % 4);
+          const decoded = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/') + pad));
+          const staffAccount = await base44.asServiceRole.entities.StaffAccount.filter({ id: decoded.staff_id });
+          if (staffAccount && staffAccount.length > 0) {
+            adminRole = (staffAccount[0].role || '').toLowerCase();
+          }
+        }
+      } catch {}
+    }
+
+    if (!adminRole || (adminRole !== 'admin' && adminRole !== 'principal')) {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
 
     if (!staff_id) {
       return Response.json({ error: 'Staff ID required' }, { status: 400 });
