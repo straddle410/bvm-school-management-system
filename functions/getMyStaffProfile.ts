@@ -8,9 +8,19 @@ function b64urlDecode(str) {
   const standard = str.replace(/-/g, '+').replace(/_/g, '/');
   // Add padding
   const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
-  // Use Deno's base64 decoder
-  const bytes = new Uint8Array(atob(standard + pad).split('').map(c => c.charCodeAt(0)));
-  return new TextDecoder().decode(bytes);
+  const padded = standard + pad;
+  try {
+    // Decode bytes from base64
+    const binary = atob(padded);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    // Convert bytes to UTF-8 string
+    return new TextDecoder().decode(bytes);
+  } catch (err) {
+    throw new Error(`Base64 decode failed: ${err.message}`);
+  }
 }
 
 async function getSessionKey() {
