@@ -16,25 +16,35 @@ export default function StudentLogin() {
     setError('');
     setLoading(true);
     try {
-      const normalizedUsername = username.trim().toUpperCase();
-      const results = await base44.entities.Student.filter({ username: normalizedUsername }, '-created_date', 1);
-      const student = results[0] || null;
-      if (!student) { setError('Invalid username or password'); setLoading(false); return; }
-      const storedPassword = student.password || 'BVM123';
-      if (password !== storedPassword) { setError('Invalid username or password'); setLoading(false); return; }
+      const response = await base44.functions.invoke('studentLogin', {
+        student_id_input: username,
+        password: password
+      });
+
+      if (!response.data || !response.data.success) {
+        const errorCode = response.data?.error || 'LOGIN_FAILED';
+        const errorMessages = {
+          STUDENT_NOT_FOUND: 'Student ID not found. Please check and try again.',
+          PASSWORD_MISMATCH: 'Incorrect password. Please try again.',
+          ACCOUNT_INACTIVE: 'Your account is inactive. Contact the school.',
+          INVALID_CREDENTIALS: 'Please enter both Student ID and password.'
+        };
+        setError(errorMessages[errorCode] || 'Login failed. Please try again.');
+        setLoading(false);
+        return;
+      }
 
       localStorage.setItem('student_session', JSON.stringify({
-        id: student.id,
-        student_id: student.student_id,
-        username: student.username,
-        name: student.name,
-        class_name: student.class_name,
-        section: student.section,
-        roll_no: student.roll_no,
-        photo_url: student.photo_url,
-        academic_year: student.academic_year,
-        parent_name: student.parent_name,
-        parent_phone: student.parent_phone,
+        id: response.data.student_id,
+        student_id: response.data.student_id_display,
+        name: response.data.name,
+        class_name: response.data.class_name,
+        section: response.data.section,
+        roll_no: response.data.roll_no,
+        photo_url: response.data.photo_url,
+        academic_year: response.data.academic_year,
+        parent_name: response.data.parent_name,
+        parent_phone: response.data.parent_phone,
       }));
       window.location.href = createPageUrl('StudentDashboard');
     } catch {
@@ -75,9 +85,9 @@ export default function StudentLogin() {
         <div className="w-full max-w-sm bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-6">
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Username */}
+            {/* Student ID */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Username / Student ID</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Student ID</label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
                   <User className="h-4 w-4 text-gray-400" />
@@ -86,11 +96,12 @@ export default function StudentLogin() {
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  placeholder="e.g. S0001 or your username"
+                  placeholder="e.g. S25011"
                   required
                   className="w-full border border-gray-200 bg-gray-50 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                 />
               </div>
+              <p className="text-xs text-gray-400 mt-1">Case-insensitive (S25011 or s25011)</p>
             </div>
 
             {/* Password */}
