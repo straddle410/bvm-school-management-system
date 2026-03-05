@@ -104,7 +104,11 @@ export default function Profile() {
     }
     try {
       setIsSaving(true);
-      const res = await base44.functions.invoke('updateMyProfile', formData);
+      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const res = await base44.functions.invoke('updateMyProfile', {
+        ...formData,
+        staff_session_token: session?.staff_session_token || null,
+      });
       if (res.data?.success) {
         toast.success('Profile updated successfully');
         setIsEditing(false);
