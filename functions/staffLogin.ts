@@ -48,31 +48,44 @@ Deno.serve(async (req) => {
 
     const normalizedUsername = username.trim().toLowerCase();
 
-    const staff = await base44.asServiceRole.entities.StaffAccount.filter({
-      username: normalizedUsername,
-    });
+    // Fetch ALL staff and find by username (case-insensitive) — avoids DB case-sensitivity issues
+    const allStaff = await base44.asServiceRole.entities.StaffAccount.list();
+    const staff = (allStaff || []).filter(s => (s.username || '').trim().toLowerCase() === normalizedUsername);
+
+    console.log(`[staffLogin] username="${normalizedUsername}" found=${staff.length} record(s)`);
 
     if (!staff || staff.length === 0) {
-      return Response.json({ error: 'Invalid username or password' }, { status: 401 });
+      console.log(`[staffLogin] USER_NOT_FOUND: "${normalizedUsername}"`);
+      return Response.json({ error: 'User not found. Check username and try again.', code: 'USER_NOT_FOUND' }, { status: 401 });
     }
 
     const account = staff[0];
+    console.log(`[staffLogin] Found staff_id=${account.id} is_active=${account.is_active} hasPasswordHash=${!!account.password_hash}`);
 
     if (!account.is_active) {
-      return Response.json({ error: 'Account inactive. Contact administrator.' }, { status: 403 });
+      console.log(`[staffLogin] ACCOUNT_INACTIVE: staff_id=${account.id}`);
+      return Response.json({ error: 'Account inactive. Contact administrator.', code: 'ACCOUNT_INACTIVE' }, { status: 403 });
     }
 
     if (account.account_locked_until) {
       const lockTime = new Date(account.account_locked_until);
       if (lockTime > new Date()) {
+        console.log(`[staffLogin] ACCOUNT_LOCKED: staff_id=${account.id} until=${account.account_locked_until}`);
         return Response.json({
           error: 'Account locked. Try again later or contact administrator.',
+          code: 'ACCOUNT_LOCKED',
           locked_until: account.account_locked_until,
         }, { status: 403 });
       }
     }
 
+    if (!account.password_hash) {
+      console.log(`[staffLogin] PASSWORD_NOT_SET: staff_id=${account.id}`);
+      return Response.json({ error: 'Password not set. Contact administrator to reset your password.', code: 'PASSWORD_NOT_SET' }, { status: 401 });
+    }
+
     const passwordValid = validatePassword(password, account.password_hash);
+    console.log(`[staffLogin] passwordValid=${passwordValid} for staff_id=${account.id}`);
 
     if (!passwordValid) {
       const newFailedAttempts = (account.failed_login_attempts || 0) + 1;
@@ -81,7 +94,8 @@ Deno.serve(async (req) => {
         updateData.account_locked_until = new Date(Date.now() + 15 * 60 * 1000).toISOString();
       }
       await base44.asServiceRole.entities.StaffAccount.update(account.id, updateData);
-      return Response.json({ error: 'Invalid username or password' }, { status: 401 });
+      console.log(`[staffLogin] PASSWORD_MISMATCH: staff_id=${account.id} attempts=${newFailedAttempts}`);
+      return Response.json({ error: 'Incorrect password. Please try again.', code: 'PASSWORD_MISMATCH' }, { status: 401 });
     }
 
     // Successful auth — update login metadata
