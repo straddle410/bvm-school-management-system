@@ -171,5 +171,28 @@ export default function ClassSubjectConfigTab() {
         </div>
       </CardContent>
     </Card>
+
+    {/* Success Modal */}
+    <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-green-600">✓ Saved Successfully</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-sm text-slate-700">
+            Subjects for <span className="font-semibold">Class {selectedClass}</span> have been saved.
+          </p>
+          <p className="text-sm text-slate-600">
+            The configuration for <span className="font-semibold">{academicYear}</span> has been updated.
+          </p>
+          <Button
+            onClick={() => setShowSuccessModal(false)}
+            className="w-full bg-green-600 hover:bg-green-700"
+          >
+            Done
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
