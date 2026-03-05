@@ -132,9 +132,13 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
         <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
              <h2 className="font-bold text-slate-800">{editItem ? 'Edit Homework' : 'Create Homework'}</h2>
              <div className="flex items-center gap-2">
-               <button onClick={() => setShowAIAssist(true)} className="hover:bg-purple-100 p-1.5 rounded-lg transition" title="AI Assist">
-                 <Sparkles className="h-5 w-5 text-purple-600" />
-               </button>
+               <Button
+                 size="sm"
+                 onClick={() => setShowAIAssist(true)}
+                 className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium"
+               >
+                 <Sparkles className="h-3.5 w-3.5 mr-1.5" /> AI Assist
+               </Button>
                <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
              </div>
            </div>
