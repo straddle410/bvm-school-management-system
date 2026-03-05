@@ -9,6 +9,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
   const qc = useQueryClient();
   const isSubmitted = !!existingSubmission;
   const isGraded = existingSubmission?.status === 'Graded';
+  const isViewOnly = hw.submission_mode === 'VIEW_ONLY';
 
   const [mcqAnswers, setMcqAnswers] = useState(
     existingSubmission?.mcq_answers || hw.mcq_questions?.map((_, i) => ({ question_index: i, selected_option: '' })) || []
@@ -106,7 +107,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
             <p className="text-xs text-gray-500">{hw.subject} • Class {hw.class_name}</p>
           </div>
           <div className="flex items-center gap-2">
-            {!isSubmitted && (
+            {!isViewOnly && !isSubmitted && (
               <button
                 onClick={() => submitMutation.mutate()}
                 disabled={submitMutation.isPending}
@@ -194,7 +195,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           {(hw.homework_type === 'Project' || hw.homework_type === 'Assignment' || hw.homework_type === 'Other') && (
             <div>
               <p className="text-sm font-semibold text-slate-800 mb-2">Upload Files</p>
-              {!isSubmitted && (
+              {!isViewOnly && !isSubmitted && (
                 <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-xl px-4 py-4 cursor-pointer hover:bg-gray-50 text-sm text-gray-500">
                   <Upload className="h-5 w-5" />
                   {uploading ? 'Uploading...' : 'Tap to upload PDF, images or documents'}

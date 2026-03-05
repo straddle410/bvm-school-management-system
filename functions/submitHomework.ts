@@ -20,6 +20,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
     }
 
+    // ── HOMEWORK SUBMISSION MODE CHECK ──
+    const homeworks = await base44.asServiceRole.entities.Homework.filter({ id: submission.homework_id });
+    const homework = homeworks[0];
+    if (!homework) {
+      return Response.json({ error: 'Homework not found.' }, { status: 404 });
+    }
+    if (homework.submission_mode === 'VIEW_ONLY') {
+      return Response.json({ error: 'HOMEWORK_NOT_ACCEPTING_SUBMISSIONS', message: 'This homework is view-only.' }, { status: 422 });
+    }
+
     const result = await base44.asServiceRole.entities.HomeworkSubmission.create(submission);
     return Response.json({ success: true, id: result.id }, { status: 201 });
   } catch (error) {
