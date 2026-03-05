@@ -240,17 +240,25 @@ export default function Notices() {
               </Button>
             )}
             {isStaff && (
-              <Button
-                onClick={() => {
-                  setEditingNotice(null);
-                  resetForm();
-                  setShowDialog(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
-              >
-                <Plus className="h-4 w-4 mr-1" /> {isAdmin ? 'Post Notice' : 'Create Notice'}
-              </Button>
-            )}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowAIAssist(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" /> AI Assist
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setEditingNotice(null);
+                      resetForm();
+                      setShowDialog(true);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> {isAdmin ? 'Post Notice' : 'Create Notice'}
+                  </Button>
+                </div>
+              )}
           </div>
         </div>
       </div>
