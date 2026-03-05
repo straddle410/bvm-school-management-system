@@ -164,7 +164,9 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </header>
           <main className="flex-1 overflow-y-auto">
-            {children}
+            <StudentAuthGuard currentPageName={currentPageName}>
+              {children}
+            </StudentAuthGuard>
           </main>
           <StudentBottomNav currentPage={currentPageName} />
         </div>
@@ -175,6 +177,7 @@ export default function Layout({ children, currentPageName }) {
   return (
     <AcademicYearProvider>
       <MessageNotificationListener />
+      <StaffAuthGuard currentPageName={currentPageName}>
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
       <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
