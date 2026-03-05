@@ -9,6 +9,8 @@ import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 import { getProxiedImageUrl } from '@/components/imageProxy';
+import StudentAuthGuard from '@/components/StudentAuthGuard';
+import StaffAuthGuard from '@/components/StaffAuthGuard';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
