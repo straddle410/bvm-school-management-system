@@ -36,6 +36,27 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
   const [subjectSource, setSubjectSource] = useState('GLOBAL');
   const [subjectSourceLabel, setSubjectSourceLabel] = useState('');
 
+  // Fetch subjects when class changes
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      if (form.class_name && academicYear) {
+        const result = await getSubjectsForClass(academicYear, form.class_name);
+        setSubjects(result.subjects);
+        setSubjectSource(result.source);
+        setSubjectSourceLabel(getSubjectSourceLabel(result.source, academicYear));
+        // Reset subject if not in new list
+        if (result.subjects.length > 0 && !result.subjects.includes(form.subject)) {
+          setForm(f => ({ ...f, subject: '' }));
+        }
+      } else {
+        setSubjects([]);
+        setSubjectSource('GLOBAL');
+        setSubjectSourceLabel('');
+      }
+    };
+    fetchSubjects();
+  }, [form.class_name, academicYear]);
+
   useEffect(() => {
     if (editItem) {
       setForm({
