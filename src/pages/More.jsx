@@ -60,8 +60,12 @@ export default function More() {
       { label: 'Results', sub: 'View & submit results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
     ],
     student: [
-      { label: 'Hall Tickets', sub: 'Download hall tickets', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', page: 'Results' },
-      { label: 'Results', sub: 'View exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'Results' },
+      { label: 'Fees', sub: 'View and pay fees', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', page: 'StudentFees' },
+      { label: 'Progress Card', sub: 'View progress reports', icon: FileText, color: '#e91e63', bg: '#fce4ec', page: 'Results' },
+      { label: 'Quiz', sub: 'Daily quizzes', icon: HelpCircle, color: '#f57c00', bg: '#fff3e0', page: 'Quiz' },
+      { label: 'Gallery', sub: 'School photos', icon: Image, color: '#00796b', bg: '#e0f2f1', page: 'Gallery' },
+      { label: 'Profile', sub: 'My profile & details', icon: User, color: '#5c6bc0', bg: '#e8eaf6', page: 'UserProfile' },
+      { label: 'Change Password', sub: 'Update your password', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'StudentProfile' },
     ],
   };
 
