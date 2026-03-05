@@ -325,7 +325,6 @@ export default function StudentProfile() {
             onSuccess={() => setShowChangePassword(false)}
             />
             )}
-      </div>
-    </div>
+            </div>
   );
 }
