@@ -154,6 +154,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
                 {subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               {subjectSourceLabel && <p className="text-xs text-gray-500 mt-1">{subjectSourceLabel}</p>}
+              <p className="text-xs text-gray-400 mt-0.5">Year: {academicYear} | Class: {form.class_name || '—'} | Source: {subjectSource} | Count: {subjects.length}</p>
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Due Date *</label>
