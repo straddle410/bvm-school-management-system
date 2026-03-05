@@ -147,7 +147,11 @@ export default function ClassSubjectConfigTab() {
           {CLASSES.map(cls => (
             <button
               key={cls}
-              onClick={() => setSelectedClass(cls)}
+              onClick={() => {
+                const normalized = normalizeClassName(cls);
+                console.log('[CLASS_TAB_SWITCH] to:', normalized);
+                setSelectedClass(normalized);
+              }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                 selectedClass === cls
                   ? 'bg-[#1a237e] text-white border-[#1a237e]'
