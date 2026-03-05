@@ -3,11 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { HelpCircle, BarChart3, FileText, Image, User, Shield, LogOut } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import StudentChangePassword from '@/components/StudentChangePassword';
 
 export default function StudentMore() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
@@ -85,18 +87,18 @@ export default function StudentMore() {
         {/* Account Section */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-100">
           <p className="px-4 pt-3.5 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Account</p>
-          <Link
-           to="/studentprofile"
-           className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          <button
+           onClick={() => setShowChangePassword(true)}
+           className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
               <Shield className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <p className="text-sm font-semibold text-gray-900">Change Password</p>
               <p className="text-xs text-gray-500 mt-0.5">Update your password</p>
             </div>
-          </Link>
+          </button>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
@@ -115,7 +117,16 @@ export default function StudentMore() {
         <p className="text-center text-xs text-gray-400 py-4">
           {schoolProfile?.school_name || 'BVM School of Excellence'}
         </p>
-      </div>
-    </div>
-  );
-}
+        </div>
+
+        {/* Change Password Modal */}
+        {showChangePassword && session && (
+        <StudentChangePassword 
+          student={{ ...session, id: session.id, username: session.student_id }}
+          onClose={() => setShowChangePassword(false)}
+          onSuccess={() => setShowChangePassword(false)}
+        />
+        )}
+        </div>
+        );
+        }
