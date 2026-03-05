@@ -2,8 +2,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
  * Returns authoritative role + permissions for the currently logged-in staff member.
- * Identity is derived SOLELY from StaffAuthLink (base44_user_id -> staff_id).
- * No client-supplied staff_id, email, or username is trusted.
+ * Identity is derived from StaffAuthLink (base44_user_id -> staff_id).
+ *
+ * Auto-repair: If no StaffAuthLink exists yet (staff logged in before the link
+ * system was introduced), the client may supply `staff_id` in the request body.
+ * We verify the StaffAccount exists and create the link automatically.
  */
 Deno.serve(async (req) => {
   try {
@@ -16,9 +19,35 @@ Deno.serve(async (req) => {
     }
 
     // Step 2: Resolve staff_id from the auth link table
-    const links = await base44.asServiceRole.entities.StaffAuthLink.filter({
+    let links = await base44.asServiceRole.entities.StaffAuthLink.filter({
       base44_user_id: authUser.id,
     });
+
+    // ── Auto-repair: create missing link from client-supplied staff_id ──────
+    if (!links || links.length === 0) {
+      let bodyStaffId = null;
+      try {
+        const body = await req.json().catch(() => ({}));
+        bodyStaffId = body?.staff_id || null;
+      } catch {}
+
+      if (bodyStaffId) {
+        // Verify the StaffAccount actually exists before trusting the client value
+        const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: bodyStaffId });
+        if (accounts && accounts.length > 0) {
+          console.log(`AUTO-REPAIR: creating StaffAuthLink base44_user_id=${authUser.id} -> staff_id=${bodyStaffId}`);
+          await base44.asServiceRole.entities.StaffAuthLink.create({
+            base44_user_id: authUser.id,
+            staff_id: bodyStaffId,
+            last_login_at: new Date().toISOString(),
+          });
+          // Re-fetch to continue normally
+          links = await base44.asServiceRole.entities.StaffAuthLink.filter({
+            base44_user_id: authUser.id,
+          });
+        }
+      }
+    }
 
     if (!links || links.length === 0) {
       return Response.json(
