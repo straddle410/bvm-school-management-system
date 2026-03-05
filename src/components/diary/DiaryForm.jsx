@@ -123,8 +123,8 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
            <Sparkles className="h-3.5 w-3.5 mr-1.5" /> AI Assist
          </Button>
        </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <CardContent className="max-h-[80vh] overflow-y-auto">
+         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Class *</label>
