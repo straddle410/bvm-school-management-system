@@ -37,7 +37,8 @@ export default function Profile() {
       });
 
       if (!res.data || res.data.error) {
-        setError(res.data?.error || 'Could not load profile');
+        const code = res.data?.code || 'UNKNOWN';
+        setError(`${res.data?.error || 'Could not load profile'} [${code}]`);
         setIsLoading(false);
         return;
       }
