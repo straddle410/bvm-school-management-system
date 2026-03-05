@@ -283,7 +283,25 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
             </Button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
+        </div>
+
+        {showAIAssist && (
+        <AIAssistDrawer
+          type="homework"
+          className={form.class_name}
+          section={form.section}
+          academicYear={academicYear}
+          onInsert={(generated) => {
+            setForm(f => ({
+              ...f,
+              title: generated.title || f.title,
+              description: generated.instructions || f.description
+            }));
+            toast.success('Content inserted!');
+          }}
+          onClose={() => setShowAIAssist(false)}
+        />
+        )}
+        </div>
+        );
+        }
