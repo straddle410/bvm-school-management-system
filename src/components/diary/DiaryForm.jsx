@@ -28,6 +28,12 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
    const todayDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
    const [showAIAssist, setShowAIAssist] = useState(false);
 
+   // Debug logging
+   useEffect(() => {
+     const staffSession = localStorage.getItem('staff_session');
+     console.log('[AI_ASSIST_RENDER]', { page: 'Diary', staff: !!staffSession });
+   }, []);
+
    const [formData, setFormData] = useState(entry || {
     title: '',
     description: '',
