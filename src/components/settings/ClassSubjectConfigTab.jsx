@@ -242,72 +242,39 @@ export default function ClassSubjectConfigTab() {
               </div>
             </div>
 
-            {/* Existing & New Subjects Checkboxes */}
-            {allSubjects.length === 0 && selected.length === 0 ? (
+            {/* Ordered Subjects List with Drag & Drop */}
+            {selected.length === 0 ? (
               <p className="text-slate-400 text-sm">No subjects yet. Add one using the text input above.</p>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-700">
-                    Select subjects for Class {selectedClass}
-                    <span className="ml-2 text-xs text-slate-400">({selected.length} selected)</span>
-                  </p>
-                  {(allSubjects.length > 0 || selected.length > 0) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const allNames = [...new Set([...allSubjects.map(s => s.name), ...selected])];
-                        setSelected(selected.length === allNames.length ? [] : allNames);
+                <p className="text-sm font-medium text-slate-700 mb-3">
+                  Subjects for Class {selectedClass} (drag to reorder)
+                </p>
+                <div className="space-y-2 border rounded-lg p-3 bg-slate-50">
+                  {selected.map((subName, idx) => (
+                    <SubjectListItem
+                      key={`${subName}-${idx}`}
+                      index={idx}
+                      subject={subName}
+                      isNew={!allSubjects.find(x => x.name === subName)}
+                      onMoveUp={() => {
+                        if (idx > 0) {
+                          const updated = [...selected];
+                          [updated[idx], updated[idx - 1]] = [updated[idx - 1], updated[idx]];
+                          setSelected(updated);
+                        }
                       }}
-                      className="text-xs h-7"
-                    >
-                      {selected.length === allSubjects.length && allSubjects.length > 0 ? 'Deselect All' : 'Select All'}
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {/* Existing subjects from master list */}
-                  {allSubjects.map(sub => (
-                    <label
-                      key={sub.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        selected.includes(sub.name)
-                          ? 'bg-blue-50 border-blue-300'
-                          : 'bg-white border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className={`h-5 w-5 rounded flex items-center justify-center flex-shrink-0 ${
-                        selected.includes(sub.name) ? 'bg-[#1a237e]' : 'border-2 border-slate-300'
-                      }`}>
-                        {selected.includes(sub.name) && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={selected.includes(sub.name)}
-                        onChange={() => toggle(sub.name)}
-                      />
-                      <span className="text-sm font-medium text-slate-700">{sub.name}</span>
-                    </label>
-                  ))}
-                  {/* Newly added subjects only in this class */}
-                  {selected.filter(s => !allSubjects.find(x => x.name === s)).map(subName => (
-                    <label
-                      key={subName}
-                      className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors bg-green-50 border-green-300"
-                    >
-                      <div className="h-5 w-5 rounded flex items-center justify-center flex-shrink-0 bg-green-600">
-                        <Check className="h-3 w-3 text-white" />
-                      </div>
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={true}
-                        onChange={() => toggle(subName)}
-                      />
-                      <span className="text-sm font-medium text-slate-700">{subName} <span className="text-xs text-green-600">(new)</span></span>
-                    </label>
+                      onMoveDown={() => {
+                        if (idx < selected.length - 1) {
+                          const updated = [...selected];
+                          [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+                          setSelected(updated);
+                        }
+                      }}
+                      onRemove={() => {
+                        setSelected(prev => prev.filter((_, i) => i !== idx));
+                      }}
+                    />
                   ))}
                 </div>
               </>
