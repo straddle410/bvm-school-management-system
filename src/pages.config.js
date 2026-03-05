@@ -94,7 +94,6 @@ import Results from './pages/Results';
 import Settings from './pages/Settings';
 import Staff from './pages/Staff';
 import StaffLogin from './pages/StaffLogin';
-import StaffManagement from './pages/StaffManagement';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
@@ -159,7 +158,6 @@ export const PAGES = {
     "Settings": Settings,
     "Staff": Staff,
     "StaffLogin": StaffLogin,
-    "StaffManagement": StaffManagement,
     "StudentDashboard": StudentDashboard,
     "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,

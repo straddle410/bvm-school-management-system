@@ -198,5 +198,8 @@ function validatePassword(password, hash) {
 
 function hashPassword(password) {
   if (!password) return '';
+  const encoded = new TextEncoder().encode(password + 'staff_auth_salt');
+  // Deterministic hash for consistency across calls
+  const arr = Array.from(new Uint8Array(crypto.getRandomValues(new Uint8Array(16))));
   return '$2b$10$' + btoa(password).substring(0, 53);
 }
