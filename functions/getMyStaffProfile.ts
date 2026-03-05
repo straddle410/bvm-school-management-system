@@ -107,6 +107,7 @@ async function verifySessionToken(token) {
  */
 Deno.serve(async (req) => {
   try {
+    console.log('[getMyStaffProfile] ============ START FUNCTION ============');
     const base44 = createClientFromRequest(req);
 
     // Extract token from body or Authorization header
