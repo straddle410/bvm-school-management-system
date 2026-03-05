@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -9,6 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Lock, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const ERROR_MESSAGES = {
+  CURRENT_PASSWORD_INCORRECT: 'The current password you entered is incorrect.',
+  STAFF_SESSION_INVALID: 'Your session has expired. Please log in again.',
+  TOKEN_MISSING: 'Your session has expired. Please log in again.',
+  WEAK_PASSWORD: 'Password must be at least 8 characters.',
+  MISSING_FIELDS: 'Please fill in all fields.',
+  UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',
+};
+
 export default function ChangeStaffPassword() {
   const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState('');
@@ -16,28 +25,43 @@ export default function ChangeStaffPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState('');
   const [success, setSuccess] = useState(false);
+  const [token, setToken] = useState(null);
 
-  const session = (() => {
+  useEffect(() => {
+    // Resolve staff_session_token from localStorage
     try {
-      return JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const raw = localStorage.getItem('staff_session');
+      if (!raw) { navigate(createPageUrl('StaffLogin')); return; }
+      const session = JSON.parse(raw);
+      const t = session?.staff_session_token;
+      if (!t) { navigate(createPageUrl('StaffLogin')); return; }
+      setToken(t);
     } catch {
       navigate(createPageUrl('StaffLogin'));
-      return {};
     }
-  })();
+  }, []);
 
   const handleChange = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorCode('');
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
       return;
     }
 
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(ERROR_MESSAGES.WEAK_PASSWORD);
+      setErrorCode('WEAK_PASSWORD');
+      return;
+    }
+
+    if (!token) {
+      setError(ERROR_MESSAGES.TOKEN_MISSING);
+      setErrorCode('TOKEN_MISSING');
       return;
     }
 
@@ -45,18 +69,42 @@ export default function ChangeStaffPassword() {
 
     try {
       const response = await base44.functions.invoke('changeStaffPassword', {
-        staff_id: session.staff_id,
-        current_password: currentPassword,
-        new_password: newPassword,
+        currentPassword,
+        newPassword,
+        // also send in body as fallback
+        staff_session_token: token,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      if (response.data.success) {
+      if (response.data?.success) {
+        // Update local session to reflect force_password_change=false
+        try {
+          const raw = localStorage.getItem('staff_session');
+          if (raw) {
+            const session = JSON.parse(raw);
+            session.force_password_change = false;
+            localStorage.setItem('staff_session', JSON.stringify(session));
+          }
+        } catch {}
+
         setSuccess(true);
-        toast.success('Password changed successfully');
+        toast.success('Password changed successfully!');
         setTimeout(() => navigate(createPageUrl('Dashboard')), 2000);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Password change failed');
+      const code = err.response?.data?.code || 'UNKNOWN_ERROR';
+      const msg = ERROR_MESSAGES[code] || err.response?.data?.error || ERROR_MESSAGES.UNKNOWN_ERROR;
+      setError(msg);
+      setErrorCode(code);
+
+      // If session invalid → force re-login
+      if (code === 'STAFF_SESSION_INVALID' || code === 'TOKEN_MISSING') {
+        localStorage.removeItem('staff_session');
+        setTimeout(() => navigate(createPageUrl('StaffLogin')), 2500);
+      }
     } finally {
       setLoading(false);
     }
@@ -65,11 +113,11 @@ export default function ChangeStaffPassword() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
-        <CardHeader className="bg-gradient-to-r from-[#1a237e] to-[#283593] text-white rounded-t-lg">
+        <CardHeader className="bg-gradient-to-r from-[#1a237e] to-[#283593] text-white rounded-t-lg pb-6">
           <Lock className="h-10 w-10 mx-auto mb-3" />
           <CardTitle className="text-center text-2xl">Change Password</CardTitle>
           <CardDescription className="text-center text-blue-100 mt-1">
-            First login - password change required
+            First login — password change required
           </CardDescription>
         </CardHeader>
 
@@ -77,17 +125,20 @@ export default function ChangeStaffPassword() {
           {success ? (
             <div className="space-y-4 text-center py-8">
               <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-              <h3 className="text-lg font-semibold text-slate-800">Success!</h3>
-              <p className="text-sm text-slate-600">
-                Your password has been changed. Redirecting to dashboard...
-              </p>
+              <h3 className="text-lg font-semibold text-slate-800">Password Changed!</h3>
+              <p className="text-sm text-slate-600">Redirecting to dashboard...</p>
             </div>
           ) : (
             <form onSubmit={handleChange} className="space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
                   <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700">{error}</p>
+                  <div>
+                    <p className="text-sm text-red-700">{error}</p>
+                    {errorCode && (
+                      <p className="text-xs text-red-400 font-mono mt-0.5">{errorCode}</p>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -97,7 +148,7 @@ export default function ChangeStaffPassword() {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
+                  placeholder="Enter current (temporary) password"
                   disabled={loading}
                   required
                 />
@@ -116,12 +167,12 @@ export default function ChangeStaffPassword() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-700 font-medium">Confirm Password</Label>
+                <Label className="text-slate-700 font-medium">Confirm New Password</Label>
                 <Input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder="Re-enter new password"
                   disabled={loading}
                   required
                 />
@@ -129,7 +180,7 @@ export default function ChangeStaffPassword() {
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !token}
                 className="w-full h-10 bg-gradient-to-r from-[#1a237e] to-[#283593] hover:from-[#0d1b5e] hover:to-[#1a2673] text-white font-semibold"
               >
                 {loading ? (
