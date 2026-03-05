@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getSubjectsForClass, getSubjectSourceLabel } from '@/components/subjectHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +21,9 @@ import { useQuery } from '@tanstack/react-query';
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
-export default function DiaryForm({ entry, onSubmit, onCancel, academicYear }) {
+export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: propAcademicYear }) {
+  const contextAcademicYear = useAcademicYear();
+  const finalAcademicYear = propAcademicYear || contextAcademicYear.academicYear;
   const todayDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
 
   const [formData, setFormData] = useState(entry || {
@@ -30,20 +34,33 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear }) {
     subject: '',
     diary_date: todayDate,
     attachment_urls: [],
-    academic_year: academicYear,
+    academic_year: finalAcademicYear,
     status: 'Draft'
   });
 
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [subjectSourceLabel, setSubjectSourceLabel] = useState('');
 
-  const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: async () => {
-      const subs = await base44.entities.Subject.list();
-      return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-    }
-  });
+  // Fetch subjects when class changes
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      if (formData.class_name && finalAcademicYear) {
+        const result = await getSubjectsForClass(finalAcademicYear, formData.class_name);
+        setSubjects(result.subjects);
+        setSubjectSourceLabel(getSubjectSourceLabel(result.source, finalAcademicYear));
+        // Reset subject if not in new list
+        if (result.subjects.length > 0 && !result.subjects.includes(formData.subject)) {
+          setFormData(f => ({ ...f, subject: '' }));
+        }
+      } else {
+        setSubjects([]);
+        setSubjectSourceLabel('');
+      }
+    };
+    fetchSubjects();
+  }, [formData.class_name, finalAcademicYear]);
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
