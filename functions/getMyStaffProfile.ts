@@ -109,10 +109,31 @@ Deno.serve(async (req) => {
 
     // Load StaffAccount
     console.log(`[getMyStaffProfile] Looking up StaffAccount id=${staff_id}`);
-    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+    let accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+    
+    let isProfileCreated = false;
     if (!accounts || accounts.length === 0) {
-      console.error(`[getMyStaffProfile] STAFF_NOT_FOUND: no account with id=${staff_id}`);
-      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND' }, { status: 404 });
+      console.warn(`[getMyStaffProfile] Staff not found, auto-creating minimal account for staff_id=${staff_id}`);
+      try {
+        // Create minimal staff account (upsert behavior)
+        const newAccount = await base44.asServiceRole.entities.StaffAccount.create({
+          id: staff_id,
+          name: 'Staff Member',
+          username: `staff_${staff_id}`,
+          password_hash: '$2b$10$disabled', // Disabled — login via token only
+          role: verified.role || 'staff',
+          is_active: true,
+        });
+        accounts = [newAccount];
+        isProfileCreated = true;
+        console.log(`[getMyStaffProfile] PROFILE_AUTO_CREATED for staff_id=${staff_id}`);
+      } catch (createErr) {
+        console.error(`[getMyStaffProfile] Failed to auto-create profile: ${createErr.message}`);
+        return Response.json({ 
+          error: 'Staff record not found. Please contact admin to re-create staff account.', 
+          code: 'STAFF_NOT_FOUND' 
+        }, { status: 404 });
+      }
     }
 
     const account = accounts[0];
