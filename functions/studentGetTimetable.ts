@@ -17,9 +17,12 @@ Deno.serve(async (req) => {
     }
     const student = students[0];
 
-    // Get current academic year
-    const years = await base44.entities.AcademicYear.filter({ status: 'Active' });
-    const currentYear = years[0]?.year || student.academic_year;
+    // Get CURRENT academic year (must be explicitly marked as current)
+    const years = await base44.entities.AcademicYear.filter({ is_current: true });
+    if (!years.length) {
+      return Response.json({ error: 'ACADEMIC_YEAR_NOT_SET', message: 'No current academic year configured' }, { status: 422 });
+    }
+    const currentYear = years[0].year;
 
     // Fetch timetable for student's class and section
     const timetables = await base44.entities.Timetable.filter({

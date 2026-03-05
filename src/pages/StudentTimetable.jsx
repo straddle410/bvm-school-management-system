@@ -72,7 +72,7 @@ export default function StudentTimetable() {
             <CardContent className="py-8">
               <div className="flex flex-col items-center gap-3 text-center">
                 <AlertCircle className="h-8 w-8 text-orange-500" />
-                <p className="text-gray-600 font-medium">Class timetable not yet published.</p>
+                <p className="text-gray-600 font-medium">Timetable not yet published for {timetableData.academic_year || 'this year'}.</p>
                 <p className="text-sm text-gray-400">Contact your school for the timetable details.</p>
               </div>
             </CardContent>
