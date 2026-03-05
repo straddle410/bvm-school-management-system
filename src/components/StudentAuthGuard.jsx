@@ -29,17 +29,29 @@ export default function StudentAuthGuard({ children, currentPageName }) {
       return;
     }
 
-    // Check for student session
+    // Check for student and staff sessions
     let hasStudentSession = false;
+    let hasStaffSession = false;
     try {
-      const session = localStorage.getItem('student_session');
-      if (session) {
-        const parsed = JSON.parse(session);
+      const studentSession = localStorage.getItem('student_session');
+      if (studentSession) {
+        const parsed = JSON.parse(studentSession);
         hasStudentSession = !!parsed;
+      }
+      const staffSession = localStorage.getItem('staff_session');
+      if (staffSession) {
+        const parsed = JSON.parse(staffSession);
+        hasStaffSession = !!parsed;
       }
     } catch {}
 
-    // Redirect to login if no session
+    // If staff session exists, redirect to staff dashboard (cross-role protection)
+    if (hasStaffSession) {
+      navigate(createPageUrl('Dashboard'));
+      return;
+    }
+
+    // Redirect to login if no student session
     if (!hasStudentSession) {
       navigate(createPageUrl('StudentLogin'));
     }
