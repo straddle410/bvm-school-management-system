@@ -312,18 +312,37 @@ export default function Notices() {
         )}
       </div>
 
+      {/* AI Assist Drawer */}
+      {showAIAssist && (
+        <AIAssistDrawer
+          type="notice"
+          className={user?.class_name || ''}
+          section={user?.section || ''}
+          academicYear={academicYear}
+          onInsert={(generated) => {
+            setForm({
+              ...form,
+              title: generated.title || form.title,
+              content: generated.body || form.content
+            });
+            toast.success('Content inserted! Review before publishing.');
+          }}
+          onClose={() => setShowAIAssist(false)}
+        />
+      )}
+
       {/* Table Builder Dialog */}
-      <Dialog open={showTableBuilder} onOpenChange={setShowTableBuilder}>
-        <DialogContent className="max-w-2xl">
-          <TableBuilder 
-            onInsert={(html) => {
-              setForm({...form, content: form.content + '\n' + html});
-              setShowTableBuilder(false);
-            }}
-            onClose={() => setShowTableBuilder(false)}
-          />
-        </DialogContent>
-      </Dialog>
+       <Dialog open={showTableBuilder} onOpenChange={setShowTableBuilder}>
+         <DialogContent className="max-w-2xl">
+           <TableBuilder 
+             onInsert={(html) => {
+               setForm({...form, content: form.content + '\n' + html});
+               setShowTableBuilder(false);
+             }}
+             onClose={() => setShowTableBuilder(false)}
+           />
+         </DialogContent>
+       </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
