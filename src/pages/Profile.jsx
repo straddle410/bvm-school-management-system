@@ -118,19 +118,39 @@ export default function Profile() {
   }
 
   if (error || !staffAccount) {
+    const isLinkMissing = error?.includes('LINK_MISSING') || error?.includes('not linked') || error?.includes('log in again');
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-2xl mx-auto">
           <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-[#1a237e] hover:opacity-70">
             <ArrowLeft className="h-5 w-5" /> Back
           </button>
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="pt-6 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-gray-900">Profile not found</p>
-                <p className="text-sm text-gray-600">{error || 'Your staff account could not be loaded.'}</p>
+          <Card className={isLinkMissing ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}>
+            <CardContent className="pt-6 flex flex-col gap-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${isLinkMissing ? 'text-red-600' : 'text-amber-600'}`} />
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {isLinkMissing ? 'Session not linked' : 'Profile not found'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {isLinkMissing
+                      ? 'Your session is not linked to a staff account. Please log out and log in again.'
+                      : (error || 'Your staff account could not be loaded.')}
+                  </p>
+                </div>
               </div>
+              {isLinkMissing && (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('staff_session');
+                    base44.auth.logout(createPageUrl('StaffLogin'));
+                  }}
+                  className="flex items-center gap-2 text-sm font-medium text-red-700 hover:text-red-900"
+                >
+                  <LogOut className="h-4 w-4" /> Log out and login again
+                </button>
+              )}
             </CardContent>
           </Card>
         </div>
