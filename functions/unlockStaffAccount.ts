@@ -37,10 +37,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    if (!staff_id) {
-      return Response.json({ error: 'Staff ID required' }, { status: 400 });
-    }
-
     // Unlock account
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
       account_locked_until: null,
