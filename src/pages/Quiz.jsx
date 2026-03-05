@@ -702,8 +702,32 @@ export default function Quiz() {
         )}
       </div>
 
+      {/* AI Assist Drawer */}
+      {showAIAssist && (
+        <AIAssistDrawer
+          type="quiz"
+          className={quizForm.class_name}
+          section="A"
+          academicYear={academicYear}
+          onInsert={(generated) => {
+            setQuizForm(f => ({
+              ...f,
+              title: generated.title || f.title,
+              questions: generated.questions ? generated.questions.map((q, idx) => ({
+                question: q.question,
+                type: q.options ? 'MCQ' : 'Descriptive',
+                options: q.options || [],
+                correct_answer: q.answer || ''
+              })) : f.questions
+            }));
+            toast.success('Quiz content inserted! Review before creating.');
+          }}
+          onClose={() => setShowAIAssist(false)}
+        />
+      )}
+
       {/* Create Quiz Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Daily Quiz</DialogTitle>
