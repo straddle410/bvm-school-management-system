@@ -109,7 +109,15 @@ export default function Profile() {
     }
     try {
       setIsSaving(true);
-      const res = await base44.functions.invoke('updateMyProfile', formData);
+      const session = (() => {
+        try { return JSON.parse(localStorage.getItem('staff_session')); } catch { return null; }
+      })();
+      const res = await base44.functions.invoke('updateMyProfile', {
+        ...formData,
+        _caller_staff_id: session?.staff_id || null,
+        _caller_email: session?.email || null,
+        _caller_username: session?.username || null,
+      });
       if (res.data?.success) {
         toast.success('Profile updated successfully');
         setIsEditing(false);

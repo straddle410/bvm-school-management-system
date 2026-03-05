@@ -185,10 +185,10 @@ export default function More() {
                      <p className="mt-3 text-white/70 text-sm">Loading...</p>
                    ) : (
                      <>
-                       <p className="mt-3 font-bold text-lg">{user?.full_name}</p>
-                       <span className="mt-1 px-3 py-0.5 bg-yellow-400 text-gray-900 text-xs font-bold rounded-full capitalize">
-                         {user?.role || 'User'}
-                       </span>
+                       <p className="mt-3 font-bold text-lg">{user?.name || user?.full_name}</p>
+                          <span className="mt-1 px-3 py-0.5 bg-yellow-400 text-gray-900 text-xs font-bold rounded-full capitalize">
+                             {user?.role || 'User'}
+                           </span>
                        <button
                          onClick={() => { clearStaffSession(); window.location.reload(); }}
                          className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors"

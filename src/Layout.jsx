@@ -171,14 +171,14 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex items-center gap-3">
           <AcademicYearSelector />
           {user && (
-            <button
-              onClick={() => navigate(createPageUrl('Profile'))}
+            <Link
+              to={createPageUrl('Profile')}
               className="flex items-center gap-2 hover:bg-white/20 px-3 py-1 rounded-lg transition text-sm"
               title={user.name || user.email}
             >
               <User className="h-4 w-4" />
               <span className="hidden sm:inline truncate max-w-[100px]">{user.name || user.email}</span>
-            </button>
+            </Link>
           )}
         </div>
       </header>
