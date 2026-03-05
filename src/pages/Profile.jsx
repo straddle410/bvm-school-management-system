@@ -25,11 +25,15 @@ export default function Profile() {
     setIsLoading(true);
     setError('');
     try {
-      // Pass HMAC-signed repair token (issued by staffLogin, 10-min TTL) for auto-repair of missing StaffAuthLink.
-      // Raw staff_id is never sent — only the signed token is trusted by the server.
       const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const token = session?.staff_session_token;
+      if (!token) {
+        setError('No session token found. Please login again. [TOKEN_MISSING]');
+        setIsLoading(false);
+        return;
+      }
       const res = await base44.functions.invoke('getMyStaffProfile', {
-        staff_session_token: session?.staff_session_token || null,
+        staff_session_token: token,
       });
 
       if (!res.data || res.data.error) {
