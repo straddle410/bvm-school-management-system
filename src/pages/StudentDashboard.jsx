@@ -152,6 +152,7 @@ export default function StudentDashboard() {
     Notices: unreadCounts.Notices || 0,
     Results: unreadCounts.Results || 0,
     Messages: unreadCounts.Messages || 0,
+    HallTickets: unreadCounts.HallTickets || 0,
   };
 
   const pendingHw = homework.filter(hw => !submissions.some(s => s.homework_id === hw.id)).length;
