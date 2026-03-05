@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getSubjectsForClass, getSubjectSourceLabel } from '@/components/subjectHelper';
-import { X, Plus, Trash2, Upload } from 'lucide-react';
+import { X, Plus, Trash2, Upload, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import AIAssistDrawer from '@/components/AIAssistDrawer';
+import { toast } from 'sonner';
 
 const CLASSES = ['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10','11','12'];
 const SECTIONS = ['All','A','B','C','D'];
