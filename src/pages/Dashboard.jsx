@@ -48,40 +48,44 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       const session = getStaffSession();
+      let resolvedRole = '';
 
       if (session?.username) {
         // Always re-verify role from StaffAccount (source of truth)
         try {
           const res = await base44.functions.invoke('getMyStaffProfile', { username: session.username });
           if (res.data?.role) {
-            const freshRole = normaliseRole(res.data.role);
-            setStaffRole(freshRole);
+            resolvedRole = normaliseRole(res.data.role);
+            setStaffRole(resolvedRole);
             setStaffName(res.data.name || session.name || '');
             setPermissionsCount(res.data.permissionsCount || 0);
             setRoleSource('StaffAccount (server)');
 
             // If role changed vs stored session, update it silently
-            if (normaliseRole(session.role) !== freshRole) {
-              const updated = { ...session, role: freshRole };
+            if (normaliseRole(session.role) !== resolvedRole) {
+              const updated = { ...session, role: resolvedRole };
               localStorage.setItem('staff_session', JSON.stringify(updated));
             }
           } else {
             // Server call succeeded but no role — fall back to session
-            setStaffRole(normaliseRole(session.role));
+            resolvedRole = normaliseRole(session.role);
+            setStaffRole(resolvedRole);
             setStaffName(session.name || '');
             setPermissionsCount(0);
             setRoleSource('staff_session (localStorage fallback)');
           }
         } catch {
           // Network error — use session as fallback
-          setStaffRole(normaliseRole(session.role));
+          resolvedRole = normaliseRole(session.role);
+          setStaffRole(resolvedRole);
           setStaffName(session.name || '');
           setPermissionsCount(0);
           setRoleSource('staff_session (fallback — server unreachable)');
         }
       } else if (session) {
         // Session exists but no username (legacy) — use as-is
-        setStaffRole(normaliseRole(session.role));
+        resolvedRole = normaliseRole(session.role);
+        setStaffRole(resolvedRole);
         setStaffName(session.name || '');
         setPermissionsCount(0);
         setRoleSource('staff_session (legacy — no username)');
@@ -89,13 +93,14 @@ export default function Dashboard() {
         // No staff session — try base44.auth.me() (for admin users who log in via platform)
         const currentUser = await base44.auth.me().catch(() => null);
         if (currentUser) {
-          setStaffRole(normaliseRole(currentUser.role));
+          resolvedRole = normaliseRole(currentUser.role);
+          setStaffRole(resolvedRole);
           setStaffName(currentUser.full_name || currentUser.email || '');
           setRoleSource('platform auth.me()');
         }
       }
 
-      // Load content for non-accountant roles (use resolvedRole from above)
+      // Load content for non-accountant roles
       if (resolvedRole !== 'accountant') {
         try {
           const diaries = await base44.entities.Diary.list('-created_date', 3);
