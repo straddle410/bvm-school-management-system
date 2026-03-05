@@ -52,52 +52,49 @@ export default function Dashboard() {
       let resolvedRole = '';
 
       if (session) {
-        // Always re-verify role from StaffAccount (source of truth)
-        // Pass all stable identifiers — server uses the most reliable one available
-        try {
-          const res = await base44.functions.invoke('getMyStaffProfile', {
-            staff_id: session.staff_id || null,
-            email: session.email || null,
-            username: session.username || null,
-          });
-          if (res.data?.role) {
-            resolvedRole = normaliseRole(res.data.role);
-            setStaffRole(resolvedRole);
-            setStaffName(res.data.name || session.name || '');
-            setPermissionsCount(res.data.permissionsCount || 0);
-            setRoleSource(`StaffAccount (${res.data.lookup_method || 'server'})`);
+        // Always re-verify role from StaffAccount via signed session token
+        const token = session.staff_session_token;
+        if (token) {
+          try {
+            const res = await base44.functions.invoke('getMyStaffProfile', {
+              staff_session_token: token,
+            });
+            if (res.data?.role) {
+              resolvedRole = normaliseRole(res.data.role);
+              setStaffRole(resolvedRole);
+              setStaffName(res.data.name || session.name || '');
+              setPermissionsCount(Object.values(res.data.permissions || {}).filter(Boolean).length);
+              setRoleSource('staff_session_token (verified)');
 
-            // Patch stale session: update role and canonical staff_id if needed
-            const needsPatch =
-              normaliseRole(session.role) !== resolvedRole ||
-              (res.data.staff_id && session.staff_id !== res.data.staff_id);
-            if (needsPatch) {
-              const updated = { ...session, role: resolvedRole, staff_id: res.data.staff_id };
-              localStorage.setItem('staff_session', JSON.stringify(updated));
+              // Patch stale session role if needed
+              if (normaliseRole(session.role) !== resolvedRole) {
+                const updated = { ...session, role: resolvedRole };
+                localStorage.setItem('staff_session', JSON.stringify(updated));
+              }
+            } else {
+              // Server returned error — fall back to session
+              resolvedRole = normaliseRole(session.role);
+              setStaffRole(resolvedRole);
+              setStaffName(session.name || '');
+              setPermissionsCount(0);
+              setRoleSource('staff_session (localStorage fallback)');
             }
-          } else {
-            // Server call succeeded but no role — fall back to session
+          } catch {
+            // Network error — use session as fallback
             resolvedRole = normaliseRole(session.role);
             setStaffRole(resolvedRole);
             setStaffName(session.name || '');
             setPermissionsCount(0);
-            setRoleSource('staff_session (localStorage fallback)');
+            setRoleSource('staff_session (fallback — server unreachable)');
           }
-        } catch {
-          // Network error — use session as fallback
+        } else {
+          // No token in session — use session data directly
           resolvedRole = normaliseRole(session.role);
           setStaffRole(resolvedRole);
           setStaffName(session.name || '');
           setPermissionsCount(0);
-          setRoleSource('staff_session (fallback — server unreachable)');
+          setRoleSource('staff_session (no token — localStorage only)');
         }
-      } else if (false) {
-        // (dead branch — kept for structure only)
-        resolvedRole = normaliseRole(session.role);
-        setStaffRole(resolvedRole);
-        setStaffName(session.name || '');
-        setPermissionsCount(0);
-        setRoleSource('staff_session (legacy — no username)');
       } else {
         // No staff session — try base44.auth.me() (for admin users who log in via platform)
         const currentUser = await base44.auth.me().catch(() => null);
