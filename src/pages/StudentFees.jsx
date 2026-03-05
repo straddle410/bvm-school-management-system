@@ -1,0 +1,126 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Wallet, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
+export default function StudentFees() {
+  const [session, setSession] = useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
+
+  useEffect(() => {
+    const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
+    try {
+      if (raw) setSession(JSON.parse(raw));
+    } catch {}
+
+    base44.entities.SchoolProfile.list()
+      .then(p => p.length && setSchoolProfile(p[0]))
+      .catch(() => {});
+  }, []);
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['student-fees', session?.student_id],
+    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: session?.student_id }),
+    enabled: !!session?.student_id,
+  });
+
+  if (!session) return null;
+
+  const statusColors = {
+    Pending: 'bg-yellow-100 text-yellow-700',
+    Partial: 'bg-blue-100 text-blue-700',
+    Paid: 'bg-green-100 text-green-700',
+    Overdue: 'bg-red-100 text-red-700',
+    Waived: 'bg-gray-100 text-gray-700',
+    Cancelled: 'bg-slate-100 text-slate-700',
+  };
+
+  const statusIcons = {
+    Pending: Clock,
+    Partial: AlertCircle,
+    Paid: CheckCircle2,
+    Overdue: AlertCircle,
+    Waived: CheckCircle2,
+    Cancelled: AlertCircle,
+  };
+
+  const totalAmount = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+  const paidAmount = invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
+  const balance = totalAmount - paidAmount;
+
+  return (
+    <div className="min-h-screen bg-[#f0f4ff] pb-24">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
+        <h1 className="text-lg font-bold flex items-center gap-2">
+          <Wallet className="h-5 w-5" /> Fees
+        </h1>
+        <p className="text-sm text-blue-100">View your fee details</p>
+      </header>
+
+      <div className="px-4 py-6 space-y-4">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="border-0 shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-xs text-gray-500 font-medium">Total</p>
+              <p className="text-lg font-bold text-gray-900">₹{totalAmount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-xs text-gray-500 font-medium">Paid</p>
+              <p className="text-lg font-bold text-green-600">₹{paidAmount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-xs text-gray-500 font-medium">Balance</p>
+              <p className={`text-lg font-bold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>₹{balance}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Invoices List */}
+        {invoices.length > 0 ? (
+          <div className="space-y-3">
+            {invoices.map((invoice) => {
+              const StatusIcon = statusIcons[invoice.status] || Clock;
+              return (
+                <Card key={invoice.id} className="border-0 shadow-sm overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="font-semibold text-sm text-gray-900">{invoice.installment_name}</p>
+                          <Badge className={`text-xs ${statusColors[invoice.status]}`}>
+                            {invoice.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">Due: {invoice.due_date}</p>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">Amount: ₹{invoice.total_amount}</span>
+                          <span className="font-semibold text-gray-800">Paid: ₹{invoice.paid_amount}</span>
+                        </div>
+                      </div>
+                      <StatusIcon className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="py-12 text-center">
+              <Wallet className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">No fee invoices found</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
