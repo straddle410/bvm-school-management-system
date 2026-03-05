@@ -1,8 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 /**
  * Admin resets staff password
- * Sets temporary password and force_password_change flag
+ * Sets temporary password (as bcrypt) and force_password_change flag
  */
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -32,8 +33,8 @@ Deno.serve(async (req) => {
 
     console.log(`[RESET_PASSWORD] Resetting password for staff: ${staff[0].username}`);
 
-    // Hash temporary password using consistent algorithm
-    const hash = hashPassword(temp_password);
+    // Hash temporary password using bcrypt
+    const hash = await bcrypt.hash(temp_password, 10);
 
     // Update staff account
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
@@ -65,10 +66,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
-
-function hashPassword(password) {
-  // Consistent hashing algorithm used in staffLogin and changeStaffPassword
-  // Must match exactly for password validation to work
-  if (!password) return '';
-  return '$2b$10$' + btoa(password).substring(0, 53);
-}
