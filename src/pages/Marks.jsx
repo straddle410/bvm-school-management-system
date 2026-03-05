@@ -114,8 +114,8 @@ export default function Marks() {
     queryKey: ['class-subjects', academicYear, selectedClass],
     queryFn: async () => {
       if (!selectedClass) {
-        const subs = await base44.entities.Subject.list();
-        return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
+        console.log('[SUBJECT_CALLSITE] pages/Marks:113');
+        return [];
       }
       console.log('[MARKS_PAGE]', { year: academicYear, classRaw: selectedClass });
       const result = await getSubjectsForClass(academicYear, selectedClass);

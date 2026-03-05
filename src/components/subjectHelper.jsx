@@ -1,6 +1,12 @@
 import { base44 } from '@/api/base44Client';
 
 /**
+ * IMPORTANT: Do NOT use the Subject entity directly anywhere in the codebase.
+ * Subject loading is centralized here and uses ClassSubjectConfig mapping.
+ * All modules (Homework, Diary, Timetable, Marks) must use getSubjectsForClass().
+ */
+
+/**
  * Canonicalize class name to standard format:
  * "Nursery", "LKG", "UKG" → as-is
  * "Class 7", "7", "class7" → "7"
