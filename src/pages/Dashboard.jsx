@@ -272,15 +272,54 @@ export default function Dashboard() {
 
   // ─── ADMIN / PRINCIPAL DASHBOARD ────────────────────────────────────────────
   if (isAdmin) {
-    const adminActions = [
-      { label: 'Students',    icon: Users,          page: 'Students',         gradient: 'from-blue-400 to-blue-600' },
-      { label: 'Staff',       icon: BookUser,       page: 'StaffManagement',  gradient: 'from-green-400 to-green-600' },
-      { label: 'Notices',     icon: Bell,           page: 'Notices',          gradient: 'from-yellow-400 to-yellow-600' },
-      { label: 'Gallery',     icon: Image,          page: 'Gallery',          gradient: 'from-orange-400 to-orange-600' },
-      { label: 'Calendar',    icon: Calendar,       page: 'Calendar',         gradient: 'from-teal-400 to-teal-600' },
-      { label: 'Reports',     icon: BarChart3,      page: 'Reports',          gradient: 'from-purple-400 to-purple-600' },
-      { label: 'Fees',        icon: Wallet,         page: 'Fees',             gradient: 'from-indigo-400 to-indigo-600' },
-      { label: 'Settings',    icon: Settings,       page: 'Settings',         gradient: 'from-gray-400 to-gray-600' },
+    const adminSections = [
+      {
+        title: 'Academics',
+        actions: [
+          { label: 'Students',     icon: Users,          page: 'Students',            gradient: 'from-blue-400 to-blue-600' },
+          { label: 'Attendance',   icon: CheckSquare,    page: 'Attendance',          gradient: 'from-teal-400 to-teal-600' },
+          { label: 'Marks',        icon: BookOpen,       page: 'Marks',               gradient: 'from-green-400 to-green-600' },
+          { label: 'Exams',        icon: BookMarked,     page: 'ExamManagement',      gradient: 'from-purple-400 to-purple-600' },
+          { label: 'Timetable',    icon: Calendar,       page: 'TimetableManagement', gradient: 'from-cyan-400 to-cyan-600' },
+          { label: 'Homework',     icon: BookMarked,     page: 'Homework',            gradient: 'from-pink-400 to-pink-600' },
+          { label: 'Diary',        icon: Notebook,       page: 'DiaryManagement',     gradient: 'from-rose-400 to-rose-600' },
+          { label: 'Admissions',   icon: FileText,       page: 'Admissions',          gradient: 'from-amber-400 to-amber-600' },
+        ],
+      },
+      {
+        title: 'Communication',
+        actions: [
+          { label: 'Notices',      icon: Bell,           page: 'Notices',             gradient: 'from-yellow-400 to-yellow-600' },
+          { label: 'Gallery',      icon: Image,          page: 'Gallery',             gradient: 'from-orange-400 to-orange-600' },
+          { label: 'Quiz',         icon: ListChecks,     page: 'Quiz',                gradient: 'from-indigo-400 to-indigo-600' },
+          { label: 'Messages',     icon: MessageSquare,  page: 'Messaging',           gradient: 'from-sky-400 to-sky-600' },
+        ],
+      },
+      {
+        title: 'Fees & Finance',
+        actions: [
+          { label: 'Fee Collection', icon: Wallet,       page: 'Fees',                gradient: 'from-emerald-400 to-emerald-600' },
+          { label: 'Collection Rpt', icon: BarChart3,    page: 'CollectionReport',    gradient: 'from-blue-400 to-blue-600' },
+          { label: 'Outstanding',    icon: TrendingUp,   page: 'OutstandingReport',   gradient: 'from-red-400 to-red-600' },
+          { label: 'Ledger',         icon: BookOpen,     page: 'StudentLedgerReport', gradient: 'from-violet-400 to-violet-600' },
+          { label: 'Day Book',       icon: FileText,     page: 'DayBookReport',       gradient: 'from-slate-400 to-slate-600' },
+          { label: 'Defaulters',     icon: AlertCircle,  page: 'DefaultersReport',    gradient: 'from-orange-400 to-orange-600' },
+        ],
+      },
+      {
+        title: 'Reports & Analytics',
+        actions: [
+          { label: 'Reports',        icon: BarChart3,    page: 'Reports',             gradient: 'from-purple-400 to-purple-600' },
+          { label: 'Att. Report',    icon: ClipboardCheck, page: 'AttendanceReport',  gradient: 'from-teal-400 to-teal-600' },
+        ],
+      },
+      {
+        title: 'Administration',
+        actions: [
+          { label: 'Staff',          icon: BookUser,     page: 'Staff',               gradient: 'from-green-400 to-green-600' },
+          { label: 'Settings',       icon: Settings,     page: 'Settings',            gradient: 'from-gray-400 to-gray-600' },
+        ],
+      },
     ];
 
     return (
@@ -313,12 +352,14 @@ export default function Dashboard() {
             </section>
           )}
 
-          <section className="mb-8">
-            <h2 className="text-lg font-bold text-gray-700 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {adminActions.map(a => <ActionCard key={a.label} {...a} />)}
-            </div>
-          </section>
+          {adminSections.map(section => (
+            <section key={section.title} className="mb-8">
+              <h2 className="text-lg font-bold text-gray-700 mb-4">{section.title}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {section.actions.map(a => <ActionCard key={a.label} {...a} />)}
+              </div>
+            </section>
+          ))}
 
           {latestDiaries.length > 0 && (
             <section>
