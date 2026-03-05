@@ -117,11 +117,8 @@ export default function Marks() {
         const subs = await base44.entities.Subject.list();
         return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
       }
-      const res = await base44.functions.invoke('getSubjectsForClass', {
-        academic_year: academicYear,
-        class_name: selectedClass
-      });
-      return res.data?.subjects || [];
+      const result = await getSubjectsForClass(academicYear, selectedClass);
+      return result.subjects;
     },
     enabled: !!academicYear,
     staleTime: 5 * 60 * 1000
