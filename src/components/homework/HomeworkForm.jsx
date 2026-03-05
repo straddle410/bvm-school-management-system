@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getSubjectsForClass, getSubjectSourceLabel } from '@/components/subjectHelper';
 import { X, Plus, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const CLASSES = ['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10','11','12'];
 const SECTIONS = ['All','A','B','C','D'];
-const SUBJECTS = ['Mathematics','Science','English','Hindi','Social Studies','Physics','Chemistry','Biology','History','Geography','Computer Science','Physical Education','Art','Music','Other'];
 const TYPES = ['MCQ','Descriptive','Project','Assignment','Other'];
 
 const emptyMCQ = () => ({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'A' });
