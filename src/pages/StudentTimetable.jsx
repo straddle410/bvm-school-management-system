@@ -1,57 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-function getStudentSession() {
-  try {
-    const s = localStorage.getItem('student_session');
-    return s ? JSON.parse(s) : null;
-  } catch { return null; }
-}
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function StudentTimetable() {
-  const [student, setStudent] = useState(null);
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    const session = getStudentSession();
-    if (!session) {
-      window.location.href = createPageUrl('StudentLogin');
+    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
+    let parsedSession = null;
+    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
+    
+    if (!parsedSession) {
+      navigate('/StudentLogin');
       return;
     }
-    setStudent(session);
-  }, []);
+    setSession(parsedSession);
+  }, [navigate]);
 
   const { data: timetableData = {}, isLoading } = useQuery({
-    queryKey: ['student-timetable', student?.student_id],
+    queryKey: ['student-timetable', session?.id],
     queryFn: async () => {
-      if (!student?.student_id) return {};
+      if (!session?.id) return {};
       try {
         const res = await base44.functions.invoke('studentGetTimetable', {
-          student_id: student.student_id,
-          academic_year: student.academic_year
+          student_id: session.id,
+          academic_year: session.academic_year
         });
         return res.data || {};
       } catch {
         return {};
       }
     },
-    enabled: !!student?.student_id
+    enabled: !!session?.id
   });
 
+  if (!session) return null;
+
   const timetables = timetableData.timetable || [];
-
-  if (!student) return null;
-
   const entriesByDay = {};
   DAYS.forEach(day => {
     entriesByDay[day] = timetables.filter(t => t.day === day);
   });
-
   const timeSlots = [...new Set(timetables.map(t => t.start_time))].sort();
 
   return (
@@ -62,32 +56,25 @@ export default function StudentTimetable() {
           <Calendar className="h-5 w-5" />
           Class Timetable
         </h1>
-        <p className="text-blue-200 text-sm mt-1">Class {student.class_name}-{student.section}</p>
+        <p className="text-blue-200 text-sm mt-1">Class {session.class_name}-{session.section}</p>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-4 max-w-2xl mx-auto w-full">
         {isLoading ? (
-          <Card>
-            <CardContent className="py-8">
-              <p className="text-gray-500 text-center">Loading timetable...</p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+            <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          </div>
         ) : timetables.length === 0 ? (
-          <Card>
-            <CardContent className="py-8">
-              <div className="flex flex-col items-center gap-3 text-center">
-                <AlertCircle className="h-8 w-8 text-orange-500" />
-                <p className="text-gray-600 font-medium">Timetable not yet published for {timetableData.academic_year || 'this year'}.</p>
-                <p className="text-sm text-gray-400">Contact your school for the timetable details.</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <AlertCircle className="h-8 w-8 text-orange-500" />
+              <p className="text-gray-600 font-medium">Timetable not yet published for {timetableData.academic_year || 'this year'}.</p>
+              <p className="text-sm text-gray-400">Contact your school for the timetable details.</p>
+            </div>
+          </div>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Schedule</CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="bg-gray-100">
@@ -132,8 +119,8 @@ export default function StudentTimetable() {
                   ))}
                 </tbody>
               </table>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </main>
     </div>

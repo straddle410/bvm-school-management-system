@@ -1,148 +1,105 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Calendar, AlertCircle } from 'lucide-react';
-import { createPageUrl } from '@/utils';
-
-function getStudentSession() {
-  try {
-    const s = localStorage.getItem('student_session');
-    return s ? JSON.parse(s) : null;
-  } catch { return null; }
-}
+import { AlertCircle, BarChart3 } from 'lucide-react';
 
 export default function StudentAttendance() {
-  const [student, setStudent] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    const session = getStudentSession();
-    if (!session) {
-      window.location.href = createPageUrl('StudentLogin');
+    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
+    let parsedSession = null;
+    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
+    
+    if (!parsedSession) {
+      navigate('/StudentLogin');
       return;
     }
-    setStudent(session);
-    setLoading(false);
-  }, []);
+    setSession(parsedSession);
+  }, [navigate]);
 
-  const { data: attendanceData = {} } = useQuery({
-    queryKey: ['student-attendance', student?.student_id],
+  const { data: attendanceData = {}, isLoading } = useQuery({
+    queryKey: ['student-attendance', session?.id],
     queryFn: async () => {
-      if (!student?.student_id) return {};
+      if (!session?.id) return {};
       try {
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
-          student_id: student.student_id,
-          academic_year: student.academic_year,
+          student_id: session.id,
+          academic_year: session.academic_year
         });
         return res.data || {};
       } catch {
         return {};
       }
     },
-    enabled: !!student?.student_id,
+    enabled: !!session?.id
   });
 
-  const { data: attendanceRecords = [] } = useQuery({
-    queryKey: ['attendance-records', student?.student_id],
-    queryFn: async () => {
-      if (!student?.student_id) return [];
-      try {
-        const records = await base44.entities.Attendance.filter({
-          student_id: student.student_id,
-          academic_year: student.academic_year,
-        }, '-attendance_date', 1000);
-        return records || [];
-      } catch {
-        return [];
-      }
-    },
-    enabled: !!student?.student_id,
-  });
+  if (!session) return null;
 
-  if (!student) return null;
-
-  const attendancePct = Math.round(attendanceData.attendance_percentage || 0);
-  const isAbsentToday = attendanceRecords.length > 0 && attendanceRecords[0].status === 'Absent';
+  const { total_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
+  const isLowAttendance = percentage < 75;
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
         <h1 className="text-lg font-bold">My Attendance</h1>
-        <p className="text-sm text-blue-100">View your attendance record</p>
+        <p className="text-sm text-blue-100">{session.class_name}-{session.section}</p>
       </header>
 
       <div className="px-4 py-6 space-y-4">
-        {/* Summary Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Overall Attendance</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{attendancePct}%</p>
-            </div>
-            <div className={`text-sm font-bold px-3 py-1 rounded-full ${
-              attendancePct >= 75 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}>
-              {attendancePct >= 75 ? '✓ Good' : '⚠ Low'}
-            </div>
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           </div>
-          <div className="bg-gray-100 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all ${attendancePct >= 75 ? 'bg-green-500' : 'bg-red-500'}`}
-              style={{ width: `${Math.min(attendancePct, 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            {attendanceData.present_days || 0} Present / {attendanceData.total_days || 0} Total
-          </p>
-        </div>
-
-        {/* Info Alert */}
-        {attendancePct < 75 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex gap-2">
-            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-700">
-              <p className="font-semibold">Low Attendance</p>
-              <p className="text-xs mt-0.5">Please maintain at least 75% attendance to be eligible for exams.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Records */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-bold text-gray-700">Attendance Records</p>
-          </div>
-          {attendanceRecords.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <Calendar className="h-10 w-10 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No attendance records yet</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-              {attendanceRecords.map((record) => (
-                <div key={record.id} className="px-4 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {format(new Date(record.attendance_date + 'T00:00:00'), 'MMM d, yyyy')}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {format(new Date(record.attendance_date + 'T00:00:00'), 'EEEE')}
-                    </p>
-                  </div>
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                    record.status === 'Present' ? 'bg-green-100 text-green-700' :
-                    record.status === 'Absent' ? 'bg-red-100 text-red-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {record.status || 'N/A'}
-                  </span>
+        ) : (
+          <>
+            {/* Summary Card */}
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="text-center mb-4">
+                <div className={`text-4xl font-bold ${isLowAttendance ? 'text-red-600' : 'text-green-600'}`}>
+                  {percentage.toFixed(1)}%
                 </div>
-              ))}
+                <p className="text-sm text-gray-600 mt-1">Overall Attendance</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <p className="font-bold text-blue-900">{total_days}</p>
+                  <p className="text-xs text-gray-600">Total Days</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="font-bold text-green-900">{present_days}</p>
+                  <p className="text-xs text-gray-600">Present</p>
+                </div>
+                <div className="bg-red-50 rounded-lg p-3">
+                  <p className="font-bold text-red-900">{absent_days}</p>
+                  <p className="text-xs text-gray-600">Absent</p>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Alert */}
+            {isLowAttendance && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-red-900">Low Attendance</p>
+                  <p className="text-xs text-red-700 mt-1">Your attendance is below 75%. Please improve.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Details */}
+            <div className="bg-white rounded-2xl shadow-sm p-4">
+              <p className="text-xs font-bold text-gray-400 uppercase mb-3">Academic Year</p>
+              <p className="text-sm text-gray-800">{session.academic_year}</p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

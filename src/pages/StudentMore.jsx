@@ -1,39 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { HelpCircle, BarChart3, FileText, Image, User, Shield, LogOut } from 'lucide-react';
-
-function getStudentSession() {
-  try {
-    const s = localStorage.getItem('student_session');
-    return s ? JSON.parse(s) : null;
-  } catch { return null; }
-}
+import { createPageUrl } from '@/utils';
 
 export default function StudentMore() {
-  const [student, setStudent] = useState(null);
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
 
   useEffect(() => {
-    const session = getStudentSession();
-    if (!session) {
-      window.location.href = createPageUrl('StudentLogin');
+    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
+    let parsedSession = null;
+    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
+    
+    if (!parsedSession) {
+      navigate('/StudentLogin');
       return;
     }
-    setStudent(session);
-    
+    setSession(parsedSession);
+
     base44.entities.SchoolProfile.list()
       .then(p => p.length && setSchoolProfile(p[0]))
       .catch(() => {});
-  }, []);
+  }, [navigate]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('student_session');
     localStorage.removeItem('student_session');
-    window.location.href = createPageUrl('StudentLogin');
+    navigate('/StudentLogin');
   };
 
-  if (!student) return null;
+  if (!session) return null;
 
   const menuItems = [
     { label: 'Fees', sub: 'View and pay fees', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', page: 'StudentFees' },
@@ -56,11 +54,11 @@ export default function StudentMore() {
         <div className="bg-white rounded-2xl shadow-sm p-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center text-white font-bold">
-              {student.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              {session.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <div className="flex-1">
-              <p className="font-bold text-gray-900">{student.name}</p>
-              <p className="text-xs text-gray-500">Class {student.class_name}-{student.section}</p>
+              <p className="font-bold text-gray-900">{session.name}</p>
+              <p className="text-xs text-gray-500">Class {session.class_name}-{session.section}</p>
             </div>
           </div>
         </div>

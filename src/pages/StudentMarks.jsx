@@ -1,49 +1,45 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart3, Trophy } from 'lucide-react';
-import { createPageUrl } from '@/utils';
-
-function getStudentSession() {
-  try {
-    const s = localStorage.getItem('student_session');
-    return s ? JSON.parse(s) : null;
-  } catch { return null; }
-}
+import { Trophy } from 'lucide-react';
 
 export default function StudentMarks() {
-  const [student, setStudent] = useState(null);
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    const session = getStudentSession();
-    if (!session) {
-      window.location.href = createPageUrl('StudentLogin');
+    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
+    let parsedSession = null;
+    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
+    
+    if (!parsedSession) {
+      navigate('/StudentLogin');
       return;
     }
-    setStudent(session);
-  }, []);
+    setSession(parsedSession);
+  }, [navigate]);
 
   const { data: marks = [], isLoading } = useQuery({
-    queryKey: ['student-marks', student?.student_id],
+    queryKey: ['student-marks', session?.id],
     queryFn: async () => {
-      if (!student?.student_id) return [];
+      if (!session?.id) return [];
       try {
         const records = await base44.entities.Marks.filter({
-          student_id: student.student_id,
-          academic_year: student.academic_year,
-          status: 'Published',
+          student_id: session.id,
+          academic_year: session.academic_year,
+          status: 'Published'
         }, '-created_date', 500);
         return records || [];
       } catch {
         return [];
       }
     },
-    enabled: !!student?.student_id,
+    enabled: !!session?.id
   });
 
-  if (!student) return null;
+  if (!session) return null;
 
-  // Group by exam type
   const marksGrouped = marks.reduce((acc, mark) => {
     if (!acc[mark.exam_type]) acc[mark.exam_type] = [];
     acc[mark.exam_type].push(mark);
@@ -65,7 +61,7 @@ export default function StudentMarks() {
           </div>
         ) : marks.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <BarChart3 className="h-10 w-10 text-gray-200 mx-auto mb-2" />
+            <Trophy className="h-10 w-10 text-gray-200 mx-auto mb-2" />
             <p className="text-sm text-gray-500">No marks published yet</p>
           </div>
         ) : (

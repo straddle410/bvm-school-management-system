@@ -1,92 +1,92 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Notebook } from 'lucide-react';
-import { createPageUrl } from '@/utils';
-
-function getStudentSession() {
-  try {
-    const s = localStorage.getItem('student_session');
-    return s ? JSON.parse(s) : null;
-  } catch { return null; }
-}
+import { BookOpen } from 'lucide-react';
 
 export default function StudentDiary() {
-  const [student, setStudent] = useState(null);
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    const session = getStudentSession();
-    if (!session) {
-      window.location.href = createPageUrl('StudentLogin');
+    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
+    let parsedSession = null;
+    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
+    
+    if (!parsedSession) {
+      navigate('/StudentLogin');
       return;
     }
-    setStudent(session);
-    // Mark diary as read
-    base44.functions.invoke('markStudentNotificationsRead', {
-      student_id: session.student_id,
-      event_types: ['DIARY_PUBLISHED'],
-    }).catch(() => {});
-  }, []);
+    setSession(parsedSession);
 
-  const { data: diaryList = [], isLoading } = useQuery({
-    queryKey: ['student-diary', student?.class_name],
-    queryFn: async () => {
-      if (!student?.class_name) return [];
+    // Mark DIARY_PUBLISHED notifications as read
+    const markNotificationsRead = async () => {
       try {
-        const records = await base44.entities.Diary.filter({
-          class_name: student.class_name,
-          section: student.section || 'A',
-        }, '-diary_date', 500);
-        return records || [];
+        const notifications = await base44.entities.Notification.filter({
+          recipient_email: parsedSession.email,
+          notification_type: 'DIARY_PUBLISHED',
+          is_read: false
+        });
+        for (const notif of notifications) {
+          await base44.entities.Notification.update(notif.id, { is_read: true });
+        }
+      } catch {}
+    };
+    markNotificationsRead();
+  }, [navigate]);
+
+  const { data: diaryEntries = [], isLoading } = useQuery({
+    queryKey: ['student-diary', session?.id],
+    queryFn: async () => {
+      if (!session?.id) return [];
+      try {
+        const entries = await base44.entities.Diary.filter({
+          class_name: session.class_name,
+          section: session.section,
+          academic_year: session.academic_year,
+          status: 'Published'
+        }, '-created_date', 500);
+        return entries || [];
       } catch {
         return [];
       }
     },
-    enabled: !!student?.class_name,
+    enabled: !!session?.id
   });
 
-  if (!student) return null;
+  if (!session) return null;
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
         <h1 className="text-lg font-bold">Class Diary</h1>
-        <p className="text-sm text-blue-100">Daily class updates</p>
+        <p className="text-sm text-blue-100">Academic updates and announcements</p>
       </header>
 
-      <div className="px-4 py-6 space-y-3">
+      <div className="px-4 py-6 space-y-4">
         {isLoading ? (
           <div className="text-center py-8">
-            <div className="inline-block w-6 h-6 border-3 border-pink-200 border-t-pink-600 rounded-full animate-spin" />
+            <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           </div>
-        ) : diaryList.length === 0 ? (
+        ) : diaryEntries.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <Notebook className="h-10 w-10 text-gray-200 mx-auto mb-2" />
+            <BookOpen className="h-10 w-10 text-gray-200 mx-auto mb-2" />
             <p className="text-sm text-gray-500">No diary entries yet</p>
           </div>
         ) : (
-          diaryList.map((entry) => (
-            <div key={entry.id} className="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-pink-500">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-900">{entry.title}</h3>
-                  {entry.diary_date && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {format(new Date(entry.diary_date + 'T00:00:00'), 'MMM d, yyyy')}
-                    </p>
-                  )}
-                </div>
+          diaryEntries.map((entry) => (
+            <div key={entry.id} className="bg-white rounded-2xl shadow-sm p-4">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="text-sm font-bold text-gray-900">{entry.subject}</h3>
+                <p className="text-xs text-gray-500">
+                  {new Date(entry.created_date).toLocaleDateString()}
+                </p>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed">{entry.description}</p>
-              {entry.subject_name && (
-                <div className="mt-2 flex gap-1 flex-wrap">
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                    {entry.subject_name}
-                  </span>
-                </div>
+              {entry.teacher_name && (
+                <p className="text-xs text-gray-600 mb-2">By: {entry.teacher_name}</p>
               )}
+              <p className="text-sm text-gray-700 leading-relaxed">{entry.description}</p>
             </div>
           ))
         )}
