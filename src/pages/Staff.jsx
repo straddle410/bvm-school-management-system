@@ -39,6 +39,7 @@ const roleColors = {
   Staff: 'bg-gray-100 text-gray-700',
   Principal: 'bg-purple-100 text-purple-700',
   Admin: 'bg-red-100 text-red-700',
+  'Exam Staff': 'bg-orange-100 text-orange-700',
 };
 
 import { PERMISSION_CATEGORIES } from '@/components/permissionHelper';

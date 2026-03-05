@@ -9,6 +9,7 @@ import {
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser,
 } from 'lucide-react';
+import { isAdminRole } from '@/components/permissionHelper';
 
 // Read staff session from localStorage — this is the source of truth for role
 function getStaffSession() {
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const isAdmin = staffRole === 'admin' || staffRole === 'principal';
   const isTeacher = staffRole === 'teacher';
   const isAccountant = staffRole === 'accountant';
+  const isExamStaff = staffRole === 'exam_staff';
 
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
@@ -234,6 +236,36 @@ export default function Dashboard() {
               </div>
             </section>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── EXAM STAFF DASHBOARD ───────────────────────────────────────────────────
+  if (isExamStaff) {
+    const examActions = [
+      { label: 'Marks Entry',  icon: BookOpen,    page: 'Marks',               gradient: 'from-green-400 to-green-600' },
+      { label: 'Attendance',   icon: CheckSquare, page: 'Attendance',          gradient: 'from-blue-400 to-blue-600' },
+      { label: 'Exams',        icon: BookMarked,  page: 'ExamManagement',      gradient: 'from-purple-400 to-purple-600' },
+      { label: 'Att. Report',  icon: BarChart3,   page: 'AttendanceReport',    gradient: 'from-teal-400 to-teal-600' },
+    ];
+
+    return (
+      <div className="min-h-screen bg-gray-50 py-6 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Exam Staff'}</h1>
+            <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+          </div>
+          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-mono">
+            roleSource: {roleSource} | staffRole: {staffRole} | permissions: {permissionsCount}
+          </div>
+          <section>
+            <h2 className="text-lg font-bold text-gray-700 mb-4">Exam &amp; Attendance</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {examActions.map(a => <ActionCard key={a.label} {...a} />)}
+            </div>
+          </section>
         </div>
       </div>
     );

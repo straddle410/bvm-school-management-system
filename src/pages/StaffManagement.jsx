@@ -16,11 +16,12 @@ import { Plus, Edit, Power, Copy, Mail, Search, Users, KeyRound, Send } from 'lu
 import { toast } from "sonner";
 import { DEFAULT_PERMISSIONS, PERMISSION_CATEGORIES } from '@/components/permissionHelper';
 
-const ROLES = ['Principal', 'Teacher', 'Staff', 'Librarian', 'Accountant', 'Admin'];
+const ROLES = ['Principal', 'Teacher', 'Exam Staff', 'Staff', 'Librarian', 'Accountant', 'Admin'];
 
 const roleColors = {
   Principal: 'bg-purple-100 text-purple-700',
   Teacher: 'bg-blue-100 text-blue-700',
+  'Exam Staff': 'bg-orange-100 text-orange-700',
   Staff: 'bg-gray-100 text-gray-700',
   Librarian: 'bg-amber-100 text-amber-700',
   Accountant: 'bg-green-100 text-green-700',
