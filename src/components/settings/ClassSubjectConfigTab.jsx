@@ -64,9 +64,9 @@ export default function ClassSubjectConfigTab() {
         class_name: selectedClass,
         subject_names: selected
       });
-      queryClient.invalidateQueries(['class-subject-config', academicYear, selectedClass]);
-      queryClient.invalidateQueries(['class-subjects']);
-      toast.success(`Subjects saved for Class ${selectedClass} — ${academicYear}`);
+      queryClient.invalidateQueries({ queryKey: ['class-subject-config', academicYear, selectedClass] });
+      queryClient.invalidateQueries({ queryKey: ['class-subjects'] });
+      toast.success(`✓ Subjects saved for Class ${selectedClass} — ${academicYear}`);
     } catch (err) {
       toast.error(err.message || 'Failed to save');
     } finally {
