@@ -58,28 +58,20 @@ export default function Profile() {
         return;
       }
 
-      // Now fetch full StaffAccount record by canonical ID returned by server
-      const canonicalId = res.data.staff_id;
-      const accounts = await base44.entities.StaffAccount.filter({ id: canonicalId });
-      if (!accounts || accounts.length === 0) {
-        setError('Staff account record not found');
-        setIsLoading(false);
-        return;
-      }
-
-      const acct = accounts[0];
-      setStaffAccount(acct);
+      // getMyStaffProfile returns full profile — use it directly (avoids RLS issues)
+      const profile = res.data;
+      setStaffAccount(profile);
       setFormData({
-        mobile: acct.mobile || '',
-        qualification: acct.qualification || '',
-        address_line1: acct.address_line1 || '',
-        address_line2: acct.address_line2 || '',
-        city: acct.city || '',
-        state: acct.state || '',
-        pincode: acct.pincode || '',
-        emergency_contact_name: acct.emergency_contact_name || '',
-        emergency_contact_phone: acct.emergency_contact_phone || '',
-        photo_url: acct.photo_url || '',
+        mobile: profile.mobile || '',
+        qualification: profile.qualification || '',
+        address_line1: profile.address_line1 || '',
+        address_line2: profile.address_line2 || '',
+        city: profile.city || '',
+        state: profile.state || '',
+        pincode: profile.pincode || '',
+        emergency_contact_name: profile.emergency_contact_name || '',
+        emergency_contact_phone: profile.emergency_contact_phone || '',
+        photo_url: profile.photo_url || '',
       });
     } catch (err) {
       console.error('Profile load error:', err);
