@@ -14,6 +14,7 @@ export default function ClassSubjectConfigTab() {
   const queryClient = useQueryClient();
   const [selectedClass, setSelectedClass] = useState(CLASSES[0]);
   const [saving, setSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { data: allSubjects = [] } = useQuery({
     queryKey: ['subjects-global'],
