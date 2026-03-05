@@ -33,7 +33,7 @@ export default function Gallery() {
   }, []);
 
   // Check if student session exists — students can only view (not upload)
-  const isStudent = !!studentSession;
+  const isStudent = !!localStorage.getItem('student_session');
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin' || user?.role === 'principal';
     const hasGalleryPermission = user?.permissions?.gallery === true;
