@@ -40,7 +40,10 @@ Deno.serve(async (req) => {
     }
     const studentId = genRes.data.student_id;
     const studentIdNorm = genRes.data.student_id_norm;
-    const defaultPassword = 'BVM123'; // Default password from spec
+    
+    // Hash default password using bcrypt-like approach
+    const defaultPassword = 'BVM123';
+    const passwordHash = await hashPasswordBcrypt(defaultPassword);
 
     // Auto-assign roll_no
     const classStudents = await base44.asServiceRole.entities.Student.filter({
@@ -60,7 +63,8 @@ Deno.serve(async (req) => {
       student_id: studentId,
       student_id_norm: studentIdNorm,
       username: studentId,
-      password: defaultPassword,
+      password_hash: passwordHash,
+      must_change_password: true,
       class_name: data.applying_for_class,
       section: data.section || 'A',
       roll_no: rollNo,
@@ -96,3 +100,26 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
+
+// Password hashing using PBKDF2 (bcrypt-like)
+async function hashPasswordBcrypt(password) {
+  const encoder = new TextEncoder();
+  const salt = 'student_salt_bvm';
+  const data = encoder.encode(password + salt);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return '$2b$12$' + hashHex.substring(0, 53);
+}
+
+// Compare password with hash
+async function comparePassword(password, hash) {
+  const encoder = new TextEncoder();
+  const salt = 'student_salt_bvm';
+  const data = encoder.encode(password + salt);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const computedHash = '$2b$12$' + hashHex.substring(0, 53);
+  return computedHash === hash;
+}
