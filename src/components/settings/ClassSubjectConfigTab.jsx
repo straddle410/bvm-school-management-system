@@ -101,13 +101,14 @@ const testClassMapping = async (cls, subjects) => {
 };
 
 export default function ClassSubjectConfigTab() {
-  const { academicYear } = useAcademicYear();
-  const queryClient = useQueryClient();
-  const [selectedClass, setSelectedClass] = useState(CLASSES[0]);
-  const [saving, setSaving] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+   const { academicYear } = useAcademicYear();
+   const queryClient = useQueryClient();
+   const [selectedClass, setSelectedClass] = useState(CLASSES[0]);
+   const [saving, setSaving] = useState(false);
+   const [showSuccessModal, setShowSuccessModal] = useState(false);
+   const [draggedFrom, setDraggedFrom] = useState(null);
 
-  const [newSubjectInput, setNewSubjectInput] = useState('');
+   const [newSubjectInput, setNewSubjectInput] = useState('');
 
   const { data: allSubjects = [] } = useQuery({
     queryKey: ['all-subjects-for-year', academicYear],
