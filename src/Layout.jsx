@@ -63,6 +63,17 @@ const NO_LAYOUT_PAGES = ['Home', 'PublicAdmission', 'StaffLogin', 'StudentLogin'
 const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Quiz', 'Results', 'More'];
 
 export default function Layout({ children, currentPageName }) {
+  // Wrap children with auth guards
+  const WrappedChildren = (
+    <>
+      <StudentAuthGuard currentPageName={currentPageName}>
+        {children}
+      </StudentAuthGuard>
+      <StaffAuthGuard currentPageName={currentPageName}>
+        {children}
+      </StaffAuthGuard>
+    </>
+  );
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [studentSession, setStudentSession] = useState(null);
