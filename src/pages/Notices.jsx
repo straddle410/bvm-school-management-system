@@ -31,8 +31,16 @@ const TYPE_COLORS = {
   Event: 'bg-pink-100 text-pink-700',
 };
 
+function getStudentSession() {
+  try {
+    const s = localStorage.getItem('student_session');
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+}
+
 export default function Notices() {
    const [user, setUser] = useState(null);
+   const [studentSession, setStudentSession] = useState(null);
    const [showDialog, setShowDialog] = useState(false);
    const [filterType, setFilterType] = useState('all');
    const [readNoticeIds, setReadNoticeIds] = useState(() => {
@@ -56,23 +64,30 @@ export default function Notices() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const staffData = getStaffSession();
-    setUser(staffData);
+     const staffData = getStaffSession();
+     setUser(staffData);
 
-    // Load staff unread notice notifs (don't auto-mark all read)
-    if (staffData?.email) {
-      loadStaffUnreadNoticeNotifs(staffData.email);
-    }
+     const ss = getStudentSession();
+     setStudentSession(ss);
 
-    // Load student unread notice notifs (don't auto-mark all read)
-    const studentSession = localStorage.getItem('student_session');
-    if (studentSession) {
-      try {
-        const studentData = JSON.parse(studentSession);
-        loadStudentUnreadNoticeNotifs(studentData.student_id);
-      } catch {}
-    }
-  }, []);
+     // If student, mark notices as read
+     if (ss?.student_id) {
+       base44.functions.invoke('markStudentNotificationsRead', {
+         student_id: ss.student_id,
+         event_types: ['NOTICE_PUBLISHED'],
+       }).catch(() => {});
+     }
+
+     // Load staff unread notice notifs (don't auto-mark all read)
+     if (staffData?.email) {
+       loadStaffUnreadNoticeNotifs(staffData.email);
+     }
+
+     // Load student unread notice notifs (don't auto-mark all read)
+     if (ss?.student_id) {
+       loadStudentUnreadNoticeNotifs(ss.student_id);
+     }
+   }, []);
 
   const loadStaffUnreadNoticeNotifs = async (email) => {
     try {

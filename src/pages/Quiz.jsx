@@ -71,6 +71,11 @@ export default function Quiz() {
           setUser({ id: parsed.id, full_name: parsed.name, role: 'student' });
           // Load unread quiz notifs (don't auto-mark all read)
           loadUnreadQuizNotifs(parsed.student_id);
+          // Mark quizzes as read when student opens quiz page
+          base44.functions.invoke('markStudentNotificationsRead', {
+            student_id: parsed.student_id,
+            event_types: ['QUIZ_PUBLISHED'],
+          }).catch(() => {});
         } catch {}
         setSessionLoaded(true);
         return;

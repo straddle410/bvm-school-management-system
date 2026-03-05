@@ -21,11 +21,17 @@ export default function StudentMessaging() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const session = getStudentSession();
-    if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
-    setStudent(session);
-    // Do NOT auto-mark all as read on page mount — only mark when message is opened
-  }, []);
+     const session = getStudentSession();
+     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
+     setStudent(session);
+     // Mark all messages as read when student opens messaging page
+     if (session?.student_id) {
+       base44.functions.invoke('markStudentNotificationsRead', {
+         student_id: session.student_id,
+         event_types: [],  // Mark all message notification types
+       }).catch(() => {});
+     }
+   }, []);
 
   const sender = student ? {
     id: student.student_id,
