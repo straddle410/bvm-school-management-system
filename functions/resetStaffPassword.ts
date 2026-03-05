@@ -39,10 +39,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    if (!staff_id || !temp_password) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
     // Verify staff exists
     const staff = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
     if (!staff || staff.length === 0) {
