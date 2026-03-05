@@ -41,9 +41,9 @@ Deno.serve(async (req) => {
     const studentId = genRes.data.student_id;
     const studentIdNorm = genRes.data.student_id_norm;
     
-    // Hash default password using bcrypt-like approach
+    // Hash default password using bcrypt
     const defaultPassword = 'BVM123';
-    const passwordHash = await hashPasswordBcrypt(defaultPassword);
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
 
     // Auto-assign roll_no
     const classStudents = await base44.asServiceRole.entities.Student.filter({
@@ -100,19 +100,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
-
-// Password hashing using SHA-256 with consistent salt
-async function hashPasswordBcrypt(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'bvm_student_salt_2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
-
-// Compare password with hash
-async function comparePassword(password, hash) {
-  const computedHash = await hashPasswordBcrypt(password);
-  return computedHash === hash;
-}
