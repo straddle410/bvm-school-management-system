@@ -86,8 +86,8 @@ export default function StudentDashboard() {
         setAttendancePct(Math.round(attendData.data.attendance_percentage));
       }
 
-      if (yearData?.name) {
-        setCurrentYear(yearData.name);
+      if (yearData?.year) {
+        setCurrentYear(yearData.year);
       }
 
       // Filter timetable for today
