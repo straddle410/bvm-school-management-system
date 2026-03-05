@@ -234,6 +234,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </nav>
     </div>
+      </StaffAuthGuard>
     </AcademicYearProvider>);
 
 }
