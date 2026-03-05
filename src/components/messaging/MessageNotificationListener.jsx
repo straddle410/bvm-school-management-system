@@ -9,6 +9,11 @@ export default function MessageNotificationListener() {
 
     const setupListener = async () => {
       try {
+        // CRITICAL: Students use session-only auth. Never call auth.me() for students.
+        // Check student_session first - if exists, SKIP this listener entirely
+        const studentSession = localStorage.getItem('student_session');
+        if (studentSession) return; // Students don't use this listener
+
         // Resolve current user: check staff_session first (teachers), then base44 auth (admin)
         let currentEmail = null;
         let currentName = null;
