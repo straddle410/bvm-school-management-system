@@ -3,88 +3,168 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Use service role for testing
     const results = [];
 
-    // Test 1: Notice
-    try {
-      const notice = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: 'Generate a school notice for Class 5. Template: Exam Notice. Topic: Mid-term Exam Schedule. Tone: professional and official. Length: concise and brief. Return as JSON with "title" and "body" fields.',
-        response_json_schema: { type: 'object', properties: { title: { type: 'string' }, body: { type: 'string' } }, required: ['title', 'body'] },
-        add_context_from_internet: false
-      });
-      results.push({
-        test: 'Notice - Exam Notice',
-        status: notice?.title && notice?.body ? 'PASS' : 'FAIL',
-        sample: { title: notice?.title?.substring(0, 50), bodyLength: notice?.body?.length }
-      });
-    } catch (e) {
-      results.push({ test: 'Notice - Exam Notice', status: 'ERROR', error: e.message });
-    }
+    const testCases = [
+      {
+        name: 'Notice - Exam Notice',
+        payload: {
+          type: 'notice',
+          template: 'Exam Notice',
+          academic_year: '2025-26',
+          class_name: '5',
+          section: 'A',
+          topic: 'Mid-term Exam Schedule',
+          tone: 'formal',
+          length: 'short'
+        }
+      },
+      {
+        name: 'Homework - Reading + Writing',
+        payload: {
+          type: 'homework',
+          template: 'Reading + Writing',
+          academic_year: '2025-26',
+          class_name: '5',
+          section: 'A',
+          subject: 'English',
+          topic: 'Chapter 3: The Journey',
+          tone: 'friendly',
+          length: 'short',
+          due_date: '2026-03-10'
+        }
+      },
+      {
+        name: 'Diary - Appreciation Note',
+        payload: {
+          type: 'diary',
+          template: 'Appreciation/Praise Note',
+          academic_year: '2025-26',
+          class_name: '5',
+          section: 'A',
+          subject: 'Science',
+          topic: 'Class participation in Science project',
+          tone: 'friendly',
+          length: 'short'
+        }
+      },
+      {
+        name: 'Quiz - Subject Quiz',
+        payload: {
+          type: 'quiz',
+          template: 'Subject Quiz',
+          academic_year: '2025-26',
+          class_name: '5',
+          section: 'A',
+          subject: 'Mathematics',
+          tone: 'formal',
+          length: 'short',
+          quiz: {
+            mode: 'subject',
+            count: 5,
+            difficulty: 'medium',
+            format: 'mcq'
+          }
+        }
+      },
+      {
+        name: 'Quiz - GK Quiz',
+        payload: {
+          type: 'quiz',
+          template: 'General Knowledge Quiz',
+          academic_year: '2025-26',
+          class_name: '5',
+          section: 'A',
+          tone: 'friendly',
+          length: 'short',
+          quiz: {
+            mode: 'gk',
+            count: 5,
+            difficulty: 'easy',
+            format: 'mcq',
+            gk_category: 'Sports'
+          }
+        }
+      }
+    ];
 
-    // Test 2: Homework
-    try {
-      const hw = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: 'Generate homework assignment for Class 5, English. Template: Reading + Writing. Topic: Chapter 3: The Journey. Tone: friendly and warm. Length: concise and brief. Due by 2026-03-10. Return as JSON with "title", "instructions", optional "materials" and "submission_note".',
-        response_json_schema: { type: 'object', properties: { title: { type: 'string' }, instructions: { type: 'string' }, materials: { type: 'string' }, submission_note: { type: 'string' } }, required: ['title', 'instructions'] },
-        add_context_from_internet: false
-      });
-      results.push({
-        test: 'Homework - Reading + Writing',
-        status: hw?.title && hw?.instructions ? 'PASS' : 'FAIL',
-        sample: { title: hw?.title?.substring(0, 50), instructionsLength: hw?.instructions?.length }
-      });
-    } catch (e) {
-      results.push({ test: 'Homework - Reading + Writing', status: 'ERROR', error: e.message });
-    }
+    for (const test of testCases) {
+      try {
+        const response = await base44.asServiceRole.functions.invoke('generateStaffContent', test.payload);
 
-    // Test 3: Diary
-    try {
-      const diary = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: 'Write a classroom diary entry for Class 5. Template: Appreciation/Praise Note. Focus: Class participation in Science project. Tone: friendly and warm. Length: concise and brief. Return as JSON with optional "title" and required "body".',
-        response_json_schema: { type: 'object', properties: { title: { type: 'string' }, body: { type: 'string' } }, required: ['body'] },
-        add_context_from_internet: false
-      });
-      results.push({
-        test: 'Diary - Appreciation Note',
-        status: diary?.body ? 'PASS' : 'FAIL',
-        sample: { title: diary?.title?.substring(0, 50), bodyLength: diary?.body?.length }
-      });
-    } catch (e) {
-      results.push({ test: 'Diary - Appreciation Note', status: 'ERROR', error: e.message });
-    }
+        if (response.status >= 400) {
+          results.push({
+            test: test.name,
+            status: 'FAIL',
+            error: response.data?.error || 'HTTP error'
+          });
+          continue;
+        }
 
-    // Test 4: Quiz - Subject
-    try {
-      const quiz = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: 'Generate a 5-question quiz for Class 5, Mathematics. Template: Subject Quiz. Type: Subject (Mathematics). Difficulty: medium. Format: mcq. Guidelines: 5 clear MCQ questions with correct answers. Return as JSON with "title" and "questions" array containing {question, options (4 items), answer}.',
-        response_json_schema: { type: 'object', properties: { title: { type: 'string' }, questions: { type: 'array', items: { type: 'object', properties: { question: { type: 'string' }, options: { type: 'array', items: { type: 'string' } }, answer: { type: 'string' } } } } }, required: ['title', 'questions'] },
-        add_context_from_internet: false
-      });
-      results.push({
-        test: 'Quiz - Subject Quiz',
-        status: quiz?.title && Array.isArray(quiz?.questions) && quiz.questions.length > 0 ? 'PASS' : 'FAIL',
-        sample: { title: quiz?.title?.substring(0, 50), questionsCount: quiz?.questions?.length }
-      });
-    } catch (e) {
-      results.push({ test: 'Quiz - Subject Quiz', status: 'ERROR', error: e.message });
-    }
+        const generated = response.data?.generated;
+        if (!generated) {
+          results.push({
+            test: test.name,
+            status: 'FAIL',
+            error: 'No generated content returned'
+          });
+          continue;
+        }
 
-    // Test 5: Quiz - GK
-    try {
-      const quiz = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: 'Generate a 5-question quiz for Class 5. Template: General Knowledge Quiz. Type: General Knowledge (Sports category). Difficulty: easy. Format: mcq. Guidelines: 5 clear MCQ questions with correct answers. Return as JSON with "title" and "questions" array containing {question, options (4 items), answer}.',
-        response_json_schema: { type: 'object', properties: { title: { type: 'string' }, questions: { type: 'array', items: { type: 'object', properties: { question: { type: 'string' }, options: { type: 'array', items: { type: 'string' } }, answer: { type: 'string' } } } } }, required: ['title', 'questions'] },
-        add_context_from_internet: false
-      });
-      results.push({
-        test: 'Quiz - GK Quiz',
-        status: quiz?.title && Array.isArray(quiz?.questions) && quiz.questions.length > 0 ? 'PASS' : 'FAIL',
-        sample: { title: quiz?.title?.substring(0, 50), questionsCount: quiz?.questions?.length }
-      });
-    } catch (e) {
-      results.push({ test: 'Quiz - GK Quiz', status: 'ERROR', error: e.message });
+        // Validate structure based on type
+        let valid = true;
+        let issues = [];
+
+        const type = test.payload.type;
+        if (type === 'notice' || type === 'diary') {
+          if (!generated.body) {
+            valid = false;
+            issues.push('Missing body');
+          }
+        } else if (type === 'homework') {
+          if (!generated.title) {
+            valid = false;
+            issues.push('Missing title');
+          }
+          if (!generated.instructions) {
+            valid = false;
+            issues.push('Missing instructions');
+          }
+        } else if (type === 'quiz') {
+          if (!generated.title) {
+            valid = false;
+            issues.push('Missing title');
+          }
+          if (!Array.isArray(generated.questions) || generated.questions.length === 0) {
+            valid = false;
+            issues.push('Missing or empty questions array');
+          } else {
+            const q = generated.questions[0];
+            if (!q.question || !Array.isArray(q.options) || q.options.length === 0 || !q.answer) {
+              valid = false;
+              issues.push('Invalid question structure');
+            }
+          }
+        }
+
+        results.push({
+          test: test.name,
+          status: valid ? 'PASS' : 'FAIL',
+          issues: issues.length > 0 ? issues : undefined,
+          sample: {
+            type,
+            title: generated.title?.substring(0, 60),
+            bodyLength: generated.body?.length || generated.instructions?.length || 0,
+            questionsCount: generated.questions?.length || 0
+          }
+        });
+      } catch (error) {
+        results.push({
+          test: test.name,
+          status: 'ERROR',
+          error: error.message
+        });
+      }
     }
 
     const passed = results.filter(r => r.status === 'PASS').length;
@@ -94,7 +174,7 @@ Deno.serve(async (req) => {
       summary: {
         totalTests: results.length,
         passed,
-        overall: allPassed ? 'ALL TESTS PASSED ✅' : `${passed}/${results.length} PASSED`
+        overall: allPassed ? 'ALL TESTS PASSED ✅' : `${passed}/${results.length} tests passed`
       },
       results
     });
