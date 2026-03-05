@@ -175,8 +175,10 @@ export default function Staff() {
 
   const unlockAccountMutation = useMutation({
     mutationFn: async (member) => {
+      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
       const res = await base44.functions.invoke('unlockStaffAccount', {
         staff_id: member.id,
+        staff_session_token: session?.staff_session_token || null,
       });
       if (!res.data?.success) throw new Error(res.data?.error || 'Unlock failed');
       return res.data;
