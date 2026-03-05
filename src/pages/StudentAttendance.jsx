@@ -5,18 +5,24 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, BarChart3 } from 'lucide-react';
 
 export default function StudentAttendance() {
+  console.log('[ENTRY] StudentAttendance:', window.location.pathname);
+  console.log('[SESSION] localStorage:', localStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
+  console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
+
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
 
   useEffect(() => {
     const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
     let parsedSession = null;
-    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
+    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) { console.error('[PARSE ERROR]', e); }
     
     if (!parsedSession) {
+      console.log('[REDIRECT] No session found, redirecting to /StudentLogin');
       navigate('/StudentLogin');
       return;
     }
+    console.log('[SESSION SET] student_id:', parsedSession.id);
     setSession(parsedSession);
   }, [navigate]);
 
