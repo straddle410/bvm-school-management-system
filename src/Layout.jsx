@@ -63,17 +63,6 @@ const NO_LAYOUT_PAGES = ['Home', 'PublicAdmission', 'StaffLogin', 'StudentLogin'
 const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Quiz', 'Results', 'More'];
 
 export default function Layout({ children, currentPageName }) {
-  // Wrap children with auth guards
-  const WrappedChildren = (
-    <>
-      <StudentAuthGuard currentPageName={currentPageName}>
-        {children}
-      </StudentAuthGuard>
-      <StaffAuthGuard currentPageName={currentPageName}>
-        {children}
-      </StaffAuthGuard>
-    </>
-  );
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [studentSession, setStudentSession] = useState(null);
@@ -137,18 +126,11 @@ export default function Layout({ children, currentPageName }) {
   };
 
   if (NO_LAYOUT_PAGES.includes(currentPageName)) {
-    return <AcademicYearProvider>{WrappedChildren}</AcademicYearProvider>;
+    return <AcademicYearProvider>{children}</AcademicYearProvider>;
   }
 
   // Pages students are allowed to visit via layout
   const STUDENT_ALLOWED_PAGES = ['StudentAttendance', 'StudentMarks', 'StudentDiary', 'StudentNotices', 'StudentTimetable', 'StudentHomework', 'StudentMessaging', 'StudentHallTicketView', 'StudentMore', 'StudentFees', 'Results', 'Quiz', 'Gallery', 'StudentProfile'];
-
-  // If student session exists and NOT on an allowed page, redirect instantly
-  if (studentSession && !STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
-    // Use React Router navigation for instant client-side redirect (no page reload)
-    window.location.replace(createPageUrl('StudentDashboard'));
-    return null;
-  }
 
   // If student is on an allowed page, render with student bottom nav (no staff layout)
   if (studentSession && STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
@@ -209,9 +191,9 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-20">
-        <StudentAuthGuard currentPageName={currentPageName}>
+        <StaffAuthGuard currentPageName={currentPageName}>
           {children}
-        </StudentAuthGuard>
+        </StaffAuthGuard>
       </main>
 
       {/* Bottom Navigation */}
