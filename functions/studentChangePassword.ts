@@ -26,6 +26,16 @@ Deno.serve(async (req) => {
 
     const student = students[0];
 
+    // Reject default password
+    if (new_password === 'BVM123') {
+      return Response.json({ error: 'DEFAULT_PASSWORD_NOT_ALLOWED' }, { status: 400 });
+    }
+
+    // Cannot reuse student ID as password
+    if (new_password === student.student_id || new_password === student.username) {
+      return Response.json({ error: 'PASSWORD_CANNOT_BE_STUDENT_ID' }, { status: 400 });
+    }
+
     // Verify current password
     let passwordValid = false;
 
