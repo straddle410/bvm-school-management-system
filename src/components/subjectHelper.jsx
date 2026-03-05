@@ -47,11 +47,27 @@ export const getSubjectsForClass = async (academic_year, class_name) => {
 
     // Normalize class name
     const normalizedClass = normalizeClassName(class_name);
+    
+    // Debug: Log lookup params
+    console.log("[SUBJECTS_LOOKUP]", {
+      academicYear: academic_year,
+      classRaw: class_name,
+      classCanon: normalizedClass,
+    });
 
     // Query ClassSubjectConfig
     const configs = await base44.entities.ClassSubjectConfig.filter({
       academic_year,
       class_name: normalizedClass
+    });
+    
+    // Debug: Log query result
+    const config = configs.length > 0 ? configs[0] : null;
+    console.log("[SUBJECTS_LOOKUP_RESULT]", {
+      found: !!config,
+      configYear: config?.academic_year,
+      configClass: config?.class_name,
+      subjectsCount: config?.subject_names?.length,
     });
 
     if (configs.length > 0 && Array.isArray(configs[0].subject_names) && configs[0].subject_names.length > 0) {
@@ -72,6 +88,9 @@ export const getSubjectsForClass = async (academic_year, class_name) => {
       .filter(s => !s.is_optional) // Filter to required subjects, or adjust as needed
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       .map(s => s.name);
+
+    // Debug: Log global subjects fallback
+    console.log("[SUBJECTS_GLOBAL_FALLBACK]", { count: globalSubjects?.length });
 
     return {
       subjects: globalSubjects,
