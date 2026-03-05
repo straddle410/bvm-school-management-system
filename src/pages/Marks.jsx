@@ -117,7 +117,9 @@ export default function Marks() {
         const subs = await base44.entities.Subject.list();
         return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
       }
+      console.log('[MARKS_PAGE]', { year: academicYear, classRaw: selectedClass });
       const result = await getSubjectsForClass(academicYear, selectedClass);
+      console.log('[MARKS_PAGE_RESULT]', { source: result.source, subjects: result.subjects });
       return result.subjects;
     },
     enabled: !!academicYear,
