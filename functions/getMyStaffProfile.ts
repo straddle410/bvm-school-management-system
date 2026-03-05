@@ -4,8 +4,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 const CLOCK_SKEW_MS = 2 * 60 * 1000;
 
 function b64urlDecode(str) {
-  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
-  return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
+  // Convert URL-safe base64 to standard base64
+  const standard = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding
+  const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
+  // Use Deno's base64 decoder
+  const bytes = new Uint8Array(atob(standard + pad).split('').map(c => c.charCodeAt(0)));
+  return new TextDecoder().decode(bytes);
 }
 
 async function getSessionKey() {
