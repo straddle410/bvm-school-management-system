@@ -161,8 +161,8 @@ export default function Staff() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] });
-      toast.success('Password reset. Staff will be forced to change on next login.');
       setShowResetPasswordModal(false);
+      setShowResetSuccessModal(true);
       setResetPasswordStaff(null);
       setResetPasswordMode('auto');
       setManualPassword('');
