@@ -1,9 +1,12 @@
 import { base44 } from '@/api/base44Client';
 
 /**
- * IMPORTANT: Do NOT use the Subject entity directly anywhere in the codebase.
- * Subject loading is centralized here and uses ClassSubjectConfig mapping.
- * All modules (Homework, Diary, Timetable, Marks) must use getSubjectsForClass().
+ * CRITICAL: Do NOT use the Subject entity directly anywhere in the codebase.
+ * Subject loading is centralized here and uses ClassSubjectConfig mapping only.
+ * All modules (Homework, Diary, Timetable, Marks, HallTicket) must use getSubjectsForClass().
+ * 
+ * The whole-school master subject list comes from getAllSubjectsForYear(),
+ * which derives subjects from ALL ClassSubjectConfig records for a given year.
  */
 
 /**
