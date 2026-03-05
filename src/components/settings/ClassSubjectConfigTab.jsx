@@ -6,9 +6,35 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Save, Check } from 'lucide-react';
+import { Save, Check, Zap } from 'lucide-react';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+// Normalize class name to match entity enum
+const normalizeClassName = (cls) => cls?.trim() || '';
+
+// Dev-only test helper
+const testClassMapping = async (cls, subjects) => {
+  try {
+    console.log(`[TEST] Saving ${cls} with subjects:`, subjects);
+    const res = await base44.functions.invoke('setSubjectsForClass', {
+      academic_year: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1 - 2000),
+      class_name: cls,
+      subject_names: subjects
+    });
+    console.log(`[TEST] Save response:`, res.data);
+    
+    // Immediate refetch
+    const configs = await base44.entities.ClassSubjectConfig.filter({
+      academic_year: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1 - 2000),
+      class_name: cls
+    });
+    console.log(`[TEST] Refetch for ${cls}:`, configs[0]?.subject_names);
+    return { saved: res.data.success, fetched: configs[0]?.subject_names };
+  } catch (err) {
+    console.error(`[TEST] Error:`, err.message);
+  }
+};
 
 export default function ClassSubjectConfigTab() {
   const { academicYear } = useAcademicYear();
