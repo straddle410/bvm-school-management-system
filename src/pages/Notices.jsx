@@ -15,11 +15,13 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Pin, Plus, Megaphone, Calendar, Users, Check, CheckCheck } from 'lucide-react';
+import { Bell, Pin, Plus, Megaphone, Calendar, Users, Check, CheckCheck, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import TableBuilder from '@/components/TableBuilder';
 import LoginRequired from '@/components/LoginRequired';
+import AIAssistDrawer from '@/components/AIAssistDrawer';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 
 const TYPE_COLORS = {
   General: 'bg-blue-100 text-blue-700',
