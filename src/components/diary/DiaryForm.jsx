@@ -111,9 +111,13 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
   };
 
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{entry ? 'Edit Diary Entry' : 'Create Diary Entry'}</CardTitle>
+        <button onClick={() => setShowAIAssist(true)} className="hover:bg-purple-100 p-1.5 rounded-lg transition" title="AI Assist">
+          <Sparkles className="h-5 w-5 text-purple-600" />
+        </button>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
