@@ -36,8 +36,7 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
     queryKey: ['class-subjects', academicYear, formData.class_name],
     queryFn: async () => {
       if (!formData.class_name) {
-        const subs = await base44.entities.Subject.list();
-        return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => s.name);
+        return [];
       }
       console.log('[SUBJECT_FETCH]', {
         module: 'Timetable',

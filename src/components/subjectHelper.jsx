@@ -81,19 +81,10 @@ export const getSubjectsForClass = async (academic_year, class_name) => {
       };
     }
 
-    // Fallback to global subjects
-    console.log(`[SUBJECT_HELPER] No mapping found for ${academic_year}/${normalizedClass}, using global subjects`);
-    const allSubjects = await base44.entities.Subject.list();
-    const globalSubjects = allSubjects
-      .filter(s => !s.is_optional) // Filter to required subjects, or adjust as needed
-      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      .map(s => s.name);
-
-    // Debug: Log global subjects fallback
-    console.log("[SUBJECTS_GLOBAL_FALLBACK]", { count: globalSubjects?.length });
-
+    // No mapping found: return empty list (no fallback to global subjects)
+    console.log(`[SUBJECT_HELPER] No mapping found for ${academic_year}/${normalizedClass}. Admin must configure ClassSubjectConfig.`);
     return {
-      subjects: globalSubjects,
+      subjects: [],
       source: 'GLOBAL',
       mappingExists: false,
       academicYear: academic_year,
