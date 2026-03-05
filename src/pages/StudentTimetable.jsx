@@ -30,10 +30,15 @@ export default function StudentTimetable() {
     queryKey: ['student-timetable', student?.student_id],
     queryFn: async () => {
       if (!student?.student_id) return {};
-      const res = await base44.functions.invoke('studentGetTimetable', {
-        student_id: student.student_id
-      });
-      return res.data || {};
+      try {
+        const res = await base44.functions.invoke('studentGetTimetable', {
+          student_id: student.student_id,
+          academic_year: student.academic_year
+        });
+        return res.data || {};
+      } catch {
+        return {};
+      }
     },
     enabled: !!student?.student_id
   });
