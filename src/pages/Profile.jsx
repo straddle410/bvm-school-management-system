@@ -25,9 +25,12 @@ export default function Profile() {
     setIsLoading(true);
     setError('');
     try {
-      // Pass staff_id from local session so server can auto-repair a missing StaffAuthLink
+      // Pass HMAC-signed repair token (issued by staffLogin, 10-min TTL) for auto-repair of missing StaffAuthLink.
+      // Raw staff_id is never sent — only the signed token is trusted by the server.
       const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
-      const res = await base44.functions.invoke('getMyStaffProfile', { staff_id: session?.staff_id || null });
+      const res = await base44.functions.invoke('getMyStaffProfile', {
+        staff_session_token: session?.staff_session_token || null,
+      });
 
       if (!res.data || res.data.error) {
         setError(res.data?.error || 'Could not load profile');
