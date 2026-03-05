@@ -24,23 +24,8 @@ export default function Profile() {
     setIsLoading(true);
     setError('');
     try {
-      // Always load from server using stable identifiers from current session.
-      // Never accept URL params for self-view — profile is always the logged-in user.
-      const session = (() => {
-        try { return JSON.parse(localStorage.getItem('staff_session')); } catch { return null; }
-      })();
-
-      if (!session) {
-        setError('Not logged in');
-        setIsLoading(false);
-        return;
-      }
-
-      const res = await base44.functions.invoke('getMyStaffProfile', {
-        staff_id: session.staff_id || null,
-        email: session.email || null,
-        username: session.username || null,
-      });
+      // Identity is resolved server-side via StaffAuthLink — no client fields needed.
+      const res = await base44.functions.invoke('getMyStaffProfile', {});
 
       if (!res.data || res.data.error) {
         setError(res.data?.error || 'Could not load profile');
