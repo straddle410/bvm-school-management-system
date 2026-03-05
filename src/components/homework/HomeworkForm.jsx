@@ -40,7 +40,9 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved }) {
   useEffect(() => {
     const fetchSubjects = async () => {
       if (form.class_name && academicYear) {
+        console.log('[HW_FORM]', { year: academicYear, classRaw: form.class_name });
         const result = await getSubjectsForClass(academicYear, form.class_name);
+        console.log('[HW_FORM_RESULT]', { source: result.source, subjects: result.subjects });
         setSubjects(result.subjects);
         setSubjectSource(result.source);
         setSubjectSourceLabel(getSubjectSourceLabel(result.source, academicYear));
