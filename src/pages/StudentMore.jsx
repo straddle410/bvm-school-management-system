@@ -17,7 +17,7 @@ export default function StudentMore() {
     try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
     
     if (!parsedSession) {
-      navigate('/StudentLogin');
+      navigate(createPageUrl('StudentLogin'));
       return;
     }
     setSession(parsedSession);
@@ -30,17 +30,17 @@ export default function StudentMore() {
   const handleLogout = () => {
     sessionStorage.removeItem('student_session');
     localStorage.removeItem('student_session');
-    navigate('/StudentLogin');
+    navigate(createPageUrl('StudentLogin'));
   };
 
   if (!session) return null;
 
   const menuItems = [
-    { label: 'Fees', sub: 'View and pay fees', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', page: '/studentfees' },
-    { label: 'Progress Card', sub: 'View progress reports', icon: FileText, color: '#e91e63', bg: '#fce4ec', page: '/results' },
-    { label: 'Quiz', sub: 'Take quizzes', icon: HelpCircle, color: '#f57c00', bg: '#fff3e0', page: '/quiz' },
-    { label: 'Gallery', sub: 'School photos', icon: Image, color: '#00796b', bg: '#e0f2f1', page: '/gallery' },
-    { label: 'Profile', sub: 'View your profile', icon: User, color: '#5c6bc0', bg: '#e8eaf6', page: '/studentprofile' },
+    { label: 'Fees', sub: 'View and pay fees', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', page: 'StudentFees' },
+    { label: 'Progress Card', sub: 'View progress reports', icon: FileText, color: '#e91e63', bg: '#fce4ec', page: 'Results' },
+    { label: 'Quiz', sub: 'Take quizzes', icon: HelpCircle, color: '#f57c00', bg: '#fff3e0', page: 'Quiz' },
+    { label: 'Gallery', sub: 'School photos', icon: Image, color: '#00796b', bg: '#e0f2f1', page: 'Gallery' },
+    { label: 'Profile', sub: 'View your profile', icon: User, color: '#5c6bc0', bg: '#e8eaf6', page: 'StudentProfile' },
   ];
 
   return (
@@ -70,7 +70,7 @@ export default function StudentMore() {
           {menuItems.map((item) => (
             <Link
               key={item.label}
-              to={item.page}
+              to={createPageUrl(item.page)}
               className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
