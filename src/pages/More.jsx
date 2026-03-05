@@ -318,12 +318,14 @@ export default function More() {
                    </div>
                  )}
 
-                 {/* Profile - Teachers & Staff (non-admin) */}
-                 {!isAdmin && isTeacher && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <MenuItem item={{ label: 'Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' }} showArrow={false} />
+                 {/* Profile & Account — always visible for ALL logged-in staff */}
+                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">My Account</p>
+                   <div className="divide-y divide-gray-50">
+                     <MenuItem item={{ label: 'My Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' }} />
+                     <MenuItem item={{ label: 'Change Password', sub: 'Update your login password', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'ChangeStaffPassword' }} />
                    </div>
-                 )}
+                 </div>
 
                  {/* Support */}
                  <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
