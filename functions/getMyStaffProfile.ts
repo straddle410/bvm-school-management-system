@@ -1,12 +1,40 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+// ── HMAC helpers (must match staffLogin) ────────────────────────────────────
+const REPAIR_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+async function getHmacKey() {
+  const secret = Deno.env.get('BASE44_APP_ID') || 'fallback-secret';
+  const keyMaterial = new TextEncoder().encode(secret);
+  return crypto.subtle.importKey('raw', keyMaterial, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+}
+
+async function verifyRepairToken(token) {
+  try {
+    const [payloadB64, sigB64] = token.split('.');
+    if (!payloadB64 || !sigB64) return null;
+    const payload = atob(payloadB64);
+    const [staffId, iatStr] = payload.split(':');
+    if (!staffId || !iatStr) return null;
+    const iat = parseInt(iatStr, 10);
+    if (Date.now() - iat > REPAIR_TOKEN_TTL_MS) return null; // expired
+
+    const key = await getHmacKey();
+    const sigBytes = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
+    return valid ? staffId : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Returns authoritative role + permissions for the currently logged-in staff member.
  * Identity is derived from StaffAuthLink (base44_user_id -> staff_id).
  *
- * Auto-repair: If no StaffAuthLink exists yet (staff logged in before the link
- * system was introduced), the client may supply `staff_id` in the request body.
- * We verify the StaffAccount exists and create the link automatically.
+ * Auto-repair: If no StaffAuthLink exists yet, accepts a short-lived HMAC-signed
+ * staff_session_token (issued by staffLogin, TTL 10 min) to auto-create the link.
+ * Raw staff_id from localStorage is NEVER trusted.
  */
 Deno.serve(async (req) => {
   try {
@@ -23,25 +51,27 @@ Deno.serve(async (req) => {
       base44_user_id: authUser.id,
     });
 
-    // ── Auto-repair: create missing link from client-supplied staff_id ──────
+    // ── Auto-repair via verified HMAC token (10-min TTL, signed by staffLogin) ──
     if (!links || links.length === 0) {
-      let bodyStaffId = null;
+      let repairStaffId = null;
       try {
         const body = await req.json().catch(() => ({}));
-        bodyStaffId = body?.staff_id || null;
+        const token = body?.staff_session_token;
+        if (token) {
+          repairStaffId = await verifyRepairToken(token);
+        }
       } catch {}
 
-      if (bodyStaffId) {
-        // Verify the StaffAccount actually exists before trusting the client value
-        const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: bodyStaffId });
+      if (repairStaffId) {
+        // Verify the StaffAccount exists before creating the link
+        const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: repairStaffId });
         if (accounts && accounts.length > 0) {
-          console.log(`AUTO-REPAIR: creating StaffAuthLink base44_user_id=${authUser.id} -> staff_id=${bodyStaffId}`);
+          console.log(`AUTO-REPAIR: creating StaffAuthLink base44_user_id=${authUser.id} -> staff_id=${repairStaffId}`);
           await base44.asServiceRole.entities.StaffAuthLink.create({
             base44_user_id: authUser.id,
-            staff_id: bodyStaffId,
+            staff_id: repairStaffId,
             last_login_at: new Date().toISOString(),
           });
-          // Re-fetch to continue normally
           links = await base44.asServiceRole.entities.StaffAuthLink.filter({
             base44_user_id: authUser.id,
           });
