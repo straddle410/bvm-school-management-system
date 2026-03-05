@@ -68,7 +68,7 @@ export default function ClassSubjectConfigTab() {
       });
       queryClient.invalidateQueries({ queryKey: ['class-subject-config', academicYear, selectedClass] });
       queryClient.invalidateQueries({ queryKey: ['class-subjects'] });
-      toast.success(`✓ Subjects saved for Class ${selectedClass} — ${academicYear}`);
+      setShowSuccessModal(true);
     } catch (err) {
       toast.error(err.message || 'Failed to save');
     } finally {
