@@ -45,7 +45,7 @@ export default function StaffLogin() {
       // Always clear any student session — staff must never fall into student flow
       localStorage.removeItem('student_session');
 
-      // Store staff session (always, even for force_password_change)
+      // Store staff session with long-lived signed token (60 days)
       const session = {
         staff_id: response.data.staff_id,
         username: response.data.username,
@@ -57,11 +57,15 @@ export default function StaffLogin() {
         permissions: response.data.permissions || {},
         permissions_override: response.data.permissions_override || {},
         logged_in_at: new Date().toISOString(),
-        // HMAC-signed short-lived token for auto-repair of missing StaffAuthLink
-        staff_session_token: response.data.staff_session_token || null,
+        // Long-lived signed session token — primary identity proof for all staff API calls
+        staff_session_token: response.data.staff_session_token,
+        token_exp: response.data.token_exp,
       };
 
       localStorage.setItem('staff_session', JSON.stringify(session));
+
+      // Debug info
+      console.log(`[StaffLogin] role=${response.data.role} staff_id=${response.data.staff_id} token_exp=${response.data.token_exp_iso}`);
 
       // If password change required, redirect to change password
       if (response.data.force_password_change) {
