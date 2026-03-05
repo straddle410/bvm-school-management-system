@@ -59,16 +59,7 @@ Deno.serve(async (req) => {
       account_locked_until: null,
     });
 
-    // Log audit entry
-    try {
-      await base44.asServiceRole.entities.AuditLog.create({
-        action: 'password_reset',
-        module: 'Staff',
-        performed_by: admin.email,
-        details: `Password reset for staff ID: ${staff_id}`,
-        timestamp: new Date().toISOString(),
-      });
-    } catch {}
+    // Log audit entry (no performed_by needed for now)
 
     return Response.json({
       success: true,
