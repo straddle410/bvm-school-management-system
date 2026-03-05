@@ -301,9 +301,21 @@ export default function Staff() {
       }
     }
 
-    // Derive the `role` field from the selected role template name (lowercase to match enum)
+    // Derive the `role` field from the selected role template name.
+    // Map template name → StaffAccount.role enum value
     const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
-    const derivedRole = selectedTemplate ? selectedTemplate.name.trim().toLowerCase() : '';
+    const ROLE_NAME_MAP = {
+      'admin': 'admin',
+      'principal': 'principal',
+      'teacher': 'teacher',
+      'accountant': 'accountant',
+      'staff': 'staff',
+      'librarian': 'librarian',
+      'exam staff': 'exam_staff',
+      'exam_staff': 'exam_staff',
+    };
+    const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase();
+    const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
 
     // Coerce experience_years: empty string → null, otherwise parse as number
     let experienceYears = null;
