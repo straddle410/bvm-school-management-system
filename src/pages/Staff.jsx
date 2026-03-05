@@ -467,7 +467,7 @@ export default function Staff() {
 
         <div className="p-4 lg:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="bg-white border-b">
+            <TabsList className="bg-white border shadow-sm w-full justify-start">
               <TabsTrigger value="add">Add Staff</TabsTrigger>
               <TabsTrigger value="manage">Staff Management</TabsTrigger>
               <TabsTrigger value="roles">Role Templates</TabsTrigger>
