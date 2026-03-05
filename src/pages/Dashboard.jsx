@@ -95,9 +95,8 @@ export default function Dashboard() {
         }
       }
 
-      // Load content for non-accountant roles
-      const role = normaliseRole(session?.role || '');
-      if (role !== 'accountant') {
+      // Load content for non-accountant roles (use resolvedRole from above)
+      if (resolvedRole !== 'accountant') {
         try {
           const diaries = await base44.entities.Diary.list('-created_date', 3);
           setLatestDiaries(diaries || []);
