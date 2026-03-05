@@ -168,13 +168,18 @@ export default function Staff() {
 
   const unlockAccountMutation = useMutation({
     mutationFn: async (member) => {
-      return await base44.functions.invoke('unlockStaffAccount', {
+      const res = await base44.functions.invoke('unlockStaffAccount', {
         staff_id: member.id,
       });
+      if (!res.data?.success) throw new Error(res.data?.error || 'Unlock failed');
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] });
       toast.success('Account unlocked');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to unlock account');
     },
   });
 
