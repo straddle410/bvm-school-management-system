@@ -4,9 +4,10 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  GraduationCap, LogOut, BookOpen, ClipboardList, Bell, Trophy,
+  Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
   ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
-  MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock
+  MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
+  Ticket, BarChart3
 } from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import StudentSimpleNotificationListener from '@/components/StudentSimpleNotificationListener';
@@ -24,15 +25,15 @@ function getStudentSession() {
   } catch { return null; }
 }
 
-const QUICK_ACCESS = [
-  { label: 'Messages', page: 'StudentMessaging',  icon: MessageSquare, gradient: 'from-sky-400 to-blue-600',       notifKey: 'Messages' },
-  { label: 'Homework', page: 'StudentHomework',   icon: BookOpen,      gradient: 'from-orange-400 to-amber-500',   notifKey: null },
-  { label: 'Timetable',page: 'StudentTimetable',  icon: Calendar,      gradient: 'from-green-400 to-emerald-500',  notifKey: null },
-  { label: 'Diary',    page: 'Diary',             icon: Book,          gradient: 'from-fuchsia-400 to-pink-500',   notifKey: 'Diary' },
-  { label: 'Quiz',     page: 'Quiz',              icon: Brain,         gradient: 'from-purple-400 to-violet-500',  notifKey: 'Quiz' },
-  { label: 'Gallery',  page: 'Gallery',           icon: Image,         gradient: 'from-pink-400 to-rose-500',      notifKey: null },
-  { label: 'Notices',  page: 'Notices',           icon: Bell,          gradient: 'from-blue-400 to-indigo-500',    notifKey: 'Notices' },
-  { label: 'Results',  page: 'Results',           icon: Trophy,        gradient: 'from-emerald-400 to-teal-500',   notifKey: 'Results' },
+const HOME_TILES = [
+  { label: 'Attendance', page: 'Attendance', icon: ClipboardList, color: '#26a69a', bg: '#e0f2f1', notifKey: null },
+  { label: 'Marks', page: 'Marks', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', notifKey: null },
+  { label: 'Diary', page: 'Diary', icon: Book, color: '#e91e63', bg: '#fce4ec', notifKey: 'Diary' },
+  { label: 'Homework', page: 'StudentHomework', icon: BookOpen, color: '#f57c00', bg: '#fff3e0', notifKey: null },
+  { label: 'Notices', page: 'Notices', icon: Bell, color: '#1a237e', bg: '#e8eaf6', notifKey: 'Notices' },
+  { label: 'Hall Ticket', page: 'Results', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', notifKey: null },
+  { label: 'Timetable', page: 'StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
+  { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, color: '#0288d1', bg: '#e1f5fe', notifKey: 'Messages' },
 ];
 
 export default function StudentDashboard() {
@@ -44,6 +45,9 @@ export default function StudentDashboard() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [todayClasses, setTodayClasses] = useState([]);
+  const [attendancePct, setAttendancePct] = useState(0);
+  const [currentYear, setCurrentYear] = useState(null);
 
   useEffect(() => {
     const session = getStudentSession();
@@ -55,16 +59,43 @@ export default function StudentDashboard() {
   const loadData = async (session) => {
     setLoading(true);
     try {
-      const r = await base44.functions.invoke('getStudentData', {
-        student_id: session.student_id,
-        academic_year: session.academic_year,
-        class_name: session.class_name
-      });
+      const [r, attendData, yearData, timetableData] = await Promise.all([
+        base44.functions.invoke('getStudentData', {
+          student_id: session.student_id,
+          academic_year: session.academic_year,
+          class_name: session.class_name
+        }),
+        base44.functions.invoke('calculateAttendanceSummaryForStudent', {
+          student_id: session.student_id,
+          academic_year: session.academic_year
+        }).catch(() => null),
+        base44.entities.AcademicYear.filter({ is_current: true }).then(d => d[0] || null).catch(() => null),
+        base44.functions.invoke('studentGetTimetable', {
+          student_id: session.student_id,
+          academic_year: session.academic_year
+        }).catch(() => ({ classes: [] }))
+      ]);
+
       setMarks(r.data?.marks || []);
       setAttendance(r.data?.attendance || []);
       setNotices(r.data?.notices || []);
       setHomework(r.data?.homework || []);
       setSubmissions(r.data?.submissions || []);
+
+      if (attendData?.data?.attendance_percentage) {
+        setAttendancePct(Math.round(attendData.data.attendance_percentage));
+      }
+
+      if (yearData?.name) {
+        setCurrentYear(yearData.name);
+      }
+
+      // Filter timetable for today
+      if (timetableData?.classes && Array.isArray(timetableData.classes)) {
+        const today = format(new Date(), 'EEEE');
+        const todayFiltered = timetableData.classes.filter(c => c.day === today);
+        setTodayClasses(todayFiltered.sort((a, b) => a.start_time.localeCompare(b.start_time)));
+      }
     } catch {}
     setLoading(false);
   };
@@ -122,8 +153,6 @@ export default function StudentDashboard() {
     Messages: unreadCounts.Messages || 0,
   };
 
-  const presentCount = attendance.filter(a => a.is_present).length;
-  const attendancePct = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
   const pendingHw = homework.filter(hw => !submissions.some(s => s.homework_id === hw.id)).length;
 
   if (!student) return null;
