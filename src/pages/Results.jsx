@@ -97,12 +97,13 @@ export default function Results() {
 
   const markResultsNotificationsAsRead = async (studentId) => {
     try {
+      // Mark both results_posted AND hall_ticket_published as read
       const unreadNotifications = await base44.entities.Notification.filter({
         recipient_student_id: studentId,
-        type: 'results_posted',
+        type: { $in: ['results_posted', 'hall_ticket_published'] },
         is_read: false
       });
-      
+
       for (const notif of unreadNotifications) {
         await base44.entities.Notification.update(notif.id, { is_read: true });
       }
