@@ -152,7 +152,7 @@ export default function Gallery() {
     const pendingCount = allPhotos.filter(p => ['Draft', 'PendingApproval'].includes(p.status)).length;
 
     return (
-      <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Gallery">
+      <div>
       <div className="bg-white min-h-screen">
         {/* Album header */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
@@ -289,13 +289,12 @@ export default function Gallery() {
           onUploadSuccess={handleUploadSuccess}
         />
         </div>
-        </LoginRequired>
         );
         }
 
         // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
         return (
-        <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Gallery">
+        <div>
         <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-end justify-between">
@@ -392,6 +391,5 @@ export default function Gallery() {
         </DialogContent>
         </Dialog>
         </div>
-        </LoginRequired>
         );
         }
