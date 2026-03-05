@@ -181,24 +181,28 @@ export default function StudentProfile() {
   const [searchParams] = useSearchParams();
   const studentId = searchParams.get('id');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [sessionStudent, setSessionStudent] = useState(null);
 
   useEffect(() => {
-    const studentSession = localStorage.getItem('student_session');
-    // Students never call auth.me() - it always returns 401
-    // Only staff can be admin here
-    if (studentSession) {
-      setIsAdmin(false); // Students viewing this page are never admin
+    const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
+    if (raw) {
+      try {
+        setSessionStudent(JSON.parse(raw));
+      } catch {}
     }
+    setIsAdmin(false);
   }, []);
 
   const { data: student, isLoading: studentLoading } = useQuery({
-    queryKey: ['student-detail', studentId],
+    queryKey: ['student-detail', studentId, sessionStudent?.id],
     queryFn: async () => {
-      if (!studentId) return null;
-      const results = await base44.entities.Student.filter({ id: studentId });
+      // If viewing own profile from session, fetch full data by id
+      const idToFetch = studentId || sessionStudent?.id;
+      if (!idToFetch) return null;
+      const results = await base44.entities.Student.filter({ id: idToFetch });
       return results[0] || null;
     },
-    enabled: !!studentId,
+    enabled: !!(studentId || sessionStudent?.id),
   });
 
   const { data: attendance = [] } = useQuery({
@@ -213,7 +217,7 @@ export default function StudentProfile() {
     enabled: !!student?.student_id,
   });
 
-  if (!studentId) {
+  if (!studentId && !sessionStudent?.id) {
     return <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center"><p className="text-gray-400">Student not found</p></div>;
   }
 
