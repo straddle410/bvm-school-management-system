@@ -75,13 +75,26 @@ Deno.serve(async (req) => {
       });
       const now = new Date().toISOString();
       if (existing && existing.length > 0) {
-        // Update: re-bind to current staff_id and refresh last_login_at
-        await base44.asServiceRole.entities.StaffAuthLink.update(existing[0].id, {
-          staff_id: account.id,
+        const link = existing[0];
+        if (link.staff_id !== account.id) {
+          // CONFLICT: this base44 session is already bound to a different StaffAccount.
+          // Silently rebinding would allow shared-device mix-ups to hijack accounts.
+          console.error(
+            `LINK_CONFLICT: base44_user_id=${authUser.id} already linked to staff_id=${link.staff_id}, ` +
+            `attempted login as staff_id=${account.id} (username=${account.username})`
+          );
+          return Response.json({
+            error: 'This platform session is already linked to a different staff account. ' +
+                   'Please use a separate browser profile or contact your administrator.',
+            code: 'LINK_CONFLICT',
+          }, { status: 403 });
+        }
+        // Same staff_id — just refresh last_login_at
+        await base44.asServiceRole.entities.StaffAuthLink.update(link.id, {
           last_login_at: now,
         });
       } else {
-        // Create new link
+        // No link yet — create one
         await base44.asServiceRole.entities.StaffAuthLink.create({
           base44_user_id: authUser.id,
           staff_id: account.id,
