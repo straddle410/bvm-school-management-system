@@ -64,11 +64,11 @@ export default function StudentDashboard() {
           student_id: session.student_id,
           academic_year: session.academic_year,
           class_name: session.class_name
-        }),
+        }).catch(() => ({ data: { marks: [], attendance: [], notices: [], homework: [], submissions: [] } })),
         base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
           academic_year: session.academic_year
-        }).catch(() => null),
+        }).catch(() => ({ data: { attendance_percentage: 0 } })),
         base44.entities.AcademicYear.filter({ is_current: true }).then(d => d[0] || null).catch(() => null),
         base44.functions.invoke('studentGetTimetable', {
           student_id: session.student_id,
@@ -76,14 +76,16 @@ export default function StudentDashboard() {
         }).catch(() => ({ classes: [] }))
       ]);
 
-      setMarks(r.data?.marks || []);
-      setAttendance(r.data?.attendance || []);
-      setNotices(r.data?.notices || []);
-      setHomework(r.data?.homework || []);
-      setSubmissions(r.data?.submissions || []);
+      setMarks(r?.data?.marks || []);
+      setAttendance(r?.data?.attendance || []);
+      setNotices(r?.data?.notices || []);
+      setHomework(r?.data?.homework || []);
+      setSubmissions(r?.data?.submissions || []);
 
       if (attendData?.data?.attendance_percentage) {
         setAttendancePct(Math.round(attendData.data.attendance_percentage));
+      } else {
+        setAttendancePct(0);
       }
 
       if (yearData?.year) {
