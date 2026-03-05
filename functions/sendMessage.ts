@@ -142,6 +142,8 @@ Deno.serve(async (req) => {
     }
 
     // Create message(s)
+    const studentRecipients = [];
+
     if (recipient_type === 'individual') {
       await base44.asServiceRole.entities.Message.create({
         sender_id,
@@ -158,6 +160,11 @@ Deno.serve(async (req) => {
         academic_year: academic_year || '2024-25',
         subject_area: subject_area || null,
       });
+
+      // If sender is staff and recipient is student, send push and create notification
+      if (sender_role !== 'student') {
+        studentRecipients.push(recipient_id);
+      }
     } else {
       // Bulk create for class/section
       const messages = payload.messages || [];
@@ -183,6 +190,25 @@ Deno.serve(async (req) => {
           subject_area: subject_area || null,
         }))
       );
+
+      // If sender is staff, collect student recipients
+      if (sender_role !== 'student') {
+        studentRecipients.push(...messages.map(m => m.recipient_id));
+      }
+    }
+
+    // Send push notifications to students if sender is staff
+    if (studentRecipients.length > 0 && sender_role !== 'student') {
+      try {
+        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+          student_ids: studentRecipients,
+          title: sender_name,
+          message: (subject || trimmedBody).substring(0, 100),
+          url: '/StudentMessaging',
+        });
+      } catch (pushErr) {
+        console.warn('Message push notification error (non-fatal):', pushErr.message);
+      }
     }
 
     return Response.json({ success: true, message: 'Message sent' });
