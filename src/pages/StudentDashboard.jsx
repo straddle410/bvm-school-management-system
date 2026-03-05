@@ -26,13 +26,13 @@ function getStudentSession() {
 }
 
 const HOME_TILES = [
-  { label: 'Attendance', page: 'StudentAttendance', icon: ClipboardList, color: '#26a69a', bg: '#e0f2f1', notifKey: null },
-  { label: 'Marks', page: 'StudentMarks', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', notifKey: null },
-  { label: 'Diary', page: 'StudentDiary', icon: Book, color: '#e91e63', bg: '#fce4ec', notifKey: 'Diary' },
+  { label: 'Attendance', page: '/StudentAttendance', icon: ClipboardList, color: '#26a69a', bg: '#e0f2f1', notifKey: null },
+  { label: 'Marks', page: '/StudentMarks', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', notifKey: null },
+  { label: 'Diary', page: '/StudentDiary', icon: Book, color: '#e91e63', bg: '#fce4ec', notifKey: 'Diary' },
   { label: 'Homework', page: 'StudentHomework', icon: BookOpen, color: '#f57c00', bg: '#fff3e0', notifKey: null },
-  { label: 'Notices', page: 'StudentNotices', icon: Bell, color: '#1a237e', bg: '#e8eaf6', notifKey: 'Notices' },
+  { label: 'Notices', page: '/StudentNotices', icon: Bell, color: '#1a237e', bg: '#e8eaf6', notifKey: 'Notices' },
   { label: 'Hall Ticket', page: 'Results', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', notifKey: 'HallTickets' },
-  { label: 'Timetable', page: 'StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
+  { label: 'Timetable', page: '/StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
   { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, color: '#0288d1', bg: '#e1f5fe', notifKey: 'Messages' },
 ];
 
@@ -246,7 +246,7 @@ export default function StudentDashboard() {
             {HOME_TILES.map((tile) => {
               const badge = notifMap[tile.notifKey] || 0;
               return (
-                <Link key={tile.label} to={createPageUrl(tile.page)} className="relative">
+                <Link key={tile.label} to={tile.page.startsWith('/') ? tile.page : createPageUrl(tile.page)} className="relative">
                   <div className="rounded-2xl p-4 text-white transition-transform hover:scale-105" style={{ backgroundColor: tile.color }}>
                     <div className="flex items-start justify-between mb-2">
                       <tile.icon className="h-5 w-5 opacity-90" />
