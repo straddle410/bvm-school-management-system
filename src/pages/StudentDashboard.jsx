@@ -25,6 +25,10 @@ function getStudentSession() {
   } catch { return null; }
 }
 
+// IMPORTANT:
+// Always use createPageUrl('StudentPageName').
+// Do NOT use lowercase routes like '/studentattendance'.
+// Base44 routes are case-sensitive and generated from filenames.
 const HOME_TILES = [
   { label: 'Attendance', page: 'StudentAttendance', icon: ClipboardList, color: '#26a69a', bg: '#e0f2f1', notifKey: null },
   { label: 'Marks', page: 'StudentMarks', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', notifKey: null },
