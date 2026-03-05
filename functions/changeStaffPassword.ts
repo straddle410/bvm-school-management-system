@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 // ── Token verification (same as getMyStaffProfile) ───────────────────────────
 const CLOCK_SKEW_MS = 2 * 60 * 1000;
@@ -48,15 +49,10 @@ async function verifySessionToken(token) {
   }
 }
 
-// ── Password helpers (must match staffLogin exactly) ─────────────────────────
-function hashPassword(password) {
+// ── Legacy password helper ──────────────────────────────────────────────────
+function hashPasswordLegacy(password) {
   if (!password) return '';
   return '$2b$10$' + btoa(password).substring(0, 53);
-}
-
-function validatePassword(password, hash) {
-  if (!hash || !password) return false;
-  return hashPassword(password) === hash;
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -115,15 +111,21 @@ Deno.serve(async (req) => {
 
     const account = accounts[0];
 
-    // 5. Verify current password
-    const passwordValid = validatePassword(currentPassword, account.password_hash);
+    // 5. Verify current password (bcrypt or legacy)
+    let passwordValid = false;
+    if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$')) {
+      passwordValid = await bcrypt.compare(currentPassword, account.password_hash);
+    } else {
+      passwordValid = hashPasswordLegacy(currentPassword) === account.password_hash;
+    }
+
     if (!passwordValid) {
       console.log(`[changeStaffPassword] CURRENT_PASSWORD_INCORRECT for ${account.username}`);
       return Response.json({ error: 'Current password is incorrect.', code: 'CURRENT_PASSWORD_INCORRECT' }, { status: 400 });
     }
 
-    // 6. Update password and clear force_password_change
-    const newHash = hashPassword(newPassword);
+    // 6. Hash new password with bcrypt and update
+    const newHash = await bcrypt.hash(newPassword, 10);
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
       password_hash: newHash,
       password_updated_at: new Date().toISOString(),
