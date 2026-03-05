@@ -50,10 +50,15 @@ export default function Dashboard() {
       const session = getStaffSession();
       let resolvedRole = '';
 
-      if (session?.username) {
+      if (session) {
         // Always re-verify role from StaffAccount (source of truth)
+        // Pass all stable identifiers — server uses the most reliable one available
         try {
-          const res = await base44.functions.invoke('getMyStaffProfile', { username: session.username });
+          const res = await base44.functions.invoke('getMyStaffProfile', {
+            staff_id: session.staff_id || null,
+            email: session.email || null,
+            username: session.username || null,
+          });
           if (res.data?.role) {
             resolvedRole = normaliseRole(res.data.role);
             setStaffRole(resolvedRole);
