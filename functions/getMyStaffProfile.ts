@@ -33,26 +33,28 @@ async function getSessionKey() {
 }
 
 async function verifySessionToken(token) {
-  try {
-    const dotIdx = token.lastIndexOf('.');
-    if (dotIdx < 0) {
-      console.error('[getMyStaffProfile] TOKEN_INVALID: no dot separator found, token_length=', token.length);
-      return { error: 'TOKEN_INVALID' };
-    }
-    const payloadB64 = token.slice(0, dotIdx);
-    const sigB64 = token.slice(dotIdx + 1);
+   try {
+     const dotIdx = token.lastIndexOf('.');
+     if (dotIdx < 0) {
+       console.error('[getMyStaffProfile] TOKEN_INVALID: no dot separator found, token_length=', token.length);
+       return { error: 'TOKEN_INVALID' };
+     }
+     const payloadB64 = token.slice(0, dotIdx);
+     const sigB64 = token.slice(dotIdx + 1);
 
-    // Decode payload first for logging before signature check
-    let payload = null;
-    try {
-      payload = JSON.parse(b64urlDecode(payloadB64));
-      const { staff_id, exp, iat } = payload;
-      const now = Date.now();
-      console.log(`[getMyStaffProfile] TOKEN_DECODE: staff_id=${staff_id} iat=${iat} exp=${exp} now=${now} exp_iso=${exp ? new Date(exp).toISOString() : 'N/A'} expired=${now > exp}`);
-    } catch (decodeErr) {
-      console.error('[getMyStaffProfile] TOKEN_INVALID: payload decode failed:', decodeErr.message);
-      return { error: 'TOKEN_INVALID' };
-    }
+     // Decode payload first for logging before signature check
+     let payload = null;
+     try {
+       const decoded = b64urlDecode(payloadB64);
+       console.log(`[getMyStaffProfile] Decoded payload string: ${decoded}`);
+       payload = JSON.parse(decoded);
+       const { staff_id, exp, iat } = payload;
+       const now = Date.now();
+       console.log(`[getMyStaffProfile] TOKEN_DECODE: staff_id=${staff_id} iat=${iat} exp=${exp} now=${now} exp_iso=${exp ? new Date(exp).toISOString() : 'N/A'} expired=${now > exp}`);
+     } catch (decodeErr) {
+       console.error('[getMyStaffProfile] TOKEN_INVALID: payload decode failed:', decodeErr.message);
+       return { error: 'TOKEN_INVALID' };
+     }
 
     const key = await getSessionKey();
     const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
