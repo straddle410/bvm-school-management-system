@@ -152,7 +152,6 @@ export default function Gallery() {
     const pendingCount = allPhotos.filter(p => ['Draft', 'PendingApproval'].includes(p.status)).length;
 
     return (
-      <div>
       <div className="bg-white min-h-screen">
         {/* Album header */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
