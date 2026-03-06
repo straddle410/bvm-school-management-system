@@ -245,10 +245,20 @@ export default function Homework() {
   };
 
   const handleQuickPublish = (id) => {
+    const hw = homeworkList.find(h => h.id === id);
+    if (!canManageHomework(hw, user)) {
+      toast.error('You cannot manage this homework');
+      return;
+    }
     bulkStatusMutation.mutate({ homework_ids: [id], status: 'Published' });
   };
 
   const handleQuickUnpublish = (id) => {
+    const hw = homeworkList.find(h => h.id === id);
+    if (!canManageHomework(hw, user)) {
+      toast.error('You cannot manage this homework');
+      return;
+    }
     bulkStatusMutation.mutate({ homework_ids: [id], status: 'Draft' });
   };
 
