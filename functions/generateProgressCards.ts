@@ -239,8 +239,9 @@ Deno.serve(async (req) => {
     const uniqueStudents = new Map();
 
     // Deduplicate — only include Published/non-deleted students (filtered by validStudentIds)
-    const filteredStudentList = Object.values(studentData).filter(student => validStudentIds.has(student.student_id));
-    for (const student of filteredStudentList) {
+    const filteredStudentList = Object.values(studentData).filter(function(s) { return validStudentIds.has(s.student_id); });
+    for (let si = 0; si < filteredStudentList.length; si++) {
+      const student = filteredStudentList[si];
       const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
       if (uniqueStudents.has(studentKey)) return; // Skip duplicate student entries
       uniqueStudents.set(studentKey, true);
