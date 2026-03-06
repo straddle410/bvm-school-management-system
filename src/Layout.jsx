@@ -73,6 +73,12 @@ export default function Layout({ children, currentPageName }) {
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
   useEffect(() => {
+    // Redirect root (Index page) to Home
+    if (currentPageName === 'Index') {
+      navigate(createPageUrl('Home'), { replace: true });
+      return;
+    }
+
     // Check student session first
     let ss = null;
     try {
