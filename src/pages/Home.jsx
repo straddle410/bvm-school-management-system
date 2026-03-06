@@ -166,8 +166,38 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-6 text-center">
-        <p className="text-sm">© {currentYear} BVM School of Excellence. All rights reserved.</p>
+      <footer className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-6 pb-6 border-b border-white/20">
+            <div>
+              <h3 className="font-bold text-lg mb-2">Quick Links</h3>
+              <ul className="space-y-1 text-sm text-blue-100">
+                <li><Link to={createPageUrl('Home')} className="hover:text-white transition">Home</Link></li>
+                <li><Link to={createPageUrl('StudentLogin')} className="hover:text-white transition">Student Portal</Link></li>
+                <li><Link to={createPageUrl('StaffLogin')} className="hover:text-white transition">Staff Portal</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-2">Contact</h3>
+              <ul className="space-y-1 text-sm text-blue-100">
+                <li>Phone: +91-98765-43210</li>
+                <li>Email: info@school.com</li>
+                <li>Address: 123 School Lane, City</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-2">Hours</h3>
+              <ul className="space-y-1 text-sm text-blue-100">
+                <li>Mon - Fri: 9:00 AM - 4:00 PM</li>
+                <li>Saturday: 9:00 AM - 1:00 PM</li>
+                <li>Sunday: Closed</li>
+              </ul>
+            </div>
+          </div>
+          <div className="text-center text-sm text-blue-100">
+            <p>© {currentYear} BVM School of Excellence. All rights reserved.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );
