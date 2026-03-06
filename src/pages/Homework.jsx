@@ -219,6 +219,40 @@ export default function Homework() {
             </Button>
           </div>
 
+          {/* Bulk Action Bar */}
+          {selected.size > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4 flex items-center justify-between">
+              <span className="text-sm font-semibold text-blue-900">{selected.size} selected</span>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleBulkPublish}
+                  size="sm"
+                  className="text-xs bg-green-600 hover:bg-green-700"
+                  disabled={bulkActionLoading}
+                >
+                  Publish Selected
+                </Button>
+                <Button
+                  onClick={handleBulkUnpublish}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  disabled={bulkActionLoading}
+                >
+                  Move to Draft
+                </Button>
+                <Button
+                  onClick={() => setSelected(new Set())}
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* List */}
           {isLoading ? (
             <div className="text-center py-12">
