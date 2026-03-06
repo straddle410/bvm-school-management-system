@@ -793,15 +793,14 @@ export default function Students() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Promote Dialog */}
-        {showPromote && (
+        {/* Hidden Promote trigger — opened via ref click from More menu */}
+        <div className="hidden">
           <PromoteStudents
+            ref={promoteRef}
             academicYear={academicYear}
-            onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); setShowPromote(false); }}
-            externalOpen={showPromote}
-            onExternalOpenChange={setShowPromote}
+            onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
           />
-        )}
+        </div>
 
         {/* Past Year Warning */}
         <PastYearWarning
