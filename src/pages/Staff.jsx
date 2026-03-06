@@ -606,7 +606,12 @@ export default function Staff() {
                             Generate
                           </Button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">Share with staff member to login (auto-hashed)</p>
+                        {tempPassword && !validatePasswordPolicy(tempPassword).valid && (
+                          <p className="text-xs text-red-500 mt-1">{validatePasswordPolicy(tempPassword).message}</p>
+                        )}
+                        {tempPassword && validatePasswordPolicy(tempPassword).valid && (
+                          <p className="text-xs text-slate-500 mt-1">Share with staff member to login (auto-hashed)</p>
+                        )}
                       </div>
                     </div>
 
