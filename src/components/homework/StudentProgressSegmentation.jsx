@@ -8,32 +8,8 @@ export default function StudentProgressSegmentation({
   submissions = [],
   assignedStudents = [],
 }) {
-  // Normalize status helper
-  const normalizeStatus = (status) => {
-    if (!status) return 'SUBMITTED';
-    const normalized = String(status).trim().toUpperCase();
-    const map = {
-      'SUBMITTED': 'SUBMITTED',
-      'RESUBMITTED': 'RESUBMITTED',
-      'GRADED': 'GRADED',
-      'REVISION_REQUIRED': 'REVISION_REQUIRED',
-      'SUBMITTED': 'SUBMITTED',
-      'GRADED': 'GRADED',
-      'Submitted': 'SUBMITTED',
-      'Graded': 'GRADED',
-    };
-    return map[normalized] || normalized;
-  };
-
-  // Create a map of student_id -> latest submission
-  const submissionMap = new Map();
-  submissions.forEach((sub) => {
-    const key = sub.student_id;
-    const current = submissionMap.get(key);
-    if (!current || new Date(sub.submitted_at) > new Date(current.submitted_at)) {
-      submissionMap.set(key, { ...sub, status: normalizeStatus(sub.status) });
-    }
-  });
+  // Use shared helper to build latest submission map
+  const submissionMap = getLatestSubmissionMap(submissions);
 
   // Segment students by status
   const pendingStudents = assignedStudents.filter((s) => !submissionMap.has(s.student_id));
