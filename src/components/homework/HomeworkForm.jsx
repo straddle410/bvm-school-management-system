@@ -122,7 +122,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
       return;
     }
     setLoading(true);
-    const data = { ...form, max_marks: form.max_marks ? Number(form.max_marks) : undefined };
+    const data = { ...form, status: 'Published', max_marks: form.max_marks ? Number(form.max_marks) : undefined };
     if (editItem) {
       await base44.entities.Homework.update(editItem.id, data);
     } else {
