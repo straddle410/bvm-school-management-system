@@ -1304,7 +1304,10 @@ export default function Staff() {
                 </Button>
                 <Button
                   onClick={handleResetPasswordSubmit}
-                  disabled={resetPasswordMutation.isPending}
+                  disabled={
+                    resetPasswordMutation.isPending ||
+                    (resetPasswordMode === 'manual' && !validatePasswordPolicy(manualPassword).valid)
+                  }
                   className="bg-amber-600 hover:bg-amber-700"
                 >
                   {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
