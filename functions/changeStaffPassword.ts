@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // 6. Hash new password with bcrypt and update.
+    // 8. Hash new password with bcrypt and update.
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
     const newHash = await bcrypt.hash(newPassword, 10);
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
