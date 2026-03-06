@@ -84,8 +84,8 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
       ? mcqAnswers.filter((a, i) => a.selected_option === hw.mcq_questions?.[i]?.correct_answer).length
       : null;
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
-        <div className="bg-white w-full max-w-md rounded-t-3xl p-8 text-center">
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '80px' }}>
+        <div className="bg-white w-full max-w-md rounded-t-3xl p-8 text-center max-h-[calc(100vh-160px)] overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-800 mb-2">Submitted!</h2>
           {hw.homework_type === 'MCQ' && score !== null && (
@@ -99,8 +99,8 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ overscrollBehavior: 'contain', paddingBottom: '64px' }}>
-      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ maxHeight: 'calc(100vh - 64px)' }}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ overscrollBehavior: 'contain', paddingBottom: '80px' }}>
+      <div className="bg-white w-full max-w-md rounded-t-3xl flex flex-col" style={{ maxHeight: 'calc(100vh - 160px)' }}>
         <div className="bg-white px-4 pt-4 pb-3 flex items-center justify-between border-b flex-shrink-0">
           <div>
             <h2 className="font-bold text-slate-800 text-sm">{hw.title}</h2>
@@ -124,7 +124,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           </div>
         </div>
 
-        <div className="p-4 space-y-5 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="p-4 space-y-5 overflow-y-auto flex-1 pb-24" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Info */}
           {hw.description && (
             <div className="bg-blue-50 rounded-xl p-3">
