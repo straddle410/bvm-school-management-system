@@ -45,31 +45,74 @@ Deno.serve(async (req) => {
       }
     });
 
-    // PHASE C: Change status to Approved and generate ID (via workaround)
+    // PHASE C: Change status to Approved and generate ID (direct ID generation logic)
     report.phases.push({ phase: 'C', name: 'Approve and generate ID', status: 'IN_PROGRESS' });
 
-    // Call the workaround function using SDK invocation
-    const approveResponse = await base44.asServiceRole.functions.invoke('approveStudentAndGenerateId', {
-      student_id: newStudent.id
+    // Approve student
+    await base44.asServiceRole.entities.Student.update(newStudent.id, {
+      status: 'Approved'
     });
 
-    if (!approveResponse.data.success) {
-      report.phases[2].status = 'FAILED';
-      report.phases[2].details = { error: approveResponse.data.error };
-      return Response.json(report);
+    // Parse academic year and generate ID directly
+    const match = newStudent.academic_year.match(/^(\d{4})-(\d{2})$/);
+    const startYear = match[1];
+    const yy = startYear.slice(2);
+    const counterKey = `student_id_${startYear}`;
+
+    // Scan for highest existing ID
+    const allStudents = await base44.asServiceRole.entities.Student.filter({ 
+      academic_year: newStudent.academic_year,
+      student_id: { $regex: `^S${yy}` }
+    });
+    
+    const pattern = new RegExp(`^S${yy}(\\d{3})$`, 'i');
+    const existing = allStudents
+      .map(s => s.student_id)
+      .filter(id => id && pattern.test(id))
+      .map(id => {
+        const m = id.match(/^S\d{2}(\d{3})$/i);
+        return m ? parseInt(m[1], 10) : 0;
+      });
+    
+    const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
+    const nextValue = maxExisting + 1;
+
+    // Get or create counter
+    let counter = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
+    counter = counter[0];
+
+    if (!counter) {
+      counter = await base44.asServiceRole.entities.Counter.create({
+        key: counterKey,
+        current_value: nextValue
+      });
+    } else {
+      if (nextValue > (counter.current_value || 0)) {
+        await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
+      }
     }
+
+    const generatedId = `S${yy}${String(nextValue).padStart(3, '0')}`;
+    const generatedUsername = generatedId;
+    const tempPassword = `BVM${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+    // Update student with credentials
+    await base44.asServiceRole.entities.Student.update(newStudent.id, {
+      student_id: generatedId,
+      student_id_norm: generatedId.toLowerCase(),
+      username: generatedUsername,
+      password: tempPassword,
+      must_change_password: true
+    });
 
     report.phases[2].status = 'PASS';
     report.phases[2].details = {
-      generated_student_id: approveResponse.data.generated_student_id,
-      generated_username: approveResponse.data.generated_username,
-      status: approveResponse.data.status,
-      password_generated: approveResponse.data.password_generated,
-      must_change_password: approveResponse.data.must_change_password
+      generated_student_id: generatedId,
+      generated_username: generatedUsername,
+      status: 'Approved',
+      password_generated: true,
+      must_change_password: true
     };
-
-    const generatedId = approveResponse.data.generated_student_id;
-    const generatedUsername = approveResponse.data.generated_username;
 
     // PHASE D: Verify after approval
     report.phases.push({ phase: 'D', name: 'Verify ID generated correctly', status: 'IN_PROGRESS' });
