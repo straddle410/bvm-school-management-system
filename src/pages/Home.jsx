@@ -26,10 +26,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f0f4ff] to-[#f5f7ff] flex flex-col">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-lg sticky top-0 z-40">
+      {/* Header / Navigation */}
+      <nav className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-lg sticky top-0 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to={createPageUrl('Home')} className="flex items-center gap-3 hover:opacity-90 transition">
             <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
               <Building2 className="h-6 w-6" />
             </div>
@@ -37,7 +37,7 @@ export default function Home() {
               <h1 className="text-xl font-bold">BVM School</h1>
               <p className="text-xs text-blue-100">School of Excellence</p>
             </div>
-          </div>
+          </Link>
           <div className="flex gap-2">
             <Link to={createPageUrl('StudentLogin')}>
               <Button variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
@@ -51,7 +51,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
       <section className="flex-1 flex items-center justify-center px-4 py-12 sm:py-16">
