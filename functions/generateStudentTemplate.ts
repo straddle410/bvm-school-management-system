@@ -5,13 +5,11 @@ Deno.serve(async (req) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Students');
 
-    // Headers
+    // Headers (student_id and roll_no are auto-generated)
     const headers = [
-      'student_id',
       'name',
       'class_name',
       'section',
-      'roll_no',
       'parent_name',
       'parent_phone',
       'parent_email',
@@ -20,7 +18,6 @@ Deno.serve(async (req) => {
       'address',
       'blood_group',
       'admission_date',
-      'academic_year',
       'status'
     ];
 
@@ -35,41 +32,35 @@ Deno.serve(async (req) => {
     // Add sample empty rows (10 rows for data entry)
     for (let i = 0; i < 10; i++) {
       worksheet.addRow([
-        `STU${String(i + 1).padStart(3, '0')}`,
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '2024-25',
-        'Approved'
+        '', // name
+        '', // class_name
+        '', // section
+        '', // parent_name
+        '', // parent_phone
+        '', // parent_email
+        '', // dob
+        '', // gender
+        '', // address
+        '', // blood_group
+        '', // admission_date
+        'Pending' // status
       ]);
     }
 
     // Set column widths
     worksheet.columns = [
-      { width: 12 },
-      { width: 20 },
-      { width: 15 },
-      { width: 10 },
-      { width: 10 },
-      { width: 20 },
-      { width: 15 },
-      { width: 25 },
-      { width: 15 },
-      { width: 10 },
-      { width: 25 },
-      { width: 12 },
-      { width: 15 },
-      { width: 12 },
-      { width: 12 }
+      { width: 25 }, // name
+      { width: 15 }, // class_name
+      { width: 10 }, // section
+      { width: 20 }, // parent_name
+      { width: 15 }, // parent_phone
+      { width: 25 }, // parent_email
+      { width: 15 }, // dob
+      { width: 10 }, // gender
+      { width: 25 }, // address
+      { width: 12 }, // blood_group
+      { width: 15 }, // admission_date
+      { width: 12 }  // status
     ];
 
     // Freeze header row
