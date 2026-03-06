@@ -129,15 +129,20 @@ Deno.serve(async (req) => {
 
     // 6. Verify current password.
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
+    console.log(`[changeStaffPassword] Verifying password for staff_id=${staff_id}, hashType=${account.password_hash?.substring(0, 4) || 'NONE'}`);
     let passwordValid = false;
     if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$') || account.password_hash?.startsWith('$2y$')) {
       try {
+        const startTime = Date.now();
         passwordValid = await bcrypt.compare(currentPassword, account.password_hash);
-      } catch {
+        console.log(`[changeStaffPassword] bcrypt.compare took ${Date.now() - startTime}ms, result=${passwordValid}`);
+      } catch (bcryptErr) {
+        console.error(`[changeStaffPassword] bcrypt.compare error: ${bcryptErr.message}`);
         return Response.json({ error: 'Account has an invalid password hash. Please contact admin to reset.', code: 'PASSWORD_HASH_INVALID' }, { status: 400 });
       }
     } else {
       // Unknown/corrupt hash — cannot verify, require admin reset
+      console.error(`[changeStaffPassword] Invalid hash format for staff_id=${staff_id}`);
       return Response.json({ error: 'Account has an invalid password hash. Please contact admin to reset.', code: 'PASSWORD_HASH_INVALID' }, { status: 400 });
     }
 
@@ -147,8 +152,10 @@ Deno.serve(async (req) => {
     }
 
     // 7. Reject if new password same as current (using bcrypt.compare)
+    console.log(`[changeStaffPassword] Checking if new password equals current...`);
     const isSameAsCurrent = await bcrypt.compare(newPassword, account.password_hash);
     if (isSameAsCurrent) {
+      console.log(`[changeStaffPassword] SAME_PASSWORD rejected`);
       return Response.json({
         success: false,
         error: 'SAME_PASSWORD',
@@ -159,12 +166,19 @@ Deno.serve(async (req) => {
 
     // 8. Hash new password with bcrypt and update.
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
+    console.log(`[changeStaffPassword] Hashing new password with bcrypt...`);
+    const hashStartTime = Date.now();
     const newHash = await bcrypt.hash(newPassword, 10);
+    console.log(`[changeStaffPassword] bcrypt.hash took ${Date.now() - hashStartTime}ms`);
+
+    console.log(`[changeStaffPassword] Updating staff account ${staff_id}...`);
+    const updateStartTime = Date.now();
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
       password_hash: newHash,
       password_updated_at: new Date().toISOString(),
       force_password_change: false,
     });
+    console.log(`[changeStaffPassword] Update completed in ${Date.now() - updateStartTime}ms`);
 
     console.log(`[changeStaffPassword] SUCCESS for staff: ${account.username} (${account.role})`);
 
