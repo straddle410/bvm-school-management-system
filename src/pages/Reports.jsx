@@ -31,8 +31,19 @@ export default function Reports() {
   const [selectedExam, setSelectedExam] = useState('all');
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students-published'],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published' })
+    queryKey: ['students-published', academicYear],
+    queryFn: async () => {
+      if (!academicYear) return [];
+      // Mirror Students page filters exactly:
+      //   academic_year = current year
+      //   status = Published (active)
+      //   is_deleted != true
+      //   exclude archived statuses (Passed Out, Transferred)
+      const ARCHIVED_STATUSES = ['Passed Out', 'Transferred'];
+      const all = await base44.entities.Student.filter({ academic_year: academicYear, status: 'Published' });
+      return all.filter(s => !s.is_deleted && !ARCHIVED_STATUSES.includes(s.status));
+    },
+    enabled: !!academicYear,
   });
 
   const { data: marks = [] } = useQuery({
