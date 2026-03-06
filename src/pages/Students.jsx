@@ -751,6 +751,29 @@ export default function Students() {
           academicYear={academicYear}
         />
 
+        {/* Transport Bulk Confirm */}
+        <AlertDialog open={showTransportConfirm} onOpenChange={setShowTransportConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Apply Transport {transportAction === 'on' ? 'ON' : 'OFF'}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will set Transport <strong>{transportAction === 'on' ? 'ON' : 'OFF'}</strong> for{' '}
+                <strong>{selectedIds.size}</strong> student(s). This action can be reversed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={transportLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={transportLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={handleBulkTransport}
+              >
+                {transportLoading ? 'Updating…' : 'Confirm'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Past Year Warning */}
         <PastYearWarning
           open={showPastYearWarning}
