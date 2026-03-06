@@ -195,10 +195,30 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
                 <p className="text-sm font-semibold text-gray-700">Class {filterClass}-{filterSection} · {filterYear}</p>
                 <p className="text-xs text-gray-400">{students.length} students</p>
               </div>
-              <Button variant="outline" size="sm" onClick={handleAutoResequence} className="rounded-xl">
-                <ArrowUpDown className="h-3.5 w-3.5 mr-1" /> Auto Reorder
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowCleanupConfirm(true)} disabled={cleaning} className="rounded-xl text-orange-600 border-orange-200 hover:bg-orange-50" title="Clear roll numbers from deleted/archived students">
+                  {cleaning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  <span className="ml-1">Free Deleted Rolls</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleAutoResequence} className="rounded-xl">
+                  <ArrowUpDown className="h-3.5 w-3.5 mr-1" /> Auto Reorder
+                </Button>
+              </div>
             </div>
+
+            {/* Cleanup confirmation banner */}
+            {showCleanupConfirm && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-2">
+                <p className="text-sm font-medium text-orange-800">
+                  Clear roll numbers from deleted/archived students in Class {filterClass}-{filterSection} ({filterYear})?
+                </p>
+                <p className="text-xs text-orange-600">This only affects soft-deleted, Archived, Passed Out, and Transferred students. Active students are never touched.</p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleFreeDeletedRolls} className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg h-7 text-xs">Yes, Free Rolls</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowCleanupConfirm(false)} className="rounded-lg h-7 text-xs">Cancel</Button>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
