@@ -28,29 +28,39 @@ async function getSessionKey() {
 }
 
 async function verifySessionToken(token) {
-   try {
-     const dotIdx = token.lastIndexOf('.');
-     if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
-     const payloadB64 = token.slice(0, dotIdx);
-     const sigB64 = token.slice(dotIdx + 1);
+  try {
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
 
-     const key = await getSessionKey();
-     const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
-     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
-     if (!valid) return { error: 'TOKEN_INVALID' };
+    const key = await getSessionKey();
+    let standard = sigB64.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
+    standard = standard + pad;
+    const sigBytes = Uint8Array.from(atob(standard), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return { error: 'TOKEN_INVALID' };
 
-     const payload = JSON.parse(b64urlDecode(payloadB64));
-     const { staff_id, exp, iat, username, role } = payload;
+    const payload = JSON.parse(b64urlDecode(payloadB64));
+    const { staff_id, exp, iat, username, role } = payload;
 
-     if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
-     if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' };
-     if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
+    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
 
-     return { staff_id, username, role };
-   } catch {
-     return { error: 'TOKEN_INVALID' };
-   }
- }
+    // Handle both ms and sec timestamps (migration compatibility)
+    const CLOCK_SKEW_SEC = 5 * 60;
+    const nowSec = Math.floor(Date.now() / 1000);
+    let expSec = exp > 1e12 ? Math.floor(exp / 1000) : exp;
+    let iatSec = iat > 1e12 ? Math.floor(iat / 1000) : iat;
+
+    if (iatSec > nowSec + CLOCK_SKEW_SEC) return { error: 'TOKEN_INVALID' };
+    if (nowSec > expSec) return { error: 'TOKEN_EXPIRED' };
+
+    return { staff_id, username, role };
+  } catch {
+    return { error: 'TOKEN_INVALID' };
+  }
+}
 
 /**
  * Updates the profile of the logged-in staff member.
