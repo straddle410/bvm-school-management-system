@@ -529,19 +529,16 @@ export default function Students() {
           }
         />
 
-        <div className="max-w-5xl mx-auto px-4 py-5 space-y-5">
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Active', value: totalActive, color: 'text-green-600', bg: 'bg-green-50' },
-              { label: 'Pending', value: totalPending, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-              { label: 'Archived', value: totalArchived, color: 'text-gray-500', bg: 'bg-gray-50' },
-            ].map(s => (
-              <div key={s.label} className="bg-white rounded-2xl shadow-sm p-3 text-center">
-                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
-              </div>
-            ))}
+        <div className="max-w-5xl mx-auto px-4 py-4 space-y-3">
+          {/* Compact stats strip */}
+          <div className="bg-white rounded-xl shadow-sm px-4 py-2 flex items-center gap-4 text-sm">
+            <span className="font-semibold text-green-600">{totalActive} <span className="font-normal text-gray-400">Active</span></span>
+            <span className="text-gray-200">|</span>
+            <span className="font-semibold text-yellow-600">{totalPending} <span className="font-normal text-gray-400">Pending</span></span>
+            <span className="text-gray-200">|</span>
+            <span className="font-semibold text-gray-500">{totalArchived} <span className="font-normal text-gray-400">Archived</span></span>
+            <span className="text-gray-200 hidden sm:inline">|</span>
+            <span className="hidden sm:inline font-semibold text-[#1a237e]">{totalCount} <span className="font-normal text-gray-400">Total</span></span>
           </div>
 
           {/* Filters */}
