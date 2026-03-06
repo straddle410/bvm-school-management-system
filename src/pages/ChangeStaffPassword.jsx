@@ -72,6 +72,13 @@ export default function ChangeStaffPassword() {
 
     setLoading(true);
 
+    console.log('[CHANGE_PASSWORD_PAYLOAD]', {
+      hasToken: !!token,
+      hasCurrent: !!currentPassword,
+      hasNew: !!newPassword,
+      tokenLength: token?.length || 0,
+    });
+
     try {
       // Send token both in body (fallback) and via staff_session_token field
       // The backend reads it from body.staff_session_token
@@ -80,6 +87,8 @@ export default function ChangeStaffPassword() {
         newPassword,
         staff_session_token: token,
       });
+
+      console.log('[CHANGE_PASSWORD_RESPONSE]', response.status, response.data);
 
       if (response.data?.success) {
         // Update local session to reflect force_password_change=false
