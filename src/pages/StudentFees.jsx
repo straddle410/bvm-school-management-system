@@ -20,10 +20,21 @@ export default function StudentFees() {
       .catch(() => {});
   }, []);
 
+  const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
+
+  useEffect(() => {
+    // Fetch current active academic year
+    base44.entities.AcademicYear.filter({ status: 'Active' })
+      .then(years => {
+        if (years.length > 0) setCurrentAcademicYear(years[0].year);
+      })
+      .catch(() => {});
+  }, []);
+
   const { data: invoices = [] } = useQuery({
-    queryKey: ['student-fees', session?.student_id],
-    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: session?.student_id }),
-    enabled: !!session?.student_id,
+    queryKey: ['student-fees', session?.student_id, currentAcademicYear],
+    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: session?.student_id, academic_year: currentAcademicYear }),
+    enabled: !!session?.student_id && !!currentAcademicYear,
   });
 
   if (!session) return null;

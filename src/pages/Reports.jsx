@@ -45,13 +45,15 @@ export default function Reports() {
   });
 
   const { data: marks = [] } = useQuery({
-    queryKey: ['marks-published'],
-    queryFn: () => base44.entities.Marks.filter({ status: 'Published' })
+    queryKey: ['marks-published', academicYear],
+    queryFn: () => base44.entities.Marks.filter({ status: 'Published', academic_year: academicYear }),
+    enabled: !!academicYear
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance-published'],
-    queryFn: () => base44.entities.Attendance.filter({ status: 'Published' })
+    queryKey: ['attendance-published', academicYear],
+    queryFn: () => base44.entities.Attendance.filter({ status: 'Published', academic_year: academicYear }),
+    enabled: !!academicYear
   });
 
   const { data: examTypes = [] } = useQuery({

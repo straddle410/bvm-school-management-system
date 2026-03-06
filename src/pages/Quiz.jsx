@@ -136,30 +136,32 @@ export default function Quiz() {
    };
 
    const { data: quizzes = [], isLoading } = useQuery({
-     queryKey: ['quizzes'],
+     queryKey: ['quizzes', academicYear],
      queryFn: async () => {
        try {
-         return await base44.entities.Quiz.list('-quiz_date');
+         return await base44.entities.Quiz.filter({ academic_year: academicYear }, '-quiz_date');
        } catch {
          return [];
        }
-     }
+     },
+     enabled: !!academicYear
    });
 
    const { data: attempts = [] } = useQuery({
-     queryKey: ['quiz-attempts'],
+     queryKey: ['quiz-attempts', academicYear],
      queryFn: async () => {
        try {
-         return await base44.entities.QuizAttempt.list();
+         return await base44.entities.QuizAttempt.filter({ academic_year: academicYear });
        } catch {
          return [];
        }
-     }
+     },
+     enabled: !!academicYear
    });
 
   const createQuizMutation = useMutation({
     mutationFn: async (data) => {
-      const quiz = await base44.entities.Quiz.create(data);
+      const quiz = await base44.entities.Quiz.create({ ...data, academic_year: academicYear });
       await base44.entities.Quiz.update(quiz.id, { status: 'Published' });
       return quiz;
     },

@@ -142,12 +142,13 @@ export default function Notices() {
   const isAdmin = user && ['admin', 'principal'].includes((user.role || '').toLowerCase());
 
   const { data: notices = [], isLoading } = useQuery({
-    queryKey: ['notices'],
-    queryFn: () => base44.entities.Notice.list('-created_date')
+    queryKey: ['notices', academicYear],
+    queryFn: () => base44.entities.Notice.filter({ academic_year: academicYear }, '-created_date'),
+    enabled: !!academicYear
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Notice.create(data),
+    mutationFn: (data) => base44.entities.Notice.create({ ...data, academic_year: academicYear }),
     onSuccess: () => {
       queryClient.invalidateQueries(['notices']);
       setShowDialog(false);
@@ -157,7 +158,7 @@ export default function Notices() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.Notice.update(editingNotice.id, data),
+    mutationFn: (data) => base44.entities.Notice.update(editingNotice.id, { ...data, academic_year: academicYear }),
     onSuccess: () => {
       queryClient.invalidateQueries(['notices']);
       setShowDialog(false);
