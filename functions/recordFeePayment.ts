@@ -152,6 +152,9 @@ Deno.serve(async (req) => {
     }
     // ──────────────────────────────────────────────────────────────────────
 
+    // Determine entry type (default to CASH_PAYMENT)
+    const finalEntryType = entryType || 'CASH_PAYMENT';
+    
     // Create payment record
     const payment = await base44.asServiceRole.entities.FeePayment.create({
       academic_year: academicYear,
@@ -165,10 +168,33 @@ Deno.serve(async (req) => {
       payment_date: paymentDate,
       payment_mode: paymentMode || 'Cash',
       reference_no: referenceNo || '',
+      entry_type: finalEntryType,
+      affects_cash: finalEntryType === 'CASH_PAYMENT',
       remarks: remarks || '',
       collected_by: user.email,
       collected_by_name: user.full_name || user.email
     });
+    
+    // ── Log archived-year collection for audit trail ──────────────────────
+    if (isArchivedYear && finalEntryType === 'CASH_PAYMENT') {
+      try {
+        await base44.asServiceRole.entities.AuditLog.create({
+          action: 'PREVIOUS_YEAR_COLLECTION',
+          module: 'Fees',
+          date: paymentDate,
+          performed_by: user.email,
+          details: `Recorded ${paymentMode || 'Cash'} payment of ₹${amountPaid} for student ${invoice.student_id} in archived year ${academicYear}. Receipt: ${receiptNo}`,
+          academic_year: academicYear,
+          student_id: invoice.student_id,
+          class_name: invoice.class_name,
+          timestamp: new Date().toISOString()
+        });
+      } catch (auditErr) {
+        // Log error but don't fail payment if audit fails
+        console.error(`[AUDIT-LOG-ERROR] Failed to log PREVIOUS_YEAR_COLLECTION: ${auditErr.message}`);
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
 
     // Update invoice paid_amount and status
     const newPaid = (invoice.paid_amount || 0) + amountPaid;
