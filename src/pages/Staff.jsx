@@ -298,6 +298,19 @@ export default function Staff() {
       return;
     }
 
+    // For new staff creation, hash the temp password server-side
+    if (!editingStaff && tempPassword) {
+      try {
+        const hashRes = await base44.functions.invoke('hashStaffPassword', { password: tempPassword });
+        if (!hashRes.data?.hash) throw new Error('Hash failed');
+        setForm(f => ({ ...f, password_hash: hashRes.data.hash }));
+        form = { ...form, password_hash: hashRes.data.hash };
+      } catch (err) {
+        toast.error('Failed to hash password. Try again.');
+        return;
+      }
+    }
+
     // Normalize username
     const normalizedUsername = form.username.trim().toLowerCase();
 
