@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
 
@@ -10,6 +10,25 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
   const fileInput = useRef(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+
+  const downloadTemplate = async () => {
+    try {
+      const response = await base44.functions.invoke('generateStudentImportTemplate', {});
+      const csvContent = response.data;
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'student_import_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Template downloaded');
+    } catch (err) {
+      toast.error('Failed to download template');
+    }
+  };
 
   const handleFileSelect = async e => {
     const file = e.target.files?.[0];
@@ -72,51 +91,62 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
       }
 
       for (let i = 0; i < records.length; i++) {
-        const r = records[i];
-        const rowNum = i + 1;
-        const section = r.section || 'A';
+       const r = records[i];
+       const rowNum = i + 1;
+       const section = r.section || 'A';
 
-        // Normalize — ignore student_id and roll_no from file; auto-generate below
-        const enriched = normalizeStudentData({
-          ...r,
-          academic_year: academicYear,
-          student_id: null, // will be generated below
-          username: null, // will default to generated student_id below
-          password: r.password || 'BVM123',
-          status: r.status || 'Pending',
-          section,
-          roll_no: null // will be assigned below
-        });
+       // Validate required fields
+       if (!r.name || !r.class_name || !r.section || !r.parent_name || !r.parent_phone) {
+         errors.push({ 
+           row: rowNum, 
+           name: r.name || '—', 
+           reason: 'Missing required fields: name, class_name, section, parent_name, parent_phone' 
+         });
+         continue;
+       }
 
-        // Skip student_id uniqueness check — it will be auto-generated
+       // Normalize — ignore student_id and roll_no from file; auto-generate below
+       const enriched = normalizeStudentData({
+         ...r,
+         academic_year: academicYear,
+         student_id: null, // will be generated below
+         username: null, // will default to generated student_id below
+         password: r.password || 'BVM123',
+         status: r.status || 'Pending',
+         section,
+         roll_no: null, // will be assigned below
+         parent_email: r.parent_email || '' // optional field
+       });
 
-        // 2. Duplicate student (name + dob + class) — case-insensitive via namesMatch
-        if (enriched.name && enriched.dob && enriched.class_name) {
-          const dupConflict = existingStudents.find(s =>
-            namesMatch(s.name, enriched.name) &&
-            s.dob === enriched.dob &&
-            s.class_name === enriched.class_name
-          );
-          if (dupConflict) {
-            errors.push({ row: rowNum, name: r.name || '—', reason: 'Possible duplicate student already exists' });
-            continue;
-          }
-        }
+       // Skip student_id uniqueness check — it will be auto-generated
 
-        // 3. Auto-assign roll_no
-        if (enriched.class_name && enriched.section) {
-          const key = `${enriched.class_name}|${enriched.section}`;
-          rollCounters[key] = (rollCounters[key] || 0) + 1;
-          enriched.roll_no = rollCounters[key];
-        }
+       // 2. Duplicate student (name + dob + class) — case-insensitive via namesMatch
+       if (enriched.name && enriched.dob && enriched.class_name) {
+         const dupConflict = existingStudents.find(s =>
+           namesMatch(s.name, enriched.name) &&
+           s.dob === enriched.dob &&
+           s.class_name === enriched.class_name
+         );
+         if (dupConflict) {
+           errors.push({ row: rowNum, name: r.name || '—', reason: 'Possible duplicate student already exists' });
+           continue;
+         }
+       }
 
-        // 4. Mark for auto-generation (backend will generate student_id and set username)
-        enriched._generateStudentId = true;
-        if (!enriched.username) {
-          enriched._useGeneratedIdAsUsername = true;
-        }
+       // 3. Auto-assign roll_no
+       if (enriched.class_name && enriched.section) {
+         const key = `${enriched.class_name}|${enriched.section}`;
+         rollCounters[key] = (rollCounters[key] || 0) + 1;
+         enriched.roll_no = rollCounters[key];
+       }
 
-        toCreate.push(enriched);
+       // 4. Mark for auto-generation (backend will generate student_id and set username)
+       enriched._generateStudentId = true;
+       if (!enriched.username) {
+         enriched._useGeneratedIdAsUsername = true;
+       }
+
+       toCreate.push(enriched);
       }
 
       if (toCreate.length > 0) {
@@ -146,13 +176,26 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <p className="text-xs text-blue-700">
-              <strong>Required columns:</strong> name, class_name, section, parent_name, parent_phone, parent_email
+            <p className="text-xs text-blue-700 mb-2">
+              <strong>Required fields:</strong> name, class_name, section, parent_name, parent_phone
             </p>
-            <p className="text-xs text-blue-600 mt-1">
-              ℹ Student IDs and roll numbers are auto-generated — no need to include in the file.
+            <p className="text-xs text-blue-600 mb-2">
+              <strong>Optional fields:</strong> roll_no, parent_email, dob, gender, address, blood_group
+            </p>
+            <p className="text-xs text-blue-600">
+              ℹ Student IDs are auto-generated.
             </p>
           </div>
+
+          <Button
+            onClick={downloadTemplate}
+            variant="outline"
+            className="w-full rounded-xl gap-2"
+            disabled={loading}
+          >
+            <Download className="h-4 w-4" />
+            Download CSV Template
+          </Button>
 
           {result ? (
             <div className="space-y-3">
