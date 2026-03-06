@@ -271,7 +271,7 @@ export default function Homework() {
               <div className="space-y-3">
                 {homeworkList.map((item) => (
                   <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900">{item.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{item.description}</p>
@@ -311,11 +311,11 @@ export default function Homework() {
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
-                  </div>
-                  ))}
-                  </div>
-                  </>
-                  )}
+                    </div>
+                    ))}
+                    </div>
+                    </>
+                    )}
 
           {/* Form Dialog */}
           <Dialog open={showForm} onOpenChange={setShowForm}>
