@@ -39,12 +39,26 @@ Deno.serve(async (req) => {
 
     const existingRecord = existingRecords[0];
 
-    // ── LOCK ENFORCEMENT (CHECK FIRST - BEFORE ANY OTHER VALIDATION) ──
+    // ── TODAY-ONLY ATTENDANCE (CHECK FIRST - BEFORE LOCK CHECK) ──
+    // Non-admin/principal users can ONLY mark attendance for TODAY
+    const userRole = (user.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin' || userRole === 'principal';
+    const attendanceDate = data.date || existingRecord.date;
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const attDate = new Date(attendanceDate);
+    attDate.setUTCHours(0, 0, 0, 0);
+
+    if (!isAdmin && attDate.getTime() !== today.getTime()) {
+      return Response.json(
+        { error: `Teachers can only mark attendance for today. Attempted date: ${attendanceDate}` },
+        { status: 400 }
+      );
+    }
+
+    // ── LOCK ENFORCEMENT (CHECK AFTER TODAY-ONLY) ──
     // Non-admin/principal users cannot edit locked records
     if (existingRecord.is_locked) {
-      const userRole = (user.role || '').toLowerCase();
-      const isAdmin = userRole === 'admin' || userRole === 'principal';
-
       if (!isAdmin) {
         return Response.json(
           { error: 'Attendance is locked. Only admin can unlock and edit.' },
