@@ -461,7 +461,8 @@ export default function Students() {
 
       await base44.functions.invoke('updateStudentWithAudit', {
         student_db_id: id,
-        updates
+        updates,
+        staff_session_token: getStaffSession()?.staff_session_token || null
       });
       processed++;
     }
