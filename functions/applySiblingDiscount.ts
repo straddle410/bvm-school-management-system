@@ -144,9 +144,15 @@ Deno.serve(async (req) => {
     let totalFamilyGross = 0;
 
     for (const student_id of (family.student_ids || [])) {
-      const students = await base44.asServiceRole.entities.Student.filter({ student_id });
-      const student = students[0];
-      if (!student) continue;
+       // Global filter: status=Published, is_deleted=false (current AY implied by family)
+       const students = await base44.asServiceRole.entities.Student.filter({ 
+         student_id,
+         status: 'Published',
+         is_deleted: false,
+         academic_year: family.academic_year
+       });
+       const student = students[0];
+       if (!student) continue;
 
       const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
         student_id,
