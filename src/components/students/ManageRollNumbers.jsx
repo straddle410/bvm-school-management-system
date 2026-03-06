@@ -114,6 +114,38 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
     setFilterClass('');
   };
 
+  const handleFreeDeletedRolls = async () => {
+    setCleaning(true);
+    setShowCleanupConfirm(false);
+    try {
+      const staffSessionRaw = localStorage.getItem('staff_session');
+      const staffSession = staffSessionRaw ? JSON.parse(staffSessionRaw) : null;
+      const res = await base44.functions.invoke('cleanupDeletedStudentRollNos', {
+        staff_session_token: staffSession?.token,
+        academic_year: filterYear,
+        class_name: filterClass,
+        section: filterSection
+      });
+      if (res.data.success) {
+        const count = res.data.cleaned_count;
+        if (count === 0) {
+          toast.info('No deleted/archived students had roll numbers to clear.');
+        } else {
+          toast.success(`Cleared roll numbers from ${count} deleted/archived student${count !== 1 ? 's' : ''}`);
+        }
+        // Reload the list so conflicts are gone
+        await handleLoad();
+      } else {
+        setError(res.data.error || 'Cleanup failed');
+      }
+    } catch (err) {
+      const serverMsg = err?.response?.data?.error || err?.message || 'Cleanup failed';
+      setError(serverMsg);
+    } finally {
+      setCleaning(false);
+    }
+  };
+
   const handleClose = () => {
     resetState();
     onClose();
