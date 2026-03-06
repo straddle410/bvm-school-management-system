@@ -375,7 +375,8 @@ export default function Students() {
       if (!window.confirm(`Reactivate ${student.name}? This will set their status back to Published.`)) return;
       const revertRes = await base44.functions.invoke('updateStudentWithAudit', {
         student_db_id: student.id,
-        updates: { status: 'Published' }
+        updates: { status: 'Published' },
+        staff_session_token: getStaffSession()?.staff_session_token || null
       });
       if (revertRes.data?.error) { toast.error(revertRes.data.error); return; }
       queryClient.invalidateQueries(['students']);
