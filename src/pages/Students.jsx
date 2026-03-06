@@ -51,6 +51,9 @@ export default function Students() {
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkAction, setBulkAction] = useState('');
+  const [transportAction, setTransportAction] = useState('');
+  const [showTransportConfirm, setShowTransportConfirm] = useState(false);
+  const [transportLoading, setTransportLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
