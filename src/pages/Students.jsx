@@ -497,37 +497,62 @@ export default function Students() {
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Students">
       <div className="min-h-screen bg-[#f0f4ff]">
-        <PageHeader
-          title={`Students — ${academicYear}`}
-          subtitle={`${totalCount} students`}
-          backTo="Dashboard"
-          actions={
-            <div className="flex gap-2">
-              {isAdmin && (
-                <PromoteStudents
-                  academicYear={academicYear}
-                  onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
-                />
-              )}
-              {isAdmin && <StudentExport students={students} academicYear={academicYear} />}
-              {isAdmin && (
-                <Button onClick={() => setShowManageRolls(true)} variant="outline" className="rounded-xl">
-                  <Hash className="h-4 w-4 mr-1" /> Roll Nos
-                </Button>
-              )}
-              {isAdmin && (
-                <Button onClick={() => setShowBulkUpload(true)} variant="outline" className="rounded-xl">
-                  <Upload className="h-4 w-4 mr-1" /> Import
-                </Button>
-              )}
-              {isAdmin && (
-                <Button onClick={openAdd} className="bg-[#1a237e] hover:bg-[#283593] rounded-xl">
-                  <Plus className="h-4 w-4 mr-1" /> Add Student
-                </Button>
-              )}
+        {/* Compact Header */}
+        <div className="bg-white border-b border-slate-100 sticky top-0 z-40 px-4 py-2.5">
+          <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+            {/* Left: back + title */}
+            <div className="flex items-center gap-2 min-w-0">
+              <Link to={createPageUrl('Dashboard')} className="flex-shrink-0 p-1 hover:bg-slate-100 rounded-lg transition">
+                <ArrowLeft className="h-4 w-4 text-slate-600" />
+              </Link>
+              <div className="min-w-0">
+                <h1 className="text-base font-bold text-slate-900 truncate leading-tight">Students <span className="text-[#1a237e]">— {academicYear}</span></h1>
+                <p className="text-xs text-slate-400 leading-tight">{totalCount} students</p>
+              </div>
             </div>
-          }
-        />
+
+            {/* Right: actions */}
+            {isAdmin && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {/* Add Student — always visible */}
+                <Button size="sm" onClick={openAdd} className="bg-[#1a237e] hover:bg-[#283593] rounded-lg h-8 px-3 text-xs">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Student
+                </Button>
+
+                {/* More dropdown for less-used actions */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" className="rounded-lg h-8 w-8 p-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem onClick={() => setShowBulkUpload(true)}>
+                      <Upload className="h-4 w-4 mr-2 text-gray-500" /> Import Students
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <div className="flex items-center cursor-pointer">
+                        <StudentExport students={students} academicYear={academicYear} asMenuItem />
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowManageRolls(true)}>
+                      <Hash className="h-4 w-4 mr-2 text-gray-500" /> Roll Numbers
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <div className="w-full">
+                        <PromoteStudents
+                          academicYear={academicYear}
+                          onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
+                          asMenuItem
+                        />
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="max-w-5xl mx-auto px-4 py-4 space-y-3">
           {/* Compact stats strip */}
