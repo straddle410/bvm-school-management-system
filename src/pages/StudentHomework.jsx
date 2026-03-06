@@ -78,7 +78,11 @@ export default function StudentHomework() {
       });
 
       const allHomework = await base44.entities.Homework.filter(
-        { class_name: student.class_name, status: 'Published' },
+        { 
+          class_name: student.class_name, 
+          academic_year: student.academic_year,
+          status: 'Published' 
+        },
         '-due_date',
         200
       );
