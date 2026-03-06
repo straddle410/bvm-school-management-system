@@ -19,8 +19,24 @@ Deno.serve(async (req) => {
     }
 
     const { password } = await req.json();
-    if (!password || password.length < 6) {
-      return Response.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
+    if (!password) {
+      return Response.json({ error: 'Password is required' }, { status: 400 });
+    }
+
+    // Enforce unified password policy
+    const policyOk =
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password);
+
+    if (!policyOk) {
+      return Response.json({
+        success: false,
+        error: 'PASSWORD_POLICY_VIOLATION',
+        message: 'Password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.',
+      }, { status: 400 });
     }
 
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
