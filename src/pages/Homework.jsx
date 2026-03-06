@@ -109,11 +109,22 @@ export default function Homework() {
       setFormErrors(errors);
       return;
     }
+
+    const payload = {
+      title: form.title,
+      description: form.description,
+      class_name: form.class_name,
+      section: form.section,
+      subject: form.subject_name,
+      due_date: form.due_date,
+      academic_year: academicYear,
+    };
+    console.log('HOMEWORK_PAYLOAD', payload);
     
     if (editingItem) {
-      updateMutation.mutate(form);
+      updateMutation.mutate(payload);
     } else {
-      createMutation.mutate(form);
+      createMutation.mutate(payload);
     }
   };
 

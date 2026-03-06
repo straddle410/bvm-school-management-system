@@ -127,11 +127,22 @@ export default function Diary() {
       setFormErrors(errors);
       return;
     }
+
+    const payload = {
+      title: form.title,
+      description: form.description,
+      class_name: form.class_name,
+      section: form.section,
+      subject: form.subject_name,
+      diary_date: form.diary_date,
+      academic_year: academicYear,
+    };
+    console.log('DIARY_PAYLOAD', payload);
     
     if (editingItem) {
-      updateMutation.mutate(form);
+      updateMutation.mutate(payload);
     } else {
-      createMutation.mutate(form);
+      createMutation.mutate(payload);
     }
   };
 
