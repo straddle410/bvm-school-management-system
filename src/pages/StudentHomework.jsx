@@ -23,12 +23,15 @@ function getStudentSession() {
 export default function StudentHomework() {
    const [student, setStudent] = useState(null);
    const [activeHW, setActiveHW] = useState(null);
-   const [filter, setFilter] = useState('all'); // all, pending, submitted
+   const [filter, setFilter] = useState('all');
+   const [debugInfo, setDebugInfo] = useState(null);
+   const [rejections, setRejections] = useState([]);
+   const [latestClass2, setLatestClass2] = useState(null);
 
    useEffect(() => {
       const s = getStudentSession();
       if (!s) { window.location.href = createPageUrl('StudentLogin'); return; }
-      console.log('[STUDENT_HOMEWORK_SESSION]', {
+      console.error('[STUDENT_HOMEWORK_SESSION]', {
         student_id: s.student_id,
         class_name: s.class_name,
         section: s.section,
@@ -37,41 +40,50 @@ export default function StudentHomework() {
       });
       setStudent(s);
 
-      // Auto-debug for S25007
-      if (s.student_id === 'S25007' || s.student_id === 'S00007') {
-        (async () => {
-          try {
-            console.log('[DEBUG_START] Running debug for ' + s.student_id);
-            const result = await base44.functions.invoke('debugStudentHomeworkVisibility', { 
-              student_id: s.student_id,
-              academic_year: s.academic_year
+      // Fetch latest Class 2-A homework for comparison
+      (async () => {
+        try {
+          const hw = await base44.entities.Homework.filter(
+            { class_name: '2', status: 'Published' },
+            '-created_date',
+            1
+          );
+          if (hw && hw.length > 0) {
+            console.error('[LATEST_CLASS2_HOMEWORK]', {
+              id: hw[0].id,
+              title: hw[0].title,
+              class_name: hw[0].class_name,
+              section: hw[0].section || 'NOT_SET',
+              academic_year: hw[0].academic_year || 'NOT_SET',
+              status: hw[0].status,
+              subject: hw[0].subject,
+              due_date: hw[0].due_date,
             });
-            console.log('[STUDENT_HOMEWORK_DEBUG_FN]', result);
-          } catch (err) {
-            console.log('[DEBUG_ERROR]', err.message);
+            setLatestClass2(hw[0]);
           }
-        })();
-      }
+        } catch (err) {
+          console.error('[LATEST_CLASS2_ERROR]', err.message);
+        }
+      })();
     }, []);
 
   const { data: homeworks = [], isLoading } = useQuery({
     queryKey: ['student-homework', student?.class_name, student?.section, student?.academic_year],
     enabled: !!student,
     queryFn: async () => {
-      console.log('[STUDENT_HW_QUERY_START]', {
+      console.error('[STUDENT_HW_QUERY_START]', {
         class: student.class_name,
         section: student.section,
         year: student.academic_year,
       });
 
-      // Fetch all published homework for the student's class
       const allHomework = await base44.entities.Homework.filter(
         { class_name: student.class_name, status: 'Published' },
         '-due_date',
         200
       );
 
-      console.log('[STUDENT_HOMEWORK_ALL]', allHomework.map(hw => ({
+      console.error('[STUDENT_HOMEWORK_ALL]', allHomework.map(hw => ({
         id: hw.id,
         title: hw.title,
         class_name: hw.class_name,
@@ -81,7 +93,7 @@ export default function StudentHomework() {
         due_date: hw.due_date,
       })));
 
-      // Filter by section: only show homework where section is "All" or matches student's section
+      const rejectReasons = [];
       const filtered = allHomework.filter(hw => {
         const hwSection = hw.section || 'All';
         const classMatch = hw.class_name === student.class_name;
@@ -91,27 +103,25 @@ export default function StudentHomework() {
         const match = classMatch && sectionMatch && academicYearMatch && statusMatch;
 
         if (!match) {
-          console.log('[STUDENT_HW_REJECT]', {
-            hw_id: hw.id,
-            hw_title: hw.title,
-            hw_class: hw.class_name,
-            expected_class: student.class_name,
+          const reason = !classMatch ? 'CLASS_MISMATCH' : !sectionMatch ? 'SECTION_MISMATCH' : !academicYearMatch ? 'YEAR_MISMATCH' : 'STATUS_NOT_PUBLISHED';
+          console.warn('[STUDENT_HW_REJECT]', {
+            id: hw.id,
+            title: hw.title,
+            hw_class_name: hw.class_name,
             hw_section: hwSection,
-            expected_section: student.section,
-            hw_academic_year: hw.academic_year,
-            expected_academic_year: student.academic_year,
+            hw_academic_year: hw.academic_year || 'NOT_SET',
             hw_status: hw.status,
-            classMatch,
-            sectionMatch,
-            academicYearMatch,
-            statusMatch,
-            finalMatch: match,
+            student_class_name: student.class_name,
+            student_section: student.section,
+            student_academic_year: student.academic_year,
+            reason,
           });
+          rejectReasons.push({ title: hw.title, reason });
         }
         return match;
       });
 
-      console.log('[STUDENT_HOMEWORK_FILTERED]', {
+      console.error('[STUDENT_HOMEWORK_FILTERED]', {
         allCount: allHomework.length,
         filteredCount: filtered.length,
         filtered: filtered.map(hw => ({ 
@@ -124,6 +134,13 @@ export default function StudentHomework() {
         })),
       });
 
+      setDebugInfo({
+        allCount: allHomework.length,
+        filteredCount: filtered.length,
+        lastRejectReason: rejectReasons.length > 0 ? rejectReasons[0].reason : 'N/A',
+      });
+      setRejections(rejectReasons);
+
       return filtered;
     },
   });
@@ -133,6 +150,23 @@ export default function StudentHomework() {
     enabled: !!student,
     queryFn: () => base44.entities.HomeworkSubmission.filter({ student_id: student.student_id }, '-created_date', 200),
   });
+
+  // Log final state when both loaded
+  useEffect(() => {
+    if (student && homeworks.length >= 0 && !isLoading) {
+      console.error('[FINAL_STATE]', {
+        student: {
+          student_id: student.student_id,
+          class_name: student.class_name,
+          section: student.section,
+          academic_year: student.academic_year,
+        },
+        debug: debugInfo,
+        rejectionCount: rejections.length,
+        visibleHomeworkCount: homeworks.length,
+      });
+    }
+  }, [student, homeworks, isLoading, debugInfo]);
 
   if (!student) return null;
 
@@ -160,6 +194,34 @@ export default function StudentHomework() {
         <h1 className="font-bold text-lg">My Homework</h1>
         <p className="text-blue-200 text-xs">Class {student.class_name} • {student.name}</p>
       </header>
+
+      {/* DEBUG BOX - VISIBLE ON PAGE */}
+      <div className="bg-yellow-100 border-2 border-red-500 p-3 m-2 rounded text-xs font-mono">
+        <p className="font-bold text-red-700">🔴 DEBUG INFO</p>
+        <p><strong>Session:</strong> Class {student.class_name}, Section {student.section}, Year {student.academic_year}</p>
+        <p><strong>All Homework Count:</strong> {debugInfo?.allCount || '?'}</p>
+        <p><strong>Filtered Count:</strong> {debugInfo?.filteredCount || '?'}</p>
+        <p><strong>Latest Rejection:</strong> {debugInfo?.lastRejectReason || 'NONE'}</p>
+        {latestClass2 && (
+          <>
+            <p className="mt-2 border-t pt-2"><strong>Latest Class 2 Homework:</strong></p>
+            <p>• ID: {latestClass2.id}</p>
+            <p>• Title: {latestClass2.title}</p>
+            <p>• Class: {latestClass2.class_name}</p>
+            <p>• Section: {latestClass2.section || 'NOT_SET'}</p>
+            <p>• Year: {latestClass2.academic_year || 'NOT_SET'}</p>
+            <p>• Status: {latestClass2.status}</p>
+          </>
+        )}
+        {rejections.length > 0 && (
+          <div className="mt-2 border-t pt-2">
+            <p><strong>Rejections:</strong></p>
+            {rejections.slice(0, 3).map((r, i) => (
+              <p key={i}>• {r.title} - {r.reason}</p>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="p-4 space-y-4">
         {/* Filter Tabs */}
