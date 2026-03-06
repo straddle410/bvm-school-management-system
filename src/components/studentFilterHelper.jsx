@@ -1,15 +1,32 @@
 /**
- * GLOBAL STUDENT FILTERING HELPER
- * 
- * Standard filter rule used across all modules EXCEPT Students page:
- * - status: 'Published' (active enrollment)
- * - academic_year: currentYear (current year only)
- * - is_deleted: false (not soft-deleted)
- * 
- * This ensures consistent data visibility and prevents:
- * - Deleted/archived students from appearing in module operations
- * - Students from wrong academic years
- * - Inactive/pending enrollment statuses
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║        GLOBAL STUDENT FILTERING HELPER — MANDATORY PATTERN                ║
+ * ╠═══════════════════════════════════════════════════════════════════════════╣
+ * ║                                                                           ║
+ * ║ CRITICAL: This helper MUST be used for ALL operational student queries   ║
+ * ║ outside the Students administration page.                                ║
+ * ║                                                                           ║
+ * ║ ALLOWED EXCEPTIONS ONLY:                                                 ║
+ * │ - pages/Students:     Admin management (shows all statuses)              ║
+ * │ - pages/Admissions:   Admission pipeline (pending applications)          ║
+ * │ - Admin diagnostic functions: Query all statuses for audit/repair        ║
+ * ║                                                                           ║
+ * ║ VIOLATION RULES:                                                         ║
+ * │ - Direct Student.filter() calls outside allowed pages = ERROR             ║
+ * │ - Must use: getActiveStudentFilter() or buildStudentQuery()              ║
+ * │ - Enforcement: Code review + test coverage for all operational modules   ║
+ * ║                                                                           ║
+ * ║ FILTER SPECIFICATION (always applied together):                          ║
+ * │ - status: 'Published'     (active enrollment only)                       ║
+ * │ - academic_year: currentYear  (current year only)                        ║
+ * │ - is_deleted: false       (excludes soft-deleted records)                ║
+ * ║                                                                           ║
+ * ║ CONSEQUENCE:                                                              ║
+ * │ Ensures consistent data visibility across all operational modules.      ║
+ * │ Prevents: archived/deleted students, wrong academic years, inactive     ║
+ * │ statuses from contaminating attendance, marks, fees, homework, reports. ║
+ * ║                                                                           ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
  */
 
 export const getActiveStudentFilter = (academicYear) => {
