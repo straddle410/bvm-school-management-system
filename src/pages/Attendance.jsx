@@ -35,9 +35,9 @@ const SECTIONS = ['A'];
 
 // ─── Mark Attendance Tab ──────────────────────────────────────────────────────
 function MarkAttendanceTab({ user, academicYear, isAdmin }) {
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const todayDate = format(new Date(), 'yyyy-MM-dd');
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedSection, setSelectedSection] = useState('A');
+  const [selectedSection, setSelectedSection] = useState('');
   const [attendanceData, setAttendanceData] = useState({});
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayReason, setHolidayReason] = useState('');
@@ -52,17 +52,17 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const [manuallyChanged, setManuallyChanged] = useState(false);
   const queryClient = useQueryClient();
 
-  const isSunday = getDay(new Date(selectedDate + 'T00:00:00')) === 0;
+  const isSunday = getDay(new Date(todayDate + 'T00:00:00')) === 0;
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', academicYear],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear })
+    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear, is_deleted: false })
   });
 
   const { data: existingAttendance = [] } = useQuery({
-    queryKey: ['attendance', selectedDate, selectedClass, selectedSection, academicYear],
+    queryKey: ['attendance', todayDate, selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
-      date: selectedDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
+      date: todayDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
     }),
     enabled: !!selectedClass && !!selectedSection
   });
@@ -77,9 +77,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   });
 
   const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays', selectedDate, academicYear],
-    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear, date: selectedDate }),
-    enabled: !!selectedDate && !!academicYear
+    queryKey: ['holidays', todayDate, academicYear],
+    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear, date: todayDate }),
+    enabled: !!academicYear
   });
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
@@ -119,12 +119,14 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!academicYear) throw new Error('Academic year not configured');
+      if (!selectedClass) throw new Error('Class is required');
+      if (!selectedSection) throw new Error('Section is required');
       if (isPastAcademicYear(academicYear)) throw new Error('PAST_YEAR_WARNING');
       const promises = filteredStudents.map(async (student) => {
         const existing = attendanceData[student.student_id];
         const attType = existing?.attendance_type || 'full_day';
         const data = {
-          date: selectedDate, class_name: selectedClass, section: selectedSection,
+          date: todayDate, class_name: selectedClass, section: selectedSection,
           student_id: student.student_id || student.id, student_name: student.name,
           attendance_type: isHoliday ? 'holiday' : attType,
           half_day_period: existing?.half_day_period || null,
@@ -139,7 +141,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           return response.data;
         }
         const dedupCheck = await base44.functions.invoke('validateAttendanceCreateDedup', {
-          date: selectedDate, studentId: student.student_id || student.id,
+          date: todayDate, studentId: student.student_id || student.id,
           classname: selectedClass, section: selectedSection, academicYear
         });
         if (dedupCheck.data?.isDuplicate) {
@@ -157,6 +159,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
       else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
+      else if (err?.message?.includes('different from today')) toast.error('❌ Can only mark attendance for today');
       else toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
     }
   });
@@ -206,17 +209,28 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-3 sm:p-4 space-y-3">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-slate-400" />
-              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
-              <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Class" /></SelectTrigger>
-              <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
+         <CardContent className="p-3 sm:p-4 space-y-3">
+           <div className="flex flex-col gap-3">
+             {/* Date (Read-only, Today only) */}
+             <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg border border-slate-200">
+               <Calendar className="h-5 w-5 text-slate-400" />
+               <span className="text-sm font-medium text-slate-700">{format(new Date(todayDate), 'MMM dd, yyyy')} (Today)</span>
+             </div>
+
+             {/* Class Dropdown */}
+             <Select value={selectedClass} onValueChange={setSelectedClass}>
+               <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Class" /></SelectTrigger>
+               <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+             </Select>
+
+             {/* Section Dropdown (only show after class is selected) */}
+             {selectedClass && (
+               <Select value={selectedSection} onValueChange={setSelectedSection}>
+                 <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Section" /></SelectTrigger>
+                 <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
+               </Select>
+             )}
+           </div>
 
           {selectedClass && selectedSection && (
             <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasHolidayOverride} holidayReason={holidayReason} />
@@ -388,8 +402,28 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
         <Card className="border-0 shadow-sm">
           <CardContent className="py-16 text-center">
             <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-700">Select Class</h3>
-            <p className="text-slate-500 mt-2">Choose a class to mark attendance</p>
+            <h3 className="text-lg font-medium text-slate-700">Select Class and Section</h3>
+            <p className="text-slate-500 mt-2">Choose a class and section to mark attendance for today</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedClass && !selectedSection && (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="py-16 text-center">
+            <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700">Select Section</h3>
+            <p className="text-slate-500 mt-2">Choose a section to proceed</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedClass && selectedSection && filteredStudents.length === 0 && (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="py-16 text-center">
+            <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700">No students found</h3>
+            <p className="text-slate-500 mt-2">No students found for this class and section.</p>
           </CardContent>
         </Card>
       )}
