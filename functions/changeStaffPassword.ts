@@ -49,12 +49,6 @@ async function verifySessionToken(token) {
   }
 }
 
-// ── Legacy password helper ──────────────────────────────────────────────────
-function hashPasswordLegacy(password) {
-  if (!password) return '';
-  return '$2b$10$' + btoa(password).substring(0, 53);
-}
-
 // ── Handler ───────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
