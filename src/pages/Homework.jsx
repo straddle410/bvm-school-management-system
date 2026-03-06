@@ -371,30 +371,15 @@ export default function Homework() {
     const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
 
     const hwSubmissions = submissions.filter((s) => s.homework_id === hw.id);
-    const uniqueSubmittedMap = new Map();
-    hwSubmissions.forEach((s) => {
-      const normalized = normalizeHomeworkSubmissionStatus(s.status);
-      if (!uniqueSubmittedMap.has(s.student_id)) {
-        uniqueSubmittedMap.set(s.student_id, normalized);
-      }
-    });
-
-    const totalStudents = assignedStudents.length;
-    const submitted = uniqueSubmittedMap.size;
-    const graded = Array.from(uniqueSubmittedMap.values()).filter((s) => s === 'GRADED').length;
-    const revisionRequired = Array.from(uniqueSubmittedMap.values()).filter(
-      (s) => s === 'REVISION_REQUIRED'
-    ).length;
-    const lateSubmissions = hwSubmissions.filter((s) => s.is_late).length;
-    const pending = Math.max(0, totalStudents - submitted);
+    const metrics = getHomeworkAggregatedMetrics(hw, hwSubmissions, assignedStudents);
 
     return {
-      totalStudents,
-      submitted,
-      pending,
-      graded,
-      revisionRequired,
-      lateSubmissions,
+      totalStudents: metrics.totalStudents,
+      submitted: metrics.totalUniqueSubmitted,
+      pending: metrics.pending,
+      graded: metrics.graded,
+      revisionRequired: metrics.revisionRequired,
+      lateSubmissions: metrics.late,
     };
   };
 
