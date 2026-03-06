@@ -59,15 +59,14 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Input
               value={formData.student_id || ''}
               onChange={e => set('student_id', e.target.value)}
-              placeholder="Auto-generated"
+              placeholder="Auto-generated on approval"
               className="mt-1 rounded-xl bg-gray-50"
-              readOnly={dis || locked || !isEdit}
-              disabled={dis || locked || !isEdit}
+              readOnly={true}
+              disabled={true}
             />
-            {!isEdit && <p className="text-xs text-gray-400 mt-1">Generated on save</p>}
-            {isAdmin && isEdit && !locked && (
-              <p className="text-xs text-amber-600 mt-1">⚠ Changing ID will be audit-logged</p>
-            )}
+            {!isEdit && <p className="text-xs text-green-600 mt-1">✓ Generated when status→Approved</p>}
+            {isEdit && !formData.student_id && <p className="text-xs text-amber-600 mt-1">⚠ ID will be auto-assigned on approval</p>}
+            {isEdit && formData.student_id && <p className="text-xs text-gray-400 mt-1">Assigned: {formData.student_id}</p>}
           </div>
           <div>
             <Label className="text-xs">Username</Label>
@@ -89,7 +88,7 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             </Select>
           </div>
           <div>
-            <Label className="text-xs">Section *</Label>
+            <Label className="text-xs">Section</Label>
             <Select value={formData.section || 'A'} onValueChange={locked ? undefined : v => set('section', v)} disabled={dis}>
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue /></SelectTrigger>
               <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
