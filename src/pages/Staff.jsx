@@ -1204,80 +1204,22 @@ export default function Staff() {
         <Dialog open={showResetPasswordModal} onOpenChange={setShowResetPasswordModal}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Reset Password</DialogTitle>
+              <DialogTitle>Reset Password to Default</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
               <p className="text-sm text-slate-600">
-                {resetPasswordStaff?.name} will be forced to change password on next login.
+                Password for <span className="font-semibold">{resetPasswordStaff?.name}</span> will be reset to:
               </p>
+              
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="font-mono font-semibold text-blue-900 text-center text-lg">Bvm@1234</p>
+              </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50" onClick={() => setResetPasswordMode('auto')}>
-                  <Checkbox checked={resetPasswordMode === 'auto'} onCheckedChange={() => setResetPasswordMode('auto')} />
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">Generate Temporary Password</p>
-                    <p className="text-xs text-slate-500">System generates a strong password</p>
-                  </div>
-                </div>
-
-                {resetPasswordMode === 'auto' && (
-                  <div className="ml-7 space-y-2 p-3 bg-slate-50 rounded border">
-                    <p className="text-xs font-semibold text-slate-700">Generated Password:</p>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        value={generatedPassword}
-                        readOnly
-                        className="bg-white font-mono text-sm"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(generatedPassword);
-                          setPasswordCopied(true);
-                          toast.success('Password copied to clipboard');
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Label className="flex items-center gap-2 mt-2">
-                      <Checkbox
-                        checked={passwordCopied}
-                        onCheckedChange={(checked) => setPasswordCopied(checked)}
-                      />
-                      <span className="text-xs">I have copied the password</span>
-                    </Label>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50" onClick={() => setResetPasswordMode('manual')}>
-                  <Checkbox checked={resetPasswordMode === 'manual'} onCheckedChange={() => setResetPasswordMode('manual')} />
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">Set Password Manually</p>
-                    <p className="text-xs text-slate-500">Admin enters temporary password</p>
-                  </div>
-                </div>
-
-                {resetPasswordMode === 'manual' && (
-                  <div className="ml-7 p-3 bg-slate-50 rounded border space-y-1">
-                    <Input
-                      type="password"
-                      placeholder="e.g. Admin@123"
-                      value={manualPassword}
-                      onChange={(e) => setManualPassword(e.target.value)}
-                      className="bg-white"
-                    />
-                    {manualPassword && !validatePasswordPolicy(manualPassword).valid && (
-                      <p className="text-xs text-red-500">{validatePasswordPolicy(manualPassword).message}</p>
-                    )}
-                    {(!manualPassword) && (
-                      <p className="text-xs text-slate-500">Must have 8+ chars, uppercase, lowercase, number & special char (e.g. Admin@123)</p>
-                    )}
-                  </div>
-                )}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs text-amber-800">
+                  <span className="font-semibold">Note:</span> The staff member must change this password on their next login.
+                </p>
               </div>
 
               <div className="flex gap-3 justify-end pt-4">
@@ -1289,10 +1231,7 @@ export default function Staff() {
                 </Button>
                 <Button
                   onClick={handleResetPasswordSubmit}
-                  disabled={
-                    resetPasswordMutation.isPending ||
-                    (resetPasswordMode === 'manual' && !validatePasswordPolicy(manualPassword).valid)
-                  }
+                  disabled={resetPasswordMutation.isPending}
                   className="bg-amber-600 hover:bg-amber-700"
                 >
                   {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
