@@ -240,9 +240,11 @@ export default function Students() {
         }
 
         // Route through backend function for field-level audit + enforcement
+        const session = getStaffSession();
         const updateRes = await base44.functions.invoke('updateStudentWithAudit', {
           student_db_id: id,
-          updates: normalized
+          updates: normalized,
+          staff_session_token: session?.staff_session_token || null
         });
         if (updateRes.data?.error) throw new Error(updateRes.data.error);
         return updateRes.data?.student;
