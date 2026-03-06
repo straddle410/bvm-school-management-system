@@ -291,12 +291,12 @@ export default function Homework() {
        continue;
      }
 
-     // Get assigned students for this homework
+     // Get assigned students for this homework (global filter: status=Published, is_deleted=false, current AY)
      const studentFilter = {
        class_name: hw.class_name,
-       is_deleted: { $ne: true },
-       is_active: true,
-       status: { $in: ['Verified', 'Approved', 'Published'] },
+       status: 'Published',
+       is_deleted: false,
+       academic_year: academicYear,
      };
      if (hw.section && hw.section !== 'All') {
        studentFilter.section = hw.section;
@@ -355,12 +355,12 @@ export default function Homework() {
       if (hw.submission_mode === 'VIEW_ONLY') {
         if (submissionProgressFilter !== 'all') return false; // Don't show VIEW_ONLY in submission filters
       } else {
-        // Get assigned students for this homework
+        // Get assigned students for this homework (global filter: status=Published, is_deleted=false)
         const studentFilter = {
           class_name: hw.class_name,
-          is_deleted: { $ne: true },
-          is_active: true,
-          status: { $in: ['Verified', 'Approved', 'Published'] },
+          status: 'Published',
+          is_deleted: false,
+          academic_year: academicYear,
         };
         if (hw.section && hw.section !== 'All') {
           studentFilter.section = hw.section;
@@ -418,13 +418,13 @@ export default function Homework() {
     setSubmissionProgressFilter('all');
   };
 
-  // Fetch metrics for each homework in filtered list
+  // Fetch metrics for each homework in filtered list (global filter: status=Published, is_deleted=false)
   const getHomeworkMetrics = async (hw) => {
     const studentFilter = {
       class_name: hw.class_name,
-      is_deleted: { $ne: true },
-      is_active: true,
-      status: { $in: ['Verified', 'Approved', 'Published'] },
+      status: 'Published',
+      is_deleted: false,
+      academic_year: academicYear,
     };
     if (hw.section && hw.section !== 'All') {
       studentFilter.section = hw.section;

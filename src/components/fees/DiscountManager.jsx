@@ -44,7 +44,12 @@ export default function DiscountManager({ academicYear, isArchived }) {
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', filterClass, academicYear],
-    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, academic_year: academicYear, status: 'Published' }),
+    queryFn: () => base44.entities.Student.filter({ 
+      class_name: filterClass, 
+      academic_year: academicYear, 
+      status: 'Published',
+      is_deleted: false 
+    }),
     enabled: !!filterClass && !!academicYear
   });
 

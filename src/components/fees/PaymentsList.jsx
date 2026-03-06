@@ -61,6 +61,8 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
     },
     enabled: !!academicYear && !!fromDate && !!toDate
   });
+  
+  // Note: Payments are filtered by academic_year, which ensures only current-year student data
 
   const filtered = payments.filter(p => {
     const inRange = (!fromDate || p.payment_date >= fromDate) && (!toDate || p.payment_date <= toDate);

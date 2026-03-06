@@ -48,10 +48,15 @@ export default function AdditionalChargesTab({ academicYear, isArchived }) {
     queryFn: () => base44.entities.FeeHead.filter({ is_active: true }, 'sort_order')
   });
 
-  // Students in selected class for SELECTED mode
+  // Students in selected class for SELECTED mode (global filter: status=Published, is_deleted=false)
   const { data: classStudents = [] } = useQuery({
     queryKey: ['students-for-charge', form.class_name, academicYear],
-    queryFn: () => base44.entities.Student.filter({ class_name: form.class_name, academic_year: academicYear, status: 'Published' }),
+    queryFn: () => base44.entities.Student.filter({ 
+      class_name: form.class_name, 
+      academic_year: academicYear, 
+      status: 'Published',
+      is_deleted: false 
+    }),
     enabled: !!form.class_name && !!academicYear
   });
 
