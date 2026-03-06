@@ -4,9 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Download, CheckCircle, Clock, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
-import { getLatestSubmissionPerStudent, getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
 import HomeworkDetailAnalyticsHeader from '@/components/homework/HomeworkDetailAnalyticsHeader';
 import StudentProgressSegmentation from '@/components/homework/StudentProgressSegmentation';
+import { getMarksStatistics } from '@/components/homework/homeworkMetricsHelper';
 
 export default function HomeworkSubmissions({ homework, onClose }) {
   const [gradingId, setGradingId] = useState(null);
@@ -82,17 +82,43 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     }
   });
 
-  // Use shared helper for consistent metrics
-  const metrics = getHomeworkAggregatedMetrics(homework, submissions, assignedStudents);
+  // Count unique students by their submission status
+  const uniqueSubmittedStudents = new Map();
+  submissions.forEach(s => {
+    const normalized = normalizeHomeworkSubmissionStatus(s.status);
+    if (!uniqueSubmittedStudents.has(s.student_id)) {
+      uniqueSubmittedStudents.set(s.student_id, normalized);
+    } else {
+      // Keep the latest/most recent status
+      uniqueSubmittedStudents.set(s.student_id, normalized);
+    }
+  });
+
+  // Get counts from unique submitted students
+  const submitted = Array.from(uniqueSubmittedStudents.values()).filter(status => 
+    status === HOMEWORK_STATUS.SUBMITTED || status === HOMEWORK_STATUS.RESUBMITTED
+  ).length;
+  const graded = Array.from(uniqueSubmittedStudents.values()).filter(status => status === HOMEWORK_STATUS.GRADED).length;
+  const revisionRequired = Array.from(uniqueSubmittedStudents.values()).filter(status => status === HOMEWORK_STATUS.REVISION_REQUIRED).length;
   
-  const submitted = metrics.submittedCount;
-  const graded = metrics.gradedCount;
-  const revisionRequired = metrics.revisionRequiredCount;
-  const totalStudents = metrics.totalStudents;
-  const pending = metrics.pendingCount;
-  const averageMarks = metrics.averageMarks;
-  const highestMarks = metrics.highestMarks;
-  const lowestMarks = metrics.lowestMarks;
+  // Total assigned students = actual count of active students in this class/section
+  const totalStudents = assignedStudents.length;
+  
+  // Pending = assigned students - students who submitted at least once
+  const totalUniqueSubmitted = uniqueSubmittedStudents.size;
+  const pending = Math.max(0, totalStudents - totalUniqueSubmitted);
+
+  // Calculate average marks (for graded submissions only)
+  const gradedSubmissions = submissions.filter(s => s.teacher_marks !== undefined && s.teacher_marks !== null);
+  const averageMarks = gradedSubmissions.length > 0 
+    ? gradedSubmissions.reduce((sum, s) => sum + Number(s.teacher_marks), 0) / gradedSubmissions.length 
+    : null;
+  const highestMarks = gradedSubmissions.length > 0 
+    ? Math.max(...gradedSubmissions.map(s => Number(s.teacher_marks))) 
+    : null;
+  const lowestMarks = gradedSubmissions.length > 0 
+    ? Math.min(...gradedSubmissions.map(s => Number(s.teacher_marks))) 
+    : null;
 
   return (
    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
@@ -113,7 +139,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
            pending={pending}
            graded={graded}
            revisionRequired={revisionRequired}
-           lateCount={metrics.lateCount}
+           lateCount={submissions.filter(s => s.is_late).length}
            averageMarks={averageMarks}
            highestMarks={highestMarks}
            lowestMarks={lowestMarks}
