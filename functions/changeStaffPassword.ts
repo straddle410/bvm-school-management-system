@@ -1,12 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
-// ── Token verification (same as getMyStaffProfile) ───────────────────────────
-const CLOCK_SKEW_MS = 2 * 60 * 1000;
-
+// ── Token verification (matching getMyStaffProfile working verifier) ───────────────
 function b64urlDecode(str) {
-  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
-  return atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad);
+  // Convert URL-safe base64 to standard base64
+  let standard = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding to multiple of 4
+  const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
+  standard = standard + pad;
+  // Decode using Buffer (Node/Deno compatible)
+  try {
+    const bytes = Uint8Array.from(atob(standard), c => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  } catch (err) {
+    throw new Error(`Base64 decode failed: ${err.message}`);
+  }
 }
 
 async function getSessionKey() {
@@ -19,32 +27,81 @@ async function getSessionKey() {
 }
 
 async function verifySessionToken(token) {
-  try {
-    const dotIdx = token.lastIndexOf('.');
-    if (dotIdx < 0) return { error: 'TOKEN_INVALID' };
+   try {
+     console.log('[verifySessionToken] START, token length=', token.length);
+     const dotIdx = token.lastIndexOf('.');
+     if (dotIdx < 0) {
+       console.error('[changeStaffPassword] TOKEN_INVALID: no dot separator found, token_length=', token.length);
+       return { error: 'TOKEN_INVALID' };
+     }
+     const payloadB64 = token.slice(0, dotIdx);
+     const sigB64 = token.slice(dotIdx + 1);
 
-    const payloadB64 = token.slice(0, dotIdx);
-    const sigB64 = token.slice(dotIdx + 1);
+     console.log(`[changeStaffPassword] payloadB64 length=${payloadB64.length} sigB64 length=${sigB64.length}`);
 
-    let payload = null;
-    try {
-      payload = JSON.parse(b64urlDecode(payloadB64));
-    } catch {
+     // Decode payload first for logging before signature check
+     let payload = null;
+     try {
+       const decoded = b64urlDecode(payloadB64);
+       console.log(`[changeStaffPassword] Decoded payload string: ${decoded}`);
+       payload = JSON.parse(decoded);
+       const { staff_id, exp, iat } = payload;
+       const now = Date.now();
+       console.log(`[changeStaffPassword] TOKEN_DECODE: staff_id=${staff_id} iat=${iat} exp=${exp} now=${now}`);
+     } catch (decodeErr) {
+       console.error('[changeStaffPassword] TOKEN_INVALID: payload decode failed:', decodeErr.message);
+       return { error: 'TOKEN_INVALID' };
+     }
+
+    const key = await getSessionKey();
+    // Decode signature as raw bytes via atob → Uint8Array
+    let standard = sigB64.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
+    standard = standard + pad;
+    const sigBytes = Uint8Array.from(atob(standard), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) {
+      console.error(`[changeStaffPassword] TOKEN_INVALID: signature mismatch for staff_id=${payload?.staff_id}`);
       return { error: 'TOKEN_INVALID' };
     }
 
-    const key = await getSessionKey();
-    const sigBytes = Uint8Array.from(b64urlDecode(sigB64), c => c.charCodeAt(0));
-    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
-    if (!valid) return { error: 'TOKEN_INVALID' };
-
     const { staff_id, exp, iat } = payload;
-    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') return { error: 'TOKEN_INVALID' };
-    if (iat > Date.now() + CLOCK_SKEW_MS) return { error: 'TOKEN_INVALID' };
-    if (Date.now() > exp) return { error: 'TOKEN_EXPIRED' };
+     if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') {
+       console.error('[changeStaffPassword] TOKEN_INVALID: missing required fields', { staff_id, exp, iat });
+       return { error: 'TOKEN_INVALID' };
+     }
 
-    return { staff_id, role: payload.role };
-  } catch {
+     // Handle migration: if exp > 10^12, it's in milliseconds — convert to seconds
+     let expSec = exp;
+     let iatSec = iat;
+     const CLOCK_SKEW_SEC = 5 * 60; // 5 min in seconds
+     if (exp > 1e12) {
+       expSec = Math.floor(exp / 1000);
+       console.log(`[changeStaffPassword] MIGRATION: exp in ms=${exp} converted to sec=${expSec}`);
+     }
+     if (iat > 1e12) {
+       iatSec = Math.floor(iat / 1000);
+       console.log(`[changeStaffPassword] MIGRATION: iat in ms=${iat} converted to sec=${iatSec}`);
+     }
+
+     const nowSec = Math.floor(Date.now() / 1000);
+
+     // Check iat is not in the future
+     if (iatSec > nowSec + CLOCK_SKEW_SEC) {
+       console.error(`[changeStaffPassword] TOKEN_INVALID: future iat=${iatSec} now=${nowSec}`);
+       return { error: 'TOKEN_INVALID' };
+     }
+
+     // Check expiry
+     if (nowSec > expSec) {
+       console.error(`[changeStaffPassword] TOKEN_EXPIRED: staff_id=${staff_id} expSec=${expSec} nowSec=${nowSec}`);
+       return { error: 'TOKEN_EXPIRED' };
+     }
+
+     console.log(`[changeStaffPassword] TOKEN_OK: staff_id=${staff_id} role=${payload.role} username=${payload.username} expSec=${expSec} nowSec=${nowSec} valid_for=${expSec - nowSec}sec`);
+     return { staff_id, role: payload.role, username: payload.username };
+  } catch (err) {
+    console.error('[changeStaffPassword] TOKEN_INVALID: unexpected error:', err.message);
     return { error: 'TOKEN_INVALID' };
   }
 }
@@ -78,11 +135,10 @@ Deno.serve(async (req) => {
     }
 
     // 2. Verify token
-    console.log('[CHANGE_PASSWORD_TOKEN]', { hasToken: !!token, tokenLength: token?.length || 0 });
     const verified = await verifySessionToken(token);
     if (verified.error) {
-      console.error(`[changeStaffPassword] ${verified.error}`);
-      return Response.json({ error: 'Session expired or invalid. Please login again.', code: 'STAFF_SESSION_INVALID' }, { status: 401 });
+      const status = verified.error === 'TOKEN_EXPIRED' ? 401 : 401;
+      return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status });
     }
 
     const { staff_id } = verified;
