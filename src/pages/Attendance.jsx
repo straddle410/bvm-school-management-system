@@ -455,12 +455,14 @@ function AttendanceSummaryTab({ academicYear, user }) {
       const halfDays = Object.values(dateMap).filter(t => t === 'half_day').length;
       const totalPresent = fullDays + halfDays * 0.5;
       const absentDays = Object.values(dateMap).filter(t => t === 'absent').length;
+      // Use shared calculation for consistent rounding across all views
+      const attendancePercent = getAttendancePercentage(totalPresent, workingDays);
       return {
         id: student.id, student_id: student.student_id, name: student.name,
         rollNo: student.roll_no || '-', class: student.class_name, section: student.section,
         totalWorkingDays: workingDays, totalHolidays: daysBetween.filter(d => holidaySet.has(d)).length,
         presentDays: Math.round(totalPresent * 100) / 100, absentDays,
-        attendancePercent: workingDays > 0 ? parseFloat(((totalPresent / workingDays) * 100).toFixed(2)) : 0
+        attendancePercent
       };
     });
   }, [students, attendanceRecords, holidays, filters.fromDate, filters.toDate, hasGenerated]);
