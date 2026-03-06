@@ -312,9 +312,10 @@ export default function Homework() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+                ))}
+                </div>
+                </>
+                )}
 
           {/* Form Dialog */}
           <Dialog open={showForm} onOpenChange={setShowForm}>
