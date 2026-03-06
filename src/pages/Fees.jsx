@@ -10,6 +10,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import FeeHeadsManager from '@/components/fees/FeeHeadsManager';
 import AnnualFeePlanTab from '@/components/fees/AnnualFeePlanTab';
 import StudentLedger from '@/components/fees/StudentLedger';
+import StudentLedgerArchivedYear from '@/components/fees/StudentLedgerArchivedYear';
 import PaymentsList from '@/components/fees/PaymentsList';
 import ReceiptSettings from '@/components/fees/ReceiptSettings';
 import DiscountManager from '@/components/fees/DiscountManager';
@@ -129,7 +130,11 @@ export default function Fees() {
 
             {canViewLedger && (
               <TabsContent value="ledger">
-                <StudentLedger academicYear={academicYear} isArchivedYear={isArchivedYear} />
+                {isArchivedYear ? (
+                  <StudentLedgerArchivedYear academicYear={academicYear} isArchived={true} />
+                ) : (
+                  <StudentLedger academicYear={academicYear} isArchivedYear={isArchivedYear} />
+                )}
               </TabsContent>
             )}
 
