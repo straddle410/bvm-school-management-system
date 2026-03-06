@@ -1,5 +1,33 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Helper: Get current time in IST using Intl API (reliable, no timezone conversion issues)
+function getISTTime() {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const dateObj = {};
+  parts.forEach(p => { dateObj[p.type] = p.value; });
+  
+  return {
+    hours: parseInt(dateObj.hour),
+    minutes: parseInt(dateObj.minute),
+    year: parseInt(dateObj.year),
+    month: parseInt(dateObj.month),
+    day: parseInt(dateObj.day),
+    dateString: `${dateObj.year}-${dateObj.month}-${dateObj.day}`
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -10,24 +38,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin only' }, { status: 403 });
     }
 
-    // Convert current time to IST (UTC+5:30)
-    const now = new Date();
-    const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    const istHours = istTime.getHours();
-    const istMinutes = istTime.getMinutes();
-    const istTimeInMinutes = istHours * 60 + istMinutes;
+    // Get current time in IST (reliable method using Intl API)
+    const istTime = getISTTime();
+    const istTimeInMinutes = istTime.hours * 60 + istTime.minutes;
     const lockTimeInMinutes = 15 * 60; // 3:00 PM = 15:00
 
     // Only lock if current time >= 3:00 PM IST (15:00)
     if (istTimeInMinutes < lockTimeInMinutes) {
       return Response.json({
-        message: `Current IST time: ${istHours.toString().padStart(2, '0')}:${istMinutes.toString().padStart(2, '0')}. Lock not triggered (before 3:00 PM IST).`,
+        message: `Current IST time: ${istTime.hours.toString().padStart(2, '0')}:${istTime.minutes.toString().padStart(2, '0')}. Lock not triggered (before 3:00 PM IST).`,
         locked: 0
       });
     }
 
     // Get today's date in IST
-    const todayIST = istTime.toISOString().split('T')[0];
+    const todayIST = istTime.dateString;
 
     // Fetch all Taken status attendance records for today
     const allAttendance = await base44.asServiceRole.entities.Attendance.list();
