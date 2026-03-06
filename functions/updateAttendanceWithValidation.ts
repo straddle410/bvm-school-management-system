@@ -119,7 +119,6 @@ Deno.serve(async (req) => {
         console.warn('Audit log failed but proceeding with unlock:', auditError);
       }
     }
-    }
 
     // Deduplication check
     if (data.student_id && data.student_id !== existingRecord.student_id) {
