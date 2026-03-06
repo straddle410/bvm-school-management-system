@@ -96,7 +96,9 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
         setError(res.data.error || 'Save failed');
       }
     } catch (err) {
-      setError(err.message || 'Save failed');
+      // Surface the exact server error message (axios puts it in err.response.data.error)
+      const serverMsg = err?.response?.data?.error || err?.message || 'Save failed';
+      setError(serverMsg);
     } finally {
       setSaving(false);
     }
