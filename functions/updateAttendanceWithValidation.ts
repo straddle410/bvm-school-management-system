@@ -105,7 +105,6 @@ Deno.serve(async (req) => {
     }
 
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
-    const attendanceDate = data.date || existingRecord.date;
     const attendanceAcademicYear = data.academic_year || existingRecord.academic_year;
     if (attendanceDate && attendanceAcademicYear) {
       const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: attendanceAcademicYear });
