@@ -57,9 +57,10 @@ export default function ChangeStaffPassword() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError(ERROR_MESSAGES.WEAK_PASSWORD);
-      setErrorCode('WEAK_PASSWORD');
+    const { valid, message } = validatePasswordPolicy(newPassword);
+    if (!valid) {
+      setError(message);
+      setErrorCode('PASSWORD_POLICY_VIOLATION');
       return;
     }
 
