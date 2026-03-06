@@ -431,27 +431,9 @@ export default function Staff() {
   };
 
   const handleResetPasswordSubmit = () => {
-    if (resetPasswordMode === 'auto' && !passwordCopied) {
-      toast.error('Please confirm you have copied the password');
-      return;
-    }
-    
-    if (resetPasswordMode === 'manual') {
-      const { valid, message } = validatePasswordPolicy(manualPassword);
-      if (!valid) {
-        toast.error(message);
-        return;
-      }
-      resetPasswordMutation.mutate({
-        staff_id: resetPasswordStaff.id,
-        temp_password: manualPassword,
-      });
-    } else {
-      resetPasswordMutation.mutate({
-        staff_id: resetPasswordStaff.id,
-        temp_password: generatedPassword,
-      });
-    }
+   resetPasswordMutation.mutate({
+     staff_id: resetPasswordStaff.id,
+   });
   };
 
   const handleSaveRole = () => {
