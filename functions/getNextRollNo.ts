@@ -103,12 +103,18 @@ Deno.serve(async (req) => {
         seen.set(roll, u.id);
       }
 
-      // Check conflicts with students NOT in updates
+      // Check conflicts with students NOT in updates (skip deleted/archived/passed-out students)
+      const EXCLUDED_STATUSES = ['Archived', 'Passed Out', 'Transferred'];
       const updatingIds = new Set(updates.map(u => u.id));
       for (const s of students) {
-        if (!updatingIds.has(s.id) && s.roll_no) {
-          if (seen.has(parseInt(s.roll_no))) {
-            return Response.json({ error: `Roll number ${s.roll_no} conflicts with another student in this class` }, { status: 400 });
+        if (!updatingIds.has(s.id) && s.roll_no && !s.is_deleted && !EXCLUDED_STATUSES.includes(s.status)) {
+          const existingRoll = parseInt(s.roll_no);
+          if (seen.has(existingRoll)) {
+            const conflictingUpdate = updates.find(u => parseInt(u.roll_no) === existingRoll);
+            const conflictName = conflictingUpdate ? students.find(st => st.id === conflictingUpdate.id)?.name || conflictingUpdate.id : '';
+            return Response.json({
+              error: `Duplicate roll number: ${existingRoll} is already assigned to "${s.name}". Cannot also assign it to "${conflictName}".`
+            }, { status: 400 });
           }
         }
       }
