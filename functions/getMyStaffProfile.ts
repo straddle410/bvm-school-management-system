@@ -64,21 +64,40 @@ async function verifySessionToken(token) {
     }
 
     const { staff_id, exp, iat } = payload;
-    if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') {
-      console.error('[getMyStaffProfile] TOKEN_INVALID: missing required fields', { staff_id, exp, iat });
-      return { error: 'TOKEN_INVALID' };
-    }
-    if (iat > Date.now() + CLOCK_SKEW_MS) {
-      console.error(`[getMyStaffProfile] TOKEN_INVALID: future iat=${iat} now=${Date.now()}`);
-      return { error: 'TOKEN_INVALID' };
-    }
-    if (Date.now() > exp) {
-      console.error(`[getMyStaffProfile] TOKEN_EXPIRED: staff_id=${staff_id} expired_at=${new Date(exp).toISOString()}`);
-      return { error: 'TOKEN_EXPIRED' };
-    }
+     if (!staff_id || typeof exp !== 'number' || typeof iat !== 'number') {
+       console.error('[getMyStaffProfile] TOKEN_INVALID: missing required fields', { staff_id, exp, iat });
+       return { error: 'TOKEN_INVALID' };
+     }
 
-    console.log(`[getMyStaffProfile] TOKEN_OK: staff_id=${staff_id} role=${payload.role}`);
-    return { staff_id, role: payload.role };
+     // Handle migration: if exp > 10^12, it's in milliseconds — convert to seconds
+     let expSec = exp;
+     let iatSec = iat;
+     const CLOCK_SKEW_SEC = 5 * 60; // 5 min in seconds
+     if (exp > 1e12) {
+       expSec = Math.floor(exp / 1000);
+       console.log(`[getMyStaffProfile] MIGRATION: exp in ms=${exp} converted to sec=${expSec}`);
+     }
+     if (iat > 1e12) {
+       iatSec = Math.floor(iat / 1000);
+       console.log(`[getMyStaffProfile] MIGRATION: iat in ms=${iat} converted to sec=${iatSec}`);
+     }
+
+     const nowSec = Math.floor(Date.now() / 1000);
+
+     // Check iat is not in the future
+     if (iatSec > nowSec + CLOCK_SKEW_SEC) {
+       console.error(`[getMyStaffProfile] TOKEN_INVALID: future iat=${iatSec} now=${nowSec}`);
+       return { error: 'TOKEN_INVALID' };
+     }
+
+     // Check expiry
+     if (nowSec > expSec) {
+       console.error(`[getMyStaffProfile] TOKEN_EXPIRED: staff_id=${staff_id} expSec=${expSec} nowSec=${nowSec}`);
+       return { error: 'TOKEN_EXPIRED' };
+     }
+
+     console.log(`[getMyStaffProfile] TOKEN_OK: staff_id=${staff_id} role=${payload.role} expSec=${expSec} nowSec=${nowSec} valid_for=${expSec - nowSec}sec`);
+     return { staff_id, role: payload.role };
   } catch (err) {
     console.error('[getMyStaffProfile] TOKEN_INVALID: unexpected error:', err.message);
     return { error: 'TOKEN_INVALID' };
