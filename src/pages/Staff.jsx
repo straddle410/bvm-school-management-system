@@ -358,6 +358,7 @@ export default function Staff() {
       username: normalizedUsername,
       role: derivedRole,
       experience_years: experienceYears,
+      password_hash: passwordHash,
     };
 
     saveMutation.mutate(dataToSave);
