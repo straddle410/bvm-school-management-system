@@ -28,6 +28,7 @@ export default function Homework() {
     subject_id: '',
     subject_name: '',
     due_date: '',
+    submission_mode: 'VIEW_ONLY',
   });
   const [formErrors, setFormErrors] = useState({});
   const [selected, setSelected] = useState(new Set());
@@ -105,6 +106,7 @@ export default function Homework() {
       subject_id: '',
       subject_name: '',
       due_date: '',
+      submission_mode: 'VIEW_ONLY',
     });
     setFormErrors({});
   };
@@ -130,6 +132,7 @@ export default function Homework() {
       section: form.section,
       subject: form.subject_name,
       due_date: form.due_date,
+      submission_mode: form.submission_mode,
       academic_year: academicYear,
     };
     console.log('HOMEWORK_PAYLOAD', payload);
@@ -151,6 +154,7 @@ export default function Homework() {
       subject_id: item.subject_id || '',
       subject_name: item.subject_name || '',
       due_date: item.due_date,
+      submission_mode: item.submission_mode || 'VIEW_ONLY',
     });
     setShowForm(true);
   };
@@ -465,6 +469,18 @@ export default function Homework() {
                     value={form.due_date}
                     onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                   />
+                </div>
+                <div>
+                  <Label>Submission Mode</Label>
+                  <Select value={form.submission_mode} onValueChange={(v) => setForm({ ...form, submission_mode: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="VIEW_ONLY">View Only</SelectItem>
+                      <SelectItem value="SUBMISSION_REQUIRED">Students Must Submit</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button
