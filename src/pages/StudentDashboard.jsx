@@ -161,7 +161,11 @@ export default function StudentDashboard() {
     HallTickets: unreadCounts.HallTickets || 0,
   };
 
-  const pendingHw = homework.filter(hw => !submissions.some(s => s.homework_id === hw.id)).length;
+  // Count only SUBMISSION_REQUIRED homework as pending (exclude VIEW_ONLY)
+  const pendingHw = homework.filter(hw => 
+    hw.submission_mode !== 'VIEW_ONLY' && 
+    !submissions.some(s => s.homework_id === hw.id)
+  ).length;
 
   if (!student) return null;
 
