@@ -153,42 +153,59 @@ Deno.serve(async (req) => {
     const tokenUsername = tokenPayload.username;
     const tokenRole = tokenPayload.role;
 
-    // Load StaffAccount — try id first, then fallback to username
+    // Load StaffAccount:
+    // 1) Direct get by id (most reliable — avoids filter({id}) which doesn't work on built-in fields)
     console.log(`[getMyStaffProfile] Looking up StaffAccount id=${staff_id}`);
-    let accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
-
-    // Fallback: search by username
-    if (!accounts || accounts.length === 0) {
-      console.log(`[getMyStaffProfile] Staff id not found, trying username=${tokenUsername}`);
-      if (tokenUsername) {
-        accounts = await base44.asServiceRole.entities.StaffAccount.filter({ username: tokenUsername });
-      }
+    let account = null;
+    try {
+      const fetched = await base44.asServiceRole.entities.StaffAccount.get(staff_id);
+      if (fetched && fetched.id) account = fetched;
+      console.log(`[getMyStaffProfile] Direct get result: ${account ? 'FOUND name=' + account.name : 'NOT_FOUND'}`);
+    } catch (getErr) {
+      console.warn(`[getMyStaffProfile] Direct get failed: ${getErr.message}`);
     }
 
-    let isProfileCreated = false;
-    if (!accounts || accounts.length === 0) {
-      console.warn(`[getMyStaffProfile] Staff not found anywhere, auto-creating account for id=${staff_id} username=${tokenUsername}`);
+    // 2) Fallback: search by username
+    if (!account && tokenUsername) {
+      console.log(`[getMyStaffProfile] Trying username lookup: ${tokenUsername}`);
       try {
-        // Create minimal staff account (upsert behavior)
+        const byUsername = await base44.asServiceRole.entities.StaffAccount.filter({ username: tokenUsername });
+        if (byUsername && byUsername.length > 0) { account = byUsername[0]; console.log(`[getMyStaffProfile] Found by username`); }
+      } catch {}
+    }
+
+    // 3) Fallback: search by email (token email if present)
+    if (!account && tokenPayload.email) {
+      console.log(`[getMyStaffProfile] Trying email lookup: ${tokenPayload.email}`);
+      try {
+        const byEmail = await base44.asServiceRole.entities.StaffAccount.filter({ email: tokenPayload.email });
+        if (byEmail && byEmail.length > 0) { account = byEmail[0]; console.log(`[getMyStaffProfile] Found by email`); }
+      } catch {}
+    }
+
+    // 4) Auto-create only if ALL lookups failed
+    if (!account) {
+      console.warn(`[getMyStaffProfile] Staff not found by id/username/email, auto-creating for id=${staff_id} username=${tokenUsername}`);
+      try {
         const newAccount = await base44.asServiceRole.entities.StaffAccount.create({
-          id: staff_id,
           name: tokenUsername || 'Staff Member',
-          username: tokenUsername || `staff_${staff_id}`,
-          password_hash: '$2b$10$disabled', // Disabled — login via token only
+          username: tokenUsername || `staff_${staff_id.slice(-6)}`,
+          password_hash: '$2b$10$disabled',
           role: tokenRole || 'staff',
           is_active: true,
         });
-        accounts = [newAccount];
-        isProfileCreated = true;
-        console.log(`[getMyStaffProfile] PROFILE_AUTO_CREATED for staff_id=${staff_id}`);
+        account = newAccount;
+        console.log(`[getMyStaffProfile] PROFILE_AUTO_CREATED id=${account.id}`);
       } catch (createErr) {
-        console.error(`[getMyStaffProfile] Failed to auto-create profile: ${createErr.message}`);
+        console.error(`[getMyStaffProfile] Auto-create failed: ${createErr.message}`);
         return Response.json({ 
           error: 'Staff record not found. Please contact admin to re-create staff account.', 
           code: 'STAFF_NOT_FOUND' 
         }, { status: 404 });
       }
     }
+
+    const accounts = [account];
 
     const account = accounts[0];
 
