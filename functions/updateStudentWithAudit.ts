@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
         const oldVal = current[field] === undefined ? null : current[field];
         const newVal = updates[field] === undefined ? null : updates[field];
         if (String(oldVal) !== String(newVal)) {
-          changedFields.push({ field, old_value: oldVal, new_value: newVal });
+          changedFields.push({ field, old_value: String(oldVal), new_value: String(newVal) });
         }
       }
     }
