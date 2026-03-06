@@ -39,7 +39,24 @@ export function getLatestSubmissionPerStudent(submissions) {
  * @returns {Object} Aggregated metrics including submitted, graded, etc.
  */
 export function getHomeworkAggregatedMetrics(homework, submissions, assignedStudents) {
-  // Get only this homework's submissions
+  // ✅ CRITICAL: Never calculate submission metrics for VIEW_ONLY homework
+  if (homework.submission_mode === 'VIEW_ONLY') {
+    return {
+      totalStudents: assignedStudents.length,
+      submittedCount: 0,
+      pendingCount: 0,
+      gradedCount: 0,
+      revisionRequiredCount: 0,
+      lateCount: 0,
+      completionPercent: 0,
+      averageMarks: null,
+      highestMarks: null,
+      lowestMarks: null,
+      latestSubmissionMap: new Map(),
+    };
+  }
+
+  // SUBMISSION_REQUIRED: calculate submission metrics normally
   const hwSubmissions = submissions.filter(s => s.homework_id === homework.id);
   
   // Get latest submission per student
@@ -113,6 +130,6 @@ export function getHomeworkAggregatedMetrics(homework, submissions, assignedStud
     highestMarks,
     lowestMarks,
     // Return the latest map for use in filters/segmentation
-    latestSubmissionMap: latestByStatus
+    latestSubmissionMap: latestByStatus,
   };
 }
