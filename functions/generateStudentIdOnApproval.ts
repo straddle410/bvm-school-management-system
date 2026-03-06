@@ -6,18 +6,43 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     
     // From automation trigger: { event, data, old_data }
-    const { event, data } = payload;
+    const { event, data, old_data } = payload;
+    
+    console.log('[AUTOMATION] Payload received:', {
+      event_type: event?.type,
+      event_entity_name: event?.entity_name,
+      has_data: !!data,
+      has_old_data: !!old_data,
+      data_status: data?.status,
+      data_student_id: data?.student_id,
+      old_data_status: old_data?.status
+    });
     
     if (event?.type !== 'update' || !data) {
+      console.log('[AUTOMATION] Skipping: Not an update event or no data');
       return Response.json({ message: 'Not a student update event' }, { status: 200 });
     }
 
     const student = data;
     
+    console.log('[AUTOMATION] Student data:', {
+      id: student.id,
+      name: student.name,
+      status: student.status,
+      student_id: student.student_id,
+      academic_year: student.academic_year
+    });
+    
     // Only process if status changed TO "Approved" and student_id is NULL
     if (student.status !== 'Approved' || student.student_id) {
+      console.log('[AUTOMATION] Skipping: Status not Approved or ID already exists', {
+        status_is_approved: student.status === 'Approved',
+        student_id_is_null: student.student_id === null
+      });
       return Response.json({ message: 'No ID generation needed', reason: 'Status not Approved or ID exists' }, { status: 200 });
     }
+    
+    console.log('[AUTOMATION] Proceeding with ID generation');
 
     if (!student.academic_year) {
       return Response.json({ error: 'Student missing academic_year' }, { status: 400 });
