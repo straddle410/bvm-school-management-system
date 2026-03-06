@@ -20,7 +20,7 @@ import HomeworkDashboardSummary from '@/components/homework/HomeworkDashboardSum
 import HomeworkFiltersBar from '@/components/homework/HomeworkFiltersBar';
 import HomeworkRowMetrics from '@/components/homework/HomeworkRowMetrics';
 import { normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
-import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
+import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkMetricsHelper';
 
 export default function Homework() {
   const [user, setUser] = useState(null);
@@ -224,7 +224,7 @@ export default function Homework() {
 
   const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-  // Calculate statistics
+  // Calculate statistics using shared helper
   const calculateStats = async () => {
     let totalPublished = 0;
     let totalDraft = 0;
@@ -239,11 +239,12 @@ export default function Homework() {
 
     for (const hw of homeworkList) {
       const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
+      // Closed = Published AND overdue (not Draft + overdue)
       const isClosed = hw.status === 'Published' && isOverdue;
 
       if (hw.status === 'Published') totalPublished++;
       if (hw.status === 'Draft') totalDraft++;
-      if (hw.status === 'Published' && !isClosed) totalActive++;
+      if (hw.status === 'Published' && !isOverdue) totalActive++;
       if (isClosed) totalClosed++;
 
       // Get assigned students for this homework
@@ -258,16 +259,18 @@ export default function Homework() {
       }
       const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
 
-      // Use shared helper for consistent metrics
-      const metrics = getHomeworkAggregatedMetrics(hw, submissions, assignedStudents);
+      // Get submissions for this homework and use shared aggregation helper
+      const hwSubmissions = submissions.filter(s => s.homework_id === hw.id);
+      const metrics = getHomeworkAggregatedMetrics(hw, hwSubmissions, assignedStudents);
 
       overallTotalStudents += metrics.totalStudents;
-      overallTotalSubmitted += metrics.submittedCount;
+      overallTotalSubmitted += metrics.totalUniqueSubmitted;
 
-      totalPendingReview += metrics.submittedCount > 0 ? (metrics.submittedCount - metrics.gradedCount - metrics.revisionRequiredCount) : 0;
-      totalGraded += metrics.gradedCount;
-      totalRevisionRequired += metrics.revisionRequiredCount;
-      totalLateSubmissions += metrics.lateCount;
+      totalPendingReview += metrics.submitted;
+      totalGraded += metrics.graded;
+      totalRevisionRequired += metrics.revisionRequired;
+      // Late = unique students with latest submission marked late
+      totalLateSubmissions += metrics.late;
     }
 
     const overallSubmissionRate =
