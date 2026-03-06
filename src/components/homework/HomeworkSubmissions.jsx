@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Download, CheckCircle, Clock, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
 
 export default function HomeworkSubmissions({ homework, onClose }) {
   const [gradingId, setGradingId] = useState(null);
@@ -21,7 +22,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
       base44.entities.HomeworkSubmission.update(id, { 
         teacher_marks: Number(teacher_marks), 
         teacher_feedback, 
-        status: 'GRADED',
+        status: HOMEWORK_STATUS.GRADED,
         graded_at: new Date().toISOString(),
         graded_by: 'Teacher' // Will be populated from staff session context
       }),
@@ -132,14 +133,19 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                         </p>
                       )}
                     </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      sub.status === 'GRADED' ? 'bg-green-100 text-green-700' :
-                      sub.status === 'REVISION_REQUIRED' ? 'bg-orange-100 text-orange-700' :
-                      sub.status === 'RESUBMITTED' ? 'bg-blue-100 text-blue-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                       {sub.status === 'REVISION_REQUIRED' ? 'Revision' : sub.status}
-                     </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        sub.status === HOMEWORK_STATUS.GRADED ? 'bg-green-100 text-green-700' :
+                        sub.status === HOMEWORK_STATUS.REVISION_REQUIRED ? 'bg-orange-100 text-orange-700' :
+                        sub.status === HOMEWORK_STATUS.RESUBMITTED ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                         {sub.status === HOMEWORK_STATUS.REVISION_REQUIRED ? 'Revision' : sub.status}
+                       </span>
+                      {sub.attempt_no && (
+                        <span className="text-[9px] text-gray-500 font-medium">Attempt {sub.attempt_no}</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* MCQ Score */}
@@ -174,13 +180,13 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                   )}
 
                   {/* Teacher feedback */}
-                  {(sub.status === 'GRADED' || sub.status === 'REVISION_REQUIRED') && (
-                    <div className={`mt-2 rounded-lg p-2 text-xs ${sub.status === 'GRADED' ? 'bg-green-50' : 'bg-orange-50'}`}>
-                      {sub.status === 'GRADED' && (
+                  {(sub.status === HOMEWORK_STATUS.GRADED || sub.status === HOMEWORK_STATUS.REVISION_REQUIRED) && (
+                    <div className={`mt-2 rounded-lg p-2 text-xs ${sub.status === HOMEWORK_STATUS.GRADED ? 'bg-green-50' : 'bg-orange-50'}`}>
+                      {sub.status === HOMEWORK_STATUS.GRADED && (
                         <p className="font-medium text-green-700">Marks: {sub.teacher_marks}/{homework.max_marks || '—'}</p>
                       )}
                       {sub.teacher_feedback && (
-                        <p className={`mt-0.5 ${sub.status === 'GRADED' ? 'text-green-600' : 'text-orange-600'}`}>
+                        <p className={`mt-0.5 ${sub.status === HOMEWORK_STATUS.GRADED ? 'text-green-600' : 'text-orange-600'}`}>
                           {sub.teacher_feedback}
                         </p>
                       )}
@@ -188,7 +194,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                   )}
 
                   {/* Action buttons */}
-                  {sub.status !== 'GRADED' && gradingId !== sub.id && revisionId !== sub.id && (
+                  {sub.status !== HOMEWORK_STATUS.GRADED && gradingId !== sub.id && revisionId !== sub.id && (
                     <div className="mt-2 flex gap-2">
                       <button
                         onClick={() => { setGradingId(sub.id); setMarks(sub.teacher_marks || ''); setFeedback(sub.teacher_feedback || ''); }}
@@ -198,7 +204,8 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                       </button>
                       <button
                         onClick={() => { setRevisionId(sub.id); setFeedback(sub.teacher_feedback || ''); }}
-                        className="text-xs text-orange-700 font-medium flex items-center gap-1 flex-1 justify-center"
+                        disabled={sub.status === HOMEWORK_STATUS.REVISION_REQUIRED}
+                        className="text-xs text-orange-700 font-medium flex items-center gap-1 flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         ↻ Revision
                       </button>
@@ -225,9 +232,9 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                         className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
                       <div className="flex gap-2">
                         <button onClick={() => setRevisionId(null)} className="flex-1 text-xs text-gray-500 border border-gray-200 rounded-lg py-1.5">Cancel</button>
-                        <button onClick={() => revisionMutation.mutate({ id: sub.id, teacher_feedback: feedback })}
-                          disabled={!feedback.trim()}
-                          className="flex-1 text-xs text-white bg-orange-600 rounded-lg py-1.5 font-medium disabled:opacity-50">Request Revision</button>
+                        <button onClick={() => revisionMutation.mutate({ id: sub.id, teacher_feedback: feedback, currentStatus: sub.status })}
+                            disabled={!feedback.trim()}
+                            className="flex-1 text-xs text-white bg-orange-600 rounded-lg py-1.5 font-medium disabled:opacity-50">Request Revision</button>
                       </div>
                     </div>
                   )}
