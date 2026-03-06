@@ -266,49 +266,54 @@ export default function Homework() {
 
   // Calculate statistics
   const calculateStats = async () => {
-    let totalPublished = 0;
-    let totalDraft = 0;
-    let totalActive = 0;
-    let totalClosed = 0;
-    let totalPendingReview = 0;
-    let totalGraded = 0;
-    let totalRevisionRequired = 0;
-    let totalLateSubmissions = 0;
-    let overallTotalStudents = 0;
-    let overallTotalSubmitted = 0;
+   let totalPublished = 0;
+   let totalDraft = 0;
+   let totalActive = 0;
+   let totalClosed = 0;
+   let totalPendingReview = 0;
+   let totalGraded = 0;
+   let totalRevisionRequired = 0;
+   let totalLateSubmissions = 0;
+   let overallTotalStudents = 0;
+   let overallTotalSubmitted = 0;
 
-    for (const hw of homeworkList) {
-      const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
-      const isClosed = hw.status === 'Published' && isOverdue;
+   for (const hw of homeworkList) {
+     const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
+     const isClosed = hw.status === 'Published' && isOverdue;
 
-      if (hw.status === 'Published') totalPublished++;
-      if (hw.status === 'Draft') totalDraft++;
-      if (hw.status === 'Published' && !isClosed) totalActive++;
-      if (isClosed) totalClosed++;
+     if (hw.status === 'Published') totalPublished++;
+     if (hw.status === 'Draft') totalDraft++;
+     if (hw.status === 'Published' && !isClosed) totalActive++;
+     if (isClosed) totalClosed++;
 
-      // Get assigned students for this homework
-      const studentFilter = {
-        class_name: hw.class_name,
-        is_deleted: { $ne: true },
-        is_active: true,
-        status: { $in: ['Verified', 'Approved', 'Published'] },
-      };
-      if (hw.section && hw.section !== 'All') {
-        studentFilter.section = hw.section;
-      }
-      const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
+     // ✅ CRITICAL: Skip metrics for VIEW_ONLY homework
+     if (hw.submission_mode === 'VIEW_ONLY') {
+       continue;
+     }
 
-      // Use shared helper for consistent metrics
-      const metrics = getHomeworkAggregatedMetrics(hw, submissions, assignedStudents);
+     // Get assigned students for this homework
+     const studentFilter = {
+       class_name: hw.class_name,
+       is_deleted: { $ne: true },
+       is_active: true,
+       status: { $in: ['Verified', 'Approved', 'Published'] },
+     };
+     if (hw.section && hw.section !== 'All') {
+       studentFilter.section = hw.section;
+     }
+     const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
 
-      overallTotalStudents += metrics.totalStudents;
-      overallTotalSubmitted += metrics.submittedCount;
+     // Use shared helper for consistent metrics (only for SUBMISSION_REQUIRED)
+     const metrics = getHomeworkAggregatedMetrics(hw, submissions, assignedStudents);
 
-      totalPendingReview += metrics.submittedCount > 0 ? (metrics.submittedCount - metrics.gradedCount - metrics.revisionRequiredCount) : 0;
-      totalGraded += metrics.gradedCount;
-      totalRevisionRequired += metrics.revisionRequiredCount;
-      totalLateSubmissions += metrics.lateCount;
-    }
+     overallTotalStudents += metrics.totalStudents;
+     overallTotalSubmitted += metrics.submittedCount;
+
+     totalPendingReview += metrics.submittedCount > 0 ? (metrics.submittedCount - metrics.gradedCount - metrics.revisionRequiredCount) : 0;
+     totalGraded += metrics.gradedCount;
+     totalRevisionRequired += metrics.revisionRequiredCount;
+     totalLateSubmissions += metrics.lateCount;
+   }
 
     const overallSubmissionRate =
       overallTotalStudents > 0 ? (overallTotalSubmitted / overallTotalStudents) * 100 : 0;
@@ -346,32 +351,37 @@ export default function Homework() {
     }
 
     if (submissionProgressFilter !== 'all') {
-      // Get assigned students for this homework
-      const studentFilter = {
-        class_name: hw.class_name,
-        is_deleted: { $ne: true },
-        is_active: true,
-        status: { $in: ['Verified', 'Approved', 'Published'] },
-      };
-      if (hw.section && hw.section !== 'All') {
-        studentFilter.section = hw.section;
-      }
-      // Note: We'd need to load assigned students here for accurate filtering
-      // For now, using submission-based filtering which is consistent
-      
-      const hwSubmissions = submissions.filter((s) => s.homework_id === hw.id);
-      const metrics = getHomeworkAggregatedMetrics(hw, submissions, []);
-      
-      const hasPendingReview = metrics.submittedCount > 0;
-      const hasFullySubmitted = metrics.pendingCount === 0 && metrics.submittedCount > 0;
-      const hasLateSubmissions = metrics.lateCount > 0;
+      // ✅ Skip submission filters for VIEW_ONLY homework
+      if (hw.submission_mode === 'VIEW_ONLY') {
+        if (submissionProgressFilter !== 'all') return false; // Don't show VIEW_ONLY in submission filters
+      } else {
+        // Get assigned students for this homework
+        const studentFilter = {
+          class_name: hw.class_name,
+          is_deleted: { $ne: true },
+          is_active: true,
+          status: { $in: ['Verified', 'Approved', 'Published'] },
+        };
+        if (hw.section && hw.section !== 'All') {
+          studentFilter.section = hw.section;
+        }
+        // Note: We'd need to load assigned students here for accurate filtering
+        // For now, using submission-based filtering which is consistent
 
-      if (submissionProgressFilter === 'not-started' && metrics.submittedCount > 0) return false;
-      if (submissionProgressFilter === 'fully-submitted' && !hasFullySubmitted) return false;
-      if (submissionProgressFilter === 'pending-review' && !hasPendingReview) return false;
-      if (submissionProgressFilter === 'graded' && metrics.gradedCount === 0) return false;
-      if (submissionProgressFilter === 'revision-required' && metrics.revisionRequiredCount === 0) return false;
-      if (submissionProgressFilter === 'late-submissions' && !hasLateSubmissions) return false;
+        const hwSubmissions = submissions.filter((s) => s.homework_id === hw.id);
+        const metrics = getHomeworkAggregatedMetrics(hw, submissions, []);
+
+        const hasPendingReview = metrics.submittedCount > 0;
+        const hasFullySubmitted = metrics.pendingCount === 0 && metrics.submittedCount > 0;
+        const hasLateSubmissions = metrics.lateCount > 0;
+
+        if (submissionProgressFilter === 'not-started' && metrics.submittedCount > 0) return false;
+        if (submissionProgressFilter === 'fully-submitted' && !hasFullySubmitted) return false;
+        if (submissionProgressFilter === 'pending-review' && !hasPendingReview) return false;
+        if (submissionProgressFilter === 'graded' && metrics.gradedCount === 0) return false;
+        if (submissionProgressFilter === 'revision-required' && metrics.revisionRequiredCount === 0) return false;
+        if (submissionProgressFilter === 'late-submissions' && !hasLateSubmissions) return false;
+      }
     }
 
     return true;
