@@ -537,7 +537,7 @@ export default function Students() {
                     <DropdownMenuItem onClick={() => setShowManageRolls(true)}>
                       <Hash className="h-4 w-4 mr-2 text-gray-500" /> Roll Numbers
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowPromote(true)}>
+                    <DropdownMenuItem onClick={() => { setShowPromote(true); setTimeout(() => setShowPromote(false), 100); }}>
                       <TrendingUp className="h-4 w-4 mr-2 text-gray-500" /> Promote Students
                     </DropdownMenuItem>
                   </DropdownMenuContent>
