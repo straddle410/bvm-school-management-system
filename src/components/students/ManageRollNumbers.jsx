@@ -21,6 +21,8 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showCleanupConfirm, setShowCleanupConfirm] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
 
   const handleLoad = async () => {
     if (!filterClass || !filterSection || !filterYear) {
