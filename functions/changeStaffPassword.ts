@@ -91,9 +91,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields', code: 'MISSING_FIELDS' }, { status: 400 });
     }
 
-    // 3. Validate new password strength
-    if (newPassword.length < 8) {
-      return Response.json({ error: 'Password must be at least 8 characters.', code: 'WEAK_PASSWORD' }, { status: 400 });
+    // 3. Validate new password — unified policy
+    const policyOk =
+      newPassword.length >= 8 &&
+      /[A-Z]/.test(newPassword) &&
+      /[a-z]/.test(newPassword) &&
+      /[0-9]/.test(newPassword) &&
+      /[^A-Za-z0-9]/.test(newPassword);
+
+    if (!policyOk) {
+      return Response.json({
+        success: false,
+        error: 'PASSWORD_POLICY_VIOLATION',
+        message: 'Password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.',
+        code: 'PASSWORD_POLICY_VIOLATION',
+      }, { status: 400 });
     }
 
     // 4. Load staff account
