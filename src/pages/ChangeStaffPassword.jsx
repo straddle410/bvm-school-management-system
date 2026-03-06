@@ -34,18 +34,20 @@ export default function ChangeStaffPassword() {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    // Resolve staff_session_token from localStorage
-    try {
-      const raw = localStorage.getItem('staff_session');
-      if (!raw) { navigate(createPageUrl('StaffLogin')); return; }
-      const session = JSON.parse(raw);
-      const t = session?.staff_session_token;
-      if (!t) { navigate(createPageUrl('StaffLogin')); return; }
-      setToken(t);
-    } catch {
-      navigate(createPageUrl('StaffLogin'));
-    }
-  }, []);
+     // Resolve staff_session_token from localStorage
+     try {
+       const raw = localStorage.getItem('staff_session');
+       console.log('[FORCE_CHANGE_SESSION]', JSON.parse(raw || 'null'));
+       if (!raw) { navigate(createPageUrl('StaffLogin')); return; }
+       const session = JSON.parse(raw);
+       const t = session?.staff_session_token;
+       if (!t) { navigate(createPageUrl('StaffLogin')); return; }
+       setToken(t);
+     } catch (e) {
+       console.error('[FORCE_CHANGE_SESSION_ERROR]', e.message);
+       navigate(createPageUrl('StaffLogin'));
+     }
+   }, []);
 
   const handleChange = async (e) => {
     e.preventDefault();
@@ -80,15 +82,14 @@ export default function ChangeStaffPassword() {
     });
 
     try {
-      // Send token both in body (fallback) and via staff_session_token field
-      // The backend reads it from body.staff_session_token
+      // Send token in payload — backend reads from body.staff_session_token
       const response = await base44.functions.invoke('changeStaffPassword', {
         currentPassword,
         newPassword,
         staff_session_token: token,
       });
 
-      console.log('[CHANGE_PASSWORD_RESPONSE]', response.status, response.data);
+      console.log('[CHANGE_PASSWORD_RESPONSE]', { status: response.status, success: response.data?.success });
 
       if (response.data?.success) {
         // Update local session to reflect force_password_change=false
