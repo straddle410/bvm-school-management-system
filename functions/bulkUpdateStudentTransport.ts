@@ -1,5 +1,32 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import * as bcrypt from 'npm:bcryptjs@2.4.3';
+
+// Same token verification logic as getStudentsPaginated
+async function verifyStaffToken(token) {
+  try {
+    const secret = Deno.env.get('STAFF_SESSION_SECRET');
+    if (!secret || !token) return null;
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return null;
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
+
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+    );
+    const sigBytes = Uint8Array.from(atob(sigB64.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return null;
+
+    const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+    let exp = payload.exp;
+    if (exp > 1e12) exp = Math.floor(exp / 1000);
+    if (exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 Deno.serve(async (req) => {
   try {
@@ -7,28 +34,12 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { staff_session_token, student_ids, transport_enabled } = body;
 
-    // Validate staff session token
-    if (!staff_session_token) {
-      return Response.json({ error: 'Unauthorized: no session token' }, { status: 401 });
+    // Verify token
+    const payload = await verifyStaffToken(staff_session_token);
+    if (!payload) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const secret = Deno.env.get('STAFF_SESSION_SECRET') || '';
-    const [headerB64, payloadB64, sig] = staff_session_token.split('.');
-    if (!headerB64 || !payloadB64 || !sig) {
-      return Response.json({ error: 'Unauthorized: invalid token format' }, { status: 401 });
-    }
-
-    const expectedSig = btoa(
-      String.fromCharCode(...new Uint8Array(
-        await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${headerB64}.${payloadB64}.${secret}`))
-      ))
-    ).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-    if (sig !== expectedSig) {
-      return Response.json({ error: 'Unauthorized: invalid signature' }, { status: 401 });
-    }
-
-    const payload = JSON.parse(atob(payloadB64));
     const role = (payload.role || '').toLowerCase();
     if (role !== 'admin' && role !== 'principal') {
       return Response.json({ error: 'Forbidden: Admin/Principal only' }, { status: 403 });
