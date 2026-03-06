@@ -205,10 +205,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    const accounts = [account];
-
-    const account = accounts[0];
-
     if (!account.is_active) {
       return Response.json({ error: 'Account inactive', code: 'ACCOUNT_INACTIVE' }, { status: 403 });
     }
