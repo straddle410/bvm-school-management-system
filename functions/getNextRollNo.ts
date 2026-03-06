@@ -45,8 +45,7 @@ Deno.serve(async (req) => {
       authed = true;
     }
 
-    const body = await req.json();
-    const { action = 'next', class_name, section, academic_year } = body;
+    // body already parsed above
 
     if (!class_name || !section || !academic_year) {
       return Response.json({ error: 'class_name, section, academic_year are required' }, { status: 400 });
