@@ -1,12 +1,15 @@
 /**
- * Global Student Filtering Helper
+ * GLOBAL STUDENT FILTERING HELPER
  * 
- * Used across the app (except Students page) to ensure consistent filtering:
- * - Only active/published students
- * - Only current academic year
- * - Excludes soft-deleted students
+ * Standard filter rule used across all modules EXCEPT Students page:
+ * - status: 'Published' (active enrollment)
+ * - academic_year: currentYear (current year only)
+ * - is_deleted: false (not soft-deleted)
  * 
- * Filter Rule: { status: 'Published', academic_year: academicYear, is_deleted: false }
+ * This ensures consistent data visibility and prevents:
+ * - Deleted/archived students from appearing in module operations
+ * - Students from wrong academic years
+ * - Inactive/pending enrollment statuses
  */
 
 export const getActiveStudentFilter = (academicYear) => {
@@ -19,8 +22,12 @@ export const getActiveStudentFilter = (academicYear) => {
 };
 
 export const buildStudentQuery = (academicYear, additionalFilters = {}) => {
+  const baseFilter = getActiveStudentFilter(academicYear);
+  if (!baseFilter) return null;
+  
+  // Merge filters - base filter takes precedence
   return {
-    ...getActiveStudentFilter(academicYear),
-    ...additionalFilters
+    ...additionalFilters,
+    ...baseFilter  // Override any conflicting filters
   };
 };
