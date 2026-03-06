@@ -1,16 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Shared: validate a date falls within an academic year's range
-function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
-  const d = new Date(date);
-  d.setUTCHours(0, 0, 0, 0);
-  const start = new Date(academicYearStart);
-  start.setUTCHours(0, 0, 0, 0);
-  const end = new Date(academicYearEnd);
-  end.setUTCHours(23, 59, 59, 999);
-  return d >= start && d <= end;
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -29,61 +18,40 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── ACADEMIC YEAR BOUNDARY CHECK ──
-    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
-    if (yearConfigs.length === 0) {
-      return Response.json({ error: `Academic year "${academicYear}" is not configured in the system.` }, { status: 400 });
-    }
-    const yearConfig = yearConfigs[0];
-    if (!validateAcademicYearBoundary(date, yearConfig.start_date, yearConfig.end_date)) {
-      return Response.json({
-        error: `Action not allowed outside selected Academic Year. Date "${date}" is outside the ${academicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
-      }, { status: 400 });
+    // ── TODAY-ONLY ATTENDANCE (CHECK FIRST) ──
+    // Non-admin/principal users can ONLY create attendance for TODAY
+    const userRole = (user.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin' || userRole === 'principal';
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const attDate = new Date(date);
+    attDate.setUTCHours(0, 0, 0, 0);
+
+    if (!isAdmin && attDate.getTime() !== today.getTime()) {
+      return Response.json(
+        { error: `Teachers can only create attendance for today. Attempted date: ${date}` },
+        { status: 400 }
+      );
     }
 
-    // ── STUDENT EXISTENCE & SOFT-DELETE GUARD ──
-    const allStudentsForId = await base44.asServiceRole.entities.Student.filter({ student_id: studentId, academic_year: academicYear });
-    const studentRecord = allStudentsForId[0];
-    
-    // Check if student exists
-    if (!studentRecord) {
-      return Response.json({
-        error: `Student '${studentId}' does not exist in database`,
-        status: 404
-      });
-    }
-    
-    // Check if student is deleted
-    if (studentRecord.is_deleted === true) {
-      return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
-    }
-
-    // Check for existing record with same student + date + class + section + year
-    const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
-      date,
-      student_id: studentId,
-      class_name: classname,
-      section,
-      academic_year: academicYear
+    // Check for existing attendance (dedup)
+    const existing = await base44.asServiceRole.entities.Attendance.filter({
+      date, student_id: studentId, class_name: classname, section, academic_year: academicYear
     });
 
-    if (existingRecords.length > 0) {
+    if (existing.length > 0) {
       return Response.json({
         isDuplicate: true,
-        existingRecordId: existingRecords[0].id,
-        message: 'Duplicate prevented: record exists for this student+date+class+section'
+        existingRecordId: existing[0].id,
+        message: 'Attendance record already exists for this student on this date'
       });
     }
 
-    return Response.json({
-      isDuplicate: false,
-      canCreate: true,
-      message: 'No duplicate found - safe to create'
-    });
+    return Response.json({ isDuplicate: false });
   } catch (error) {
-    console.error('Create deduplication check error:', error);
+    console.error('Dedup check error:', error);
     return Response.json(
-      { error: error.message || 'Deduplication check failed' },
+      { error: error.message || 'Failed to validate' },
       { status: 500 }
     );
   }
