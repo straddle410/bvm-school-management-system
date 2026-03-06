@@ -33,87 +33,44 @@ Deno.serve(async (req) => {
     const yy = startYear.slice(2);
     const counterKey = `student_id_${startYear}`;
 
-    // Get or create counter
+    // ALWAYS scan for highest existing ID to prevent gaps
+    // Counter stores the highest ID number ever issued, NOT a sequential counter
+    const allStudents = await base44.asServiceRole.entities.Student.filter({ 
+      academic_year: student.academic_year,
+      student_id: { $regex: `^S${yy}` }
+    });
+    
+    const pattern = new RegExp(`^S${yy}(\\d{3})$`, 'i');
+    const existing = allStudents
+      .map(s => s.student_id)
+      .filter(id => id && pattern.test(id))
+      .map(id => {
+        const m = id.match(/^S\d{2}(\d{3})$/i);
+        return m ? parseInt(m[1], 10) : 0;
+      });
+    
+    const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
+    const nextValue = maxExisting + 1;
+
+    // Get or create counter for this year (stores highest issued ID number)
     let counter = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
     counter = counter[0];
 
-    let nextValue;
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    while (attempts < maxAttempts) {
-      try {
-        if (!counter) {
-          // First student of this year — find max existing ID
-          const allStudents = await base44.asServiceRole.entities.Student.list('', 10000);
-          const pattern = new RegExp(`^S${yy}(\\d{3})$`, 'i');
-          const existing = allStudents
-            .map(s => s.student_id)
-            .filter(id => id && pattern.test(id))
-            .map(id => {
-              const m = id.match(/^S\d{2}(\d{3})$/i);
-              return m ? parseInt(m[1], 10) : 0;
-            });
-          const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
-          nextValue = maxExisting + 1;
-
-          counter = await base44.asServiceRole.entities.Counter.create({
-            key: counterKey,
-            current_value: nextValue
-          });
-          break;
-        } else {
-          // Increment existing counter
-          nextValue = (counter.current_value || 0) + 1;
-          await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
-          break;
-        }
-      } catch (e) {
-        attempts++;
-        const refreshed = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
-        counter = refreshed[0];
-        
-        if (!counter && attempts < maxAttempts) {
-          await new Promise(r => setTimeout(r, 10 * attempts));
-          counter = null;
-          continue;
-        }
-        if (attempts >= maxAttempts) {
-          throw new Error(`Failed to acquire counter lock after ${maxAttempts} attempts`);
-        }
+    if (!counter) {
+      // First student of this year — create counter with next value
+      counter = await base44.asServiceRole.entities.Counter.create({
+        key: counterKey,
+        current_value: nextValue
+      });
+    } else {
+      // Update counter to new highest if needed
+      if (nextValue > (counter.current_value || 0)) {
+        await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
       }
     }
 
-    // Find the actual next available ID (skip gaps/dupes)
-    let finalNextValue = nextValue;
-    let finalId = `S${yy}${String(finalNextValue).padStart(3, '0')}`;
-    let finalNorm = finalId.toLowerCase();
-    let uniqueAttempts = 0;
-    const maxUniqueAttempts = 100; // Allow more attempts to skip gaps
-
-    while (uniqueAttempts < maxUniqueAttempts) {
-      const dupe = await base44.asServiceRole.entities.Student.filter({
-        student_id_norm: finalNorm
-      });
-      if (dupe.length === 0) break; // Found available ID
-      
-      finalNextValue++;
-      finalId = `S${yy}${String(finalNextValue).padStart(3, '0')}`;
-      finalNorm = finalId.toLowerCase();
-      uniqueAttempts++;
-    }
-
-    if (uniqueAttempts >= maxUniqueAttempts) {
-      return Response.json(
-        { error: 'Failed to generate unique student ID after checking 100 candidates' },
-        { status: 500 }
-      );
-    }
-
-    // Update counter AFTER finding the actual available ID
-    if (finalNextValue !== nextValue && counter) {
-      await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: finalNextValue });
-    }
+    const finalId = `S${yy}${String(nextValue).padStart(3, '0')}`;
+    const finalNorm = finalId.toLowerCase();
 
     // Generate password
     const tempPassword = `BVM${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
