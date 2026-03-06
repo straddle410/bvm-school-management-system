@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookMarked, Trash2 } from 'lucide-react';
+import { Plus, BookMarked, Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { format } from 'date-fns';
@@ -29,6 +29,8 @@ export default function Homework() {
     due_date: '',
   });
   const [formErrors, setFormErrors] = useState({});
+  const [selected, setSelected] = useState(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
 
@@ -55,12 +57,12 @@ export default function Homework() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Homework.create({ ...data, assigned_by: user?.name }),
+    mutationFn: (data) => base44.entities.Homework.create({ ...data, assigned_by: user?.name, status: 'Draft' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
       setShowForm(false);
       resetForm();
-      toast.success('Homework added');
+      toast.success('Homework saved as Draft');
     },
   });
 
@@ -80,6 +82,16 @@ export default function Homework() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
       toast.success('Homework deleted');
+    },
+  });
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: ({ homework_ids, status }) => base44.functions.invoke('bulkUpdateHomeworkStatus', { homework_ids, status }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['homework'] });
+      setSelected(new Set());
+      const action = res.data.status === 'Published' ? 'Published' : 'Moved to Draft';
+      toast.success(`${action} ${res.data.updated_count} homework items`);
     },
   });
 
@@ -140,6 +152,44 @@ export default function Homework() {
       due_date: item.due_date,
     });
     setShowForm(true);
+  };
+
+  const toggleSelect = (id) => {
+    const newSelected = new Set(selected);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelected(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === homeworkList.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(homeworkList.map(hw => hw.id)));
+    }
+  };
+
+  const handleBulkPublish = () => {
+    setBulkActionLoading(true);
+    bulkStatusMutation.mutate({ homework_ids: Array.from(selected), status: 'Published' });
+    setBulkActionLoading(false);
+  };
+
+  const handleBulkUnpublish = () => {
+    setBulkActionLoading(true);
+    bulkStatusMutation.mutate({ homework_ids: Array.from(selected), status: 'Draft' });
+    setBulkActionLoading(false);
+  };
+
+  const handleQuickPublish = (id) => {
+    bulkStatusMutation.mutate({ homework_ids: [id], status: 'Published' });
+  };
+
+  const handleQuickUnpublish = (id) => {
+    bulkStatusMutation.mutate({ homework_ids: [id], status: 'Draft' });
   };
 
   const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];

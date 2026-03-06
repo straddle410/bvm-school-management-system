@@ -18,21 +18,20 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
    const { academicYear } = useAcademicYear();
    const [showAIAssist, setShowAIAssist] = useState(false);
    const [form, setForm] = useState({
-    title: '',
-    subject: '',
-    class_name: '',
-    section: 'All',
-    due_date: '',
-    homework_type: 'Assignment',
-    submission_mode: 'VIEW_ONLY',
-    description: '',
-    max_marks: '',
-    mcq_questions: [emptyMCQ()],
-    descriptive_questions: [emptyDesc()],
-    attachment_url: '',
-    assigned_by: user?.full_name || '',
-    status: 'Draft',
-  });
+     title: '',
+     subject: '',
+     class_name: '',
+     section: 'All',
+     due_date: '',
+     homework_type: 'Assignment',
+     submission_mode: 'VIEW_ONLY',
+     description: '',
+     max_marks: '',
+     mcq_questions: [emptyMCQ()],
+     descriptive_questions: [emptyDesc()],
+     attachment_url: '',
+     assigned_by: user?.full_name || '',
+   });
 
    // Debug logging
    useEffect(() => {
@@ -88,7 +87,6 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
         descriptive_questions: editItem.descriptive_questions?.length ? editItem.descriptive_questions : [emptyDesc()],
         attachment_url: editItem.attachment_url || '',
         assigned_by: editItem.assigned_by || user?.full_name || '',
-        status: editItem.status || 'Draft',
       });
     }
   }, [editItem]);
@@ -126,12 +124,14 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
       ...form,
       max_marks: form.max_marks ? Number(form.max_marks) : undefined,
       academic_year: academicYear,
+      status: 'Draft', // Always save new homework as Draft
     };
-    console.log('[HW_SAVE]', { class: form.class_name, section: form.section, status: form.status, academic_year: academicYear });
+    console.log('[HW_SAVE]', { class: form.class_name, section: form.section, status: 'Draft', academic_year: academicYear });
     if (editItem) {
       await base44.entities.Homework.update(editItem.id, data);
     } else {
       await base44.entities.Homework.create(data);
+      toast.success('Homework saved as Draft');
     }
     setLoading(false);
     onSaved();
@@ -207,13 +207,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
               <option value="SUBMISSION_REQUIRED">Students Must Submit</option>
             </select>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1 block">Status</label>
-            <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.status} onChange={e => set('status', e.target.value)}>
-              <option value="Draft">Draft</option>
-              <option value="Published">Published</option>
-            </select>
-          </div>
+
           <div>
             <label className="text-xs font-semibold text-gray-600 mb-1 block">Instructions</label>
             <textarea className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Write homework instructions..." />
