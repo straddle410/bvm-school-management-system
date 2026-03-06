@@ -72,8 +72,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      message: 'Password reset successfully',
-      temp_password: temp_password,
+      message: 'Password reset successfully. Staff must change password on next login.',
+      temp_password: DEFAULT_TEMP_PASSWORD,
     });
   } catch (error) {
     console.error('Reset error:', error);
