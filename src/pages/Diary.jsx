@@ -10,10 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Notebook, Trash2 } from 'lucide-react';
+import { Plus, Notebook, Trash2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { format } from 'date-fns';
+import AIAssistDrawer from '@/components/AIAssistDrawer';
 
 function getStudentSession() {
   try {
@@ -23,11 +24,12 @@ function getStudentSession() {
 }
 
 export default function Diary() {
-  const [user, setUser] = useState(null);
-  const [studentSession, setStudentSession] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [form, setForm] = useState({
+   const [user, setUser] = useState(null);
+   const [studentSession, setStudentSession] = useState(null);
+   const [showForm, setShowForm] = useState(false);
+   const [editingItem, setEditingItem] = useState(null);
+   const [showAIAssist, setShowAIAssist] = useState(false);
+   const [form, setForm] = useState({
     title: '',
     description: '',
     class_name: '',
@@ -392,7 +394,16 @@ export default function Diary() {
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogContent className="max-w-lg lg:hidden">
               <DialogHeader>
-                <DialogTitle>{editingItem ? 'Edit Entry' : 'Post Diary Entry'}</DialogTitle>
+                <div className="flex items-center justify-between">
+                  <DialogTitle>{editingItem ? 'Edit Entry' : 'Post Diary Entry'}</DialogTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAIAssist(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" /> AI Assist
+                  </Button>
+                </div>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -507,10 +518,29 @@ export default function Diary() {
                   </Button>
                 </div>
               </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-    </LoginRequired>
-  );
-}
+              </DialogContent>
+              </Dialog>
+
+              {showAIAssist && (
+              <AIAssistDrawer
+              type="diary"
+              className={form.class_name}
+              section={form.section}
+              academicYear={academicYear}
+              onInsert={(generated) => {
+              setForm(f => ({
+                ...f,
+                title: generated.title || f.title,
+                description: generated.body || f.description
+              }));
+              setShowAIAssist(false);
+              toast.success('Content inserted!');
+              }}
+              onClose={() => setShowAIAssist(false)}
+              />
+              )}
+              </div>
+              </div>
+              </LoginRequired>
+              );
+              }
