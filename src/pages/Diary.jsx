@@ -73,7 +73,7 @@ export default function Diary() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Diary.create({ ...data, created_by: user?.email }),
+    mutationFn: (data) => base44.entities.Diary.create({ ...data, posted_by: user?.email, posted_by_name: user?.name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diary'] });
       setShowForm(false);

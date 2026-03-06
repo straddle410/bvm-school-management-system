@@ -55,7 +55,7 @@ export default function Homework() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Homework.create({ ...data, created_by: user?.email }),
+    mutationFn: (data) => base44.entities.Homework.create({ ...data, assigned_by: user?.name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
       setShowForm(false);
