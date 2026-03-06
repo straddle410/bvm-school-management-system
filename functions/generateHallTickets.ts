@@ -97,8 +97,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch students
-    const query = { class_name: classname, academic_year: academicYear };
+    // Fetch students — global filter: status=Published, is_deleted=false, current AY only
+    const query = {
+      class_name: classname,
+      academic_year: academicYear,
+      status: 'Published',
+      is_deleted: false
+    };
     if (section) query.section = section;
 
     const students = await base44.asServiceRole.entities.Student.filter(query, '-roll_no');
@@ -137,8 +142,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── SOFT-DELETE GUARD: exclude deleted students ──
-    const activeStudents = students.filter(s => !s.is_deleted);
+    // Already filtered: status=Published, is_deleted=false in query above
+    const activeStudents = students; // all are already Published & not deleted
     if (activeStudents.length === 0) {
       return Response.json({ error: 'No active (non-deleted) students found', count: 0 }, { status: 200 });
     }

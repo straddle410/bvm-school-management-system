@@ -34,14 +34,12 @@ export default function Reports() {
     queryKey: ['students-published', academicYear],
     queryFn: async () => {
       if (!academicYear) return [];
-      // Mirror Students page filters exactly:
-      //   academic_year = current year
-      //   status = Published (active)
-      //   is_deleted != true
-      //   exclude archived statuses (Passed Out, Transferred)
-      const ARCHIVED_STATUSES = ['Passed Out', 'Transferred'];
-      const all = await base44.entities.Student.filter({ academic_year: academicYear, status: 'Published' });
-      return all.filter(s => !s.is_deleted && !ARCHIVED_STATUSES.includes(s.status));
+      // Global filter: status=Published, is_deleted=false, current AY only
+      return base44.entities.Student.filter({
+        academic_year: academicYear,
+        status: 'Published',
+        is_deleted: false
+      });
     },
     enabled: !!academicYear,
   });

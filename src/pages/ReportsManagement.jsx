@@ -50,14 +50,18 @@ export default function ReportsManagement() {
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students', formData.class_name],
+    queryKey: ['students-published', formData.class_name, formData.section, academicYear],
     queryFn: () =>
       formData.class_name
         ? base44.entities.Student.filter({
             class_name: formData.class_name,
             section: formData.section,
+            academic_year: academicYear,
+            status: 'Published',
+            is_deleted: false
           })
         : [],
+    enabled: !!formData.class_name && !!academicYear
   });
 
   const createMutation = useMutation({
