@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+const PUBLIC_PAGES = ['Home', 'StaffLogin', 'StudentLogin'];
+
 const STAFF_PAGES = [
   'Dashboard',
   'Students',
@@ -49,6 +51,11 @@ export default function StaffAuthGuard({ children, currentPageName }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Public pages bypass authentication
+    if (PUBLIC_PAGES.includes(currentPageName)) {
+      return;
+    }
+
     // Only guard staff pages
     if (!STAFF_PAGES.includes(currentPageName)) {
       return;
