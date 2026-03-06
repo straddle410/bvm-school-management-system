@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Clock, CheckCircle, AlertCircle, ChevronRight, X } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, AlertCircle, ChevronRight, X, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import StudentBottomNav from '@/components/StudentBottomNav';
@@ -24,6 +24,7 @@ export default function StudentHomework() {
    const [student, setStudent] = useState(null);
    const [activeHW, setActiveHW] = useState(null);
    const [filter, setFilter] = useState('all');
+   const [selectedDate, setSelectedDate] = useState(null);
 
    useEffect(() => {
       const s = getStudentSession();
@@ -72,7 +73,20 @@ export default function StudentHomework() {
   submissions.forEach(s => { submittedMap[s.homework_id] = s; });
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Get today's date for display
+  const todayDateString = format(today, 'yyyy-MM-dd');
+
+  // Filter by date and status
   const filtered = homeworks.filter(hw => {
+    // Date filter
+    const filterDate = selectedDate ? format(new Date(selectedDate), 'yyyy-MM-dd') : todayDateString;
+    const homeworkDate = hw.due_date ? format(new Date(hw.due_date), 'yyyy-MM-dd') : null;
+
+    if (homeworkDate !== filterDate) return false;
+
+    // Status filter
     if (filter === 'submitted') return !!submittedMap[hw.id];
     if (filter === 'pending') return !submittedMap[hw.id];
     return true;
@@ -94,15 +108,39 @@ export default function StudentHomework() {
       </header>
 
       <div className="p-4 space-y-4">
-        {/* Filter Tabs */}
-        <div className="flex gap-2">
-          {[['all','All'],['pending','Pending'],['submitted','Submitted']].map(([v, l]) => (
-            <button key={v} onClick={() => setFilter(v)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${filter === v ? 'bg-[#1a237e] text-white' : 'bg-white text-gray-600'}`}>
-              {l}
-            </button>
-          ))}
-        </div>
+         {/* Date Picker */}
+         <div className="bg-white rounded-2xl p-3 shadow-sm">
+           <div className="flex items-center justify-between">
+             <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
+               <Calendar className="h-4 w-4 text-[#1a237e]" />
+               Select Date
+             </label>
+             <input
+               type="date"
+               value={selectedDate || todayDateString}
+               onChange={(e) => setSelectedDate(e.target.value)}
+               className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs"
+             />
+           </div>
+           {selectedDate && (
+             <button
+               onClick={() => setSelectedDate(null)}
+               className="mt-2 text-xs font-semibold text-[#1a237e] underline w-full text-left"
+             >
+               ↻ Clear Date (Today)
+             </button>
+           )}
+         </div>
+
+         {/* Filter Tabs */}
+         <div className="flex gap-2">
+           {[['all','All'],['pending','Pending'],['submitted','Submitted']].map(([v, l]) => (
+             <button key={v} onClick={() => setFilter(v)}
+               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${filter === v ? 'bg-[#1a237e] text-white' : 'bg-white text-gray-600'}`}>
+               {l}
+             </button>
+           ))}
+         </div>
 
         {/* Homework List */}
         {isLoading ? (
