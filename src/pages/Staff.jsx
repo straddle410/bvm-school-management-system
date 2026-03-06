@@ -52,10 +52,6 @@ export default function Staff() {
   const [search, setSearch] = useState('');
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [resetPasswordStaff, setResetPasswordStaff] = useState(null);
-  const [resetPasswordMode, setResetPasswordMode] = useState('auto'); // 'auto' or 'manual'
-  const [manualPassword, setManualPassword] = useState('');
-  const [generatedPassword, setGeneratedPassword] = useState('');
-  const [passwordCopied, setPasswordCopied] = useState(false);
   const [tempPassword, setTempPassword] = useState('');
   const [showResetSuccessModal, setShowResetSuccessModal] = useState(false);
   const [form, setForm] = useState({
