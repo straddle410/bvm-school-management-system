@@ -3,15 +3,17 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Upload, CheckCircle, Send, Calendar, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus, canResubmitHomework, isHomeworkStatusFinal } from '@/components/utils/homeworkStatusHelper';
 
 export default function HomeworkTakeModal({ homework, student, existingSubmission, onClose }) {
   const hw = homework;
   const qc = useQueryClient();
+  const submissionStatus = normalizeHomeworkSubmissionStatus(existingSubmission?.status);
   const isSubmitted = !!existingSubmission;
-  const isGraded = existingSubmission?.status === 'GRADED';
-  const isRevisionRequired = existingSubmission?.status === 'REVISION_REQUIRED';
+  const isGraded = isHomeworkStatusFinal(submissionStatus);
+  const isRevisionRequired = submissionStatus === HOMEWORK_STATUS.REVISION_REQUIRED;
   const isViewOnly = hw.submission_mode === 'VIEW_ONLY';
-  const canResubmit = isRevisionRequired;
+  const canResubmit = canResubmitHomework(submissionStatus);
 
   const [mcqAnswers, setMcqAnswers] = useState(
     existingSubmission?.mcq_answers || hw.mcq_questions?.map((_, i) => ({ question_index: i, selected_option: '' })) || []
