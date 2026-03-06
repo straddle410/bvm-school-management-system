@@ -223,7 +223,7 @@ export default function Homework() {
 
   const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-  // Calculate statistics
+  // Calculate statistics using shared helper
   const calculateStats = async () => {
     let totalPublished = 0;
     let totalDraft = 0;
@@ -238,11 +238,12 @@ export default function Homework() {
 
     for (const hw of homeworkList) {
       const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
-      const isClosed = isOverdue;
+      // Closed = Published AND overdue (not Draft + overdue)
+      const isClosed = hw.status === 'Published' && isOverdue;
 
       if (hw.status === 'Published') totalPublished++;
       if (hw.status === 'Draft') totalDraft++;
-      if (hw.status === 'Published' && !isClosed) totalActive++;
+      if (hw.status === 'Published' && !isOverdue) totalActive++;
       if (isClosed) totalClosed++;
 
       // Get assigned students for this homework
@@ -257,31 +258,18 @@ export default function Homework() {
       }
       const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
 
-      // Get submissions for this homework
+      // Get submissions for this homework and use shared aggregation helper
       const hwSubmissions = submissions.filter(s => s.homework_id === hw.id);
-      const uniqueSubmittedMap = new Map();
-      hwSubmissions.forEach(s => {
-        const normalized = normalizeHomeworkSubmissionStatus(s.status);
-        if (!uniqueSubmittedMap.has(s.student_id)) {
-          uniqueSubmittedMap.set(s.student_id, normalized);
-        }
-      });
+      const metrics = getHomeworkAggregatedMetrics(hw, hwSubmissions, assignedStudents);
 
-      const totalStudents = assignedStudents.length;
-      const totalSubmitted = uniqueSubmittedMap.size;
-      const pending = Math.max(0, totalStudents - totalSubmitted);
+      overallTotalStudents += metrics.totalStudents;
+      overallTotalSubmitted += metrics.totalUniqueSubmitted;
 
-      overallTotalStudents += totalStudents;
-      overallTotalSubmitted += totalSubmitted;
-
-      totalPendingReview += Array.from(uniqueSubmittedMap.values()).filter(
-        (s) => s === 'SUBMITTED' || s === 'RESUBMITTED'
-      ).length;
-      totalGraded += Array.from(uniqueSubmittedMap.values()).filter((s) => s === 'GRADED').length;
-      totalRevisionRequired += Array.from(uniqueSubmittedMap.values()).filter(
-        (s) => s === 'REVISION_REQUIRED'
-      ).length;
-      totalLateSubmissions += hwSubmissions.filter((s) => s.is_late).length;
+      totalPendingReview += metrics.submitted;
+      totalGraded += metrics.graded;
+      totalRevisionRequired += metrics.revisionRequired;
+      // Late = unique students with latest submission marked late
+      totalLateSubmissions += metrics.late;
     }
 
     const overallSubmissionRate =
