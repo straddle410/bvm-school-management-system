@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
       console.error('[getMyStaffProfile] No token in body or Authorization header');
       return Response.json({ error: 'No session token provided. Please login again.', code: 'TOKEN_MISSING' }, { status: 401 });
     }
-    console.log(`[getMyStaffProfile] Token received, length=${token.length}, prefix=${token.substring(0, 30)}...`);
+    console.log(`[getMyStaffProfile] Token received, length=${token.length}`);
     console.log(`[getMyStaffProfile] STAFF_SESSION_SECRET set=${!!Deno.env.get('STAFF_SESSION_SECRET')} len=${(Deno.env.get('STAFF_SESSION_SECRET')||'').length}`);
 
     const verified = await verifySessionToken(token);
