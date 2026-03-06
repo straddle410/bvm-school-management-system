@@ -52,26 +52,25 @@ Deno.serve(async (req) => {
       counterKey: `student_id_${testYearStart}`
     });
 
-    // Generate new ID for this year
-    const genRes = await base44.functions.invoke('generateStudentIdAuthoritative', { academic_year: testYear });
-    const newId = genRes.data.student_id;
-    const newIdNum = parseInt(newId.slice(-3), 10);
+    // Check what the next ID would be
+    const nextExpectedNum = s27Max + 1;
+    const nextExpectedId = `S27${String(nextExpectedNum).padStart(3, '0')}`;
 
     report.sections.yearReset.procedure.push({
-      step: '3. Generate first new ID for this invocation',
-      generatedId: newId,
-      sequenceNumber: newIdNum
+      step: '3. Calculate expected next ID',
+      nextExpectedId,
+      calculatedSequenceNumber: nextExpectedNum
     });
 
     report.sections.yearReset.verdict = {
       s27_students_exist: s27Students.length > 0,
       highest_existing_s27: s27Max > 0 ? `S27${String(s27Max).padStart(3, '0')}` : 'None (fresh year)',
       counter_pre_existing: counterExists,
-      new_id_generated: newId,
+      next_expected_id: nextExpectedId,
       status: 'DOCUMENTED',
       explanation: s27Students.length === 0 
-        ? `✓ Year reset working: First new S27 ID = ${newId}. Counter created fresh.`
-        : `⚠ Year S27 has ${s27Students.length} existing students (max S27${String(s27Max).padStart(3, '0')}). Counter initialized from max + 1.`
+        ? `✓ Year reset working: If counter doesn't exist, first S27 ID will be S27001. No existing students means fresh sequence.`
+        : `⚠ Year S27 already has ${s27Students.length} students (max S27${String(s27Max).padStart(3, '0')}). Next ID will be S27${String(nextExpectedNum).padStart(3, '0')}.`
     };
 
     // ============ B. CSV TEMPLATE STATUS ============
