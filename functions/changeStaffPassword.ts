@@ -108,6 +108,16 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // 4. Reject default password reuse
+    if (newPassword === 'Bvm@1234') {
+      return Response.json({
+        success: false,
+        error: 'DEFAULT_PASSWORD_REUSE',
+        message: 'You cannot reuse the default password. Please create a new secure password.',
+        code: 'DEFAULT_PASSWORD_REUSE',
+      }, { status: 400 });
+    }
+
     // 4. Load staff account
     const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
     if (!accounts || accounts.length === 0) {
