@@ -10,6 +10,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const [revisionId, setRevisionId] = useState(null);
   const [marks, setMarks] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [showSegmentation, setShowSegmentation] = useState(false);
   const qc = useQueryClient();
 
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery({
@@ -104,41 +105,60 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const totalUniqueSubmitted = uniqueSubmittedStudents.size;
   const pending = Math.max(0, totalStudents - totalUniqueSubmitted);
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
-      <div className="bg-white w-full max-w-md rounded-t-3xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
-        <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
-          <div>
-            <h2 className="font-bold text-slate-800 text-sm">{homework.title}</h2>
-            <p className="text-xs text-gray-500">{homework.subject} • Class {homework.class_name}</p>
-          </div>
-          <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
-        </div>
+  // Calculate average marks (for graded submissions only)
+  const gradedSubmissions = submissions.filter(s => s.teacher_marks !== undefined && s.teacher_marks !== null);
+  const averageMarks = gradedSubmissions.length > 0 
+    ? gradedSubmissions.reduce((sum, s) => sum + Number(s.teacher_marks), 0) / gradedSubmissions.length 
+    : null;
+  const highestMarks = gradedSubmissions.length > 0 
+    ? Math.max(...gradedSubmissions.map(s => Number(s.teacher_marks))) 
+    : null;
+  const lowestMarks = gradedSubmissions.length > 0 
+    ? Math.min(...gradedSubmissions.map(s => Number(s.teacher_marks))) 
+    : null;
 
-        <div className="p-4">
-           {/* Stats */}
-           <div className="grid grid-cols-2 gap-2 mb-4">
-             <div className="bg-slate-50 rounded-xl p-3 text-center border border-gray-200">
-               <p className="text-lg font-bold text-slate-700">{totalStudents}</p>
-               <p className="text-[9px] text-slate-600">Total Students</p>
-             </div>
-             <div className="bg-blue-50 rounded-xl p-3 text-center border border-blue-200">
-               <p className="text-lg font-bold text-blue-700">{submitted}</p>
-               <p className="text-[9px] text-blue-600">Submitted</p>
-             </div>
-             <div className="bg-green-50 rounded-xl p-3 text-center border border-green-200">
-               <p className="text-lg font-bold text-green-700">{graded}</p>
-               <p className="text-[9px] text-green-600">Graded</p>
-             </div>
-             <div className="bg-orange-50 rounded-xl p-3 text-center border border-orange-200">
-               <p className="text-lg font-bold text-orange-700">{revisionRequired}</p>
-               <p className="text-[9px] text-orange-600">Revision</p>
-             </div>
-             <div className="bg-red-50 rounded-xl p-3 text-center border border-red-200 col-span-2">
-               <p className="text-lg font-bold text-red-700">{pending}</p>
-               <p className="text-[9px] text-red-600">Pending (Awaiting Submission)</p>
-             </div>
-           </div>
+  return (
+   <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
+     <div className="bg-white w-full max-w-2xl rounded-t-3xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
+       <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
+         <div>
+           <h2 className="font-bold text-slate-800 text-sm">{homework.title}</h2>
+           <p className="text-xs text-gray-500">{homework.subject} • Class {homework.class_name}</p>
+         </div>
+         <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
+       </div>
+
+       <div className="p-4 space-y-4">
+         {/* Detailed Analytics Header */}
+         <HomeworkDetailAnalyticsHeader
+           totalAssigned={totalStudents}
+           submitted={submitted}
+           pending={pending}
+           graded={graded}
+           revisionRequired={revisionRequired}
+           lateCount={submissions.filter(s => s.is_late).length}
+           averageMarks={averageMarks}
+           highestMarks={highestMarks}
+           lowestMarks={lowestMarks}
+         />
+
+         {/* Student Progress Segmentation Toggle */}
+         <div className="text-center">
+           <button
+             onClick={() => setShowSegmentation(!showSegmentation)}
+             className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 underline"
+           >
+             {showSegmentation ? 'Hide' : 'Show'} Student Progress by Status
+           </button>
+         </div>
+
+         {/* Student Progress Segmentation */}
+         {showSegmentation && (
+           <StudentProgressSegmentation
+             submissions={submissions}
+             assignedStudents={assignedStudents}
+           />
+         )}
 
           {submissionsLoading ? (
             <div className="text-center py-8 text-gray-400">Loading submissions...</div>
