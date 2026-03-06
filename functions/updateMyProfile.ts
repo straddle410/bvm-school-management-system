@@ -75,34 +75,24 @@ Deno.serve(async (req) => {
 
     const { staff_id, username, role } = verified;
 
-    // Lookup StaffAccount — try id first, then fallback to username
-    let accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
+    // Lookup StaffAccount — use .get() for id (filter({id}) doesn't work on built-in fields)
+    let account = null;
+    try {
+      const fetched = await base44.asServiceRole.entities.StaffAccount.get(staff_id);
+      if (fetched && fetched.id) account = fetched;
+    } catch {}
 
     // Fallback: search by username
-    if (!accounts || accounts.length === 0) {
-      if (username) {
-        accounts = await base44.asServiceRole.entities.StaffAccount.filter({ username });
-      }
-    }
-
-    // Auto-create if still not found
-    if (!accounts || accounts.length === 0) {
+    if (!account && username) {
       try {
-        const newAccount = await base44.asServiceRole.entities.StaffAccount.create({
-          id: staff_id,
-          name: username || 'Staff Member',
-          username: username || `staff_${staff_id}`,
-          password_hash: '$2b$10$disabled',
-          role: role || 'staff',
-          is_active: true,
-        });
-        accounts = [newAccount];
-      } catch {
-        return Response.json({ error: 'Staff account not found and creation failed', code: 'STAFF_NOT_FOUND' }, { status: 404 });
-      }
+        const byUsername = await base44.asServiceRole.entities.StaffAccount.filter({ username });
+        if (byUsername && byUsername.length > 0) account = byUsername[0];
+      } catch {}
     }
 
-    const account = accounts[0];
+    if (!account) {
+      return Response.json({ error: 'Staff account not found', code: 'STAFF_NOT_FOUND' }, { status: 404 });
+    }
     if (!account.is_active) {
       return Response.json({ error: 'Account inactive' }, { status: 403 });
     }
