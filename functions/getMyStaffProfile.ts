@@ -99,8 +99,8 @@ async function verifySessionToken(token) {
        return { error: 'TOKEN_EXPIRED' };
      }
 
-     console.log(`[getMyStaffProfile] TOKEN_OK: staff_id=${staff_id} role=${payload.role} expSec=${expSec} nowSec=${nowSec} valid_for=${expSec - nowSec}sec`);
-     return { staff_id, role: payload.role };
+     console.log(`[getMyStaffProfile] TOKEN_OK: staff_id=${staff_id} role=${payload.role} username=${payload.username} expSec=${expSec} nowSec=${nowSec} valid_for=${expSec - nowSec}sec`);
+     return { staff_id, role: payload.role, username: payload.username };
   } catch (err) {
     console.error('[getMyStaffProfile] TOKEN_INVALID: unexpected error:', err.message);
     return { error: 'TOKEN_INVALID' };
