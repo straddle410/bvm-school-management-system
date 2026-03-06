@@ -34,6 +34,12 @@ const EMPTY_FORM = {
   admission_date: '', academic_year: '', status: 'Pending', photo_url: ''
 };
 
+const generateNewStudentIdForYear = (academicYear) => {
+  if (!academicYear) return '';
+  const yearPrefix = academicYear.split('-')[0].slice(-2); // "2025-26" → "25"
+  return `S${yearPrefix}001`; // Initial ID; actual one will be generated on save
+};
+
 export default function Students() {
   const { academicYear, setAcademicYear, roleLoaded } = useAcademicYear();
   const [user, setUser] = useState(null);
@@ -250,13 +256,21 @@ export default function Students() {
         return updateRes.data?.student;
       }
 
-      // CREATE: auto-assign roll_no if not set
+      // CREATE: auto-assign student_id and roll_no if not set
+      if (!normalized.student_id) {
+        const genRes = await base44.functions.invoke('generateStudentIdAuthoritative', { academic_year: normalized.academic_year });
+        normalized.student_id = genRes.data.student_id;
+      }
+      // Set username to generated student_id if not explicitly set
+      if (!normalized.username) {
+        normalized.username = normalized.student_id;
+      }
+
       if (!normalized.roll_no && normalized.class_name && normalized.section && normalized.academic_year) {
         const nextRoll = await generateRollNo(normalized.class_name, normalized.section, normalized.academic_year);
         if (nextRoll) normalized.roll_no = nextRoll;
       }
 
-      await validateStudentIdUnique(normalized.student_id);
       await validateRollNoUnique(normalized);
       await validateNoDuplicateStudent(normalized);
 
@@ -308,8 +322,9 @@ export default function Students() {
       setShowPastYearWarning(true);
       return;
     }
-    const newId = await generateStudentId(academicYear);
-    setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
+    // Generate a placeholder ID for form display; actual one generated on save
+    const placeholderId = generateNewStudentIdForYear(academicYear);
+    setFormData({ ...EMPTY_FORM, student_id: placeholderId, username: placeholderId, academic_year: academicYear });
     setIsEdit(false);
     setPhotoFile(null);
     setShowForm(true);
@@ -317,8 +332,9 @@ export default function Students() {
 
   const handlePastYearConfirm = async () => {
     setShowPastYearWarning(false);
-    const newId = await generateStudentId(academicYear);
-    setFormData({ ...EMPTY_FORM, student_id: newId, username: newId, academic_year: academicYear });
+    // Generate a placeholder ID for form display; actual one generated on save
+    const placeholderId = generateNewStudentIdForYear(academicYear);
+    setFormData({ ...EMPTY_FORM, student_id: placeholderId, username: placeholderId, academic_year: academicYear });
     setIsEdit(false);
     setPhotoFile(null);
     setShowForm(true);
