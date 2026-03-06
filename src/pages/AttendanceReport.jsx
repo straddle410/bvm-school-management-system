@@ -47,12 +47,16 @@ export default function AttendanceReport() {
     enabled: !!selectedDate
   });
 
-  // Fetch all students for this academic year
+  // Fetch ACTIVE students for this academic year
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['students-all', academicYear],
+    queryKey: ['students-active', academicYear],
     queryFn: async () => {
       try {
-        return await base44.entities.Student.filter({ academic_year: academicYear });
+        return await base44.entities.Student.filter({
+          academic_year: academicYear,
+          status: 'Published',
+          is_deleted: false
+        });
       } catch (error) {
         console.error('Error fetching students:', error);
         return [];
