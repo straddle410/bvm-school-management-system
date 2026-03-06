@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
-import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin } from 'lucide-react';
+import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin, Home as HomeIcon } from 'lucide-react';
 
 export default function Home() {
   const features = [
