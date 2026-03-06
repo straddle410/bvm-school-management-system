@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowUpDown, Save, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowUpDown, Save, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
