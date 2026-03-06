@@ -32,9 +32,32 @@ export default function StudentHomework() {
   }, []);
 
   const { data: homeworks = [], isLoading } = useQuery({
-    queryKey: ['student-homework', student?.class_name],
+    queryKey: ['student-homework', student?.class_name, student?.section, student?.academic_year],
     enabled: !!student,
-    queryFn: () => base44.entities.Homework.filter({ class_name: student.class_name, status: 'Published' }, '-due_date', 100),
+    queryFn: async () => {
+      // Fetch all published homework for the student's class
+      const allHomework = await base44.entities.Homework.filter(
+        { class_name: student.class_name, status: 'Published' },
+        '-due_date',
+        200
+      );
+
+      // Filter by section: only show homework where section is "All" or matches student's section
+      const filtered = allHomework.filter(hw => {
+        const hwSection = hw.section || 'All';
+        return hwSection === 'All' || hwSection === student.section;
+      });
+
+      console.log('[STUDENT_HW_FILTER]', {
+        class: student.class_name,
+        section: student.section,
+        year: student.academic_year,
+        allCount: allHomework.length,
+        filteredCount: filtered.length,
+      });
+
+      return filtered;
+    },
   });
 
   const { data: submissions = [] } = useQuery({
