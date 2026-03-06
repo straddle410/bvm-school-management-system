@@ -82,43 +82,43 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     }
   });
 
-  // Count unique students by their submission status
-  const uniqueSubmittedStudents = new Map();
-  submissions.forEach(s => {
-    const normalized = normalizeHomeworkSubmissionStatus(s.status);
-    if (!uniqueSubmittedStudents.has(s.student_id)) {
-      uniqueSubmittedStudents.set(s.student_id, normalized);
-    } else {
-      // Keep the latest/most recent status
-      uniqueSubmittedStudents.set(s.student_id, normalized);
+  // Build latest submission map with latest timestamp per student
+  const latestMap = new Map();
+  submissions.forEach((sub) => {
+    const key = sub.student_id;
+    const current = latestMap.get(key);
+
+    // Determine timestamp for comparison
+    const subTimestamp = new Date(sub.submitted_at || sub.updated_at || 0).getTime();
+    const currentTimestamp = current ? new Date(current.submitted_at || current.updated_at || 0).getTime() : 0;
+
+    // Keep latest by timestamp
+    if (!current || subTimestamp > currentTimestamp) {
+      latestMap.set(key, {
+        ...sub,
+        status: normalizeHomeworkSubmissionStatus(sub.status)
+      });
     }
   });
 
-  // Get counts from unique submitted students
-  const submitted = Array.from(uniqueSubmittedStudents.values()).filter(status => 
-    status === HOMEWORK_STATUS.SUBMITTED || status === HOMEWORK_STATUS.RESUBMITTED
+  // Get counts from latest submission per student
+  const latestStatuses = Array.from(latestMap.values());
+  const submitted = latestStatuses.filter(s => 
+    s.status === HOMEWORK_STATUS.SUBMITTED || s.status === HOMEWORK_STATUS.RESUBMITTED
   ).length;
-  const graded = Array.from(uniqueSubmittedStudents.values()).filter(status => status === HOMEWORK_STATUS.GRADED).length;
-  const revisionRequired = Array.from(uniqueSubmittedStudents.values()).filter(status => status === HOMEWORK_STATUS.REVISION_REQUIRED).length;
-  
+  const graded = latestStatuses.filter(s => s.status === HOMEWORK_STATUS.GRADED).length;
+  const revisionRequired = latestStatuses.filter(s => s.status === HOMEWORK_STATUS.REVISION_REQUIRED).length;
+  const lateCount = latestStatuses.filter(s => s.is_late).length;
+
   // Total assigned students = actual count of active students in this class/section
   const totalStudents = assignedStudents.length;
-  
+
   // Pending = assigned students - students who submitted at least once
-  const totalUniqueSubmitted = uniqueSubmittedStudents.size;
+  const totalUniqueSubmitted = latestMap.size;
   const pending = Math.max(0, totalStudents - totalUniqueSubmitted);
 
-  // Calculate average marks (for graded submissions only)
-  const gradedSubmissions = submissions.filter(s => s.teacher_marks !== undefined && s.teacher_marks !== null);
-  const averageMarks = gradedSubmissions.length > 0 
-    ? gradedSubmissions.reduce((sum, s) => sum + Number(s.teacher_marks), 0) / gradedSubmissions.length 
-    : null;
-  const highestMarks = gradedSubmissions.length > 0 
-    ? Math.max(...gradedSubmissions.map(s => Number(s.teacher_marks))) 
-    : null;
-  const lowestMarks = gradedSubmissions.length > 0 
-    ? Math.min(...gradedSubmissions.map(s => Number(s.teacher_marks))) 
-    : null;
+  // Calculate marks statistics (GRADED submissions only with teacher_marks)
+  const { averageMarks, highestMarks, lowestMarks } = getMarksStatistics(submissions);
 
   return (
    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
