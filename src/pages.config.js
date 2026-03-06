@@ -74,6 +74,7 @@ import Home from './pages/Home';
 import Homework from './pages/Homework';
 import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
+import Index from './pages/Index';
 import Marks from './pages/Marks';
 import MarksReview from './pages/MarksReview';
 import Messaging from './pages/Messaging';
@@ -115,7 +116,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import Teachers from './pages/Teachers';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
-import Index from './pages/Index';
 import __Layout from './Layout.jsx';
 
 
@@ -147,6 +147,7 @@ export const PAGES = {
     "Homework": Homework,
     "HomeworkManage": HomeworkManage,
     "IDCards": IDCards,
+    "Index": Index,
     "Marks": Marks,
     "MarksReview": MarksReview,
     "Messaging": Messaging,
@@ -188,7 +189,6 @@ export const PAGES = {
     "Teachers": Teachers,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
-    "Index": Index,
 }
 
 export const pagesConfig = {

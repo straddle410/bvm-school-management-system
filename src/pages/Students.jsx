@@ -466,21 +466,35 @@ export default function Students() {
 
     const ids = Array.from(selectedIds);
     let processed = 0;
+    
     for (const id of ids) {
       const student = students.find(s => s.id === id);
       if (!student) continue;
       if (!isValidTransition(student.status, toStatus)) continue;
 
-      const updates = { status: toStatus };
-      if (toStatus === 'Verified')  updates.verified_by  = user.email;
-      if (toStatus === 'Approved')  updates.approved_by  = user.email;
+      // SPECIAL CASE: Approving student → call dedicated approval function
+      // This generates student_id in SAME transaction, no automation dependency
+      if (toStatus === 'Approved' && !student.student_id) {
+        const approveRes = await base44.functions.invoke('approveStudentAndGenerateId', {
+          student_db_id: id
+        });
+        if (approveRes.data?.error) {
+          toast.error(`Failed for ${student.name}: ${approveRes.data.error}`);
+          continue;
+        }
+        processed++;
+      } else {
+        // Standard status updates (Pending→Verified, Approved→Published, etc)
+        const updates = { status: toStatus };
+        if (toStatus === 'Verified')  updates.verified_by  = user.email;
 
-      await base44.functions.invoke('updateStudentWithAudit', {
-        student_db_id: id,
-        updates,
-        staff_session_token: getStaffSession()?.staff_session_token || null
-      });
-      processed++;
+        await base44.functions.invoke('updateStudentWithAudit', {
+          student_db_id: id,
+          updates,
+          staff_session_token: getStaffSession()?.staff_session_token || null
+        });
+        processed++;
+      }
     }
 
     queryClient.invalidateQueries(['students']);
