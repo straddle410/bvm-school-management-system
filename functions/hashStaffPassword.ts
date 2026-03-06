@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
+    // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
     const hash = await bcrypt.hash(password, 10);
     return Response.json({ hash });
   } catch (error) {
