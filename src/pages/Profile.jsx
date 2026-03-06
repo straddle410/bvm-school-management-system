@@ -108,9 +108,15 @@ export default function Profile() {
     try {
       setIsSaving(true);
       const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const token = session?.staff_session_token;
+      if (!token) {
+        toast.error('Session expired. Please login again.');
+        setIsSaving(false);
+        return;
+      }
       const res = await base44.functions.invoke('updateMyProfile', {
+        staff_session_token: token,
         ...formData,
-        staff_session_token: session?.staff_session_token || null,
       });
       if (res.data?.success) {
         toast.success('Profile updated successfully');
