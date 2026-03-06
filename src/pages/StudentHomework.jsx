@@ -87,17 +87,29 @@ export default function StudentHomework() {
     if (homeworkDate !== filterDate) return false;
 
     // Status filter
+    // VIEW_ONLY homework: never "pending" (no submission required)
+    if (hw.submission_mode === 'VIEW_ONLY') {
+      if (filter === 'pending') return false; // VIEW_ONLY never counts as pending
+      return true; // Show in 'all' and 'submitted' filters
+    }
+
+    // SUBMISSION_REQUIRED homework: apply normal pending/submitted logic
     if (filter === 'submitted') return !!submittedMap[hw.id];
     if (filter === 'pending') return !submittedMap[hw.id];
     return true;
   });
 
   const getStatus = (hw) => {
+    // VIEW_ONLY homework: never shows submission statuses
+    if (hw.submission_mode === 'VIEW_ONLY') {
+      return { label: 'View Only', color: 'bg-blue-100 text-blue-700', done: true };
+    }
+
+    // SUBMISSION_REQUIRED: check submission status
     const sub = submittedMap[hw.id];
-    
+
     if (!sub) {
-      // No submission
-      if (hw.submission_mode === 'VIEW_ONLY') return { label: 'View Only', color: 'bg-blue-100 text-blue-700', done: true };
+      // No submission for SUBMISSION_REQUIRED homework
       if (hw.due_date && new Date(hw.due_date) < today) return { label: 'Late', color: 'bg-red-100 text-red-700', done: false };
       return { label: 'Pending', color: 'bg-amber-100 text-amber-700', done: false };
     }
