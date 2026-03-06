@@ -92,9 +92,10 @@ export default function Profile() {
         photo_url: profile.photo_url || '',
       });
     } catch (err) {
+      // This catches network errors or unexpected exceptions (not 4xx — those are handled above)
       console.error('Profile load error:', err);
-      setError('Failed to load profile');
-      setErrorCode('ERROR');
+      setError('Network error. Please check your connection and try again.');
+      setErrorCode('NETWORK_ERROR');
     } finally {
       setIsLoading(false);
     }
