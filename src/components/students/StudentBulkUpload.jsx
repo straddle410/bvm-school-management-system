@@ -96,11 +96,11 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
        const section = r.section || 'A';
 
        // Validate required fields
-       if (!r.name || !r.class_name || !r.section || !r.parent_name || !r.parent_phone) {
+       if (!r.name || !r.class_name || !r.parent_name || !r.parent_phone) {
          errors.push({ 
            row: rowNum, 
            name: r.name || '—', 
-           reason: 'Missing required fields: name, class_name, section, parent_name, parent_phone' 
+           reason: 'Missing required fields: name, class_name, parent_name, parent_phone' 
          });
          continue;
        }
@@ -140,11 +140,9 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
          enriched.roll_no = rollCounters[key];
        }
 
-       // 4. Mark for auto-generation (backend will generate student_id and set username)
-       enriched._generateStudentId = true;
-       if (!enriched.username) {
-         enriched._useGeneratedIdAsUsername = true;
-       }
+       // 4. ID will be generated when status changes to "Approved" — leave NULL for now
+       enriched.student_id = null;
+       enriched.username = null;
 
        toCreate.push(enriched);
       }
