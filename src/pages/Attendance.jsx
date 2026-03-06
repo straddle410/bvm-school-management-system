@@ -236,7 +236,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
              {/* Section Dropdown (only show after class is selected) */}
              {selectedClass && (
                <Select value={selectedSection} onValueChange={setSelectedSection}>
-                 <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Section" /></SelectValue>
+                 <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Section" /></SelectTrigger>
                  <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
                </Select>
              )}
