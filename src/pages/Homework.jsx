@@ -211,14 +211,36 @@ export default function Homework() {
   };
 
   const handleBulkPublish = () => {
+    const selectedItems = Array.from(selected).map(id => homeworkList.find(hw => hw.id === id)).filter(Boolean);
+    const accessibleIds = selectedItems.filter(hw => canManageHomework(hw, user)).map(hw => hw.id);
+    
+    if (accessibleIds.length === 0) {
+      toast.error('You cannot manage any of the selected homework');
+      return;
+    }
+    if (accessibleIds.length < selectedItems.length) {
+      toast.warning(`Publishing ${accessibleIds.length} homework (some were skipped due to access)`);
+    }
+    
     setBulkActionLoading(true);
-    bulkStatusMutation.mutate({ homework_ids: Array.from(selected), status: 'Published' });
+    bulkStatusMutation.mutate({ homework_ids: accessibleIds, status: 'Published' });
     setBulkActionLoading(false);
   };
 
   const handleBulkUnpublish = () => {
+    const selectedItems = Array.from(selected).map(id => homeworkList.find(hw => hw.id === id)).filter(Boolean);
+    const accessibleIds = selectedItems.filter(hw => canManageHomework(hw, user)).map(hw => hw.id);
+    
+    if (accessibleIds.length === 0) {
+      toast.error('You cannot manage any of the selected homework');
+      return;
+    }
+    if (accessibleIds.length < selectedItems.length) {
+      toast.warning(`Moving ${accessibleIds.length} homework to Draft (some were skipped due to access)`);
+    }
+    
     setBulkActionLoading(true);
-    bulkStatusMutation.mutate({ homework_ids: Array.from(selected), status: 'Draft' });
+    bulkStatusMutation.mutate({ homework_ids: accessibleIds, status: 'Draft' });
     setBulkActionLoading(false);
   };
 
