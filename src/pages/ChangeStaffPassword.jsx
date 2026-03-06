@@ -156,16 +156,22 @@ export default function ChangeStaffPassword() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label className="text-slate-700 font-medium">New Password</Label>
                 <Input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
+                  placeholder="e.g. Admin@123"
                   disabled={loading}
                   required
                 />
+                {newPassword && !validatePasswordPolicy(newPassword).valid && (
+                  <p className="text-xs text-red-500">{validatePasswordPolicy(newPassword).message}</p>
+                )}
+                {!newPassword && (
+                  <p className="text-xs text-slate-400">Must have 8+ chars, uppercase, lowercase, number & special char</p>
+                )}
               </div>
 
               <div className="space-y-2">
