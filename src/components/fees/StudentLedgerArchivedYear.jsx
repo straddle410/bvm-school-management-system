@@ -226,8 +226,8 @@ export default function StudentLedgerArchivedYear({ academicYear, isArchived }) 
                         isArchivedYear={true}
                         academicYear={academicYear}
                         onPaymentSuccess={() => {
-                          // Invalidate queries to refresh
-                          window.location.reload();
+                          refetchInvoices();
+                          refetchPayments();
                         }}
                       />
                     </div>
