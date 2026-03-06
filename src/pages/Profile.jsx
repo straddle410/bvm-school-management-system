@@ -32,6 +32,7 @@ export default function Profile() {
       const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
       const token = session?.staff_session_token;
       if (!token) {
+        toast.error('Session expired. Please login again.');
         setError('No session token found. Please login again.');
         setErrorCode('TOKEN_MISSING');
         setIsLoading(false);
