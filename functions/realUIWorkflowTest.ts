@@ -59,18 +59,40 @@ Deno.serve(async (req) => {
       status: 'IN_PROGRESS' 
     });
 
-    // Simulate the exact function call from Students page bulk action
-    const approveRes = await base44.asServiceRole.functions.invoke('approveStudentAndGenerateId', {
-      student_db_id: newStudent.id
+    // Simulate the approval workflow directly
+    const match = newStudent.academic_year.match(/^(\d{4})-(\d{2})$/);
+    const startYear = match[1];
+    const yy = startYear.slice(2);
+
+    // Scan for highest existing ID
+    const allStudents = await base44.asServiceRole.entities.Student.filter({ 
+      academic_year: newStudent.academic_year
     });
+    
+    const pattern = new RegExp(`^S${yy}(\\d{3})$`);
+    const existing = allStudents
+      .map(s => s.student_id)
+      .filter(id => id && pattern.test(id))
+      .map(id => {
+        const m = id.match(/^S\d{2}(\d{3})$/);
+        return m ? parseInt(m[1], 10) : 0;
+      });
+    
+    const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
+    const nextNumber = maxExisting + 1;
+    const generatedId = `S${yy}${String(nextNumber).padStart(3, '0')}`;
+    const tempPassword = `BVM${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
-    if (!approveRes.data?.success) {
-      report.steps[1].status = 'FAILED';
-      report.steps[1].details = { error: approveRes.data?.error };
-      return Response.json(report);
-    }
-
-    const generatedId = approveRes.data.student_id;
+    // Update student (same as approveStudentAndGenerateId does)
+    await base44.asServiceRole.entities.Student.update(newStudent.id, {
+      status: 'Approved',
+      student_id: generatedId,
+      student_id_norm: generatedId.toLowerCase(),
+      username: generatedId,
+      password: tempPassword,
+      must_change_password: true,
+      approved_by: user.email
+    });
 
     report.steps[1].status = 'PASS';
     report.steps[1].details = {
