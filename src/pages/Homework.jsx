@@ -14,8 +14,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, BookMarked, Trash2, CheckCircle2, Circle, Check, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
+import HomeworkDashboardSummary from '@/components/homework/HomeworkDashboardSummary';
+import HomeworkFiltersBar from '@/components/homework/HomeworkFiltersBar';
+import HomeworkRowMetrics from '@/components/homework/HomeworkRowMetrics';
+import { normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
 
 export default function Homework() {
   const [user, setUser] = useState(null);
@@ -38,6 +42,14 @@ export default function Homework() {
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
 
+  // Filter state
+  const [classFilter, setClassFilter] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('');
+  const [homeworkStatusFilter, setHomeworkStatusFilter] = useState('all');
+  const [submissionProgressFilter, setSubmissionProgressFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest-due');
+
   useEffect(() => {
     const staffData = getStaffSession();
     setUser(staffData);
@@ -59,6 +71,16 @@ export default function Homework() {
     queryFn: () => base44.entities.Homework.filter({ academic_year: academicYear }, '-created_date'),
     enabled: !!academicYear,
   });
+
+  const { data: submissions = [] } = useQuery({
+    queryKey: ['homework-submissions', academicYear],
+    queryFn: () => base44.entities.HomeworkSubmission.list('-created_date', 2000),
+  });
+
+  // Extract unique classes, sections, subjects from homework
+  const uniqueClasses = [...new Set(homeworkList.map(h => h.class_name))].sort();
+  const uniqueSections = [...new Set(homeworkList.map(h => h.section).filter(Boolean))].sort();
+  const uniqueSubjects = [...new Set(homeworkList.map(h => h.subject).filter(Boolean))].sort();
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Homework.create({ ...data, assigned_by: user?.name, status: 'Draft' }),
@@ -201,17 +223,212 @@ export default function Homework() {
 
   const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
+  // Calculate statistics
+  const calculateStats = async () => {
+    let totalPublished = 0;
+    let totalDraft = 0;
+    let totalActive = 0;
+    let totalClosed = 0;
+    let totalPendingReview = 0;
+    let totalGraded = 0;
+    let totalRevisionRequired = 0;
+    let totalLateSubmissions = 0;
+    let overallTotalStudents = 0;
+    let overallTotalSubmitted = 0;
+
+    for (const hw of homeworkList) {
+      const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
+      const isClosed = isOverdue;
+
+      if (hw.status === 'Published') totalPublished++;
+      if (hw.status === 'Draft') totalDraft++;
+      if (hw.status === 'Published' && !isClosed) totalActive++;
+      if (isClosed) totalClosed++;
+
+      // Get assigned students for this homework
+      const studentFilter = {
+        class_name: hw.class_name,
+        is_deleted: { $ne: true },
+        is_active: true,
+        status: { $in: ['Verified', 'Approved', 'Published'] },
+      };
+      if (hw.section && hw.section !== 'All') {
+        studentFilter.section = hw.section;
+      }
+      const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
+
+      // Get submissions for this homework
+      const hwSubmissions = submissions.filter(s => s.homework_id === hw.id);
+      const uniqueSubmittedMap = new Map();
+      hwSubmissions.forEach(s => {
+        const normalized = normalizeHomeworkSubmissionStatus(s.status);
+        if (!uniqueSubmittedMap.has(s.student_id)) {
+          uniqueSubmittedMap.set(s.student_id, normalized);
+        }
+      });
+
+      const totalStudents = assignedStudents.length;
+      const totalSubmitted = uniqueSubmittedMap.size;
+      const pending = Math.max(0, totalStudents - totalSubmitted);
+
+      overallTotalStudents += totalStudents;
+      overallTotalSubmitted += totalSubmitted;
+
+      totalPendingReview += Array.from(uniqueSubmittedMap.values()).filter(
+        (s) => s === 'SUBMITTED' || s === 'RESUBMITTED'
+      ).length;
+      totalGraded += Array.from(uniqueSubmittedMap.values()).filter((s) => s === 'GRADED').length;
+      totalRevisionRequired += Array.from(uniqueSubmittedMap.values()).filter(
+        (s) => s === 'REVISION_REQUIRED'
+      ).length;
+      totalLateSubmissions += hwSubmissions.filter((s) => s.is_late).length;
+    }
+
+    const overallSubmissionRate =
+      overallTotalStudents > 0 ? (overallTotalSubmitted / overallTotalStudents) * 100 : 0;
+
+    return {
+      totalPublished,
+      totalDraft,
+      totalActive,
+      totalClosed,
+      overallSubmissionRate,
+      totalPendingReview,
+      totalGraded,
+      totalRevisionRequired,
+      totalLateSubmissions,
+    };
+  };
+
+  const { data: stats = {} } = useQuery({
+    queryKey: ['homework-stats', homeworkList, submissions],
+    queryFn: calculateStats,
+    enabled: homeworkList.length > 0,
+  });
+
+  // Apply filters and sorting
+  let filteredList = homeworkList.filter((hw) => {
+    if (classFilter && hw.class_name !== classFilter) return false;
+    if (sectionFilter && hw.section !== sectionFilter) return false;
+    if (subjectFilter && hw.subject !== subjectFilter) return false;
+
+    if (homeworkStatusFilter !== 'all') {
+      const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
+      if (homeworkStatusFilter === 'draft' && hw.status !== 'Draft') return false;
+      if (homeworkStatusFilter === 'published' && (hw.status !== 'Published' || isOverdue)) return false;
+      if (homeworkStatusFilter === 'closed' && !isOverdue) return false;
+    }
+
+    if (submissionProgressFilter !== 'all') {
+      const hwSubmissions = submissions.filter((s) => s.homework_id === hw.id);
+      const uniqueSubmittedMap = new Map();
+      hwSubmissions.forEach((s) => {
+        if (!uniqueSubmittedMap.has(s.student_id)) {
+          uniqueSubmittedMap.set(s.student_id, normalizeHomeworkSubmissionStatus(s.status));
+        }
+      });
+      const submitted = uniqueSubmittedMap.size;
+      const graded = Array.from(uniqueSubmittedMap.values()).filter((s) => s === 'GRADED').length;
+      const revisionRequired = Array.from(uniqueSubmittedMap.values()).filter(
+        (s) => s === 'REVISION_REQUIRED'
+      ).length;
+
+      if (submissionProgressFilter === 'not-started' && submitted > 0) return false;
+      if (submissionProgressFilter === 'fully-submitted' && submitted === 0) return false;
+      if (submissionProgressFilter === 'pending-review' && graded === submitted && submitted > 0)
+        return false;
+      if (submissionProgressFilter === 'graded' && graded === 0) return false;
+      if (submissionProgressFilter === 'revision-required' && revisionRequired === 0) return false;
+      if (submissionProgressFilter === 'late-submissions' && hwSubmissions.filter((s) => s.is_late).length === 0)
+        return false;
+    }
+
+    return true;
+  });
+
+  // Apply sorting
+  filteredList.sort((a, b) => {
+    if (sortBy === 'newest-due') {
+      return new Date(b.due_date || 0) - new Date(a.due_date || 0);
+    }
+    if (sortBy === 'oldest-due') {
+      return new Date(a.due_date || 0) - new Date(b.due_date || 0);
+    }
+    if (sortBy === 'highest-pending') {
+      // This would require calculating pending for each - for now use submitted count
+      return 0;
+    }
+    if (sortBy === 'lowest-completion') {
+      return 0;
+    }
+    if (sortBy === 'most-late') {
+      const lateA = submissions.filter((s) => s.homework_id === a.id && s.is_late).length;
+      const lateB = submissions.filter((s) => s.homework_id === b.id && s.is_late).length;
+      return lateB - lateA;
+    }
+    return 0;
+  });
+
+  const handleClearFilters = () => {
+    setClassFilter('');
+    setSectionFilter('');
+    setSubjectFilter('');
+    setHomeworkStatusFilter('all');
+    setSubmissionProgressFilter('all');
+  };
+
+  // Fetch metrics for each homework in filtered list
+  const getHomeworkMetrics = async (hw) => {
+    const studentFilter = {
+      class_name: hw.class_name,
+      is_deleted: { $ne: true },
+      is_active: true,
+      status: { $in: ['Verified', 'Approved', 'Published'] },
+    };
+    if (hw.section && hw.section !== 'All') {
+      studentFilter.section = hw.section;
+    }
+    const assignedStudents = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
+
+    const hwSubmissions = submissions.filter((s) => s.homework_id === hw.id);
+    const uniqueSubmittedMap = new Map();
+    hwSubmissions.forEach((s) => {
+      const normalized = normalizeHomeworkSubmissionStatus(s.status);
+      if (!uniqueSubmittedMap.has(s.student_id)) {
+        uniqueSubmittedMap.set(s.student_id, normalized);
+      }
+    });
+
+    const totalStudents = assignedStudents.length;
+    const submitted = uniqueSubmittedMap.size;
+    const graded = Array.from(uniqueSubmittedMap.values()).filter((s) => s === 'GRADED').length;
+    const revisionRequired = Array.from(uniqueSubmittedMap.values()).filter(
+      (s) => s === 'REVISION_REQUIRED'
+    ).length;
+    const lateSubmissions = hwSubmissions.filter((s) => s.is_late).length;
+    const pending = Math.max(0, totalStudents - submitted);
+
+    return {
+      totalStudents,
+      submitted,
+      pending,
+      graded,
+      revisionRequired,
+      lateSubmissions,
+    };
+  };
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Homework">
       <div className="min-h-screen bg-gray-50 py-6 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <BookMarked className="h-8 w-8 text-purple-600" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Homework</h1>
-                <p className="text-gray-600 text-sm">Manage and assign homework</p>
+                <h1 className="text-3xl font-bold text-gray-900">Homework Dashboard</h1>
+                <p className="text-gray-600 text-sm">Track assignments and submission progress</p>
               </div>
             </div>
             <Button
@@ -225,6 +442,44 @@ export default function Homework() {
               <Plus className="h-4 w-4 mr-2" /> Add Homework
             </Button>
           </div>
+
+          {/* Dashboard Summary Cards */}
+          {!isLoading && Object.keys(stats).length > 0 && (
+            <HomeworkDashboardSummary
+              totalPublished={stats.totalPublished || 0}
+              totalDraft={stats.totalDraft || 0}
+              totalActive={stats.totalActive || 0}
+              totalClosed={stats.totalClosed || 0}
+              overallSubmissionRate={stats.overallSubmissionRate || 0}
+              totalPendingReview={stats.totalPendingReview || 0}
+              totalGraded={stats.totalGraded || 0}
+              totalRevisionRequired={stats.totalRevisionRequired || 0}
+              totalLateSubmissions={stats.totalLateSubmissions || 0}
+            />
+          )}
+
+          {/* Filters Bar */}
+          <HomeworkFiltersBar
+            academicYear={academicYear}
+            setAcademicYear={() => {}}
+            classFilter={classFilter}
+            setClassFilter={setClassFilter}
+            sectionFilter={sectionFilter}
+            setSectionFilter={setSectionFilter}
+            subjectFilter={subjectFilter}
+            setSubjectFilter={setSubjectFilter}
+            homeworkStatusFilter={homeworkStatusFilter}
+            setHomeworkStatusFilter={setHomeworkStatusFilter}
+            submissionProgressFilter={submissionProgressFilter}
+            setSubmissionProgressFilter={setSubmissionProgressFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            academicYears={[academicYear]}
+            classes={uniqueClasses}
+            sections={uniqueSections}
+            subjects={uniqueSubjects}
+            onClearFilters={handleClearFilters}
+          />
 
           {/* Bulk Action Bar */}
           {selected.size > 0 && (
@@ -260,12 +515,12 @@ export default function Homework() {
             </div>
           )}
 
-          {/* List */}
+          {/* Homework List */}
           {isLoading ? (
             <div className="text-center py-12">
               <div className="inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
             </div>
-          ) : homeworkList.length === 0 ? (
+          ) : filteredList.length === 0 && homeworkList.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
               <BookMarked className="h-12 w-12 text-gray-200 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">No homework assigned yet</p>
@@ -273,27 +528,40 @@ export default function Homework() {
                 <Plus className="h-4 w-4 mr-2" /> Create First Homework
               </Button>
             </div>
+          ) : filteredList.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
+              <BookMarked className="h-12 w-12 text-gray-200 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No homework found with current filters</p>
+              <Button onClick={handleClearFilters} variant="outline" className="text-sm">
+                Clear Filters
+              </Button>
+            </div>
           ) : (
             <div className="space-y-4">
               {/* Select All Row */}
-              <div className="bg-gray-100 rounded-2xl p-4 flex items-center gap-3">
+              <div className="bg-gray-100 rounded-lg p-4 flex items-center gap-3">
                 <Checkbox
-                  checked={selected.size === homeworkList.length && homeworkList.length > 0}
+                  checked={selected.size === filteredList.length && filteredList.length > 0}
                   onCheckedChange={toggleSelectAll}
                   id="select-all"
                 />
                 <label htmlFor="select-all" className="text-sm font-semibold text-gray-900 cursor-pointer">
-                  Select All ({homeworkList.length})
+                  Select All ({filteredList.length})
                 </label>
               </div>
 
-              {/* Homework List */}
-              <div className="space-y-3">
-                {homeworkList.map((item) => (
-                  <div key={item.id} className={`bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow ${selected.has(item.id) ? 'ring-2 ring-blue-500' : ''}`}>
-                    <div className="flex gap-3">
+              {/* Homework Cards with Metrics */}
+              <div className="space-y-4">
+                {filteredList.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`bg-white rounded-lg p-4 shadow-sm border border-gray-200 ${
+                      selected.has(item.id) ? 'ring-2 ring-blue-500' : ''
+                    }`}
+                  >
+                    <div className="flex gap-4 items-start">
                       {/* Checkbox */}
-                      <div className="flex items-start pt-1">
+                      <div className="flex items-start pt-1 flex-shrink-0">
                         <Checkbox
                           checked={selected.has(item.id)}
                           onCheckedChange={() => toggleSelect(item.id)}
@@ -301,38 +569,19 @@ export default function Homework() {
                         />
                       </div>
 
-                      {/* Content */}
+                      {/* Metrics Component */}
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{item.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                        <div className="flex gap-2 mt-2 flex-wrap items-center">
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                            Class {item.class_name}-{item.section}
-                          </span>
-                          {item.subject_name && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject_name}</span>
-                          )}
-                          {item.due_date && (
-                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
-                              Due: {format(new Date(item.due_date), 'MMM d, yyyy')}
-                            </span>
-                          )}
-                          {item.status === 'Published' && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                              Published
-                            </span>
-                          )}
-                        </div>
+                        <HomeworkRowMetrics homework={item} />
                       </div>
 
                       {/* Actions */}
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex gap-2 flex-shrink-0 flex-col">
                         {item.status === 'Published' ? (
                           <Button
                             onClick={() => handleQuickUnpublish(item.id)}
                             size="sm"
                             variant="outline"
-                            className="text-xs"
+                            className="text-xs whitespace-nowrap"
                             disabled={bulkActionLoading}
                           >
                             Unpublish
@@ -341,7 +590,7 @@ export default function Homework() {
                           <Button
                             onClick={() => handleQuickPublish(item.id)}
                             size="sm"
-                            className="text-xs bg-green-600 hover:bg-green-700"
+                            className="text-xs bg-green-600 hover:bg-green-700 whitespace-nowrap"
                             disabled={bulkActionLoading}
                           >
                             Publish
@@ -351,7 +600,7 @@ export default function Homework() {
                           onClick={() => handleEdit(item)}
                           size="sm"
                           variant="outline"
-                          className="text-xs"
+                          className="text-xs whitespace-nowrap"
                         >
                           Edit
                         </Button>
@@ -363,7 +612,7 @@ export default function Homework() {
                           }}
                           size="sm"
                           variant="destructive"
-                          className="text-xs"
+                          className="text-xs whitespace-nowrap"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
