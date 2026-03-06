@@ -52,11 +52,11 @@ async function verifySessionToken(token) {
      }
 
     const key = await getSessionKey();
-    const sigDecoded = b64urlDecode(sigB64);
-    const sigBytes = new Uint8Array(sigDecoded.length);
-    for (let i = 0; i < sigDecoded.length; i++) {
-      sigBytes[i] = sigDecoded.charCodeAt(i);
-    }
+    // Decode signature as raw bytes via atob → Uint8Array
+    let standard = sigB64.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
+    standard = standard + pad;
+    const sigBytes = Uint8Array.from(atob(standard), c => c.charCodeAt(0));
     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
     if (!valid) {
       console.error(`[getMyStaffProfile] TOKEN_INVALID: signature mismatch for staff_id=${payload?.staff_id}`);
