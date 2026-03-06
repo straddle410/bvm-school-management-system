@@ -21,13 +21,13 @@ const quickBadges = {
 export default function HomeworkRowMetrics({
   homework,
   totalStudents = 0,
-  submittedCount = 0,
+  submittedCount = 0,      // Latest status = SUBMITTED or RESUBMITTED
   pendingCount = 0,
-  gradedCount = 0,
-  revisionRequiredCount = 0,
-  lateSubmissionCount = 0,
+  gradedCount = 0,         // Latest status = GRADED
+  revisionRequiredCount = 0, // Latest status = REVISION_REQUIRED
+  lateSubmissionCount = 0,  // Unique students with latest submission marked late
 }) {
-  const completionPercent = totalStudents > 0 ? Math.round((submittedCount / totalStudents) * 100) : 0;
+  const completionPercent = totalStudents > 0 ? Math.round(((submittedCount + gradedCount + revisionRequiredCount) / totalStudents) * 100) : 0;
 
   // Determine status
   const isOverdue = homework.due_date && isPast(new Date(homework.due_date));
