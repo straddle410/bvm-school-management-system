@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function StudentDiary() {
   console.log('[ENTRY] StudentDiary:', window.location.pathname);
@@ -11,6 +12,7 @@ export default function StudentDiary() {
 
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
@@ -62,6 +64,18 @@ export default function StudentDiary() {
 
   if (!session) return null;
 
+  // Get today's date
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDateString = format(today, 'yyyy-MM-dd');
+
+  // Filter entries by selected date (or today)
+  const filteredEntries = diaryEntries.filter(entry => {
+    const filterDate = selectedDate || todayDateString;
+    const entryDate = entry.diary_date ? format(new Date(entry.diary_date), 'yyyy-MM-dd') : format(new Date(entry.created_date), 'yyyy-MM-dd');
+    return entryDate === filterDate;
+  });
+
   return (
     <div className="min-h-screen bg-[#f0f4ff] pb-24">
       {/* Header */}
@@ -71,17 +85,41 @@ export default function StudentDiary() {
       </header>
 
       <div className="px-4 py-6 space-y-4">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-          </div>
-        ) : diaryEntries.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <BookOpen className="h-10 w-10 text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No diary entries yet</p>
-          </div>
-        ) : (
-          diaryEntries.map((entry) => (
+         {/* Date Picker */}
+         <div className="bg-white rounded-2xl p-3 shadow-sm">
+           <div className="flex items-center justify-between">
+             <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
+               <Calendar className="h-4 w-4 text-[#1a237e]" />
+               Select Date
+             </label>
+             <input
+               type="date"
+               value={selectedDate || todayDateString}
+               onChange={(e) => setSelectedDate(e.target.value)}
+               className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs"
+             />
+           </div>
+           {selectedDate && (
+             <button
+               onClick={() => setSelectedDate(null)}
+               className="mt-2 text-xs font-semibold text-[#1a237e] underline w-full text-left"
+             >
+               ↻ Clear Date (Today)
+             </button>
+           )}
+         </div>
+
+         {isLoading ? (
+           <div className="text-center py-8">
+             <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+           </div>
+         ) : filteredEntries.length === 0 ? (
+           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+             <BookOpen className="h-10 w-10 text-gray-200 mx-auto mb-2" />
+             <p className="text-sm text-gray-500">No diary entries for this date</p>
+           </div>
+         ) : (
+           filteredEntries.map((entry) => (
             <div key={entry.id} className="bg-white rounded-2xl shadow-sm p-4">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="text-sm font-bold text-gray-900">{entry.subject}</h3>
