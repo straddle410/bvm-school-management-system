@@ -147,10 +147,10 @@ Deno.serve(async (req) => {
 
     const { staff_id, username: verifiedUsername } = verified;
 
-    // Decode payload to get username & role from token
+    // Decode payload to get username & role from token (already verified above)
     const payloadB64 = token.slice(0, token.lastIndexOf('.'));
     const tokenPayload = JSON.parse(b64urlDecode(payloadB64));
-    const tokenUsername = tokenPayload.username;
+    const tokenUsername = tokenPayload.username || verifiedUsername;
     const tokenRole = tokenPayload.role;
 
     // Load StaffAccount:
