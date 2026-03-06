@@ -21,6 +21,7 @@ import HomeworkFiltersBar from '@/components/homework/HomeworkFiltersBar';
 import HomeworkRowMetrics from '@/components/homework/HomeworkRowMetrics';
 import { normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
 import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
+import { canViewHomework, canManageHomework, isHomeworkAdmin, filterHomeworkByAccess, getHomeworkQueryFilter } from '@/components/homework/homeworkAccessControl';
 
 export default function Homework() {
   const [user, setUser] = useState(null);
@@ -68,9 +69,12 @@ export default function Homework() {
   });
 
   const { data: homeworkList = [], isLoading } = useQuery({
-    queryKey: ['homework', academicYear],
-    queryFn: () => base44.entities.Homework.filter({ academic_year: academicYear }, '-created_date'),
-    enabled: !!academicYear,
+    queryKey: ['homework', academicYear, user?.name],
+    queryFn: () => {
+      const queryFilter = getHomeworkQueryFilter(user, { academic_year: academicYear });
+      return base44.entities.Homework.filter(queryFilter, '-created_date');
+    },
+    enabled: !!academicYear && !!user,
   });
 
   const { data: submissions = [] } = useQuery({
