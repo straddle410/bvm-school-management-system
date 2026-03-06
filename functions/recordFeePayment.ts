@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden', userRole, allowedRoles, email: user.email }, { status: 403 });
     }
 
-    const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks } = await req.json();
+    const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks, entryType } = await req.json();
 
     if (!invoiceId || !amountPaid || !paymentDate) {
       return Response.json({ error: 'invoiceId, amountPaid and paymentDate are required' }, { status: 400 });
@@ -41,16 +41,18 @@ Deno.serve(async (req) => {
     const invoice = invoices[0];
     const academicYear = invoice.academic_year;
 
-    // ── ARCHIVE CHECK: Block mutations on archived years ──────────────────────
+    // ── ARCHIVE CHECK: Allow normal payments in archived years, block reversals ───────
     const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
-    if (academicYears && academicYears.length > 0) {
-      const ayRecord = academicYears[0];
-      if (ayRecord.status === 'Archived' || ayRecord.is_locked) {
-        return Response.json({
-          error: `Academic year ${academicYear} is archived; mutations not allowed`,
-          status: 403
-        }, { status: 403 });
-      }
+    const isArchivedYear = academicYears && academicYears.length > 0 && (academicYears[0].status === 'Archived' || academicYears[0].is_locked);
+    
+    // Allow CASH_PAYMENT in archived years (previous-year balance collection)
+    // Block REVERSAL, CREDIT_ADJUSTMENT mutations in archived years
+    if (isArchivedYear && entryType && ['REVERSAL', 'CREDIT_ADJUSTMENT'].includes(entryType)) {
+      console.log(`[ARCHIVE-BLOCK] ${user.email} attempted ${entryType} in archived year ${academicYear}`);
+      return Response.json({
+        error: `Cannot apply ${entryType} in archived academic year ${academicYear}. Previous-year balance collections are payment-only (no reversals or credits).`,
+        status: 403
+      }, { status: 403 });
     }
     // ──────────────────────────────────────────────────────────────────────
 
