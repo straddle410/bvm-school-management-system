@@ -42,6 +42,12 @@ export default function StudentHomework() {
     queryKey: ['student-homework', student?.class_name, student?.section, student?.academic_year],
     enabled: !!student,
     queryFn: async () => {
+      console.log('[STUDENT_HW_QUERY_START]', {
+        class: student.class_name,
+        section: student.section,
+        year: student.academic_year,
+      });
+
       // Fetch all published homework for the student's class
       const allHomework = await base44.entities.Homework.filter(
         { class_name: student.class_name, status: 'Published' },
@@ -54,8 +60,9 @@ export default function StudentHomework() {
         title: hw.title,
         class_name: hw.class_name,
         section: hw.section,
-        status: hw.status,
         academic_year: hw.academic_year,
+        status: hw.status,
+        due_date: hw.due_date,
       })));
 
       // Filter by section: only show homework where section is "All" or matches student's section
@@ -66,16 +73,24 @@ export default function StudentHomework() {
         const match = classMatch && sectionMatch;
 
         if (!match) {
-          console.log(`[STUDENT_HW_REJECT] hw=${hw.id} ${hw.title} class=${hw.class_name} (expect ${student.class_name}) section=${hwSection} (expect ${student.section} or All)`);
+          console.log('[STUDENT_HW_REJECT]', {
+            hw_id: hw.id,
+            hw_title: hw.title,
+            hw_class: hw.class_name,
+            expected_class: student.class_name,
+            hw_section: hwSection,
+            expected_section: student.section,
+            classMatch,
+            sectionMatch,
+          });
         }
         return match;
       });
 
       console.log('[STUDENT_HOMEWORK_FILTERED]', {
-        query: { class: student.class_name, section: student.section, year: student.academic_year },
         allCount: allHomework.length,
         filteredCount: filtered.length,
-        filtered: filtered.map(hw => ({ id: hw.id, title: hw.title, class: hw.class_name, section: hw.section })),
+        filtered: filtered.map(hw => ({ id: hw.id, title: hw.title })),
       });
 
       return filtered;
