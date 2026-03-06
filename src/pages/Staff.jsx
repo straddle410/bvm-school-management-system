@@ -773,17 +773,17 @@ export default function Staff() {
                     </Accordion>
 
                     <div className="flex gap-3 justify-end pt-4">
-                      <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={saveMutation.isPending}
-                        className="bg-[#1a237e] hover:bg-[#283593]"
-                      >
-                        {saveMutation.isPending ? 'Creating...' : 'Create Staff Account'}
-                      </Button>
-                    </div>
+                       <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
+                         Cancel
+                       </Button>
+                       <Button
+                         type="submit"
+                         disabled={saveMutation.isPending || (!editingStaff && !validatePasswordPolicy(tempPassword).valid)}
+                         className="bg-[#1a237e] hover:bg-[#283593]"
+                       >
+                         {saveMutation.isPending ? 'Creating...' : 'Create Staff Account'}
+                       </Button>
+                     </div>
                   </form>
                 </CardContent>
               </Card>
