@@ -590,7 +590,19 @@ export default function Students() {
               )}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
+              {/* Desktop column headers */}
+              <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                <div className="w-4 flex-shrink-0" /> {/* checkbox spacer */}
+                <div className="w-9 flex-shrink-0" /> {/* avatar spacer */}
+                <div className="w-48 flex-shrink-0">Name / ID</div>
+                <div className="w-20 flex-shrink-0">Class</div>
+                <div className="w-16 flex-shrink-0">Sec</div>
+                <div className="w-16 flex-shrink-0">Roll</div>
+                <div className="w-24 flex-shrink-0">Status</div>
+                <div className="flex-1">Transport</div>
+                <div className="w-8 flex-shrink-0" /> {/* action menu spacer */}
+              </div>
                {students.map(student => (
                  <div key={student.id} className="flex gap-2 items-start">
                    {isAdmin && !isLocked(student) && !student.is_deleted && !showArchived && !showDeleted && (
