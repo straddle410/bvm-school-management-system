@@ -195,12 +195,21 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
               <input type="number" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.max_marks} onChange={e => set('max_marks', e.target.value)} />
             </div>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1 block">Homework Type</label>
-            <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.submission_mode} onChange={e => set('submission_mode', e.target.value)}>
-              <option value="VIEW_ONLY">View Only</option>
-              <option value="SUBMISSION_REQUIRED">Students Must Submit</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1 block">Homework Type</label>
+              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.submission_mode} onChange={e => set('submission_mode', e.target.value)}>
+                <option value="VIEW_ONLY">View Only</option>
+                <option value="SUBMISSION_REQUIRED">Students Must Submit</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1 block">Status</label>
+              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.status} onChange={e => set('status', e.target.value)}>
+                <option value="Draft">Draft</option>
+                <option value="Published">Published</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-600 mb-1 block">Instructions</label>
