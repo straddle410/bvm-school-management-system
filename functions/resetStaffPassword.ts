@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
     }
 
     if (!adminRole || (adminRole !== 'admin' && adminRole !== 'principal')) {
+      console.error(`[resetStaffPassword] Auth failed — adminRole="${adminRole}". Token present=${!!staff_session_token}`);
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
