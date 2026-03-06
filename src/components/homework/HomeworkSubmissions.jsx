@@ -12,9 +12,31 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const [feedback, setFeedback] = useState('');
   const qc = useQueryClient();
 
-  const { data: submissions = [], isLoading } = useQuery({
+  const { data: submissions = [], isLoading: submissionsLoading } = useQuery({
     queryKey: ['hw-submissions', homework.id],
     queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: homework.id }, '-created_date', 200),
+  });
+
+  // Query assigned students for this homework's class/section
+  const { data: assignedStudents = [] } = useQuery({
+    queryKey: ['hw-assigned-students', homework.class_name, homework.section],
+    queryFn: async () => {
+      // Build filter for students matching this homework's class/section
+      const studentFilter = {
+        class_name: homework.class_name,
+        is_deleted: { $ne: true }, // Exclude deleted students
+        is_active: true, // Only active students
+        status: { $in: ['Verified', 'Approved', 'Published'] } // Valid statuses
+      };
+
+      // Add section filter
+      if (homework.section && homework.section !== 'All') {
+        studentFilter.section = homework.section;
+      }
+      // If section is "All", we already have class_name, no section filter needed
+
+      return base44.entities.Student.filter(studentFilter, 'student_id', 500);
+    },
   });
 
   const gradeMutation = useMutation({
@@ -57,27 +79,30 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   });
 
   // Count unique students by their submission status
-  const uniqueStudents = new Map();
+  const uniqueSubmittedStudents = new Map();
   submissions.forEach(s => {
     const normalized = normalizeHomeworkSubmissionStatus(s.status);
-    if (!uniqueStudents.has(s.student_id)) {
-      uniqueStudents.set(s.student_id, normalized);
+    if (!uniqueSubmittedStudents.has(s.student_id)) {
+      uniqueSubmittedStudents.set(s.student_id, normalized);
     } else {
-      // Keep the latest/most recent status if same student has multiple submissions
-      uniqueStudents.set(s.student_id, normalized);
+      // Keep the latest/most recent status
+      uniqueSubmittedStudents.set(s.student_id, normalized);
     }
   });
 
-  const submitted = Array.from(uniqueStudents.values()).filter(status => 
+  // Get counts from unique submitted students
+  const submitted = Array.from(uniqueSubmittedStudents.values()).filter(status => 
     status === HOMEWORK_STATUS.SUBMITTED || status === HOMEWORK_STATUS.RESUBMITTED
   ).length;
-  const graded = Array.from(uniqueStudents.values()).filter(status => status === HOMEWORK_STATUS.GRADED).length;
-  const revisionRequired = Array.from(uniqueStudents.values()).filter(status => status === HOMEWORK_STATUS.REVISION_REQUIRED).length;
+  const graded = Array.from(uniqueSubmittedStudents.values()).filter(status => status === HOMEWORK_STATUS.GRADED).length;
+  const revisionRequired = Array.from(uniqueSubmittedStudents.values()).filter(status => status === HOMEWORK_STATUS.REVISION_REQUIRED).length;
   
-  // Pending = assigned students - submitted unique students (estimated from submissions)
-  // This requires knowing total assigned students, which we calculate from homework class/section
-  const totalUniqueSubmitted = uniqueStudents.size;
-  const pending = Math.max(0, (submissions.length > 0 ? submissions[0]?.class_name ? 30 : 0 : 0) - totalUniqueSubmitted); // Fallback: 30 students per class estimate
+  // Total assigned students = actual count of active students in this class/section
+  const totalStudents = assignedStudents.length;
+  
+  // Pending = assigned students - students who submitted at least once
+  const totalUniqueSubmitted = uniqueSubmittedStudents.size;
+  const pending = Math.max(0, totalStudents - totalUniqueSubmitted);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
@@ -93,25 +118,29 @@ export default function HomeworkSubmissions({ homework, onClose }) {
         <div className="p-4">
            {/* Stats */}
            <div className="grid grid-cols-2 gap-2 mb-4">
-             <div className="bg-blue-50 rounded-xl p-3 text-center">
+             <div className="bg-slate-50 rounded-xl p-3 text-center border border-gray-200">
+               <p className="text-lg font-bold text-slate-700">{totalStudents}</p>
+               <p className="text-[9px] text-slate-600">Total Students</p>
+             </div>
+             <div className="bg-blue-50 rounded-xl p-3 text-center border border-blue-200">
                <p className="text-lg font-bold text-blue-700">{submitted}</p>
                <p className="text-[9px] text-blue-600">Submitted</p>
              </div>
-             <div className="bg-green-50 rounded-xl p-3 text-center">
+             <div className="bg-green-50 rounded-xl p-3 text-center border border-green-200">
                <p className="text-lg font-bold text-green-700">{graded}</p>
                <p className="text-[9px] text-green-600">Graded</p>
              </div>
-             <div className="bg-orange-50 rounded-xl p-3 text-center">
+             <div className="bg-orange-50 rounded-xl p-3 text-center border border-orange-200">
                <p className="text-lg font-bold text-orange-700">{revisionRequired}</p>
                <p className="text-[9px] text-orange-600">Revision</p>
              </div>
-             <div className="bg-gray-50 rounded-xl p-3 text-center">
-               <p className="text-lg font-bold text-gray-700">{pending}</p>
-               <p className="text-[9px] text-gray-600">Pending</p>
+             <div className="bg-red-50 rounded-xl p-3 text-center border border-red-200 col-span-2">
+               <p className="text-lg font-bold text-red-700">{pending}</p>
+               <p className="text-[9px] text-red-600">Pending (Awaiting Submission)</p>
              </div>
            </div>
 
-          {isLoading ? (
+          {submissionsLoading ? (
             <div className="text-center py-8 text-gray-400">Loading submissions...</div>
           ) : submissions.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
