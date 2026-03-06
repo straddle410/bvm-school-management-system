@@ -1277,15 +1277,20 @@ export default function Staff() {
                 </div>
 
                 {resetPasswordMode === 'manual' && (
-                  <div className="ml-7 p-3 bg-slate-50 rounded border">
+                  <div className="ml-7 p-3 bg-slate-50 rounded border space-y-1">
                     <Input
                       type="password"
-                      placeholder="Min. 8 characters"
+                      placeholder="e.g. Admin@123"
                       value={manualPassword}
                       onChange={(e) => setManualPassword(e.target.value)}
                       className="bg-white"
                     />
-                    <p className="text-xs text-slate-500 mt-2">Password must be at least 8 characters long</p>
+                    {manualPassword && !validatePasswordPolicy(manualPassword).valid && (
+                      <p className="text-xs text-red-500">{validatePasswordPolicy(manualPassword).message}</p>
+                    )}
+                    {(!manualPassword) && (
+                      <p className="text-xs text-slate-500">Must have 8+ chars, uppercase, lowercase, number & special char (e.g. Admin@123)</p>
+                    )}
                   </div>
                 )}
               </div>
