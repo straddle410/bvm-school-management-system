@@ -526,26 +526,18 @@ export default function Students() {
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => setShowBulkUpload(true)}>
                       <Upload className="h-4 w-4 mr-2 text-gray-500" /> Import Students
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <div className="flex items-center cursor-pointer">
-                        <StudentExport students={students} academicYear={academicYear} asMenuItem />
-                      </div>
+                    <DropdownMenuItem onClick={() => { if (students.length === 0) { toast.error('No students to export'); return; } const headers = ['student_id','name','class_name','section','roll_no','parent_name','parent_phone','parent_email','dob','gender','address','blood_group','admission_date','status']; const rows = students.map(s => headers.map(h => `"${(s[h]||'').toString().replace(/"/g,'""')}"`).join(',')); const csv = [headers.join(','),...rows].join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `students-${academicYear}-${new Date().toISOString().split('T')[0]}.csv`; a.click(); toast.success('Exported'); }}>
+                      <Download className="h-4 w-4 mr-2 text-gray-500" /> Export CSV
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowManageRolls(true)}>
                       <Hash className="h-4 w-4 mr-2 text-gray-500" /> Roll Numbers
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <div className="w-full">
-                        <PromoteStudents
-                          academicYear={academicYear}
-                          onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
-                          asMenuItem
-                        />
-                      </div>
+                    <DropdownMenuItem onClick={() => setShowPromote(true)}>
+                      <TrendingUp className="h-4 w-4 mr-2 text-gray-500" /> Promote Students
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
