@@ -4,6 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow, isPast } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
+import HomeworkViewOnlyCard from '@/components/homework/HomeworkViewOnlyCard';
+import HomeworkTypeIndicator from '@/components/homework/HomeworkTypeIndicator';
+import HomeworkAttentionBadges from '@/components/homework/HomeworkAttentionBadges';
+import PendingStudentsList from '@/components/homework/PendingStudentsList';
 
 const statusBadges = {
   'Draft': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' },
@@ -25,6 +29,12 @@ export default function HomeworkRowMetrics({
   submissions = [],
   assignedStudents = [],
 }) {
+  // VIEW_ONLY homework: use simplified card
+  if (homework.submission_mode === 'VIEW_ONLY') {
+    return <HomeworkViewOnlyCard homework={homework} />;
+  }
+
+  // SUBMISSION_REQUIRED: show full metrics
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
@@ -96,14 +106,17 @@ export default function HomeworkRowMetrics({
       {/* Header info */}
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="font-semibold text-sm text-gray-900 flex-1">{homework.title}</h3>
+        
+        {/* Homework type indicator */}
+        <HomeworkTypeIndicator homework={homework} />
+        
+        {/* Status badge */}
         <div className={`${statusStyle.bg} ${statusStyle.text} px-2 py-1 rounded text-xs font-medium`}>
           {statusLabel}
         </div>
-        {primaryBadge && (
-          <div className={`${quickBadges[primaryBadge]?.bg} ${quickBadges[primaryBadge]?.text} px-2 py-1 rounded text-xs font-medium`}>
-            {primaryBadge}
-          </div>
-        )}
+        
+        {/* Teacher attention badge */}
+        <HomeworkAttentionBadges homework={homework} metrics={metrics} />
       </div>
 
       {/* Meta info */}
@@ -159,6 +172,9 @@ export default function HomeworkRowMetrics({
           />
         </div>
       </div>
+
+      {/* Pending students reminder */}
+      <PendingStudentsList homework={homework} submissions={submissions} />
     </div>
   );
 }
