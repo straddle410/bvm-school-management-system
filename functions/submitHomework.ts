@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
@@ -30,8 +30,61 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'HOMEWORK_NOT_ACCEPTING_SUBMISSIONS', message: 'This homework is view-only.' }, { status: 422 });
     }
 
-    const result = await base44.asServiceRole.entities.HomeworkSubmission.create(submission);
-    return Response.json({ success: true, id: result.id }, { status: 201 });
+    // ── CHECK EXISTING SUBMISSION ──
+    const existingSubmissions = await base44.asServiceRole.entities.HomeworkSubmission.filter({
+      homework_id: submission.homework_id,
+      student_id: student_id
+    });
+    const existingSubmission = existingSubmissions[0];
+
+    // ── RESUBMISSION LOGIC ──
+    if (existingSubmission) {
+      // Block resubmission if already graded
+      if (existingSubmission.status === 'GRADED') {
+        return Response.json({
+          error: 'ALREADY_GRADED',
+          message: 'Homework already graded. You cannot resubmit.'
+        }, { status: 422 });
+      }
+
+      // Allow resubmission only if status is REVISION_REQUIRED or RESUBMITTED
+      if (existingSubmission.status === 'REVISION_REQUIRED' || existingSubmission.status === 'RESUBMITTED') {
+        // Update existing submission with new attempt
+        const updatedData = {
+          ...submission,
+          attempt_no: (existingSubmission.attempt_no || 1) + 1,
+          status: 'RESUBMITTED',
+          submitted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Preserve grading fields from previous attempt
+          teacher_marks: existingSubmission.teacher_marks,
+          teacher_feedback: existingSubmission.teacher_feedback,
+          graded_at: existingSubmission.graded_at,
+          graded_by: existingSubmission.graded_by
+        };
+        
+        const result = await base44.asServiceRole.entities.HomeworkSubmission.update(existingSubmission.id, updatedData);
+        return Response.json({ success: true, id: result.id, action: 'resubmitted' }, { status: 200 });
+      }
+
+      // If status is SUBMITTED, block duplicate submission
+      return Response.json({
+        error: 'ALREADY_SUBMITTED',
+        message: 'You have already submitted this homework. Awaiting teacher review.'
+      }, { status: 422 });
+    }
+
+    // ── NEW SUBMISSION ──
+    const newSubmission = {
+      ...submission,
+      attempt_no: 1,
+      status: 'SUBMITTED',
+      submitted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const result = await base44.asServiceRole.entities.HomeworkSubmission.create(newSubmission);
+    return Response.json({ success: true, id: result.id, action: 'submitted' }, { status: 201 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
