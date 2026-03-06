@@ -119,17 +119,17 @@ Deno.serve(async (req) => {
     console.log('[getMyStaffProfile] ============ START FUNCTION ============');
     const base44 = createClientFromRequest(req);
 
-    // Extract token from body or Authorization header
+    // Extract staff token ONLY from request body — never from Authorization header
+    // (Authorization header contains the Base44 platform JWT, not the staff session token)
     let token = null;
-    const authHeader = req.headers.get('Authorization') || '';
-    if (authHeader.startsWith('Bearer ')) {
-      token = authHeader.slice(7).trim();
-    }
+    try {
+      const body = await req.json();
+      token = body?.staff_session_token || null;
+    } catch {}
+
+    // Fallback: check X-Staff-Token header (custom header, not Authorization)
     if (!token) {
-      try {
-        const body = await req.json();
-        token = body?.staff_session_token || null;
-      } catch {}
+      token = req.headers.get('X-Staff-Token') || null;
     }
 
     if (!token) {
