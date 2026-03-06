@@ -231,15 +231,16 @@ Deno.serve(async (req) => {
       status: 'Published',
       is_deleted: false
     });
-    // Build a set of VALID student_ids (already filtered above, this is for fast lookup)
-    const validStudentIds = new Set(allStudentsInYear.map(function(s) { return s.student_id; }).filter(Boolean));
+    // Build a set of VALID student_ids for fast lookup
+    const validStudentIds = new Set(allStudentsInYear.map(s => s.student_id).filter(Boolean));
 
     // Calculate overall statistics and generate progress cards
     const progressCards = [];
     const uniqueStudents = new Map();
 
-    // Deduplicate students at the progress card level — only include Published/non-deleted students
-    Object.values(studentData).filter(function(student) { return validStudentIds.has(student.student_id); }).forEach(student => {
+    // Deduplicate — only include Published/non-deleted students (filtered by validStudentIds)
+    const filteredStudentList = Object.values(studentData).filter(student => validStudentIds.has(student.student_id));
+    for (const student of filteredStudentList) {
       const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
       if (uniqueStudents.has(studentKey)) return; // Skip duplicate student entries
       uniqueStudents.set(studentKey, true);
