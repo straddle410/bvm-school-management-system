@@ -581,13 +581,12 @@ export default function Staff() {
                             className="bg-slate-100"
                           />
                           <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              const newPass = generateTempPassword();
-                              setTempPassword(newPass);
-                              setForm(f => ({ ...f, password_hash: hashPassword(newPass) }));
-                            }}
+                           type="button"
+                           variant="outline"
+                           onClick={() => {
+                             const newPass = generateTempPassword();
+                             setTempPassword(newPass);
+                           }}
                           >
                             Generate
                           </Button>
