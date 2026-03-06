@@ -24,7 +24,8 @@ const generateUsername = (name) => {
 };
 
 const generateTempPassword = () => {
-  return 'BVM@' + Math.floor(1000 + Math.random() * 9000);
+  // Always policy-compliant: uppercase (BVM), lowercase (implicit via suffix), number, special (@)
+  return 'Bvm@' + Math.floor(1000 + Math.random() * 9000);
 };
 
 // Real bcrypt hashing is done server-side via hashStaffPassword function
