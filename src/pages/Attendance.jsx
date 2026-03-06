@@ -464,7 +464,7 @@ function AttendanceSummaryTab({ academicYear, user }) {
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', filters.class, filters.section, academicYear],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published', class_name: filters.class, section: filters.section, academic_year: academicYear }),
+    queryFn: () => base44.entities.Student.filter({ status: 'Published', class_name: filters.class, section: filters.section, academic_year: academicYear, is_deleted: false }),
     enabled: hasGenerated && !!filters.class && !!filters.section
   });
 

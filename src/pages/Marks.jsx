@@ -81,7 +81,7 @@ export default function Marks() {
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['students-published', academicYear],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear }),
+    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear, is_deleted: false }),
     staleTime: 5 * 60 * 1000
   });
 
