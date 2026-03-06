@@ -10,11 +10,14 @@ import { Lock, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { validatePasswordPolicy } from '@/components/utils/passwordPolicy';
 import { toast } from 'sonner';
 
+const POLICY_MSG = 'Password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.';
+
 const ERROR_MESSAGES = {
   CURRENT_PASSWORD_INCORRECT: 'The current password you entered is incorrect.',
   STAFF_SESSION_INVALID: 'Your session has expired. Please log in again.',
   TOKEN_MISSING: 'Your session has expired. Please log in again.',
-  WEAK_PASSWORD: 'Password must be at least 8 characters.',
+  WEAK_PASSWORD: POLICY_MSG,
+  PASSWORD_POLICY_VIOLATION: POLICY_MSG,
   MISSING_FIELDS: 'Please fill in all fields.',
   UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',
 };
