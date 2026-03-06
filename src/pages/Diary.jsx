@@ -136,6 +136,7 @@ export default function Diary() {
       subject: form.subject_name,
       diary_date: form.diary_date,
       academic_year: academicYear,
+      status: 'Published',
     };
     console.log('DIARY_PAYLOAD', payload);
     
