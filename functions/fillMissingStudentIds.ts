@@ -24,12 +24,48 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Generate student ID for this year
-        const genRes = await base44.functions.invoke('generateStudentIdAuthoritative', {
-          academic_year: student.academic_year
-        });
+        // Generate student ID inline for this year
+        const year = student.academic_year;
+        const match = year.match(/^(\d{4})-(\d{2})$/);
+        if (!match) {
+          results.push({ studentId: student.id, name: student.name, status: 'SKIPPED', reason: 'Invalid academic_year format' });
+          continue;
+        }
+        
+        const startYear = match[1];
+        const yy = startYear.slice(2);
+        const counterKey = `student_id_${startYear}`;
 
-        const { student_id, student_id_norm } = genRes.data;
+        // Get or create counter
+        let counter = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
+        counter = counter[0];
+
+        let nextValue;
+        if (!counter) {
+          // Find max existing ID for this year prefix
+          const allStudents = await base44.asServiceRole.entities.Student.list('', 10000);
+          const pattern = new RegExp(`^S${yy}(\\d{3})$`, 'i');
+          const existing = allStudents
+            .map(s => s.student_id)
+            .filter(id => id && pattern.test(id))
+            .map(id => {
+              const m = id.match(/^S\d{2}(\d{3})$/i);
+              return m ? parseInt(m[1], 10) : 0;
+            });
+          const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
+          nextValue = maxExisting + 1;
+          
+          counter = await base44.asServiceRole.entities.Counter.create({
+            key: counterKey,
+            current_value: nextValue
+          });
+        } else {
+          nextValue = (counter.current_value || 0) + 1;
+          await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
+        }
+
+        const student_id = `S${yy}${String(nextValue).padStart(3, '0')}`;
+        const student_id_norm = student_id.toLowerCase();
 
         // Update student with generated ID and username
         await base44.asServiceRole.entities.Student.update(student.id, {
