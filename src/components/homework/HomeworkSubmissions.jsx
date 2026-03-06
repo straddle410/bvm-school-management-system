@@ -69,14 +69,19 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   });
 
   const gradeMutation = useMutation({
-    mutationFn: ({ id, teacher_marks, teacher_feedback }) =>
-      base44.entities.HomeworkSubmission.update(id, { 
+    mutationFn: ({ id, teacher_marks, teacher_feedback }) => {
+      // VERIFY ACCESS before mutation
+      if (!canAccess) {
+        throw new Error('FORBIDDEN: Cannot grade this homework');
+      }
+      return base44.entities.HomeworkSubmission.update(id, { 
         teacher_marks: Number(teacher_marks), 
         teacher_feedback, 
         status: HOMEWORK_STATUS.GRADED,
         graded_at: new Date().toISOString(),
-        graded_by: 'Teacher' // Will be populated from staff session context
-      }),
+        graded_by: user?.name || 'Teacher'
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
       setGradingId(null); setMarks(''); setFeedback('');
@@ -85,6 +90,10 @@ export default function HomeworkSubmissions({ homework, onClose }) {
 
   const revisionMutation = useMutation({
     mutationFn: ({ id, teacher_feedback, currentStatus }) => {
+      // VERIFY ACCESS before mutation
+      if (!canAccess) {
+        throw new Error('FORBIDDEN: Cannot request revision on this homework');
+      }
       const normalized = normalizeHomeworkSubmissionStatus(currentStatus);
       // Prevent duplicate revision requests
       if (normalized === HOMEWORK_STATUS.REVISION_REQUIRED) {
@@ -103,6 +112,8 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     onError: (error) => {
       if (error.message === 'ALREADY_REVISION_REQUIRED') {
         alert('Revision already requested. Awaiting student resubmission.');
+      } else if (error.message?.includes('FORBIDDEN')) {
+        alert('You do not have permission to request revision on this homework.');
       }
     }
   });
