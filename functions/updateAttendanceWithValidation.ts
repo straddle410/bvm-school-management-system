@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch existing record
+    // Fetch existing record using service role (read-only)
     const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
       id: attendanceId
     });
@@ -39,13 +39,43 @@ Deno.serve(async (req) => {
 
     const existingRecord = existingRecords[0];
 
+    // ── LOCK ENFORCEMENT (CHECK FIRST - BEFORE ANY OTHER VALIDATION) ──
+    // Non-admin/principal users cannot edit locked records
+    if (existingRecord.is_locked) {
+      const userRole = (user.role || '').toLowerCase();
+      const isAdmin = userRole === 'admin' || userRole === 'principal';
+
+      if (!isAdmin) {
+        return Response.json(
+          { error: 'Attendance is locked. Only admin can unlock and edit.' },
+          { status: 403 }
+        );
+      }
+
+      // Admin audit log for unlock/edit action
+      const auditData = {
+        action: 'unlock_and_edit',
+        module: 'Attendance',
+        date: existingRecord.date,
+        performed_by: user.email,
+        details: `Unlocked and edited attendance for student ${existingRecord.student_id} on ${existingRecord.date}. Changes: ${JSON.stringify(data)}`,
+        academic_year: existingRecord.academic_year
+      };
+
+      try {
+        await base44.asServiceRole.entities.AuditLog.create(auditData);
+      } catch (auditError) {
+        console.warn('Audit log failed but proceeding with unlock:', auditError);
+      }
+    }
+
     // ── STUDENT EXISTENCE & SOFT-DELETE GUARD ──
     const studentId = data.student_id || existingRecord.student_id;
     const ayForCheck = data.academic_year || existingRecord.academic_year;
     if (studentId && ayForCheck) {
       const studentsForId = await base44.asServiceRole.entities.Student.filter({ student_id: studentId, academic_year: ayForCheck });
       const studentForCheck = studentsForId[0];
-      
+
       // Check if student exists
       if (!studentForCheck) {
         return Response.json({
@@ -53,7 +83,7 @@ Deno.serve(async (req) => {
           status: 404
         });
       }
-      
+
       // Check if student is deleted
       if (studentForCheck.is_deleted === true) {
         return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
@@ -87,36 +117,6 @@ Deno.serve(async (req) => {
             error: `Academic year mismatch: student "${attStudentId}" belongs to year "${student.academic_year}" but attendance is for "${attAcademicYear}".`
           }, { status: 400 });
         }
-      }
-    }
-
-    // ── LOCK ENFORCEMENT ──
-    // Non-admin users cannot edit locked records
-    if (existingRecord.is_locked) {
-      const userRole = (user.role || '').toLowerCase();
-      const isAdmin = userRole === 'admin' || userRole === 'principal';
-      
-      if (!isAdmin) {
-        return Response.json(
-          { error: 'Attendance is locked. Only admin can unlock and edit.' },
-          { status: 403 }
-        );
-      }
-
-      // Admin audit log for unlock/edit action
-      const auditData = {
-        action: 'unlock_and_edit',
-        module: 'Attendance',
-        date: existingRecord.date,
-        performed_by: user.email,
-        details: `Unlocked and edited attendance for student ${existingRecord.student_id} on ${existingRecord.date}. Changes: ${JSON.stringify(data)}`,
-        academic_year: existingRecord.academic_year
-      };
-
-      try {
-        await base44.asServiceRole.entities.AuditLog.create(auditData);
-      } catch (auditError) {
-        console.warn('Audit log failed but proceeding with unlock:', auditError);
       }
     }
 
