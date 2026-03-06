@@ -84,32 +84,35 @@ Deno.serve(async (req) => {
       }
     }
 
-    const studentId = `S${yy}${String(nextValue).padStart(3, '0')}`;
-    const studentIdNorm = studentId.toLowerCase();
-
-    // Check uniqueness
-    let uniqueAttempts = 0;
-    let finalId = studentId;
-    let finalNorm = studentIdNorm;
+    // Find the actual next available ID (skip gaps/dupes)
     let finalNextValue = nextValue;
+    let finalId = `S${yy}${String(finalNextValue).padStart(3, '0')}`;
+    let finalNorm = finalId.toLowerCase();
+    let uniqueAttempts = 0;
+    const maxUniqueAttempts = 100; // Allow more attempts to skip gaps
 
-    while (uniqueAttempts < 10) {
+    while (uniqueAttempts < maxUniqueAttempts) {
       const dupe = await base44.asServiceRole.entities.Student.filter({
         student_id_norm: finalNorm
       });
-      if (dupe.length === 0) break;
+      if (dupe.length === 0) break; // Found available ID
+      
       finalNextValue++;
       finalId = `S${yy}${String(finalNextValue).padStart(3, '0')}`;
       finalNorm = finalId.toLowerCase();
-      await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: finalNextValue });
       uniqueAttempts++;
     }
 
-    if (uniqueAttempts >= 10) {
+    if (uniqueAttempts >= maxUniqueAttempts) {
       return Response.json(
-        { error: 'Failed to generate unique student ID' },
+        { error: 'Failed to generate unique student ID after checking 100 candidates' },
         { status: 500 }
       );
+    }
+
+    // Update counter AFTER finding the actual available ID
+    if (finalNextValue !== nextValue && counter) {
+      await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: finalNextValue });
     }
 
     // Generate password
