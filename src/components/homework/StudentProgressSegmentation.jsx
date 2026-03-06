@@ -29,7 +29,9 @@ export default function StudentProgressSegmentation({
   submissions.forEach((sub) => {
     const key = sub.student_id;
     const current = submissionMap.get(key);
-    if (!current || new Date(sub.submitted_at) > new Date(current.submitted_at)) {
+    const currentTime = new Date(current?.submitted_at || current?.updated_at || 0).getTime();
+    const newTime = new Date(sub.submitted_at || sub.updated_at || 0).getTime();
+    if (!current || newTime > currentTime) {
       submissionMap.set(key, { ...sub, status: normalizeStatus(sub.status) });
     }
   });
