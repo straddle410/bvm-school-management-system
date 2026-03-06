@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
     }
 
     // 2. Verify token
+    console.log('[CHANGE_PASSWORD_TOKEN]', { hasToken: !!token, tokenLength: token?.length || 0 });
     const verified = await verifySessionToken(token);
     if (verified.error) {
       console.error(`[changeStaffPassword] ${verified.error}`);
