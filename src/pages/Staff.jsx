@@ -421,13 +421,14 @@ export default function Staff() {
   };
 
   const openResetPasswordModal = (member) => {
-    setResetPasswordStaff(member);
-    const genPwd = generateStrongPassword();
-    setGeneratedPassword(genPwd);
-    setManualPassword('');
-    setResetPasswordMode('auto');
-    setPasswordCopied(false);
-    setShowResetPasswordModal(true);
+   // Show confirmation dialog before resetting
+   const confirmed = window.confirm(
+     `Reset password for ${member.name} to default (Bvm@1234) and require change on next login?`
+   );
+   if (confirmed) {
+     setResetPasswordStaff(member);
+     setShowResetPasswordModal(true);
+   }
   };
 
   const handleResetPasswordSubmit = () => {
