@@ -1,5 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+// Status normalization helper for backward compatibility
+function normalizeStatus(status) {
+  if (!status) return null;
+  const upper = String(status).trim().toUpperCase();
+  const map = {
+    'SUBMITTED': 'SUBMITTED',
+    'GRADED': 'GRADED',
+    'REVISION_REQUIRED': 'REVISION_REQUIRED',
+    'REVISION REQUIRED': 'REVISION_REQUIRED',
+    'RESUBMITTED': 'RESUBMITTED',
+  };
+  return map[upper] || status;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -39,8 +53,10 @@ Deno.serve(async (req) => {
 
     // ── RESUBMISSION LOGIC ──
     if (existingSubmission) {
+      const normalizedExistingStatus = normalizeStatus(existingSubmission.status);
+      
       // Block resubmission if already graded
-      if (existingSubmission.status === 'GRADED') {
+      if (normalizedExistingStatus === 'GRADED') {
         return Response.json({
           error: 'ALREADY_GRADED',
           message: 'Homework already graded. You cannot resubmit.'
@@ -48,20 +64,22 @@ Deno.serve(async (req) => {
       }
 
       // Allow resubmission only if status is REVISION_REQUIRED or RESUBMITTED
-      if (existingSubmission.status === 'REVISION_REQUIRED' || existingSubmission.status === 'RESUBMITTED') {
+      if (normalizedExistingStatus === 'REVISION_REQUIRED' || normalizedExistingStatus === 'RESUBMITTED') {
         // Update existing submission with new attempt
-        const updatedData = {
-          ...submission,
-          attempt_no: (existingSubmission.attempt_no || 1) + 1,
-          status: 'RESUBMITTED',
-          submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          // Preserve grading fields from previous attempt
-          teacher_marks: existingSubmission.teacher_marks,
-          teacher_feedback: existingSubmission.teacher_feedback,
-          graded_at: existingSubmission.graded_at,
-          graded_by: existingSubmission.graded_by
-        };
+         const updatedData = {
+           ...submission,
+           attempt_no: (existingSubmission.attempt_no || 1) + 1,
+           status: 'RESUBMITTED',
+           submitted_at: new Date().toISOString(),
+           updated_at: new Date().toISOString(),
+           // Preserve revision feedback for display, but clear grading state
+           teacher_feedback: existingSubmission.teacher_feedback, // Keep feedback for student to see
+           // Clear grading state since work is being resubmitted
+           teacher_marks: undefined,
+           graded_at: undefined,
+           graded_by: undefined,
+           revision_requested_at: existingSubmission.revision_requested_at // Keep history
+         };
         
         const result = await base44.asServiceRole.entities.HomeworkSubmission.update(existingSubmission.id, updatedData);
         return Response.json({ success: true, id: result.id, action: 'resubmitted' }, { status: 200 });
