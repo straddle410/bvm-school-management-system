@@ -267,8 +267,9 @@ export default function Homework() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {homeworkList.map((item) => (
+            <>
+              <div className="space-y-3">
+                {homeworkList.map((item) => (
                 <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
