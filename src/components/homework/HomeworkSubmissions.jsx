@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 
 export default function HomeworkSubmissions({ homework, onClose }) {
   const [gradingId, setGradingId] = useState(null);
+  const [revisionId, setRevisionId] = useState(null);
   const [marks, setMarks] = useState('');
   const [feedback, setFeedback] = useState('');
   const qc = useQueryClient();
@@ -17,15 +18,36 @@ export default function HomeworkSubmissions({ homework, onClose }) {
 
   const gradeMutation = useMutation({
     mutationFn: ({ id, teacher_marks, teacher_feedback }) =>
-      base44.entities.HomeworkSubmission.update(id, { teacher_marks: Number(teacher_marks), teacher_feedback, status: 'Graded' }),
+      base44.entities.HomeworkSubmission.update(id, { 
+        teacher_marks: Number(teacher_marks), 
+        teacher_feedback, 
+        status: 'GRADED',
+        graded_at: new Date().toISOString(),
+        graded_by: 'Teacher' // Will be populated from staff session context
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
       setGradingId(null); setMarks(''); setFeedback('');
     }
   });
 
-  const submitted = submissions.length;
-  const graded = submissions.filter(s => s.status === 'Graded').length;
+  const revisionMutation = useMutation({
+    mutationFn: ({ id, teacher_feedback }) =>
+      base44.entities.HomeworkSubmission.update(id, { 
+        status: 'REVISION_REQUIRED',
+        teacher_feedback,
+        revision_requested_at: new Date().toISOString()
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
+      setRevisionId(null); setFeedback('');
+    }
+  });
+
+  const submitted = submissions.filter(s => s.status === 'SUBMITTED' || s.status === 'RESUBMITTED').length;
+  const graded = submissions.filter(s => s.status === 'GRADED').length;
+  const revisionRequired = submissions.filter(s => s.status === 'REVISION_REQUIRED').length;
+  const pending = submissions.length - submitted - graded - revisionRequired;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
@@ -39,21 +61,25 @@ export default function HomeworkSubmissions({ homework, onClose }) {
         </div>
 
         <div className="p-4">
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-blue-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-blue-700">{submitted}</p>
-              <p className="text-[10px] text-blue-600">Submitted</p>
-            </div>
-            <div className="bg-green-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-green-700">{graded}</p>
-              <p className="text-[10px] text-green-600">Graded</p>
-            </div>
-            <div className="bg-amber-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-amber-700">{submitted - graded}</p>
-              <p className="text-[10px] text-amber-600">Pending</p>
-            </div>
-          </div>
+           {/* Stats */}
+           <div className="grid grid-cols-2 gap-2 mb-4">
+             <div className="bg-blue-50 rounded-xl p-3 text-center">
+               <p className="text-lg font-bold text-blue-700">{submitted}</p>
+               <p className="text-[9px] text-blue-600">Submitted</p>
+             </div>
+             <div className="bg-green-50 rounded-xl p-3 text-center">
+               <p className="text-lg font-bold text-green-700">{graded}</p>
+               <p className="text-[9px] text-green-600">Graded</p>
+             </div>
+             <div className="bg-orange-50 rounded-xl p-3 text-center">
+               <p className="text-lg font-bold text-orange-700">{revisionRequired}</p>
+               <p className="text-[9px] text-orange-600">Revision</p>
+             </div>
+             <div className="bg-gray-50 rounded-xl p-3 text-center">
+               <p className="text-lg font-bold text-gray-700">{pending}</p>
+               <p className="text-[9px] text-gray-600">Pending</p>
+             </div>
+           </div>
 
           {isLoading ? (
             <div className="text-center py-8 text-gray-400">Loading submissions...</div>
@@ -77,9 +103,14 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                         </p>
                       )}
                     </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${sub.status === 'Graded' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {sub.status}
-                    </span>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      sub.status === 'GRADED' ? 'bg-green-100 text-green-700' :
+                      sub.status === 'REVISION_REQUIRED' ? 'bg-orange-100 text-orange-700' :
+                      sub.status === 'RESUBMITTED' ? 'bg-blue-100 text-blue-700' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                       {sub.status === 'REVISION_REQUIRED' ? 'Revision' : sub.status}
+                     </span>
                   </div>
 
                   {/* MCQ Score */}
@@ -114,21 +145,35 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                   )}
 
                   {/* Teacher feedback */}
-                  {sub.status === 'Graded' && (
-                    <div className="mt-2 bg-green-50 rounded-lg p-2 text-xs">
-                      <p className="font-medium text-green-700">Marks: {sub.teacher_marks}/{homework.max_marks || '—'}</p>
-                      {sub.teacher_feedback && <p className="text-green-600 mt-0.5">{sub.teacher_feedback}</p>}
+                  {(sub.status === 'GRADED' || sub.status === 'REVISION_REQUIRED') && (
+                    <div className={`mt-2 rounded-lg p-2 text-xs ${sub.status === 'GRADED' ? 'bg-green-50' : 'bg-orange-50'}`}>
+                      {sub.status === 'GRADED' && (
+                        <p className="font-medium text-green-700">Marks: {sub.teacher_marks}/{homework.max_marks || '—'}</p>
+                      )}
+                      {sub.teacher_feedback && (
+                        <p className={`mt-0.5 ${sub.status === 'GRADED' ? 'text-green-600' : 'text-orange-600'}`}>
+                          {sub.teacher_feedback}
+                        </p>
+                      )}
                     </div>
                   )}
 
-                  {/* Grade button */}
-                  {sub.status !== 'Graded' && gradingId !== sub.id && (
-                    <button
-                      onClick={() => { setGradingId(sub.id); setMarks(sub.teacher_marks || ''); setFeedback(sub.teacher_feedback || ''); }}
-                      className="mt-2 text-xs text-[#1a237e] font-medium flex items-center gap-1"
-                    >
-                      <CheckCircle className="h-3 w-3" /> Grade Submission
-                    </button>
+                  {/* Action buttons */}
+                  {sub.status !== 'GRADED' && gradingId !== sub.id && revisionId !== sub.id && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => { setGradingId(sub.id); setMarks(sub.teacher_marks || ''); setFeedback(sub.teacher_feedback || ''); }}
+                        className="text-xs text-[#1a237e] font-medium flex items-center gap-1 flex-1 justify-center"
+                      >
+                        <CheckCircle className="h-3 w-3" /> Grade
+                      </button>
+                      <button
+                        onClick={() => { setRevisionId(sub.id); setFeedback(sub.teacher_feedback || ''); }}
+                        className="text-xs text-orange-700 font-medium flex items-center gap-1 flex-1 justify-center"
+                      >
+                        ↻ Revision
+                      </button>
+                    </div>
                   )}
 
                   {gradingId === sub.id && (
@@ -140,7 +185,20 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                       <div className="flex gap-2">
                         <button onClick={() => setGradingId(null)} className="flex-1 text-xs text-gray-500 border border-gray-200 rounded-lg py-1.5">Cancel</button>
                         <button onClick={() => gradeMutation.mutate({ id: sub.id, teacher_marks: marks, teacher_feedback: feedback })}
-                          className="flex-1 text-xs text-white bg-[#1a237e] rounded-lg py-1.5 font-medium">Save Grade</button>
+                          className="flex-1 text-xs text-white bg-green-600 rounded-lg py-1.5 font-medium">Grade</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {revisionId === sub.id && (
+                    <div className="mt-2 space-y-2">
+                      <textarea placeholder="Feedback: describe what needs correction (required)" value={feedback} onChange={e => setFeedback(e.target.value)} rows={2}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
+                      <div className="flex gap-2">
+                        <button onClick={() => setRevisionId(null)} className="flex-1 text-xs text-gray-500 border border-gray-200 rounded-lg py-1.5">Cancel</button>
+                        <button onClick={() => revisionMutation.mutate({ id: sub.id, teacher_feedback: feedback })}
+                          disabled={!feedback.trim()}
+                          className="flex-1 text-xs text-white bg-orange-600 rounded-lg py-1.5 font-medium disabled:opacity-50">Request Revision</button>
                       </div>
                     </div>
                   )}
