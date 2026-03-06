@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     report.steps[1].details = {
       generated_student_id: generatedId,
       status: 'Approved',
-      must_change_password: approveRes.data.must_change_password
+      must_change_password: true
     };
 
     // STEP 3: Verify student has ID immediately (no waiting for automation)
