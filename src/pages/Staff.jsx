@@ -436,8 +436,9 @@ export default function Staff() {
     }
     
     if (resetPasswordMode === 'manual') {
-      if (!manualPassword || manualPassword.length < 8) {
-        toast.error('Password must be at least 8 characters');
+      const { valid, message } = validatePasswordPolicy(manualPassword);
+      if (!valid) {
+        toast.error(message);
         return;
       }
       resetPasswordMutation.mutate({
