@@ -49,7 +49,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           is_late: isLate,
           mcq_score,
           mcq_total,
-          status: 'Submitted',
+          status: HOMEWORK_STATUS.SUBMITTED,
         }
       });
       if (res.data?.error) throw new Error(res.data.error);
@@ -194,8 +194,8 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
                       const val = q[`option_${opt.toLowerCase()}`];
                       if (!val) return null;
                       const selected = mcqAnswers[i]?.selected_option === opt;
-                      const showCorrect = isSubmitted && opt === q.correct_answer;
-                      const showWrong = isSubmitted && selected && opt !== q.correct_answer;
+                      const showCorrect = isGraded && opt === q.correct_answer;
+                      const showWrong = isGraded && selected && opt !== q.correct_answer;
                       return (
                         <button
                           key={opt}
