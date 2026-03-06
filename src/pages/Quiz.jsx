@@ -159,8 +159,12 @@ export default function Quiz() {
      enabled: !!academicYear
    });
 
-  const createQuizMutation = useMutation({
+   const createQuizMutation = useMutation({
     mutationFn: async (data) => {
+      const res = await base44.functions.invoke('submitQuizAttempt', {
+        quiz_data: { ...data, academic_year: academicYear }
+      });
+      if (res.data?.error) throw new Error(res.data.error);
       const quiz = await base44.entities.Quiz.create({ ...data, academic_year: academicYear });
       await base44.entities.Quiz.update(quiz.id, { status: 'Published' });
       return quiz;
@@ -172,7 +176,7 @@ export default function Quiz() {
       resetQuizForm();
       toast.success('Quiz created and published successfully');
     }
-  });
+   });
 
   const submitQuizMutation = useMutation({
     mutationFn: (id) => base44.entities.Quiz.update(id, { status: 'Published' }),
