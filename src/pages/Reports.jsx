@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import LoginRequired from '@/components/LoginRequired';
