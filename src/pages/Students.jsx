@@ -500,7 +500,7 @@ export default function Students() {
           }
         />
 
-        <div className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+        <div className="max-w-5xl mx-auto px-4 py-5 space-y-5">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
