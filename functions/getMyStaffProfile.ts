@@ -154,15 +154,15 @@ Deno.serve(async (req) => {
     const tokenRole = tokenPayload.role;
 
     // Load StaffAccount:
-    // 1) Direct get by id (most reliable — avoids filter({id}) which doesn't work on built-in fields)
-    console.log(`[getMyStaffProfile] Looking up StaffAccount id=${staff_id}`);
+    // CRITICAL: Must use .get(id) not .filter({id:...}) — filter does NOT work on built-in 'id' field
+    console.log(`[getMyStaffProfile] Looking up StaffAccount by .get(${staff_id})`);
     let account = null;
     try {
       const fetched = await base44.asServiceRole.entities.StaffAccount.get(staff_id);
       if (fetched && fetched.id) account = fetched;
-      console.log(`[getMyStaffProfile] Direct get result: ${account ? 'FOUND name=' + account.name : 'NOT_FOUND'}`);
+      console.log(`[getMyStaffProfile] .get() result: ${account ? 'FOUND name=' + account.name : 'NOT_FOUND'}`);
     } catch (getErr) {
-      console.warn(`[getMyStaffProfile] Direct get failed: ${getErr.message}`);
+      console.warn(`[getMyStaffProfile] .get() failed: ${getErr.message}`);
     }
 
     // 2) Fallback: search by username
