@@ -47,17 +47,31 @@ export default function Profile() {
         setIsLoading(false);
         return;
       }
-      const res = await base44.functions.invoke('getMyStaffProfile', {
-        staff_session_token: token,
-      });
+      let res;
+      try {
+        res = await base44.functions.invoke('getMyStaffProfile', {
+          staff_session_token: token,
+        });
+      } catch (invokeErr) {
+        // Axios throws on non-2xx — extract error data from response
+        const errData = invokeErr?.response?.data;
+        const code = errData?.code || 'ERROR';
+        const msg = errData?.error || invokeErr?.message || 'Could not load profile';
+        console.error('[PROFILE_REQUEST] invoke error:', code, msg);
+        // If session is stale/expired, clear it and prompt re-login
+        if (code === 'TOKEN_EXPIRED' || code === 'TOKEN_INVALID' || code === 'TOKEN_MISSING') {
+          localStorage.removeItem('staff_session');
+        }
+        setError(msg);
+        setErrorCode(code);
+        setIsLoading(false);
+        return;
+      }
 
       if (!res.data || res.data.error) {
         const code = res.data?.code || 'UNKNOWN';
         setError(res.data?.error || 'Could not load profile');
         setErrorCode(code);
-        if (code === 'PROFILE_AUTO_CREATED') {
-          toast.success('Profile created automatically');
-        }
         setIsLoading(false);
         return;
       }
