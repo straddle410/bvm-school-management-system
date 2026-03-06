@@ -29,6 +29,7 @@ async function getSessionKey() {
 
 async function verifySessionToken(token) {
    try {
+     console.log('[verifySessionToken] START, token length=', token.length);
      const dotIdx = token.lastIndexOf('.');
      if (dotIdx < 0) {
        console.error('[getMyStaffProfile] TOKEN_INVALID: no dot separator found, token_length=', token.length);
