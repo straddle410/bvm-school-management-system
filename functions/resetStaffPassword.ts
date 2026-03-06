@@ -3,8 +3,10 @@ import bcrypt from 'npm:bcryptjs@2.4.3';
 
 /**
  * Admin resets staff password
- * Sets temporary password (as bcrypt) and force_password_change flag
+ * Auto-uses default password Bvm@1234 and sets force_password_change flag
  */
+const DEFAULT_TEMP_PASSWORD = 'Bvm@1234';
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
@@ -12,10 +14,10 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_id, temp_password, staff_session_token } = await req.json();
+    const { staff_id, staff_session_token } = await req.json();
 
-    if (!staff_id || !temp_password) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!staff_id) {
+      return Response.json({ error: 'Missing staff_id' }, { status: 400 });
     }
 
     // Verify admin via staff session token.
