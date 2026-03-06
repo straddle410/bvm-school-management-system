@@ -89,8 +89,17 @@ Deno.serve(async (req) => {
     let wasLegacyHash = false;
 
     // Try bcrypt first (current standard)
-    if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$')) {
-      passwordValid = await bcrypt.compare(password, account.password_hash);
+    if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$') || account.password_hash?.startsWith('$2y$')) {
+      try {
+        passwordValid = await bcrypt.compare(password, account.password_hash);
+      } catch (bcryptErr) {
+        // Hash is malformed / corrupt (e.g. fake-bcrypt written as real bcrypt)
+        console.error(`[staffLogin] PASSWORD_HASH_INVALID for staff_id=${account.id}: ${bcryptErr.message}`);
+        return Response.json({
+          error: 'Your password data is corrupt. Contact administrator to reset your password.',
+          code: 'PASSWORD_HASH_INVALID',
+        }, { status: 401 });
+      }
     } else if (account.password_hash) {
       // Legacy fake bcrypt fallback
       wasLegacyHash = true;
