@@ -626,6 +626,10 @@ export default function Homework() {
                         </Button>
                         <Button
                           onClick={() => {
+                            if (!canManageHomework(item, user)) {
+                              toast.error('You cannot delete this homework');
+                              return;
+                            }
                             if (confirm('Delete this homework?')) {
                               deleteMutation.mutate(item.id);
                             }
