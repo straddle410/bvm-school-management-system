@@ -139,7 +139,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
            pending={pending}
            graded={graded}
            revisionRequired={revisionRequired}
-           lateCount={submissions.filter(s => s.is_late).length}
+           lateCount={lateCount}
            averageMarks={averageMarks}
            highestMarks={highestMarks}
            lowestMarks={lowestMarks}
