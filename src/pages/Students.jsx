@@ -570,6 +570,7 @@ export default function Students() {
                 <>
                   <div className="h-5 w-px bg-gray-200" />
                   <div className="flex items-center gap-2 flex-wrap">
+                    {/* Status bulk action */}
                     <Select value={bulkAction} onValueChange={setBulkAction}>
                       <SelectTrigger className="h-8 text-xs w-44 rounded-xl">
                         <SelectValue placeholder="Change status to…" />
@@ -588,8 +589,30 @@ export default function Students() {
                     >
                       <CheckCircle className="h-3.5 w-3.5 mr-1" /> Apply
                     </Button>
+
+                    <div className="h-5 w-px bg-gray-200" />
+
+                    {/* Transport bulk action */}
+                    <Select value={transportAction} onValueChange={setTransportAction}>
+                      <SelectTrigger className="h-8 text-xs w-40 rounded-xl">
+                        <SelectValue placeholder="Transport…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="on">Transport ON</SelectItem>
+                        <SelectItem value="off">Transport OFF</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      className="h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs"
+                      disabled={!transportAction}
+                      onClick={() => setShowTransportConfirm(true)}
+                    >
+                      <Bus className="h-3.5 w-3.5 mr-1" /> Apply
+                    </Button>
+
                     <button
-                      onClick={() => { setSelectedIds(new Set()); setBulkAction(''); }}
+                      onClick={() => { setSelectedIds(new Set()); setBulkAction(''); setTransportAction(''); }}
                       className="text-xs text-gray-400 hover:text-gray-600 underline"
                     >
                       Clear
