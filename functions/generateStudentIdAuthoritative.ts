@@ -77,12 +77,12 @@ Deno.serve(async (req) => {
     const studentIdNorm = studentId.toLowerCase();
 
     // Case-insensitive uniqueness check
-    let attempts = 0;
+    let uniqueAttempts = 0;
     let finalId = studentId;
     let finalNorm = studentIdNorm;
     let finalNextValue = nextValue;
 
-    while (attempts < 10) {
+    while (uniqueAttempts < 10) {
       const dupe = await base44.asServiceRole.entities.Student.filter({
         student_id_norm: finalNorm
       });
@@ -91,10 +91,10 @@ Deno.serve(async (req) => {
       finalId = `S${yy}${String(finalNextValue).padStart(3, '0')}`;
       finalNorm = finalId.toLowerCase();
       await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: finalNextValue });
-      attempts++;
+      uniqueAttempts++;
     }
 
-    if (attempts >= 10) {
+    if (uniqueAttempts >= 10) {
       return Response.json(
         { error: 'Failed to generate unique student ID after 10 attempts' },
         { status: 500 }
