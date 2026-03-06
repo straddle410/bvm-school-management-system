@@ -11,10 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookMarked, Trash2, CheckCircle2, Circle, Check } from 'lucide-react';
+import { Plus, BookMarked, Trash2, CheckCircle2, Circle, Check, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { format } from 'date-fns';
+import AIAssistDrawer from '@/components/AIAssistDrawer';
 
 export default function Homework() {
   const [user, setUser] = useState(null);
@@ -377,7 +378,16 @@ export default function Homework() {
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>{editingItem ? 'Edit Homework' : 'Add Homework'}</DialogTitle>
+                <div className="flex items-center justify-between">
+                  <DialogTitle>{editingItem ? 'Edit Homework' : 'Add Homework'}</DialogTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAIAssist(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" /> AI Assist
+                  </Button>
+                </div>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -503,10 +513,29 @@ export default function Homework() {
                   </Button>
                 </div>
               </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-    </LoginRequired>
-  );
-}
+              </DialogContent>
+              </Dialog>
+
+              {showAIAssist && (
+              <AIAssistDrawer
+              type="homework"
+              className={form.class_name}
+              section={form.section}
+              academicYear={academicYear}
+              onInsert={(generated) => {
+              setForm(f => ({
+                ...f,
+                title: generated.title || f.title,
+                description: generated.instructions || f.description
+              }));
+              setShowAIAssist(false);
+              toast.success('Content inserted!');
+              }}
+              onClose={() => setShowAIAssist(false)}
+              />
+              )}
+              </div>
+              </div>
+              </LoginRequired>
+              );
+              }
