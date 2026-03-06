@@ -26,17 +26,33 @@ export default function StudentHomework() {
    const [filter, setFilter] = useState('all'); // all, pending, submitted
 
    useEffect(() => {
-     const s = getStudentSession();
-     if (!s) { window.location.href = createPageUrl('StudentLogin'); return; }
-     console.log('[STUDENT_HOMEWORK_SESSION]', {
-       student_id: s.student_id,
-       class_name: s.class_name,
-       section: s.section,
-       academic_year: s.academic_year,
-       name: s.name,
-     });
-     setStudent(s);
-   }, []);
+      const s = getStudentSession();
+      if (!s) { window.location.href = createPageUrl('StudentLogin'); return; }
+      console.log('[STUDENT_HOMEWORK_SESSION]', {
+        student_id: s.student_id,
+        class_name: s.class_name,
+        section: s.section,
+        academic_year: s.academic_year,
+        name: s.name,
+      });
+      setStudent(s);
+
+      // Auto-debug for S25007
+      if (s.student_id === 'S25007' || s.student_id === 'S00007') {
+        (async () => {
+          try {
+            console.log('[DEBUG_START] Running debug for ' + s.student_id);
+            const result = await base44.functions.invoke('debugStudentHomeworkVisibility', { 
+              student_id: s.student_id,
+              academic_year: s.academic_year
+            });
+            console.log('[STUDENT_HOMEWORK_DEBUG_FN]', result);
+          } catch (err) {
+            console.log('[DEBUG_ERROR]', err.message);
+          }
+        })();
+      }
+    }, []);
 
   const { data: homeworks = [], isLoading } = useQuery({
     queryKey: ['student-homework', student?.class_name, student?.section, student?.academic_year],
@@ -70,7 +86,9 @@ export default function StudentHomework() {
         const hwSection = hw.section || 'All';
         const classMatch = hw.class_name === student.class_name;
         const sectionMatch = hwSection === 'All' || hwSection === student.section;
-        const match = classMatch && sectionMatch;
+        const academicYearMatch = !hw.academic_year || hw.academic_year === student.academic_year;
+        const statusMatch = hw.status === 'Published';
+        const match = classMatch && sectionMatch && academicYearMatch && statusMatch;
 
         if (!match) {
           console.log('[STUDENT_HW_REJECT]', {
@@ -80,8 +98,14 @@ export default function StudentHomework() {
             expected_class: student.class_name,
             hw_section: hwSection,
             expected_section: student.section,
+            hw_academic_year: hw.academic_year,
+            expected_academic_year: student.academic_year,
+            hw_status: hw.status,
             classMatch,
             sectionMatch,
+            academicYearMatch,
+            statusMatch,
+            finalMatch: match,
           });
         }
         return match;
@@ -90,7 +114,14 @@ export default function StudentHomework() {
       console.log('[STUDENT_HOMEWORK_FILTERED]', {
         allCount: allHomework.length,
         filteredCount: filtered.length,
-        filtered: filtered.map(hw => ({ id: hw.id, title: hw.title })),
+        filtered: filtered.map(hw => ({ 
+          id: hw.id, 
+          title: hw.title,
+          class: hw.class_name,
+          section: hw.section,
+          academic_year: hw.academic_year,
+          status: hw.status,
+        })),
       });
 
       return filtered;
