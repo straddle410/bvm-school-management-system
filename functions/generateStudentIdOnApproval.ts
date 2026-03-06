@@ -72,6 +72,20 @@ Deno.serve(async (req) => {
     const finalId = `S${yy}${String(nextValue).padStart(3, '0')}`;
     const finalNorm = finalId.toLowerCase();
 
+    // Double-check uniqueness (race condition safety)
+    const dupeCheck = await base44.asServiceRole.entities.Student.filter({
+      student_id_norm: finalNorm
+    });
+    if (dupeCheck.length > 0) {
+      return Response.json(
+        { 
+          error: 'Student ID collision detected after generation',
+          details: `${finalId} was assigned by another approval while this one was processing`
+        },
+        { status: 409 }
+      );
+    }
+
     // Generate password
     const tempPassword = `BVM${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
