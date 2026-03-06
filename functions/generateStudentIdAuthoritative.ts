@@ -21,50 +21,54 @@ Deno.serve(async (req) => {
     const counterKey = `student_id_${startYear}`;
 
     // Get or create counter for this academic year
-    const counters = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
-    let counter = counters[0];
+    let counter = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
+    counter = counter[0];
+    
     let nextValue;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    if (!counter) {
-      // First student of this academic year — find max existing ID for this year prefix
-      const allStudents = await base44.asServiceRole.entities.Student.list('', 10000);
-      const pattern = new RegExp(`^S${yy}(\\d{3})$`, 'i');
-      const existing = allStudents
-        .map(s => s.student_id)
-        .filter(id => id && pattern.test(id))
-        .map(id => {
-          const match = id.match(/^S\d{2}(\d{3})$/i);
-          return match ? parseInt(match[1], 10) : 0;
-        });
-      const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
-      nextValue = maxExisting + 1;
-
+    while (attempts < maxAttempts) {
       try {
-        counter = await base44.asServiceRole.entities.Counter.create({
-          key: counterKey,
-          current_value: nextValue
-        });
-      } catch (createErr) {
-        // Race condition: another concurrent request created it
-        const existing = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
-        counter = existing[0];
-        nextValue = (counter.current_value || 0) + 1;
-      }
-    } else {
-      nextValue = (counter.current_value || 0) + 1;
-    }
+        if (!counter) {
+          // First student of this academic year — find max existing ID for this year prefix
+          const allStudents = await base44.asServiceRole.entities.Student.list('', 10000);
+          const pattern = new RegExp(`^S${yy}(\\d{3})$`, 'i');
+          const existing = allStudents
+            .map(s => s.student_id)
+            .filter(id => id && pattern.test(id))
+            .map(id => {
+              const match = id.match(/^S\d{2}(\d{3})$/i);
+              return match ? parseInt(match[1], 10) : 0;
+            });
+          const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
+          nextValue = maxExisting + 1;
 
-    // Always update to ensure proper sequence
-    if (counter) {
-      try {
-        await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
+          counter = await base44.asServiceRole.entities.Counter.create({
+            key: counterKey,
+            current_value: nextValue
+          });
+          break; // Success
+        } else {
+          // Increment existing counter
+          nextValue = (counter.current_value || 0) + 1;
+          await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
+          break; // Success
+        }
       } catch (e) {
-        // Retry once on conflict
-        const latest = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
-        if (latest[0]) {
-          const latestVal = latest[0].current_value || 0;
-          nextValue = Math.max(nextValue, latestVal + 1);
-          await base44.asServiceRole.entities.Counter.update(latest[0].id, { current_value: nextValue });
+        // Conflict: refresh counter and retry
+        attempts++;
+        const refreshed = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
+        counter = refreshed[0];
+        
+        if (!counter && attempts < maxAttempts) {
+          // Still no counter, try again
+          await new Promise(r => setTimeout(r, 10 * attempts));
+          counter = null;
+          continue;
+        }
+        if (attempts >= maxAttempts) {
+          throw new Error(`Failed to acquire counter lock after ${maxAttempts} attempts`);
         }
       }
     }
