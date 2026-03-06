@@ -72,8 +72,13 @@ export default function StaffLogin() {
 
       localStorage.setItem('staff_session', JSON.stringify(session));
 
-      // Debug info
-      console.log(`[StaffLogin] role=${response.data.role} staff_id=${response.data.staff_id} token_exp=${response.data.token_exp_iso}`);
+      // Debug: decode token claims to confirm structure
+      try {
+        const tokenParts = response.data.staff_session_token.split('.');
+        const claims = JSON.parse(atob(tokenParts[0].replace(/-/g, '+').replace(/_/g, '/') + '=='));
+        console.log('[StaffLogin] Token claims:', { staff_id: claims.staff_id, username: claims.username, role: claims.role, iat: claims.iat, exp: claims.exp });
+      } catch {}
+      console.log(`[StaffLogin] Session saved: role=${response.data.role} staff_id=${response.data.staff_id} username=${response.data.username} token_exp=${response.data.token_exp_iso}`);
 
       // If password change required, redirect to change password
       if (response.data.force_password_change) {
