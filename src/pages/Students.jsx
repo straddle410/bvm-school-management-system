@@ -103,7 +103,7 @@ export default function Students() {
       });
       return res.data;
     },
-    enabled: !!academicYear,
+    enabled: !!academicYear && roleLoaded,
     keepPreviousData: true
   });
 
