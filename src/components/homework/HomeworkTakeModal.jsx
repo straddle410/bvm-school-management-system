@@ -8,8 +8,10 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
   const hw = homework;
   const qc = useQueryClient();
   const isSubmitted = !!existingSubmission;
-  const isGraded = existingSubmission?.status === 'Graded';
+  const isGraded = existingSubmission?.status === 'GRADED';
+  const isRevisionRequired = existingSubmission?.status === 'REVISION_REQUIRED';
   const isViewOnly = hw.submission_mode === 'VIEW_ONLY';
+  const canResubmit = isRevisionRequired;
 
   const [mcqAnswers, setMcqAnswers] = useState(
     existingSubmission?.mcq_answers || hw.mcq_questions?.map((_, i) => ({ question_index: i, selected_option: '' })) || []
@@ -121,14 +123,24 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
             }`}>
               {isViewOnly ? '👁 View Only' : '📝 Submission Required'}
             </span>
-            {isSubmitted && (
-              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700">
-                ✓ Submitted
+            {isSubmitted && !isRevisionRequired && !isGraded && (
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                ✓ Submitted (Attempt {existingSubmission.attempt_no || 1})
+              </span>
+            )}
+            {isRevisionRequired && (
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-orange-100 text-orange-700">
+                ⚠ Revision Required
               </span>
             )}
             {isGraded && (
               <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700">
                 ⭐ Graded: {existingSubmission.teacher_marks}{hw.max_marks ? `/${hw.max_marks}` : ''}
+              </span>
+            )}
+            {existingSubmission?.is_late && (
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-700">
+                Late
               </span>
             )}
           </div>
@@ -259,6 +271,12 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           )}
 
           {/* Feedback */}
+          {isRevisionRequired && existingSubmission.teacher_feedback && (
+            <div className="bg-orange-50 rounded-2xl p-4 border border-orange-200">
+              <p className="text-xs font-semibold text-orange-900 mb-2">⚠ Revision Requested</p>
+              <p className="text-sm text-orange-800 leading-relaxed">{existingSubmission.teacher_feedback}</p>
+            </div>
+          )}
           {isGraded && existingSubmission.teacher_feedback && (
             <div className="bg-green-50 rounded-2xl p-4 border border-green-200">
               <p className="text-xs font-semibold text-green-900 mb-2">💬 Teacher Feedback</p>
@@ -277,10 +295,35 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
             >
               Close
             </button>
-          ) : isSubmitted ? (
+          ) : isGraded ? (
             <button
               onClick={onClose}
               className="w-full bg-green-600 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-green-700 transition-colors"
+            >
+              ✓ Graded
+            </button>
+          ) : canResubmit ? (
+            <button
+              onClick={() => submitMutation.mutate()}
+              disabled={submitMutation.isPending}
+              className="w-full bg-orange-600 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {submitMutation.isPending ? (
+                <>
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Resubmitting...
+                </>
+              ) : (
+                <>
+                  <Send className="h-5 w-5" />
+                  Resubmit Homework
+                </>
+              )}
+            </button>
+          ) : isSubmitted ? (
+            <button
+              onClick={onClose}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
             >
               ✓ Submitted
             </button>
