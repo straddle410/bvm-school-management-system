@@ -31,7 +31,7 @@ const EMPTY_FORM = {
 };
 
 export default function Students() {
-  const { academicYear, setAcademicYear } = useAcademicYear();
+  const { academicYear, setAcademicYear, roleLoaded } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [search, setSearch] = useState('');
