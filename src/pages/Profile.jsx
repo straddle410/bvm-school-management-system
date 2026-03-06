@@ -29,11 +29,20 @@ export default function Profile() {
     setError('');
     setErrorCode('');
     try {
-      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
-      const token = session?.staff_session_token;
+      let session = null;
+      try { session = JSON.parse(localStorage.getItem('staff_session') || '{}'); } catch {}
+      const token = session?.staff_session_token || null;
+
+      console.log('[PROFILE_REQUEST]', {
+        hasToken: !!token,
+        tokenLen: token ? token.length : 0,
+        staff_id: session?.staff_id,
+        username: session?.username,
+        role: session?.role,
+      });
+
       if (!token) {
-        toast.error('Session expired. Please login again.');
-        setError('No session token found. Please login again.');
+        setError('Session expired. Please login again.');
         setErrorCode('TOKEN_MISSING');
         setIsLoading(false);
         return;
