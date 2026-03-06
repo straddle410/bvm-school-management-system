@@ -5,13 +5,14 @@ const CLOCK_SKEW_MS = 2 * 60 * 1000;
 
 function b64urlDecode(str) {
   // Convert URL-safe base64 to standard base64
-  const standard = str.replace(/-/g, '+').replace(/_/g, '/');
-  // Add padding
+  let standard = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding to multiple of 4
   const pad = standard.length % 4 === 0 ? '' : '='.repeat(4 - (standard.length % 4));
-  const padded = standard + pad;
-  // Simply decode as UTF-8 string (JSON will be ASCII-compatible)
+  standard = standard + pad;
+  // Decode using Buffer (Node/Deno compatible)
   try {
-    return atob(padded);
+    const bytes = Uint8Array.from(atob(standard), c => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
   } catch (err) {
     throw new Error(`Base64 decode failed: ${err.message}`);
   }
