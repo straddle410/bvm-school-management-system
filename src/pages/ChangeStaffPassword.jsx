@@ -106,6 +106,12 @@ export default function ChangeStaffPassword() {
         setTimeout(() => navigate(createPageUrl('Dashboard')), 2000);
       }
     } catch (err) {
+      console.error('[CHANGE_PASSWORD_ERROR]', {
+        status: err.response?.status,
+        code: err.response?.data?.code,
+        error: err.response?.data?.error,
+        message: err.message,
+      });
       const code = err.response?.data?.code || 'UNKNOWN_ERROR';
       const msg = ERROR_MESSAGES[code] || err.response?.data?.error || ERROR_MESSAGES.UNKNOWN_ERROR;
       setError(msg);
