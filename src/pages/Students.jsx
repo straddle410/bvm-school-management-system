@@ -391,7 +391,8 @@ export default function Students() {
       if (!window.confirm(`Archive ${student.name} as "Passed Out"? The record will become read-only.`)) return;
       const archiveRes = await base44.functions.invoke('updateStudentWithAudit', {
         student_db_id: student.id,
-        updates: { status: 'Passed Out' }
+        updates: { status: 'Passed Out' },
+        staff_session_token: getStaffSession()?.staff_session_token || null
       });
       if (archiveRes.data?.error) { toast.error(archiveRes.data.error); return; }
       queryClient.invalidateQueries(['students']);
