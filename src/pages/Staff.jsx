@@ -26,11 +26,8 @@ const generateTempPassword = () => {
   return 'BVM@' + Math.floor(1000 + Math.random() * 9000);
 };
 
-const hashPassword = (password) => {
-  // Must match staffLogin & resetStaffPassword exactly
-  if (!password) return '';
-  return '$2b$10$' + btoa(password).substring(0, 53);
-};
+// Real bcrypt hashing is done server-side via hashStaffPassword function
+// DO NOT hash client-side — fake hashes cause login failures
 
 const roleColors = {
   Teacher: 'bg-blue-100 text-blue-700',
