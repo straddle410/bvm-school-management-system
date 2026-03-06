@@ -21,15 +21,22 @@ function getStudentSession() {
 }
 
 export default function StudentHomework() {
-  const [student, setStudent] = useState(null);
-  const [activeHW, setActiveHW] = useState(null);
-  const [filter, setFilter] = useState('all'); // all, pending, submitted
+   const [student, setStudent] = useState(null);
+   const [activeHW, setActiveHW] = useState(null);
+   const [filter, setFilter] = useState('all'); // all, pending, submitted
 
-  useEffect(() => {
-    const s = getStudentSession();
-    if (!s) { window.location.href = createPageUrl('StudentLogin'); return; }
-    setStudent(s);
-  }, []);
+   useEffect(() => {
+     const s = getStudentSession();
+     if (!s) { window.location.href = createPageUrl('StudentLogin'); return; }
+     console.log('[STUDENT_HOMEWORK_SESSION]', {
+       student_id: s.student_id,
+       class_name: s.class_name,
+       section: s.section,
+       academic_year: s.academic_year,
+       name: s.name,
+     });
+     setStudent(s);
+   }, []);
 
   const { data: homeworks = [], isLoading } = useQuery({
     queryKey: ['student-homework', student?.class_name, student?.section, student?.academic_year],
@@ -42,18 +49,33 @@ export default function StudentHomework() {
         200
       );
 
+      console.log('[STUDENT_HOMEWORK_ALL]', allHomework.map(hw => ({
+        id: hw.id,
+        title: hw.title,
+        class_name: hw.class_name,
+        section: hw.section,
+        status: hw.status,
+        academic_year: hw.academic_year,
+      })));
+
       // Filter by section: only show homework where section is "All" or matches student's section
       const filtered = allHomework.filter(hw => {
         const hwSection = hw.section || 'All';
-        return hwSection === 'All' || hwSection === student.section;
+        const classMatch = hw.class_name === student.class_name;
+        const sectionMatch = hwSection === 'All' || hwSection === student.section;
+        const match = classMatch && sectionMatch;
+
+        if (!match) {
+          console.log(`[STUDENT_HW_REJECT] hw=${hw.id} ${hw.title} class=${hw.class_name} (expect ${student.class_name}) section=${hwSection} (expect ${student.section} or All)`);
+        }
+        return match;
       });
 
-      console.log('[STUDENT_HW_FILTER]', {
-        class: student.class_name,
-        section: student.section,
-        year: student.academic_year,
+      console.log('[STUDENT_HOMEWORK_FILTERED]', {
+        query: { class: student.class_name, section: student.section, year: student.academic_year },
         allCount: allHomework.length,
         filteredCount: filtered.length,
+        filtered: filtered.map(hw => ({ id: hw.id, title: hw.title, class: hw.class_name, section: hw.section })),
       });
 
       return filtered;
