@@ -174,6 +174,10 @@ export default function Homework() {
   };
 
   const handleEdit = (item) => {
+    if (!canManageHomework(item, user)) {
+      toast.error('You cannot edit this homework');
+      return;
+    }
     setEditingItem(item);
     setForm({
       title: item.title,
