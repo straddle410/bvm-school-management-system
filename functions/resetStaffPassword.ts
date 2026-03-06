@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
     console.log(`[RESET_PASSWORD] Resetting password for staff: ${staff[0].username}`);
 
-    // Hash temporary password using bcrypt
+    // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
     const hash = await bcrypt.hash(temp_password, 10);
 
     // Update staff account
