@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow, isPast } from 'date-fns';
+import { base44 } from '@/api/base44Client';
+import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
 
 const statusBadges = {
   'Draft': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' },
@@ -20,14 +22,58 @@ const quickBadges = {
 
 export default function HomeworkRowMetrics({
   homework,
-  totalStudents = 0,
-  submittedCount = 0,      // Latest status = SUBMITTED or RESUBMITTED
-  pendingCount = 0,
-  gradedCount = 0,         // Latest status = GRADED
-  revisionRequiredCount = 0, // Latest status = REVISION_REQUIRED
-  lateSubmissionCount = 0,  // Unique students with latest submission marked late
+  submissions = [],
+  assignedStudents = [],
 }) {
-  const completionPercent = totalStudents > 0 ? Math.round(((submittedCount + gradedCount + revisionRequiredCount) / totalStudents) * 100) : 0;
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    const loadMetrics = async () => {
+      try {
+        // Get assigned students if not provided
+        let students = assignedStudents;
+        if (assignedStudents.length === 0) {
+          const studentFilter = {
+            class_name: homework.class_name,
+            is_deleted: { $ne: true },
+            is_active: true,
+            status: { $in: ['Verified', 'Approved', 'Published'] },
+          };
+          if (homework.section && homework.section !== 'All') {
+            studentFilter.section = homework.section;
+          }
+          students = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
+        }
+        
+        const calculated = getHomeworkAggregatedMetrics(homework, submissions, students);
+        setMetrics(calculated);
+      } catch (err) {
+        console.error('Error loading metrics:', err);
+        // Fallback to empty metrics
+        setMetrics({
+          totalStudents: 0,
+          submittedCount: 0,
+          pendingCount: 0,
+          gradedCount: 0,
+          revisionRequiredCount: 0,
+          lateCount: 0,
+          completionPercent: 0,
+        });
+      }
+    };
+    
+    loadMetrics();
+  }, [homework, submissions, assignedStudents]);
+
+  if (!metrics) return <div className="text-center py-2 text-gray-400">Loading metrics...</div>;
+
+  const totalStudents = metrics.totalStudents;
+  const submittedCount = metrics.submittedCount;
+  const pendingCount = metrics.pendingCount;
+  const gradedCount = metrics.gradedCount;
+  const revisionRequiredCount = metrics.revisionRequiredCount;
+  const lateSubmissionCount = metrics.lateCount;
+  const completionPercent = metrics.completionPercent;
 
   // Determine status
   const isOverdue = homework.due_date && isPast(new Date(homework.due_date));
