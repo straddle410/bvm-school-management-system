@@ -39,13 +39,34 @@ Deno.serve(async (req) => {
       const maxExisting = existing.length > 0 ? Math.max(...existing) : 0;
       nextValue = maxExisting + 1;
 
-      counter = await base44.asServiceRole.entities.Counter.create({
-        key: counterKey,
-        current_value: nextValue
-      });
+      try {
+        counter = await base44.asServiceRole.entities.Counter.create({
+          key: counterKey,
+          current_value: nextValue
+        });
+      } catch (createErr) {
+        // Race condition: another concurrent request created it
+        const existing = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
+        counter = existing[0];
+        nextValue = (counter.current_value || 0) + 1;
+      }
     } else {
       nextValue = (counter.current_value || 0) + 1;
-      await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
+    }
+
+    // Always update to ensure proper sequence
+    if (counter) {
+      try {
+        await base44.asServiceRole.entities.Counter.update(counter.id, { current_value: nextValue });
+      } catch (e) {
+        // Retry once on conflict
+        const latest = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
+        if (latest[0]) {
+          const latestVal = latest[0].current_value || 0;
+          nextValue = Math.max(nextValue, latestVal + 1);
+          await base44.asServiceRole.entities.Counter.update(latest[0].id, { current_value: nextValue });
+        }
+      }
     }
 
     const studentId = `S${yy}${String(nextValue).padStart(3, '0')}`;
