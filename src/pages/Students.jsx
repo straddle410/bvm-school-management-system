@@ -90,6 +90,7 @@ export default function Students() {
       let effectiveStatus = filterStatus === 'all' ? '' : filterStatus;
       const restrictToActive = !showArchived && !showDeleted && filterStatus === 'all';
 
+      const session = getStaffSession();
       const res = await base44.functions.invoke('getStudentsPaginated', {
         page,
         limit: LIMIT,
@@ -99,7 +100,8 @@ export default function Students() {
         status: effectiveStatus,
         exclude_archived: restrictToActive,
         show_deleted: showDeleted && isAdmin,
-        academic_year: academicYear
+        academic_year: academicYear,
+        staff_session_token: session?.staff_session_token || null,
       });
       return res.data;
     },
