@@ -90,15 +90,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check if locked
+    // ── LOCK ENFORCEMENT ──
+    // Non-admin users cannot edit locked records
     if (existingRecord.is_locked) {
-      if (user.role !== 'admin') {
+      const userRole = (user.role || '').toLowerCase();
+      const isAdmin = userRole === 'admin' || userRole === 'principal';
+      
+      if (!isAdmin) {
         return Response.json(
-          { error: 'Record is locked. Only admin can unlock.' },
+          { error: 'Attendance is locked. Only admin can unlock and edit.' },
           { status: 403 }
         );
       }
 
+      // Admin audit log for unlock/edit action
       const auditData = {
         action: 'unlock_and_edit',
         module: 'Attendance',
@@ -108,7 +113,12 @@ Deno.serve(async (req) => {
         academic_year: existingRecord.academic_year
       };
 
-      await base44.asServiceRole.entities.AuditLog.create(auditData);
+      try {
+        await base44.asServiceRole.entities.AuditLog.create(auditData);
+      } catch (auditError) {
+        console.warn('Audit log failed but proceeding with unlock:', auditError);
+      }
+    }
     }
 
     // Deduplication check
