@@ -792,6 +792,16 @@ export default function Students() {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Promote Dialog */}
+        {showPromote && (
+          <PromoteStudents
+            academicYear={academicYear}
+            onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); setShowPromote(false); }}
+            externalOpen={showPromote}
+            onExternalOpenChange={setShowPromote}
+          />
+        )}
+
         {/* Past Year Warning */}
         <PastYearWarning
           open={showPastYearWarning}
