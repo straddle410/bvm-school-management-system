@@ -59,11 +59,12 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Input
               value={formData.student_id || ''}
               onChange={e => set('student_id', e.target.value)}
-              placeholder="S25001"
+              placeholder="Auto-generated"
               className="mt-1 rounded-xl bg-gray-50"
-              readOnly={dis || locked}
-              disabled={dis || locked}
+              readOnly={dis || locked || !isEdit}
+              disabled={dis || locked || !isEdit}
             />
+            {!isEdit && <p className="text-xs text-gray-400 mt-1">Generated on save</p>}
             {isAdmin && isEdit && !locked && (
               <p className="text-xs text-amber-600 mt-1">⚠ Changing ID will be audit-logged</p>
             )}
