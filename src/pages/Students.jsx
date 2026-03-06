@@ -58,7 +58,6 @@ export default function Students() {
   const [showTransportConfirm, setShowTransportConfirm] = useState(false);
   const [transportLoading, setTransportLoading] = useState(false);
   const [showPromote, setShowPromote] = useState(false);
-  const promoteRef = useRef(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
