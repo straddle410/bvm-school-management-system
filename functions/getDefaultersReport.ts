@@ -35,11 +35,11 @@ Deno.serve(async (req) => {
     const pageSize = parseInt(params.get('pageSize')) || 50;
     const skipCount = (page - 1) * pageSize;
 
-    // Fetch data in parallel
+    // Fetch data in parallel — global filter: status=Published, is_deleted=false, current AY
     const [invoices, payments, students, followUps] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear, invoice_type: 'ANNUAL' }),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
-      base44.asServiceRole.entities.Student.filter({ academic_year: academicYear, is_deleted: false }),
+      base44.asServiceRole.entities.Student.filter({ academic_year: academicYear, status: 'Published', is_deleted: false }),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear })
     ]);
 
