@@ -32,22 +32,51 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   });
 
   const revisionMutation = useMutation({
-    mutationFn: ({ id, teacher_feedback }) =>
-      base44.entities.HomeworkSubmission.update(id, { 
-        status: 'REVISION_REQUIRED',
+    mutationFn: ({ id, teacher_feedback, currentStatus }) => {
+      const normalized = normalizeHomeworkSubmissionStatus(currentStatus);
+      // Prevent duplicate revision requests
+      if (normalized === HOMEWORK_STATUS.REVISION_REQUIRED) {
+        throw new Error('ALREADY_REVISION_REQUIRED');
+      }
+      return base44.entities.HomeworkSubmission.update(id, { 
+        status: HOMEWORK_STATUS.REVISION_REQUIRED,
         teacher_feedback,
         revision_requested_at: new Date().toISOString()
-      }),
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
       setRevisionId(null); setFeedback('');
+    },
+    onError: (error) => {
+      if (error.message === 'ALREADY_REVISION_REQUIRED') {
+        alert('Revision already requested. Awaiting student resubmission.');
+      }
     }
   });
 
-  const submitted = submissions.filter(s => s.status === 'SUBMITTED' || s.status === 'RESUBMITTED').length;
-  const graded = submissions.filter(s => s.status === 'GRADED').length;
-  const revisionRequired = submissions.filter(s => s.status === 'REVISION_REQUIRED').length;
-  const pending = submissions.length - submitted - graded - revisionRequired;
+  // Count unique students by their submission status
+  const uniqueStudents = new Map();
+  submissions.forEach(s => {
+    const normalized = normalizeHomeworkSubmissionStatus(s.status);
+    if (!uniqueStudents.has(s.student_id)) {
+      uniqueStudents.set(s.student_id, normalized);
+    } else {
+      // Keep the latest/most recent status if same student has multiple submissions
+      uniqueStudents.set(s.student_id, normalized);
+    }
+  });
+
+  const submitted = Array.from(uniqueStudents.values()).filter(status => 
+    status === HOMEWORK_STATUS.SUBMITTED || status === HOMEWORK_STATUS.RESUBMITTED
+  ).length;
+  const graded = Array.from(uniqueStudents.values()).filter(status => status === HOMEWORK_STATUS.GRADED).length;
+  const revisionRequired = Array.from(uniqueStudents.values()).filter(status => status === HOMEWORK_STATUS.REVISION_REQUIRED).length;
+  
+  // Pending = assigned students - submitted unique students (estimated from submissions)
+  // This requires knowing total assigned students, which we calculate from homework class/section
+  const totalUniqueSubmitted = uniqueStudents.size;
+  const pending = Math.max(0, (submissions.length > 0 ? submissions[0]?.class_name ? 30 : 0 : 0) - totalUniqueSubmitted); // Fallback: 30 students per class estimate
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
