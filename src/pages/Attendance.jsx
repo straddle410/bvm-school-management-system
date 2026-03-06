@@ -287,7 +287,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             <Card className="border-l-4 border-l-amber-500 bg-amber-50"><CardContent className="p-4"><p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p></CardContent></Card>
           )}
           {isRecordLocked && (
-            <Card className="border-l-4 border-l-red-500 bg-red-50"><CardContent className="p-4"><p className="text-sm text-red-900 font-medium">🔒 Locked at {lockedAtTime}. Only admin can unlock.</p></CardContent></Card>
+            <Card className="border-l-4 border-l-red-500 bg-red-50"><CardContent className="p-4"><p className="text-sm text-red-900 font-medium">🔒 Locked after 3:00 PM. Contact admin to unlock.</p></CardContent></Card>
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
