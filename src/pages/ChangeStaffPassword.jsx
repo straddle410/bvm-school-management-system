@@ -118,8 +118,8 @@ export default function ChangeStaffPassword() {
       setError(msg);
       setErrorCode(code);
 
-      // If session invalid → force re-login
-      if (code === 'STAFF_SESSION_INVALID' || code === 'TOKEN_MISSING') {
+      // If session invalid/expired → force re-login
+      if (code === 'STAFF_SESSION_INVALID' || code === 'TOKEN_MISSING' || code === 'TOKEN_INVALID' || code === 'TOKEN_EXPIRED') {
         localStorage.removeItem('staff_session');
         setTimeout(() => navigate(createPageUrl('StaffLogin')), 2500);
       }
