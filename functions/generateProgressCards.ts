@@ -460,7 +460,7 @@ Deno.serve(async (req) => {
         generated_at: new Date().toISOString(),
         status: 'Generated'
       });
-    });
+    } // end for loop
 
     // Clear existing cards for this class/section/year to prevent duplicates
     const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
