@@ -37,6 +37,8 @@ async function verifySessionToken(token) {
      const payloadB64 = token.slice(0, dotIdx);
      const sigB64 = token.slice(dotIdx + 1);
 
+     console.log(`[getMyStaffProfile] payloadB64 length=${payloadB64.length} sigB64 length=${sigB64.length}`);
+
      // Decode payload first for logging before signature check
      let payload = null;
      try {
@@ -45,7 +47,7 @@ async function verifySessionToken(token) {
        payload = JSON.parse(decoded);
        const { staff_id, exp, iat } = payload;
        const now = Date.now();
-       console.log(`[getMyStaffProfile] TOKEN_DECODE: staff_id=${staff_id} iat=${iat} exp=${exp} now=${now} exp_iso=${exp ? new Date(exp).toISOString() : 'N/A'} expired=${now > exp}`);
+       console.log(`[getMyStaffProfile] TOKEN_DECODE: staff_id=${staff_id} iat=${iat} exp=${exp} now=${now}`);
      } catch (decodeErr) {
        console.error('[getMyStaffProfile] TOKEN_INVALID: payload decode failed:', decodeErr.message);
        return { error: 'TOKEN_INVALID' };
