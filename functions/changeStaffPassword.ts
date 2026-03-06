@@ -105,12 +105,18 @@ Deno.serve(async (req) => {
 
     const account = accounts[0];
 
-    // 5. Verify current password (bcrypt or legacy)
+    // 5. Verify current password.
+    // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
     let passwordValid = false;
-    if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$')) {
-      passwordValid = await bcrypt.compare(currentPassword, account.password_hash);
+    if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$') || account.password_hash?.startsWith('$2y$')) {
+      try {
+        passwordValid = await bcrypt.compare(currentPassword, account.password_hash);
+      } catch {
+        return Response.json({ error: 'Account has an invalid password hash. Please contact admin to reset.', code: 'PASSWORD_HASH_INVALID' }, { status: 400 });
+      }
     } else {
-      passwordValid = hashPasswordLegacy(currentPassword) === account.password_hash;
+      // Unknown/corrupt hash — cannot verify, require admin reset
+      return Response.json({ error: 'Account has an invalid password hash. Please contact admin to reset.', code: 'PASSWORD_HASH_INVALID' }, { status: 400 });
     }
 
     if (!passwordValid) {
