@@ -464,6 +464,28 @@ export default function Students() {
     toast.success(`${processed} student(s) updated to ${toStatus}`);
   };
 
+  const handleBulkTransport = async () => {
+    if (!isAdmin || selectedIds.size === 0 || transportAction === '') return;
+    setTransportLoading(true);
+    const session = getStaffSession();
+    const transport_enabled = transportAction === 'on';
+    const res = await base44.functions.invoke('bulkUpdateStudentTransport', {
+      staff_session_token: session?.staff_session_token || null,
+      student_ids: Array.from(selectedIds),
+      transport_enabled,
+    });
+    setTransportLoading(false);
+    setShowTransportConfirm(false);
+    if (res.data?.success) {
+      queryClient.invalidateQueries(['students']);
+      setSelectedIds(new Set());
+      setTransportAction('');
+      toast.success(`Transport ${transport_enabled ? 'ON' : 'OFF'} applied to ${res.data.updatedCount} student(s)`);
+    } else {
+      toast.error(res.data?.error || 'Failed to update transport');
+    }
+  };
+
   // Stats from current page (server already filtered)
   const totalActive = students.filter(s => s.status === 'Published').length;
   const totalPending = students.filter(s => s.status === 'Pending').length;
