@@ -272,50 +272,51 @@ export default function Homework() {
                 {homeworkList.map((item) => (
                   <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900">{item.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                          Class {item.class_name}-{item.section}
-                        </span>
-                        {item.subject_name && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject_name}</span>
-                        )}
-                        {item.due_date && (
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
-                            Due: {format(new Date(item.due_date), 'MMM d, yyyy')}
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900">{item.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                            Class {item.class_name}-{item.section}
                           </span>
-                        )}
+                          {item.subject_name && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject_name}</span>
+                          )}
+                          {item.due_date && (
+                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                              Due: {format(new Date(item.due_date), 'MMM d, yyyy')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleEdit(item)}
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            if (confirm('Delete this homework?')) {
+                              deleteMutation.mutate(item.id);
+                            }
+                          }}
+                          size="sm"
+                          variant="destructive"
+                          className="text-xs"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleEdit(item)}
-                        size="sm"
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          if (confirm('Delete this homework?')) {
-                            deleteMutation.mutate(item.id);
-                          }
-                        }}
-                        size="sm"
-                        variant="destructive"
-                        className="text-xs"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    </div>
-                    ))}
-                    </div>
-                    </>
-                    )}
+                  </div>
+                  ))}
+                  </div>
+                  </>
+                  )}
 
           {/* Form Dialog */}
           <Dialog open={showForm} onOpenChange={setShowForm}>
