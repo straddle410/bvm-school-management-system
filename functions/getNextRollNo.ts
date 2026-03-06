@@ -74,8 +74,10 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'list') {
-      // Return sorted list of students for Manage Roll Numbers tool
-      const sorted = [...students].sort((a, b) => {
+      // Return sorted list of active students for Manage Roll Numbers tool
+      const EXCLUDED_STATUSES = ['Archived', 'Passed Out', 'Transferred'];
+      const active = students.filter(s => !s.is_deleted && !EXCLUDED_STATUSES.includes(s.status));
+      const sorted = [...active].sort((a, b) => {
         const ra = parseInt(a.roll_no) || 9999;
         const rb = parseInt(b.roll_no) || 9999;
         return ra - rb;
