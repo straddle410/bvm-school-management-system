@@ -34,18 +34,23 @@ Deno.serve(async (req) => {
     const { action = 'next', class_name, section, academic_year, staff_session_token, updates } = body;
 
     // Auth: staff session token OR base44.auth.me()
+    let performedBy = 'unknown';
     let authed = false;
+
     if (staff_session_token) {
       const payload = await verifyStaffToken(staff_session_token);
-      if (payload) authed = true;
+      if (payload) {
+        authed = true;
+        performedBy = payload.email || payload.username || 'staff';
+      }
     }
+
     if (!authed) {
       const user = await base44.auth.me().catch(() => null);
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
       authed = true;
+      performedBy = user.email || 'unknown';
     }
-
-    // body already parsed above
 
     if (!class_name || !section || !academic_year) {
       return Response.json({ error: 'class_name, section, academic_year are required' }, { status: 400 });
@@ -58,12 +63,14 @@ Deno.serve(async (req) => {
     );
 
     if (action === 'next') {
-      // Find max roll_no among existing students in this class
-      const maxRoll = students.reduce((max, s) => {
+      // Exclude archived/passed-out/transferred/deleted students (match Students page logic)
+      const EXCLUDED_STATUSES = ['Archived', 'Passed Out', 'Transferred'];
+      const active = students.filter(s => !s.is_deleted && !EXCLUDED_STATUSES.includes(s.status));
+      const maxRoll = active.reduce((max, s) => {
         const r = parseInt(s.roll_no);
         return !isNaN(r) && r > max ? r : max;
       }, 0);
-      return Response.json({ next_roll_no: maxRoll + 1 });
+      return Response.json({ success: true, next_roll_no: maxRoll + 1 });
     }
 
     if (action === 'list') {
@@ -77,11 +84,9 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'save_rolls') {
-      // Admin saves edited roll numbers
-      const { updates } = body; // [{ id, roll_no }]
       if (!Array.isArray(updates)) return Response.json({ error: 'updates array required' }, { status: 400 });
 
-      // ── SOFT-DELETE GUARD: prevent roll number changes for deleted students ──
+      // SOFT-DELETE GUARD
       for (const u of updates) {
         const targetStudent = students.find(s => s.id === u.id);
         if (targetStudent && targetStudent.is_deleted === true) {
@@ -98,7 +103,7 @@ Deno.serve(async (req) => {
         seen.set(roll, u.id);
       }
 
-      // Also check against students NOT in the updates list (students not in current view)
+      // Check conflicts with students NOT in updates
       const updatingIds = new Set(updates.map(u => u.id));
       for (const s of students) {
         if (!updatingIds.has(s.id) && s.roll_no) {
@@ -113,14 +118,14 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Student.update(u.id, { roll_no: parseInt(u.roll_no) });
       }
 
-      // ── AUDIT: ONE consolidated entry for bulk resequence ──
+      // Audit log
       await base44.asServiceRole.entities.AuditLog.create({
         action: 'BULK_ROLL_RESEQUENCE',
         module: 'Student',
         class_name,
         section,
         academic_year,
-        performed_by: user.email,
+        performed_by: performedBy,
         timestamp: new Date().toISOString(),
         date: new Date().toISOString().split('T')[0],
         details: `Bulk roll resequence for Class ${class_name}-${section} (${updates.length} students updated)`
