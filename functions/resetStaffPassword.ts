@@ -54,26 +54,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Staff not found' }, { status: 404 });
     }
 
-    // Enforce unified password policy
-    const policyOk =
-      temp_password.length >= 8 &&
-      /[A-Z]/.test(temp_password) &&
-      /[a-z]/.test(temp_password) &&
-      /[0-9]/.test(temp_password) &&
-      /[^A-Za-z0-9]/.test(temp_password);
-
-    if (!policyOk) {
-      return Response.json({
-        success: false,
-        error: 'PASSWORD_POLICY_VIOLATION',
-        message: 'Password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.',
-      }, { status: 400 });
-    }
-
-    console.log(`[RESET_PASSWORD] Resetting password for staff: ${staff[0].username}`);
+    console.log(`[RESET_PASSWORD] Resetting password for staff: ${staff[0].username} to default`);
 
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
-    const hash = await bcrypt.hash(temp_password, 10);
+    const hash = await bcrypt.hash(DEFAULT_TEMP_PASSWORD, 10);
 
     // Update staff account
     await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
