@@ -221,7 +221,7 @@ export default function Staff() {
     setForm({
       name: '',
       username: '',
-      password_hash: hashPassword(tempPass),
+      password_hash: '__PENDING__', // will be hashed server-side on save
       designation: '',
       mobile: '',
       email: '',
