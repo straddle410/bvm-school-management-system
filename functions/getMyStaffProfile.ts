@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status });
     }
 
-    const { staff_id } = verified;
+    const { staff_id, username: verifiedUsername } = verified;
 
     // Decode payload to get username & role from token
     const payloadB64 = token.slice(0, token.lastIndexOf('.'));
