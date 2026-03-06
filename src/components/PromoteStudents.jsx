@@ -28,13 +28,21 @@ function getNextAcademicYear(currentYear) {
   return `${startYear}-${endYear}`;
 }
 
-export default function PromoteStudents({ academicYear, onPromoted }) {
+export default function PromoteStudents({ academicYear, onPromoted, triggerOpen, onTriggerHandled }) {
   const [open, setOpen] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [result, setResult] = useState(null);
   const [blockedYear, setBlockedYear] = useState(null); // non-null = blocked dialog
 
   const nextYear = getNextAcademicYear(academicYear);
+
+  // Allow external trigger (e.g. from More menu)
+  React.useEffect(() => {
+    if (triggerOpen) {
+      handleOpenDialog();
+      if (onTriggerHandled) onTriggerHandled();
+    }
+  }, [triggerOpen]);
 
   const handleOpenDialog = async () => {
     // Pre-check: does next academic year exist?
