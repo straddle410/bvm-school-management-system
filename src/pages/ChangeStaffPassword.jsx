@@ -188,7 +188,7 @@ export default function ChangeStaffPassword() {
 
               <Button
                 type="submit"
-                disabled={loading || !token}
+                disabled={loading || !token || !validatePasswordPolicy(newPassword).valid || newPassword !== confirmPassword}
                 className="w-full h-10 bg-gradient-to-r from-[#1a237e] to-[#283593] hover:from-[#0d1b5e] hover:to-[#1a2673] text-white font-semibold"
               >
                 {loading ? (
