@@ -29,14 +29,13 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         json_schema: {
           type: 'object',
           properties: {
-            student_id: { type: 'string' },
             name: { type: 'string' },
             class_name: { type: 'string' },
             section: { type: 'string' },
-            roll_no: { type: ['number', 'string'] },
             parent_name: { type: 'string' },
             parent_phone: { type: 'string' },
             parent_email: { type: 'string' },
+            roll_no: { type: ['number', 'string'] },
             dob: { type: 'string' },
             gender: { type: 'string' },
             address: { type: 'string' },
@@ -77,26 +76,19 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         const rowNum = i + 1;
         const section = r.section || 'A';
 
-        // Normalize — always IGNORE roll_no from file; auto-assign below
+        // Normalize — ignore student_id and roll_no from file; auto-generate below
         const enriched = normalizeStudentData({
           ...r,
           academic_year: academicYear,
-          username: r.student_id || `S${i}`,
+          student_id: null, // will be generated below
+          username: null, // will default to generated student_id below
           password: r.password || 'BVM123',
           status: r.status || 'Pending',
           section,
           roll_no: null // will be assigned below
         });
 
-        // 1. Student ID uniqueness
-        if (enriched.student_id) {
-          const idConflict = existingStudents.find(s => s.student_id === enriched.student_id) ||
-                             toCreate.find(s => s.student_id === enriched.student_id);
-          if (idConflict) {
-            errors.push({ row: rowNum, name: r.name || '—', reason: `Student ID "${enriched.student_id}" already exists` });
-            continue;
-          }
-        }
+        // Skip student_id uniqueness check — it will be auto-generated
 
         // 2. Duplicate student (name + dob + class) — case-insensitive via namesMatch
         if (enriched.name && enriched.dob && enriched.class_name) {
@@ -116,6 +108,12 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
           const key = `${enriched.class_name}|${enriched.section}`;
           rollCounters[key] = (rollCounters[key] || 0) + 1;
           enriched.roll_no = rollCounters[key];
+        }
+
+        // 4. Mark for auto-generation (backend will generate student_id and set username)
+        enriched._generateStudentId = true;
+        if (!enriched.username) {
+          enriched._useGeneratedIdAsUsername = true;
         }
 
         toCreate.push(enriched);
@@ -149,10 +147,10 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
             <p className="text-xs text-blue-700">
-              <strong>Required columns:</strong> student_id, name, class_name, section, parent_name, parent_phone, parent_email
+              <strong>Required columns:</strong> name, class_name, section, parent_name, parent_phone, parent_email
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              ℹ Roll numbers are auto-assigned — no need to include in the file.
+              ℹ Student IDs and roll numbers are auto-generated — no need to include in the file.
             </p>
           </div>
 
