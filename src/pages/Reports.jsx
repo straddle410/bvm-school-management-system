@@ -129,7 +129,7 @@ export default function Reports() {
                       <Users className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-slate-500">Total Students</p>
+                      <p className="text-sm text-slate-500">Active Students</p>
                       <p className="text-2xl font-bold">{students.length}</p>
                     </div>
                   </div>
