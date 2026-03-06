@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // 4. Load staff account
+    // 5. Load staff account
     const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
     if (!accounts || accounts.length === 0) {
       console.error(`[changeStaffPassword] STAFF_NOT_FOUND: id=${staff_id}`);
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
 
     const account = accounts[0];
 
-    // 5. Verify current password.
+    // 6. Verify current password.
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
     let passwordValid = false;
     if (account.password_hash?.startsWith('$2a$') || account.password_hash?.startsWith('$2b$') || account.password_hash?.startsWith('$2y$')) {
@@ -144,6 +144,17 @@ Deno.serve(async (req) => {
     if (!passwordValid) {
       console.log(`[changeStaffPassword] CURRENT_PASSWORD_INCORRECT for ${account.username}`);
       return Response.json({ error: 'Current password is incorrect.', code: 'CURRENT_PASSWORD_INCORRECT' }, { status: 400 });
+    }
+
+    // 7. Reject if new password same as current (using bcrypt.compare)
+    const isSameAsCurrent = await bcrypt.compare(newPassword, account.password_hash);
+    if (isSameAsCurrent) {
+      return Response.json({
+        success: false,
+        error: 'SAME_PASSWORD',
+        message: 'New password cannot be the same as the previous password.',
+        code: 'SAME_PASSWORD',
+      }, { status: 400 });
     }
 
     // 6. Hash new password with bcrypt and update.
