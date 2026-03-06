@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Lock, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { validatePasswordPolicy } from '@/components/utils/passwordPolicy';
 import { toast } from 'sonner';
 
 const ERROR_MESSAGES = {

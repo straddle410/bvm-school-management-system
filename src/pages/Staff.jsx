@@ -17,6 +17,7 @@ import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, T
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
+import { validatePasswordPolicy } from '@/components/utils/passwordPolicy';
 
 const generateUsername = (name) => {
   return name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 99 + 1);
