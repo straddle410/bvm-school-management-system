@@ -78,6 +78,33 @@ export default function Marks() {
     }).catch(() => {});
   }, []);
 
+  // Dynamic class/section from SectionConfig (with fallback)
+  const { data: classSectionData } = useQuery({
+    queryKey: ['classes-for-year', academicYear],
+    queryFn: () => getClassesForYear(academicYear),
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableClasses = classSectionData?.classes || [];
+
+  const { data: sectionData } = useQuery({
+    queryKey: ['sections-for-class', academicYear, selectedClass],
+    queryFn: () => getSectionsForClass(academicYear, selectedClass),
+    enabled: !!academicYear && !!selectedClass,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableSections = sectionData?.sections || [];
+
+  // Reset section safely when class or available sections change
+  useEffect(() => {
+    if (availableSections.length > 0 && selectedSection && !availableSections.includes(selectedSection)) {
+      setSelectedSection('');
+    }
+    if (availableSections.length === 1 && !selectedSection) {
+      setSelectedSection(availableSections[0]);
+    }
+  }, [availableSections, selectedSection]);
+
   const { data: students = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['students-published', academicYear],
     queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear, is_deleted: false }),
