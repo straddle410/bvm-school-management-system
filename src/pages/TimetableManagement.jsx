@@ -72,11 +72,6 @@ export default function TimetableManagement() {
     queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
-  const { data: allTeachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list()
-  });
-
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Timetable.create(data),
     onSuccess: () => {
