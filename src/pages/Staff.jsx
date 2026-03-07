@@ -734,7 +734,7 @@ export default function Staff() {
 
                                   <div>
                                     <Label>Classes</Label>
-                                    <div className="grid grid-cols-3 gap-2 border rounded p-2">
+                                    <div className="grid grid-cols-3 gap-2 border rounded p-2 max-h-40 overflow-y-auto">
                                       {CLASSES.map(c => (
                                         <div key={c} className="flex items-center gap-2">
                                           <Checkbox
