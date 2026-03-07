@@ -91,10 +91,12 @@ export default function Reports() {
     return Object.entries(grades).map(([name, value]) => ({ name, value })).filter(g => g.value > 0);
   };
 
-  // Attendance statistics
+  // Attendance statistics (exclude holiday records from present/absent counts)
   const attendanceStats = () => {
-    const totalPresent = attendance.filter(a => a.is_present).length;
-    const totalAbsent = attendance.filter(a => !a.is_present).length;
+    // Filter out holiday records: attendance_type === 'holiday' OR status === 'Holiday'
+    const workingAttendance = attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
+    const totalPresent = workingAttendance.filter(a => a.is_present).length;
+    const totalAbsent = workingAttendance.filter(a => !a.is_present).length;
     return [
       { name: 'Present', value: totalPresent },
       { name: 'Absent', value: totalAbsent }
@@ -176,7 +178,7 @@ export default function Reports() {
                     <div>
                       <p className="text-sm text-slate-500">Attendance Rate</p>
                       <p className="text-2xl font-bold">
-                        {Math.round((attendance.filter(a => a.is_present).length / attendance.length) * 100) || 0}%
+                        {(() => { const working = attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday'); return working.length > 0 ? Math.round((working.filter(a => a.is_present).length / working.length) * 100) : 0; })()}%
                       </p>
                     </div>
                   </div>
@@ -318,13 +320,13 @@ export default function Reports() {
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
                     <span className="font-medium text-green-700">Total Present</span>
                     <span className="text-2xl font-bold text-green-700">
-                      {attendance.filter(a => a.is_present).length}
+                      {attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday' && a.is_present).length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl">
                     <span className="font-medium text-red-700">Total Absent</span>
                     <span className="text-2xl font-bold text-red-700">
-                      {attendance.filter(a => !a.is_present).length}
+                      {attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday' && !a.is_present).length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">

@@ -77,10 +77,12 @@ export default function AttendanceYearlyTab() {
         activeClasses.forEach(cls => {
           const classStudents = students.filter(s => s.class_name === cls);
           const classAttendance = attendance.filter(a => a.class_name === cls);
+          // Exclude holiday records from attendance calculations
+          const workingAttendance = classAttendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
 
           if (classStudents.length > 0) {
-            const totalRecords = classAttendance.length;
-            const presentRecords = classAttendance.filter(a => a.is_present).length;
+            const totalRecords = workingAttendance.length;
+            const presentRecords = workingAttendance.filter(a => a.is_present).length;
             const percentage = totalRecords > 0 ? Math.round((presentRecords / totalRecords) * 100) : 0;
 
             classWiseData[cls] = {

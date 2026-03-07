@@ -42,10 +42,13 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
     },
   });
 
-  // Calculate class-wise attendance
+  // Calculate class-wise attendance (exclude holiday records)
   const classAttendance = useMemo(() => {
     const classMap = {};
     attendanceData.forEach(record => {
+      // Skip holiday records from present/absent calculations
+      if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
+      
       if (!classMap[record.class_name]) {
         classMap[record.class_name] = { present: 0, absent: 0, total: 0 };
       }
@@ -62,10 +65,12 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
     }));
   }, [attendanceData]);
 
-  // Overall attendance summary
+  // Overall attendance summary (exclude holiday records)
   const overallStats = useMemo(() => {
-    const total = attendanceData.length;
-    const present = attendanceData.filter(a => a.is_present).length;
+    // Filter out holiday records from present/absent counts
+    const workingData = attendanceData.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
+    const total = workingData.length;
+    const present = workingData.filter(a => a.is_present).length;
     return {
       present,
       absent: total - present,
@@ -73,10 +78,13 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
     };
   }, [attendanceData]);
 
-  // Student-wise attendance
+  // Student-wise attendance (exclude holiday records)
   const studentAttendance = useMemo(() => {
     const studentMap = {};
     attendanceData.forEach(record => {
+      // Skip holiday records from student attendance calculations
+      if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
+      
       if (!studentMap[record.student_id]) {
         studentMap[record.student_id] = {
           name: record.student_name,
