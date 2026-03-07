@@ -178,9 +178,9 @@ export default function MarksReview() {
 
 
 
-  const handlePublish = (marksIds) => {
+  const handlePublish = (marksIds, group) => {
     if (window.confirm('Publish these results? Students will be able to see them.')) {
-      publishMutation.mutate(marksIds);
+      publishMutation.mutate({ marksIds, group });
     }
   };
 
