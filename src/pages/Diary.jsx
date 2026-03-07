@@ -392,7 +392,7 @@ export default function Diary() {
 
           {/* Mobile Dialog */}
           <Dialog open={showForm} onOpenChange={setShowForm}>
-            <DialogContent className="max-w-lg lg:hidden">
+            <DialogContent className="max-w-lg lg:hidden" onInteractOutside={(e) => e.preventDefault()}>
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <DialogTitle>{editingItem ? 'Edit Entry' : 'Post Diary Entry'}</DialogTitle>
