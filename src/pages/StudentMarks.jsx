@@ -30,11 +30,10 @@ export default function StudentMarks() {
     queryKey: ['student-marks', session?.id],
     queryFn: async () => {
       if (!session?.id) return [];
-      // PRIORITY 3: Marks RLS is read:false — use backend function to serve only Published marks
-      const res = await base44.functions.invoke('getStudentData', {
+      // PRIORITY 3: Marks RLS is read:false — use backend function that serves only Published marks
+      const res = await base44.functions.invoke('getStudentMarks', {
         student_id: session.id,
-        academic_year: session.academic_year,
-        data_type: 'marks'
+        academic_year: session.academic_year
       });
       return res.data?.marks || [];
     },
