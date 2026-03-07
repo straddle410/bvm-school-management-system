@@ -313,7 +313,7 @@ export default function MarksReview() {
                                  Export to Excel
                                </Button>
                                <Button
-                                 onClick={() => handlePublish(allMarkIds)}
+                                 onClick={() => handlePublish(allMarkIds, group)}
                                  disabled={publishMutation.isPending}
                                  className="bg-green-600 hover:bg-green-700 gap-2"
                                  size="sm"
