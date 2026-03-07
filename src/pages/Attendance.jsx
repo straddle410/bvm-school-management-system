@@ -110,12 +110,19 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     enabled: !!academicYear && !!workingDate
   });
 
+  const { data: overrides = [] } = useQuery({
+    queryKey: ['holiday-override', workingDate],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate })
+  });
+
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
   const isMarkedHoliday = holidays.length > 0;
+  const hasOverride = overrides.length > 0;
   const canManageHolidays = isAdmin;
 
   useEffect(() => {
-    const detectedHoliday = isSunday || isMarkedHoliday;
+    // Override precedence: if override exists, treat as working day even if holiday is marked
+    const detectedHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
@@ -138,7 +145,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
         setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     }
-  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays]);
+  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays, hasOverride]);
 
   const filteredStudents = students.filter(s =>
     s.class_name === selectedClass && s.section === selectedSection
