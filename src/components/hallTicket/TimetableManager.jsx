@@ -25,6 +25,7 @@ export default function TimetableManager() {
   const [rows, setRows] = useState([emptyRow()]);
   const [selectedEntries, setSelectedEntries] = useState([]);
   const [availableClasses, setAvailableClasses] = useState([]);
+  // ^ always an array — getClassesForYear returns { classes: string[] }, destructured in useEffect
   const queryClient = useQueryClient();
 
   useEffect(() => {
