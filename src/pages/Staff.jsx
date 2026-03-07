@@ -1188,23 +1188,35 @@ export default function Staff() {
 
                             <div>
                               <Label>Sections</Label>
-                              <div className="grid grid-cols-4 gap-2">
-                                {SECTIONS.map(s => (
-                                  <div key={s} className="flex items-center gap-2">
-                                    <Checkbox
-                                      checked={form.sections.includes(s)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setForm(f => ({ ...f, sections: [...f.sections, s] }));
-                                        } else {
-                                          setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{s}</span>
-                                  </div>
-                                ))}
-                              </div>
+                              {form.classes.length === 0 ? (
+                                <p className="text-xs text-slate-500 italic">Select at least one class to enable section selection</p>
+                              ) : (
+                                <div className="grid grid-cols-4 gap-2">
+                                  {(() => {
+                                    // Get all unique sections across selected classes
+                                    const uniqueSections = Array.from(
+                                      new Set(
+                                        form.classes.flatMap(cls => getSectionsForClass(cls))
+                                      )
+                                    ).sort();
+                                    return uniqueSections.map(s => (
+                                      <div key={s} className="flex items-center gap-2">
+                                        <Checkbox
+                                          checked={form.sections.includes(s)}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setForm(f => ({ ...f, sections: [...f.sections, s] }));
+                                            } else {
+                                              setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
+                                            }
+                                          }}
+                                        />
+                                        <span className="text-sm">{s}</span>
+                                      </div>
+                                    ));
+                                  })()}
+                                </div>
+                              )}
                             </div>
 
                             <div>
