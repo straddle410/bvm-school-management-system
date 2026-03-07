@@ -13,7 +13,6 @@ import StudentBottomNav from '@/components/StudentBottomNav';
 import StudentSimpleNotificationListener from '@/components/StudentSimpleNotificationListener';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import StudentChangePassword from '@/components/StudentChangePassword';
 import StudentMessageNotificationListener from '@/components/StudentMessageNotificationListener';
 import StudentQuizNotificationListener from '@/components/StudentQuizNotificationListener';
 import StudentNoticeNotificationListener from '@/components/StudentNoticeNotificationListener';
@@ -48,7 +47,6 @@ export default function StudentDashboard() {
   const [homework, setHomework] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showChangePassword, setShowChangePassword] = useState(false);
   const [todayClasses, setTodayClasses] = useState([]);
   const [attendancePct, setAttendancePct] = useState(0);
   const [currentYear, setCurrentYear] = useState(null);
@@ -277,17 +275,6 @@ export default function StudentDashboard() {
       </main>
 
       <StudentBottomNav currentPage="StudentDashboard" />
-
-      {showChangePassword && (
-        <StudentChangePassword
-          student={student}
-          onClose={() => setShowChangePassword(false)}
-          onSuccess={() => {
-            setShowChangePassword(false);
-            setStudent(getStudentSession());
-          }}
-        />
-      )}
     </div>
   );
 }
