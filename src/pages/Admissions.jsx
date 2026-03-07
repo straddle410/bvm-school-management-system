@@ -640,9 +640,28 @@ export default function Admissions() {
                     onChange={(e) => setEditData({...editData, previous_school: e.target.value})}
                   />
                 </div>
-              </div>
+                <div className="col-span-2">
+                  <Label>Section (Required for Approval)</Label>
+                  {availableSections.length > 0 ? (
+                    <Select value={selectedSection} onValueChange={setSelectedSection}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select section" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSections.map(sec => (
+                          <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="text-sm text-red-600 p-2 bg-red-50 rounded">
+                      No active sections available for {editData.applying_for_class} in {academicYear}
+                    </div>
+                  )}
+                </div>
+                </div>
 
-              {selectedAdmission.documents?.length > 0 && (
+                {selectedAdmission.documents?.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-slate-700 mb-2">Documents</p>
                   <div className="flex flex-wrap gap-2">
