@@ -21,7 +21,7 @@ export default function AttendanceYearlyTab() {
   });
 
   const { data: overrides = [] } = useQuery({
-    queryKey: ['overrides', academicYear],
+    queryKey: ['holiday-overrides', academicYear],
     queryFn: () => base44.entities.HolidayOverride.filter({ academic_year: academicYear })
   });
 
@@ -40,8 +40,9 @@ export default function AttendanceYearlyTab() {
   useEffect(() => {
     if (!holidays.length || !students.length) return;
 
-    const holidayDates = new Set(holidays.map(h => h.date));
+    // Override precedence: overridden dates are treated as working days
     const overrideDates = new Set(overrides.map(o => o.date));
+    const holidayDates = new Set(holidays.map(h => h.date).filter(d => !overrideDates.has(d)));
 
     // Get academic year dates from AcademicYear entity
     const calculateStats = async () => {
@@ -62,9 +63,8 @@ export default function AttendanceYearlyTab() {
           const dateStr = format(day, 'yyyy-MM-dd');
           const isSunday = getDay(day) === 0;
           const isHoliday = holidayDates.has(dateStr);
-          const hasOverride = overrideDates.has(dateStr);
 
-          if ((isHoliday || isSunday) && !hasOverride) {
+          if (isHoliday || isSunday) {
             totalHolidayCount++;
           } else {
             totalWorkingCount++;
