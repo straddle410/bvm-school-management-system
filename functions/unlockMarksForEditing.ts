@@ -1,52 +1,61 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+const ALLOWED_ROLES = ['admin', 'principal'];
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user?.role || user.role !== 'admin') {
-      return Response.json({ error: 'Admin only' }, { status: 403 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { marksIds } = await req.json();
+    const role = String(user.role || '').trim().toLowerCase();
+    if (!ALLOWED_ROLES.includes(role)) {
+      return Response.json({ error: 'Forbidden: admin or principal only' }, { status: 403 });
+    }
+
+    // Accepts either a list of IDs, or a scope (class+section+exam+year) to filter by
+    const { marksIds, className, section, examType, academicYear } = await req.json();
 
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
       return Response.json({ error: 'marksIds array required' }, { status: 400 });
     }
 
-    // Fetch marks to verify they're submitted
-    const marksFilter = { $in: ['Submitted', 'Verified', 'Approved'] };
-    const allMarks = await base44.asServiceRole.entities.Marks.list();
-    const marksToUnlock = allMarks.filter(m =>
+    // Scoped query — never full table scan
+    const filter = {};
+    if (academicYear) filter.academic_year = academicYear;
+    if (className) filter.class_name = className;
+    if (section) filter.section = section;
+    if (examType) filter.exam_type = examType;
+
+    const scopedMarks = Object.keys(filter).length > 0
+      ? await base44.asServiceRole.entities.Marks.filter(filter)
+      : [];
+
+    // Only unlock marks in the provided IDs that are in unlockable statuses
+    const marksToUnlock = scopedMarks.filter(m =>
       marksIds.includes(m.id) &&
       ['Submitted', 'Verified', 'Approved'].includes(m.status)
     );
 
     if (marksToUnlock.length === 0) {
-      return Response.json({
-        error: 'No marks found in submittable state'
-      }, { status: 404 });
+      return Response.json({ error: 'No marks found in unlockable state (Submitted/Verified/Approved)' }, { status: 404 });
     }
 
-    // Unlock: revert to Draft (server-side)
-    const unlockPromises = marksToUnlock.map(m =>
+    await Promise.all(marksToUnlock.map(m =>
       base44.asServiceRole.entities.Marks.update(m.id, { status: 'Draft' })
-    );
-
-    await Promise.all(unlockPromises);
+    ));
 
     return Response.json({
       success: true,
       message: `Unlocked ${marksToUnlock.length} marks for editing`,
       records_unlocked: marksToUnlock.length,
       new_status: 'Draft'
-    }, { status: 200 });
+    });
   } catch (error) {
     console.error('Marks unlock error:', error);
-    return Response.json(
-      { error: error.message || 'Failed to unlock marks' },
-      { status: 500 }
-    );
+    return Response.json({ error: error.message || 'Failed to unlock marks' }, { status: 500 });
   }
 });
