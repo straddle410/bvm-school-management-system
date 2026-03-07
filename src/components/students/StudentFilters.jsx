@@ -3,10 +3,7 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
-
-export default function StudentFilters({ search, onSearch, filterClass, onFilterClass, filterSection, onFilterSection, filterStatus, onFilterStatus, showArchived, onToggleArchived, showDeleted, onToggleDeleted }) {
+export default function StudentFilters({ search, onSearch, filterClass, onFilterClass, filterSection, onFilterSection, filterStatus, onFilterStatus, showArchived, onToggleArchived, showDeleted, onToggleDeleted, availableClasses = [], availableSections = [] }) {
   return (
     <div className="bg-white rounded-xl shadow-sm px-3 py-2.5 flex flex-col gap-2">
       <div className="flex flex-col sm:flex-row gap-2">
