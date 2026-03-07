@@ -681,56 +681,29 @@ export default function Settings() {
             </Card>
             )}
 
-            {/* Subjects */}
+            {/* Subjects — managed in dedicated SubjectManagement page */}
             {activeItem === 'subjects' && (
             <Card className="border-0 shadow-sm">
               <CardHeader>
                 <CardTitle>Subjects</CardTitle>
-                <CardDescription>Manage subjects available in the school</CardDescription>
+                <CardDescription>Subject records are managed in the dedicated Subject Management page</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-3">
-                  <Input
-                    value={newSubject}
-                    onChange={(e) => setNewSubject(e.target.value)}
-                    placeholder="Enter subject name"
-                    className="max-w-xs"
-                  />
-                  <Button 
-                    onClick={() => {
-                      if (newSubject.trim()) {
-                        createSubjectMutation.mutate(newSubject.trim());
-                        setNewSubject('');
-                      }
-                    }}
-                    disabled={!newSubject.trim()}
-                  >
-                    <Plus className="mr-2 h-4 w-4" /> Add Subject
-                  </Button>
+              <CardContent>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-blue-900">Subject Management</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Create, edit, reorder, and manage all subjects with class assignments and optional/mandatory flags.
+                    </p>
+                    <p className="text-xs text-blue-500 mt-1">{subjects.length} subject{subjects.length !== 1 ? 's' : ''} currently configured</p>
+                  </div>
+                  <Link to={createPageUrl('SubjectManagement')}>
+                    <Button className="bg-[#1a237e] hover:bg-[#283593] whitespace-nowrap gap-2">
+                      <ExternalLink className="h-4 w-4" />
+                      Open Subject Management
+                    </Button>
+                  </Link>
                 </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {subjects.map(subject => (
-                    <div 
-                      key={subject.id}
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg"
-                    >
-                      <span>{subject.name}</span>
-                      <button
-                        onClick={() => deleteSubjectMutation.mutate(subject.id)}
-                        className="text-slate-400 hover:text-red-500"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {subjects.length === 0 && (
-                  <p className="text-slate-500 text-center py-8">
-                    No subjects added yet. Default subjects will be used.
-                  </p>
-                )}
               </CardContent>
             </Card>
             )}
