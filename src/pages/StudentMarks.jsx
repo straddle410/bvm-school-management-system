@@ -46,9 +46,12 @@ export default function StudentMarks() {
 
   if (!session) return null;
 
+  // Group by exam_type (ID), but display using exam_type_name (denormalized).
+  // Falls back to exam_type raw value only if exam_type_name is not stored yet.
   const marksGrouped = marks.reduce((acc, mark) => {
-    if (!acc[mark.exam_type]) acc[mark.exam_type] = [];
-    acc[mark.exam_type].push(mark);
+    const key = mark.exam_type;
+    if (!acc[key]) acc[key] = { displayName: mark.exam_type_name || mark.exam_type, items: [] };
+    acc[key].items.push(mark);
     return acc;
   }, {});
 
