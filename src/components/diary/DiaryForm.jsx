@@ -155,7 +155,7 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
               <label className="block text-sm font-medium mb-2">Class *</label>
               <Select
                 value={formData.class_name}
-                onValueChange={(val) => setFormData({ ...formData, class_name: val })}
+                onValueChange={(val) => setFormData({ ...formData, class_name: val, section: '' })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Class" />
