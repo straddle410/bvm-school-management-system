@@ -96,6 +96,17 @@ function SubjectManagementContent() {
       toast.error('Subject name is required');
       return;
     }
+
+    // Validate selected classes exist in SectionConfig for current academic year
+    if (formData.classes && formData.classes.length > 0) {
+      for (const className of formData.classes) {
+        if (!CLASSES.includes(className)) {
+          toast.error(`Class "${className}" does not exist in the current academic year's configuration`);
+          return;
+        }
+      }
+    }
+
     if (editingSubject) {
       updateMutation.mutate({ id: editingSubject.id, data: formData });
     } else {
