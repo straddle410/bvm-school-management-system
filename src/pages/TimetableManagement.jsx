@@ -187,7 +187,7 @@ export default function TimetableManagement() {
                   className="w-full px-3 py-2 border rounded-lg"
                 >
                   <option value="">All Classes</option>
-                  {CLASSES.map(cls => (
+                  {availableClasses.map(cls => (
                     <option key={cls} value={cls}>Class {cls}</option>
                   ))}
                 </select>
@@ -201,10 +201,9 @@ export default function TimetableManagement() {
                   disabled={!filters.class}
                 >
                   <option value="">All Sections</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="D">D</option>
+                  {availableSections.map(sec => (
+                    <option key={sec} value={sec}>{sec}</option>
+                  ))}
                 </select>
               </div>
               <div>
