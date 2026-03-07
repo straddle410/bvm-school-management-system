@@ -42,6 +42,10 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
 
     setLoading(true);
     try {
+      // Fetch valid class-section config for this academic year upfront
+      const classSectionMap = await getClassSectionMap(academicYear);
+      // classSectionMap: { "5": ["A","B"], "6": ["A"], ... }
+
       const uploadRes = await base44.integrations.Core.UploadFile({ file });
       
       const extractRes = await base44.integrations.Core.ExtractDataFromUploadedFile({
@@ -79,10 +83,9 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
 
       const toCreate = [];
       const errors = [];
-      // Track max roll_no per class+section to auto-assign sequentially
-      const rollCounters = {}; // key: `class_name|section` → max roll_no so far
+      const rollCounters = {}; // key: `class_name|section` → max roll_no
 
-      // Initialize counters from existing students
+      // Initialize roll counters from existing students
       for (const s of existingStudents) {
         const key = `${s.class_name}|${s.section}`;
         const roll = parseInt(s.roll_no);
@@ -91,61 +94,85 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         }
       }
 
+      const hasConfig = Object.keys(classSectionMap).length > 0;
+
       for (let i = 0; i < records.length; i++) {
-       const r = records[i];
-       const rowNum = i + 1;
-       const section = r.section || 'A';
+        const r = records[i];
+        const rowNum = i + 1;
 
-       // Validate required fields
-       if (!r.name || !r.class_name || !r.parent_name || !r.parent_phone) {
-         errors.push({ 
-           row: rowNum, 
-           name: r.name || '—', 
-           reason: 'Missing required fields: name, class_name, parent_name, parent_phone' 
-         });
-         continue;
-       }
+        // 1. Required fields
+        if (!r.name || !r.class_name || !r.parent_name || !r.parent_phone) {
+          errors.push({ row: rowNum, name: r.name || '—', reason: 'Missing required fields: name, class_name, parent_name, parent_phone' });
+          continue;
+        }
 
-       // Normalize — ignore student_id and roll_no from file; auto-generate below
-       const enriched = normalizeStudentData({
-         ...r,
-         academic_year: academicYear,
-         student_id: null, // will be generated below
-         username: null, // will default to generated student_id below
-         password: r.password || 'BVM123',
-         status: r.status || 'Pending',
-         section,
-         roll_no: null, // will be assigned below
-         parent_email: r.parent_email || '' // optional field
-       });
+        const className = (r.class_name || '').trim();
+        const sectionRaw = (r.section || '').trim();
 
-       // Skip student_id uniqueness check — it will be auto-generated
+        // 2. Validate class against SectionConfig (only when config exists)
+        if (hasConfig && !classSectionMap[className]) {
+          errors.push({ row: rowNum, name: r.name || '—', reason: `Class "${className}" is not configured for academic year ${academicYear}. Check Settings → Class Sections.` });
+          continue;
+        }
 
-       // 2. Duplicate student (name + dob + class) — case-insensitive via namesMatch
-       if (enriched.name && enriched.dob && enriched.class_name) {
-         const dupConflict = existingStudents.find(s =>
-           namesMatch(s.name, enriched.name) &&
-           s.dob === enriched.dob &&
-           s.class_name === enriched.class_name
-         );
-         if (dupConflict) {
-           errors.push({ row: rowNum, name: r.name || '—', reason: 'Possible duplicate student already exists' });
-           continue;
-         }
-       }
+        // 3. Resolve section — use from CSV, or auto-select if only one available
+        let section = sectionRaw;
+        if (hasConfig) {
+          const validSections = classSectionMap[className] || [];
+          if (!section) {
+            // Auto-select if only one section exists for the class
+            if (validSections.length === 1) {
+              section = validSections[0];
+            } else {
+              errors.push({ row: rowNum, name: r.name || '—', reason: `Section is required for Class ${className} (available: ${validSections.join(', ')})` });
+              continue;
+            }
+          } else if (!validSections.includes(section)) {
+            errors.push({ row: rowNum, name: r.name || '—', reason: `Section "${section}" is not valid for Class ${className} in ${academicYear} (available: ${validSections.join(', ')})` });
+            continue;
+          }
+        } else {
+          // No SectionConfig — use whatever is in the CSV, default to 'A' only as last resort
+          section = section || 'A';
+        }
 
-       // 3. Auto-assign roll_no
-       if (enriched.class_name && enriched.section) {
-         const key = `${enriched.class_name}|${enriched.section}`;
-         rollCounters[key] = (rollCounters[key] || 0) + 1;
-         enriched.roll_no = rollCounters[key];
-       }
+        const enriched = normalizeStudentData({
+          ...r,
+          academic_year: academicYear,
+          student_id: null,
+          username: null,
+          password: r.password || 'BVM123',
+          status: r.status || 'Pending',
+          section,
+          roll_no: null,
+          parent_email: r.parent_email || ''
+        });
 
-       // 4. ID will be generated when status changes to "Approved" — leave NULL for now
-       enriched.student_id = null;
-       enriched.username = null;
+        // 4. Duplicate check (name + dob + class)
+        if (enriched.name && enriched.dob && enriched.class_name) {
+          const dupConflict = existingStudents.find(s =>
+            namesMatch(s.name, enriched.name) &&
+            s.dob === enriched.dob &&
+            s.class_name === enriched.class_name
+          );
+          if (dupConflict) {
+            errors.push({ row: rowNum, name: r.name || '—', reason: 'Possible duplicate student already exists' });
+            continue;
+          }
+        }
 
-       toCreate.push(enriched);
+        // 5. Auto-assign roll_no
+        if (enriched.class_name && enriched.section) {
+          const key = `${enriched.class_name}|${enriched.section}`;
+          rollCounters[key] = (rollCounters[key] || 0) + 1;
+          enriched.roll_no = rollCounters[key];
+        }
+
+        // 6. student_id generated on Approved — leave null
+        enriched.student_id = null;
+        enriched.username = null;
+
+        toCreate.push(enriched);
       }
 
       if (toCreate.length > 0) {
@@ -154,7 +181,7 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
 
       setResult({ success: toCreate.length, failed: errors.length, errors });
       if (toCreate.length > 0) toast.success(`Added ${toCreate.length} students`);
-      if (errors.length > 0) toast.warning(`${errors.length} row(s) skipped due to duplicates`);
+      if (errors.length > 0) toast.warning(`${errors.length} row(s) skipped`);
       if (toCreate.length > 0) onSuccess?.();
       if (errors.length === 0) setTimeout(() => { onClose(); setResult(null); }, 2000);
     } catch (err) {
@@ -174,15 +201,18 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <p className="text-xs text-blue-700 mb-2">
-              <strong>Required fields:</strong> name, class_name, section, parent_name, parent_phone
-            </p>
-            <p className="text-xs text-blue-600 mb-2">
-              <strong>Optional fields:</strong> roll_no, parent_email, dob, gender, address, blood_group
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-1.5">
+            <p className="text-xs text-blue-700">
+              <strong>Required:</strong> name, class_name, section, parent_name, parent_phone
             </p>
             <p className="text-xs text-blue-600">
-              ℹ Student IDs are auto-generated.
+              <strong>Optional:</strong> parent_email, dob, gender, address, blood_group
+            </p>
+            <p className="text-xs text-blue-600">
+              ⚠ <strong>class_name</strong> and <strong>section</strong> must match your Class Sections configuration for the selected academic year (Settings → Class Sections).
+            </p>
+            <p className="text-xs text-blue-500">
+              ℹ Student IDs are auto-generated on Approval. Do not include student_id in CSV.
             </p>
           </div>
 
