@@ -94,18 +94,17 @@ export default function Staff() {
     queryFn: () => base44.entities.Subject.list('name'),
   });
 
-  // Query SectionConfig: always run, but only return results if academicYear is set
-  // This ensures the data loads and is ready when academicYear becomes available
+  // Query SectionConfig: only query when academicYear is available
+  // This ensures the query fetches fresh data whenever academicYear changes
   const { data: sectionConfigs = [] } = useQuery({
     queryKey: ['section-configs', academicYear],
     queryFn: async () => {
-      if (!academicYear) return [];
       return base44.entities.SectionConfig.filter(
         { academic_year: academicYear },
         'class_display_order,section_display_order'
       );
     },
-    // Remove 'enabled' gate: always query, but filter in queryFn
+    enabled: !!academicYear,  // CRITICAL: Only run query when academicYear is available
   });
 
   // Derive unique classes from SectionConfig, sorted by display order
