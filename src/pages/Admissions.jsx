@@ -196,9 +196,10 @@ export default function Admissions() {
     if (showDetailsSheet) setShowDetailsSheet(false);
   };
 
-  const viewDetails = (admission) => {
+  const viewDetails = async (admission) => {
     setSelectedAdmission(admission);
     setRemarks(admission.remarks || '');
+    setSelectedSection(admission.section || '');
     setEditData({
       student_name: admission.student_name,
       dob: admission.dob,
@@ -210,6 +211,21 @@ export default function Admissions() {
       previous_school: admission.previous_school,
       applying_for_class: admission.applying_for_class
     });
+
+    // Load available sections for this class and year
+    try {
+      const sectionConfigs = await base44.entities.SectionConfig.filter({
+        class_name: admission.applying_for_class,
+        academic_year: academicYear,
+        is_active: true
+      });
+      const sections = sectionConfigs.map(s => s.section);
+      setAvailableSections(sections);
+    } catch (err) {
+      console.error('Failed to load sections:', err);
+      setAvailableSections([]);
+    }
+
     setShowDetailsSheet(true);
   };
 
