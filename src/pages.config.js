@@ -82,7 +82,6 @@ import PostingDashboard from './pages/PostingDashboard';
 import PrintReceiptA5 from './pages/PrintReceiptA5';
 import ProductionReset from './pages/ProductionReset';
 import Profile from './pages/Profile';
-import PublicAdmission from './pages/PublicAdmission';
 import PublicAdmissionForm from './pages/PublicAdmissionForm';
 import Quiz from './pages/Quiz';
 import RbacTest from './pages/RbacTest';
@@ -151,7 +150,6 @@ export const PAGES = {
     "PrintReceiptA5": PrintReceiptA5,
     "ProductionReset": ProductionReset,
     "Profile": Profile,
-    "PublicAdmission": PublicAdmission,
     "PublicAdmissionForm": PublicAdmissionForm,
     "Quiz": Quiz,
     "RbacTest": RbacTest,

@@ -383,7 +383,7 @@ export default function Admissions() {
         actions={
           <div className="flex items-center gap-2">
             <AcademicYearSelector />
-            <Link to={createPageUrl('PublicAdmission')} target="_blank">
+            <Link to={createPageUrl('PublicAdmissionForm')} target="_blank">
               <Button variant="outline">
                 <ExternalLink className="mr-2 h-4 w-4" /> View Public Form
               </Button>
