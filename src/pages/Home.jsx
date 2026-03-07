@@ -34,8 +34,7 @@ export default function Home() {
               <Building2 className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">BVM School</h1>
-              <p className="text-xs text-blue-100">School of Excellence</p>
+              <h1 className="text-lg font-bold">BVM SCHOOL OF EXCELLENCE</h1>
             </div>
           </Link>
           <div className="flex gap-2">
