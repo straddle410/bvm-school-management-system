@@ -168,11 +168,6 @@ export default function Dashboard() {
             <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
 
-          {/* Debug bar */}
-          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-mono">
-            roleSource: {roleSource} | staffRole: {staffRole} | permissions: {permissionsCount}
-          </div>
-
           <section>
             <h2 className="text-lg font-bold text-gray-700 mb-4">Fees &amp; Accounts</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -204,11 +199,6 @@ export default function Dashboard() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Teacher'}</h1>
             <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
-          </div>
-
-          {/* Debug bar */}
-          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-mono">
-            roleSource: {roleSource} | staffRole: {staffRole} | permissions: {permissionsCount}
           </div>
 
           <section className="mb-8">
@@ -252,9 +242,6 @@ export default function Dashboard() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Exam Staff'}</h1>
             <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
-          </div>
-          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-mono">
-            roleSource: {roleSource} | staffRole: {staffRole} | permissions: {permissionsCount}
           </div>
           <section>
             <h2 className="text-lg font-bold text-gray-700 mb-4">Exam &amp; Attendance</h2>
@@ -327,11 +314,6 @@ export default function Dashboard() {
             <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
 
-          {/* Debug bar */}
-          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-mono">
-            roleSource: {roleSource} | staffRole: {staffRole} | permissions: {permissionsCount}
-          </div>
-
           {approvalsCount > 0 && (
             <section className="mb-6">
               <Link to={createPageUrl('Approvals')}>
@@ -383,9 +365,6 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Staff'}</h1>
-        </div>
-        <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-mono">
-          roleSource: {roleSource} | staffRole: &quot;{staffRole}&quot; | permissions: {permissionsCount}
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-amber-500 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
