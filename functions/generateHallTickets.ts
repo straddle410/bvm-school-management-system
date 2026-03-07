@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     if (hasDuplicates) {
       const duplicates = rollNumbers.filter((rn, idx) => rollNumbers.indexOf(rn) !== idx);
       return Response.json({
-        error: `Duplicate roll numbers found in Class ${classname}-${section || 'A'}: ${[...new Set(duplicates)].join(', ')}. Please fix roll numbers before generating hall tickets.`,
+        error: `Duplicate roll numbers found in Class ${classname}-${section}: ${[...new Set(duplicates)].join(', ')}. Please fix roll numbers before generating hall tickets.`,
         hasDuplicateRollNumbers: true,
         duplicateRollNumbers: [...new Set(duplicates)]
       }, { status: 400 });
@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
         student_name: student.name,
         roll_number: student.roll_no,
         class_name: classname,
-        section: section || 'A',
+        section: section,
         student_photo_url: student.photo_url || '',
         academic_year: academicYear,
         status: 'Generated',
