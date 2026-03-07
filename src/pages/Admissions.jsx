@@ -169,18 +169,31 @@ export default function Admissions() {
 
 
   const handleStatusChange = async (admission, newStatus) => {
+    // Validate section selection when approving
+    if (newStatus === 'Approved' && !selectedSection) {
+      toast.error('Please select a section before approving');
+      return;
+    }
+
+    const updateData = { 
+      status: newStatus,
+      remarks: selectedAdmission?.id === admission.id ? remarks : admission.remarks || '',
+      approved_by: newStatus === 'Approved' ? user?.email : undefined,
+      approved_at: newStatus === 'Approved' ? new Date().toISOString() : undefined,
+      verified_by: newStatus === 'Verified' ? user?.email : undefined,
+      verified_at: newStatus === 'Verified' ? new Date().toISOString() : undefined
+    };
+
+    // Include section when approving
+    if (newStatus === 'Approved' && selectedSection) {
+      updateData.section = selectedSection;
+    }
+
     updateMutation.mutate({ 
       id: admission.id, 
-      data: { 
-        status: newStatus,
-        remarks: selectedAdmission?.id === admission.id ? remarks : admission.remarks || '',
-        approved_by: newStatus === 'Approved' ? user?.email : undefined,
-        approved_at: newStatus === 'Approved' ? new Date().toISOString() : undefined,
-        verified_by: newStatus === 'Verified' ? user?.email : undefined,
-        verified_at: newStatus === 'Verified' ? new Date().toISOString() : undefined
-      } 
+      data: updateData
     });
-    
+
     // Notify admin when application is verified
     if (newStatus === 'Verified') {
       try {
@@ -192,7 +205,7 @@ export default function Admissions() {
         console.error('Failed to send notification:', err);
       }
     }
-    
+
     if (showDetailsSheet) setShowDetailsSheet(false);
   };
 
