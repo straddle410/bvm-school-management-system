@@ -172,8 +172,19 @@ export default function ClassSectionConfigTab() {
       </CardHeader>
       <CardContent className="space-y-6">
 
-        {/* No config warning */}
-        {!isLoading && records.length === 0 && (
+         {/* TEMP DEBUG BOX */}
+         <div className="bg-blue-50 border border-blue-300 rounded p-3 text-xs text-blue-900">
+           <p className="font-semibold mb-2">🔵 SETTINGS DEBUG (temporary):</p>
+           <p>academicYear: <span className="font-mono font-bold">{settingsDebug.academicYear || 'UNDEFINED'}</span></p>
+           <p>records count: <span className="font-mono font-bold">{settingsDebug.recordsCount}</span></p>
+           <p className="mt-2 text-blue-800">Sample records (first 3):</p>
+           <pre className="text-xs bg-white border border-blue-200 p-2 mt-1 overflow-auto max-h-24">
+             {settingsDebug.recordsSample.length === 0 ? '(empty)' : JSON.stringify(settingsDebug.recordsSample, null, 2)}
+           </pre>
+         </div>
+
+         {/* No config warning */}
+         {!isLoading && records.length === 0 && (
           <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
