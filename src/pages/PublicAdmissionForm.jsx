@@ -87,9 +87,10 @@ export default function PublicAdmissionForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleYearChange = (value) => {
+  const handleYearChange = async (value) => {
     setSelectedYear(value);
-    setFormData(prev => ({ ...prev, academic_year: value }));
+    setFormData(prev => ({ ...prev, academic_year: value, applying_for_class: '' }));
+    await loadClassesForYear(value);
   };
 
   const handleFileUpload = async (e, fileType) => {
