@@ -79,8 +79,8 @@ export default function ProductionReset() {
     }
   };
 
-  // Block access while loading, or if user is not confirmed admin
-  if (!user) {
+  // STATE 1: Loading — auth check in progress
+  if (!authResolved) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-8 h-8 border-4 border-gray-300 border-t-transparent rounded-full animate-spin" />
@@ -88,7 +88,8 @@ export default function ProductionReset() {
     );
   }
 
-  if (user.role !== 'admin') {
+  // STATE 2: Unauthorized — auth completed but user is not admin or not logged in
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50">
         <div className="text-center">
@@ -99,6 +100,8 @@ export default function ProductionReset() {
       </div>
     );
   }
+
+  // STATE 3: Authorized — user is confirmed admin, safe to render reset UI
 
   const transactional = status?.transactional_entities ?? {};
   const protected_ = status?.protected_entities ?? {};
