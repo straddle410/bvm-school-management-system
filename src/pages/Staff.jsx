@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
 import { validatePasswordPolicy } from '@/components/utils/passwordPolicy';
+import TeacherAssignmentSection from '@/components/staff/TeacherAssignmentSection';
 
 const generateUsername = (name) => {
   return name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 99 + 1);
@@ -702,116 +703,13 @@ export default function Staff() {
                               </div>
                             </div>
 
-                            <div className="border-t pt-4">
-                              <Label className="flex items-center gap-2 mb-4">
-                                <Checkbox checked={form.is_teacher} onCheckedChange={(checked) => setForm(f => ({ ...f, is_teacher: checked }))} />
-                                This is a Teacher
-                              </Label>
-
-                              {form.is_teacher && (
-                                <div className="space-y-4 ml-6">
-                                  <div>
-                                      <Label>Subjects</Label>
-                                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
-                                        {subjects.map(s => (
-                                          <div key={s.id} className="flex items-center gap-2">
-                                            <Checkbox
-                                              checked={form.subjects.includes(s.name)}
-                                              onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                  setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
-                                                } else {
-                                                  setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
-                                                }
-                                              }}
-                                            />
-                                            <span className="text-sm">{s.name}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                      <p className="text-xs text-slate-500 mt-2">Subjects will be saved when you update staff</p>
-                                    </div>
-
-                                  <div>
-                                    <Label>Classes</Label>
-                                    <div className="grid grid-cols-3 gap-2 border rounded p-2 max-h-40 overflow-y-auto">
-                                      {CLASSES.map(c => (
-                                        <div key={c} className="flex items-center gap-2">
-                                          <Checkbox
-                                            checked={form.classes.includes(c)}
-                                            onCheckedChange={(checked) => {
-                                              if (checked) {
-                                                setForm(f => ({ ...f, classes: [...f.classes, c] }));
-                                              } else {
-                                                setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
-                                              }
-                                            }}
-                                          />
-                                          <span className="text-sm">{c}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <Label>Sections</Label>
-                                    {form.classes.length === 0 ? (
-                                      <p className="text-xs text-slate-500 italic">Select at least one class to enable section selection</p>
-                                    ) : (
-                                      <div className="grid grid-cols-4 gap-2">
-                                        {(() => {
-                                          // Get all unique sections across selected classes
-                                          const uniqueSections = Array.from(
-                                            new Set(
-                                              form.classes.flatMap(cls => getSectionsForClass(cls))
-                                            )
-                                          ).sort();
-                                          return uniqueSections.map(s => (
-                                            <div key={s} className="flex items-center gap-2">
-                                              <Checkbox
-                                                checked={form.sections.includes(s)}
-                                                onCheckedChange={(checked) => {
-                                                  if (checked) {
-                                                    setForm(f => ({ ...f, sections: [...f.sections, s] }));
-                                                  } else {
-                                                    setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
-                                                  }
-                                                }}
-                                              />
-                                              <span className="text-sm">{s}</span>
-                                            </div>
-                                          ));
-                                        })()}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div>
-                                    <Label>Class Teacher Of</Label>
-                                    {form.classes.length === 0 ? (
-                                      <p className="text-xs text-slate-500 italic">Select at least one class to enable class teacher assignment</p>
-                                    ) : (
-                                      <Select value={form.class_teacher_of} onValueChange={(v) => setForm(f => ({ ...f, class_teacher_of: v }))}>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select class-section" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {(() => {
-                                            const classSectionOptions = form.classes.flatMap(cls => {
-                                              const sections = getSectionsForClass(cls);
-                                              return sections.map(sec => ({ class: cls, section: sec, display: `${cls}-${sec}` }));
-                                            });
-                                            return classSectionOptions.map(opt => (
-                                              <SelectItem key={opt.display} value={opt.display}>{opt.display}</SelectItem>
-                                            ));
-                                          })()}
-                                        </SelectContent>
-                                      </Select>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            <TeacherAssignmentSection
+                              form={form}
+                              setForm={setForm}
+                              subjects={subjects}
+                              CLASSES={CLASSES}
+                              getSectionsForClass={getSectionsForClass}
+                            />
 
                             <div>
                               <Label>Emergency Contact Name</Label>
@@ -1155,115 +1053,13 @@ export default function Staff() {
                         </div>
                       </div>
 
-                      <div className="border-t pt-4">
-                        <Label className="flex items-center gap-2 mb-4">
-                          <Checkbox checked={form.is_teacher} onCheckedChange={(checked) => setForm(f => ({ ...f, is_teacher: checked }))} />
-                          This is a Teacher
-                        </Label>
-
-                        {form.is_teacher && (
-                          <div className="space-y-4 ml-6">
-                            <div>
-                              <Label>Subjects</Label>
-                              <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
-                                {subjects.map(s => (
-                                  <div key={s.id} className="flex items-center gap-2">
-                                    <Checkbox
-                                      checked={form.subjects.includes(s.name)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
-                                        } else {
-                                          setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{s.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div>
-                               <Label>Classes</Label>
-                               <div className="grid grid-cols-3 gap-2 border rounded p-2 max-h-40 overflow-y-auto">
-                                 {CLASSES.map(c => (
-                                   <div key={c} className="flex items-center gap-2">
-                                     <Checkbox
-                                       checked={form.classes.includes(c)}
-                                       onCheckedChange={(checked) => {
-                                         if (checked) {
-                                           setForm(f => ({ ...f, classes: [...f.classes, c] }));
-                                         } else {
-                                           setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
-                                         }
-                                       }}
-                                     />
-                                     <span className="text-sm">{c}</span>
-                                   </div>
-                                 ))}
-                               </div>
-                             </div>
-
-                            <div>
-                              <Label>Sections</Label>
-                              {form.classes.length === 0 ? (
-                                <p className="text-xs text-slate-500 italic">Select at least one class to enable section selection</p>
-                              ) : (
-                                <div className="grid grid-cols-4 gap-2">
-                                  {(() => {
-                                    // Get all unique sections across selected classes
-                                    const uniqueSections = Array.from(
-                                      new Set(
-                                        form.classes.flatMap(cls => getSectionsForClass(cls))
-                                      )
-                                    ).sort();
-                                    return uniqueSections.map(s => (
-                                      <div key={s} className="flex items-center gap-2">
-                                        <Checkbox
-                                          checked={form.sections.includes(s)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setForm(f => ({ ...f, sections: [...f.sections, s] }));
-                                            } else {
-                                              setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
-                                            }
-                                          }}
-                                        />
-                                        <span className="text-sm">{s}</span>
-                                      </div>
-                                    ));
-                                  })()}
-                                </div>
-                              )}
-                            </div>
-
-                            <div>
-                               <Label>Class Teacher Of</Label>
-                               {form.classes.length === 0 ? (
-                                 <p className="text-xs text-slate-500 italic">Select at least one class to enable class teacher assignment</p>
-                               ) : (
-                                 <Select value={form.class_teacher_of} onValueChange={(v) => setForm(f => ({ ...f, class_teacher_of: v }))}>
-                                   <SelectTrigger>
-                                     <SelectValue placeholder="Select class-section" />
-                                   </SelectTrigger>
-                                   <SelectContent>
-                                     {(() => {
-                                       const classSectionOptions = form.classes.flatMap(cls => {
-                                         const sections = getSectionsForClass(cls);
-                                         return sections.map(sec => ({ class: cls, section: sec, display: `${cls}-${sec}` }));
-                                       });
-                                       return classSectionOptions.map(opt => (
-                                         <SelectItem key={opt.display} value={opt.display}>{opt.display}</SelectItem>
-                                       ));
-                                     })()}
-                                   </SelectContent>
-                                 </Select>
-                               )}
-                             </div>
-                          </div>
-                        )}
-                      </div>
+                      <TeacherAssignmentSection
+                        form={form}
+                        setForm={setForm}
+                        subjects={subjects}
+                        CLASSES={CLASSES}
+                        getSectionsForClass={getSectionsForClass}
+                      />
 
                       <div>
                         <Label>Emergency Contact Name</Label>
