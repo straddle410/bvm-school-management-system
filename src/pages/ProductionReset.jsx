@@ -24,11 +24,23 @@ export default function ProductionReset() {
   const [deleting, setDeleting] = useState({});
   const [results, setResults] = useState({});
   const [confirmed, setConfirmed] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // undefined = still loading
+  const [authResolved, setAuthResolved] = useState(false); // true when auth check completes
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
-    fetchStatus();
+    base44.auth.me()
+      .then(u => {
+        setUser(u);
+        setAuthResolved(true);
+        // Only fetch status AFTER auth is confirmed AND user is admin
+        if (u?.role === 'admin') {
+          fetchStatus();
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        setAuthResolved(true);
+      });
   }, []);
 
   const fetchStatus = async () => {
