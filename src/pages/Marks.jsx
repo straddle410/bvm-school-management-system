@@ -366,7 +366,11 @@ export default function Marks() {
   const unlockMutation = useMutation({
     mutationFn: async () => {
       const res = await base44.functions.invoke('unlockMarksForEditing', {
-        marksIds: existingMarks.map(m => m.id)
+        marksIds: existingMarks.map(m => m.id),
+        className: selectedClass,
+        section: selectedSection,
+        examType: selectedExamType?.id || selectedExam,
+        academicYear
       });
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to unlock marks');
