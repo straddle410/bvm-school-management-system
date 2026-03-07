@@ -111,7 +111,7 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
                 required
               >
                 <option value="">Select Class</option>
-                {CLASSES.map(cls => (
+                {availableClasses.map(cls => (
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
               </select>
@@ -124,7 +124,8 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
                 className="w-full px-3 py-2 border rounded-lg"
                 required
               >
-                {SECTIONS.map(sec => (
+                <option value="">Select Section</option>
+                {(availableSections.length > 0 ? availableSections : STATIC_SECTIONS).map(sec => (
                   <option key={sec} value={sec}>{sec}</option>
                 ))}
               </select>
