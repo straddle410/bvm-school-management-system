@@ -69,20 +69,23 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
+    queryKey: ['staff-teachers'],
     queryFn: async () => {
-      const list = await base44.entities.Teacher.list();
-      return list;
+      const staffList = await base44.entities.StaffAccount.filter(
+        { is_teacher: true, is_active: true },
+        'name'
+      );
+      return staffList;
     }
   });
 
   const handleTeacherChange = (e) => {
-    const teacherId = e.target.value;
-    const teacher = teachers.find(t => t.id === teacherId);
+    const staffId = e.target.value;
+    const staff = teachers.find(t => t.id === staffId);
     setFormData({
       ...formData,
-      teacher_id: teacherId,
-      teacher_name: teacher?.name || ''
+      teacher_id: staffId,
+      teacher_name: staff?.name || ''
     });
   };
 
