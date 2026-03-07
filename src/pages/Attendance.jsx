@@ -729,24 +729,30 @@ export default function Attendance() {
   }, []);
 
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
+  const isExamStaff = (user?.role || '').toLowerCase() === 'exam_staff';
+  // exam_staff can access snapshot + summary but NOT holidays management
+  const canViewReports = isAdmin || isExamStaff;
 
-  // Block non-admins from restricted tabs
+  // Block roles from tabs they cannot access
   const handleTabChange = (tab) => {
-    if (!isAdmin && (tab === 'snapshot' || tab === 'summary' || tab === 'holidays')) return;
+    if (tab === 'holidays' && !isAdmin) return;
+    if ((tab === 'snapshot' || tab === 'summary') && !canViewReports) return;
     setActiveTab(tab);
   };
 
+  const tabCount = isAdmin ? 4 : canViewReports ? 3 : 1;
+
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Attendance">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Attendance">
       <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
         <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
         <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className={`mb-6 ${isAdmin ? 'grid grid-cols-4' : 'grid grid-cols-1 w-auto'}`}>
+            <TabsList className={`mb-6 grid grid-cols-${tabCount}`}>
               <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
-              {isAdmin && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="summary">Attendance Summary</TabsTrigger>}
+              {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
+              {canViewReports && <TabsTrigger value="summary">Attendance Summary</TabsTrigger>}
               {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
             </TabsList>
 
@@ -754,13 +760,13 @@ export default function Attendance() {
               <MarkAttendanceTab user={user} academicYear={academicYear} isAdmin={isAdmin} />
             </TabsContent>
 
-            {isAdmin && (
+            {canViewReports && (
               <TabsContent value="snapshot">
                 <DailySnapshotTab />
               </TabsContent>
             )}
 
-            {isAdmin && (
+            {canViewReports && (
               <TabsContent value="summary">
                 <AttendanceSummaryTab academicYear={academicYear} user={user} />
               </TabsContent>
@@ -772,14 +778,26 @@ export default function Attendance() {
               </TabsContent>
             )}
 
-            {/* Block non-admins landing on restricted tabs via state or bookmark */}
-            {!isAdmin && (activeTab === 'snapshot' || activeTab === 'summary' || activeTab === 'holidays') && (
+            {/* Block roles landing on tabs they cannot access via state or bookmark */}
+            {!isAdmin && activeTab === 'holidays' && (
+              <TabsContent value="holidays">
+                <Card className="border-red-200 bg-red-50">
+                  <CardContent className="p-6 text-center">
+                    <Lock className="h-10 w-10 text-red-400 mx-auto mb-3" />
+                    <p className="font-semibold text-red-800">Not Authorized</p>
+                    <p className="text-sm text-red-600 mt-1">Only admins and principals can manage holidays.</p>
+                    <Button className="mt-4" size="sm" onClick={() => setActiveTab('mark')}>Go to Mark Attendance</Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+            {!canViewReports && (activeTab === 'snapshot' || activeTab === 'summary') && (
               <TabsContent value={activeTab}>
                 <Card className="border-red-200 bg-red-50">
                   <CardContent className="p-6 text-center">
                     <Lock className="h-10 w-10 text-red-400 mx-auto mb-3" />
                     <p className="font-semibold text-red-800">Not Authorized</p>
-                    <p className="text-sm text-red-600 mt-1">Only admins and principals can access this section.</p>
+                    <p className="text-sm text-red-600 mt-1">Only admins, principals, and exam staff can access this section.</p>
                     <Button className="mt-4" size="sm" onClick={() => setActiveTab('mark')}>Go to Mark Attendance</Button>
                   </CardContent>
                 </Card>

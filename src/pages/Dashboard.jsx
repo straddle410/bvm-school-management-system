@@ -243,7 +243,7 @@ export default function Dashboard() {
       { label: 'Marks Entry',  icon: BookOpen,    page: 'Marks',               gradient: 'from-green-400 to-green-600' },
       { label: 'Attendance',   icon: CheckSquare, page: 'Attendance',          gradient: 'from-blue-400 to-blue-600' },
       { label: 'Exams',        icon: BookMarked,  page: 'ExamManagement',      gradient: 'from-purple-400 to-purple-600' },
-      { label: 'Att. Report',  icon: BarChart3,   page: 'AttendanceReport',    gradient: 'from-teal-400 to-teal-600' },
+      { label: 'Att. Snapshot', icon: BarChart3,   page: 'Attendance',          gradient: 'from-teal-400 to-teal-600' },
     ];
 
     return (
@@ -307,7 +307,7 @@ export default function Dashboard() {
         title: 'Reports & Analytics',
         actions: [
           { label: 'Reports',        icon: BarChart3,    page: 'Reports',             gradient: 'from-purple-400 to-purple-600' },
-          { label: 'Att. Report',    icon: ClipboardCheck, page: 'AttendanceReport',  gradient: 'from-teal-400 to-teal-600' },
+          { label: 'Att. Snapshot',  icon: ClipboardCheck, page: 'Attendance',        gradient: 'from-teal-400 to-teal-600' },
         ],
       },
       {
