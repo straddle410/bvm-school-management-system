@@ -28,17 +28,19 @@ export default function TeacherAssignmentSection({
   }, [sectionConfigs]);
 
   // DEBUG: Log state for visibility
-  const debugInfo = {
-    academicYear,
-    sectionConfigsCount: sectionConfigs.length,
-    sectionConfigsSample: sectionConfigs.slice(0, 3).map(sc => ({
-      class_name: sc.class_name,
-      section: sc.section,
-      academic_year: sc.academic_year,
-      is_active: sc.is_active,
-    })),
-    classesArrayFinal: CLASSES,
-  };
+   const debugInfo = {
+     academicYear,
+     sectionConfigsCount: sectionConfigs.length,
+     queryStatus: sectionConfigStatus,
+     isLoading: isSectionConfigLoading,
+     sectionConfigsSample: sectionConfigs.slice(0, 3).map(sc => ({
+       class_name: sc.class_name,
+       section: sc.section,
+       academic_year: sc.academic_year,
+       is_active: sc.is_active,
+     })),
+     classesArrayFinal: CLASSES,
+   };
 
   return (
     <div className="border-t pt-4">
