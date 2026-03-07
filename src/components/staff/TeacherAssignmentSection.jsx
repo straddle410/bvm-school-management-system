@@ -27,6 +27,7 @@ export default function TeacherAssignmentSection({
 
   // DEBUG: Log state for visibility
   const debugInfo = {
+    academicYear,
     sectionConfigsCount: sectionConfigs.length,
     sectionConfigsSample: sectionConfigs.slice(0, 3).map(sc => ({
       class_name: sc.class_name,
