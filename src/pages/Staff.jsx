@@ -86,13 +86,34 @@ export default function Staff() {
     class_teacher_of: '',
   });
 
+  const { academicYear } = useAcademicYear();
+
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
     queryFn: () => base44.entities.Subject.list('name'),
   });
 
-  const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-  const SECTIONS = ['A', 'B', 'C', 'D'];
+  const { data: sectionConfigs = [] } = useQuery({
+    queryKey: ['section-configs', academicYear],
+    queryFn: () => base44.entities.SectionConfig.filter(
+      { academic_year: academicYear, is_active: true },
+      'class_display_order,section_display_order'
+    ),
+    enabled: !!academicYear,
+  });
+
+  // Derive unique classes from SectionConfig, sorted by display order
+  const CLASSES = Array.from(
+    new Map(sectionConfigs.map(sc => [sc.class_name, sc.class_display_order])).entries()
+  ).sort(([, orderA], [, orderB]) => (orderA || 0) - (orderB || 0)).map(([className]) => className);
+
+  // Derive sections for selected class from SectionConfig
+  const getSectionsForClass = (className) => {
+    return sectionConfigs
+      .filter(sc => sc.class_name === className)
+      .sort((a, b) => (a.section_display_order || 0) - (b.section_display_order || 0))
+      .map(sc => sc.section);
+  };
   const [roleForm, setRoleForm] = useState({
     name: '',
     description: '',
