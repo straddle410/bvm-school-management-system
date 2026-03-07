@@ -13,8 +13,7 @@ import TimetableForm from '@/components/timetable/TimetableForm';
 import TimetableList from '@/components/timetable/TimetableList';
 import TimetableGrid from '@/components/timetable/TimetableGrid';
 import { toast } from 'sonner';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function TimetableManagement() {
   const { academicYear } = useAcademicYear();

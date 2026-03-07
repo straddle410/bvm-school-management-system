@@ -6,9 +6,9 @@ import { X, Plus, Trash2, Upload, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
 import { toast } from 'sonner';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
-const CLASSES = ['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10','11','12'];
-const SECTIONS = ['All','A','B','C','D'];
+const TYPES = ['MCQ','Descriptive','Project','Assignment','Other'];
 const TYPES = ['MCQ','Descriptive','Project','Assignment','Other'];
 
 const emptyMCQ = () => ({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'A' });

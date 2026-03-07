@@ -18,9 +18,7 @@ import { X, Upload, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: propAcademicYear }) {
    const contextAcademicYear = useAcademicYear();

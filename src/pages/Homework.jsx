@@ -22,6 +22,7 @@ import HomeworkRowMetrics from '@/components/homework/HomeworkRowMetrics';
 import { normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
 import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
 import { canViewHomework, canManageHomework, isHomeworkAdmin, filterHomeworkByAccess, getHomeworkQueryFilter } from '@/components/homework/homeworkAccessControl';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function Homework() {
   const [user, setUser] = useState(null);
