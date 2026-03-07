@@ -89,33 +89,24 @@ export default function Staff() {
 
   const { academicYear } = useAcademicYear();
 
-  // Debug: log academicYear and query state
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[Staff.js] academicYear:', academicYear);
-    }
-  }, [academicYear]);
-
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
     queryFn: () => base44.entities.Subject.list('name'),
   });
 
-  const { data: sectionConfigs = [], isLoading: sectionConfigsLoading } = useQuery({
+  // Query SectionConfig: always run, but only return results if academicYear is set
+  // This ensures the data loads and is ready when academicYear becomes available
+  const { data: sectionConfigs = [] } = useQuery({
     queryKey: ['section-configs', academicYear],
-    queryFn: () => base44.entities.SectionConfig.filter(
-      { academic_year: academicYear },
-      'class_display_order,section_display_order'
-    ),
-    enabled: !!academicYear,
+    queryFn: async () => {
+      if (!academicYear) return [];
+      return base44.entities.SectionConfig.filter(
+        { academic_year: academicYear },
+        'class_display_order,section_display_order'
+      );
+    },
+    // Remove 'enabled' gate: always query, but filter in queryFn
   });
-
-  // Debug: log sectionConfigs state
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[Staff.js] sectionConfigs count:', sectionConfigs.length, 'first 3:', sectionConfigs.slice(0, 3));
-    }
-  }, [sectionConfigs]);
 
   // Derive unique classes from SectionConfig, sorted by display order
   const CLASSES = Array.from(
