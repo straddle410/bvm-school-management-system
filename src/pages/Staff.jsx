@@ -96,8 +96,8 @@ export default function Staff() {
 
   // Query SectionConfig: only query when academicYear is available
   // This ensures the query fetches fresh data whenever academicYear changes
-  const { data: sectionConfigs = [] } = useQuery({
-    queryKey: ['section-configs', academicYear],
+  const { data: sectionConfigs = [], isLoading: isSectionConfigLoading, status: sectionConfigStatus } = useQuery({
+    queryKey: ['section-config', academicYear],  // MATCH Settings' queryKey for cache consistency
     queryFn: async () => {
       return base44.entities.SectionConfig.filter(
         { academic_year: academicYear },
