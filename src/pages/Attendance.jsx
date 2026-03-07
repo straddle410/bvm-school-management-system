@@ -29,9 +29,7 @@ import {
 } from 'lucide-react';
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 // ─── Mark Attendance Tab ──────────────────────────────────────────────────────
 function MarkAttendanceTab({ user, academicYear, isAdmin }) {

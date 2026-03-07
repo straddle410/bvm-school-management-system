@@ -45,9 +45,8 @@ import MobileMarksEntry from '@/components/marks/MobileMarksEntry';
 import MarksImportExport from '@/components/marks/MarksImportExport';
 
 import { getSubjectsForClass, getSubjectSourceLabel } from '@/components/subjectHelper';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A'];
 const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies'];
 
 export default function Marks() {
