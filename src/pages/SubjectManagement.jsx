@@ -12,6 +12,7 @@ import LoginRequired from '@/components/LoginRequired';
 
 function SubjectManagementContent() {
   const queryClient = useQueryClient();
+  const { academicYear } = useAcademicYear();
   const [showForm, setShowForm] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [formData, setFormData] = useState({
@@ -28,6 +29,20 @@ function SubjectManagementContent() {
       return subs.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     }
   });
+
+  const { data: sectionConfigs = [] } = useQuery({
+    queryKey: ['section-configs', academicYear],
+    queryFn: () => base44.entities.SectionConfig.filter(
+      { academic_year: academicYear, is_active: true },
+      'class_display_order'
+    ),
+    enabled: !!academicYear,
+  });
+
+  // Derive unique classes from SectionConfig, sorted by display order
+  const CLASSES = Array.from(
+    new Map(sectionConfigs.map(sc => [sc.class_name, sc.class_display_order])).entries()
+  ).sort(([, orderA], [, orderB]) => (orderA || 0) - (orderB || 0)).map(([className]) => className);
 
   const reorderMutation = useMutation({
     mutationFn: async (updates) => {
