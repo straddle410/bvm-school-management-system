@@ -98,15 +98,15 @@ export default function TeacherAssignmentSection({
           <div>
             <Label>Classes</Label>
             <div className="flex flex-wrap gap-2 p-2 border rounded min-h-[44px] items-center bg-slate-50">
-              {form.classes.length === 0 ? (
+              {(form.classes || []).length === 0 ? (
                 <span className="text-xs text-slate-500 italic">No classes selected</span>
               ) : (
-                form.classes.map(c => (
+                (form.classes || []).map(c => (
                   <Badge key={c} variant="secondary" className="flex items-center gap-1">
                     {c}
                     <button
                       type="button"
-                      onClick={() => setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }))}
+                      onClick={() => setForm(f => ({ ...f, classes: (f.classes || []).filter(x => x !== c) }))}
                       className="ml-1 hover:opacity-70"
                     >
                       <X className="h-3 w-3" />
