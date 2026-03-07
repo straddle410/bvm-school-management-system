@@ -22,8 +22,8 @@ import {
   LineChart, Line, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import AttendanceYearlyTab from '@/components/reports/AttendanceYearlyTab';
+import { getClassesForYear } from '@/components/classSectionHelper';
 
-const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 export default function Reports() {
@@ -64,8 +64,17 @@ export default function Reports() {
     queryFn: () => base44.entities.ExamType.list()
   });
 
-  // Class-wise student distribution
-  const classDistribution = CLASSES.map(cls => ({
+  // Dynamic class list from SectionConfig for current academic year
+  const { data: classSectionData } = useQuery({
+    queryKey: ['classes-for-year', academicYear],
+    queryFn: () => getClassesForYear(academicYear),
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableClasses = classSectionData?.classes || [];
+
+  // Class-wise student distribution (derived from actual students, not hardcoded)
+  const classDistribution = availableClasses.map(cls => ({
     class: `Class ${cls}`,
     count: students.filter(s => s.class_name === cls).length
   })).filter(c => c.count > 0);
@@ -244,10 +253,10 @@ export default function Reports() {
                       <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Classes</SelectItem>
-                      {CLASSES.map(c => (
-                        <SelectItem key={c} value={c}>Class {c}</SelectItem>
-                      ))}
+                       <SelectItem value="all">All Classes</SelectItem>
+                       {availableClasses.map(c => (
+                         <SelectItem key={c} value={c}>Class {c}</SelectItem>
+                       ))}
                     </SelectContent>
                   </Select>
                   <Select value={selectedExam} onValueChange={setSelectedExam}>
