@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,18 @@ import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import HallTicketPreviewModal from './HallTicketPreviewModal';
 import { printHallTickets } from './PrintHallTickets';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 export default function HallTicketList() {
   const { academicYear } = useAcademicYear();
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear)
+      .then(res => setAvailableClasses(res.classes || []))
+      .catch(() => setAvailableClasses([]));
+  }, [academicYear]);
   const [selected, setSelected] = useState([]);
   const [filterClass, setFilterClass] = useState('');
   const [filterExamType, setFilterExamType] = useState('');
@@ -167,7 +174,7 @@ export default function HallTicketList() {
               className="px-3 py-1.5 border rounded-lg text-sm"
             >
               <option value="">All Classes</option>
-              {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+              {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
             </select>
             <select
               value={filterExamType}

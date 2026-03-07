@@ -6,40 +6,60 @@ import { Loader2, Zap, AlertCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function ProgressCardGenerator() {
   const { academicYear } = useAcademicYear();
   const [filters, setFilters] = useState({ class: '', section: '', exam_type: '' });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [loadingSections, setLoadingSections] = useState(false);
   const queryClient = useQueryClient();
 
-  // Check authentication - staff session or platform login
+  // Auth check
   useEffect(() => {
     const checkAuth = async () => {
       setAuthLoading(true);
       try {
         const session = localStorage.getItem('staff_session');
-        if (session) {
-          const parsed = JSON.parse(session);
-          setIsAuthenticated(true);
-          setAuthLoading(false);
-          return;
-        }
+        if (session) { setIsAuthenticated(true); setAuthLoading(false); return; }
         const isAuth = await base44.auth.isAuthenticated();
         setIsAuthenticated(isAuth);
-      } catch (e) {
-        console.error('Auth check failed:', e);
-        setIsAuthenticated(false);
-      } finally {
-        setAuthLoading(false);
-      }
+      } catch { setIsAuthenticated(false); }
+      finally { setAuthLoading(false); }
     };
     checkAuth();
   }, []);
+
+  // Load classes
+  useEffect(() => {
+    if (!academicYear) return;
+    setLoadingClasses(true);
+    getClassesForYear(academicYear)
+      .then(res => setAvailableClasses(res.classes || []))
+      .catch(() => setAvailableClasses([]))
+      .finally(() => setLoadingClasses(false));
+  }, [academicYear]);
+
+  // Load sections when class changes
+  useEffect(() => {
+    if (!academicYear || !filters.class) {
+      setAvailableSections([]);
+      setFilters(prev => ({ ...prev, section: '' }));
+      return;
+    }
+    setLoadingSections(true);
+    getSectionsForClass(academicYear, filters.class)
+      .then(res => {
+        setAvailableSections(res.sections || []);
+        setFilters(prev => ({ ...prev, section: '' }));
+      })
+      .catch(() => setAvailableSections([]))
+      .finally(() => setLoadingSections(false));
+  }, [academicYear, filters.class]);
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
@@ -49,16 +69,13 @@ export default function ProgressCardGenerator() {
   const { data: publishedMarkStats = {} } = useQuery({
     queryKey: ['publishedMarkStats', academicYear],
     queryFn: async () => {
-      const marks = await base44.entities.Marks.filter({
-        academic_year: academicYear
-      });
+      const marks = await base44.entities.Marks.filter({ academic_year: academicYear });
       const approvedOrPublished = marks.filter(m => m.status === 'Published' || m.status === 'Approved');
-      const stats = {
+      return {
         totalMarks: approvedOrPublished.length,
         students: new Set(approvedOrPublished.map(m => m.student_id)).size,
         exams: new Set(approvedOrPublished.map(m => m.exam_type)).size
       };
-      return stats;
     }
   });
 
@@ -92,37 +109,19 @@ export default function ProgressCardGenerator() {
     }
   };
 
-  if (authLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        </CardContent>
-      </Card>
-    );
-  }
+  if (authLoading) return (
+    <Card><CardContent className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></CardContent></Card>
+  );
 
-  if (!isAuthenticated) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            Authentication Required
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-600 mb-4">You must be logged in to generate progress cards.</p>
-          <Button 
-            onClick={() => window.location.href = '/StaffLogin'}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-          >
-            Go to Staff Login
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (!isAuthenticated) return (
+    <Card>
+      <CardHeader><CardTitle className="flex items-center gap-2"><AlertCircle className="h-5 w-5 text-red-600" />Authentication Required</CardTitle></CardHeader>
+      <CardContent>
+        <p className="text-sm text-gray-600 mb-4">You must be logged in to generate progress cards.</p>
+        <Button onClick={() => window.location.href = '/StaffLogin'} className="w-full bg-blue-600 hover:bg-blue-700">Go to Staff Login</Button>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-4">
@@ -153,31 +152,34 @@ export default function ProgressCardGenerator() {
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Class (Optional)</label>
+              <label className="block text-sm font-medium mb-2">
+                Class (Optional)
+                {loadingClasses && <span className="text-xs text-gray-400 ml-1">Loading...</span>}
+              </label>
               <select
                 value={filters.class}
                 onChange={(e) => setFilters({ ...filters, class: e.target.value })}
+                disabled={loadingClasses}
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="">All Classes</option>
-                {CLASSES.map(c => (
-                  <option key={c} value={c}>Class {c}</option>
-                ))}
+                {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Section (Optional)</label>
+              <label className="block text-sm font-medium mb-2">
+                Section (Optional)
+                {loadingSections && <span className="text-xs text-gray-400 ml-1">Loading...</span>}
+              </label>
               <select
                 value={filters.section}
                 onChange={(e) => setFilters({ ...filters, section: e.target.value })}
+                disabled={!filters.class || loadingSections}
                 className="w-full px-3 py-2 border rounded-lg"
-                disabled={!filters.class}
               >
                 <option value="">All Sections</option>
-                {SECTIONS.map(s => (
-                  <option key={s} value={s}>Section {s}</option>
-                ))}
+                {availableSections.map(s => <option key={s} value={s}>Section {s}</option>)}
               </select>
             </div>
 
@@ -189,9 +191,7 @@ export default function ProgressCardGenerator() {
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="">All Exam Types</option>
-                {examTypes.map(exam => (
-                  <option key={exam.id} value={exam.id}>{exam.name}</option>
-                ))}
+                {examTypes.map(exam => <option key={exam.id} value={exam.id}>{exam.name}</option>)}
               </select>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function ProgressCardGenerator() {
             className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
           >
             {generateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            {generateMutation.isPending ? 'Generating...' : `Generate Progress Cards`}
+            {generateMutation.isPending ? 'Generating...' : 'Generate Progress Cards'}
           </Button>
         </CardContent>
       </Card>

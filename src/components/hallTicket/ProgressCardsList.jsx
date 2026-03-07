@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,18 @@ import { Eye, Download, Printer, CheckSquare2, Square } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { toast } from 'sonner';
 import ProgressCardModal from './ProgressCardModal';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 export default function ProgressCardsList() {
   const { academicYear } = useAcademicYear();
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear)
+      .then(res => setAvailableClasses(res.classes || []))
+      .catch(() => setAvailableClasses([]));
+  }, [academicYear]);
   const [filters, setFilters] = useState({ class: '', student_name: '', exam_type: '' });
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedCards, setSelectedCards] = useState(new Set());
