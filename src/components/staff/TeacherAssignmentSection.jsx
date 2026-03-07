@@ -203,15 +203,15 @@ export default function TeacherAssignmentSection({
                   key={c}
                   className="flex items-center gap-3 p-3 border-b hover:bg-slate-100 cursor-pointer transition"
                   onClick={() => {
-                    if (form.classes.includes(c)) {
-                      setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
+                    if ((form.classes || []).includes(c)) {
+                      setForm(f => ({ ...f, classes: (f.classes || []).filter(x => x !== c) }));
                     } else {
-                      setForm(f => ({ ...f, classes: [...f.classes, c] }));
+                      setForm(f => ({ ...f, classes: [...(f.classes || []), c] }));
                     }
                   }}
                 >
                   <Checkbox
-                    checked={form.classes.includes(c)}
+                    checked={(form.classes || []).includes(c)}
                     onCheckedChange={() => {
                       // Checkbox handles the state change via parent onClick
                     }}
