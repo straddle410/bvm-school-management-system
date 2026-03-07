@@ -154,7 +154,7 @@ export default function AttendanceReports() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {CLASSES.map(cls => {
+                {Object.keys(reportData.classWiseAttendance).map(cls => {
                   const data = reportData.classWiseAttendance[cls];
                   if (!data) return null;
 
