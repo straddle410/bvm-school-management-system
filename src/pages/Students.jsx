@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
 import { isLocked, isValidTransition, ACTIVE_STATUSES } from '@/components/students/studentStatusUtils';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 const EMPTY_FORM = {
   student_id: '', username: '', password: 'BVM123',
