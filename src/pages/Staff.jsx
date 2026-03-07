@@ -97,7 +97,7 @@ export default function Staff() {
   const { data: sectionConfigs = [] } = useQuery({
     queryKey: ['section-configs', academicYear],
     queryFn: () => base44.entities.SectionConfig.filter(
-      { academic_year: academicYear, is_active: true },
+      { academic_year: academicYear },
       'class_display_order,section_display_order'
     ),
     enabled: !!academicYear,
