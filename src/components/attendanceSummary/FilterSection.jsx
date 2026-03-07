@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Filter } from 'lucide-react';
 
-export default function FilterSection({ filters, setFilters, onGenerate, classes }) {
+export default function FilterSection({ filters, setFilters, onGenerate, classes, sections = ['A'] }) {
   const handleGenerate = () => {
-    if (!filters.class || !filters.fromDate || !filters.toDate) {
+    if (!filters.class || !filters.section || !filters.fromDate || !filters.toDate) {
       alert('Please select class, section, and date range');
       return;
     }
