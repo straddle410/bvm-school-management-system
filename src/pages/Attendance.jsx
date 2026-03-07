@@ -728,7 +728,7 @@ export default function Attendance() {
     setUser(getStaffSession());
   }, []);
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'Admin' || user?.role === 'principal' || user?.role === 'Principal';
+  const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
 
   // Block non-admins from restricted tabs
   const handleTabChange = (tab) => {

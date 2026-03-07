@@ -26,7 +26,7 @@ export default function DailySnapshotTab() {
     queryFn: () => base44.entities.Student.filter({ academic_year: academicYear, status: 'Published', is_deleted: false })
   });
 
-  const reportData = React.useMemo(() => {
+  const reportData = useMemo(() => {
     if (!allStudents.length) return [];
 
     const classData = {};
