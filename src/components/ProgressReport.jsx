@@ -9,7 +9,7 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
 
 
   const calculateSubjectStats = () => {
-    // Group by subject + exam_type to prevent cross-exam aggregation
+    // Group by subject + exam_type to preserve exam boundaries
     const subjectExamStats = {};
     marks.forEach(mark => {
       const key = `${mark.subject}___${mark.exam_type}`;
@@ -25,21 +25,13 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
       subjectExamStats[key].max += mark.max_marks;
     });
 
-    // Aggregate by subject across exams safely (same subject/exam combo sums correctly)
-    const subjects = {};
-    Object.values(subjectExamStats).forEach(stat => {
-      if (!subjects[stat.subject]) {
-        subjects[stat.subject] = { obtained: 0, max: 0 };
-      }
-      subjects[stat.subject].obtained += stat.obtained;
-      subjects[stat.subject].max += stat.max;
-    });
-
-    return Object.entries(subjects).map(([name, stats]) => ({
-      name,
-      obtained: stats.obtained,
-      max: stats.max,
-      percentage: Math.round((stats.obtained / stats.max) * 100)
+    // Return each subject+exam combination as a separate row (no further aggregation)
+    return Object.values(subjectExamStats).map(stat => ({
+      name: stat.subject,
+      exam_type: stat.exam_type,
+      obtained: stat.obtained,
+      max: stat.max,
+      percentage: Math.round((stat.obtained / stat.max) * 100)
     }));
   };
 
@@ -128,10 +120,13 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
             <h4 className="font-semibold text-slate-700 text-sm">Subject-wise Performance</h4>
             <div className="space-y-2">
               {subjectStats.map((subject, idx) => (
-                <div key={idx} className="bg-white rounded-lg p-3 border border-slate-200">
+                <div key={`${subject.name}___${subject.exam_type}___${idx}`} className="bg-white rounded-lg p-3 border border-slate-200">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-medium text-slate-800">{subject.name}</p>
+                      {subject.exam_type && (
+                        <p className="text-xs text-slate-400 mt-0.5">{subject.exam_type}</p>
+                      )}
                       <p className="text-xs text-slate-500">
                         {subject.obtained}/{subject.max}
                       </p>
