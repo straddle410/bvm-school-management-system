@@ -304,7 +304,7 @@ export default function TimetableManager() {
             <div className="flex gap-2 flex-1">
               <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none">
                 <option value="">All Classes</option>
-                {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+                {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
               <select value={filterExamType} onChange={e => setFilterExamType(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none">
                 <option value="">All Exam Types</option>
