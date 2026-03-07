@@ -141,16 +141,26 @@ Deno.serve(async (req) => {
     }
 
     // ========================================
+    // NORMALIZE exam_type: always store as ExamType ID + denormalized name
+    // ========================================
+    // examTypeRecord was already resolved above — always write canonical ID + display name
+    const normalizedMarkData = {
+      ...markData,
+      exam_type: examTypeRecord.id,             // canonical: always the UUID
+      exam_type_name: examTypeRecord.name        // denormalized display name for student portal / reports
+    };
+
+    // ========================================
     // EXECUTE CREATE/UPDATE (validated)
     // ========================================
     let result;
     if (operation === 'create') {
-      result = await base44.asServiceRole.entities.Marks.create(markData);
+      result = await base44.asServiceRole.entities.Marks.create(normalizedMarkData);
     } else if (operation === 'update') {
       if (!markId) {
         return Response.json({ error: 'markId required for update' }, { status: 400 });
       }
-      result = await base44.asServiceRole.entities.Marks.update(markId, markData);
+      result = await base44.asServiceRole.entities.Marks.update(markId, normalizedMarkData);
     }
 
     return Response.json({
