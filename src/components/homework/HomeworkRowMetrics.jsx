@@ -45,9 +45,10 @@ export default function HomeworkRowMetrics({
         if (assignedStudents.length === 0) {
           const studentFilter = {
             class_name: homework.class_name,
-            is_deleted: { $ne: true },
+            is_deleted: false,
             is_active: true,
-            status: { $in: ['Verified', 'Approved', 'Published'] },
+            status: 'Published',
+            academic_year: homework.academic_year,
           };
           if (homework.section && homework.section !== 'All') {
             studentFilter.section = homework.section;
