@@ -1065,6 +1065,7 @@ export default function Staff() {
                         subjects={subjects}
                         sectionConfigs={sectionConfigs}
                         getSectionsForClass={getSectionsForClass}
+                        academicYear={academicYear}
                       />
 
                       <div>
