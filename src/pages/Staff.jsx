@@ -89,12 +89,19 @@ export default function Staff() {
 
   const { academicYear } = useAcademicYear();
 
+  // Debug: log academicYear and query state
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[Staff.js] academicYear:', academicYear);
+    }
+  }, [academicYear]);
+
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
     queryFn: () => base44.entities.Subject.list('name'),
   });
 
-  const { data: sectionConfigs = [] } = useQuery({
+  const { data: sectionConfigs = [], isLoading: sectionConfigsLoading } = useQuery({
     queryKey: ['section-configs', academicYear],
     queryFn: () => base44.entities.SectionConfig.filter(
       { academic_year: academicYear },
@@ -102,6 +109,13 @@ export default function Staff() {
     ),
     enabled: !!academicYear,
   });
+
+  // Debug: log sectionConfigs state
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[Staff.js] sectionConfigs count:', sectionConfigs.length, 'first 3:', sectionConfigs.slice(0, 3));
+    }
+  }, [sectionConfigs]);
 
   // Derive unique classes from SectionConfig, sorted by display order
   const CLASSES = Array.from(
