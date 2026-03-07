@@ -32,6 +32,7 @@ export default function AttendanceYearlyTab() {
 
   const { data: attendance = [] } = useQuery({
     queryKey: ['attendance-report', academicYear],
+    // Status Convention: Read all attendance records (status 'Taken' or 'Holiday')
     queryFn: () => base44.entities.Attendance.filter({ academic_year: academicYear })
   });
 

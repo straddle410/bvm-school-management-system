@@ -52,8 +52,10 @@ export default function Reports() {
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance-published', academicYear],
-    queryFn: () => base44.entities.Attendance.filter({ status: 'Published', academic_year: academicYear }),
+    queryKey: ['attendance-records', academicYear],
+    // Status Convention: Read attendance records with status 'Taken' (normal) or 'Holiday' (holiday marked)
+    // Do NOT filter by status to ensure all marked records are included in reports
+    queryFn: () => base44.entities.Attendance.filter({ academic_year: academicYear }),
     enabled: !!academicYear
   });
 

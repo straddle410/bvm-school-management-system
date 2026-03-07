@@ -10,6 +10,7 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
   const { data: attendanceData = [] } = useQuery({
     queryKey: ['attendance', classFilter, academicYear, dateFrom, dateTo],
     queryFn: async () => {
+      // Status Convention: Read attendance records with status 'Taken' (normal) or 'Holiday' (holiday marked)
       let filter = { academic_year: academicYear };
       if (classFilter !== 'all') filter.class_name = classFilter;
       const allData = await base44.entities.Attendance.filter(filter);

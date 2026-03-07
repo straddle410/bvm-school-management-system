@@ -163,6 +163,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           is_present: isHoliday ? false : (attType !== 'absent'),
           is_holiday: isHoliday, holiday_reason: isHoliday ? (holidayReason || 'Holiday') : '',
           marked_by: user?.email, academic_year: academicYear,
+          // Status Convention: 'Taken' = normal attendance record, 'Holiday' = holiday marked
           status: isHoliday ? 'Holiday' : 'Taken'
         };
         if (existing?.id) {
