@@ -120,17 +120,25 @@ export default function MarksReview() {
    }, [submittedMarks]);
 
   const publishMutation = useMutation({
-      mutationFn: async (marksIds) => {
-        const promises = marksIds.map(id =>
-          base44.entities.Marks.update(id, { status: 'Published', verified_by: user?.email, approved_by: user?.email })
-        );
-        return Promise.all(promises);
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries(['marks-submitted']);
-        toast.success('Results published successfully');
-      }
-    });
+    mutationFn: async ({ marksIds, group }) => {
+      const res = await base44.functions.invoke('publishMarksWithValidation', {
+        marksIds,
+        examType: group.exam_type,
+        className: selectedClass,
+        section: selectedSection,
+        academicYear
+      });
+      if (res.status >= 400) throw new Error(res.data?.error || 'Failed to publish marks');
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['marks-submitted']);
+      toast.success('Results published successfully');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to publish marks');
+    }
+  });
 
    const handleDownloadExcel = async (examType) => {
      try {
