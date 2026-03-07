@@ -732,7 +732,7 @@ export default function Attendance() {
 
   // Block non-admins from restricted tabs
   const handleTabChange = (tab) => {
-    if (!isAdmin && (tab === 'summary' || tab === 'holidays')) return;
+    if (!isAdmin && (tab === 'snapshot' || tab === 'summary' || tab === 'holidays')) return;
     setActiveTab(tab);
   };
 
