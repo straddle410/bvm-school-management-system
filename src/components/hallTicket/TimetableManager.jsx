@@ -29,7 +29,7 @@ export default function TimetableManager() {
 
   useEffect(() => {
     if (!academicYear) return;
-    getClassesForYear(academicYear).then(setAvailableClasses);
+    getClassesForYear(academicYear).then(({ classes }) => setAvailableClasses(classes));
   }, [academicYear]);
 
   const { data: examTypes = [] } = useQuery({
