@@ -161,7 +161,7 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLASSES.map(cls => (
+                  {availableClasses.map(cls => (
                     <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
                   ))}
                 </SelectContent>
@@ -172,12 +172,13 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
               <Select
                 value={formData.section}
                 onValueChange={(val) => setFormData({ ...formData, section: val })}
+                disabled={availableSections.length === 0}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={formData.class_name ? 'Select Section' : 'Select class first'} />
                 </SelectTrigger>
                 <SelectContent>
-                  {SECTIONS.map(sec => (
+                  {availableSections.map(sec => (
                     <SelectItem key={sec} value={sec}>{sec}</SelectItem>
                   ))}
                 </SelectContent>
