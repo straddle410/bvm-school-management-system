@@ -184,7 +184,7 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
                       <Label className="text-xs">Class *</Label>
                       <Select value={filterClass} onValueChange={setFilterClass}>
                         <SelectTrigger className="mt-1 rounded-xl"><SelectValue placeholder="Class" /></SelectTrigger>
-                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+                        <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
               <div>
