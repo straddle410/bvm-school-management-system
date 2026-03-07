@@ -390,7 +390,11 @@ export default function Marks() {
     mutationFn: async (examTypeId) => {
       const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId || m.exam_type === revokeExamType);
       const res = await base44.functions.invoke('revokeMarksPublication', {
-        marksIds: marksToRevoke.map(m => m.id)
+        marksIds: marksToRevoke.map(m => m.id),
+        className: selectedClass,
+        section: selectedSection,
+        examType: examTypeId || revokeExamType,
+        academicYear
       });
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to revoke publication');
