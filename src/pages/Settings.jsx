@@ -285,23 +285,7 @@ export default function Settings() {
     onSuccess: () => queryClient.invalidateQueries(['academic-years'])
   });
 
-  const createSubjectMutation = useMutation({
-    mutationFn: (name) => base44.entities.Subject.create({ name }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['subjects']);
-      toast.success('Subject added');
-    }
-  });
-
-  const deleteSubjectMutation = useMutation({
-    mutationFn: (id) => base44.entities.Subject.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['subjects']);
-      toast.success('Subject deleted');
-    }
-  });
-
-  const [newSubject, setNewSubject] = useState('');
+  const [newSubject, setNewSubject] = useState(''); // kept for potential future use
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerCaption, setBannerCaption] = useState('');
   const [cleanupLoading, setCleanupLoading] = useState(false);
