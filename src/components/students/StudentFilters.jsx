@@ -23,7 +23,7 @@ export default function StudentFilters({ search, onSearch, filterClass, onFilter
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Classes</SelectItem>
-              {CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+              {availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterSection} onValueChange={onFilterSection}>
