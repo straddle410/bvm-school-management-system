@@ -32,8 +32,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   School, Save, Upload, Image as ImageIcon, Calendar, 
-  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen, Bus, AlertTriangle, HardDrive, Menu
+  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen, Bus, AlertTriangle, HardDrive, Menu, ExternalLink
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
