@@ -32,7 +32,7 @@ export default function StudentFilters({ search, onSearch, filterClass, onFilter
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sections</SelectItem>
-              {SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
+              {availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterStatus} onValueChange={onFilterStatus}>
