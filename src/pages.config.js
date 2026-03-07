@@ -52,7 +52,6 @@ import Admissions from './pages/Admissions';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import Approvals from './pages/Approvals';
 import Attendance from './pages/Attendance';
-import AttendanceSummaryReport from './pages/AttendanceSummaryReport';
 import Calendar from './pages/Calendar';
 import ChangeStaffPassword from './pages/ChangeStaffPassword';
 import ClassCollectionSummaryReport from './pages/ClassCollectionSummaryReport';
@@ -122,7 +121,6 @@ export const PAGES = {
     "AnalyticsDashboard": AnalyticsDashboard,
     "Approvals": Approvals,
     "Attendance": Attendance,
-    "AttendanceSummaryReport": AttendanceSummaryReport,
     "Calendar": Calendar,
     "ChangeStaffPassword": ChangeStaffPassword,
     "ClassCollectionSummaryReport": ClassCollectionSummaryReport,
