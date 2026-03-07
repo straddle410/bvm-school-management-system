@@ -79,9 +79,10 @@ export default function AttendanceReports() {
           }
         });
 
-        // Calculate class-wise attendance %
+        // Calculate class-wise attendance % — use classes derived from actual student data
+        const activeClasses = [...new Set(students.map(s => s.class_name))];
         const classWiseData = {};
-        CLASSES.forEach(cls => {
+        activeClasses.forEach(cls => {
           const classStudents = students.filter(s => s.class_name === cls);
           const classAttendance = attendance.filter(a => a.class_name === cls);
 
