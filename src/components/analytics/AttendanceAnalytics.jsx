@@ -33,9 +33,10 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students', classFilter],
+    queryKey: ['students', classFilter, academicYear],
     queryFn: async () => {
-      let filter = {};
+      // Only fetch active students for the selected academic year
+      let filter = { status: 'Published', is_deleted: false, academic_year: academicYear };
       if (classFilter !== 'all') filter.class_name = classFilter;
       return base44.entities.Student.filter(filter);
     },
