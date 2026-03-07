@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 
 const STATUS_COLORS = {
   PendingApproval: 'bg-amber-100 text-amber-800',
@@ -21,6 +22,7 @@ const STATUS_COLORS = {
 };
 
 export default function Approvals() {
+  const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingItem, setRejectingItem] = useState(null);
@@ -37,18 +39,21 @@ export default function Approvals() {
   }, []);
 
   const { data: pendingNotices = [] } = useQuery({
-    queryKey: ['pending-notices'],
-    queryFn: () => base44.entities.Notice.filter({ status: 'PendingApproval' }, '-created_date')
+    queryKey: ['pending-notices', academicYear],
+    queryFn: () => base44.entities.Notice.filter({ status: 'PendingApproval', academic_year: academicYear }, '-created_date'),
+    enabled: !!academicYear
   });
 
   const { data: pendingQuizzes = [] } = useQuery({
-    queryKey: ['pending-quizzes'],
-    queryFn: () => base44.entities.Quiz.filter({ status: 'PendingApproval' }, '-created_date')
+    queryKey: ['pending-quizzes', academicYear],
+    queryFn: () => base44.entities.Quiz.filter({ status: 'PendingApproval', academic_year: academicYear }, '-created_date'),
+    enabled: !!academicYear
   });
 
   const { data: pendingPhotos = [] } = useQuery({
-    queryKey: ['pending-photos'],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'PendingApproval' }, '-created_date')
+    queryKey: ['pending-photos', academicYear],
+    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'PendingApproval', academic_year: academicYear }, '-created_date'),
+    enabled: !!academicYear
   });
 
   const approveMutation = useMutation({
