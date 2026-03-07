@@ -55,6 +55,8 @@ export default function Admissions() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
   const [analytics, setAnalytics] = useState(null);
+  const [availableSections, setAvailableSections] = useState([]);
+  const [selectedSection, setSelectedSection] = useState('');
   
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
