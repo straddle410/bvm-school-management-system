@@ -43,7 +43,7 @@ export default function StudentBulkUpload({ open, onClose, academicYear, onSucce
     setLoading(true);
     try {
       // Fetch valid class-section config for this academic year upfront
-      const classSectionMap = await getClassSectionMap(academicYear);
+      const { map: classSectionMap } = await getClassSectionMap(academicYear);
       // classSectionMap: { "5": ["A","B"], "6": ["A"], ... }
 
       const uploadRes = await base44.integrations.Core.UploadFile({ file });
