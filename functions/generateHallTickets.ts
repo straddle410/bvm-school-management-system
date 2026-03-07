@@ -49,17 +49,22 @@ Deno.serve(async (req) => {
     }
     const yearRecord = yearConfig[0];
 
-    // Check if hall tickets already exist for this class/exam/year
+    // section is required — frontend now enforces this
+    if (!section) {
+      return Response.json({ error: 'Section is required to generate hall tickets' }, { status: 400 });
+    }
+
+    // Check if hall tickets already exist for this class/exam/year/section
     const existingTickets = await base44.asServiceRole.entities.HallTicket.filter({
       class_name: classname,
       exam_type: examTypeId,
       academic_year: academicYear,
-      section: section || 'A'
+      section: section
     });
 
     if (existingTickets.length > 0) {
       return Response.json({
-        error: `Hall tickets already exist for Class ${classname}-${section || 'A'} in this exam. Delete existing tickets first.`,
+        error: `Hall tickets already exist for Class ${classname}-${section} in this exam. Delete existing tickets first.`,
         existingCount: existingTickets.length
       }, { status: 409 });
     }

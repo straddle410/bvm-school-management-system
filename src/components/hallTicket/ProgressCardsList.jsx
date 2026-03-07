@@ -185,7 +185,7 @@ export default function ProgressCardsList() {
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="">All Classes</option>
-                {CLASSES.map(c => (
+                {availableClasses.map(c => (
                   <option key={c} value={c}>Class {c}</option>
                 ))}
               </select>
