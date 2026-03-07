@@ -24,10 +24,26 @@ export default function TimetableManagement() {
   const [editingEntry, setEditingEntry] = useState(null);
   const [filters, setFilters] = useState({ class: '', section: '', teacher: '' });
   const [viewMode, setViewMode] = useState('class'); // 'class' or 'teacher'
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
 
   useEffect(() => {
     setUser(getStaffSession());
   }, []);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then((result) => {
+      setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (!filters.class || !academicYear) { setAvailableSections([]); return; }
+    getSectionsForClass(academicYear, filters.class).then((result) => {
+      setAvailableSections(Array.isArray(result) ? result : (result?.sections ?? []));
+    });
+  }, [filters.class, academicYear]);
 
   // Check if user has edit permissions (admin or principal)
   const canEdit = user && ['admin', 'principal'].includes(user.role);
