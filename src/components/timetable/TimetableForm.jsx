@@ -16,9 +16,11 @@ for (let h = 8; h < 16; h++) {
 }
 
 export default function TimetableForm({ entry, onSubmit, onCancel, academicYear }) {
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
   const [formData, setFormData] = useState(entry || {
     class_name: '',
-    section: 'A',
+    section: '',
     day: 'Monday',
     start_time: '09:00',
     end_time: '10:00',
@@ -30,6 +32,23 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
     status: 'Draft',
     notes: ''
   });
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then((result) => {
+      setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (!formData.class_name || !academicYear) { setAvailableSections([]); return; }
+    getSectionsForClass(academicYear, formData.class_name).then((result) => {
+      const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+      setAvailableSections(secs);
+      if (secs.length === 1) setFormData(f => ({ ...f, section: secs[0] }));
+      else if (formData.section && !secs.includes(formData.section)) setFormData(f => ({ ...f, section: '' }));
+    });
+  }, [formData.class_name, academicYear]);
 
   const { data: subjects = [] } = useQuery({
     queryKey: ['class-subjects', academicYear, formData.class_name],
