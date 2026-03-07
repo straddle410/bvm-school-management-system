@@ -16,13 +16,13 @@ export default function PublicAdmissionForm() {
   const [admissionYears, setAdmissionYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [yearError, setYearError] = useState(null);
+  const [availableClasses, setAvailableClasses] = useState([]);
 
   const [formData, setFormData] = useState({
     student_name: '',
     dob: '',
     gender: '',
     applying_for_class: '',
-    section: 'A',
     photo_url: '',
     parent_name: '',
     parent_phone: '',
