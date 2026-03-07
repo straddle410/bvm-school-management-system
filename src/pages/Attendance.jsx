@@ -11,6 +11,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import HolidayStatusDisplay from '@/components/HolidayStatusDisplay';
 import HolidayOverrideToggle from '@/components/HolidayOverrideToggle';
 import HalfDayModal from '@/components/attendance/HalfDayModal';
+import DailySnapshotTab from '@/components/attendance/DailySnapshotTab';
 import FilterSection from '@/components/attendanceSummary/FilterSection';
 import SummaryCards from '@/components/attendanceSummary/SummaryCards';
 import ReportTable from '@/components/attendanceSummary/ReportTable';
