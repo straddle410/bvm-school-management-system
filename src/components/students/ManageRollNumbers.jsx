@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,14 +7,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowUpDown, Save, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function ManageRollNumbers({ open, onClose, academicYear }) {
   const [step, setStep] = useState(1); // 1=select class, 2=edit rolls
   const [filterClass, setFilterClass] = useState('');
-  const [filterSection, setFilterSection] = useState('A');
+  const [filterSection, setFilterSection] = useState('');
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (!filterClass || !academicYear) { setAvailableSections([]); setFilterSection(''); return; }
+    getSectionsForClass(academicYear, filterClass).then(result => {
+      const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+      setAvailableSections(secs);
+      if (secs.length === 1) setFilterSection(secs[0]);
+      else setFilterSection('');
+    });
+  }, [filterClass, academicYear]);
   const [filterYear, setFilterYear] = useState(academicYear || '');
   const [students, setStudents] = useState([]);
   const [rolls, setRolls] = useState({}); // { id: roll_no }
