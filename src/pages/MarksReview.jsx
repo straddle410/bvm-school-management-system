@@ -17,15 +17,15 @@ import {
 } from "@/components/ui/select";
 import { Download, Eye, Check } from 'lucide-react';
 import { toast } from "sonner";
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function MarksReview() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
   const [selectedExamType, setSelectedExamType] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
 
