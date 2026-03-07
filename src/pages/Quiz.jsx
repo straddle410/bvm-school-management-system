@@ -208,7 +208,7 @@ export default function Quiz() {
         }
       });
 
-      const studentId = studentSession?.student_id || user?.id || 'anonymous';
+      const studentId = studentSession?.student_id;
       const res = await base44.functions.invoke('submitQuizAttempt', {
         student_id: studentId,
         attempt: {
@@ -217,7 +217,8 @@ export default function Quiz() {
           student_name: user?.full_name || user?.name || 'Anonymous',
           answers: answersData,
           score,
-          attempt_date: format(new Date(), 'yyyy-MM-dd')
+          attempt_date: format(new Date(), 'yyyy-MM-dd'),
+          academic_year: academicYear
         }
       });
       if (res.data?.error) throw new Error(res.data.error);
@@ -270,7 +271,7 @@ export default function Quiz() {
   const hasAttemptedToday = (quizId) => {
     return attempts.some(a => 
       a.quiz_id === quizId && 
-      a.student_id === user?.id && 
+      a.student_id === studentSession?.student_id && 
       a.attempt_date === todayStr
     );
   };
@@ -667,7 +668,7 @@ export default function Quiz() {
             <TabsContent value="history" className="mt-6">
               <div className="space-y-4">
                 {attempts
-                  .filter(a => a.student_id === user?.id)
+                  .filter(a => a.student_id === studentSession?.student_id)
                   .map(attempt => {
                     const quiz = quizzes.find(q => q.id === attempt.quiz_id);
                     return (
@@ -695,7 +696,7 @@ export default function Quiz() {
                     );
                   })}
 
-                {attempts.filter(a => a.student_id === user?.id).length === 0 && (
+                {attempts.filter(a => a.student_id === studentSession?.student_id).length === 0 && (
                   <div className="py-16 text-center">
                     <HelpCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-slate-700">No Attempts Yet</h3>
