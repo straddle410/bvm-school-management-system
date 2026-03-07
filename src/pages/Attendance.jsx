@@ -253,16 +253,16 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
              )}
 
              {/* Class Dropdown */}
-             <Select value={selectedClass} onValueChange={setSelectedClass}>
+             <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedSection(''); }}>
                <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Class" /></SelectTrigger>
-               <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+               <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
              </Select>
 
              {/* Section Dropdown (only show after class is selected) */}
              {selectedClass && (
                <Select value={selectedSection} onValueChange={setSelectedSection}>
                  <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Section" /></SelectTrigger>
-                 <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
+                 <SelectContent>{availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
                </Select>
              )}
            </div>
