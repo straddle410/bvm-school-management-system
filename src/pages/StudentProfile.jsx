@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck, Lock } from 'lucide-react';
+import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck, Lock, Eye, EyeOff, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StudentAuditHistory from '@/components/students/StudentAuditHistory';
-import StudentChangePassword from '@/components/StudentChangePassword';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -185,6 +185,10 @@ export default function StudentProfile() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [sessionStudent, setSessionStudent] = useState(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+  const [pwError, setPwError] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
 
   useEffect(() => {
     const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
@@ -195,6 +199,32 @@ export default function StudentProfile() {
     }
     setIsAdmin(false);
   }, []);
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwError('');
+    if (pwForm.newPw !== pwForm.confirm) { setPwError('New passwords do not match'); return; }
+    if (pwForm.newPw.length < 6) { setPwError('Password must be at least 6 characters'); return; }
+    setPwLoading(true);
+    try {
+      const res = await base44.functions.invoke('studentChangePassword', {
+        student_id: student?.id,
+        current_password: pwForm.current,
+        new_password: pwForm.newPw,
+      });
+      if (res.data?.error) {
+        setPwError(res.data.error);
+        setPwLoading(false);
+        return;
+      }
+      toast.success('Password changed successfully');
+      setShowChangePassword(false);
+      setPwForm({ current: '', newPw: '', confirm: '' });
+    } catch (err) {
+      setPwError(err?.response?.data?.error || 'Failed to change password. Try again.');
+    }
+    setPwLoading(false);
+  };
 
   const { data: student, isLoading: studentLoading } = useQuery({
     queryKey: ['student-detail', studentId, sessionStudent?.id],
@@ -289,11 +319,49 @@ export default function StudentProfile() {
             </TabsContent>
             {sessionStudent && (
               <TabsContent value="password">
-                <StudentChangePassword 
-                  student={student} 
-                  onClose={() => {}} 
-                  onSuccess={() => {}} 
-                />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Lock className="h-5 w-5 text-indigo-600" />
+                      Change Password
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleChangePassword} className="space-y-4">
+                      {[
+                        { label: 'Current Password', key: 'current' },
+                        { label: 'New Password', key: 'newPw' },
+                        { label: 'Confirm New Password', key: 'confirm' },
+                      ].map(({ label, key }) => (
+                        <div key={key}>
+                          <label className="text-sm font-medium text-gray-700 block mb-1.5">{label}</label>
+                          <div className="relative">
+                            <input
+                              type={showPw[key] ? 'text' : 'password'}
+                              value={pwForm[key]}
+                              onChange={e => setPwForm(f => ({ ...f, [key]: e.target.value }))}
+                              required
+                              placeholder={label}
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-gray-50"
+                            />
+                            <button type="button" onClick={() => setShowPw(s => ({ ...s, [key]: !s[key] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                              {showPw[key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{pwError}</div>}
+                      <div className="flex gap-2 pt-2">
+                        <Button type="button" onClick={() => { setShowChangePassword(false); setPwError(''); }} variant="outline" className="flex-1">
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={pwLoading} className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+                          {pwLoading ? 'Saving...' : 'Change Password'}
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
               </TabsContent>
             )}
             </Tabs>
@@ -319,11 +387,51 @@ export default function StudentProfile() {
 
             {/* Change Password Modal */}
             {showChangePassword && (
-            <StudentChangePassword 
-            student={student} 
-            onClose={() => setShowChangePassword(false)} 
-            onSuccess={() => setShowChangePassword(false)}
-            />
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-indigo-600" /> Change Password
+                  </h2>
+                  <button onClick={() => { setShowChangePassword(false); setPwError(''); }} className="text-gray-400 hover:text-gray-600">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  {[
+                    { label: 'Current Password', key: 'current' },
+                    { label: 'New Password', key: 'newPw' },
+                    { label: 'Confirm New Password', key: 'confirm' },
+                  ].map(({ label, key }) => (
+                    <div key={key}>
+                      <label className="text-sm font-medium text-gray-700 block mb-1.5">{label}</label>
+                      <div className="relative">
+                        <input
+                          type={showPw[key] ? 'text' : 'password'}
+                          value={pwForm[key]}
+                          onChange={e => setPwForm(f => ({ ...f, [key]: e.target.value }))}
+                          required
+                          placeholder={label}
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-gray-50"
+                        />
+                        <button type="button" onClick={() => setShowPw(s => ({ ...s, [key]: !s[key] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          {showPw[key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{pwError}</div>}
+                  <div className="flex gap-2 pt-1">
+                    <button type="button" onClick={() => { setShowChangePassword(false); setPwError(''); }} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-semibold">
+                      Cancel
+                    </button>
+                    <button type="submit" disabled={pwLoading} className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">
+                      {pwLoading ? 'Saving...' : 'Change Password'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
             )}
             </div>
   );
