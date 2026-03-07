@@ -74,13 +74,13 @@ export default function StudentMarks() {
             <p className="text-sm text-gray-500">No marks published yet</p>
           </div>
         ) : (
-          Object.entries(marksGrouped).map(([examType, examMarks]) => (
-            <div key={examType} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          Object.entries(marksGrouped).map(([examTypeId, { displayName, items }]) => (
+            <div key={examTypeId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                <p className="text-sm font-bold text-gray-700">{examType}</p>
+                <p className="text-sm font-bold text-gray-700">{displayName}</p>
               </div>
               <div className="divide-y divide-gray-100">
-                {examMarks.map((mark) => (
+                {items.map((mark) => (
                   <div key={mark.id} className="px-4 py-3">
                     <div className="flex items-start justify-between mb-1">
                       <p className="text-sm font-semibold text-gray-900">{mark.subject}</p>
