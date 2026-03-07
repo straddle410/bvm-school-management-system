@@ -37,6 +37,23 @@ export default function MarksReview() {
     setIsAdmin(staffUser?.role === 'Admin');
   }, []);
 
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (!selectedClass || !academicYear) { setAvailableSections([]); setSelectedSection(''); return; }
+    getSectionsForClass(academicYear, selectedClass).then(result => {
+      const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+      setAvailableSections(secs);
+      if (secs.length === 1) setSelectedSection(secs[0]);
+      else setSelectedSection('');
+    });
+  }, [selectedClass, academicYear]);
+
   // Fetch exam types
   const { data: examTypes = [] } = useQuery({
     queryKey: ['exam-types', academicYear],
