@@ -133,9 +133,9 @@ export default function Results() {
 
   // Load students when class+section is selected
   const { data: classStudents = [] } = useQuery({
-    queryKey: ['students-class-section', filterClass, filterSection],
-    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, section: filterSection }),
-    enabled: !!(filterClass && filterSection)
+    queryKey: ['students-class-section', filterClass, filterSection, academicYear],
+    queryFn: () => base44.entities.Student.filter({ class_name: filterClass, section: filterSection, academic_year: academicYear, status: 'Published', is_deleted: false }),
+    enabled: !!(filterClass && filterSection && academicYear)
   });
 
   const handleSearch = async () => {
