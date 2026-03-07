@@ -191,7 +191,7 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
                 <Label className="text-xs">Section *</Label>
                 <Select value={filterSection} onValueChange={setFilterSection}>
                   <SelectTrigger className="mt-1 rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
