@@ -8,8 +8,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format, parseISO, eachDayOfInterval, getDay } from 'date-fns';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 export default function AttendanceReports() {
   const { academicYear } = useAcademicYear();
