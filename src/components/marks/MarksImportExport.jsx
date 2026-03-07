@@ -90,6 +90,7 @@ export default function MarksImportExport({
       }
 
       const importedData = {};
+      const rowErrors = [];
       let validRowCount = 0;
 
       for (let i = 1; i < lines.length; i++) {
@@ -105,12 +106,37 @@ export default function MarksImportExport({
         
         for (let j = 3; j < headers.length; j++) {
           const subject = headers[j];
-          const marks = values[j] ? parseFloat(values[j]) : undefined;
-          if (!isNaN(marks)) {
-            importedData[studentId][subject] = { marks_obtained: marks };
-            validRowCount++;
+          if (!subject) continue;
+          const rawVal = values[j];
+          if (!rawVal && rawVal !== '0') continue;
+          const marks = parseFloat(rawVal);
+
+          // PRIORITY 7: Validate marks against max_marks and reject negatives
+          if (isNaN(marks)) {
+            rowErrors.push(`Row ${i + 1}: "${rawVal}" is not a valid number for ${subject} (student ${studentId})`);
+            continue;
           }
+          if (marks < 0) {
+            rowErrors.push(`Row ${i + 1}: Negative marks (${marks}) not allowed for ${subject} (student ${studentId})`);
+            continue;
+          }
+          // Check against max_marks from examInfo if available
+          const maxMarks = examInfo?.max_marks;
+          if (maxMarks !== undefined && marks > maxMarks) {
+            rowErrors.push(`Row ${i + 1}: ${marks} exceeds max marks (${maxMarks}) for ${subject} (student ${studentId})`);
+            continue;
+          }
+
+          importedData[studentId][subject] = { marks_obtained: marks };
+          validRowCount++;
         }
+      }
+
+      // Show all row errors clearly before proceeding
+      if (rowErrors.length > 0) {
+        const errorMsg = rowErrors.slice(0, 5).join('\n') + (rowErrors.length > 5 ? `\n...and ${rowErrors.length - 5} more errors` : '');
+        toast.error(`Import errors:\n${errorMsg}`, { duration: 8000 });
+        if (validRowCount === 0) return; // abort entirely if nothing valid
       }
 
       if (validRowCount === 0) {
@@ -119,7 +145,7 @@ export default function MarksImportExport({
       }
 
       onImport(importedData);
-      toast.success(`Imported marks for ${Object.keys(importedData).length} students`);
+      toast.success(`Imported marks for ${Object.keys(importedData).length} students${rowErrors.length > 0 ? ` (${rowErrors.length} rows skipped due to errors)` : ''}`);
     } catch (error) {
       toast.error('Failed to import CSV');
       console.error(error);
