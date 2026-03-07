@@ -27,7 +27,7 @@ export default function AttendanceYearlyTab() {
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-report', academicYear],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear })
+    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear, is_deleted: false })
   });
 
   const { data: attendance = [] } = useQuery({
