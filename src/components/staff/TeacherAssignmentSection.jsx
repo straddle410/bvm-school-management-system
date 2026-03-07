@@ -54,14 +54,19 @@ export default function TeacherAssignmentSection({
       {form.is_teacher && (
         <div className="space-y-4 ml-6">
           {/* DEBUG: Visible runtime values */}
-          <div className="bg-amber-50 border border-amber-300 rounded p-3 text-xs text-amber-900">
-            <p className="font-semibold mb-2">🔴 STAFF DEBUG (remove after fix):</p>
+          <div className={`rounded p-3 text-xs ${sectionConfigError ? 'bg-red-50 border border-red-300 text-red-900' : 'bg-amber-50 border border-amber-300 text-amber-900'}`}>
+            <p className="font-semibold mb-2">{sectionConfigError ? '🔴 QUERY ERROR' : '🔴 STAFF DEBUG'}:</p>
+            {sectionConfigError && (
+              <div className="bg-white border border-red-200 p-2 rounded mb-2">
+                <p className="text-xs font-mono text-red-700">{debugInfo.errorMessage}</p>
+              </div>
+            )}
             <p>academicYear: <span className="font-mono font-bold">{debugInfo.academicYear || 'UNDEFINED'}</span></p>
             <p>sectionConfigs count: <span className="font-mono font-bold">{debugInfo.sectionConfigsCount}</span></p>
             <p>query status: <span className="font-mono font-bold">{debugInfo.queryStatus}</span> | loading: <span className="font-mono font-bold">{debugInfo.isLoading ? 'true' : 'false'}</span></p>
             <p>CLASSES array: <span className="font-mono font-bold">{JSON.stringify(debugInfo.classesArrayFinal)}</span></p>
-            <p className="mt-2 text-amber-800">Sample records (first 3):</p>
-            <pre className="text-xs bg-white border border-amber-200 p-2 mt-1 overflow-auto max-h-24">
+            <p className="mt-2">Sample records (first 3):</p>
+            <pre className="text-xs bg-white border p-2 mt-1 overflow-auto max-h-24">
               {debugInfo.sectionConfigsSample.length === 0 ? '(empty)' : JSON.stringify(debugInfo.sectionConfigsSample, null, 2)}
             </pre>
           </div>
