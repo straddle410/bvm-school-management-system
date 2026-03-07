@@ -37,6 +37,7 @@ import {
 import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
+import ClassSectionConfigTab from '@/components/settings/ClassSectionConfigTab';
 import DataResetTab from '@/components/settings/DataResetTab';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import FullBackupTab from '@/components/settings/FullBackupTab';
@@ -361,6 +362,7 @@ export default function Settings() {
       'academic-years': 'Academic Years',
       'subjects': 'Subjects',
       'class-subjects': 'Class Subjects',
+      'class-sections': 'Class Sections',
       'transport': 'Transport',
       'notifications': 'Notifications',
       'banners': 'Banners',
@@ -806,6 +808,11 @@ export default function Settings() {
           {/* Class Subjects */}
           {activeItem === 'class-subjects' && (
             <ClassSubjectConfigTab />
+          )}
+
+          {/* Class Sections */}
+          {activeItem === 'class-sections' && (
+            <ClassSectionConfigTab />
           )}
 
           {/* Fees Backup */}
