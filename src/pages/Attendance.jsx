@@ -532,13 +532,22 @@ function AttendanceSummaryTab({ academicYear, user }) {
     enabled: hasGenerated && !!filters.fromDate && !!filters.toDate
   });
 
+  const { data: overrides = [] } = useQuery({
+    queryKey: ['holiday-overrides-range', filters.fromDate, filters.toDate],
+    queryFn: () => base44.entities.HolidayOverride.filter({})
+      .then(all => all.filter(o => o.date >= filters.fromDate && o.date <= filters.toDate)),
+    enabled: hasGenerated && !!filters.fromDate && !!filters.toDate
+  });
+
   const reportData = useMemo(() => {
     if (!hasGenerated || students.length === 0) return [];
     const daysBetween = [];
     const current = new Date(filters.fromDate);
     const end = new Date(filters.toDate);
     while (current <= end) { daysBetween.push(format(current, 'yyyy-MM-dd')); current.setDate(current.getDate() + 1); }
-    const holidaySet = new Set(holidays.map(h => h.date));
+    // Holiday override precedence: if override exists, treat as working day
+    const overrideSet = new Set(overrides.map(o => o.date));
+    const holidaySet = new Set(holidays.map(h => h.date).filter(d => !overrideSet.has(d)));
     const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0));
     const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
     return students.map(student => {
@@ -559,7 +568,7 @@ function AttendanceSummaryTab({ academicYear, user }) {
         attendancePercent
       };
     });
-  }, [students, attendanceRecords, holidays, filters.fromDate, filters.toDate, hasGenerated]);
+    }, [students, attendanceRecords, holidays, overrides, filters.fromDate, filters.toDate, hasGenerated]);
 
   const filteredData = useMemo(() => {
     let data = reportData.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
