@@ -11,8 +11,10 @@ import { Plus, Upload, X, Check, ChevronLeft, Image, ChevronRight } from 'lucide
 import { getStaffSession } from '@/components/useStaffSession';
 import LoginRequired from '@/components/LoginRequired';
 import { toast } from 'sonner';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 
 export default function Gallery() {
+  const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(undefined);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -43,22 +45,23 @@ export default function Gallery() {
     const needsApproval = !isAdmin;
 
   const { data: albums = [] } = useQuery({
-    queryKey: ['albums'],
-    queryFn: () => base44.entities.EventAlbum.filter({ status: 'Published' }),
+    queryKey: ['albums', academicYear],
+    queryFn: () => base44.entities.EventAlbum.filter({ academic_year: academicYear, status: 'Published' }),
+    enabled: !!academicYear,
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: allAlbumPhotos = [] } = useQuery({
-    queryKey: ['allAlbumPhotos'],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'Published' }, '-created_date', 50),
-    enabled: albums.length > 0,
+    queryKey: ['allAlbumPhotos', academicYear],
+    queryFn: () => base44.entities.GalleryPhoto.filter({ academic_year: academicYear, status: 'Published' }, '-created_date', 50),
+    enabled: albums.length > 0 && !!academicYear,
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: allPhotos = [], isLoading: isLoadingPhotos } = useQuery({
-    queryKey: ['photos', selectedAlbum?.id, photoLimit],
-    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id }, '-created_date', photoLimit),
-    enabled: !!selectedAlbum,
+    queryKey: ['photos', selectedAlbum?.id, photoLimit, academicYear],
+    queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id, academic_year: academicYear }, '-created_date', photoLimit),
+    enabled: !!selectedAlbum && !!academicYear,
     staleTime: 0,
   });
 
@@ -103,7 +106,7 @@ export default function Gallery() {
   });
 
   const createAlbumMutation = useMutation({
-    mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, status: 'Published' }),
+    mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, academic_year: academicYear, status: 'Published' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['albums'] });
       setShowCreateAlbum(false);
