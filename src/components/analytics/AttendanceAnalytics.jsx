@@ -7,30 +7,35 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 const COLORS = ['#10b981', '#ef4444', '#f59e0b'];
 
 export default function AttendanceAnalytics({ classFilter, academicYear, dateFrom, dateTo }) {
-  const { data: attendanceData = [] } = useQuery({
-    queryKey: ['attendance', classFilter, academicYear, dateFrom, dateTo],
-    queryFn: async () => {
-      // Status Convention: Read attendance records with status 'Taken' (normal) or 'Holiday' (holiday marked)
-      let filter = { academic_year: academicYear };
-      if (classFilter !== 'all') filter.class_name = classFilter;
-      const allData = await base44.entities.Attendance.filter(filter);
-      
-      // Filter by date range if provided
-      if (dateFrom || dateTo) {
-        return allData.filter(record => {
-          const recordDate = new Date(record.date);
-          const fromDate = dateFrom ? new Date(dateFrom) : null;
-          const toDate = dateTo ? new Date(dateTo) : null;
-          
-          if (fromDate && recordDate < fromDate) return false;
-          if (toDate && recordDate > toDate) return false;
-          return true;
-        });
-      }
-      
-      return allData;
-    },
-  });
+   const { data: attendanceData = [] } = useQuery({
+     queryKey: ['attendance', classFilter, academicYear, dateFrom, dateTo],
+     queryFn: async () => {
+       // Status Convention: Read attendance records with status 'Taken' (normal) or 'Holiday' (holiday marked)
+       let filter = { academic_year: academicYear };
+       if (classFilter !== 'all') filter.class_name = classFilter;
+       const allData = await base44.entities.Attendance.filter(filter);
+
+       // Filter by date range if provided
+       if (dateFrom || dateTo) {
+         return allData.filter(record => {
+           const recordDate = new Date(record.date);
+           const fromDate = dateFrom ? new Date(dateFrom) : null;
+           const toDate = dateTo ? new Date(dateTo) : null;
+
+           if (fromDate && recordDate < fromDate) return false;
+           if (toDate && recordDate > toDate) return false;
+           return true;
+         });
+       }
+
+       return allData;
+     },
+   });
+
+   const { data: overrides = [] } = useQuery({
+     queryKey: ['holiday-overrides', academicYear],
+     queryFn: () => base44.entities.HolidayOverride.filter({ academic_year: academicYear })
+   });
 
   const { data: students = [] } = useQuery({
     queryKey: ['students', classFilter, academicYear],
@@ -42,12 +47,15 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
     },
   });
 
-  // Calculate class-wise attendance (exclude holiday records)
+  // Calculate class-wise attendance (exclude holiday records, apply override precedence)
    const classAttendance = useMemo(() => {
+     const overrideSet = new Set(overrides.map(o => o.date));
      const classMap = {};
      attendanceData.forEach(record => {
        // Skip holiday records from present/absent calculations
-       if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
+       // Override precedence: if override exists, don't treat as holiday
+       const isHolidayRecord = (record.attendance_type === 'holiday' || record.status === 'Holiday') && !overrideSet.has(record.date);
+       if (isHolidayRecord) return;
 
        if (!classMap[record.class_name]) {
          classMap[record.class_name] = { present: 0, absent: 0, total: 0 };
@@ -65,12 +73,16 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
        present: Math.round(data.present),
        absent: data.absent,
      }));
-   }, [attendanceData]);
+   }, [attendanceData, overrides]);
 
-  // Overall attendance summary (exclude holiday records)
+  // Overall attendance summary (exclude holiday records, apply override precedence)
    const overallStats = useMemo(() => {
-     // Filter out holiday records from present/absent counts
-     const workingData = attendanceData.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
+     const overrideSet = new Set(overrides.map(o => o.date));
+     // Filter out holiday records from present/absent counts (unless overridden)
+     const workingData = attendanceData.filter(a => {
+       const isHolidayRecord = (a.attendance_type === 'holiday' || a.status === 'Holiday') && !overrideSet.has(a.date);
+       return !isHolidayRecord;
+     });
      const total = workingData.length;
      // Half-day counts as 0.5 present
      const presentCount = workingData.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0);
@@ -79,14 +91,16 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
        absent: total - Math.round(presentCount),
        percentage: total > 0 ? ((presentCount / total) * 100).toFixed(1) : 0,
      };
-   }, [attendanceData]);
+   }, [attendanceData, overrides]);
 
-  // Student-wise attendance (exclude holiday records)
+  // Student-wise attendance (exclude holiday records, apply override precedence)
    const studentAttendance = useMemo(() => {
+     const overrideSet = new Set(overrides.map(o => o.date));
      const studentMap = {};
      attendanceData.forEach(record => {
-       // Skip holiday records from student attendance calculations
-       if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
+       // Skip holiday records from student attendance calculations (unless overridden)
+       const isHolidayRecord = (record.attendance_type === 'holiday' || record.status === 'Holiday') && !overrideSet.has(record.date);
+       if (isHolidayRecord) return;
 
        if (!studentMap[record.student_id]) {
          studentMap[record.student_id] = {
@@ -108,7 +122,7 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
        }))
        .sort((a, b) => b.percentage - a.percentage)
        .slice(0, 10);
-   }, [attendanceData]);
+   }, [attendanceData, overrides]);
 
   return (
     <div className="space-y-4">
