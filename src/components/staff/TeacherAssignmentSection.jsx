@@ -78,12 +78,12 @@ export default function TeacherAssignmentSection({
               {subjects.map(s => (
                 <div key={s.id} className="flex items-center gap-2">
                   <Checkbox
-                    checked={form.subjects.includes(s.name)}
+                    checked={(form.subjects || []).includes(s.name)}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setForm(f => ({ ...f, subjects: [...f.subjects, s.name] }));
+                        setForm(f => ({ ...f, subjects: [...(f.subjects || []), s.name] }));
                       } else {
-                        setForm(f => ({ ...f, subjects: f.subjects.filter(x => x !== s.name) }));
+                        setForm(f => ({ ...f, subjects: (f.subjects || []).filter(x => x !== s.name) }));
                       }
                     }}
                   />
