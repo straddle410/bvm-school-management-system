@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -11,10 +11,18 @@ export default function TeacherAssignmentSection({
   form,
   setForm,
   subjects,
-  CLASSES,
+  sectionConfigs,
   getSectionsForClass,
 }) {
   const [showClassesModal, setShowClassesModal] = useState(false);
+
+  // Derive CLASSES directly from sectionConfigs for real-time updates
+  const CLASSES = useMemo(() => {
+    const classMap = new Map(sectionConfigs.map(sc => [sc.class_name, sc.class_display_order]));
+    return Array.from(classMap.entries())
+      .sort(([, orderA], [, orderB]) => (orderA || 0) - (orderB || 0))
+      .map(([className]) => className);
+  }, [sectionConfigs]);
 
   return (
     <div className="border-t pt-4">
@@ -51,7 +59,7 @@ export default function TeacherAssignmentSection({
           {/* Classes - Modal-based UI */}
           <div>
             <Label>Classes</Label>
-            <div className="flex flex-wrap gap-2 p-2 border rounded min-h-[44px] items-center">
+            <div className="flex flex-wrap gap-2 p-2 border rounded min-h-[44px] items-center bg-slate-50">
               {form.classes.length === 0 ? (
                 <span className="text-xs text-slate-500 italic">No classes selected</span>
               ) : (
@@ -72,7 +80,7 @@ export default function TeacherAssignmentSection({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="text-xs h-6"
+                className="text-xs h-7"
                 onClick={() => setShowClassesModal(true)}
               >
                 {form.classes.length === 0 ? 'Select Classes' : 'Edit'}
@@ -142,29 +150,54 @@ export default function TeacherAssignmentSection({
 
       {/* Classes Selection Modal */}
       <Dialog open={showClassesModal} onOpenChange={setShowClassesModal}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Select Classes</DialogTitle>
+            <DialogTitle className="text-lg">Select Classes</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-            {CLASSES.map(c => (
-              <div key={c} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded">
-                <Checkbox
-                  checked={form.classes.includes(c)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setForm(f => ({ ...f, classes: [...f.classes, c] }));
-                    } else {
+          <div className="space-y-0 max-h-[70vh] overflow-y-auto border rounded">
+            {CLASSES.length === 0 ? (
+              <div className="p-4 text-center">
+                <p className="text-sm text-slate-500">No classes available for this academic year</p>
+              </div>
+            ) : (
+              CLASSES.map(c => (
+                <div
+                  key={c}
+                  className="flex items-center gap-3 p-3 border-b hover:bg-slate-100 cursor-pointer transition"
+                  onClick={() => {
+                    if (form.classes.includes(c)) {
                       setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
+                    } else {
+                      setForm(f => ({ ...f, classes: [...f.classes, c] }));
                     }
                   }}
-                />
-                <span className="text-sm font-medium">{c}</span>
-              </div>
-            ))}
+                >
+                  <Checkbox
+                    checked={form.classes.includes(c)}
+                    onCheckedChange={() => {
+                      // Checkbox handles the state change via parent onClick
+                    }}
+                    className="cursor-pointer"
+                  />
+                  <span className="text-sm font-medium flex-1">{c}</span>
+                </div>
+              ))
+            )}
           </div>
-          <div className="flex justify-end pt-4">
-            <Button type="button" onClick={() => setShowClassesModal(false)} className="bg-[#1a237e] hover:bg-[#283593]">
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowClassesModal(false)}
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setShowClassesModal(false)}
+              className="bg-[#1a237e] hover:bg-[#283593] text-xs"
+            >
               Done
             </Button>
           </div>
