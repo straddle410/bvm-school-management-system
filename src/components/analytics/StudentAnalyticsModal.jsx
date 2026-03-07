@@ -9,7 +9,7 @@ export default function StudentAnalyticsModal({ classFilter, academicYear }) {
   const { data: students = [] } = useQuery({
     queryKey: ['analytics-students', classFilter, academicYear],
     queryFn: async () => {
-      let filter = { academic_year: academicYear };
+      let filter = { academic_year: academicYear, status: 'Published', is_deleted: false };
       if (classFilter !== 'all') filter.class_name = classFilter;
       return base44.entities.Student.filter(filter);
     },
@@ -27,7 +27,7 @@ export default function StudentAnalyticsModal({ classFilter, academicYear }) {
   const { data: marksData = [] } = useQuery({
     queryKey: ['analytics-marks', classFilter, academicYear],
     queryFn: async () => {
-      let filter = { academic_year: academicYear };
+      let filter = { academic_year: academicYear, status: { $in: ['Submitted', 'Verified', 'Approved', 'Published'] } };
       if (classFilter !== 'all') filter.class_name = classFilter;
       return base44.entities.Marks.filter(filter);
     },
