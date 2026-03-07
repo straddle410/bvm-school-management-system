@@ -614,11 +614,13 @@ export default function Students() {
           {/* Filters */}
            <StudentFilters
              search={search} onSearch={handleSearchChange}
-             filterClass={filterClass} onFilterClass={setFilterClass}
-             filterSection={filterSection} onFilterSection={setFilterSection}
+             filterClass={filterClass} onFilterClass={(v) => { setFilterClass(v); setFilterSection('all'); setPage(1); }}
+             filterSection={filterSection} onFilterSection={(v) => { setFilterSection(v); setPage(1); }}
              filterStatus={filterStatus} onFilterStatus={setFilterStatus}
              showArchived={showArchived} onToggleArchived={() => { setShowArchived(v => !v); setShowDeleted(false); setPage(1); }}
              showDeleted={showDeleted} onToggleDeleted={isAdmin ? () => { setShowDeleted(v => !v); setShowArchived(false); setPage(1); } : null}
+             availableClasses={sfAvailableClasses}
+             availableSections={sfAvailableSections}
            />
 
           {/* Bulk Actions — Admin only */}
