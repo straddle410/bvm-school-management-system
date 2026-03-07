@@ -34,6 +34,7 @@ export default function TeacherAssignmentSection({
      sectionConfigsCount: sectionConfigs.length,
      queryStatus: sectionConfigStatus,
      isLoading: isSectionConfigLoading,
+     errorMessage: sectionConfigError?.message || 'none',
      sectionConfigsSample: sectionConfigs.slice(0, 3).map(sc => ({
        class_name: sc.class_name,
        section: sc.section,
