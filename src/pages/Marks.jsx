@@ -54,7 +54,7 @@ export default function Marks() {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedSection, setSelectedSection] = useState('A');
+  const [selectedSection, setSelectedSection] = useState('');
   const [selectedExam, setSelectedExam] = useState('');
   const [marksData, setMarksData] = useState({});
   const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
