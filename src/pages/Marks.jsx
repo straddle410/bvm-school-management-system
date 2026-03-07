@@ -359,7 +359,7 @@ export default function Marks() {
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
-  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'principal';
+  const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
   const canEdit = currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
   const canSave = !isPublished;
 
