@@ -187,7 +187,7 @@ export default function Reports() {
                     <div>
                       <p className="text-sm text-slate-500">Attendance Rate</p>
                       <p className="text-2xl font-bold">
-                        {(() => { const working = attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday'); return working.length > 0 ? Math.round((working.filter(a => a.is_present).length / working.length) * 100) : 0; })()}%
+                         {(() => { const working = attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday'); const presentCount = working.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0); return working.length > 0 ? Math.round((presentCount / working.length) * 100) : 0; })()}%
                       </p>
                     </div>
                   </div>

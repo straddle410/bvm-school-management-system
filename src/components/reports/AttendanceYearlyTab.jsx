@@ -82,7 +82,8 @@ export default function AttendanceYearlyTab() {
 
           if (classStudents.length > 0) {
             const totalRecords = workingAttendance.length;
-            const presentRecords = workingAttendance.filter(a => a.is_present).length;
+            // Half-day counts as 0.5 present
+            const presentRecords = workingAttendance.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0);
             const percentage = totalRecords > 0 ? Math.round((presentRecords / totalRecords) * 100) : 0;
 
             classWiseData[cls] = {
