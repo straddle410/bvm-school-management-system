@@ -25,11 +25,23 @@ export default function ClassSectionConfigTab() {
   const [newSectionInputs, setNewSectionInputs] = useState({}); // { class_name: sectionInput }
 
   // Fetch all SectionConfig records for current year (including inactive)
-  const { data: records = [], isLoading } = useQuery({
-    queryKey: ['section-config', academicYear],
-    queryFn: () => base44.entities.SectionConfig.filter({ academic_year: academicYear }),
-    enabled: !!academicYear,
-  });
+   const { data: records = [], isLoading } = useQuery({
+     queryKey: ['section-config', academicYear],
+     queryFn: () => base44.entities.SectionConfig.filter({ academic_year: academicYear }),
+     enabled: !!academicYear,
+   });
+
+   // TEMP DEBUG
+   const settingsDebug = {
+     academicYear,
+     recordsCount: records.length,
+     recordsSample: records.slice(0, 3).map(r => ({
+       class_name: r.class_name,
+       section: r.section,
+       academic_year: r.academic_year,
+       is_active: r.is_active,
+     })),
+   };
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['section-config', academicYear] });
 
