@@ -773,7 +773,7 @@ export default function Attendance() {
             )}
 
             {/* Block non-admins landing on restricted tabs via state or bookmark */}
-            {!isAdmin && (activeTab === 'summary' || activeTab === 'holidays') && (
+            {!isAdmin && (activeTab === 'snapshot' || activeTab === 'summary' || activeTab === 'holidays') && (
               <TabsContent value={activeTab}>
                 <Card className="border-red-200 bg-red-50">
                   <CardContent className="p-6 text-center">
