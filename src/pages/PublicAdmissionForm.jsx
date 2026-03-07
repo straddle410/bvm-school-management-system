@@ -279,9 +279,13 @@ export default function PublicAdmissionForm() {
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(cls => (
-                            <SelectItem key={cls} value={cls}>{cls}</SelectItem>
-                          ))}
+                          {availableClasses.length > 0 ? (
+                            availableClasses.map(cls => (
+                              <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem disabled value="">No classes available for this year</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
