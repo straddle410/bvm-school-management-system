@@ -53,9 +53,10 @@ export default function TeacherAssignmentSection({
         <div className="space-y-4 ml-6">
           {/* DEBUG: Visible runtime values */}
           <div className="bg-amber-50 border border-amber-300 rounded p-3 text-xs text-amber-900">
-            <p className="font-semibold mb-2">🔴 DEBUG INFO (remove after fix):</p>
+            <p className="font-semibold mb-2">🔴 STAFF DEBUG (remove after fix):</p>
             <p>academicYear: <span className="font-mono font-bold">{debugInfo.academicYear || 'UNDEFINED'}</span></p>
             <p>sectionConfigs count: <span className="font-mono font-bold">{debugInfo.sectionConfigsCount}</span></p>
+            <p>query status: <span className="font-mono font-bold">{debugInfo.queryStatus}</span> | loading: <span className="font-mono font-bold">{debugInfo.isLoading ? 'true' : 'false'}</span></p>
             <p>CLASSES array: <span className="font-mono font-bold">{JSON.stringify(debugInfo.classesArrayFinal)}</span></p>
             <p className="mt-2 text-amber-800">Sample records (first 3):</p>
             <pre className="text-xs bg-white border border-amber-200 p-2 mt-1 overflow-auto max-h-24">
