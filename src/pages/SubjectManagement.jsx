@@ -136,7 +136,7 @@ function SubjectManagementContent() {
     <div className="min-h-screen bg-gray-100 p-4">
       <PageHeader
         title="Subject Management"
-        subtitle="Create and manage subjects"
+        subtitle="Create and manage subjects — source of truth for all subject records"
       />
 
       <div className="max-w-6xl mx-auto space-y-6">
@@ -306,5 +306,13 @@ function SubjectManagementContent() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SubjectManagement() {
+  return (
+    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Subject Management">
+      <SubjectManagementContent />
+    </LoginRequired>
   );
 }
