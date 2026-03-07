@@ -198,6 +198,14 @@ Deno.serve(async (req) => {
       exp,
     });
 
+    // ── DIAGNOSTIC: Token & secret verification ───────────────────
+    const secret = Deno.env.get('STAFF_SESSION_SECRET');
+    console.log('[staffLogin] DIAGNOSTIC:');
+    console.log(`  - TOKEN_ISSUED: length=${sessionToken.length}, first20="${sessionToken.substring(0, 20)}..."`);
+    console.log(`  - SECRET: length=${secret?.length || 0}, first4="${secret?.substring(0, 4) || 'MISSING'}"`);
+    console.log(`  - CLAIMS: iat=${iat} (sec), exp=${exp} (sec), exp_iso=${new Date(exp * 1000).toISOString()}`);
+    console.log(`  - STAFF: staff_id=${account.id}, role=${normalizedRole}`);
+
     const responsePayload = {
       success: true,
       staff_id: account.id,

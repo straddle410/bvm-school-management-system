@@ -134,12 +134,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Session token missing. Please login again.', code: 'TOKEN_MISSING' }, { status: 401 });
     }
 
+    // ── DIAGNOSTIC: Token & secret verification ───────────────────
+    const secret = Deno.env.get('STAFF_SESSION_SECRET');
+    console.log('[changeStaffPassword] DIAGNOSTIC:');
+    console.log(`  - TOKEN_RECEIVED: length=${token.length}, first20="${token.substring(0, 20)}..."`);
+    console.log(`  - SECRET: length=${secret?.length || 0}, first4="${secret?.substring(0, 4) || 'MISSING'}"`);
+
     // 2. Verify token
-    const verified = await verifySessionToken(token);
-    if (verified.error) {
-      const status = verified.error === 'TOKEN_EXPIRED' ? 401 : 401;
-      return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status });
-    }
+     const verified = await verifySessionToken(token);
+     console.log(`  - VERIFY_RESULT: error=${verified.error || 'NONE'}, staff_id=${verified.staff_id || 'NONE'}, role=${verified.role || 'NONE'}`);
+     if (verified.error) {
+       const status = verified.error === 'TOKEN_EXPIRED' ? 401 : 401;
+       return Response.json({ error: 'Session expired. Please login again.', code: verified.error }, { status });
+     }
 
     const { staff_id } = verified;
     const { currentPassword, newPassword } = body;
