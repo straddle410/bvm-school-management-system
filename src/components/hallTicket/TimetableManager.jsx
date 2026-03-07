@@ -24,7 +24,13 @@ export default function TimetableManager() {
   const [selectedClasses, setSelectedClasses] = useState([]);
   const [rows, setRows] = useState([emptyRow()]);
   const [selectedEntries, setSelectedEntries] = useState([]);
+  const [availableClasses, setAvailableClasses] = useState([]);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(setAvailableClasses);
+  }, [academicYear]);
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
