@@ -30,16 +30,13 @@ export default function StudentMarks() {
     queryKey: ['student-marks', session?.id],
     queryFn: async () => {
       if (!session?.id) return [];
-      try {
-        const records = await base44.entities.Marks.filter({
-          student_id: session.id,
-          academic_year: session.academic_year,
-          status: 'Published'
-        }, '-created_date', 500);
-        return records || [];
-      } catch {
-        return [];
-      }
+      // PRIORITY 3: Marks RLS is read:false — use backend function to serve only Published marks
+      const res = await base44.functions.invoke('getStudentData', {
+        student_id: session.id,
+        academic_year: session.academic_year,
+        data_type: 'marks'
+      });
+      return res.data?.marks || [];
     },
     enabled: !!session?.id
   });
