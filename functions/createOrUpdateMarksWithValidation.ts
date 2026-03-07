@@ -130,8 +130,8 @@ Deno.serve(async (req) => {
           }, { status: 403 });
         }
 
-        const isAdmin = user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'principal';
-        if (!isAdmin && existingMark.status === 'Submitted' && status !== 'Submitted') {
+        const isAdminOrPrincipal = ['admin', 'principal'].includes((user.role || '').toLowerCase());
+        if (!isAdminOrPrincipal && existingMark.status === 'Submitted' && status !== 'Submitted') {
           return Response.json({
             error: `Only admins can change status of submitted marks.`,
             status: 'FORBIDDEN'
