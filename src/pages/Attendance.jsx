@@ -752,7 +752,7 @@ export default function Attendance() {
             <TabsList className={`mb-6 grid grid-cols-${tabCount}`}>
               <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
               {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
-              {canViewReports && <TabsTrigger value="summary">Attendance Summary</TabsTrigger>}
+              {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}
               {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
             </TabsList>
 
