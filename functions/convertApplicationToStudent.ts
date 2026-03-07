@@ -60,6 +60,13 @@ Deno.serve(async (req) => {
       }, { status: 422 });
     }
 
+    // Step 2b: Validate section is explicitly set (no null/empty/missing)
+    if (!application.section || !application.section.trim()) {
+      return Response.json({ 
+        error: 'Conversion blocked: Section must be explicitly assigned during approval. No default sections allowed.' 
+      }, { status: 422 });
+    }
+
     // Step 3: Validate no double conversion
     if (application.assigned_student_id) {
       return Response.json({ 
