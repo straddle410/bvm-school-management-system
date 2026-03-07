@@ -712,10 +712,6 @@ export default function Staff() {
                               subjects={subjects}
                               sectionConfigs={sectionConfigs}
                               getSectionsForClass={getSectionsForClass}
-                              academicYear={academicYear}
-                              isSectionConfigLoading={isSectionConfigLoading}
-                              sectionConfigStatus={sectionConfigStatus}
-                              sectionConfigError={sectionConfigError}
                             />
 
                             <div>
@@ -1066,10 +1062,6 @@ export default function Staff() {
                         subjects={subjects}
                         sectionConfigs={sectionConfigs}
                         getSectionsForClass={getSectionsForClass}
-                        academicYear={academicYear}
-                        isSectionConfigLoading={isSectionConfigLoading}
-                        sectionConfigStatus={sectionConfigStatus}
-                        sectionConfigError={sectionConfigError}
                       />
 
                       <div>
