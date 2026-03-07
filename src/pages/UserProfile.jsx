@@ -108,42 +108,41 @@ export default function UserProfile() {
     e.preventDefault();
     setPwError('');
     if (pwForm.newPw !== pwForm.confirm) { setPwError('New passwords do not match'); return; }
-    if (pwForm.newPw.length < 4) { setPwError('Password must be at least 4 characters'); return; }
+    if (pwForm.newPw.length < 6) { setPwError('Password must be at least 6 characters'); return; }
     setPwLoading(true);
     try {
       if (sessionType === 'student') {
-        // Verify current password against stored password from session
-        const storedPw = session?.password || 'BVM123';
-        if (storedPw && storedPw !== pwForm.current) {
-          setPwError('Current password is incorrect');
+        // Use the dedicated backend function that verifies current password and writes password_hash (bcrypt)
+        const res = await base44.functions.invoke('studentChangePassword', {
+          student_id: session.student_id,
+          current_password: pwForm.current,
+          new_password: pwForm.newPw,
+        });
+        if (res.data?.error) {
+          setPwError(res.data.error);
           setPwLoading(false);
           return;
         }
-        // Find actual student record to update
-        const stuRecords = await base44.entities.Student.filter({ student_id: session.student_id }).catch(() => []);
-        if (!stuRecords || stuRecords.length === 0) { setPwError('Student record not found'); setPwLoading(false); return; }
-        await base44.entities.Student.update(stuRecords[0].id, { password: pwForm.newPw });
-        // Update local session
-        const updatedSession = { ...session, password: pwForm.newPw };
-        localStorage.setItem('student_session', JSON.stringify(updatedSession));
       } else {
-        // Staff - verify against temp_password
-        if (!staffRecord) { setPwError('Staff record not found'); setPwLoading(false); return; }
-        if (staffRecord.temp_password !== pwForm.current) {
-          setPwError('Current password is incorrect');
+        // Use the dedicated backend function that verifies current password and writes password_hash (bcrypt)
+        const token = session?.staff_session_token;
+        if (!token) { setPwError('Session token missing. Please log in again.'); setPwLoading(false); return; }
+        const res = await base44.functions.invoke('changeStaffPassword', {
+          staff_session_token: token,
+          current_password: pwForm.current,
+          new_password: pwForm.newPw,
+        });
+        if (res.data?.error) {
+          setPwError(res.data.error);
           setPwLoading(false);
           return;
         }
-        await base44.entities.StaffAccount.update(staffRecord.id, { temp_password: pwForm.newPw });
-        // Update session
-        const updatedSession = { ...session };
-        localStorage.setItem('staff_session', JSON.stringify(updatedSession));
       }
       toast.success('Password changed successfully');
       setShowPwForm(false);
       setPwForm({ current: '', newPw: '', confirm: '' });
     } catch (err) {
-      setPwError('Failed to change password. Try again.');
+      setPwError(err?.response?.data?.error || 'Failed to change password. Try again.');
     }
     setPwLoading(false);
   };

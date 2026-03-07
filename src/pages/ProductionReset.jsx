@@ -67,7 +67,16 @@ export default function ProductionReset() {
     }
   };
 
-  if (user && user.role !== 'admin') {
+  // Block access while loading, or if user is not confirmed admin
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-gray-300 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50">
         <div className="text-center">

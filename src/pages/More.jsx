@@ -83,7 +83,7 @@ export default function More() {
 
   const adminItems = [
    { label: 'Students', sub: 'Manage student records', icon: Users, color: '#5c6bc0', bg: '#e8eaf6', page: 'Students' },
-   { label: 'Staff Management', sub: 'Create & manage accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'StaffManagement' },
+   { label: 'Staff Management', sub: 'Create & manage accounts', icon: Users, color: '#e53935', bg: '#ffebee', page: 'Staff' },
    { label: 'Reports', sub: 'Analytics & insights', icon: BookOpen, color: '#78909c', bg: '#eceff1', page: 'ReportsManagement' },
    { label: 'Settings', sub: 'School configuration', icon: Settings, color: '#78909c', bg: '#eceff1', page: 'Settings' },
   ];
