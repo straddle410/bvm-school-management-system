@@ -288,7 +288,7 @@ export default function Homework() {
     bulkStatusMutation.mutate({ homework_ids: [id], status: 'Draft' });
   };
 
-  const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+  // availableClasses and availableSections loaded dynamically above
 
   // Calculate statistics
   const calculateStats = async () => {
@@ -722,12 +722,12 @@ export default function Homework() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Class *</Label>
-                    <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v })} required>
+                    <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v, section: '' })} required>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
-                        {classes.map((cls) => (
+                        {availableClasses.map((cls) => (
                           <SelectItem key={cls} value={cls}>
                             Class {cls}
                           </SelectItem>
@@ -737,14 +737,14 @@ export default function Homework() {
                   </div>
                   <div>
                     <Label>Section</Label>
-                    <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })}>
+                    <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })} disabled={availableSections.length === 0}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder={form.class_name ? 'Select section' : 'Select class first'} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="A">A</SelectItem>
-                        <SelectItem value="B">B</SelectItem>
-                        <SelectItem value="C">C</SelectItem>
+                        {availableSections.map((sec) => (
+                          <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
