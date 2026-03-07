@@ -129,8 +129,8 @@ export default function UserProfile() {
         if (!token) { setPwError('Session token missing. Please log in again.'); setPwLoading(false); return; }
         const res = await base44.functions.invoke('changeStaffPassword', {
           staff_session_token: token,
-          current_password: pwForm.current,
-          new_password: pwForm.newPw,
+          currentPassword: pwForm.current,
+          newPassword: pwForm.newPw,
         });
         if (res.data?.error) {
           setPwError(res.data.error);
