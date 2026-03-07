@@ -24,6 +24,18 @@ export default function TeacherAssignmentSection({
       .map(([className]) => className);
   }, [sectionConfigs]);
 
+  // DEBUG: Log state for visibility
+  const debugInfo = {
+    sectionConfigsCount: sectionConfigs.length,
+    sectionConfigsSample: sectionConfigs.slice(0, 3).map(sc => ({
+      class_name: sc.class_name,
+      section: sc.section,
+      academic_year: sc.academic_year,
+      is_active: sc.is_active,
+    })),
+    classesArrayFinal: CLASSES,
+  };
+
   return (
     <div className="border-t pt-4">
       <Label className="flex items-center gap-2 mb-4">
