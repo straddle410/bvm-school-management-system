@@ -755,6 +755,12 @@ export default function Attendance() {
             </TabsContent>
 
             {isAdmin && (
+              <TabsContent value="snapshot">
+                <DailySnapshotTab />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
               <TabsContent value="summary">
                 <AttendanceSummaryTab academicYear={academicYear} user={user} />
               </TabsContent>
