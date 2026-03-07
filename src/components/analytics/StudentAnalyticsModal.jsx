@@ -33,6 +33,11 @@ export default function StudentAnalyticsModal({ classFilter, academicYear }) {
     },
   });
 
+  const { data: examTypes = [] } = useQuery({
+    queryKey: ['exam-types-for-analytics', academicYear],
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear }),
+  });
+
   // Calculate student analytics
   const studentAnalytics = useMemo(() => {
     return students.map(student => {
@@ -43,12 +48,16 @@ export default function StudentAnalyticsModal({ classFilter, academicYear }) {
         ? ((presentDays / studentAttendance.length) * 100).toFixed(1)
         : 0;
 
-      // Marks
+      // Marks - use configured pass rule from ExamType
       const studentMarks = marksData.filter(m => m.student_id === student.student_id);
       const avgMarks = studentMarks.length > 0
         ? (studentMarks.reduce((sum, m) => sum + m.marks_obtained, 0) / studentMarks.length).toFixed(1)
         : 0;
-      const passedExams = studentMarks.filter(m => m.marks_obtained >= (m.max_marks * 0.4)).length;
+      const passedExams = studentMarks.filter(m => {
+        const examType = examTypes.find(e => e.id === m.exam_type);
+        const passThreshold = examType?.min_marks_to_pass || 40; // Fallback to 40 if not found
+        return m.marks_obtained >= passThreshold;
+      }).length;
       const passRate = studentMarks.length > 0
         ? ((passedExams / studentMarks.length) * 100).toFixed(1)
         : 0;
@@ -66,8 +75,8 @@ export default function StudentAnalyticsModal({ classFilter, academicYear }) {
         totalAttendanceDays: studentAttendance.length,
         examsTaken: studentMarks.length,
       };
-    }).sort((a, b) => b.avgMarks - a.avgMarks);
-  }, [students, attendanceData, marksData]);
+      }).sort((a, b) => b.avgMarks - a.avgMarks);
+      }, [students, attendanceData, marksData, examTypes]);
 
   if (studentAnalytics.length === 0) {
     return <p className="text-xs text-gray-500 text-center py-4">No students found</p>;
