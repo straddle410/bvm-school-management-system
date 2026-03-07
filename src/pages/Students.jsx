@@ -69,6 +69,8 @@ export default function Students() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [sfAvailableClasses, setSfAvailableClasses] = useState([]);
+  const [sfAvailableSections, setSfAvailableSections] = useState([]);
   const LIMIT = 25;
   const debounceRef = useRef(null);
 
