@@ -14,6 +14,8 @@ export default function TeacherAssignmentSection({
   sectionConfigs,
   getSectionsForClass,
   academicYear,
+  isSectionConfigLoading,
+  sectionConfigStatus,
 }) {
   const [showClassesModal, setShowClassesModal] = useState(false);
 
