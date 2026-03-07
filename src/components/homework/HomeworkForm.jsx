@@ -184,13 +184,14 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Class *</label>
               <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.class_name} onChange={e => set('class_name', e.target.value)}>
                 <option value="">Select</option>
-                {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+                {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Section</label>
               <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.section} onChange={e => set('section', e.target.value)}>
-                {SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="All">All</option>
+                {availableSections.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
