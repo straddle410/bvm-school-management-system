@@ -105,7 +105,8 @@ export default function Homework() {
 
   const { data: submissions = [] } = useQuery({
     queryKey: ['homework-submissions', academicYear],
-    queryFn: () => base44.entities.HomeworkSubmission.list('-created_date', 2000),
+    queryFn: () => base44.entities.HomeworkSubmission.filter({ academic_year: academicYear }, '-created_date', 2000),
+    enabled: !!academicYear
   });
 
   // Extract unique classes, sections, subjects from homework

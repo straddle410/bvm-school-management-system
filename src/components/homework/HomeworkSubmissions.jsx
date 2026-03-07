@@ -9,8 +9,10 @@ import StudentProgressSegmentation from '@/components/homework/StudentProgressSe
 import { getMarksStatistics } from '@/components/homework/homeworkMetricsHelper';
 import { canManageHomework, isHomeworkAdmin } from '@/components/homework/homeworkAccessControl';
 import { getStaffSession } from '@/components/useStaffSession';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 
 export default function HomeworkSubmissions({ homework, onClose }) {
+  const { academicYear } = useAcademicYear();
   const [gradingId, setGradingId] = useState(null);
   const [revisionId, setRevisionId] = useState(null);
   const [marks, setMarks] = useState('');
@@ -42,20 +44,21 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   }
 
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery({
-    queryKey: ['hw-submissions', homework.id],
-    queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: homework.id }, '-created_date', 200),
+    queryKey: ['hw-submissions', homework.id, academicYear],
+    queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: homework.id, academic_year: academicYear }, '-created_date', 200),
+    enabled: !!academicYear
   });
 
   // Query assigned students for this homework's class/section
   const { data: assignedStudents = [] } = useQuery({
-    queryKey: ['hw-assigned-students', homework.class_name, homework.section],
+    queryKey: ['hw-assigned-students', homework.class_name, homework.section, academicYear],
     queryFn: async () => {
       // Build filter for students matching this homework's class/section
       const studentFilter = {
         class_name: homework.class_name,
-        is_deleted: { $ne: true }, // Exclude deleted students
-        is_active: true, // Only active students
-        status: { $in: ['Verified', 'Approved', 'Published'] } // Valid statuses
+        is_deleted: false,
+        status: 'Published',
+        academic_year: academicYear
       };
 
       // Add section filter
@@ -66,6 +69,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
 
       return base44.entities.Student.filter(studentFilter, 'student_id', 500);
     },
+    enabled: !!academicYear
   });
 
   const gradeMutation = useMutation({
