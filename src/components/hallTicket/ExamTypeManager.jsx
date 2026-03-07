@@ -38,7 +38,8 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
       const session = localStorage.getItem('staff_session');
       if (session) {
         const parsed = JSON.parse(session);
-        if (parsed?.role === 'Admin' || parsed?.role === 'admin' || parsed?.role === 'Principal') {
+        const role = (parsed?.role || '').trim().toLowerCase();
+        if (role === 'admin' || role === 'principal') {
           setUser({ role: 'admin' });
           return;
         }
