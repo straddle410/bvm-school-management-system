@@ -59,6 +59,17 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
   const [subjects, setSubjects] = useState([]);
   const [subjectSourceLabel, setSubjectSourceLabel] = useState('');
 
+  // Load sections when class changes
+  useEffect(() => {
+    if (!formData.class_name || !finalAcademicYear) { setAvailableSections([]); return; }
+    getSectionsForClass(finalAcademicYear, formData.class_name).then((result) => {
+      const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+      setAvailableSections(secs);
+      if (secs.length === 1) setFormData(f => ({ ...f, section: secs[0] }));
+      else if (formData.section && !secs.includes(formData.section)) setFormData(f => ({ ...f, section: '' }));
+    });
+  }, [formData.class_name, finalAcademicYear]);
+
   // Fetch subjects when class changes
   useEffect(() => {
     const fetchSubjects = async () => {
