@@ -162,16 +162,16 @@ export default function TeacherAssignmentSection({
           {/* Class Teacher Of - Dropdown, depends on selected classes */}
           <div>
             <Label>Class Teacher Of</Label>
-            {form.classes.length === 0 ? (
+            {(form.classes || []).length === 0 ? (
               <p className="text-xs text-slate-500 italic">Select at least one class to enable class teacher assignment</p>
             ) : (
-              <Select value={form.class_teacher_of} onValueChange={(v) => setForm(f => ({ ...f, class_teacher_of: v }))}>
+              <Select value={form.class_teacher_of || ''} onValueChange={(v) => setForm(f => ({ ...f, class_teacher_of: v }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select class-section" />
                 </SelectTrigger>
                 <SelectContent>
                   {(() => {
-                    const classSectionOptions = form.classes.flatMap(cls => {
+                    const classSectionOptions = (form.classes || []).flatMap(cls => {
                       const sections = getSectionsForClass(cls);
                       return sections.map(sec => ({ class: cls, section: sec, display: `${cls}-${sec}` }));
                     });
