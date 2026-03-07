@@ -100,13 +100,14 @@ Deno.serve(async (req) => {
     const appNo = `APP-${Date.now().toString(36).toUpperCase()}`;
 
     // Step 5: Create AdmissionApplication with service role (backend enforces admission year)
+    // Note: section is NOT set here - it must be assigned during approval via Admissions.js
     const newApplication = await base44.asServiceRole.entities.AdmissionApplication.create({
       application_no: appNo,
       student_name: normalizedStudentName,
       dob,
       gender,
       applying_for_class,
-      section: section || 'A',
+      section: section || null,
       photo_url,
       parent_name: normalizedParentName,
       parent_phone: normalizedParentPhone,
