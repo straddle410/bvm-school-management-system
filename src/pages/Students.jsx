@@ -88,6 +88,20 @@ export default function Students() {
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' ||
                   user?.role === 'Principal' || user?.role === 'principal';
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setSfAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (filterClass === 'all' || !filterClass || !academicYear) { setSfAvailableSections([]); return; }
+    getSectionsForClass(academicYear, filterClass).then(result => {
+      setSfAvailableSections(Array.isArray(result) ? result : (result?.sections ?? []));
+    });
+  }, [filterClass, academicYear]);
   const isTeacher = !isAdmin && (user?.role === 'teacher' || user?.role === 'Teacher' || user?.role === 'staff' || user?.role === 'Staff');
 
   // Debounced search trigger
