@@ -17,6 +17,8 @@ const emptyDesc = () => ({ question: '' });
 export default function HomeworkForm({ editItem, user, onClose, onSaved, isInline = false }) {
    const { academicYear } = useAcademicYear();
    const [showAIAssist, setShowAIAssist] = useState(false);
+   const [availableClasses, setAvailableClasses] = useState([]);
+   const [availableSections, setAvailableSections] = useState([]);
    const [form, setForm] = useState({
      title: '',
      subject: '',

@@ -45,6 +45,10 @@ export default function Homework() {
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
 
+  // Dynamic class/section state for form
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+
   // Filter state
   const [classFilter, setClassFilter] = useState('');
   const [sectionFilter, setSectionFilter] = useState('');
@@ -57,6 +61,27 @@ export default function Homework() {
     const staffData = getStaffSession();
     setUser(staffData);
   }, []);
+
+  // Load classes for current academic year
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then((result) => {
+      setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  // Load sections when form class changes
+  useEffect(() => {
+    if (!form.class_name || !academicYear) { setAvailableSections([]); return; }
+    getSectionsForClass(academicYear, form.class_name).then((result) => {
+      const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+      setAvailableSections(secs);
+      // Auto-select if only one section
+      if (secs.length === 1) setForm(f => ({ ...f, section: secs[0] }));
+      // Reset section if current is invalid
+      else if (form.section && !secs.includes(form.section)) setForm(f => ({ ...f, section: '' }));
+    });
+  }, [form.class_name, academicYear]);
 
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects', academicYear, form.class_name],
