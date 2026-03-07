@@ -46,7 +46,7 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
     title: '',
     description: '',
     class_name: '',
-    section: 'A',
+    section: '',
     subject: '',
     diary_date: todayDate,
     attachment_urls: [],
