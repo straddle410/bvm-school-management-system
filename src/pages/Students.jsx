@@ -28,8 +28,8 @@ import { isLocked, isValidTransition, ACTIVE_STATUSES } from '@/components/stude
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 const EMPTY_FORM = {
-  student_id: '', username: '', password: 'BVM123',
-  name: '', class_name: '', section: 'A', roll_no: '',
+  student_id: '', username: '',
+  name: '', class_name: '', section: '', roll_no: '',
   parent_name: '', parent_phone: '', parent_email: '',
   dob: '', gender: 'Male', address: '', blood_group: '',
   admission_date: '', academic_year: '', status: 'Pending', photo_url: ''
