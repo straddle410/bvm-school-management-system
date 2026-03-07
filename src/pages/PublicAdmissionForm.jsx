@@ -33,9 +33,9 @@ export default function PublicAdmissionForm() {
     academic_year: ''
   });
 
-  // Load admission open years on mount
+  // Load admission open years and available classes on mount
   useEffect(() => {
-    const loadAdmissionYears = async () => {
+    const loadAdmissionData = async () => {
       try {
         const response = await base44.functions.invoke('getAdmissionOpenYears', {});
         const years = response.data.years || [];
@@ -44,10 +44,11 @@ export default function PublicAdmissionForm() {
           setYearError('Admissions are currently closed.');
         } else {
           setAdmissionYears(years);
-          // If only one year, auto-select it
+          // If only one year, auto-select it and load classes
           if (years.length === 1) {
             setSelectedYear(years[0].year);
             setFormData(prev => ({ ...prev, academic_year: years[0].year }));
+            await loadClassesForYear(years[0].year);
           }
         }
       } catch (error) {
@@ -58,8 +59,24 @@ export default function PublicAdmissionForm() {
       }
     };
 
-    loadAdmissionYears();
+    loadAdmissionData();
   }, []);
+
+  // Load available classes for a given academic year
+  const loadClassesForYear = async (year) => {
+    try {
+      const sectionConfigs = await base44.entities.SectionConfig.filter({
+        academic_year: year,
+        is_active: true
+      });
+      // Extract unique class names and sort
+      const classNames = [...new Set(sectionConfigs.map(s => s.class_name))];
+      setAvailableClasses(classNames);
+    } catch (error) {
+      console.error('Failed to load classes:', error);
+      setAvailableClasses([]);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
