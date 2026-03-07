@@ -48,16 +48,16 @@ export default function More() {
 
   const examItems = {
     admin: [
-      { label: 'Exam Types', sub: 'Create & manage exams', icon: ClipboardList, color: '#d32f2f', bg: '#ffebee', page: 'ExamManagement', tab: 'exam-types' },
-      { label: 'Timetable', sub: 'Set exam schedule', icon: Calendar, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'timetable' },
+      { label: 'Exam Types', sub: 'Create & manage exams', icon: ClipboardList, color: '#d32f2f', bg: '#ffebee', page: 'HallTicketManagement', tab: 'exam-types' },
+      { label: 'Timetable', sub: 'Set exam schedule', icon: Calendar, color: '#1976d2', bg: '#e3f2fd', page: 'HallTicketManagement', tab: 'timetable' },
       { label: 'Hall Tickets', sub: 'Generate hall tickets', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', page: 'HallTicketManagement' },
       { label: 'Marks Entry', sub: 'Enter student marks', icon: FileText, color: '#7b1fa2', bg: '#f3e5f5', page: 'Marks' },
-      { label: 'Results Publish', sub: 'Publish exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
-      { label: 'Progress Cards', sub: 'Generate progress reports', icon: Award, color: '#1976d2', bg: '#e3f2fd', page: 'ExamManagement', tab: 'progress-cards' },
+      { label: 'Results Publish', sub: 'Publish exam results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'HallTicketManagement', tab: 'progress-cards' },
+      { label: 'Progress Cards', sub: 'Generate progress reports', icon: Award, color: '#1976d2', bg: '#e3f2fd', page: 'HallTicketManagement', tab: 'progress-cards' },
     ],
     teacher: [
       { label: 'Marks Entry', sub: 'Enter student marks', icon: FileText, color: '#7b1fa2', bg: '#f3e5f5', page: 'Marks' },
-      { label: 'Results', sub: 'View & submit results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'ExamManagement', tab: 'results' },
+      { label: 'Results', sub: 'View & submit results', icon: TrendingUp, color: '#f57c00', bg: '#fff3e0', page: 'Results' },
     ],
     student: [
       { label: 'Fees', sub: 'View and pay fees', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', page: 'StudentFees' },
@@ -74,7 +74,7 @@ export default function More() {
    { label: 'Post Notice', sub: 'Create school announcement', icon: Megaphone, color: '#43a047', bg: '#e8f5e9', page: 'Notices', permKey: 'post_notices' },
    { label: 'Messages', sub: 'Inbox & send messages', icon: MessageSquare, color: '#1a237e', bg: '#e8eaf6', page: 'Messaging', permKey: null },
    { label: 'Diary', sub: 'Post class diary entries', icon: BookOpen, color: '#e91e63', bg: '#fce4ec', page: 'Diary', permKey: null },
-   { label: 'Homework', sub: 'Assign homework', icon: ClipboardList, color: '#f57c00', bg: '#fff3e0', page: 'HomeworkManage', permKey: null },
+   { label: 'Homework', sub: 'Assign homework', icon: ClipboardList, color: '#f57c00', bg: '#fff3e0', page: 'Homework', permKey: null },
   ];
 
   const contentItems = isAdmin
