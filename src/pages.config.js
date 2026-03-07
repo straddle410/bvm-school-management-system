@@ -76,7 +76,6 @@ import HomeworkManage from './pages/HomeworkManage';
 import IDCards from './pages/IDCards';
 import Index from './pages/Index';
 import Marks from './pages/Marks';
-import MarksReview from './pages/MarksReview';
 import Messaging from './pages/Messaging';
 import More from './pages/More';
 import Notices from './pages/Notices';
@@ -149,7 +148,6 @@ export const PAGES = {
     "IDCards": IDCards,
     "Index": Index,
     "Marks": Marks,
-    "MarksReview": MarksReview,
     "Messaging": Messaging,
     "More": More,
     "Notices": Notices,
