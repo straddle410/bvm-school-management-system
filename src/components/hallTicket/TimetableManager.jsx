@@ -186,7 +186,7 @@ export default function TimetableManager() {
               <div>
                 <p className="text-xs font-semibold text-slate-600 mb-1">Classes <span className="text-red-500">*</span></p>
                 <div className="flex flex-wrap gap-2">
-                  {CLASSES.map(c => (
+                  {availableClasses.map(c => (
                     <button
                       type="button"
                       key={c}
