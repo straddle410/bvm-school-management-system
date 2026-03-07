@@ -43,67 +43,72 @@ export default function AttendanceAnalytics({ classFilter, academicYear, dateFro
   });
 
   // Calculate class-wise attendance (exclude holiday records)
-  const classAttendance = useMemo(() => {
-    const classMap = {};
-    attendanceData.forEach(record => {
-      // Skip holiday records from present/absent calculations
-      if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
-      
-      if (!classMap[record.class_name]) {
-        classMap[record.class_name] = { present: 0, absent: 0, total: 0 };
-      }
-      classMap[record.class_name].total++;
-      if (record.is_present) classMap[record.class_name].present++;
-      else classMap[record.class_name].absent++;
-    });
+   const classAttendance = useMemo(() => {
+     const classMap = {};
+     attendanceData.forEach(record => {
+       // Skip holiday records from present/absent calculations
+       if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
 
-    return Object.entries(classMap).map(([name, data]) => ({
-      name,
-      percentage: ((data.present / data.total) * 100).toFixed(1),
-      present: data.present,
-      absent: data.absent,
-    }));
-  }, [attendanceData]);
+       if (!classMap[record.class_name]) {
+         classMap[record.class_name] = { present: 0, absent: 0, total: 0 };
+       }
+       classMap[record.class_name].total++;
+       // Half-day counts as 0.5 present
+       if (record.attendance_type === 'half_day') classMap[record.class_name].present += 0.5;
+       else if (record.is_present) classMap[record.class_name].present++;
+       else classMap[record.class_name].absent++;
+     });
+
+     return Object.entries(classMap).map(([name, data]) => ({
+       name,
+       percentage: ((data.present / data.total) * 100).toFixed(1),
+       present: Math.round(data.present),
+       absent: data.absent,
+     }));
+   }, [attendanceData]);
 
   // Overall attendance summary (exclude holiday records)
-  const overallStats = useMemo(() => {
-    // Filter out holiday records from present/absent counts
-    const workingData = attendanceData.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
-    const total = workingData.length;
-    const present = workingData.filter(a => a.is_present).length;
-    return {
-      present,
-      absent: total - present,
-      percentage: total > 0 ? ((present / total) * 100).toFixed(1) : 0,
-    };
-  }, [attendanceData]);
+   const overallStats = useMemo(() => {
+     // Filter out holiday records from present/absent counts
+     const workingData = attendanceData.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
+     const total = workingData.length;
+     // Half-day counts as 0.5 present
+     const presentCount = workingData.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0);
+     return {
+       present: Math.round(presentCount),
+       absent: total - Math.round(presentCount),
+       percentage: total > 0 ? ((presentCount / total) * 100).toFixed(1) : 0,
+     };
+   }, [attendanceData]);
 
   // Student-wise attendance (exclude holiday records)
-  const studentAttendance = useMemo(() => {
-    const studentMap = {};
-    attendanceData.forEach(record => {
-      // Skip holiday records from student attendance calculations
-      if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
-      
-      if (!studentMap[record.student_id]) {
-        studentMap[record.student_id] = {
-          name: record.student_name,
-          present: 0,
-          total: 0,
-        };
-      }
-      studentMap[record.student_id].total++;
-      if (record.is_present) studentMap[record.student_id].present++;
-    });
+   const studentAttendance = useMemo(() => {
+     const studentMap = {};
+     attendanceData.forEach(record => {
+       // Skip holiday records from student attendance calculations
+       if (record.attendance_type === 'holiday' || record.status === 'Holiday') return;
 
-    return Object.values(studentMap)
-      .map(s => ({
-        ...s,
-        percentage: ((s.present / s.total) * 100).toFixed(1),
-      }))
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, 10);
-  }, [attendanceData]);
+       if (!studentMap[record.student_id]) {
+         studentMap[record.student_id] = {
+           name: record.student_name,
+           present: 0,
+           total: 0,
+         };
+       }
+       studentMap[record.student_id].total++;
+       // Half-day counts as 0.5 present
+       if (record.attendance_type === 'half_day') studentMap[record.student_id].present += 0.5;
+       else if (record.is_present) studentMap[record.student_id].present++;
+     });
+
+     return Object.values(studentMap)
+       .map(s => ({
+         ...s,
+         percentage: ((s.present / s.total) * 100).toFixed(1),
+       }))
+       .sort((a, b) => b.percentage - a.percentage)
+       .slice(0, 10);
+   }, [attendanceData]);
 
   return (
     <div className="space-y-4">
