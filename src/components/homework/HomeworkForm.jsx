@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 const TYPES = ['MCQ','Descriptive','Project','Assignment','Other'];
-const TYPES = ['MCQ','Descriptive','Project','Assignment','Other'];
 
 const emptyMCQ = () => ({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'A' });
 const emptyDesc = () => ({ question: '' });
