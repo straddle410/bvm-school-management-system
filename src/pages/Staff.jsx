@@ -373,6 +373,26 @@ export default function Staff() {
       experienceYears = parsed;
     }
 
+    // Validate teacher class/section assignments against SectionConfig
+    if (form.is_teacher && form.classes && form.classes.length > 0) {
+      for (const className of form.classes) {
+        const validSections = getSectionsForClass(className);
+        if (validSections.length === 0) {
+          toast.error(`Class "${className}" does not exist in the current academic year's configuration`);
+          return;
+        }
+        // If sections are selected, validate they exist for this class
+        if (form.sections && form.sections.length > 0) {
+          for (const section of form.sections) {
+            if (!validSections.includes(section)) {
+              toast.error(`Section "${section}" does not exist for class "${className}" in the current academic year`);
+              return;
+            }
+          }
+        }
+      }
+    }
+
     const dataToSave = { 
       ...form,
       username: normalizedUsername,
