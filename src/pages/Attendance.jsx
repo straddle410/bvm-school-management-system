@@ -564,7 +564,7 @@ function AttendanceSummaryTab({ academicYear, user }) {
 
   return (
     <div className="space-y-6">
-      <FilterSection filters={filters} setFilters={setFilters} onGenerate={() => setHasGenerated(true)} classes={CLASSES} />
+      <FilterSection filters={filters} setFilters={setFilters} onGenerate={() => setHasGenerated(true)} classes={availableClasses} sections={availableSections} />
       {hasGenerated && (
         <>
           <SummaryCards totalStudents={students.length} avgAttendance={avgAttendance} workingDays={reportData[0]?.totalWorkingDays || 0} />
