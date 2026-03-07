@@ -9,13 +9,30 @@ export default function ProgressReport({ studentResult, marks, onExporting }) {
 
 
   const calculateSubjectStats = () => {
-    const subjects = {};
+    // Group by subject + exam_type to prevent cross-exam aggregation
+    const subjectExamStats = {};
     marks.forEach(mark => {
-      if (!subjects[mark.subject]) {
-        subjects[mark.subject] = { obtained: 0, max: 0 };
+      const key = `${mark.subject}___${mark.exam_type}`;
+      if (!subjectExamStats[key]) {
+        subjectExamStats[key] = {
+          subject: mark.subject,
+          exam_type: mark.exam_type,
+          obtained: 0,
+          max: 0
+        };
       }
-      subjects[mark.subject].obtained += mark.marks_obtained;
-      subjects[mark.subject].max += mark.max_marks;
+      subjectExamStats[key].obtained += mark.marks_obtained;
+      subjectExamStats[key].max += mark.max_marks;
+    });
+
+    // Aggregate by subject across exams safely (same subject/exam combo sums correctly)
+    const subjects = {};
+    Object.values(subjectExamStats).forEach(stat => {
+      if (!subjects[stat.subject]) {
+        subjects[stat.subject] = { obtained: 0, max: 0 };
+      }
+      subjects[stat.subject].obtained += stat.obtained;
+      subjects[stat.subject].max += stat.max;
     });
 
     return Object.entries(subjects).map(([name, stats]) => ({
