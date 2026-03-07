@@ -14,9 +14,7 @@ import { Search, GraduationCap, BookOpen, Share2, Printer, Lock } from 'lucide-r
 import ProgressReport from '../components/ProgressReport';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 const gradeColor = (grade) => {
   const map = {
@@ -111,6 +109,24 @@ export default function Results() {
       console.debug('Error marking notifications as read:', error);
     }
   };
+
+  // Dynamic classes from SectionConfig
+  const { data: classSectionData } = useQuery({
+    queryKey: ['classes-for-year', academicYear],
+    queryFn: () => getClassesForYear(academicYear),
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableClasses = classSectionData?.classes || [];
+
+  // Dynamic sections from SectionConfig
+  const { data: sectionData } = useQuery({
+    queryKey: ['sections-for-class', academicYear, filterClass],
+    queryFn: () => getSectionsForClass(academicYear, filterClass),
+    enabled: !!academicYear && !!filterClass,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableSections = sectionData?.sections || [];
 
   // Fetch exam types from master source
   const { data: examTypes = [] } = useQuery({
@@ -284,7 +300,7 @@ export default function Results() {
                     <SelectValue placeholder="Select Class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CLASSES.map(c => (
+                    {availableClasses.map(c => (
                       <SelectItem key={c} value={c}>Class {c}</SelectItem>
                     ))}
                   </SelectContent>
@@ -297,7 +313,7 @@ export default function Results() {
                     <SelectValue placeholder="Select Section" />
                   </SelectTrigger>
                   <SelectContent>
-                    {SECTIONS.map(s => (
+                    {availableSections.map(s => (
                       <SelectItem key={s} value={s}>Section {s}</SelectItem>
                     ))}
                   </SelectContent>
