@@ -1185,25 +1185,25 @@ export default function Staff() {
                             </div>
 
                             <div>
-                              <Label>Classes</Label>
-                              <div className="grid grid-cols-3 gap-2 border rounded p-2">
-                                {CLASSES.map(c => (
-                                  <div key={c} className="flex items-center gap-2">
-                                    <Checkbox
-                                      checked={form.classes.includes(c)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setForm(f => ({ ...f, classes: [...f.classes, c] }));
-                                        } else {
-                                          setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{c}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                               <Label>Classes</Label>
+                               <div className="grid grid-cols-3 gap-2 border rounded p-2 max-h-40 overflow-y-auto">
+                                 {CLASSES.map(c => (
+                                   <div key={c} className="flex items-center gap-2">
+                                     <Checkbox
+                                       checked={form.classes.includes(c)}
+                                       onCheckedChange={(checked) => {
+                                         if (checked) {
+                                           setForm(f => ({ ...f, classes: [...f.classes, c] }));
+                                         } else {
+                                           setForm(f => ({ ...f, classes: f.classes.filter(x => x !== c) }));
+                                         }
+                                       }}
+                                     />
+                                     <span className="text-sm">{c}</span>
+                                   </div>
+                                 ))}
+                               </div>
+                             </div>
 
                             <div>
                               <Label>Sections</Label>
