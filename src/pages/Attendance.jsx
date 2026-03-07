@@ -37,6 +37,33 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const [selectedDate, setSelectedDate] = useState(isAdmin ? '' : todayDate);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
+
+  // Dynamic class/section from SectionConfig (with fallback)
+  const { data: classSectionData } = useQuery({
+    queryKey: ['classes-for-year', academicYear],
+    queryFn: () => getClassesForYear(academicYear),
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableClasses = classSectionData?.classes || [];
+
+  const { data: sectionData } = useQuery({
+    queryKey: ['sections-for-class', academicYear, selectedClass],
+    queryFn: () => getSectionsForClass(academicYear, selectedClass),
+    enabled: !!academicYear && !!selectedClass,
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableSections = sectionData?.sections || [];
+
+  // Reset section if it's no longer valid after class/year change
+  useEffect(() => {
+    if (availableSections.length > 0 && selectedSection && !availableSections.includes(selectedSection)) {
+      setSelectedSection('');
+    }
+    if (availableSections.length === 1 && !selectedSection) {
+      setSelectedSection(availableSections[0]);
+    }
+  }, [availableSections, selectedSection]);
   const [attendanceData, setAttendanceData] = useState({});
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayReason, setHolidayReason] = useState('');
