@@ -707,7 +707,7 @@ export default function Staff() {
                               form={form}
                               setForm={setForm}
                               subjects={subjects}
-                              CLASSES={CLASSES}
+                              sectionConfigs={sectionConfigs}
                               getSectionsForClass={getSectionsForClass}
                             />
 
@@ -1057,7 +1057,7 @@ export default function Staff() {
                         form={form}
                         setForm={setForm}
                         subjects={subjects}
-                        CLASSES={CLASSES}
+                        sectionConfigs={sectionConfigs}
                         getSectionsForClass={getSectionsForClass}
                       />
 
