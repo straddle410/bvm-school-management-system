@@ -13,10 +13,6 @@ export default function TeacherAssignmentSection({
   subjects,
   sectionConfigs,
   getSectionsForClass,
-  academicYear,
-  isSectionConfigLoading,
-  sectionConfigStatus,
-  sectionConfigError,
 }) {
   const [showClassesModal, setShowClassesModal] = useState(false);
 
@@ -28,22 +24,6 @@ export default function TeacherAssignmentSection({
       .map(([className]) => className);
   }, [sectionConfigs]);
 
-  // DEBUG: Log state for visibility
-   const debugInfo = {
-     academicYear,
-     sectionConfigsCount: sectionConfigs.length,
-     queryStatus: sectionConfigStatus,
-     isLoading: isSectionConfigLoading,
-     errorMessage: sectionConfigError?.message || 'none',
-     sectionConfigsSample: sectionConfigs.slice(0, 3).map(sc => ({
-       class_name: sc.class_name,
-       section: sc.section,
-       academic_year: sc.academic_year,
-       is_active: sc.is_active,
-     })),
-     classesArrayFinal: CLASSES,
-   };
-
   return (
     <div className="border-t pt-4">
       <Label className="flex items-center gap-2 mb-4">
@@ -53,24 +33,6 @@ export default function TeacherAssignmentSection({
 
       {form.is_teacher && (
         <div className="space-y-4 ml-6">
-          {/* DEBUG: Visible runtime values */}
-          <div className={`rounded p-3 text-xs ${sectionConfigError ? 'bg-red-50 border border-red-300 text-red-900' : 'bg-amber-50 border border-amber-300 text-amber-900'}`}>
-            <p className="font-semibold mb-2">{sectionConfigError ? '🔴 QUERY ERROR' : '🔴 STAFF DEBUG'}:</p>
-            {sectionConfigError && (
-              <div className="bg-white border border-red-200 p-2 rounded mb-2">
-                <p className="text-xs font-mono text-red-700">{debugInfo.errorMessage}</p>
-              </div>
-            )}
-            <p>academicYear: <span className="font-mono font-bold">{debugInfo.academicYear || 'UNDEFINED'}</span></p>
-            <p>sectionConfigs count: <span className="font-mono font-bold">{debugInfo.sectionConfigsCount}</span></p>
-            <p>query status: <span className="font-mono font-bold">{debugInfo.queryStatus}</span> | loading: <span className="font-mono font-bold">{debugInfo.isLoading ? 'true' : 'false'}</span></p>
-            <p>CLASSES array: <span className="font-mono font-bold">{JSON.stringify(debugInfo.classesArrayFinal)}</span></p>
-            <p className="mt-2">Sample records (first 3):</p>
-            <pre className="text-xs bg-white border p-2 mt-1 overflow-auto max-h-24">
-              {debugInfo.sectionConfigsSample.length === 0 ? '(empty)' : JSON.stringify(debugInfo.sectionConfigsSample, null, 2)}
-            </pre>
-          </div>
-
           {/* Subjects */}
           <div>
             <Label>Subjects</Label>
