@@ -788,7 +788,26 @@ export default function Staff() {
 
                                   <div>
                                     <Label>Class Teacher Of</Label>
-                                    <Input value={form.class_teacher_of} onChange={(e) => setForm(f => ({ ...f, class_teacher_of: e.target.value }))} placeholder="e.g., Class 5-A" />
+                                    {form.classes.length === 0 ? (
+                                      <p className="text-xs text-slate-500 italic">Select at least one class to enable class teacher assignment</p>
+                                    ) : (
+                                      <Select value={form.class_teacher_of} onValueChange={(v) => setForm(f => ({ ...f, class_teacher_of: v }))}>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select class-section" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {(() => {
+                                            const classSectionOptions = form.classes.flatMap(cls => {
+                                              const sections = getSectionsForClass(cls);
+                                              return sections.map(sec => ({ class: cls, section: sec, display: `${cls}-${sec}` }));
+                                            });
+                                            return classSectionOptions.map(opt => (
+                                              <SelectItem key={opt.display} value={opt.display}>{opt.display}</SelectItem>
+                                            ));
+                                          })()}
+                                        </SelectContent>
+                                      </Select>
+                                    )}
                                   </div>
                                 </div>
                               )}
