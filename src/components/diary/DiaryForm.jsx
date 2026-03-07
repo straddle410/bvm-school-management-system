@@ -25,12 +25,22 @@ export default function DiaryForm({ entry, onSubmit, onCancel, academicYear: pro
    const finalAcademicYear = propAcademicYear || contextAcademicYear.academicYear;
    const todayDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
    const [showAIAssist, setShowAIAssist] = useState(false);
+   const [availableClasses, setAvailableClasses] = useState([]);
+   const [availableSections, setAvailableSections] = useState([]);
 
    // Debug logging
    useEffect(() => {
      const staffSession = localStorage.getItem('staff_session');
      console.log('[AI_ASSIST_RENDER]', { page: 'Diary', staff: !!staffSession });
    }, []);
+
+   // Load dynamic classes
+   useEffect(() => {
+     if (!finalAcademicYear) return;
+     getClassesForYear(finalAcademicYear).then((result) => {
+       setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+     });
+   }, [finalAcademicYear]);
 
    const [formData, setFormData] = useState(entry || {
     title: '',

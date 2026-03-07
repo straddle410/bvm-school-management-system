@@ -40,6 +40,25 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
      const staffSession = localStorage.getItem('staff_session');
      console.log('[AI_ASSIST_RENDER]', { page: 'Homework', staff: !!staffSession, isInline });
    }, [isInline]);
+
+   // Load dynamic classes
+   useEffect(() => {
+     if (!academicYear) return;
+     getClassesForYear(academicYear).then((result) => {
+       setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+     });
+   }, [academicYear]);
+
+   // Load dynamic sections when class changes
+   useEffect(() => {
+     if (!form.class_name || !academicYear) { setAvailableSections([]); return; }
+     getSectionsForClass(academicYear, form.class_name).then((result) => {
+       const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+       setAvailableSections(secs);
+       if (secs.length === 1) setForm(f => ({ ...f, section: secs[0] }));
+       else if (form.section && form.section !== 'All' && !secs.includes(form.section)) setForm(f => ({ ...f, section: 'All' }));
+     });
+   }, [form.class_name, academicYear]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [subjects, setSubjects] = useState([]);
