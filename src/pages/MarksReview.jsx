@@ -34,7 +34,8 @@ export default function MarksReview() {
   useEffect(() => {
     const staffUser = getStaffSession();
     setUser(staffUser);
-    setIsAdmin(staffUser?.role === 'Admin');
+    const role = (staffUser?.role || '').toLowerCase();
+    setIsAdmin(role === 'admin' || role === 'principal');
   }, []);
 
   useEffect(() => {
