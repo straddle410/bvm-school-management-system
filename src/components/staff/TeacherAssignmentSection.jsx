@@ -13,6 +13,7 @@ export default function TeacherAssignmentSection({
   subjects,
   sectionConfigs,
   getSectionsForClass,
+  academicYear,
 }) {
   const [showClassesModal, setShowClassesModal] = useState(false);
 
