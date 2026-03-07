@@ -20,9 +20,6 @@ import { Trash2, FileText, Mail, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
-
 export default function ReportsManagement() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
@@ -48,6 +45,23 @@ export default function ReportsManagement() {
     queryKey: ['scheduled-reports', academicYear],
     queryFn: () => base44.entities.ScheduledReport.filter({ academic_year: academicYear }),
   });
+
+  const { data: sectionConfigs = [] } = useQuery({
+    queryKey: ['section-configs-reports', academicYear],
+    queryFn: () => base44.entities.SectionConfig.filter({ academic_year: academicYear, is_active: true }),
+    enabled: !!academicYear
+  });
+
+  const classesForYear = sectionConfigs.length > 0
+    ? [...new Set(sectionConfigs.map(sc => sc.class_name))].sort()
+    : ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+  const sectionsForClass = formData.class_name && sectionConfigs.length > 0
+    ? sectionConfigs
+        .filter(sc => sc.class_name === formData.class_name)
+        .map(sc => sc.section)
+        .sort()
+    : ['A', 'B', 'C', 'D'];
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', formData.class_name, formData.section, academicYear],
@@ -179,12 +193,12 @@ export default function ReportsManagement() {
                           <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>
-                          {CLASSES.map((c) => (
-                            <SelectItem key={c} value={c}>
-                              Class {c}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
+                           {classesForYear.map((c) => (
+                             <SelectItem key={c} value={c}>
+                               Class {c}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
                       </Select>
                     </div>
                     <div>
@@ -197,12 +211,12 @@ export default function ReportsManagement() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {SECTIONS.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
+                           {sectionsForClass.map((s) => (
+                             <SelectItem key={s} value={s}>
+                               {s}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
                       </Select>
                     </div>
                     <div>
