@@ -48,6 +48,26 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.Marks.update(m.id, { status: 'Draft' })
     ));
 
+    // Audit log for unlock action
+    await base44.asServiceRole.entities.AuditLog.create({
+      action: 'marks_unlocked',
+      module: 'Marks',
+      date: new Date().toISOString().split('T')[0],
+      performed_by: user.email,
+      details: JSON.stringify({
+        records_unlocked: marksToUnlock.length,
+        marks_ids: marksIds,
+        class_name: className || '',
+        section: section || '',
+        exam_type: examType || '',
+        academic_year: academicYear || '',
+        status_transition: 'Submitted/Verified/Approved → Draft',
+        timestamp: new Date().toISOString(),
+        unlocked_by_email: user.email
+      }),
+      academic_year: academicYear || ''
+    });
+
     return Response.json({
       success: true,
       message: `Unlocked ${marksToUnlock.length} marks for editing`,
