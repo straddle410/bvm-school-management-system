@@ -129,25 +129,25 @@ export default function TeacherAssignmentSection({
           {/* Sections - Grid-based, depends on selected classes */}
           <div>
             <Label>Sections</Label>
-            {form.classes.length === 0 ? (
+            {(form.classes || []).length === 0 ? (
               <p className="text-xs text-slate-500 italic">Select at least one class to enable section selection</p>
             ) : (
               <div className="grid grid-cols-4 gap-2">
                 {(() => {
                   const uniqueSections = Array.from(
                     new Set(
-                      form.classes.flatMap(cls => getSectionsForClass(cls))
+                      (form.classes || []).flatMap(cls => getSectionsForClass(cls))
                     )
                   ).sort();
                   return uniqueSections.map(s => (
                     <div key={s} className="flex items-center gap-2">
                       <Checkbox
-                        checked={form.sections.includes(s)}
+                        checked={(form.sections || []).includes(s)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setForm(f => ({ ...f, sections: [...f.sections, s] }));
+                            setForm(f => ({ ...f, sections: [...(f.sections || []), s] }));
                           } else {
-                            setForm(f => ({ ...f, sections: f.sections.filter(x => x !== s) }));
+                            setForm(f => ({ ...f, sections: (f.sections || []).filter(x => x !== s) }));
                           }
                         }}
                       />
