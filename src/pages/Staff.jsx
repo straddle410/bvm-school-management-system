@@ -714,6 +714,8 @@ export default function Staff() {
                               sectionConfigs={sectionConfigs}
                               getSectionsForClass={getSectionsForClass}
                               academicYear={academicYear}
+                              isSectionConfigLoading={isSectionConfigLoading}
+                              sectionConfigStatus={sectionConfigStatus}
                             />
 
                             <div>
