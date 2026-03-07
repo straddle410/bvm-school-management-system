@@ -609,6 +609,18 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
   const [formData, setFormData] = useState({ date: '', title: '', reason: '' });
   const queryClient = useQueryClient();
 
+  const { data: academicYearData = [] } = useQuery({
+    queryKey: ['academic-year', academicYear],
+    queryFn: () => base44.entities.AcademicYear.filter({ year: academicYear }),
+    enabled: !!academicYear
+  });
+
+  const yearLocked = academicYearData.length > 0 && (
+    academicYearData[0].is_locked === true ||
+    academicYearData[0].status === 'Closed' ||
+    academicYearData[0].status === 'Archived'
+  );
+
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', academicYear],
     queryFn: () => base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' })
@@ -652,6 +664,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
 
   const handleSubmit = () => {
     if (!formData.date || !formData.title) { toast.error('Date and title are required'); return; }
+    if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; }
     editingHoliday ? updateMutation.mutate(formData) : createMutation.mutate(formData);
   };
 
@@ -671,11 +684,19 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-slate-900">Active Holidays — {academicYear}</h2>
-        <Button onClick={() => { setEditingHoliday(null); setFormData({ date: '', title: '', reason: '' }); setShowForm(true); }}>
-          <Plus className="h-4 w-4 mr-2" />Add Holiday
-        </Button>
-      </div>
+         <h2 className="text-lg font-semibold text-slate-900">Active Holidays — {academicYear}</h2>
+         <Button onClick={() => { setEditingHoliday(null); setFormData({ date: '', title: '', reason: '' }); setShowForm(true); }} disabled={yearLocked}>
+           <Plus className="h-4 w-4 mr-2" />Add Holiday
+         </Button>
+       </div>
+       {yearLocked && (
+         <Card className="border-red-200 bg-red-50">
+           <CardContent className="p-4 flex gap-3">
+             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+             <p className="text-sm text-red-800">This academic year is locked. Holiday mutations are disabled.</p>
+           </CardContent>
+         </Card>
+       )}
 
       {showForm && (
         <Card className="border-blue-200 bg-blue-50">
@@ -719,10 +740,10 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="icon" variant="ghost" onClick={() => { setEditingHoliday(holiday); setFormData({ date: holiday.date, title: holiday.title, reason: holiday.reason || '' }); setShowForm(true); }}>
+                  <Button size="icon" variant="ghost" onClick={() => { if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; } setEditingHoliday(holiday); setFormData({ date: holiday.date, title: holiday.title, reason: holiday.reason || '' }); setShowForm(true); }} disabled={yearLocked}>
                     <Edit2 className="h-4 w-4 text-slate-400" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => deleteMutation.mutate(holiday.id)}>
+                  <Button size="icon" variant="ghost" onClick={() => { if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; } deleteMutation.mutate(holiday.id); }} disabled={yearLocked}>
                     <Trash2 className="h-4 w-4 text-red-400" />
                   </Button>
                 </div>
