@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Upload, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
+import { getClassSectionMap } from '@/components/classSectionHelper';
 
 export default function StudentBulkUpload({ open, onClose, academicYear, onSuccess }) {
   const fileInput = useRef(null);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,10 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Lock, Bus } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { getProxiedImageUrl } from '@/components/imageProxy';
-import { isLocked, getAllowedTransitions, STATUS_LABELS, ACTIVE_STATUSES, ARCHIVED_STATUSES } from '@/components/students/studentStatusUtils';
+import { isLocked, getAllowedTransitions, STATUS_LABELS, ACTIVE_STATUSES } from '@/components/students/studentStatusUtils';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function StudentForm({ formData, onChange, onPhotoChange, photoFile, isEdit, onSubmit, onCancel, loading, isAdmin = true }) {
@@ -18,13 +17,58 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
 
   const locked = isEdit && isLocked(formData);
   const allowedNextStatuses = isEdit ? getAllowedTransitions(formData.status) : Object.keys(STATUS_LABELS).filter(s => ACTIVE_STATUSES.includes(s));
-  // For edit: show current status + allowed next ones
   const statusOptions = isEdit
     ? [formData.status, ...allowedNextStatuses]
     : ['Pending'];
 
-  // Readonly wrapper — if locked, disable all inputs
   const dis = locked || !isAdmin;
+
+  // Dynamic class/section state
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [loadingSections, setLoadingSections] = useState(false);
+
+  const academicYear = formData.academic_year;
+
+  // Load classes when academic year is known
+  useEffect(() => {
+    if (!academicYear) return;
+    setLoadingClasses(true);
+    getClassesForYear(academicYear)
+      .then(res => setAvailableClasses(res.classes || []))
+      .catch(() => setAvailableClasses([]))
+      .finally(() => setLoadingClasses(false));
+  }, [academicYear]);
+
+  // Load sections when class changes
+  useEffect(() => {
+    if (!academicYear || !formData.class_name) {
+      setAvailableSections([]);
+      return;
+    }
+    setLoadingSections(true);
+    getSectionsForClass(academicYear, formData.class_name)
+      .then(res => {
+        const sections = res.sections || [];
+        setAvailableSections(sections);
+        // Auto-select if only one section
+        if (sections.length === 1 && !formData.section) {
+          onChange({ ...formData, section: sections[0] });
+        }
+        // Reset section if current value is no longer valid
+        if (formData.section && sections.length > 0 && !sections.includes(formData.section)) {
+          onChange({ ...formData, section: '' });
+        }
+      })
+      .catch(() => setAvailableSections([]))
+      .finally(() => setLoadingSections(false));
+  }, [academicYear, formData.class_name]);
+
+  const handleClassChange = (newClass) => {
+    // Reset section when class changes
+    onChange({ ...formData, class_name: newClass, section: '' });
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -37,12 +81,12 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
       {/* Photo */}
       <div className="flex justify-center">
         <div className="relative">
-            <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
-              <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : getProxiedImageUrl(formData.photo_url)} />
-              <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
-                {formData.name?.[0] || 'S'}
-              </AvatarFallback>
-            </Avatar>
+          <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+            <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : getProxiedImageUrl(formData.photo_url)} />
+            <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
+              {formData.name?.[0] || 'S'}
+            </AvatarFallback>
+          </Avatar>
           <label className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-[#1a237e] flex items-center justify-center cursor-pointer hover:bg-[#283593] shadow">
             <Camera className="h-3.5 w-3.5 text-white" />
             <input type="file" accept="image/*" className="hidden" onChange={e => onPhotoChange(e.target.files[0])} />
@@ -58,7 +102,6 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Label className="text-xs">Student ID</Label>
             <Input
               value={formData.student_id || ''}
-              onChange={e => set('student_id', e.target.value)}
               placeholder="Auto-generated on approval"
               className="mt-1 rounded-xl bg-gray-50"
               readOnly={true}
@@ -82,16 +125,32 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
           </div>
           <div>
             <Label className="text-xs">Class *</Label>
-            <Select value={formData.class_name || ''} onValueChange={locked ? undefined : v => set('class_name', v)} disabled={dis}>
-              <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue placeholder="Select class" /></SelectTrigger>
-              <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+            <Select
+              value={formData.class_name || ''}
+              onValueChange={locked ? undefined : handleClassChange}
+              disabled={dis || loadingClasses}
+            >
+              <SelectTrigger className="mt-1 rounded-xl bg-gray-50">
+                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select class'} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div>
             <Label className="text-xs">Section</Label>
-            <Select value={formData.section || 'A'} onValueChange={locked ? undefined : v => set('section', v)} disabled={dis}>
-              <SelectTrigger className="mt-1 rounded-xl bg-gray-50"><SelectValue /></SelectTrigger>
-              <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
+            <Select
+              value={formData.section || ''}
+              onValueChange={locked ? undefined : v => set('section', v)}
+              disabled={dis || loadingSections || !formData.class_name}
+            >
+              <SelectTrigger className="mt-1 rounded-xl bg-gray-50">
+                <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select section'} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div>
@@ -144,7 +203,6 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
               <SelectContent>{BLOOD_GROUPS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          {/* Status — only admin, only valid transitions */}
           {isAdmin && (
             <div>
               <Label className="text-xs">Status</Label>
@@ -179,11 +237,7 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
               <p className="text-xs text-slate-500">Transport fee will be added to annual invoice</p>
             </div>
           </div>
-          <Switch
-            checked={!!formData.transport_enabled}
-            onCheckedChange={v => set('transport_enabled', v)}
-            disabled={dis}
-          />
+          <Switch checked={!!formData.transport_enabled} onCheckedChange={v => set('transport_enabled', v)} disabled={dis} />
         </div>
       </div>
 
