@@ -59,6 +59,12 @@ export default function Reports() {
     enabled: !!academicYear
   });
 
+  const { data: overrides = [] } = useQuery({
+    queryKey: ['holiday-overrides', academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ academic_year: academicYear }),
+    enabled: !!academicYear
+  });
+
   const { data: examTypes = [] } = useQuery({
     queryKey: ['exam-types'],
     queryFn: () => base44.entities.ExamType.list()
@@ -100,17 +106,21 @@ export default function Reports() {
     return Object.entries(grades).map(([name, value]) => ({ name, value })).filter(g => g.value > 0);
   };
 
-  // Attendance statistics (exclude holiday records from present/absent counts)
-  const attendanceStats = () => {
-    // Filter out holiday records: attendance_type === 'holiday' OR status === 'Holiday'
-    const workingAttendance = attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday');
-    const totalPresent = workingAttendance.filter(a => a.is_present).length;
-    const totalAbsent = workingAttendance.filter(a => !a.is_present).length;
-    return [
-      { name: 'Present', value: totalPresent },
-      { name: 'Absent', value: totalAbsent }
-    ];
-  };
+  // Attendance statistics (exclude holiday records from present/absent counts, apply override precedence)
+   const attendanceStats = () => {
+     const overrideSet = new Set(overrides.map(o => o.date));
+     // Filter out holiday records: attendance_type === 'holiday' OR status === 'Holiday' (unless overridden)
+     const workingAttendance = attendance.filter(a => {
+       const isHolidayRecord = (a.attendance_type === 'holiday' || a.status === 'Holiday') && !overrideSet.has(a.date);
+       return !isHolidayRecord;
+     });
+     const totalPresent = workingAttendance.filter(a => a.is_present).length;
+     const totalAbsent = workingAttendance.filter(a => !a.is_present).length;
+     return [
+       { name: 'Present', value: totalPresent },
+       { name: 'Absent', value: totalAbsent }
+     ];
+   };
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Academic Reports">
@@ -187,7 +197,7 @@ export default function Reports() {
                     <div>
                       <p className="text-sm text-slate-500">Attendance Rate</p>
                       <p className="text-2xl font-bold">
-                         {(() => { const working = attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday'); const presentCount = working.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0); return working.length > 0 ? Math.round((presentCount / working.length) * 100) : 0; })()}%
+                        {(() => { const overrideSet = new Set(overrides.map(o => o.date)); const working = attendance.filter(a => { const isHolidayRecord = (a.attendance_type === 'holiday' || a.status === 'Holiday') && !overrideSet.has(a.date); return !isHolidayRecord; }); const presentCount = working.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0); return working.length > 0 ? Math.round((presentCount / working.length) * 100) : 0; })()}%
                       </p>
                     </div>
                   </div>
