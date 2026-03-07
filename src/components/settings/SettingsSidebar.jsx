@@ -16,6 +16,7 @@ const MENU_GROUPS = [
     items: [
       { id: 'subjects', label: 'Subjects', requiredRoles: ['admin', 'principal'] },
       { id: 'class-subjects', label: 'Class Subjects', requiredRoles: ['admin', 'principal'] },
+      { id: 'class-sections', label: 'Class Sections', requiredRoles: ['admin', 'principal'] },
     ],
   },
   {
