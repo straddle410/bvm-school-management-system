@@ -141,6 +141,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
+      qc.invalidateQueries({ queryKey: ['homework-submissions'] });
       setRevisionId(null); setFeedback('');
     },
     onError: (error) => {
