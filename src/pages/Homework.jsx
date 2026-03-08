@@ -736,8 +736,9 @@ export default function Homework() {
 
           {/* Form Dialog */}
           <Dialog open={showForm} onOpenChange={setShowForm}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
+            <DialogContent className="max-w-lg w-full flex flex-col" style={{ maxHeight: '90vh' }}>
+              {/* Fixed Header */}
+              <DialogHeader className="flex-shrink-0 pb-2 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <DialogTitle>{editingItem ? 'Edit Homework' : 'Add Homework'}</DialogTitle>
                   <Button
@@ -749,139 +750,145 @@ export default function Homework() {
                   </Button>
                 </div>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label>Title *</Label>
-                  <Input
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="e.g., Chapter 5 Exercises"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label>Description *</Label>
-                  <Textarea
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Assignment details"
-                    rows={3}
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+
+              {/* Scrollable Form Body */}
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                <div className="flex-1 overflow-y-auto space-y-4 py-3 pr-1">
                   <div>
-                    <Label>Class *</Label>
-                    <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v, section: '' })} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableClasses.map((cls) => (
-                          <SelectItem key={cls} value={cls}>
-                            Class {cls}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Title *</Label>
+                    <Input
+                      value={form.title}
+                      onChange={(e) => setForm({ ...form, title: e.target.value })}
+                      placeholder="e.g., Chapter 5 Exercises"
+                      required
+                    />
                   </div>
                   <div>
-                    <Label>Section</Label>
-                    <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })} disabled={availableSections.length === 0}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={form.class_name ? 'Select section' : 'Select class first'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableSections.map((sec) => (
-                          <SelectItem key={sec} value={sec}>{sec}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Description *</Label>
+                    <Textarea
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      placeholder="Assignment details"
+                      rows={3}
+                      required
+                    />
                   </div>
-                </div>
-                <div>
-                  <Label>Subject *</Label>
-                  {!form.class_name ? (
-                    <div className="text-xs text-gray-500 py-2 px-3 bg-gray-100 rounded-lg">
-                      Select class first
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Class *</Label>
+                      <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v, section: '' })} required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableClasses.map((cls) => (
+                            <SelectItem key={cls} value={cls}>
+                              Class {cls}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ) : subjects.length === 0 ? (
-                    <div className="text-xs text-red-600 py-2 px-3 bg-red-50 rounded-lg">
-                      No subjects configured. Contact admin.
+                    <div>
+                      <Label>Section</Label>
+                      <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })} disabled={availableSections.length === 0}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={form.class_name ? 'Select section' : 'Select class first'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableSections.map((sec) => (
+                            <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ) : (
-                    <Select
-                      value={form.subject_id}
-                      onValueChange={(v) => {
-                        const selected = subjects.find((s) => s.id === v);
-                        setForm({ ...form, subject_id: v, subject_name: selected?.name || '' });
-                        setFormErrors({ ...formErrors, subject: '' });
-                      }}
-                    >
-                      <SelectTrigger className={formErrors.subject ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select a subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjects.map((subj) => (
-                          <SelectItem key={subj.id} value={subj.id}>
-                            {subj.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  {formErrors.subject && <p className="text-xs text-red-600 mt-1">{formErrors.subject}</p>}
-                </div>
-                <div>
-                  <Label>Due Date</Label>
-                  <Input
-                    type="date"
-                    value={form.due_date}
-                    onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                  />
-                </div>
-                {form.submission_mode === 'SUBMISSION_REQUIRED' && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
-                    <Label className="text-amber-800">Extended Due Date <span className="font-normal text-amber-600">(optional)</span></Label>
+                  </div>
+                  <div>
+                    <Label>Subject *</Label>
+                    {!form.class_name ? (
+                      <div className="text-xs text-gray-500 py-2 px-3 bg-gray-100 rounded-lg">
+                        Select class first
+                      </div>
+                    ) : subjects.length === 0 ? (
+                      <div className="text-xs text-red-600 py-2 px-3 bg-red-50 rounded-lg">
+                        No subjects configured. Contact admin.
+                      </div>
+                    ) : (
+                      <Select
+                        value={form.subject_id}
+                        onValueChange={(v) => {
+                          const selected = subjects.find((s) => s.id === v);
+                          setForm({ ...form, subject_id: v, subject_name: selected?.name || '' });
+                          setFormErrors({ ...formErrors, subject: '' });
+                        }}
+                      >
+                        <SelectTrigger className={formErrors.subject ? 'border-red-500' : ''}>
+                          <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subjects.map((subj) => (
+                            <SelectItem key={subj.id} value={subj.id}>
+                              {subj.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {formErrors.subject && <p className="text-xs text-red-600 mt-1">{formErrors.subject}</p>}
+                  </div>
+                  <div>
+                    <Label>Due Date</Label>
                     <Input
                       type="date"
-                      min={form.due_date || undefined}
-                      value={form.extended_due_date || ''}
-                      onChange={(e) => setForm({ ...form, extended_due_date: e.target.value || null })}
+                      value={form.due_date}
+                      onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                     />
-                    {form.extended_due_date && (
-                      <p className="text-xs text-amber-700">
-                        Effective due: <strong>{form.extended_due_date}</strong>
-                        <button type="button" onClick={() => setForm({ ...form, extended_due_date: null })} className="ml-2 text-red-500 underline">Remove</button>
-                      </p>
-                    )}
                   </div>
-                )}
-                <div>
-                  <Label>Submission Mode</Label>
-                  <Select value={form.submission_mode} onValueChange={(v) => setForm({ ...form, submission_mode: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="VIEW_ONLY">View Only</SelectItem>
-                      <SelectItem value="SUBMISSION_REQUIRED">Students Must Submit</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {form.submission_mode === 'SUBMISSION_REQUIRED' && (
+                  {form.submission_mode === 'SUBMISSION_REQUIRED' && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                      <Label className="text-amber-800">Extended Due Date <span className="font-normal text-amber-600">(optional)</span></Label>
+                      <Input
+                        type="date"
+                        min={form.due_date || undefined}
+                        value={form.extended_due_date || ''}
+                        onChange={(e) => setForm({ ...form, extended_due_date: e.target.value || null })}
+                      />
+                      {form.extended_due_date && (
+                        <p className="text-xs text-amber-700">
+                          Effective due: <strong>{form.extended_due_date}</strong>
+                          <button type="button" onClick={() => setForm({ ...form, extended_due_date: null })} className="ml-2 text-red-500 underline">Remove</button>
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div>
-                    <Label>Max Marks <span className="text-gray-400 font-normal">(optional)</span></Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="e.g. 10"
-                      value={form.max_marks}
-                      onChange={(e) => setForm({ ...form, max_marks: e.target.value })}
-                    />
+                    <Label>Submission Mode</Label>
+                    <Select value={form.submission_mode} onValueChange={(v) => setForm({ ...form, submission_mode: v })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="VIEW_ONLY">View Only</SelectItem>
+                        <SelectItem value="SUBMISSION_REQUIRED">Students Must Submit</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-                <div className="flex justify-end gap-3 pt-4">
+                  {form.submission_mode === 'SUBMISSION_REQUIRED' && (
+                    <div>
+                      <Label>Max Marks <span className="text-gray-400 font-normal">(optional)</span></Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 10"
+                        value={form.max_marks}
+                        onChange={(e) => setForm({ ...form, max_marks: e.target.value })}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Fixed Footer */}
+                <div className="flex-shrink-0 flex justify-end gap-3 pt-3 mt-1 border-t border-gray-100">
                   <Button
                     type="button"
                     variant="outline"
@@ -902,8 +909,8 @@ export default function Homework() {
                   </Button>
                 </div>
               </form>
-              </DialogContent>
-              </Dialog>
+            </DialogContent>
+          </Dialog>
 
               {selectedHomework && (
                 <HomeworkSubmissions
