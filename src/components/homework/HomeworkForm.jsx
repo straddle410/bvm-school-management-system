@@ -211,6 +211,29 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
               <input type="date" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.due_date} onChange={e => set('due_date', e.target.value)} />
             </div>
           </div>
+          {/* Extended Due Date */}
+          {form.submission_mode === 'SUBMISSION_REQUIRED' && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1">
+              <label className="text-xs font-semibold text-amber-800 block">Extended Due Date <span className="font-normal text-amber-600">(optional)</span></label>
+              <input
+                type="date"
+                min={form.due_date || undefined}
+                className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm bg-white"
+                value={form.extended_due_date}
+                onChange={e => set('extended_due_date', e.target.value)}
+              />
+              {form.extended_due_date ? (
+                <div className="text-xs text-amber-700 space-y-0.5 pt-1">
+                  <p>📅 <strong>Original:</strong> {form.due_date || '—'}</p>
+                  <p>📅 <strong>Extended:</strong> {form.extended_due_date}</p>
+                  <p>✅ <strong>Effective:</strong> {form.extended_due_date} <span className="text-amber-500">(extension active)</span></p>
+                  <button type="button" onClick={() => set('extended_due_date', '')} className="text-red-500 underline text-xs mt-1">Remove extension</button>
+                </div>
+              ) : (
+                <p className="text-xs text-amber-600">When set, students can submit until this date. Overdue logic uses the effective date.</p>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-gray-600 mb-1 block">Type *</label>
