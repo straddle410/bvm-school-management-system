@@ -850,6 +850,18 @@ export default function Homework() {
                     </SelectContent>
                   </Select>
                 </div>
+                {form.submission_mode === 'SUBMISSION_REQUIRED' && (
+                  <div>
+                    <Label>Max Marks <span className="text-gray-400 font-normal">(optional)</span></Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 10"
+                      value={form.max_marks}
+                      onChange={(e) => setForm({ ...form, max_marks: e.target.value })}
+                    />
+                  </div>
+                )}
                 <div className="flex justify-end gap-3 pt-4">
                   <Button
                     type="button"
