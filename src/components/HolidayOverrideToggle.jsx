@@ -113,9 +113,8 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
           />
           <Button
             size="sm"
-            className="relative bg-blue-600 hover:bg-blue-700 text-white w-full"
+            className="bg-blue-600 hover:bg-blue-700 text-white w-full"
             onClick={() => {
-              console.log('[HolidayOverrideToggle] Apply Override button clicked');
               createOverrideMutation.mutate();
             }}
             disabled={createOverrideMutation.isPending}
