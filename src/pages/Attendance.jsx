@@ -267,6 +267,42 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const halfDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'half_day').length;
   const absentCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'absent').length;
 
+  // Fallback holiday override mutation
+  const fallbackOverrideMutation = useMutation({
+    mutationFn: async () => {
+      if (!staffAccount?.[0]?.email) throw new Error('Staff email not found');
+      if (hasOverride) {
+        // Remove existing override
+        await base44.entities.HolidayOverride.delete(overrides[0].id);
+      } else {
+        // Create new override
+        await base44.entities.HolidayOverride.create({
+          date: workingDate,
+          class_name: selectedClass,
+          section: selectedSection,
+          user_id: staffAccount[0].email,
+          reason: 'Attendance Override',
+          academic_year: academicYear
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear] });
+      base44.entities.AuditLog.create({
+        action: hasOverride ? 'override_removed' : 'override_applied',
+        module: 'Override',
+        date: workingDate,
+        performed_by: staffAccount?.[0]?.email,
+        details: hasOverride ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
+        academic_year: academicYear
+      });
+      toast.success(hasOverride ? 'Holiday override disabled successfully' : 'Holiday override enabled successfully');
+    },
+    onError: (err) => {
+      toast.error('Failed to toggle override: ' + (err?.message || 'Unknown error'));
+    }
+  });
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-sm">
@@ -373,7 +409,41 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       {selectedClass && selectedSection && (
         <>
           {isHoliday && !hasOverride && (
-            <Card className="border-l-4 border-l-amber-500 bg-amber-50"><CardContent className="p-4"><p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p></CardContent></Card>
+            <Card className="border-l-4 border-l-amber-500 bg-amber-50">
+              <CardContent className="p-4 flex items-center justify-between">
+                <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
+                {canOverrideHoliday && (
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0 ml-4"
+                    onClick={() => fallbackOverrideMutation.mutate()}
+                    disabled={fallbackOverrideMutation.isPending}
+                  >
+                    <Zap className="h-3 w-3 mr-1" />
+                    {fallbackOverrideMutation.isPending ? 'Enabling...' : 'Enable Attendance'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {isHoliday && hasOverride && (
+            <Card className="border-l-4 border-l-blue-500 bg-blue-50">
+              <CardContent className="p-4 flex items-center justify-between">
+                <p className="text-sm text-blue-900 font-medium">✓ Holiday override active — attendance enabled</p>
+                {canOverrideHoliday && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-shrink-0 ml-4"
+                    onClick={() => fallbackOverrideMutation.mutate()}
+                    disabled={fallbackOverrideMutation.isPending}
+                  >
+                    {fallbackOverrideMutation.isPending ? 'Removing...' : 'Remove Override'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           )}
           {isRecordLocked && (
             <Card className="border-l-4 border-l-red-500 bg-red-50">
