@@ -89,10 +89,12 @@ export default function HomeworkRowMetrics({
   const gradedCount = metrics.gradedCount;
   const revisionRequiredCount = metrics.revisionRequiredCount;
   const lateSubmissionCount = metrics.lateCount;
+  const notSubmittedCount = metrics.notSubmittedCount || 0;
   const completionPercent = metrics.completionPercent;
 
-  // Determine status
-  const isOverdue = homework.due_date && isPast(new Date(homework.due_date));
+  // Use effective_due_date for overdue logic
+  const effectiveDueDate = getEffectiveDueDate(homework);
+  const isOverdue = effectiveDueDate && isPast(new Date(effectiveDueDate + 'T23:59:59'));
   const statusLabel = isOverdue ? 'Closed' : homework.status;
   const statusStyle = statusBadges[statusLabel] || statusBadges['Published'];
 
