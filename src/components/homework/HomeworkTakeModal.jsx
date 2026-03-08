@@ -65,6 +65,7 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['student-submissions'] });
+      try { sessionStorage.removeItem(sessionKey); } catch {}
       setSubmitted(true);
     }
   });
