@@ -380,6 +380,31 @@ export default function Homework() {
     enabled: homeworkList.length > 0,
   });
 
+  // F3: Build assignedStudentsByHw map for the Report Tab
+  // Keyed by homework.id → array of assigned students
+  const { data: assignedStudentsByHw = {} } = useQuery({
+    queryKey: ['hw-assigned-students-map', homeworkList.map(h => h.id).join(','), academicYear],
+    queryFn: async () => {
+      const submissionRequiredHw = homeworkList.filter(h => h.submission_mode === 'SUBMISSION_REQUIRED');
+      if (submissionRequiredHw.length === 0) return {};
+      const map = {};
+      await Promise.all(submissionRequiredHw.map(async (hw) => {
+        const filter = {
+          class_name: hw.class_name,
+          status: 'Published',
+          is_deleted: false,
+          academic_year: academicYear,
+        };
+        if (hw.section && hw.section !== 'All') filter.section = hw.section;
+        const students = await base44.entities.Student.filter(filter, 'student_id', 500);
+        map[hw.id] = students;
+      }));
+      return map;
+    },
+    enabled: homeworkList.length > 0 && !!academicYear,
+    staleTime: 60000,
+  });
+
   // Apply filters and sorting
   let filteredList = homeworkList.filter((hw) => {
     if (classFilter && hw.class_name !== classFilter) return false;
