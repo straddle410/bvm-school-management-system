@@ -5,14 +5,14 @@ import { AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 
-export default function HolidayOverrideToggle({ selectedDate, canOverride, user, academicYear, onOverrideChange }) {
+export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, user, academicYear, onOverrideChange }) {
   const [overrideActive, setOverrideActive] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
 
   const { data: existingOverride } = useQuery({
-    queryKey: ['holiday-override', selectedDate],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate })
+    queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate, class_name: selectedClass, section: selectedSection })
   });
 
   useEffect(() => {
@@ -28,6 +28,8 @@ export default function HolidayOverrideToggle({ selectedDate, canOverride, user,
   const createOverrideMutation = useMutation({
     mutationFn: () => base44.entities.HolidayOverride.create({
       date: selectedDate,
+      class_name: selectedClass,
+      section: selectedSection,
       user_id: user?.email,
       reason: overrideReason || 'Attendance Override',
       academic_year: academicYear

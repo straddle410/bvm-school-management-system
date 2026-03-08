@@ -111,8 +111,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   });
 
   const { data: overrides = [] } = useQuery({
-    queryKey: ['holiday-override', workingDate],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate })
+    queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
+    enabled: !!selectedClass && !!selectedSection && !!academicYear && !!workingDate
   });
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
@@ -280,8 +281,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasHolidayOverride} holidayReason={holidayReason} />
           )}
 
-          {isHoliday && canOverrideHoliday && selectedClass && (
-            <HolidayOverrideToggle selectedDate={workingDate} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} onOverrideChange={setHasHolidayOverride} />
+          {isHoliday && canOverrideHoliday && selectedClass && selectedSection && (
+            <HolidayOverrideToggle selectedDate={workingDate} selectedClass={selectedClass} selectedSection={selectedSection} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} onOverrideChange={setHasHolidayOverride} />
           )}
 
           {canManageHolidays && (
