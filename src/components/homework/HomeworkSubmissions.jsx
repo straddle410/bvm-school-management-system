@@ -235,15 +235,16 @@ export default function HomeworkSubmissions({ homework, onClose }) {
          )}
 
           {submissionsLoading ? (
-            <div className="text-center py-8 text-gray-400">Loading submissions...</div>
-          ) : submissions.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" />
-              <p>No submissions yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {submissions.map(sub => (
+             <div className="text-center py-8 text-gray-400">Loading submissions...</div>
+           ) : submissions.length === 0 ? (
+             <div className="text-center py-8 text-gray-400">
+               <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" />
+               <p>No submissions yet.</p>
+             </div>
+           ) : (
+             <div className="space-y-3">
+               {/* W2: Show only the latest submission per student */}
+               {Array.from(latestMap.values()).map(sub => (
                 <div key={sub.id} className="bg-gray-50 rounded-xl p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
