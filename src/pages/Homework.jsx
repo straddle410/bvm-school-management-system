@@ -28,6 +28,7 @@ import { getClassesForYear, getSectionsForClass } from '@/components/classSectio
 
 export default function Homework() {
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'report'
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedHomework, setSelectedHomework] = useState(null);
