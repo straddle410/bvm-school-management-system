@@ -1,6 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
 import { format } from 'date-fns';
@@ -26,20 +24,7 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [] 
     return true;
   }), [homeworkList, filterClass, filterSection, filterSubject, filterHomework]);
 
-  // Build latest submission map per student per homework
-  const latestByStudentHw = useMemo(() => {
-    const map = new Map(); // key: student_id + hw_id
-    submissions.forEach(sub => {
-      const key = `${sub.homework_id}__${sub.student_id}`;
-      const cur = map.get(key);
-      const subTs = new Date(sub.submitted_at || sub.updated_at || 0).getTime();
-      const curTs = cur ? new Date(cur.submitted_at || cur.updated_at || 0).getTime() : 0;
-      if (!cur || subTs > curTs) map.set(key, sub);
-    });
-    return map;
-  }, [submissions]);
-
-  // Build rows: one row per (homework, submission)
+  // Build rows: one row per (homework, submission) — latest per student per homework
   const rows = useMemo(() => {
     const result = [];
     filteredHomework.forEach(hw => {
@@ -65,25 +50,39 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [] 
   }, [filteredHomework, submissions]);
 
   // Per-student aggregation
+  // Rules:
+  // - Total Max = sum of max_marks for ALL filtered homework items (regardless of submission status)
+  // - Total Awarded = sum of teacher_marks for GRADED submissions only (0 for unsubmitted/ungraded)
   const studentTotals = useMemo(() => {
+    // Total max marks is the same for every student — it's the sum of all filtered homework max_marks
+    const totalMaxForFilteredHw = filteredHomework.reduce(
+      (sum, hw) => sum + (hw.max_marks != null ? Number(hw.max_marks) : 0),
+      0
+    );
+
     const totals = new Map();
+
+    // Seed all students found in any submission
     rows.forEach(({ sub }) => {
       const key = sub.student_id;
       if (!totals.has(key)) {
-        totals.set(key, { awarded: 0, max: 0, count: 0, name: sub.student_name, id: sub.student_id });
+        totals.set(key, {
+          awarded: 0,
+          max: totalMaxForFilteredHw,
+          name: sub.student_name,
+          id: sub.student_id,
+        });
       }
       const t = totals.get(key);
-      if (sub.teacher_marks != null) {
+      // Only add awarded marks for GRADED submissions
+      const status = normalizeHomeworkSubmissionStatus(sub.status);
+      if (status === HOMEWORK_STATUS.GRADED && sub.teacher_marks != null) {
         t.awarded += Number(sub.teacher_marks);
-        t.count++;
       }
     });
-    rows.forEach(({ hw, sub }) => {
-      const t = totals.get(sub.student_id);
-      if (t && hw.max_marks != null) t.max += Number(hw.max_marks);
-    });
+
     return totals;
-  }, [rows]);
+  }, [rows, filteredHomework]);
 
   const statusColors = {
     [HOMEWORK_STATUS.SUBMITTED]: 'text-blue-700 bg-blue-50',
@@ -204,6 +203,10 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [] 
         <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <div className="px-4 py-3 border-b border-gray-100">
             <h3 className="font-semibold text-sm text-slate-800">Per-Student Totals</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Total Max = {filteredHomework.reduce((s, hw) => s + (hw.max_marks != null ? Number(hw.max_marks) : 0), 0)} marks
+              ({filteredHomework.filter(hw => hw.max_marks != null).length} homework item{filteredHomework.filter(hw => hw.max_marks != null).length !== 1 ? 's' : ''} with marks)
+            </p>
           </div>
           <table className="w-full text-xs">
             <thead>
