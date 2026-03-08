@@ -42,7 +42,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection] });
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
       base44.entities.AuditLog.create({
         action: 'override_applied',
         module: 'Override',
@@ -63,7 +63,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       return base44.entities.HolidayOverride.delete(existingOverride[0].id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection] });
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
       base44.entities.AuditLog.create({
         action: 'override_removed',
         module: 'Override',
