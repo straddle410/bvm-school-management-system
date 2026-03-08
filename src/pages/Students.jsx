@@ -463,7 +463,9 @@ export default function Students() {
 
     const ids = Array.from(selectedIds);
     let processed = 0;
-    
+    let failed = 0;
+    const failedNames = [];
+
     for (const id of ids) {
       const student = students.find(s => s.id === id);
       if (!student) continue;
@@ -476,28 +478,61 @@ export default function Students() {
            student_db_id: id
          });
          if (approveRes.data?.error) {
-           toast.error(`Failed for ${student.name}: ${approveRes.data.error}`);
+           failed++;
+           failedNames.push(student.name);
            continue;
          }
          processed++;
        } else {
-        // Standard status updates (Pending→Verified, Approved→Published, etc)
-        const updates = { status: toStatus };
-        if (toStatus === 'Verified')  updates.verified_by  = user.email;
+         // Standard status updates (Pending→Verified, Approved→Published, etc)
+         const updates = { status: toStatus };
+         if (toStatus === 'Verified')  updates.verified_by  = user.email;
 
-        await base44.functions.invoke('updateStudentWithAudit', {
-          student_db_id: id,
-          updates,
-          staff_session_token: getStaffSession()?.staff_session_token || null
-        });
-        processed++;
-      }
+         const updateRes = await base44.functions.invoke('updateStudentWithAudit', {
+           student_db_id: id,
+           updates,
+           staff_session_token: getStaffSession()?.staff_session_token || null
+         });
+
+         // Check for errors in response
+         if (updateRes.data?.error) {
+           failed++;
+           failedNames.push(student.name);
+           continue;
+         }
+         processed++;
+       }
+     }
+
+    // Refresh list after processing completes
+    queryClient.invalidateQueries(['students']);
+
+    // Show appropriate feedback based on results
+    if (processed === 0 && failed > 0) {
+      // All failed
+      toast.error(`Failed to update: ${failedNames.join(', ')}`);
+      // Keep selection for retry
+      return;
     }
 
-    queryClient.invalidateQueries(['students']);
-    setSelectedIds(new Set());
-    setBulkAction('');
-    toast.success(`${processed} student(s) updated to ${toStatus}`);
+    if (processed > 0 && failed === 0) {
+      // All succeeded
+      toast.success(`${processed} student(s) updated to ${toStatus}`);
+      setSelectedIds(new Set());
+      setBulkAction('');
+    }
+
+    if (processed > 0 && failed > 0) {
+      // Partial success
+      toast.error(`${processed} updated, ${failed} failed: ${failedNames.join(', ')}`);
+      // Keep selection for retry on failed students only
+      const newSelection = new Set(ids.filter(id => {
+        const s = students.find(st => st.id === id);
+        return s && !isValidTransition(s.status, toStatus);
+      }));
+      setSelectedIds(newSelection);
+      setBulkAction('');
+    }
   };
 
   const handleBulkTransport = async () => {
