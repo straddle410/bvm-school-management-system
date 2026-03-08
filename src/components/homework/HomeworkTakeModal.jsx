@@ -36,7 +36,8 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const isLate = hw.due_date && new Date(hw.due_date) < new Date();
+      const effectiveDueDate = getEffectiveDueDate(hw);
+      const isLate = effectiveDueDate && new Date(effectiveDueDate + 'T23:59:59') < new Date();
       let mcq_score, mcq_total;
       if (hw.homework_type === 'MCQ' && hw.mcq_questions?.length) {
         mcq_total = hw.mcq_questions.length;
