@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getStaffSession } from '@/components/useStaffSession';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -67,7 +68,11 @@ export default function PromoteStudents({ academicYear, onPromoted, triggerOpen,
     setPromoting(true);
     setResult(null);
     try {
-      const res = await base44.functions.invoke('promoteStudents', { academicYear });
+      const session = getStaffSession();
+      const res = await base44.functions.invoke('promoteStudents', {
+        academicYear,
+        staff_session_token: session?.staff_session_token || null
+      });
       const data = res.data;
 
       if (data.blocked) {
