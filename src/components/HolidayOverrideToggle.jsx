@@ -5,15 +5,15 @@ import { AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 
-export default function HolidayOverrideToggle({ selectedDate, canOverride, user, academicYear, onOverrideChange }) {
+export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, user, academicYear }) {
   const [overrideActive, setOverrideActive] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
 
   const { data: existingOverride } = useQuery({
-    queryKey: ['holiday-override', selectedDate, user?.email, academicYear],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate, user_id: user?.email, academic_year: academicYear }),
-    enabled: !!selectedDate && !!user?.email && !!academicYear
+    queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
+    enabled: !!selectedDate && !!selectedClass && !!selectedSection && !!academicYear
   });
 
   useEffect(() => {
@@ -29,31 +29,32 @@ export default function HolidayOverrideToggle({ selectedDate, canOverride, user,
   const createOverrideMutation = useMutation({
     mutationFn: () => {
       if (!academicYear) throw new Error('Academic year not set');
-      if (!user?.email) throw new Error('User email not found');
+      if (!selectedClass) throw new Error('Class not selected');
+      if (!selectedSection) throw new Error('Section not selected');
       return base44.entities.HolidayOverride.create({
         date: selectedDate,
-        user_id: user.email,
+        class_name: selectedClass,
+        section: selectedSection,
         reason: overrideReason || 'Attendance Override',
         academic_year: academicYear
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
       base44.entities.AuditLog.create({
         action: 'override_applied',
         module: 'Override',
         date: selectedDate,
         performed_by: user?.email,
-        details: `Applied holiday override: ${overrideReason}`,
+        details: `Applied holiday override for ${selectedClass}-${selectedSection}: ${overrideReason}`,
         academic_year: academicYear
       });
       setOverrideActive(true);
-      onOverrideChange?.(true);
-      toast.success('Holiday override applied');
+      toast.success('Holiday override enabled successfully');
     },
     onError: (err) => {
       console.error('Override error:', err);
-      toast.error('Failed to apply override: ' + (err?.message || 'Unknown error'));
+      toast.error('Failed to enable override: ' + (err?.message || 'Unknown error'));
     }
   });
 
@@ -63,19 +64,22 @@ export default function HolidayOverrideToggle({ selectedDate, canOverride, user,
       return base44.entities.HolidayOverride.delete(existingOverride[0].id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
       base44.entities.AuditLog.create({
         action: 'override_removed',
         module: 'Override',
         date: selectedDate,
         performed_by: user?.email,
-        details: 'Removed holiday override',
+        details: `Removed holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });
       setOverrideActive(false);
       setOverrideReason('');
-      onOverrideChange?.(false);
-      toast.success('Holiday override removed');
+      toast.success('Holiday override disabled successfully');
+    },
+    onError: (err) => {
+      console.error('Remove override error:', err);
+      toast.error('Failed to disable override: ' + (err?.message || 'Unknown error'));
     }
   });
 
