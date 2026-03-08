@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import HomeworkTakeModal from '@/components/homework/HomeworkTakeModal.jsx';
 import { createPageUrl } from '@/utils';
+import { getEffectiveDueDate } from '@/components/utils/homeworkStatusHelper';
 
 const TYPE_COLORS = {
   MCQ: 'bg-purple-100 text-purple-700',
