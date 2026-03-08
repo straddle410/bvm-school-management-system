@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Upload, CheckCircle, Send, Calendar, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus, canResubmitHomework, isHomeworkStatusFinal } from '@/components/utils/homeworkStatusHelper';
+import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus, canResubmitHomework, isHomeworkStatusFinal, getEffectiveDueDate } from '@/components/utils/homeworkStatusHelper';
 
 export default function HomeworkTakeModal({ homework, student, existingSubmission, onClose }) {
   const hw = homework;
