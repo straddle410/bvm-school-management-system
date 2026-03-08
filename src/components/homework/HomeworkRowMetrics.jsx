@@ -169,6 +169,16 @@ export default function HomeworkRowMetrics({
           <p className="text-[10px] text-yellow-600">Late</p>
         </button>
       </div>
+      {/* Extended due date info strip */}
+      {homework.extended_due_date && (
+        <div className="flex flex-wrap gap-2 text-[10px] bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+          <span className="text-amber-700"><strong>Original Due:</strong> {homework.due_date}</span>
+          <span className="text-amber-700"><strong>Extended To:</strong> {homework.extended_due_date}</span>
+          {notSubmittedCount > 0 && (
+            <span className="text-red-600 font-semibold">{notSubmittedCount} not submitted (auto-zero)</span>
+          )}
+        </div>
+      )}
 
       {/* Metric detail modal */}
       {activeModal && (
