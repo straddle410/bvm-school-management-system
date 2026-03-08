@@ -41,6 +41,7 @@ export default function Homework() {
     subject_id: '',
     subject_name: '',
     due_date: '',
+    extended_due_date: null,
     submission_mode: 'VIEW_ONLY',
     max_marks: '',
   });
