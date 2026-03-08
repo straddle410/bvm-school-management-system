@@ -170,11 +170,21 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           <div>
             {/* Due Date */}
             {hw.due_date && (
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="h-5 w-5 text-[#1a237e] flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-500 font-medium">Due Date</p>
-                  <p className="text-sm font-semibold text-slate-800">{format(new Date(hw.due_date), 'dd MMM yyyy')}</p>
+              <div className="flex items-start gap-3 mb-4">
+                <Calendar className="h-5 w-5 text-[#1a237e] flex-shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  {hw.extended_due_date ? (
+                    <>
+                      <p className="text-xs text-gray-400 font-medium">Original Due: <span className="line-through">{format(new Date(hw.due_date), 'dd MMM yyyy')}</span></p>
+                      <p className="text-xs text-amber-700 font-semibold">Extended Due: {format(new Date(hw.extended_due_date), 'dd MMM yyyy')}</p>
+                      <p className="text-sm font-semibold text-green-700">✅ Effective Due: {format(new Date(hw.extended_due_date), 'dd MMM yyyy')}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-gray-500 font-medium">Due Date</p>
+                      <p className="text-sm font-semibold text-slate-800">{format(new Date(hw.due_date), 'dd MMM yyyy')}</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
