@@ -4,7 +4,7 @@ import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
-import { getAttendancePercentage } from '@/components/attendanceCalculations';
+import { getAttendancePercentage, deduplicateAttendanceRecords } from '@/components/attendanceCalculations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -124,8 +124,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   useEffect(() => {
     // Override precedence: if override exists, treat as working day even if holiday is marked
     if (existingAttendance.length > 0) {
+      const dedupedAttendance = deduplicateAttendanceRecords(existingAttendance);
       const data = {};
-      existingAttendance.forEach(a => {
+      dedupedAttendance.forEach(a => {
         data[a.student_id] = {
           is_present: a.is_present, id: a.id, status: a.status,
           attendance_type: a.attendance_type || 'full_day',
@@ -550,8 +551,10 @@ function AttendanceSummaryTab({ academicYear, user }) {
     const holidaySet = new Set(holidays.map(h => h.date).filter(d => !overrideSet.has(d)));
     const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0));
     const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
+    // CANONICAL DEDUPLICATION: deduplicate before processing
+    const dedupedAttendance = deduplicateAttendanceRecords(attendanceRecords);
     return students.map(student => {
-      const sa = attendanceRecords.filter(a => a.student_id === student.student_id || a.student_id === student.id);
+      const sa = dedupedAttendance.filter(a => a.student_id === student.student_id || a.student_id === student.id);
       const dateMap = {};
       sa.forEach(a => { if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !dateMap[a.date]) dateMap[a.date] = a.attendance_type; });
       const fullDays = Object.values(dateMap).filter(t => t === 'full_day').length;
