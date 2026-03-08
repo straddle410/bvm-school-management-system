@@ -94,6 +94,32 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     }
   });
 
+  const editGradeMutation = useMutation({
+    mutationFn: ({ id, teacher_marks, teacher_feedback, newStatus }) => {
+      if (!canAccess) throw new Error('FORBIDDEN');
+      const marksNum = Number(teacher_marks);
+      if (marksNum < 0) throw new Error('NEGATIVE_MARKS');
+      if (homework.max_marks && marksNum > Number(homework.max_marks)) throw new Error('EXCEEDS_MAX');
+      return base44.entities.HomeworkSubmission.update(id, {
+        teacher_marks: marksNum,
+        teacher_feedback,
+        status: newStatus,
+        graded_at: new Date().toISOString(),
+        graded_by: user?.name || 'Teacher',
+        updated_at: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
+      setEditGradeId(null); setMarks(''); setFeedback(''); setEditStatus(HOMEWORK_STATUS.GRADED);
+    },
+    onError: (error) => {
+      if (error.message === 'NEGATIVE_MARKS') alert('Marks cannot be negative.');
+      else if (error.message === 'EXCEEDS_MAX') alert(`Marks cannot exceed max marks (${homework.max_marks}).`);
+      else if (error.message === 'FORBIDDEN') alert('You do not have permission to edit this grade.');
+    }
+  });
+
   const revisionMutation = useMutation({
     mutationFn: ({ id, teacher_feedback, currentStatus }) => {
       // VERIFY ACCESS before mutation
