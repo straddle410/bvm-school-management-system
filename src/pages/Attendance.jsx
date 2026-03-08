@@ -270,7 +270,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   // Fallback holiday override mutation
   const fallbackOverrideMutation = useMutation({
     mutationFn: async () => {
-      if (!staffAccount?.[0]?.email) throw new Error('Staff email not found');
+      if (!user?.staff_id) throw new Error('Staff ID not found');
       if (hasOverride) {
         // Remove existing override
         await base44.entities.HolidayOverride.delete(overrides[0].id);
@@ -280,7 +280,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           date: workingDate,
           class_name: selectedClass,
           section: selectedSection,
-          user_id: staffAccount[0].email,
+          user_id: user.staff_id,
           reason: 'Attendance Override',
           academic_year: academicYear
         });
@@ -292,7 +292,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
         action: hasOverride ? 'override_removed' : 'override_applied',
         module: 'Override',
         date: workingDate,
-        performed_by: staffAccount?.[0]?.email,
+        performed_by: user?.staff_id,
         details: hasOverride ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });
@@ -346,7 +346,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
               selectedClass={selectedClass}
               selectedSection={selectedSection}
               canOverride={canOverrideHoliday} 
-              staffEmail={staffAccount?.[0]?.email}
+              user={user}
               academicYear={academicYear} 
             />
           )}
@@ -418,10 +418,10 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                     size="sm"
                     className="bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0 ml-4"
                     onClick={() => fallbackOverrideMutation.mutate()}
-                    disabled={!staffAccount?.[0]?.email || fallbackOverrideMutation.isPending}
+                    disabled={fallbackOverrideMutation.isPending}
                   >
                     <Zap className="h-3 w-3 mr-1" />
-                    {!staffAccount?.[0]?.email ? 'Loading user...' : fallbackOverrideMutation.isPending ? 'Enabling...' : 'Enable Attendance'}
+                    {fallbackOverrideMutation.isPending ? 'Enabling...' : 'Enable Attendance'}
                   </Button>
                 )}
               </CardContent>
@@ -439,9 +439,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                     variant="outline"
                     className="flex-shrink-0 ml-4"
                     onClick={() => fallbackOverrideMutation.mutate()}
-                    disabled={!staffAccount?.[0]?.email || fallbackOverrideMutation.isPending}
+                    disabled={fallbackOverrideMutation.isPending}
                   >
-                    {!staffAccount?.[0]?.email ? 'Loading user...' : fallbackOverrideMutation.isPending ? 'Removing...' : 'Remove Override'}
+                    {fallbackOverrideMutation.isPending ? 'Removing...' : 'Remove Override'}
                   </Button>
                 )}
               </CardContent>
