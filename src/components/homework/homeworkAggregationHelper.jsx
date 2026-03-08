@@ -81,7 +81,8 @@ export function getHomeworkAggregatedMetrics(homework, submissions, assignedStud
     s => s.normalizedStatus === HOMEWORK_STATUS.NOT_SUBMITTED
   ).length;
 
-  const lateCount = allLatest.filter(s => s.is_late === true).length;
+  // lateCount = only REAL submitted records that were late (exclude virtual NOT_SUBMITTED rows)
+  const lateCount = allLatest.filter(s => s.is_late === true && !s._virtual).length;
 
   const totalStudents = assignedStudents.length;
   // Pending = assigned students who have neither submitted nor been marked NOT_SUBMITTED

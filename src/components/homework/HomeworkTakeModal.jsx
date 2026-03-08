@@ -404,7 +404,11 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           ) : canResubmit ? (
             <button
               onClick={() => submitMutation.mutate()}
-              disabled={fileUrls.length === 0 || uploading || submitMutation.isPending}
+              disabled={
+                (hw.homework_type === 'Project' || hw.homework_type === 'Assignment' || hw.homework_type === 'Other')
+                  ? (fileUrls.length === 0 || uploading || submitMutation.isPending)
+                  : (uploading || submitMutation.isPending)
+              }
               className="w-full bg-orange-600 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {submitMutation.isPending ? (
