@@ -15,10 +15,15 @@ export default function DailySnapshotTab() {
   const [selectedClassData, setSelectedClassData] = useState(null);
   const [viewType, setViewType] = useState('absent');
 
+  const [selectedClass, setSelectedClass] = React.useState('');
+  const [selectedSection, setSelectedSection] = React.useState('');
+
   const { data: attendanceData = [] } = useQuery({
-    queryKey: ['daily-snapshot-attendance', selectedDate, academicYear],
-    queryFn: () => base44.entities.Attendance.filter({ academic_year: academicYear, date: selectedDate }),
-    enabled: !!selectedDate
+    queryKey: ['daily-snapshot-attendance', selectedDate, selectedClass, selectedSection, academicYear],
+    queryFn: () => selectedClass && selectedSection 
+      ? base44.entities.Attendance.filter({ academic_year: academicYear, date: selectedDate, class_name: selectedClass, section: selectedSection })
+      : Promise.resolve([]),
+    enabled: !!selectedDate && !!selectedClass && !!selectedSection
   });
 
   const { data: allStudents = [] } = useQuery({
@@ -27,38 +32,35 @@ export default function DailySnapshotTab() {
   });
 
   const reportData = useMemo(() => {
-    if (!allStudents.length) return [];
+    if (!selectedClass || !selectedSection || !allStudents.length) return [];
 
-    const classData = {};
-    CLASSES.forEach(cls => {
-      classData[cls] = { class_name: cls, total_students: 0, present: 0, absent: 0, present_students: [], absent_students: [] };
-    });
+    const classData = { class_name: selectedClass, total_students: 0, present: 0, absent: 0, present_students: [], absent_students: [] };
 
     allStudents.forEach(student => {
-      if (classData[student.class_name]) {
-        classData[student.class_name].total_students++;
+      if (student.class_name === selectedClass && student.section === selectedSection) {
+        classData.total_students++;
       }
     });
 
     const processedStudents = new Set();
     attendanceData.forEach(record => {
-      if (!classData[record.class_name]) return;
-      const key = `${record.class_name}-${record.student_id}`;
+      if (record.class_name !== selectedClass || record.section !== selectedSection) return;
+      const key = `${record.student_id}`;
       if (processedStudents.has(key)) return;
       processedStudents.add(key);
 
       const student = allStudents.find(s => s.student_id === record.student_id);
       if (record.is_present) {
-        classData[record.class_name].present++;
-        if (student) classData[record.class_name].present_students.push({ name: student.name, phone: student.parent_phone || 'N/A' });
+        classData.present++;
+        if (student) classData.present_students.push({ name: student.name, phone: student.parent_phone || 'N/A' });
       } else {
-        classData[record.class_name].absent++;
-        if (student) classData[record.class_name].absent_students.push({ name: student.name, phone: student.parent_phone || 'N/A' });
+        classData.absent++;
+        if (student) classData.absent_students.push({ name: student.name, phone: student.parent_phone || 'N/A' });
       }
     });
 
-    return Object.values(classData).filter(c => c.total_students > 0);
-  }, [allStudents, attendanceData]);
+    return classData.total_students > 0 ? [classData] : [];
+  }, [allStudents, attendanceData, selectedClass, selectedSection]);
 
   const totalStudents = reportData.reduce((s, r) => s + r.total_students, 0);
   const totalPresent = reportData.reduce((s, r) => s + r.present, 0);
@@ -69,26 +71,45 @@ export default function DailySnapshotTab() {
     <div className="space-y-4">
       {/* Date Picker */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-            <div className="flex-1 max-w-xs">
-              <label className="text-sm font-medium text-slate-700 block mb-1">Select Date</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#1a237e]"
-              />
-            </div>
-            <p className="text-xs text-slate-400 pb-2">
-              Class-level snapshot — aggregated across all sections of each class.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+         <CardContent className="p-4 space-y-4">
+           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+             <div className="flex-1 max-w-xs">
+               <label className="text-sm font-medium text-slate-700 block mb-1">Select Date</label>
+               <input
+                 type="date"
+                 value={selectedDate}
+                 onChange={(e) => setSelectedDate(e.target.value)}
+                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#1a237e]"
+               />
+             </div>
+             <div className="flex-1 max-w-xs">
+               <label className="text-sm font-medium text-slate-700 block mb-1">Class</label>
+               <select
+                 value={selectedClass}
+                 onChange={(e) => setSelectedClass(e.target.value)}
+                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#1a237e]"
+               >
+                 <option value="">Select Class</option>
+                 {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+               </select>
+             </div>
+             <div className="flex-1 max-w-xs">
+               <label className="text-sm font-medium text-slate-700 block mb-1">Section</label>
+               <select
+                 value={selectedSection}
+                 onChange={(e) => setSelectedSection(e.target.value)}
+                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#1a237e]"
+               >
+                 <option value="">Select Section</option>
+                 {['A', 'B', 'C', 'D'].map(s => <option key={s} value={s}>Section {s}</option>)}
+               </select>
+             </div>
+           </div>
+         </CardContent>
+       </Card>
 
       {/* Report Table */}
-      {selectedDate ? (
+       {selectedDate && selectedClass && selectedSection ? (
         reportData.length > 0 ? (
           <Card className="border-0 shadow-sm overflow-hidden">
             <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
@@ -161,8 +182,8 @@ export default function DailySnapshotTab() {
         <Card className="border-0 shadow-sm">
           <CardContent className="py-16 text-center">
             <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-700">Select a Date</h3>
-            <p className="text-slate-500 mt-2">Choose a date to view the class-wise attendance snapshot</p>
+            <h3 className="text-lg font-medium text-slate-700">Select Date, Class and Section</h3>
+            <p className="text-slate-500 mt-2">Choose a date, class and section to view attendance</p>
           </CardContent>
         </Card>
       )}

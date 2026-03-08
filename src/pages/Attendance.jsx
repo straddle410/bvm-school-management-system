@@ -111,8 +111,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   });
 
   const { data: overrides = [] } = useQuery({
-    queryKey: ['holiday-override', workingDate],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate })
+    queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear })
   });
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
@@ -239,7 +239,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   };
 
   const currentStatus = existingAttendance[0]?.status || 'Not Taken';
-  const presentCount = filteredStudents.filter(s => { const t = attendanceData[s.student_id || s.id]?.attendance_type || 'full_day'; return t === 'full_day' || t === 'half_day'; }).length;
+  const fullDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'full_day').length;
   const halfDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'half_day').length;
   const absentCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'absent').length;
 
@@ -350,7 +350,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {[{ label: 'Total', value: filteredStudents.length, color: 'blue', Icon: Users },
-              { label: 'Present', value: presentCount - halfDayCount, color: 'green', Icon: CheckCircle2 },
+              { label: 'Present', value: fullDayCount, color: 'green', Icon: CheckCircle2 },
               { label: 'Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
               { label: 'Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
               <Card key={label} className="border-0 shadow-sm p-4">
@@ -533,10 +533,10 @@ function AttendanceSummaryTab({ academicYear, user }) {
   });
 
   const { data: overrides = [] } = useQuery({
-    queryKey: ['holiday-overrides-range', filters.fromDate, filters.toDate],
-    queryFn: () => base44.entities.HolidayOverride.filter({})
+    queryKey: ['holiday-overrides-range', filters.fromDate, filters.toDate, filters.class, filters.section, academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear })
       .then(all => all.filter(o => o.date >= filters.fromDate && o.date <= filters.toDate)),
-    enabled: hasGenerated && !!filters.fromDate && !!filters.toDate
+    enabled: hasGenerated && !!filters.class && !!filters.section && !!filters.fromDate && !!filters.toDate
   });
 
   const reportData = useMemo(() => {

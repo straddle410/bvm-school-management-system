@@ -11,8 +11,9 @@ export default function HolidayOverrideToggle({ selectedDate, canOverride, user,
   const queryClient = useQueryClient();
 
   const { data: existingOverride } = useQuery({
-    queryKey: ['holiday-override', selectedDate],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate })
+    queryKey: ['holiday-override', selectedDate, user?.email, academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate, user_id: user?.email, academic_year: academicYear }),
+    enabled: !!selectedDate && !!user?.email && !!academicYear
   });
 
   useEffect(() => {
