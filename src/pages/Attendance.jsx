@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange,
-  AlertCircle, Lock, BarChart3, Plus, Trash2, Edit2, LockOpen
+  AlertCircle, Lock, BarChart3, Plus, Trash2, Edit2, LockOpen, Zap
 } from 'lucide-react';
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
