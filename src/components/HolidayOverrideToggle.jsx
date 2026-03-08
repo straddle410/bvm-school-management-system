@@ -41,7 +41,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection] });
       base44.entities.AuditLog.create({
         action: 'override_applied',
         module: 'Override',
