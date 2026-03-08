@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getStaffSession } from '@/components/useStaffSession';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,12 +50,19 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
     setLoading(true);
     setError('');
     try {
+      const session = getStaffSession();
       const res = await base44.functions.invoke('getNextRollNo', {
         action: 'list',
         class_name: filterClass,
         section: filterSection,
-        academic_year: filterYear
+        academic_year: filterYear,
+        staff_session_token: session?.staff_session_token || null
       });
+      if (res.data?.error) {
+        setError(res.data.error);
+        toast.error(res.data.error);
+        return;
+      }
       const list = (res.data.students || []).filter(s => s.is_active !== false);
       setStudents(list);
       const rollMap = {};
@@ -62,7 +70,9 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
       setRolls(rollMap);
       setStep(2);
     } catch (err) {
-      toast.error(err.message || 'Failed to load students');
+      const serverMsg = err?.response?.data?.error || err?.message || 'Failed to load students';
+      setError(serverMsg);
+      toast.error(serverMsg);
     } finally {
       setLoading(false);
     }
@@ -99,14 +109,21 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
 
     setSaving(true);
     try {
+      const session = getStaffSession();
       const updates = students.map(s => ({ id: s.id, roll_no: parseInt(rolls[s.id]) }));
       const res = await base44.functions.invoke('getNextRollNo', {
         action: 'save_rolls',
         class_name: filterClass,
         section: filterSection,
         academic_year: filterYear,
-        updates
+        updates,
+        staff_session_token: session?.staff_session_token || null
       });
+      if (res.data?.error) {
+        setError(res.data.error);
+        toast.error(res.data.error);
+        return;
+      }
       if (res.data.success) {
         toast.success(`Roll numbers saved for ${res.data.updated} students`);
         onClose();
@@ -118,6 +135,7 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
       // Surface the exact server error message (axios puts it in err.response.data.error)
       const serverMsg = err?.response?.data?.error || err?.message || 'Save failed';
       setError(serverMsg);
+      toast.error(serverMsg);
     } finally {
       setSaving(false);
     }
@@ -135,14 +153,19 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
     setCleaning(true);
     setShowCleanupConfirm(false);
     try {
-      const staffSessionRaw = localStorage.getItem('staff_session');
-      const staffSession = staffSessionRaw ? JSON.parse(staffSessionRaw) : null;
+      const session = getStaffSession();
       const res = await base44.functions.invoke('cleanupDeletedStudentRollNos', {
-        staff_session_token: staffSession?.token,
+        staff_session_token: session?.staff_session_token || null,
         academic_year: filterYear,
         class_name: filterClass,
         section: filterSection
       });
+      if (res.data?.error) {
+        setError(res.data.error);
+        toast.error(res.data.error);
+        setCleaning(false);
+        return;
+      }
       if (res.data.success) {
         const count = res.data.cleaned_count;
         if (count === 0) {
@@ -154,10 +177,12 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
         await handleLoad();
       } else {
         setError(res.data.error || 'Cleanup failed');
+        toast.error(res.data.error || 'Cleanup failed');
       }
     } catch (err) {
       const serverMsg = err?.response?.data?.error || err?.message || 'Cleanup failed';
       setError(serverMsg);
+      toast.error(serverMsg);
     } finally {
       setCleaning(false);
     }
