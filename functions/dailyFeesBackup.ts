@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // This function is called by the daily automation at 11:59 PM IST
 // It creates a DAILY_AUTO backup and optionally exports to Drive
+// Last redeployed: 2026-03-08
 
 Deno.serve(async (req) => {
   try {
