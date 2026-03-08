@@ -686,7 +686,8 @@ function AttendanceSummaryTab({ academicYear, user }) {
       const fullDays = Object.values(dateMap).filter(t => t === 'full_day').length;
       const halfDays = Object.values(dateMap).filter(t => t === 'half_day').length;
       const totalPresent = fullDays + halfDays * 0.5;
-      const absentDays = Object.values(dateMap).filter(t => t === 'absent').length;
+      // Absent = working days - present (accounts for half-days)
+      const absentDays = Math.max(0, workingDays - totalPresent);
       // Use shared calculation for consistent rounding across all views
       const attendancePercent = getAttendancePercentage(totalPresent, workingDays);
       return {
