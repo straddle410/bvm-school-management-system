@@ -266,7 +266,20 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
           {(hw.homework_type === 'Project' || hw.homework_type === 'Assignment' || hw.homework_type === 'Other') && (
             <div className="space-y-3">
               <h3 className="font-semibold text-slate-900 text-base">Submission Files</h3>
-              {!isViewOnly && !isSubmitted && (
+
+              {/* Previous submitted files (shown during revision) */}
+              {canResubmit && existingSubmission?.file_urls?.length > 0 && (
+                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">📎 Previous Submission</p>
+                  {existingSubmission.file_urls.map((url, idx) => (
+                    <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#1a237e] hover:underline">
+                      📄 File {idx + 1}
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {!isViewOnly && (!isSubmitted || canResubmit) && (
                 <label className={`flex items-center justify-center gap-3 border-2 border-dashed rounded-2xl px-4 py-6 cursor-pointer transition-colors ${uploading ? 'border-blue-300 bg-blue-50' : 'border-gray-400 hover:bg-gray-50'}`}>
                   <Upload className={`h-5 w-5 ${uploading ? 'text-blue-500 animate-pulse' : 'text-gray-500'}`} />
                   <div className="text-center">
