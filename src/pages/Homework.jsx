@@ -836,6 +836,23 @@ export default function Homework() {
                     onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                   />
                 </div>
+                {form.submission_mode === 'SUBMISSION_REQUIRED' && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                    <Label className="text-amber-800">Extended Due Date <span className="font-normal text-amber-600">(optional)</span></Label>
+                    <Input
+                      type="date"
+                      min={form.due_date || undefined}
+                      value={form.extended_due_date || ''}
+                      onChange={(e) => setForm({ ...form, extended_due_date: e.target.value || null })}
+                    />
+                    {form.extended_due_date && (
+                      <p className="text-xs text-amber-700">
+                        Effective due: <strong>{form.extended_due_date}</strong>
+                        <button type="button" onClick={() => setForm({ ...form, extended_due_date: null })} className="ml-2 text-red-500 underline">Remove</button>
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <Label>Submission Mode</Label>
                   <Select value={form.submission_mode} onValueChange={(v) => setForm({ ...form, submission_mode: v })}>
