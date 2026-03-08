@@ -107,9 +107,12 @@ export default function DailySnapshotTab() {
       classMap[cls].total_students++;
     });
 
+    // CANONICAL DEDUPLICATION: deduplicate before building map
+    const dedupedAttendance = deduplicateAttendanceRecords(attendanceData);
+    
     // Build attendance record map for fast lookup
     const attendanceMap = {};
-    attendanceData.forEach(record => {
+    dedupedAttendance.forEach(record => {
       const key = `${record.class_name}-${record.student_id}`;
       if (!attendanceMap[key]) {
         attendanceMap[key] = record;
