@@ -223,6 +223,7 @@ export default function Homework() {
       subject_name: item.subject_name || '',
       due_date: item.due_date,
       submission_mode: item.submission_mode || 'VIEW_ONLY',
+      max_marks: item.max_marks || '',
     });
     setShowForm(true);
   };
