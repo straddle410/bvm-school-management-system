@@ -2,10 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Eye, Phone } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getDay } from 'date-fns';
 
 export default function DailySnapshotTab() {
   const { academicYear } = useAcademicYear();
@@ -57,11 +57,32 @@ export default function DailySnapshotTab() {
   const reportData = useMemo(() => {
     if (!selectedDate || !allStudents.length) return [];
 
-    // Check if it's a holiday (override takes precedence)
-    const hasOverride = overrides.length > 0;
-    const isHoliday = !hasOverride && holidays.length > 0;
+    // Check if selectedDate is Sunday
+    const dateObj = new Date(selectedDate + 'T00:00:00');
+    const isSunday = getDay(dateObj) === 0;
 
-    // Build classMap from actual students (not hardcoded)
+    // Check if there's a global holiday marked
+    const isMarkedHoliday = holidays.length > 0;
+
+    // Build override map: class_name-section -> true
+    const overrideMap = {};
+    overrides.forEach(o => {
+      overrideMap[`${o.class_name}-${o.section}`] = true;
+    });
+
+    // Helper: determine if a student has a holiday for selectedDate
+    const isStudentHoliday = (student) => {
+      const overrideKey = `${student.class_name}-${student.section}`;
+      const hasOverrideForClassSection = !!overrideMap[overrideKey];
+
+      // If override exists for this class/section, not a holiday
+      if (hasOverrideForClassSection) return false;
+
+      // Check: Sunday or marked holiday = holiday
+      return isSunday || isMarkedHoliday;
+    };
+
+    // Build classMap from actual students
     const classMap = {};
 
     allStudents.forEach(student => {
@@ -73,10 +94,12 @@ export default function DailySnapshotTab() {
           full_day: 0,
           half_day: 0,
           absent: 0,
+          holiday: 0,
           unmarked: 0,
           full_day_students: [],
           half_day_students: [],
           absent_students: [],
+          holiday_students: [],
           unmarked_students: []
         };
       }
@@ -98,10 +121,10 @@ export default function DailySnapshotTab() {
 
       const studentInfo = { name: student.name, phone: student.parent_phone || 'N/A' };
 
-      if (isHoliday) {
-        // Holiday day: all students count as absent (no working attendance)
-        classMap[record.class_name].absent++;
-        classMap[record.class_name].absent_students.push(studentInfo);
+      // Check if this student has a holiday
+      if (isStudentHoliday(student)) {
+        classMap[record.class_name].holiday++;
+        classMap[record.class_name].holiday_students.push(studentInfo);
       } else {
         // Normal day: use attendance_type
         const attType = record.attendance_type || 'full_day';
@@ -141,10 +164,12 @@ export default function DailySnapshotTab() {
   const totalFullDay = reportData.reduce((s, r) => s + r.full_day, 0);
   const totalHalfDay = reportData.reduce((s, r) => s + r.half_day, 0);
   const totalAbsent = reportData.reduce((s, r) => s + r.absent, 0);
+  const totalHoliday = reportData.reduce((s, r) => s + r.holiday, 0);
   const totalUnmarked = reportData.reduce((s, r) => s + r.unmarked, 0);
 
   const presentEquivalent = totalFullDay + (totalHalfDay * 0.5);
-  const overallPct = totalStudents > 0 ? Math.round((presentEquivalent / totalStudents) * 100) : 0;
+  const workingStudentsTotal = totalStudents - totalHoliday;
+  const overallPct = workingStudentsTotal > 0 ? Math.round((presentEquivalent / workingStudentsTotal) * 100) : 0;
 
   return (
     <div className="space-y-4">
@@ -183,6 +208,7 @@ export default function DailySnapshotTab() {
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Full Day</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Half Day</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Absent</th>
+                      <th className="text-center p-3 font-semibold text-slate-700 w-20">Holiday</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Unmarked</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-28">Attendance %</th>
                     </tr>
@@ -190,7 +216,8 @@ export default function DailySnapshotTab() {
                   <tbody>
                     {reportData.map((row) => {
                       const presentEquivalent = row.full_day + (row.half_day * 0.5);
-                      const pct = row.total_students > 0 ? Math.round((presentEquivalent / row.total_students) * 100) : 0;
+                      const workingStudents = row.total_students - row.holiday;
+                      const pct = workingStudents > 0 ? Math.round((presentEquivalent / workingStudents) * 100) : 0;
                       return (
                         <tr key={row.class_name} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="p-3 font-semibold text-slate-700">Class {row.class_name}</td>
@@ -214,6 +241,12 @@ export default function DailySnapshotTab() {
                             {row.absent}
                           </td>
                           <td
+                            className="text-center p-3 text-amber-600 font-medium cursor-pointer hover:bg-amber-50 rounded"
+                            onClick={() => { setSelectedClassData(row); setViewType('holiday'); }}
+                          >
+                            {row.holiday}
+                          </td>
+                          <td
                             className="text-center p-3 text-slate-500 font-medium cursor-pointer hover:bg-slate-100 rounded"
                             onClick={() => { setSelectedClassData(row); setViewType('unmarked'); }}
                           >
@@ -234,6 +267,7 @@ export default function DailySnapshotTab() {
                       <td className="text-center p-3 font-bold text-green-700">{totalFullDay}</td>
                       <td className="text-center p-3 font-bold text-yellow-700">{totalHalfDay}</td>
                       <td className="text-center p-3 font-bold text-red-700">{totalAbsent}</td>
+                      <td className="text-center p-3 font-bold text-amber-700">{totalHoliday}</td>
                       <td className="text-center p-3 font-bold text-slate-700">{totalUnmarked}</td>
                       <td className="text-center p-3 font-bold">
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{overallPct}%</span>
@@ -268,7 +302,7 @@ export default function DailySnapshotTab() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {viewType === 'full_day' ? 'Full Day' : viewType === 'half_day' ? 'Half Day' : viewType === 'absent' ? 'Absent' : 'Unmarked'} Students — Class {selectedClassData?.class_name}
+              {viewType === 'full_day' ? 'Full Day' : viewType === 'half_day' ? 'Half Day' : viewType === 'absent' ? 'Absent' : viewType === 'holiday' ? 'Holiday' : 'Unmarked'} Students — Class {selectedClassData?.class_name}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -277,6 +311,7 @@ export default function DailySnapshotTab() {
               if (viewType === 'full_day') list = selectedClassData?.full_day_students || [];
               else if (viewType === 'half_day') list = selectedClassData?.half_day_students || [];
               else if (viewType === 'absent') list = selectedClassData?.absent_students || [];
+              else if (viewType === 'holiday') list = selectedClassData?.holiday_students || [];
               else if (viewType === 'unmarked') list = selectedClassData?.unmarked_students || [];
 
               if (!list || list.length === 0) {
@@ -287,6 +322,7 @@ export default function DailySnapshotTab() {
                 full_day: 'bg-green-50 border-green-200',
                 half_day: 'bg-yellow-50 border-yellow-200',
                 absent: 'bg-red-50 border-red-200',
+                holiday: 'bg-amber-50 border-amber-200',
                 unmarked: 'bg-slate-50 border-slate-200'
               };
 
