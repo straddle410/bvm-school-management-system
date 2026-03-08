@@ -320,7 +320,8 @@ export default function Homework() {
    let overallTotalSubmitted = 0;
 
    for (const hw of homeworkList) {
-     const isOverdue = hw.due_date && isPast(new Date(hw.due_date));
+     const effectiveDue = getEffectiveDueDate(hw);
+     const isOverdue = effectiveDue && isPast(new Date(effectiveDue + 'T23:59:59'));
      const isClosed = hw.status === 'Published' && isOverdue;
 
      if (hw.status === 'Published') totalPublished++;
