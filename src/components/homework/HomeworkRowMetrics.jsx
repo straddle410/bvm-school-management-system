@@ -8,6 +8,7 @@ import HomeworkViewOnlyCard from '@/components/homework/HomeworkViewOnlyCard';
 import HomeworkTypeIndicator from '@/components/homework/HomeworkTypeIndicator';
 import HomeworkAttentionBadges from '@/components/homework/HomeworkAttentionBadges';
 import PendingStudentsList from '@/components/homework/PendingStudentsList';
+import HomeworkMetricModal from '@/components/homework/HomeworkMetricModal';
 
 const statusBadges = {
   'Draft': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' },
