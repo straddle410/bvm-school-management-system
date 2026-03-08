@@ -146,6 +146,15 @@ export default function StaffLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
+      {/* Back button */}
+      <button
+        onClick={() => navigate(createPageUrl('Home'))}
+        className="absolute top-4 left-4 flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </button>
+
       {/* Locked Account Dialog */}
       <AlertDialog open={!!lockedUntil} onOpenChange={() => setLockedUntil(null)}>
         <AlertDialogContent>
