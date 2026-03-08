@@ -154,17 +154,19 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             </Select>
           </div>
           <div>
-            <Label className="text-xs">Roll No {!isEdit && <span className="text-gray-400 normal-case font-normal">(auto-assigned)</span>}</Label>
+            <Label className="text-xs">Roll No {!isEdit && <span className="text-gray-400 normal-case font-normal">(on approval)</span>}</Label>
             <Input
               type="number"
               value={formData.roll_no || ''}
               onChange={(isEdit && !locked) ? (e => set('roll_no', parseInt(e.target.value))) : undefined}
-              readOnly={!isEdit || locked}
-              disabled={!isEdit || locked}
-              placeholder={isEdit ? '1' : 'Auto'}
-              className={`mt-1 rounded-xl bg-gray-50 ${(!isEdit || locked) ? 'opacity-60 cursor-not-allowed' : ''}`}
+              readOnly={!isEdit || locked || !formData.status || formData.status !== 'Published'}
+              disabled={!isEdit || locked || !formData.status || formData.status !== 'Published'}
+              placeholder={isEdit && !formData.roll_no ? 'Not assigned yet' : 'Auto'}
+              className={`mt-1 rounded-xl bg-gray-50 ${(!isEdit || locked || !formData.roll_no) ? 'opacity-60 cursor-not-allowed' : ''}`}
             />
-            {isEdit && !locked && <p className="text-xs text-amber-600 mt-1">⚠ Use "Manage Roll Numbers" for bulk edits</p>}
+            {!isEdit && <p className="text-xs text-gray-500 mt-1">✓ Assigned automatically when status → Approved</p>}
+            {isEdit && !locked && formData.roll_no && <p className="text-xs text-amber-600 mt-1">⚠ Use "Manage Roll Numbers" for bulk edits</p>}
+            {isEdit && !locked && !formData.roll_no && <p className="text-xs text-amber-600 mt-1">⚠ Roll number not yet assigned (approve student first)</p>}
           </div>
           <div>
             <Label className="text-xs">Admission Date</Label>
