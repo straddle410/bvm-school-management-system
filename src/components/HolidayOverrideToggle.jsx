@@ -86,7 +86,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
   if (!canOverride) return null;
 
   return (
-    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+    <div className="relative p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2 z-10">
       <div className="flex items-center gap-2">
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <p className="text-sm font-medium text-blue-900">Override Holiday</p>
@@ -100,11 +100,11 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
             placeholder="Reason (e.g., Makeup class)"
             value={overrideReason}
             onChange={(e) => setOverrideReason(e.target.value)}
-            className="border border-blue-300 rounded-lg px-2 py-1.5 text-xs w-full"
+            className="relative border border-blue-300 rounded-lg px-2 py-1.5 text-xs w-full"
           />
           <Button
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+            className="relative bg-blue-600 hover:bg-blue-700 text-white w-full"
             onClick={() => {
               console.log('[HolidayOverrideToggle] Apply Override button clicked');
               createOverrideMutation.mutate();
