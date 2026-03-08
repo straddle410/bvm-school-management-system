@@ -525,7 +525,7 @@ export default function Homework() {
 
           {/* Report Tab */}
           {activeTab === 'report' && (
-            <HomeworkReportTab homeworkList={homeworkList} submissions={submissions} />
+            <HomeworkReportTab homeworkList={homeworkList} submissions={submissions} assignedStudentsByHw={{}} />
           )}
 
           {/* Dashboard Tab */}
