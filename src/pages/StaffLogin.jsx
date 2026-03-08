@@ -122,6 +122,81 @@ export default function StaffLogin() {
     }
   };
 
+  // FORGOT PASSWORD view
+  if (forgotMode) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
+        <button
+          onClick={() => navigate(createPageUrl('Home'))}
+          className="absolute top-4 left-4 flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+
+        <Card className="w-full max-w-md shadow-2xl border-0">
+          <CardHeader className="bg-gradient-to-r from-[#1a237e] to-[#283593] text-white rounded-t-lg">
+            <CardTitle className="text-center text-2xl">Reset Password</CardTitle>
+            <CardDescription className="text-center text-blue-100 mt-1">
+              Enter your username to receive an OTP
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="pt-8">
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              {forgotMessage && (
+                <div className={`p-3 rounded-lg ${forgotMessage.includes('sent') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                  <p className={`text-sm ${forgotMessage.includes('sent') ? 'text-green-700' : 'text-red-700'}`}>{forgotMessage}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="forgot_username" className="text-slate-700 font-medium">
+                  <User className="inline h-4 w-4 mr-1" />
+                  Username
+                </Label>
+                <Input
+                  id="forgot_username"
+                  type="text"
+                  value={forgotUsername}
+                  onChange={(e) => setForgotUsername(e.target.value)}
+                  placeholder="e.g., ravi.kumar01"
+                  className="border-slate-300"
+                  disabled={forgotLoading}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full h-10 bg-gradient-to-r from-[#1a237e] to-[#283593] hover:from-[#0d1b5e] hover:to-[#1a2673] text-white font-semibold"
+              >
+                {forgotLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending OTP...
+                  </>
+                ) : (
+                  'Send OTP'
+                )}
+              </Button>
+
+              <button
+                type="button"
+                className="w-full text-sm text-slate-500 hover:text-slate-700 text-center"
+                onClick={() => setForgotMode(false)}
+              >
+                ← Back to login
+              </button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // LINK_CONFLICT full-screen view
   if (linkConflict) {
     return (
