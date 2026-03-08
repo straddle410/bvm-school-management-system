@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Download, CheckCircle, Clock, FileText, AlertCircle } from 'lucide-react';
+import { X, Download, CheckCircle, Clock, FileText, AlertCircle, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { HOMEWORK_STATUS, normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
 import HomeworkDetailAnalyticsHeader from '@/components/homework/HomeworkDetailAnalyticsHeader';
