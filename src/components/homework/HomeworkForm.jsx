@@ -145,6 +145,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
     const data = {
       ...form,
       max_marks: form.max_marks ? Number(form.max_marks) : undefined,
+      extended_due_date: form.extended_due_date || null,
       academic_year: academicYear,
       status: 'Draft', // Always save new homework as Draft
     };
