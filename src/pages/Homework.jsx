@@ -352,7 +352,7 @@ export default function Homework() {
      overallTotalStudents += metrics.totalStudents;
      overallTotalSubmitted += metrics.submittedCount;
 
-     totalPendingReview += metrics.submittedCount > 0 ? (metrics.submittedCount - metrics.gradedCount - metrics.revisionRequiredCount) : 0;
+     totalPendingReview += Math.max(0, metrics.submittedCount - metrics.gradedCount - metrics.revisionRequiredCount);
      totalGraded += metrics.gradedCount;
      totalRevisionRequired += metrics.revisionRequiredCount;
      totalLateSubmissions += metrics.lateCount;
