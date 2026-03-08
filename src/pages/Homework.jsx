@@ -198,6 +198,7 @@ export default function Homework() {
       section: form.section,
       subject: form.subject_name,
       due_date: form.due_date,
+      extended_due_date: form.extended_due_date || null,
       submission_mode: form.submission_mode,
       max_marks: form.max_marks ? Number(form.max_marks) : undefined,
       academic_year: academicYear,
