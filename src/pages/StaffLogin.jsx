@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Building2, Lock, User, AlertTriangle, Loader2, ShieldAlert, LogOut } from 'lucide-react';
+import { Building2, Lock, User, AlertTriangle, Loader2, ShieldAlert, LogOut, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function StaffLogin() {
