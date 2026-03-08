@@ -106,53 +106,47 @@ export default function DailySnapshotTab() {
       classMap[cls].total_students++;
     });
 
-    // Process attendance records and mark students
-    const processedStudents = new Set();
-
+    // Build attendance record map for fast lookup
+    const attendanceMap = {};
     attendanceData.forEach(record => {
-      if (!classMap[record.class_name]) return;
-
       const key = `${record.class_name}-${record.student_id}`;
-      if (processedStudents.has(key)) return;
-      processedStudents.add(key);
-
-      const student = allStudents.find(s => s.student_id === record.student_id);
-      if (!student) return;
-
-      const studentInfo = { name: student.name, phone: student.parent_phone || 'N/A' };
-
-      // Check if this student has a holiday
-      if (isStudentHoliday(student)) {
-        classMap[record.class_name].holiday++;
-        classMap[record.class_name].holiday_students.push(studentInfo);
-      } else {
-        // Normal day: use attendance_type
-        const attType = record.attendance_type || 'full_day';
-
-        if (attType === 'full_day') {
-          classMap[record.class_name].full_day++;
-          classMap[record.class_name].full_day_students.push(studentInfo);
-        } else if (attType === 'half_day') {
-          classMap[record.class_name].half_day++;
-          classMap[record.class_name].half_day_students.push(studentInfo);
-        } else if (attType === 'absent') {
-          classMap[record.class_name].absent++;
-          classMap[record.class_name].absent_students.push(studentInfo);
-        }
+      if (!attendanceMap[key]) {
+        attendanceMap[key] = record;
       }
     });
 
-    // Mark unmarked students (those without attendance records)
+    // Process each student: determine effectiveHoliday first, then classify
     allStudents.forEach(student => {
-      const key = `${student.class_name}-${student.student_id}`;
-      if (!processedStudents.has(key)) {
-        const cls = student.class_name;
-        if (classMap[cls]) {
+      const cls = student.class_name;
+      if (!classMap[cls]) return;
+
+      const studentInfo = { name: student.name, phone: student.parent_phone || 'N/A' };
+      const effectiveHoliday = isStudentHoliday(student);
+
+      if (effectiveHoliday) {
+        classMap[cls].holiday++;
+        classMap[cls].holiday_students.push(studentInfo);
+      } else {
+        // Check for attendance record
+        const recordKey = `${cls}-${student.student_id}`;
+        const record = attendanceMap[recordKey];
+
+        if (record) {
+          const attType = record.attendance_type || 'full_day';
+          if (attType === 'full_day') {
+            classMap[cls].full_day++;
+            classMap[cls].full_day_students.push(studentInfo);
+          } else if (attType === 'half_day') {
+            classMap[cls].half_day++;
+            classMap[cls].half_day_students.push(studentInfo);
+          } else if (attType === 'absent') {
+            classMap[cls].absent++;
+            classMap[cls].absent_students.push(studentInfo);
+          }
+        } else {
+          // No attendance record and not a holiday
           classMap[cls].unmarked++;
-          classMap[cls].unmarked_students.push({
-            name: student.name,
-            phone: student.parent_phone || 'N/A'
-          });
+          classMap[cls].unmarked_students.push(studentInfo);
         }
       }
     });
