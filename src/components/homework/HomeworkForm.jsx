@@ -100,6 +100,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
         class_name: editItem.class_name || '',
         section: editItem.section || 'All',
         due_date: editItem.due_date || '',
+        extended_due_date: editItem.extended_due_date || '',
         homework_type: editItem.homework_type || 'Assignment',
         submission_mode: editItem.submission_mode || 'VIEW_ONLY',
         description: editItem.description || '',
