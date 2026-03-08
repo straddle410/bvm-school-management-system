@@ -97,6 +97,7 @@ Deno.serve(async (req) => {
       ...submission,
       attempt_no: 1,
       status: 'SUBMITTED',
+      academic_year: homework.academic_year,  // ensure academic_year is always stored
       submitted_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };

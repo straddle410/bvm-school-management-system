@@ -45,7 +45,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
 
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery({
     queryKey: ['hw-submissions', homework.id, academicYear],
-    queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: homework.id, academic_year: academicYear }, '-created_date', 200),
+    queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: homework.id }, '-created_date', 200),
     enabled: !!academicYear
   });
 
