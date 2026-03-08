@@ -15,8 +15,10 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const { academicYear } = useAcademicYear();
   const [gradingId, setGradingId] = useState(null);
   const [revisionId, setRevisionId] = useState(null);
+  const [editGradeId, setEditGradeId] = useState(null);
   const [marks, setMarks] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [editStatus, setEditStatus] = useState(HOMEWORK_STATUS.GRADED);
   const [showSegmentation, setShowSegmentation] = useState(false);
   const qc = useQueryClient();
   const user = getStaffSession();
