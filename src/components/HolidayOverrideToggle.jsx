@@ -30,16 +30,20 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
 
   const createOverrideMutation = useMutation({
     mutationFn: () => {
+      console.log('[HolidayOverrideToggle] mutate() called');
       const userId = staffSession?.email || user?.email;
+      console.log('[HolidayOverrideToggle] staffSession.email:', staffSession?.email, 'user.email:', user?.email, 'userId:', userId);
       if (!userId) throw new Error('User identity not available');
-      return base44.entities.HolidayOverride.create({
+      const payload = {
         date: selectedDate,
         class_name: selectedClass,
         section: selectedSection,
         user_id: userId,
         reason: overrideReason || 'Attendance Override',
         academic_year: academicYear
-      });
+      };
+      console.log('[HolidayOverrideToggle] payload:', payload);
+      return base44.entities.HolidayOverride.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
@@ -101,7 +105,10 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
           <Button
             size="sm"
             className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-            onClick={() => createOverrideMutation.mutate()}
+            onClick={() => {
+              console.log('[HolidayOverrideToggle] Apply Override button clicked');
+              createOverrideMutation.mutate();
+            }}
             disabled={createOverrideMutation.isPending}
           >
             <Zap className="h-3 w-3 mr-1" />
