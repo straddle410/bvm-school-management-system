@@ -109,10 +109,11 @@ export default function StudentHomework() {
 
     // SUBMISSION_REQUIRED: check submission status
     const sub = submittedMap[hw.id];
+    const effectiveDueDate = getEffectiveDueDate(hw);
+    const isOverdue = effectiveDueDate && new Date(effectiveDueDate + 'T23:59:59') < today;
 
     if (!sub) {
-      // No submission for SUBMISSION_REQUIRED homework
-      if (hw.due_date && new Date(hw.due_date) < today) return { label: 'Late', color: 'bg-red-100 text-red-700', done: false };
+      if (isOverdue) return { label: 'Not Submitted', color: 'bg-red-100 text-red-700', done: false };
       return { label: 'Pending', color: 'bg-amber-100 text-amber-700', done: false };
     }
     
