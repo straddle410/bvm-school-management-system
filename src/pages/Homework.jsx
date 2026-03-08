@@ -225,6 +225,7 @@ export default function Homework() {
       subject_id: item.subject_id || '',
       subject_name: item.subject_name || '',
       due_date: item.due_date,
+      extended_due_date: item.extended_due_date || null,
       submission_mode: item.submission_mode || 'VIEW_ONLY',
       max_marks: item.max_marks || '',
     });
