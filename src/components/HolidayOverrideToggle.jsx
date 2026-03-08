@@ -123,6 +123,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
             <span className="text-xs font-medium text-blue-900">Override Active</span>
           </div>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             className="text-xs h-7"
