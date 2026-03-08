@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Eye, Phone } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getDay } from 'date-fns';
+import { deduplicateAttendanceRecords } from '@/components/attendanceCalculations';
 
 export default function DailySnapshotTab() {
   const { academicYear } = useAcademicYear();
