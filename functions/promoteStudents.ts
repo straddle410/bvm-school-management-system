@@ -1,6 +1,31 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const CLASS_ORDER = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+async function verifyStaffToken(token) {
+  try {
+    const secret = Deno.env.get('STAFF_SESSION_SECRET');
+    if (!secret || !token) return null;
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return null;
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+    );
+    const sigBytes = Uint8Array.from(atob(sigB64.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return null;
+    const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+    let exp = payload.exp;
+    if (exp > 1e12) exp = Math.floor(exp / 1000);
+    if (exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 function getNextClass(className) {
   const idx = CLASS_ORDER.indexOf(className);
@@ -19,14 +44,33 @@ function calcNextYear(academicYear) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const body = await req.json();
+    const { academicYear, staff_session_token } = body;
 
-    if (!user || (user.role !== 'admin' && user.role !== 'principal')) {
-      return Response.json({ error: 'Forbidden: Admin or Principal access required' }, { status: 403 });
+    // Auth: staff session token OR base44.auth.me()
+    let user = null;
+    let performedBy = 'unknown';
+
+    if (staff_session_token) {
+      const payload = await verifyStaffToken(staff_session_token);
+      if (payload) {
+        user = { email: payload.email, role: payload.role };
+        performedBy = payload.email || payload.username || 'staff';
+      }
     }
 
-    const { academicYear } = await req.json();
-    if (!academicYear) {
+    if (!user) {
+      const baseUser = await base44.auth.me().catch(() => null);
+      if (baseUser) {
+        user = baseUser;
+        performedBy = baseUser.email || 'unknown';
+      }
+    }
+
+    if (!user || (user.role !== 'admin' && user.role !== 'principal')) {
+      return Response.json({ error: 'Unauthorized: Admin or Principal access required' }, { status: 401 });
+    }
+    if (!academicYear || !academicYear.trim()) {
       return Response.json({ error: 'academicYear is required' }, { status: 400 });
     }
 
@@ -43,7 +87,7 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.AuditLog.create({
         action: 'PROMOTION_BLOCKED',
         module: 'Student',
-        performed_by: user.email,
+        performed_by: performedBy,
         details: `Promotion blocked: Academic year ${nextYear} not found. Must be created in Settings first.`,
         academic_year: academicYear,
       });
@@ -124,7 +168,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.AuditLog.create({
           action: 'STUDENT_PROMOTED',
           module: 'Student',
-          performed_by: user.email,
+          performed_by: performedBy,
           details: `${student.name} (${student.student_id}) promoted from ${academicYear} (Class ${student.class_name}) to ${nextYear} (Class ${nextClass})`,
           academic_year: academicYear,
         });
@@ -139,7 +183,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.AuditLog.create({
           action: 'STUDENT_GRADUATED',
           module: 'Student',
-          performed_by: user.email,
+          performed_by: performedBy,
           details: `${student.name} (${student.student_id}) graduated from Class 10 in ${academicYear}`,
           academic_year: academicYear,
         });
