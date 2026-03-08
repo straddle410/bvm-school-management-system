@@ -162,14 +162,14 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
         const data = {
           date: workingDate, class_name: selectedClass, section: selectedSection,
           student_id: student.student_id || student.id, student_name: student.name,
-          attendance_type: isHoliday ? 'holiday' : attType,
+          attendance_type: effectiveHoliday ? 'holiday' : attType,
           half_day_period: existing?.half_day_period || null,
           half_day_reason: existing?.half_day_reason || '',
-          is_present: isHoliday ? false : (attType !== 'absent'),
-          is_holiday: isHoliday, holiday_reason: isHoliday ? (holidayReason || 'Holiday') : '',
+          is_present: effectiveHoliday ? false : (attType !== 'absent'),
+          is_holiday: effectiveHoliday, holiday_reason: effectiveHoliday ? (holidayReason || 'Holiday') : '',
           marked_by: user?.email, academic_year: academicYear,
           // Status Convention: 'Taken' = normal attendance record, 'Holiday' = holiday marked
-          status: isHoliday ? 'Holiday' : 'Taken'
+          status: effectiveHoliday ? 'Holiday' : 'Taken'
         };
         if (existing?.id) {
           const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: existing.id, data });
@@ -188,10 +188,10 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       return Promise.all(promises);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['attendance']);
-      queryClient.invalidateQueries(['attendance', workingDate, selectedClass, selectedSection, academicYear]);
-      toast.success(isHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
-    },
+       queryClient.invalidateQueries(['attendance']);
+       queryClient.invalidateQueries(['attendance', workingDate, selectedClass, selectedSection, academicYear]);
+       toast.success(effectiveHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
+     },
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
       else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
@@ -339,10 +339,10 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
            </div>
 
           {selectedClass && selectedSection && (
-            <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasOverride} holidayReason={holidayReason} />
+            <HolidayStatusDisplay isHoliday={effectiveHoliday} isSunday={isSunday} hasOverride={hasOverride} holidayReason={holidayReason} />
           )}
 
-          {isHoliday && canOverrideHoliday && selectedClass && selectedSection && (
+          {effectiveHoliday && canOverrideHoliday && selectedClass && selectedSection && (
             <HolidayOverrideToggle 
               selectedDate={workingDate} 
               selectedClass={selectedClass}
@@ -410,7 +410,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
       {selectedClass && selectedSection && (
         <>
-          {isHoliday && !hasOverride && (
+          {(isSunday || isMarkedHoliday) && !hasOverride && (
             <Card className="border-l-4 border-l-amber-500 bg-amber-50">
               <CardContent className="p-4 flex items-center justify-between">
                 <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
@@ -430,7 +430,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             </Card>
           )}
 
-          {isHoliday && hasOverride && (
+          {(isSunday || isMarkedHoliday) && hasOverride && (
             <Card className="border-l-4 border-l-blue-500 bg-blue-50">
               <CardContent className="p-4 flex items-center justify-between">
                 <p className="text-sm text-blue-900 font-medium">✓ Holiday override active — attendance enabled</p>
@@ -490,23 +490,23 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
           <Card className="border-0 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
-              <CardTitle className="text-base">Class {selectedClass}-{selectedSection}</CardTitle>
-              {!isHoliday && <Button variant="outline" size="sm" onClick={markAllPresent}>Mark All Present</Button>}
-            </CardHeader>
-            <CardContent className="p-0">
-              {isHoliday ? (
-                <div className="py-12 text-center text-amber-500">
-                  <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
-                  <p className="font-medium text-slate-700">Holiday: {holidayReason || 'Holiday'}</p>
-                  <p className="text-sm text-slate-400 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
-                </div>
-              ) : filteredStudents.length === 0 ? (
+               <CardTitle className="text-base">Class {selectedClass}-{selectedSection}</CardTitle>
+               {!effectiveHoliday && <Button variant="outline" size="sm" onClick={markAllPresent}>Mark All Present</Button>}
+             </CardHeader>
+             <CardContent className="p-0">
+               {effectiveHoliday ? (
+                 <div className="py-12 text-center text-amber-500">
+                   <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                   <p className="font-medium text-slate-700">Holiday: {holidayReason || 'Holiday'}</p>
+                   <p className="text-sm text-slate-400 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
+                 </div>
+               ) : filteredStudents.length === 0 ? (
                 <div className="py-12 text-center text-slate-400">No published students in this class</div>
               ) : (
                 <div className="divide-y">
                   {filteredStudents.map((student, index) => {
                     const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
-                    const attendanceDisabled = (isHoliday && !hasOverride) || isRecordLocked;
+                    const attendanceDisabled = effectiveHoliday || isRecordLocked;
                     const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
                     return (
                       <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 opacity-60' : bgColor}`}>
@@ -546,9 +546,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             </CardContent>
           </Card>
 
-          {(filteredStudents.length > 0 || isHoliday) && (
+          {(filteredStudents.length > 0 || effectiveHoliday) && (
             <div className="flex justify-end">
-              {isHoliday && !hasOverride ? (
+              {effectiveHoliday ? (
                 <Button disabled><Palmtree className="mr-2 h-4 w-4" />Attendance Disabled (Holiday)</Button>
               ) : isRecordLocked && !isAdmin ? (
                 <Button disabled><Lock className="mr-2 h-4 w-4" />Record Locked</Button>
