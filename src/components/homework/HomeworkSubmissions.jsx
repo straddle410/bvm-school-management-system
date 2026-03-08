@@ -90,6 +90,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
+      qc.invalidateQueries({ queryKey: ['homework-submissions'] });
       setGradingId(null); setMarks(''); setFeedback('');
     }
   });
@@ -111,6 +112,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hw-submissions', homework.id] });
+      qc.invalidateQueries({ queryKey: ['homework-submissions'] });
       setEditGradeId(null); setMarks(''); setFeedback(''); setEditStatus(HOMEWORK_STATUS.GRADED);
     },
     onError: (error) => {
