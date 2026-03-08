@@ -76,6 +76,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const [halfDayModal, setHalfDayModal] = useState({ isOpen: false, studentId: null, studentName: null });
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [manuallyChanged, setManuallyChanged] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const queryClient = useQueryClient();
 
   const workingDate = isAdmin ? selectedDate : todayDate;
@@ -192,6 +193,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['attendance']);
+      queryClient.invalidateQueries(['attendance', workingDate, selectedClass, selectedSection, academicYear]);
       toast.success(isHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
     },
     onError: (err) => {
@@ -225,6 +227,27 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     },
     onError: (err) => { toast.error('Failed: ' + (err?.message || 'Unknown error')); setRangeProgress(0); }
   });
+
+  const handleUnlockRecords = async () => {
+    try {
+      setIsUnlocking(true);
+      const response = await base44.functions.invoke('unlockAttendanceForAdmin', {
+        date: workingDate,
+        class_name: selectedClass,
+        section: selectedSection,
+        academic_year: academicYear
+      });
+      
+      if (response.data?.success) {
+        toast.success('Attendance unlocked successfully');
+        queryClient.invalidateQueries(['attendance', workingDate, selectedClass, selectedSection, academicYear]);
+      }
+    } catch (err) {
+      toast.error('Failed to unlock: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setIsUnlocking(false);
+    }
+  };
 
   const setAttendanceType = (studentId, type, halfDayData = {}) => {
     setAttendanceData(prev => ({
@@ -346,7 +369,23 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             <Card className="border-l-4 border-l-amber-500 bg-amber-50"><CardContent className="p-4"><p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p></CardContent></Card>
           )}
           {isRecordLocked && (
-            <Card className="border-l-4 border-l-red-500 bg-red-50"><CardContent className="p-4"><p className="text-sm text-red-900 font-medium">🔒 Locked after 3:00 PM. Contact admin to unlock.</p></CardContent></Card>
+            <Card className="border-l-4 border-l-red-500 bg-red-50">
+              <CardContent className="p-4 flex items-center justify-between">
+                <p className="text-sm text-red-900 font-medium">🔒 Locked after 3:00 PM. Contact admin to unlock.</p>
+                {isAdmin && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleUnlockRecords}
+                    disabled={isUnlocking}
+                    className="flex-shrink-0 ml-4"
+                  >
+                    <LockOpen className="h-4 w-4 mr-1" />
+                    {isUnlocking ? 'Unlocking...' : 'Unlock Record'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -430,8 +469,10 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             <div className="flex justify-end">
               {isHoliday && !hasHolidayOverride ? (
                 <Button disabled><Palmtree className="mr-2 h-4 w-4" />Attendance Disabled (Holiday)</Button>
-              ) : isRecordLocked ? (
+              ) : isRecordLocked && !isAdmin ? (
                 <Button disabled><Lock className="mr-2 h-4 w-4" />Record Locked</Button>
+              ) : isRecordLocked && isAdmin ? (
+                <span className="text-sm text-red-600 font-medium">Unlock the record above to edit and save</span>
               ) : (
                 <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
                   <Save className="mr-2 h-4 w-4" />
