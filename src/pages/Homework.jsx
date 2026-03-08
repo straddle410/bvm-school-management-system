@@ -436,8 +436,8 @@ export default function Homework() {
         // Note: We'd need to load assigned students here for accurate filtering
         // For now, using submission-based filtering which is consistent
 
-        const hwSubmissions = submissions.filter((s) => s.homework_id === hw.id);
-        const metrics = getHomeworkAggregatedMetrics(hw, submissions, []);
+        const hwAssignedStudents = assignedStudentsByHw[hw.id] || [];
+        const metrics = getHomeworkAggregatedMetrics(hw, submissions, hwAssignedStudents);
 
         const hasPendingReview = metrics.submittedCount > 0;
         const hasFullySubmitted = metrics.pendingCount === 0 && metrics.submittedCount > 0;
