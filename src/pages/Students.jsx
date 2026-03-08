@@ -264,19 +264,14 @@ export default function Students() {
         return updateRes.data?.student;
       }
 
-      // CREATE: student_id and username are intentionally NULL at create time.
-      // They are assigned only when status transitions to Approved (via approveStudentAndGenerateId).
-      normalized.student_id = null;
-      normalized.student_id_norm = null;
-      normalized.username = null;
+      // CREATE: student_id, username, and roll_no are intentionally NULL at create time.
+       // They are assigned only when status transitions to Approved (via approveStudentAndGenerateId).
+       normalized.student_id = null;
+       normalized.student_id_norm = null;
+       normalized.username = null;
+       normalized.roll_no = null; // Roll number NEVER assigned at create time
 
-      if (!normalized.roll_no && normalized.class_name && normalized.section && normalized.academic_year) {
-        const nextRoll = await generateRollNo(normalized.class_name, normalized.section, normalized.academic_year);
-        if (nextRoll) normalized.roll_no = nextRoll;
-      }
-
-      await validateRollNoUnique(normalized);
-      await validateNoDuplicateStudent(normalized);
+       await validateNoDuplicateStudent(normalized);
 
       // Block creation if academic_year is missing
       if (!normalized.academic_year || !normalized.academic_year.trim()) {
