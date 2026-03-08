@@ -30,9 +30,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
 
   const createOverrideMutation = useMutation({
     mutationFn: () => {
-      console.log('[HolidayOverrideToggle] mutate() called');
       const userId = staffSession?.email || user?.email;
-      console.log('[HolidayOverrideToggle] staffSession.email:', staffSession?.email, 'user.email:', user?.email, 'userId:', userId);
       if (!userId) throw new Error('User identity not available');
       const payload = {
         date: selectedDate,
@@ -42,7 +40,6 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         reason: overrideReason || 'Attendance Override',
         academic_year: academicYear
       };
-      console.log('[HolidayOverrideToggle] payload:', payload);
       return base44.entities.HolidayOverride.create(payload);
     },
     onSuccess: () => {
@@ -60,7 +57,10 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
        }
        setOverrideActive(true);
        onOverrideChange?.(true);
-       toast.success('Holiday override applied');
+       toast.success(`✅ Holiday override applied for Class ${selectedClass} Section ${selectedSection}`);
+     },
+     onError: (err) => {
+       toast.error(`❌ Failed to apply override: ${err?.message || 'Unknown error'}`);
      }
   });
 
@@ -85,7 +85,10 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
        setOverrideActive(false);
        setOverrideReason('');
        onOverrideChange?.(false);
-       toast.success('Holiday override removed');
+       toast.success(`✅ Holiday override removed for Class ${selectedClass} Section ${selectedSection}`);
+     },
+     onError: (err) => {
+       toast.error(`❌ Failed to remove override: ${err?.message || 'Unknown error'}`);
      }
   });
 
