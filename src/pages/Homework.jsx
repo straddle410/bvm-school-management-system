@@ -11,8 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookMarked, Trash2, CheckCircle2, Circle, Check, Sparkles, Users } from 'lucide-react';
+import { Plus, BookMarked, Trash2, CheckCircle2, Circle, Check, Sparkles, Users, BarChart2 } from 'lucide-react';
 import HomeworkSubmissions from '@/components/homework/HomeworkSubmissions';
+import HomeworkReportTab from '@/components/homework/HomeworkReportTab';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
 import { format, isPast } from 'date-fns';
