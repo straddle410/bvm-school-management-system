@@ -1,19 +1,10 @@
-import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin, Home as HomeIcon } from 'lucide-react';
 
 export default function Home() {
-  const location = useLocation();
-
-  // Ensure root "/" path works by redirecting to "/Home" if needed
-  useEffect(() => {
-    if (location.pathname === '/' && window.location.pathname === '/') {
-      // Already at home, do nothing
-      window.history.replaceState({}, '', createPageUrl('Home'));
-    }
-  }, [location]);
   const features = [
     { icon: ClipboardList, label: 'Attendance', color: '#26a69a', bg: '#e0f2f1' },
     { icon: BarChart3, label: 'Marks', color: '#1976d2', bg: '#e3f2fd' },
