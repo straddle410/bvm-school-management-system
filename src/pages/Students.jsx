@@ -35,11 +35,8 @@ const EMPTY_FORM = {
   admission_date: '', academic_year: '', status: 'Pending', photo_url: ''
 };
 
-const generateNewStudentIdForYear = (academicYear) => {
-  if (!academicYear) return '';
-  const yearPrefix = academicYear.split('-')[0].slice(-2); // "2025-26" → "25"
-  return `S${yearPrefix}001`; // Initial ID; actual one will be generated on save
-};
+// Student ID is NEVER generated at create time.
+// It is generated only when status transitions to Approved (via approveStudentAndGenerateId).
 
 export default function Students() {
   const { academicYear, setAcademicYear, roleLoaded } = useAcademicYear();
@@ -151,12 +148,6 @@ export default function Students() {
 
   // Reset page when filters change
   useEffect(() => { setPage(1); }, [filterClass, filterSection, filterStatus, academicYear]);
-
-  const generateStudentId = async (academicYear) => {
-    if (!academicYear) throw new Error('Academic year required to generate student ID');
-    const res = await base44.functions.invoke('generateStudentId', { academic_year: academicYear });
-    return res.data.student_id;
-  };
 
   const generateRollNo = async (class_name, section, academic_year) => {
     if (!class_name || !section || !academic_year) return null;
