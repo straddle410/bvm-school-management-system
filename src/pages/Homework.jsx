@@ -503,6 +503,30 @@ export default function Homework() {
             </Button>
           </div>
 
+          {/* Tab switcher */}
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'dashboard' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <BookMarked className="inline h-4 w-4 mr-1.5 -mt-0.5" />Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('report')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'report' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <BarChart2 className="inline h-4 w-4 mr-1.5 -mt-0.5" />Report
+            </button>
+          </div>
+
+          {/* Report Tab */}
+          {activeTab === 'report' && (
+            <HomeworkReportTab homeworkList={homeworkList} submissions={submissions} />
+          )}
+
+          {/* Dashboard Tab */}
+          {activeTab === 'dashboard' && <>
+
           {/* Dashboard Summary Cards */}
           {!isLoading && Object.keys(stats).length > 0 && (
             <HomeworkDashboardSummary
