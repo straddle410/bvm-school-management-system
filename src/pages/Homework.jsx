@@ -29,6 +29,7 @@ export default function Homework() {
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [selectedHomework, setSelectedHomework] = useState(null);
   const [showAIAssist, setShowAIAssist] = useState(false);
   const [form, setForm] = useState({
     title: '',
