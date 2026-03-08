@@ -111,8 +111,8 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.AuditLog.create({
         action: 'STUDENT_SOFT_DELETED',
         module: 'Student',
-        performed_by: user.email,
-        details: `${student.name} (${student.student_id}) soft-deleted from ${student.academic_year} by ${user.email}`,
+        performed_by: performedBy,
+        details: `${student.name} (${student.student_id}) soft-deleted from ${student.academic_year} by ${performedBy}`,
         academic_year: student.academic_year,
         date: new Date().toISOString().split('T')[0],
       });
@@ -126,8 +126,8 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.AuditLog.create({
         action: 'STUDENT_RESTORED',
         module: 'Student',
-        performed_by: user.email,
-        details: `${student.name} (${student.student_id}) restored in ${student.academic_year} by ${user.email}`,
+        performed_by: performedBy,
+        details: `${student.name} (${student.student_id}) restored in ${student.academic_year} by ${performedBy}`,
         academic_year: student.academic_year,
         date: new Date().toISOString().split('T')[0],
       });
