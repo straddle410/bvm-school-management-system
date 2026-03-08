@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 
-export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, user, academicYear }) {
+export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, staffEmail, academicYear }) {
   const [overrideActive, setOverrideActive] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
@@ -31,12 +31,12 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       if (!academicYear) throw new Error('Academic year not set');
       if (!selectedClass) throw new Error('Class not selected');
       if (!selectedSection) throw new Error('Section not selected');
-      if (!user?.email) throw new Error('User email not found');
+      if (!staffEmail) throw new Error('Staff email not found');
       return base44.entities.HolidayOverride.create({
         date: selectedDate,
         class_name: selectedClass,
         section: selectedSection,
-        user_id: user.email,
+        user_id: staffEmail,
         reason: overrideReason || 'Attendance Override',
         academic_year: academicYear
       });
@@ -47,7 +47,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         action: 'override_applied',
         module: 'Override',
         date: selectedDate,
-        performed_by: user?.email,
+        performed_by: staffEmail,
         details: `Applied holiday override for ${selectedClass}-${selectedSection}: ${overrideReason}`,
         academic_year: academicYear
       });
@@ -71,7 +71,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         action: 'override_removed',
         module: 'Override',
         date: selectedDate,
-        performed_by: user?.email,
+        performed_by: staffEmail,
         details: `Removed holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });

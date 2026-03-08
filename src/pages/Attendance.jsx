@@ -310,7 +310,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
               selectedClass={selectedClass}
               selectedSection={selectedSection}
               canOverride={canOverrideHoliday} 
-              user={user} 
+              staffEmail={staffAccount?.[0]?.email}
               academicYear={academicYear} 
             />
           )}
