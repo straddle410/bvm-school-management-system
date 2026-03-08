@@ -264,15 +264,11 @@ export default function Students() {
         return updateRes.data?.student;
       }
 
-      // CREATE: auto-assign student_id and roll_no if not set
-      if (!normalized.student_id) {
-        const genRes = await base44.functions.invoke('generateStudentIdAuthoritative', { academic_year: normalized.academic_year });
-        normalized.student_id = genRes.data.student_id;
-      }
-      // Set username to generated student_id if not explicitly set
-      if (!normalized.username) {
-        normalized.username = normalized.student_id;
-      }
+      // CREATE: student_id and username are intentionally NULL at create time.
+      // They are assigned only when status transitions to Approved (via approveStudentAndGenerateId).
+      normalized.student_id = null;
+      normalized.student_id_norm = null;
+      normalized.username = null;
 
       if (!normalized.roll_no && normalized.class_name && normalized.section && normalized.academic_year) {
         const nextRoll = await generateRollNo(normalized.class_name, normalized.section, normalized.academic_year);
@@ -330,9 +326,8 @@ export default function Students() {
       setShowPastYearWarning(true);
       return;
     }
-    // Generate a placeholder ID for form display; actual one generated on save
-    const placeholderId = generateNewStudentIdForYear(academicYear);
-    setFormData({ ...EMPTY_FORM, student_id: placeholderId, username: placeholderId, academic_year: academicYear });
+    // student_id is NOT pre-filled — it is assigned only on Approved
+    setFormData({ ...EMPTY_FORM, academic_year: academicYear });
     setIsEdit(false);
     setPhotoFile(null);
     setShowForm(true);
@@ -340,9 +335,8 @@ export default function Students() {
 
   const handlePastYearConfirm = async () => {
     setShowPastYearWarning(false);
-    // Generate a placeholder ID for form display; actual one generated on save
-    const placeholderId = generateNewStudentIdForYear(academicYear);
-    setFormData({ ...EMPTY_FORM, student_id: placeholderId, username: placeholderId, academic_year: academicYear });
+    // student_id is NOT pre-filled — it is assigned only on Approved
+    setFormData({ ...EMPTY_FORM, academic_year: academicYear });
     setIsEdit(false);
     setPhotoFile(null);
     setShowForm(true);
