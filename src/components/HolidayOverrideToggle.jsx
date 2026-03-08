@@ -4,8 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
+import { getStaffSession } from '@/components/useStaffSession';
 
 export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, user, academicYear, onOverrideChange }) {
+  const staffSession = getStaffSession();
   const [overrideActive, setOverrideActive] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
@@ -26,14 +28,18 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
   }, [existingOverride]);
 
   const createOverrideMutation = useMutation({
-    mutationFn: () => base44.entities.HolidayOverride.create({
-      date: selectedDate,
-      class_name: selectedClass,
-      section: selectedSection,
-      user_id: user?.email,
-      reason: overrideReason || 'Attendance Override',
-      academic_year: academicYear
-    }),
+    mutationFn: () => {
+      const userId = staffSession?.email || user?.email;
+      if (!userId) throw new Error('User identity not available');
+      return base44.entities.HolidayOverride.create({
+        date: selectedDate,
+        class_name: selectedClass,
+        section: selectedSection,
+        user_id: userId,
+        reason: overrideReason || 'Attendance Override',
+        academic_year: academicYear
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
       base44.entities.AuditLog.create({
