@@ -306,7 +306,14 @@ export default function HomeworkSubmissions({ homework, onClose }) {
 
                   {gradingId === sub.id && (
                     <div className="mt-2 space-y-2">
-                      <input type="number" placeholder={`Marks (max: ${homework.max_marks || '—'})`} value={marks} onChange={e => setMarks(e.target.value)}
+                      <input type="number" min="0" max={homework.max_marks || undefined}
+                        placeholder={`Marks (max: ${homework.max_marks || '—'})`}
+                        value={marks}
+                        onChange={e => {
+                          const v = Number(e.target.value);
+                          if (homework.max_marks && v > Number(homework.max_marks)) return;
+                          setMarks(e.target.value);
+                        }}
                         className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
                       <textarea placeholder="Feedback (optional)" value={feedback} onChange={e => setFeedback(e.target.value)} rows={2}
                         className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
