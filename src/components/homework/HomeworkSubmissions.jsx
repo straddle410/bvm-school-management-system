@@ -335,8 +335,45 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                     </div>
                   )}
 
+                  {/* Edit Grade Form */}
+                  {editGradeId === sub.id && (
+                    <div className="mt-2 space-y-2 border border-indigo-200 rounded-xl p-3 bg-indigo-50">
+                      <p className="text-[10px] font-semibold text-indigo-700 uppercase tracking-wide">Edit Grade</p>
+                      <input type="number" min="0" max={homework.max_marks || undefined}
+                        placeholder={`Marks (max: ${homework.max_marks || '—'})`}
+                        value={marks}
+                        onChange={e => {
+                          const v = Number(e.target.value);
+                          if (homework.max_marks && v > Number(homework.max_marks)) return;
+                          if (v < 0) return;
+                          setMarks(e.target.value);
+                        }}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
+                      <textarea placeholder="Feedback / Remarks (optional)" value={feedback} onChange={e => setFeedback(e.target.value)} rows={2}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditStatus(HOMEWORK_STATUS.GRADED)}
+                          className={`flex-1 text-xs rounded-lg py-1.5 font-medium border transition-colors ${editStatus === HOMEWORK_STATUS.GRADED ? 'bg-green-600 text-white border-green-600' : 'border-gray-300 text-gray-600'}`}
+                        >Graded</button>
+                        <button
+                          onClick={() => setEditStatus(HOMEWORK_STATUS.REVISION_REQUIRED)}
+                          className={`flex-1 text-xs rounded-lg py-1.5 font-medium border transition-colors ${editStatus === HOMEWORK_STATUS.REVISION_REQUIRED ? 'bg-orange-500 text-white border-orange-500' : 'border-gray-300 text-gray-600'}`}
+                        >Revision Required</button>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditGradeId(null); setMarks(''); setFeedback(''); }}
+                          className="flex-1 text-xs text-gray-500 border border-gray-200 rounded-lg py-1.5">Cancel</button>
+                        <button
+                          onClick={() => editGradeMutation.mutate({ id: sub.id, teacher_marks: marks, teacher_feedback: feedback, newStatus: editStatus })}
+                          disabled={editGradeMutation.isPending}
+                          className="flex-1 text-xs text-white bg-indigo-600 rounded-lg py-1.5 font-medium disabled:opacity-50">Save Changes</button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Action buttons */}
-                  {sub.status !== HOMEWORK_STATUS.GRADED && gradingId !== sub.id && revisionId !== sub.id && (
+                  {sub.status !== HOMEWORK_STATUS.GRADED && gradingId !== sub.id && revisionId !== sub.id && editGradeId !== sub.id && (
                     <div className="mt-2 flex gap-2">
                       <button
                         onClick={() => { setGradingId(sub.id); setMarks(sub.teacher_marks || ''); setFeedback(sub.teacher_feedback || ''); }}
