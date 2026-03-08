@@ -21,7 +21,15 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
   const [descAnswers, setDescAnswers] = useState(
     existingSubmission?.descriptive_answers || hw.descriptive_questions?.map((_, i) => ({ question_index: i, answer: '' })) || []
   );
-  const [fileUrls, setFileUrls] = useState(existingSubmission?.file_urls || []);
+  const sessionKey = `hw_files_${hw.id}_${student.student_id}`;
+  const [fileUrls, setFileUrls] = useState(() => {
+    // Restore uploaded files from sessionStorage on remount (survives back-navigation)
+    try {
+      const saved = sessionStorage.getItem(sessionKey);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return existingSubmission?.file_urls || [];
+  });
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
