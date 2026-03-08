@@ -414,13 +414,14 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                 <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
                 {canOverrideHoliday && (
                   <Button
+                    type="button"
                     size="sm"
                     className="bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0 ml-4"
                     onClick={() => fallbackOverrideMutation.mutate()}
-                    disabled={fallbackOverrideMutation.isPending}
+                    disabled={!staffAccount?.[0]?.email || fallbackOverrideMutation.isPending}
                   >
                     <Zap className="h-3 w-3 mr-1" />
-                    {fallbackOverrideMutation.isPending ? 'Enabling...' : 'Enable Attendance'}
+                    {!staffAccount?.[0]?.email ? 'Loading user...' : fallbackOverrideMutation.isPending ? 'Enabling...' : 'Enable Attendance'}
                   </Button>
                 )}
               </CardContent>
@@ -433,13 +434,14 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                 <p className="text-sm text-blue-900 font-medium">✓ Holiday override active — attendance enabled</p>
                 {canOverrideHoliday && (
                   <Button
+                    type="button"
                     size="sm"
                     variant="outline"
                     className="flex-shrink-0 ml-4"
                     onClick={() => fallbackOverrideMutation.mutate()}
-                    disabled={fallbackOverrideMutation.isPending}
+                    disabled={!staffAccount?.[0]?.email || fallbackOverrideMutation.isPending}
                   >
-                    {fallbackOverrideMutation.isPending ? 'Removing...' : 'Remove Override'}
+                    {!staffAccount?.[0]?.email ? 'Loading user...' : fallbackOverrideMutation.isPending ? 'Removing...' : 'Remove Override'}
                   </Button>
                 )}
               </CardContent>
