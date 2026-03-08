@@ -672,10 +672,10 @@ function AttendanceSummaryTab({ academicYear, user }) {
     const current = new Date(filters.fromDate);
     const end = new Date(filters.toDate);
     while (current <= end) { daysBetween.push(format(current, 'yyyy-MM-dd')); current.setDate(current.getDate() + 1); }
-    // Holiday override precedence: if override exists, treat as working day
-    const overrideSet = new Set(overrides.map(o => o.date));
-    const holidaySet = new Set(holidays.map(h => h.date).filter(d => !overrideSet.has(d)));
-    const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0));
+    // Holiday override precedence: filter overrides for SELECTED class/section only
+    const overrideSetForClass = new Set(overrides.filter(o => o.class_name === filters.class && o.section === filters.section).map(o => o.date));
+    const holidaySet = new Set(holidays.map(h => h.date).filter(d => !overrideSetForClass.has(d)));
+    const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0 && !overrideSetForClass.has(d)));
     const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
     // CANONICAL DEDUPLICATION: deduplicate before processing
     const dedupedAttendance = deduplicateAttendanceRecords(attendanceRecords);
