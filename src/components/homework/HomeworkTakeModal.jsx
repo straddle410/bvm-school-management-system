@@ -22,14 +22,13 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
     existingSubmission?.descriptive_answers || hw.descriptive_questions?.map((_, i) => ({ question_index: i, answer: '' })) || []
   );
   const sessionKey = `hw_files_${hw.id}_${student.student_id}`;
+  // For resubmission: start with a copy of old files so student can keep/remove/add
   const [fileUrls, setFileUrls] = useState(() => {
-    // Restore uploaded files from sessionStorage on remount (survives back-navigation)
     try {
       const saved = sessionStorage.getItem(sessionKey);
       if (saved) return JSON.parse(saved);
     } catch {}
-    // For revision/resubmit, start fresh (previous files shown separately)
-    if (canResubmitHomework(normalizeHomeworkSubmissionStatus(existingSubmission?.status))) return [];
+    // Pre-populate with existing files so student can keep or remove them
     return existingSubmission?.file_urls || [];
   });
   const [uploading, setUploading] = useState(false);
