@@ -80,10 +80,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const queryClient = useQueryClient();
 
   const workingDate = isAdmin ? selectedDate : todayDate;
-  // Parse date string correctly: YYYY-MM-DD -> get day of week
-  const dateParts = workingDate.split('-');
-  const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-  const isSunday = dateObj.getDay() === 0;
+  const isSunday = getDay(new Date(workingDate + 'T00:00:00')) === 0;
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', academicYear],
@@ -114,9 +111,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   });
 
   const { data: overrides = [] } = useQuery({
-    queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
-    enabled: !!selectedClass && !!selectedSection && !!academicYear && !!workingDate
+    queryKey: ['holiday-override', workingDate],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate })
   });
 
   const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
@@ -125,11 +121,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const canManageHolidays = isAdmin;
 
   useEffect(() => {
-    // CRITICAL FIX: Do NOT flip isHoliday to false when override exists
-    // The toggle component needs isHoliday=true AND hasOverride=true to stay visible
-    // Only the attendance marking logic uses hasOverride to disable/enable inputs
-    const detectedHoliday = isSunday || isMarkedHoliday;
-    console.log('[Attendance] detectedHoliday:', detectedHoliday, 'hasOverride:', hasOverride, 'isSunday:', isSunday, 'isMarkedHoliday:', isMarkedHoliday);
+    // Override precedence: if override exists, treat as working day even if holiday is marked
+    const detectedHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
@@ -287,8 +280,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasHolidayOverride} holidayReason={holidayReason} />
           )}
 
-          {isHoliday && canOverrideHoliday && selectedClass && selectedSection && (
-            <HolidayOverrideToggle selectedDate={workingDate} selectedClass={selectedClass} selectedSection={selectedSection} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} onOverrideChange={setHasHolidayOverride} />
+          {isHoliday && canOverrideHoliday && selectedClass && (
+            <HolidayOverrideToggle selectedDate={workingDate} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} onOverrideChange={setHasHolidayOverride} />
           )}
 
           {canManageHolidays && (

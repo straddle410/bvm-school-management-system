@@ -4,18 +4,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
-import { getStaffSession } from '@/components/useStaffSession';
 
-export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, user, academicYear, onOverrideChange }) {
-  const staffSession = getStaffSession();
+export default function HolidayOverrideToggle({ selectedDate, canOverride, user, academicYear, onOverrideChange }) {
   const [overrideActive, setOverrideActive] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
 
   const { data: existingOverride } = useQuery({
-    queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
-    enabled: !!selectedDate && !!selectedClass && !!selectedSection && !!academicYear
+    queryKey: ['holiday-override', selectedDate],
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: selectedDate })
   });
 
   useEffect(() => {
@@ -29,39 +26,26 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
   }, [existingOverride]);
 
   const createOverrideMutation = useMutation({
-    mutationFn: () => {
-      const userId = staffSession?.email || user?.email;
-      if (!userId) throw new Error('User identity not available');
-      const payload = {
-        date: selectedDate,
-        class_name: selectedClass,
-        section: selectedSection,
-        user_id: userId,
-        reason: overrideReason || 'Attendance Override',
-        academic_year: academicYear
-      };
-      return base44.entities.HolidayOverride.create(payload);
-    },
+    mutationFn: () => base44.entities.HolidayOverride.create({
+      date: selectedDate,
+      user_id: user?.email,
+      reason: overrideReason || 'Attendance Override',
+      academic_year: academicYear
+    }),
     onSuccess: () => {
-       const userId = staffSession?.email || user?.email;
-       queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
-       if (userId) {
-         base44.entities.AuditLog.create({
-           action: 'override_applied',
-           module: 'Override',
-           date: selectedDate,
-           performed_by: userId,
-           details: `Applied holiday override: ${overrideReason}`,
-           academic_year: academicYear
-         });
-       }
-       setOverrideActive(true);
-       onOverrideChange?.(true);
-       toast.success(`✅ Holiday override applied for Class ${selectedClass} Section ${selectedSection}`);
-     },
-     onError: (err) => {
-       toast.error(`❌ Failed to apply override: ${err?.message || 'Unknown error'}`);
-     }
+      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      base44.entities.AuditLog.create({
+        action: 'override_applied',
+        module: 'Override',
+        date: selectedDate,
+        performed_by: user?.email,
+        details: `Applied holiday override: ${overrideReason}`,
+        academic_year: academicYear
+      });
+      setOverrideActive(true);
+      onOverrideChange?.(true);
+      toast.success('Holiday override applied');
+    }
   });
 
   const removeOverrideMutation = useMutation({
@@ -70,32 +54,26 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       return base44.entities.HolidayOverride.delete(existingOverride[0].id);
     },
     onSuccess: () => {
-       const userId = staffSession?.email || user?.email;
-       queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
-       if (userId) {
-         base44.entities.AuditLog.create({
-           action: 'override_removed',
-           module: 'Override',
-           date: selectedDate,
-           performed_by: userId,
-           details: 'Removed holiday override',
-           academic_year: academicYear
-         });
-       }
-       setOverrideActive(false);
-       setOverrideReason('');
-       onOverrideChange?.(false);
-       toast.success(`✅ Holiday override removed for Class ${selectedClass} Section ${selectedSection}`);
-     },
-     onError: (err) => {
-       toast.error(`❌ Failed to remove override: ${err?.message || 'Unknown error'}`);
-     }
+      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      base44.entities.AuditLog.create({
+        action: 'override_removed',
+        module: 'Override',
+        date: selectedDate,
+        performed_by: user?.email,
+        details: 'Removed holiday override',
+        academic_year: academicYear
+      });
+      setOverrideActive(false);
+      setOverrideReason('');
+      onOverrideChange?.(false);
+      toast.success('Holiday override removed');
+    }
   });
 
   if (!canOverride) return null;
 
   return (
-    <div className="relative p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2 z-10">
+    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
       <div className="flex items-center gap-2">
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <p className="text-sm font-medium text-blue-900">Override Holiday</p>
@@ -109,14 +87,12 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
             placeholder="Reason (e.g., Makeup class)"
             value={overrideReason}
             onChange={(e) => setOverrideReason(e.target.value)}
-            className="relative border border-blue-300 rounded-lg px-2 py-1.5 text-xs w-full"
+            className="border border-blue-300 rounded-lg px-2 py-1.5 text-xs w-full"
           />
           <Button
             size="sm"
             className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-            onClick={() => {
-              createOverrideMutation.mutate();
-            }}
+            onClick={() => createOverrideMutation.mutate()}
             disabled={createOverrideMutation.isPending}
           >
             <Zap className="h-3 w-3 mr-1" />
