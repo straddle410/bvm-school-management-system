@@ -267,8 +267,11 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const fallbackOverrideMutation = useMutation({
     mutationFn: async () => {
       if (!user?.staff_id) throw new Error('Staff ID not found');
+      const action = hasOverride ? 'remove' : 'create';
+      
       if (hasOverride) {
         // Remove existing override
+        if (!overrides?.[0]?.id) throw new Error('Override record not found');
         await base44.entities.HolidayOverride.delete(overrides[0].id);
       } else {
         // Create new override
@@ -281,20 +284,23 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           academic_year: academicYear
         });
       }
+      return action;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear] });
+    onSuccess: (action) => {
+      // Invalidate all holiday-override queries to refresh immediately
+      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
       base44.entities.AuditLog.create({
-        action: hasOverride ? 'override_removed' : 'override_applied',
+        action: action === 'remove' ? 'override_removed' : 'override_applied',
         module: 'Override',
         date: workingDate,
         performed_by: user?.staff_id,
-        details: hasOverride ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
+        details: action === 'remove' ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });
-      toast.success(hasOverride ? 'Holiday override disabled successfully' : 'Holiday override enabled successfully');
+      toast.success(action === 'remove' ? 'Holiday override disabled successfully' : 'Holiday override enabled successfully');
     },
     onError: (err) => {
+      console.error('Override toggle error:', err);
       toast.error('Failed to toggle override: ' + (err?.message || 'Unknown error'));
     }
   });
