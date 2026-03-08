@@ -470,17 +470,17 @@ export default function Students() {
       if (!isValidTransition(student.status, toStatus)) continue;
 
       // SPECIAL CASE: Approving student → call dedicated approval function
-      // This generates student_id in SAME transaction, no automation dependency
-      if (toStatus === 'Approved' && !student.student_id) {
-        const approveRes = await base44.functions.invoke('approveStudentAndGenerateId', {
-          student_db_id: id
-        });
-        if (approveRes.data?.error) {
-          toast.error(`Failed for ${student.name}: ${approveRes.data.error}`);
-          continue;
-        }
-        processed++;
-      } else {
+       // This generates student_id AND roll_no in SAME transaction, no automation dependency
+       if (toStatus === 'Approved' && !student.student_id) {
+         const approveRes = await base44.functions.invoke('approveStudentAndGenerateRollNo', {
+           student_db_id: id
+         });
+         if (approveRes.data?.error) {
+           toast.error(`Failed for ${student.name}: ${approveRes.data.error}`);
+           continue;
+         }
+         processed++;
+       } else {
         // Standard status updates (Pending→Verified, Approved→Published, etc)
         const updates = { status: toStatus };
         if (toStatus === 'Verified')  updates.verified_by  = user.email;
