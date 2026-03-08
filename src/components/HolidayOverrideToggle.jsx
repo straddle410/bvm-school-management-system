@@ -46,19 +46,22 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       return base44.entities.HolidayOverride.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
-      base44.entities.AuditLog.create({
-        action: 'override_applied',
-        module: 'Override',
-        date: selectedDate,
-        performed_by: user?.email,
-        details: `Applied holiday override: ${overrideReason}`,
-        academic_year: academicYear
-      });
-      setOverrideActive(true);
-      onOverrideChange?.(true);
-      toast.success('Holiday override applied');
-    }
+       const userId = staffSession?.email || user?.email;
+       queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
+       if (userId) {
+         base44.entities.AuditLog.create({
+           action: 'override_applied',
+           module: 'Override',
+           date: selectedDate,
+           performed_by: userId,
+           details: `Applied holiday override: ${overrideReason}`,
+           academic_year: academicYear
+         });
+       }
+       setOverrideActive(true);
+       onOverrideChange?.(true);
+       toast.success('Holiday override applied');
+     }
   });
 
   const removeOverrideMutation = useMutation({
@@ -67,20 +70,23 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       return base44.entities.HolidayOverride.delete(existingOverride[0].id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
-      base44.entities.AuditLog.create({
-        action: 'override_removed',
-        module: 'Override',
-        date: selectedDate,
-        performed_by: user?.email,
-        details: 'Removed holiday override',
-        academic_year: academicYear
-      });
-      setOverrideActive(false);
-      setOverrideReason('');
-      onOverrideChange?.(false);
-      toast.success('Holiday override removed');
-    }
+       const userId = staffSession?.email || user?.email;
+       queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
+       if (userId) {
+         base44.entities.AuditLog.create({
+           action: 'override_removed',
+           module: 'Override',
+           date: selectedDate,
+           performed_by: userId,
+           details: 'Removed holiday override',
+           academic_year: academicYear
+         });
+       }
+       setOverrideActive(false);
+       setOverrideReason('');
+       onOverrideChange?.(false);
+       toast.success('Holiday override removed');
+     }
   });
 
   if (!canOverride) return null;
