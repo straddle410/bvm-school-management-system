@@ -122,8 +122,11 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const canManageHolidays = isAdmin;
 
   useEffect(() => {
-    // Override precedence: if override exists, treat as working day even if holiday is marked
-    const detectedHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
+    // CRITICAL FIX: Do NOT flip isHoliday to false when override exists
+    // The toggle component needs isHoliday=true AND hasOverride=true to stay visible
+    // Only the attendance marking logic uses hasOverride to disable/enable inputs
+    const detectedHoliday = isSunday || isMarkedHoliday;
+    console.log('[Attendance] detectedHoliday:', detectedHoliday, 'hasOverride:', hasOverride, 'isSunday:', isSunday, 'isMarkedHoliday:', isMarkedHoliday);
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
