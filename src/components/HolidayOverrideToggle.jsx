@@ -61,12 +61,15 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
   });
 
   const removeOverrideMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!existingOverride?.[0]?.id) throw new Error('No override found');
-      return base44.entities.HolidayOverride.delete(existingOverride[0].id);
+      const overrideId = existingOverride[0].id;
+      await base44.entities.HolidayOverride.delete(overrideId);
+      return overrideId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection, academicYear] });
+      // Invalidate both the specific query and the broader holiday-override query
+      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
       base44.entities.AuditLog.create({
         action: 'override_removed',
         module: 'Override',
@@ -75,8 +78,6 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         details: `Removed holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });
-      setOverrideActive(false);
-      setOverrideReason('');
       toast.success('Holiday override disabled successfully');
     },
     onError: (err) => {
