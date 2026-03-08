@@ -18,6 +18,10 @@ export default function StaffLogin() {
   const [error, setError] = useState('');
   const [lockedUntil, setLockedUntil] = useState(null);
   const [linkConflict, setLinkConflict] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotUsername, setForgotUsername] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
