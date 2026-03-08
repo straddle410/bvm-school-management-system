@@ -21,7 +21,7 @@ import AIAssistDrawer from '@/components/AIAssistDrawer';
 import HomeworkDashboardSummary from '@/components/homework/HomeworkDashboardSummary';
 import HomeworkFiltersBar from '@/components/homework/HomeworkFiltersBar';
 import HomeworkRowMetrics from '@/components/homework/HomeworkRowMetrics';
-import { normalizeHomeworkSubmissionStatus } from '@/components/utils/homeworkStatusHelper';
+import { normalizeHomeworkSubmissionStatus, getEffectiveDueDate } from '@/components/utils/homeworkStatusHelper';
 import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
 import { canViewHomework, canManageHomework, isHomeworkAdmin, filterHomeworkByAccess, getHomeworkQueryFilter } from '@/components/homework/homeworkAccessControl';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
