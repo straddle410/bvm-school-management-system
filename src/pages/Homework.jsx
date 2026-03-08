@@ -661,7 +661,7 @@ export default function Homework() {
                               <div className="flex-1">
                                 <HomeworkRowMetrics 
                                   homework={item} 
-                                  submissions={submissions}
+                                  submissions={submissions.filter(s => s.homework_id === item.id)}
                                   assignedStudents={[]}
                                 />
                               </div>
