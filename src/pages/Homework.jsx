@@ -842,6 +842,13 @@ export default function Homework() {
               </DialogContent>
               </Dialog>
 
+              {selectedHomework && (
+                <HomeworkSubmissions
+                  homework={selectedHomework}
+                  onClose={() => setSelectedHomework(null)}
+                />
+              )}
+
               {showAIAssist && (
               <AIAssistDrawer
               type="homework"
