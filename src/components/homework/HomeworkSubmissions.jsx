@@ -412,7 +412,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                     </div>
                   )}
 
-                  {revisionId === sub.id && (
+                  {revisionId === sub.id && editGradeId !== sub.id && (
                     <div className="mt-2 space-y-2">
                       <textarea placeholder="Feedback: describe what needs correction (required)" value={feedback} onChange={e => setFeedback(e.target.value)} rows={2}
                         className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs" />
