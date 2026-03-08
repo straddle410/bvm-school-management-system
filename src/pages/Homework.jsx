@@ -658,6 +658,16 @@ export default function Homework() {
                             Publish
                           </Button>
                         )}
+                        {item.submission_mode === 'SUBMISSION_REQUIRED' && (
+                          <Button
+                            onClick={() => setSelectedHomework(item)}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs whitespace-nowrap text-indigo-700 border-indigo-300 hover:bg-indigo-50"
+                          >
+                            <Users className="h-3 w-3 mr-1" /> Grade
+                          </Button>
+                        )}
                         <Button
                           onClick={() => handleEdit(item)}
                           size="sm"
