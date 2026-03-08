@@ -62,7 +62,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       return base44.entities.HolidayOverride.delete(existingOverride[0].id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      queryClient.invalidateQueries({ queryKey: ['holiday-override', selectedDate, selectedClass, selectedSection] });
       base44.entities.AuditLog.create({
         action: 'override_removed',
         module: 'Override',
