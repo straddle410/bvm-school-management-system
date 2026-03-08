@@ -365,7 +365,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
       {selectedClass && selectedSection && (
         <>
-          {isHoliday && !hasHolidayOverride && (
+          {isHoliday && !hasOverride && (
             <Card className="border-l-4 border-l-amber-500 bg-amber-50"><CardContent className="p-4"><p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p></CardContent></Card>
           )}
           {isRecordLocked && (
@@ -467,7 +467,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
           {(filteredStudents.length > 0 || isHoliday) && (
             <div className="flex justify-end">
-              {isHoliday && !hasHolidayOverride ? (
+              {isHoliday && !hasOverride ? (
                 <Button disabled><Palmtree className="mr-2 h-4 w-4" />Attendance Disabled (Holiday)</Button>
               ) : isRecordLocked && !isAdmin ? (
                 <Button disabled><Lock className="mr-2 h-4 w-4" />Record Locked</Button>
