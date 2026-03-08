@@ -42,6 +42,7 @@ export default function Homework() {
     subject_name: '',
     due_date: '',
     submission_mode: 'VIEW_ONLY',
+    max_marks: '',
   });
   const [formErrors, setFormErrors] = useState({});
   const [selected, setSelected] = useState(new Set());
