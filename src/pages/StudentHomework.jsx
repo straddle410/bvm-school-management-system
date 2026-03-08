@@ -80,11 +80,12 @@ export default function StudentHomework() {
 
   // Filter by date and status
   const filtered = homeworks.filter(hw => {
-    // Date filter
-    const filterDate = selectedDate ? format(new Date(selectedDate), 'yyyy-MM-dd') : todayDateString;
-    const homeworkDate = hw.due_date ? format(new Date(hw.due_date), 'yyyy-MM-dd') : null;
-
-    if (homeworkDate !== filterDate) return false;
+    // Date filter: only apply when student explicitly selects a date
+    // Default (no date selected): show ALL published homework for the class (upcoming + pending)
+    if (selectedDate) {
+      const homeworkDate = hw.due_date ? format(new Date(hw.due_date), 'yyyy-MM-dd') : null;
+      if (homeworkDate !== selectedDate) return false;
+    }
 
     // Status filter
     // VIEW_ONLY homework: never "pending" (no submission required)
