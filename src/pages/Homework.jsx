@@ -909,6 +909,9 @@ export default function Homework() {
               onClose={() => setShowAIAssist(false)}
               />
               )}
+
+          {/* End Dashboard Tab */}
+          </>}
               </div>
               </div>
               </LoginRequired>
