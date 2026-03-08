@@ -115,7 +115,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear })
   });
 
-  const canOverrideHoliday = staffAccount?.[0]?.permissions?.override_holidays || isAdmin;
+  const canOverrideHoliday = isAdmin || staffAccount?.[0]?.permissions?.override_holidays === true;
   const isMarkedHoliday = holidays.length > 0;
   const hasOverride = overrides.length > 0;
   const canManageHolidays = isAdmin;
