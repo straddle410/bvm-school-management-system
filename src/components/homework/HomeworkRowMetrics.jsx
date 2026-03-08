@@ -37,6 +37,8 @@ export default function HomeworkRowMetrics({
 
   // SUBMISSION_REQUIRED: show full metrics
   const [metrics, setMetrics] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [activeModal, setActiveModal] = useState(null); // 'submitted'|'pending'|'graded'|'revision'|'late'
 
   useEffect(() => {
     const loadMetrics = async () => {
