@@ -74,7 +74,12 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
     setUploading(true);
     for (const file of files) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFileUrls(prev => [...prev, file_url]);
+      setFileUrls(prev => {
+        const updated = [...prev, file_url];
+        // Persist to sessionStorage so files survive modal close/reopen
+        try { sessionStorage.setItem(sessionKey, JSON.stringify(updated)); } catch {}
+        return updated;
+      });
     }
     setUploading(false);
   };
