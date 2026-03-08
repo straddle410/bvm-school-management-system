@@ -28,10 +28,10 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
 
   const createOverrideMutation = useMutation({
     mutationFn: () => {
+      if (!staffEmail) throw new Error('User details still loading. Please try again.');
       if (!academicYear) throw new Error('Academic year not set');
       if (!selectedClass) throw new Error('Class not selected');
       if (!selectedSection) throw new Error('Section not selected');
-      if (!staffEmail) throw new Error('Staff email not found');
       return base44.entities.HolidayOverride.create({
         date: selectedDate,
         class_name: selectedClass,
@@ -103,15 +103,17 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
             value={overrideReason}
             onChange={(e) => setOverrideReason(e.target.value)}
             className="border border-blue-300 rounded-lg px-2 py-1.5 text-xs w-full"
+            disabled={!staffEmail}
           />
           <Button
+            type="button"
             size="sm"
             className="bg-blue-600 hover:bg-blue-700 text-white w-full"
             onClick={() => createOverrideMutation.mutate()}
-            disabled={createOverrideMutation.isPending}
+            disabled={!staffEmail || createOverrideMutation.isPending}
           >
             <Zap className="h-3 w-3 mr-1" />
-            {createOverrideMutation.isPending ? 'Applying...' : 'Apply Override'}
+            {!staffEmail ? 'Loading user...' : createOverrideMutation.isPending ? 'Applying...' : 'Apply Override'}
           </Button>
         </div>
       ) : (
