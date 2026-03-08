@@ -156,6 +156,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       if (!selectedSection) throw new Error('Section is required');
       if (!workingDate) throw new Error('Date is required');
       if (isPastAcademicYear(academicYear)) throw new Error('PAST_YEAR_WARNING');
+      const session = getStaffSession();
       const promises = filteredStudents.map(async (student) => {
         const existing = attendanceData[student.student_id];
         const attType = existing?.attendance_type || 'full_day';
@@ -172,15 +173,16 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           status: effectiveHoliday ? 'Holiday' : 'Taken'
         };
         if (existing?.id) {
-          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: existing.id, data });
+          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: existing.id, data, staff_session_token: session?.staff_session_token || null });
           return response.data;
         }
         const dedupCheck = await base44.functions.invoke('validateAttendanceCreateDedup', {
           date: workingDate, studentId: student.student_id || student.id,
-          classname: selectedClass, section: selectedSection, academicYear
+          classname: selectedClass, section: selectedSection, academicYear,
+          staff_session_token: session?.staff_session_token || null
         });
         if (dedupCheck.data?.isDuplicate) {
-          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: dedupCheck.data.existingRecordId, data });
+          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: dedupCheck.data.existingRecordId, data, staff_session_token: session?.staff_session_token || null });
           return response.data;
         }
         return base44.entities.Attendance.create(data);
@@ -227,11 +229,13 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const handleUnlockRecords = async () => {
     try {
       setIsUnlocking(true);
+      const session = getStaffSession();
       const response = await base44.functions.invoke('unlockAttendanceForAdmin', {
         date: workingDate,
         class_name: selectedClass,
         section: selectedSection,
-        academic_year: academicYear
+        academic_year: academicYear,
+        staff_session_token: session?.staff_session_token || null
       });
       
       if (response.data?.success) {
