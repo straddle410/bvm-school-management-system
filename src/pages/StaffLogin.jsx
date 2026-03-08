@@ -100,6 +100,28 @@ export default function StaffLogin() {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotMessage('');
+    setForgotLoading(true);
+
+    try {
+      await base44.functions.invoke('sendStaffOtp', {
+        username: forgotUsername,
+      });
+      setForgotMessage('OTP sent to your registered email. Check your inbox.');
+      setTimeout(() => {
+        setForgotMode(false);
+        setForgotUsername('');
+        setForgotMessage('');
+      }, 2000);
+    } catch (err) {
+      setForgotMessage(err.response?.data?.error || 'Failed to send OTP. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   // LINK_CONFLICT full-screen view
   if (linkConflict) {
     return (
