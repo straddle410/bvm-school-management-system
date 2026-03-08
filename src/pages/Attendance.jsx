@@ -123,7 +123,11 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const effectiveHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
 
   useEffect(() => {
-    // Override precedence: if override exists, treat as working day even if holiday is marked
+    // effectiveHoliday is single source of truth: hasOverride takes precedence over holiday/sunday
+    setIsHoliday(effectiveHoliday);
+    setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
+    
+    // Load attendance data if exists
     if (existingAttendance.length > 0) {
       const dedupedAttendance = deduplicateAttendanceRecords(existingAttendance);
       const data = {};
@@ -136,18 +140,10 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
         };
       });
       setAttendanceData(data);
-      if (!manuallyChanged) {
-        setIsHoliday(effectiveHoliday);
-        setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
-      }
     } else {
       setAttendanceData({});
-      if (!manuallyChanged) {
-        setIsHoliday(effectiveHoliday);
-        setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
-      }
     }
-  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays, hasOverride, effectiveHoliday, isHoliday]);
+  }, [existingAttendance, isSunday, isMarkedHoliday, holidays, hasOverride, effectiveHoliday]);
 
   const filteredStudents = students.filter(s =>
     s.class_name === selectedClass && s.section === selectedSection
@@ -504,7 +500,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                 <div className="divide-y">
                   {filteredStudents.map((student, index) => {
                     const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
-                    const attendanceDisabled = (isHoliday && !hasHolidayOverride) || isRecordLocked;
+                    const attendanceDisabled = (isHoliday && !hasOverride) || isRecordLocked;
                     const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
                     return (
                       <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 opacity-60' : bgColor}`}>
