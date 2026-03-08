@@ -110,6 +110,7 @@ import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
+import index from './pages/index';
 import __Layout from './Layout.jsx';
 
 
@@ -177,6 +178,7 @@ export const PAGES = {
     "SubjectManagement": SubjectManagement,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
+    "index": index,
 }
 
 export const pagesConfig = {
