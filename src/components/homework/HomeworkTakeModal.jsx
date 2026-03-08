@@ -278,10 +278,26 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
               )}
               {fileUrls.length > 0 && (
                 <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200 space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">
+                    {canResubmit ? '📎 Files to submit (tap × to remove)' : '📎 Submitted Files'}
+                  </p>
                   {fileUrls.map((url, idx) => (
-                    <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-[#1a237e] font-semibold hover:underline">
-                      📄 File {idx + 1}
-                    </a>
+                    <div key={idx} className="flex items-center gap-2">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center gap-2 text-sm text-[#1a237e] font-semibold hover:underline truncate">
+                        📄 File {idx + 1}
+                      </a>
+                      {(!isSubmitted || canResubmit) && !isViewOnly && (
+                        <button
+                          onClick={() => setFileUrls(prev => {
+                            const updated = prev.filter((_, i) => i !== idx);
+                            try { sessionStorage.setItem(sessionKey, JSON.stringify(updated)); } catch {}
+                            return updated;
+                          })}
+                          className="flex-shrink-0 text-red-400 hover:text-red-600 text-lg leading-none font-bold"
+                          title="Remove file"
+                        >×</button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
