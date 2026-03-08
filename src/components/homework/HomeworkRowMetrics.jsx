@@ -59,6 +59,7 @@ export default function HomeworkRowMetrics({
           students = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
         }
         
+        setStudents(students);
         const calculated = getHomeworkAggregatedMetrics(homework, submissions, students);
         setMetrics(calculated);
       } catch (err) {
