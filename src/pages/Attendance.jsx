@@ -73,7 +73,6 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const [rangeEnd, setRangeEnd] = useState('');
   const [rangeReason, setRangeReason] = useState('');
   const [rangeProgress, setRangeProgress] = useState(0);
-  const [hasHolidayOverride, setHasHolidayOverride] = useState(false);
   const [halfDayModal, setHalfDayModal] = useState({ isOpen: false, studentId: null, studentName: null });
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [manuallyChanged, setManuallyChanged] = useState(false);
@@ -119,10 +118,11 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const isMarkedHoliday = holidays.length > 0;
   const hasOverride = overrides.length > 0;
   const canManageHolidays = isAdmin;
+  // Single source of truth for holiday override state
+  const effectiveHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
 
   useEffect(() => {
     // Override precedence: if override exists, treat as working day even if holiday is marked
-    const detectedHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
     if (existingAttendance.length > 0) {
       const data = {};
       existingAttendance.forEach(a => {
@@ -135,17 +135,17 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       });
       setAttendanceData(data);
       if (!manuallyChanged) {
-        setIsHoliday(detectedHoliday);
+        setIsHoliday(effectiveHoliday);
         setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     } else {
       setAttendanceData({});
       if (!manuallyChanged) {
-        setIsHoliday(detectedHoliday);
+        setIsHoliday(effectiveHoliday);
         setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     }
-  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays, hasOverride]);
+  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays, hasOverride, effectiveHoliday]);
 
   const filteredStudents = students.filter(s =>
     s.class_name === selectedClass && s.section === selectedSection
@@ -234,7 +234,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
   const markAllPresent = () => {
     const data = {};
-    filteredStudents.forEach(s => { data[s.student_id || s.id] = { ...attendanceData[s.student_id || s.id], is_present: true }; });
+    filteredStudents.forEach(s => { data[s.student_id || s.id] = { ...attendanceData[s.student_id || s.id], attendance_type: 'full_day', is_present: true }; });
     setAttendanceData(data);
   };
 
@@ -277,11 +277,11 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
            </div>
 
           {selectedClass && selectedSection && (
-            <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasHolidayOverride} holidayReason={holidayReason} />
+            <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasOverride} holidayReason={holidayReason} />
           )}
 
           {isHoliday && canOverrideHoliday && selectedClass && (
-            <HolidayOverrideToggle selectedDate={workingDate} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} onOverrideChange={setHasHolidayOverride} />
+            <HolidayOverrideToggle selectedDate={workingDate} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} />
           )}
 
           {canManageHolidays && (
@@ -350,9 +350,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {[{ label: 'Total', value: filteredStudents.length, color: 'blue', Icon: Users },
-              { label: 'Present', value: fullDayCount, color: 'green', Icon: CheckCircle2 },
-              { label: 'Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
-              { label: 'Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
+              { label: 'Draft Full Day', value: fullDayCount, color: 'green', Icon: CheckCircle2 },
+              { label: 'Draft Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
+              { label: 'Draft Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
               <Card key={label} className="border-0 shadow-sm p-4">
                 <div className="flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl bg-${color}-50 flex items-center justify-center`}>
