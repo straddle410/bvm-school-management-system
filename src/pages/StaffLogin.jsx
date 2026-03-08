@@ -348,7 +348,15 @@ export default function StaffLogin() {
               )}
             </Button>
 
-            <p className="text-center text-xs text-slate-500 mt-6">
+            <button
+              type="button"
+              onClick={() => setForgotMode(true)}
+              className="w-full text-sm text-slate-600 hover:text-slate-800 font-medium text-center py-2"
+            >
+              Forgot password?
+            </button>
+
+            <p className="text-center text-xs text-slate-500 mt-4">
               For account issues, contact your administrator.
             </p>
           </form>
