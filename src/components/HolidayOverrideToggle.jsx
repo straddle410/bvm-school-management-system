@@ -5,7 +5,7 @@ import { AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 
-export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, staffEmail, academicYear }) {
+export default function HolidayOverrideToggle({ selectedDate, selectedClass, selectedSection, canOverride, user, academicYear }) {
   const [overrideActive, setOverrideActive] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
@@ -28,7 +28,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
 
   const createOverrideMutation = useMutation({
     mutationFn: () => {
-      if (!staffEmail) throw new Error('User details still loading. Please try again.');
+      if (!user?.staff_id) throw new Error('Staff ID not found');
       if (!academicYear) throw new Error('Academic year not set');
       if (!selectedClass) throw new Error('Class not selected');
       if (!selectedSection) throw new Error('Section not selected');
@@ -36,7 +36,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         date: selectedDate,
         class_name: selectedClass,
         section: selectedSection,
-        user_id: staffEmail,
+        user_id: user.staff_id,
         reason: overrideReason || 'Attendance Override',
         academic_year: academicYear
       });
@@ -47,7 +47,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         action: 'override_applied',
         module: 'Override',
         date: selectedDate,
-        performed_by: staffEmail,
+        performed_by: user?.staff_id,
         details: `Applied holiday override for ${selectedClass}-${selectedSection}: ${overrideReason}`,
         academic_year: academicYear
       });
@@ -71,7 +71,7 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
         action: 'override_removed',
         module: 'Override',
         date: selectedDate,
-        performed_by: staffEmail,
+        performed_by: user?.staff_id,
         details: `Removed holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });
@@ -103,17 +103,16 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
             value={overrideReason}
             onChange={(e) => setOverrideReason(e.target.value)}
             className="border border-blue-300 rounded-lg px-2 py-1.5 text-xs w-full"
-            disabled={!staffEmail}
           />
           <Button
             type="button"
             size="sm"
             className="bg-blue-600 hover:bg-blue-700 text-white w-full"
             onClick={() => createOverrideMutation.mutate()}
-            disabled={!staffEmail || createOverrideMutation.isPending}
+            disabled={createOverrideMutation.isPending}
           >
             <Zap className="h-3 w-3 mr-1" />
-            {!staffEmail ? 'Loading user...' : createOverrideMutation.isPending ? 'Applying...' : 'Apply Override'}
+            {createOverrideMutation.isPending ? 'Applying...' : 'Apply Override'}
           </Button>
         </div>
       ) : (
