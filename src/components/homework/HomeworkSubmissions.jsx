@@ -391,7 +391,7 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                     </div>
                   )}
 
-                  {gradingId === sub.id && (
+                  {gradingId === sub.id && editGradeId !== sub.id && (
                     <div className="mt-2 space-y-2">
                       <input type="number" min="0" max={homework.max_marks || undefined}
                         placeholder={`Marks (max: ${homework.max_marks || '—'})`}
