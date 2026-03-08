@@ -265,10 +265,10 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
             <div className="space-y-3">
               <h3 className="font-semibold text-slate-900 text-base">Submission Files</h3>
               {!isViewOnly && !isSubmitted && (
-                <label className="flex items-center justify-center gap-3 border-2 border-dashed border-gray-400 rounded-2xl px-4 py-6 cursor-pointer hover:bg-gray-50 transition-colors">
-                  <Upload className="h-5 w-5 text-gray-500" />
+                <label className={`flex items-center justify-center gap-3 border-2 border-dashed rounded-2xl px-4 py-6 cursor-pointer transition-colors ${uploading ? 'border-blue-300 bg-blue-50' : 'border-gray-400 hover:bg-gray-50'}`}>
+                  <Upload className={`h-5 w-5 ${uploading ? 'text-blue-500 animate-pulse' : 'text-gray-500'}`} />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-700">{uploading ? 'Uploading...' : 'Upload Files'}</p>
+                    <p className="text-sm font-medium text-gray-700">{uploading ? 'Uploading...' : 'Tap to Upload Files'}</p>
                     <p className="text-xs text-gray-500 mt-0.5">PDF, Images, or Documents</p>
                   </div>
                   <input type="file" className="hidden" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={handleFileUpload} disabled={uploading} />
@@ -281,6 +281,60 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
                       📄 File {idx + 1}
                     </a>
                   ))}
+                </div>
+              )}
+              {/* Inline submit button — only for file-upload types when not yet submitted */}
+              {!isViewOnly && !isSubmitted && (
+                <div className="pt-1">
+                  {fileUrls.length === 0 && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2 text-center">
+                      ⚠ Please upload at least one file before submitting.
+                    </p>
+                  )}
+                  <button
+                    onClick={() => submitMutation.mutate()}
+                    disabled={fileUrls.length === 0 || uploading || submitMutation.isPending}
+                    className="w-full bg-[#1a237e] text-white py-3 px-4 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-colors hover:bg-[#283593] disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {submitMutation.isPending ? (
+                      <>
+                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-5 w-5" />
+                        Submit Homework
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+              {/* Resubmit inline button for revision-required */}
+              {!isViewOnly && canResubmit && (
+                <div className="pt-1">
+                  {fileUrls.length === 0 && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2 text-center">
+                      ⚠ Please upload at least one file before resubmitting.
+                    </p>
+                  )}
+                  <button
+                    onClick={() => submitMutation.mutate()}
+                    disabled={fileUrls.length === 0 || uploading || submitMutation.isPending}
+                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-colors hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {submitMutation.isPending ? (
+                      <>
+                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Resubmitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-5 w-5" />
+                        Resubmit Homework
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
