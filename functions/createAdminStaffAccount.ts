@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
   try {
@@ -17,14 +18,7 @@ Deno.serve(async (req) => {
     }
 
     // Hash password using bcrypt
-    const encodedPassword = new TextEncoder().encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encodedPassword);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    // For bcrypt-like hashing in Deno, we'll use a simple approach
-    // In production, consider using a proper bcrypt library
-    const password_hash = `$2a$10$${hashHex.substring(0, 53)}`;
+    const password_hash = await bcrypt.hash(password, 10);
 
     // Create staff account
     const staffAccount = await base44.asServiceRole.entities.StaffAccount.create({
