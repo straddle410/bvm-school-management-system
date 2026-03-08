@@ -229,9 +229,12 @@ export default function StudentHomework() {
                     </div>
                     {hw.description && <p className="text-xs text-slate-600 mb-2 line-clamp-2">{hw.description}</p>}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="text-xs text-gray-400 flex items-center gap-1 flex-wrap">
                         <Clock className="h-3 w-3" />
-                        Due: {hw.due_date ? format(new Date(hw.due_date), 'dd MMM yyyy') : 'No date'}
+                        Due: {hw.extended_due_date
+                          ? <><span className="line-through mr-1">{format(new Date(hw.due_date), 'dd MMM')}</span><span className="text-amber-600 font-semibold">{format(new Date(hw.extended_due_date), 'dd MMM yyyy')} (extended)</span></>
+                          : hw.due_date ? format(new Date(hw.due_date), 'dd MMM yyyy') : 'No date'
+                        }
                       </span>
                       {hw.submission_mode === 'VIEW_ONLY' ? (
                         <button
