@@ -300,16 +300,38 @@ export default function HomeworkSubmissions({ homework, onClose }) {
                   )}
 
                   {/* Teacher feedback */}
-                  {(sub.status === HOMEWORK_STATUS.GRADED || sub.status === HOMEWORK_STATUS.REVISION_REQUIRED) && (
+                  {(sub.status === HOMEWORK_STATUS.GRADED || sub.status === HOMEWORK_STATUS.REVISION_REQUIRED) && editGradeId !== sub.id && (
                     <div className={`mt-2 rounded-lg p-2 text-xs ${sub.status === HOMEWORK_STATUS.GRADED ? 'bg-green-50' : 'bg-orange-50'}`}>
-                      {sub.status === HOMEWORK_STATUS.GRADED && (
-                        <p className="font-medium text-green-700">Marks: {sub.teacher_marks}/{homework.max_marks || '—'}</p>
-                      )}
-                      {sub.teacher_feedback && (
-                        <p className={`mt-0.5 ${sub.status === HOMEWORK_STATUS.GRADED ? 'text-green-600' : 'text-orange-600'}`}>
-                          {sub.teacher_feedback}
-                        </p>
-                      )}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          {sub.status === HOMEWORK_STATUS.GRADED && (
+                            <p className="font-medium text-green-700">
+                              Marks: {sub.teacher_marks}/{homework.max_marks || '—'}
+                              {sub.updated_at && sub.graded_at && sub.updated_at !== sub.graded_at && (
+                                <span className="ml-2 text-[9px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">Edited</span>
+                              )}
+                            </p>
+                          )}
+                          {sub.teacher_feedback && (
+                            <p className={`mt-0.5 ${sub.status === HOMEWORK_STATUS.GRADED ? 'text-green-600' : 'text-orange-600'}`}>
+                              {sub.teacher_feedback}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setEditGradeId(sub.id);
+                            setMarks(sub.teacher_marks ?? '');
+                            setFeedback(sub.teacher_feedback || '');
+                            setEditStatus(sub.status === HOMEWORK_STATUS.REVISION_REQUIRED ? HOMEWORK_STATUS.REVISION_REQUIRED : HOMEWORK_STATUS.GRADED);
+                            setGradingId(null); setRevisionId(null);
+                          }}
+                          className="ml-2 flex-shrink-0 text-[10px] text-gray-400 hover:text-indigo-600 flex items-center gap-0.5 font-medium"
+                          title="Edit grade"
+                        >
+                          <Pencil className="h-3 w-3" /> Edit
+                        </button>
+                      </div>
                     </div>
                   )}
 
