@@ -132,9 +132,12 @@ export default function HomeworkRowMetrics({
         <span><strong>Class:</strong> {homework.class_name}</span>
         {homework.section && homework.section !== 'All' && <span><strong>Section:</strong> {homework.section}</span>}
         <span><strong>Subject:</strong> {homework.subject}</span>
-        {homework.due_date && (
+        {effectiveDueDate && (
           <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
-            <strong>Due:</strong> {formatDistanceToNow(new Date(homework.due_date), { addSuffix: true })}
+            <strong>Due:</strong> {formatDistanceToNow(new Date(effectiveDueDate), { addSuffix: true })}
+            {homework.extended_due_date && (
+              <span className="ml-1 text-amber-600 font-semibold text-[10px]">(Extended)</span>
+            )}
           </span>
         )}
       </div>
