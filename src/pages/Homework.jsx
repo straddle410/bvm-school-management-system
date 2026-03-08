@@ -105,7 +105,7 @@ export default function Homework() {
 
   const { data: submissions = [] } = useQuery({
     queryKey: ['homework-submissions', academicYear],
-    queryFn: () => base44.entities.HomeworkSubmission.filter({ class_name: { $exists: true } }, '-created_date', 2000),
+    queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: { $in: homeworkList.map(h => h.id) } }, '-created_date', 2000),
     enabled: !!academicYear,
     staleTime: 0,
   });
