@@ -136,33 +136,44 @@ export default function HomeworkRowMetrics({
         )}
       </div>
 
-      {/* Metrics grid */}
+      {/* Metrics grid — each cell is clickable */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
         <div className="bg-gray-50 rounded p-2">
           <p className="text-xs font-bold text-gray-900">{totalStudents}</p>
           <p className="text-[10px] text-gray-600">Total</p>
         </div>
-        <div className="bg-blue-50 rounded p-2">
+        <button onClick={() => submittedCount > 0 && setActiveModal('submitted')} className={`bg-blue-50 rounded p-2 text-center transition-colors ${submittedCount > 0 ? 'hover:bg-blue-100 cursor-pointer' : 'cursor-default'}`}>
           <p className="text-xs font-bold text-blue-700">{submittedCount}</p>
           <p className="text-[10px] text-blue-600">Submitted</p>
-        </div>
-        <div className="bg-orange-50 rounded p-2">
+        </button>
+        <button onClick={() => pendingCount > 0 && setActiveModal('pending')} className={`bg-orange-50 rounded p-2 text-center transition-colors ${pendingCount > 0 ? 'hover:bg-orange-100 cursor-pointer' : 'cursor-default'}`}>
           <p className="text-xs font-bold text-orange-700">{pendingCount}</p>
           <p className="text-[10px] text-orange-600">Pending</p>
-        </div>
-        <div className="bg-green-50 rounded p-2">
+        </button>
+        <button onClick={() => gradedCount > 0 && setActiveModal('graded')} className={`bg-green-50 rounded p-2 text-center transition-colors ${gradedCount > 0 ? 'hover:bg-green-100 cursor-pointer' : 'cursor-default'}`}>
           <p className="text-xs font-bold text-green-700">{gradedCount}</p>
           <p className="text-[10px] text-green-600">Graded</p>
-        </div>
-        <div className="bg-red-50 rounded p-2">
+        </button>
+        <button onClick={() => revisionRequiredCount > 0 && setActiveModal('revision')} className={`bg-red-50 rounded p-2 text-center transition-colors ${revisionRequiredCount > 0 ? 'hover:bg-red-100 cursor-pointer' : 'cursor-default'}`}>
           <p className="text-xs font-bold text-red-700">{revisionRequiredCount}</p>
           <p className="text-[10px] text-red-600">Revision</p>
-        </div>
-        <div className="bg-yellow-50 rounded p-2">
+        </button>
+        <button onClick={() => lateSubmissionCount > 0 && setActiveModal('late')} className={`bg-yellow-50 rounded p-2 text-center transition-colors ${lateSubmissionCount > 0 ? 'hover:bg-yellow-100 cursor-pointer' : 'cursor-default'}`}>
           <p className="text-xs font-bold text-yellow-700">{lateSubmissionCount}</p>
           <p className="text-[10px] text-yellow-600">Late</p>
-        </div>
+        </button>
       </div>
+
+      {/* Metric detail modal */}
+      {activeModal && (
+        <HomeworkMetricModal
+          type={activeModal}
+          submissions={submissions}
+          assignedStudents={students}
+          homework={homework}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
 
       {/* Completion progress bar */}
       <div className="space-y-1">
