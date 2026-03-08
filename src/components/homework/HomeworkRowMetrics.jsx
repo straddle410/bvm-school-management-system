@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow, isPast } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 import { getHomeworkAggregatedMetrics } from '@/components/homework/homeworkAggregationHelper';
+import { getEffectiveDueDate } from '@/components/utils/homeworkStatusHelper';
 import HomeworkViewOnlyCard from '@/components/homework/HomeworkViewOnlyCard';
 import HomeworkTypeIndicator from '@/components/homework/HomeworkTypeIndicator';
 import HomeworkAttentionBadges from '@/components/homework/HomeworkAttentionBadges';
