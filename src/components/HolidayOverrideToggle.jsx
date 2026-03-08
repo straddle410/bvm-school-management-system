@@ -31,10 +31,12 @@ export default function HolidayOverrideToggle({ selectedDate, selectedClass, sel
       if (!academicYear) throw new Error('Academic year not set');
       if (!selectedClass) throw new Error('Class not selected');
       if (!selectedSection) throw new Error('Section not selected');
+      if (!user?.email) throw new Error('User email not found');
       return base44.entities.HolidayOverride.create({
         date: selectedDate,
         class_name: selectedClass,
         section: selectedSection,
+        user_id: user.email,
         reason: overrideReason || 'Attendance Override',
         academic_year: academicYear
       });
