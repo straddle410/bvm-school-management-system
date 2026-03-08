@@ -26,12 +26,16 @@ export default function HolidayOverrideToggle({ selectedDate, canOverride, user,
   }, [existingOverride]);
 
   const createOverrideMutation = useMutation({
-    mutationFn: () => base44.entities.HolidayOverride.create({
-      date: selectedDate,
-      user_id: user?.email,
-      reason: overrideReason || 'Attendance Override',
-      academic_year: academicYear
-    }),
+    mutationFn: () => {
+      if (!academicYear) throw new Error('Academic year not set');
+      if (!user?.email) throw new Error('User email not found');
+      return base44.entities.HolidayOverride.create({
+        date: selectedDate,
+        user_id: user.email,
+        reason: overrideReason || 'Attendance Override',
+        academic_year: academicYear
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
       base44.entities.AuditLog.create({
@@ -45,6 +49,10 @@ export default function HolidayOverrideToggle({ selectedDate, canOverride, user,
       setOverrideActive(true);
       onOverrideChange?.(true);
       toast.success('Holiday override applied');
+    },
+    onError: (err) => {
+      console.error('Override error:', err);
+      toast.error('Failed to apply override: ' + (err?.message || 'Unknown error'));
     }
   });
 
