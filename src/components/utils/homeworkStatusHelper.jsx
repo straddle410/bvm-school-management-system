@@ -1,6 +1,6 @@
 /**
  * Homework Status Normalization & Compatibility Layer
- * 
+ *
  * Supports both old string statuses and new enum values.
  * All new writes must use ONLY new enum values.
  * Old reads are transparently normalized.
@@ -11,30 +11,22 @@ export const HOMEWORK_STATUS = {
   SUBMITTED: 'SUBMITTED',
   REVISION_REQUIRED: 'REVISION_REQUIRED',
   RESUBMITTED: 'RESUBMITTED',
-  GRADED: 'GRADED'
+  GRADED: 'GRADED',
+  NOT_SUBMITTED: 'NOT_SUBMITTED', // Virtual: overdue, no submission
 };
 
 // Normalize any status value to the new enum
-// Accepts old string values like "Submitted", "Graded" and converts to new enum
 export function normalizeHomeworkSubmissionStatus(status) {
   if (!status) return null;
-  
-  const normalized = String(status).trim().toUpperCase();
-  
-  // Map old string values to new enum
+  const normalized = String(status).trim().toUpperCase().replace(/ /g, '_');
   const statusMap = {
     'SUBMITTED': HOMEWORK_STATUS.SUBMITTED,
     'REVISION_REQUIRED': HOMEWORK_STATUS.REVISION_REQUIRED,
-    'REVISION REQUIRED': HOMEWORK_STATUS.REVISION_REQUIRED, // Alternate old format
     'RESUBMITTED': HOMEWORK_STATUS.RESUBMITTED,
     'GRADED': HOMEWORK_STATUS.GRADED,
-    
-    // Old string values (backward compatibility)
-    'SUBMITTED': HOMEWORK_STATUS.SUBMITTED,
-    'GRADED': HOMEWORK_STATUS.GRADED,
+    'NOT_SUBMITTED': HOMEWORK_STATUS.NOT_SUBMITTED,
   };
-  
-  return statusMap[normalized] || status; // Return original if no match
+  return statusMap[normalized] || status;
 }
 
 // Check if status is considered "final" (student can't submit further)
@@ -53,4 +45,54 @@ export function canResubmitHomework(status) {
 export function isHomeworkAwaitingReview(status) {
   const normalized = normalizeHomeworkSubmissionStatus(status);
   return normalized === HOMEWORK_STATUS.SUBMITTED || normalized === HOMEWORK_STATUS.RESUBMITTED;
+}
+
+/**
+ * Compute effective_due_date:
+ * Returns extended_due_date if set, else due_date.
+ * Always returns a plain date string (yyyy-MM-dd) or null.
+ */
+export function getEffectiveDueDate(homework) {
+  return homework?.extended_due_date || homework?.due_date || null;
+}
+
+/**
+ * Returns true if the effective due date has passed (end-of-day).
+ */
+export function isOverdueByEffectiveDueDate(homework) {
+  const edd = getEffectiveDueDate(homework);
+  if (!edd) return false;
+  const dueMs = new Date(edd + 'T23:59:59').getTime();
+  return Date.now() > dueMs;
+}
+
+/**
+ * Build virtual NOT_SUBMITTED rows for a homework:
+ * For every assigned student who has NO real submission record,
+ * and the effective_due_date has passed, return a synthetic "not submitted" row.
+ *
+ * @param {Object} homework
+ * @param {Map} latestRealSubmissionMap - Map<student_id, submission>
+ * @param {Array} assignedStudents
+ * @returns {Array} synthetic submission-like objects with status NOT_SUBMITTED
+ */
+export function buildNotSubmittedRows(homework, latestRealSubmissionMap, assignedStudents) {
+  if (homework.submission_mode !== 'SUBMISSION_REQUIRED') return [];
+  if (!isOverdueByEffectiveDueDate(homework)) return [];
+
+  return assignedStudents
+    .filter(st => !latestRealSubmissionMap.has(st.student_id))
+    .map(st => ({
+      _virtual: true,
+      homework_id: homework.id,
+      student_id: st.student_id,
+      student_name: st.name,
+      class_name: st.class_name,
+      section: st.section,
+      status: HOMEWORK_STATUS.NOT_SUBMITTED,
+      teacher_marks: 0,
+      teacher_feedback: '',
+      is_late: true,
+      submitted_at: null,
+    }));
 }
