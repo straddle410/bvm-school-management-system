@@ -57,7 +57,7 @@ const LogoWithFallback = ({ src, alt, schoolProfile }) => {
 };
 
 // Pages that don't use the app shell
-const NO_LAYOUT_PAGES = ['Index', 'Home', 'PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentHallTicketView', 'StudentMessaging', 'UserProfile', 'PrintReceiptA5'];
+const NO_LAYOUT_PAGES = ['Index', 'index', 'Home', 'PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentHallTicketView', 'StudentMessaging', 'UserProfile', 'PrintReceiptA5'];
 
 // Pages students CAN visit through the layout (using bottom nav)
 const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Quiz', 'Results', 'More'];
@@ -73,8 +73,8 @@ export default function Layout({ children, currentPageName }) {
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
   useEffect(() => {
-    // Redirect root (Index page) to Home
-    if (currentPageName === 'Index') {
+    // Redirect root (Index/index page) to Home
+    if (currentPageName === 'Index' || currentPageName === 'index') {
       navigate(createPageUrl('Home'), { replace: true });
       return;
     }
