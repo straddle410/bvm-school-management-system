@@ -28,7 +28,7 @@ import {
   Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange,
   AlertCircle, Lock, BarChart3, Plus, Trash2, Edit2
 } from 'lucide-react';
-import { format, getDay, eachDayOfInterval, parseISO, utcToZonedTime } from 'date-fns-tz';
+import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
@@ -80,7 +80,10 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const queryClient = useQueryClient();
 
   const workingDate = isAdmin ? selectedDate : todayDate;
-  const isSunday = getDay(utcToZonedTime(new Date(workingDate + 'T00:00:00Z'), 'Asia/Calcutta')) === 0;
+  // Parse date string correctly: YYYY-MM-DD -> get day of week
+  const dateParts = workingDate.split('-');
+  const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+  const isSunday = dateObj.getDay() === 0;
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', academicYear],
