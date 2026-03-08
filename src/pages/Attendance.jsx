@@ -147,7 +147,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
         setHolidayReason(isMarkedHoliday ? (holidays[0]?.title || 'Holiday') : (isSunday ? 'Sunday' : ''));
       }
     }
-  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays, hasOverride, effectiveHoliday]);
+  }, [existingAttendance, isSunday, manuallyChanged, isMarkedHoliday, holidays, hasOverride, effectiveHoliday, isHoliday]);
 
   const filteredStudents = students.filter(s =>
     s.class_name === selectedClass && s.section === selectedSection
@@ -304,8 +304,15 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             <HolidayStatusDisplay isHoliday={isHoliday} isSunday={isSunday} hasOverride={hasOverride} holidayReason={holidayReason} />
           )}
 
-          {isHoliday && canOverrideHoliday && selectedClass && (
-            <HolidayOverrideToggle selectedDate={workingDate} canOverride={canOverrideHoliday} user={user} academicYear={academicYear} />
+          {isHoliday && canOverrideHoliday && selectedClass && selectedSection && (
+            <HolidayOverrideToggle 
+              selectedDate={workingDate} 
+              selectedClass={selectedClass}
+              selectedSection={selectedSection}
+              canOverride={canOverrideHoliday} 
+              user={user} 
+              academicYear={academicYear} 
+            />
           )}
 
           {canManageHolidays && (
