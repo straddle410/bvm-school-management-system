@@ -298,7 +298,7 @@ export default function Students() {
 
   const softDeleteMutation = useMutation({
     mutationFn: async ({ id, action }) => {
-      const res = await base44.functions.invoke('softDeleteStudent', { student_id: id, action });
+      const res = await base44.functions.invoke('softDeleteStudent', { student_id: id, action, staff_session_token: getStaffSession()?.staff_session_token || null });
       if (res.data?.blocked) throw new Error(res.data.error);
       if (res.data?.error) throw new Error(res.data.error);
       return res.data;
