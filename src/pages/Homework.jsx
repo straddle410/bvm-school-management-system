@@ -726,6 +726,9 @@ export default function Homework() {
             </div>
           )}
 
+          {/* End Dashboard Tab */}
+          </>}
+
           {/* Form Dialog */}
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogContent className="max-w-lg">
