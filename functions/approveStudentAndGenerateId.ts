@@ -104,16 +104,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate temporary password
-    const tempPassword = `BVM${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    // Fixed default password: BVM123
+    const DEFAULT_PASSWORD = 'BVM123';
+    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
 
     // ATOMIC UPDATE: change status + set ID + set credentials in one operation
-    const updated = await base44.asServiceRole.entities.Student.update(student_db_id, {
+    await base44.asServiceRole.entities.Student.update(student_db_id, {
       status: 'Approved',
       student_id: generatedId,
       student_id_norm: generatedId.toLowerCase(),
       username: generatedId,
-      password: tempPassword,
+      password_hash: passwordHash,
+      password: null,
       must_change_password: true,
       approved_by: user.email
     });
