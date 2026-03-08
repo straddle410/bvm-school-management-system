@@ -1,15 +1,58 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function verifyStaffToken(token) {
+  try {
+    const secret = Deno.env.get('STAFF_SESSION_SECRET');
+    if (!secret || !token) return null;
+    const dotIdx = token.lastIndexOf('.');
+    if (dotIdx < 0) return null;
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigB64 = token.slice(dotIdx + 1);
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+    );
+    const sigBytes = Uint8Array.from(atob(sigB64.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payloadB64));
+    if (!valid) return null;
+    const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+    let exp = payload.exp;
+    if (exp > 1e12) exp = Math.floor(exp / 1000);
+    if (exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const body = await req.json();
+    const { action, student_id, staff_session_token } = body;
 
-    if (!user || (user.role !== 'admin' && user.role !== 'principal')) {
-      return Response.json({ error: 'Forbidden: Admin or Principal access required' }, { status: 403 });
+    // Auth: staff session token first, fall back to base44.auth.me()
+    let userRole = null;
+    let performedBy = 'unknown';
+
+    if (staff_session_token) {
+      const payload = await verifyStaffToken(staff_session_token);
+      if (payload) {
+        userRole = (payload.role || '').toLowerCase();
+        performedBy = payload.email || payload.username || 'staff';
+      }
     }
 
-    const { action, student_id } = await req.json();
+    if (!userRole) {
+      const user = await base44.auth.me().catch(() => null);
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      userRole = (user.role || '').toLowerCase();
+      performedBy = user.email || 'unknown';
+    }
+
+    if (!['admin', 'principal'].includes(userRole)) {
+      return Response.json({ error: 'Forbidden: Admin or Principal access required' }, { status: 403 });
+    }
 
     if (!action || !student_id) {
       return Response.json({ error: 'action and student_id are required' }, { status: 400 });
