@@ -28,6 +28,8 @@ export default function HomeworkTakeModal({ homework, student, existingSubmissio
       const saved = sessionStorage.getItem(sessionKey);
       if (saved) return JSON.parse(saved);
     } catch {}
+    // For revision/resubmit, start fresh (previous files shown separately)
+    if (canResubmitHomework(normalizeHomeworkSubmissionStatus(existingSubmission?.status))) return [];
     return existingSubmission?.file_urls || [];
   });
   const [uploading, setUploading] = useState(false);
