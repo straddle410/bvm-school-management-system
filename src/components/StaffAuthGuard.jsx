@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-const PUBLIC_PAGES = ['Index', 'Home', 'StaffLogin', 'StudentLogin'];
+const PUBLIC_PAGES = ['Index', 'index', 'Home', 'StaffLogin', 'StudentLogin'];
 
 const STAFF_PAGES = [
   'Dashboard',
