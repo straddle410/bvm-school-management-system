@@ -10,7 +10,6 @@ import {
   Ticket, BarChart3
 } from 'lucide-react';
 import StudentBottomNav from '@/components/StudentBottomNav';
-import StudentSimpleNotificationListener from '@/components/StudentSimpleNotificationListener';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
 
