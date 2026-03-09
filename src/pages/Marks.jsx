@@ -876,8 +876,7 @@ export default function Marks() {
                      <Button 
                        variant="outline"
                        onClick={() => {
-                         setSaveMode('draft');
-                         saveMutation.mutate();
+                         saveMutation.mutate('draft');
                        }}
                        disabled={saveMutation.isPending || !canEdit}
                        className="gap-2"
