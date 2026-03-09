@@ -158,30 +158,20 @@ export default function Layout({ children, currentPageName }) {
       <StaffAuthGuard currentPageName={currentPageName}>
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Top Header */}
-      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
+      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
         {currentPageName !== 'Dashboard' && (
-          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition">
+          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
-          <span className="font-bold text-base tracking-tight leading-tight">
-            {schoolProfile?.school_name || 'BVM School of Excellence'}
+          <span className="font-bold text-sm sm:text-base tracking-tight leading-tight truncate">
+            {schoolProfile?.school_name || 'BVM School'}
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <AcademicYearSelector />
-          {user && (
-            <Link
-              to={createPageUrl('Profile')}
-              className="flex items-center gap-2 hover:bg-white/20 px-3 py-1 rounded-lg transition text-sm"
-              title={user.name || user.email}
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline truncate max-w-[100px]">{user.name || user.email}</span>
-            </Link>
-          )}
         </div>
       </header>
 
