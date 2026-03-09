@@ -231,18 +231,13 @@ export default function Marks() {
     ? timetableSubjects 
     : (subjects.length > 0 ? subjects : DEFAULT_SUBJECTS);
 
-  // Lookup by name first, fallback to ID in case name doesn't match
-  const selectedExamType = examTypes.find(e => 
-    e.name === selectedExam || e.id === selectedExam
-  );
+  const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const saveMutation = useMutation({
      mutationFn: async () => {
-        console.log('[SAVE_MUTATION_FN_START]', { selectedExam, selectedExamType: selectedExamType?.name, selectedExamTypeId: selectedExamType?.id, examTypesCount: examTypes.length });
         if (!selectedExamType?.id) {
-          console.log('[SAVE_MUTATION_GUARD_FAIL]', { message: 'Exam type not loaded', selectedExamType, selectedExam });
           throw new Error('Exam type not loaded. Please reselect the exam and try again.');
         }
 
@@ -330,38 +325,12 @@ export default function Marks() {
 
        return Promise.all(promises);
      },
-     onSuccess: async (results) => {
-       // Check if all results have persistence verified
-       const allPersisted = results.every(res => res?.success && res?.persistence_verified);
-
-       if (allPersisted) {
-         const result = await queryClient.refetchQueries({
-           queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear]
-         });
-
-         // Sync marksData from fresh existingMarks so table updates immediately
-         const freshMarks = result[0]?.data || [];
-         if (freshMarks.length > 0) {
-           const data = {};
-           freshMarks.forEach(m => {
-             if (!data[m.student_id]) data[m.student_id] = {};
-             data[m.student_id][m.subject] = { 
-               marks_obtained: m.marks_obtained, 
-               id: m.id, 
-               status: m.status,
-               remarks: m.remarks 
-             };
-           });
-           setMarksData(data);
-         }
-
-         if (saveMode === 'submit') {
-           toast.success('Marks submitted successfully');
-         } else {
-           toast.success('Marks saved successfully');
-         }
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
+       if (saveMode === 'submit') {
+         toast.success('Marks submitted successfully!');
        } else {
-         toast.error('Marks were not saved. Please try again.');
+         toast.success('Marks saved as draft');
        }
        setSaveMode('draft');
        setActiveSaveAction(null);
@@ -784,10 +753,8 @@ export default function Marks() {
                         <Button 
                            variant="outline"
                            onClick={() => {
-                             console.log('[SAVE_DRAFT_BUTTON_CLICK]', { canEdit, selectedExamType: selectedExamType?.name, selectedExamTypeId: selectedExamType?.id, isPending: saveMutation.isPending, disabled: saveMutation.isPending || !canEdit || !selectedExamType?.id });
                              setSaveMode('draft');
                              setActiveSaveAction('draft');
-                             console.log('[SAVE_DRAFT_CALLING_MUTATE]');
                              saveMutation.mutate();
                            }}
                            disabled={saveMutation.isPending || !canEdit || !selectedExamType?.id}
