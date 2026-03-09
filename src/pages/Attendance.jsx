@@ -646,7 +646,7 @@ function AttendanceSummaryTab({ academicYear, user }) {
   });
 
   const { data: attendanceRecords = [] } = useQuery({
-    queryKey: ['attendance-range', filters.class, filters.section, filters.fromDate, filters.toDate, academicYear],
+    queryKey: ['attendance-range', filters.class, filters.section, filters.fromDate, filters.toDate, academicYear, hasGenerated],
     queryFn: () => base44.entities.Attendance.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear })
       .then(all => all.filter(a => a.date >= filters.fromDate && a.date <= filters.toDate)),
     enabled: hasGenerated && !!filters.class && !!filters.fromDate && !!filters.toDate
