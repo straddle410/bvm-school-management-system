@@ -84,11 +84,7 @@ export default function StudentDashboard() {
       setHomework(r?.data?.homework || []);
       setSubmissions(r?.data?.submissions || []);
 
-      if (attendData?.data?.attendance_percentage) {
-        setAttendancePct(Math.round(attendData.data.attendance_percentage));
-      } else {
-        setAttendancePct(0);
-      }
+      setAttendancePct(attendData?.percentage ? Math.round(attendData.percentage) : 0);
 
       if (yearData?.year) {
         setCurrentYear(yearData.year);
