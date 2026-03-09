@@ -194,7 +194,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
                   <SelectValue placeholder="Select teacher / admin..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {allTeachers.map(t => (
+                  {allTeachers.filter(t => !!t.email).map(t => (
                     <SelectItem key={t.email} value={t.email}>
                       {t.full_name || t.name} — {t.role || 'Teacher'}
                     </SelectItem>
@@ -251,10 +251,10 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
           <Input placeholder="Subject (optional)" value={subject} onChange={e => setSubject(e.target.value)} />
 
           {subjects.length > 0 && (
-            <Select value={subjectArea} onValueChange={setSubjectArea}>
+            <Select value={subjectArea || '__none__'} onValueChange={val => setSubjectArea(val === '__none__' ? '' : val)}>
               <SelectTrigger><SelectValue placeholder="Related subject (optional)" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {subjects.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
