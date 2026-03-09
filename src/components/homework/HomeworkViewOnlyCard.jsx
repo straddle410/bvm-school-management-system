@@ -12,9 +12,9 @@ export default function HomeworkViewOnlyCard({ homework }) {
       try {
         const studentFilter = {
           class_name: homework.class_name,
-          is_deleted: { $ne: true },
-          is_active: true,
-          status: { $in: ['Verified', 'Approved', 'Published'] },
+          is_deleted: false,
+          status: 'Published',
+          academic_year: homework.academic_year,
         };
         if (homework.section && homework.section !== 'All') {
           studentFilter.section = homework.section;
