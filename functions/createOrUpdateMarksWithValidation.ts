@@ -185,11 +185,24 @@ Deno.serve(async (req) => {
     }
 
     const persistedRecord = verifyMarks[0];
+
+    // CRITICAL: Verify status field was actually persisted (not just record existence)
+    if (normalizedMarkData.status && persistedRecord.status !== normalizedMarkData.status) {
+      return Response.json({
+        error: `Status update failed: expected "${normalizedMarkData.status}", got "${persistedRecord.status}"`,
+        operation,
+        record_id: recordId,
+        expected_status: normalizedMarkData.status,
+        actual_status: persistedRecord.status
+      }, { status: 500 });
+    }
+
     return Response.json({
       success: true,
       message: `Mark ${operation}d successfully`,
       record_id: persistedRecord.id,
       operation,
+      persisted_status: persistedRecord.status,
       uniqueness_checked: true,
       status_validated: true,
       persistence_verified: true
