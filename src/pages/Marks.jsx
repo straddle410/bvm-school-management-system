@@ -58,6 +58,7 @@ export default function Marks() {
   const [selectedExam, setSelectedExam] = useState('');
   const [marksData, setMarksData] = useState({});
   const [saveMode, setSaveMode] = useState('draft'); // 'draft' or 'submit'
+  const [activeSaveAction, setActiveSaveAction] = useState(null); // 'draft', 'submit', or null
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState('');
   const [viewMode, setViewMode] = useState('entry'); // 'entry' or 'review'
@@ -329,9 +330,11 @@ export default function Marks() {
          toast.success('Marks saved as draft');
        }
        setSaveMode('draft');
+       setActiveSaveAction(null);
        setShowSubmitConfirm(false);
      },
      onError: (error) => {
+       setActiveSaveAction(null);
        if (error.message === 'PAST_YEAR_WARNING') {
          setShowPastYearWarning(true);
        } else if (error.message !== 'VALIDATION_ERROR') {
@@ -744,33 +747,35 @@ export default function Marks() {
 
                 {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
-                     <Button 
-                       variant="outline"
-                       onClick={() => {
-                         setSaveMode('draft');
-                         saveMutation.mutate();
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <FileText className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                     </Button>
-                     <Button 
-                       onClick={() => {
-                         if (!canEdit) {
-                           toast.error('Cannot submit. Marks are locked.');
-                           return;
-                         }
-                         setShowSubmitConfirm(true);
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <Send className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
-                     </Button>
-                   </div>
+                        <Button 
+                          variant="outline"
+                          onClick={() => {
+                            setSaveMode('draft');
+                            setActiveSaveAction('draft');
+                            saveMutation.mutate();
+                          }}
+                          disabled={saveMutation.isPending || !canEdit}
+                          className="gap-2"
+                        >
+                          <FileText className="h-4 w-4" />
+                          {saveMutation.isPending && activeSaveAction === 'draft' ? 'Saving...' : 'Save as Draft'}
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            if (!canEdit) {
+                              toast.error('Cannot submit. Marks are locked.');
+                              return;
+                            }
+                            setActiveSaveAction('submit');
+                            setShowSubmitConfirm(true);
+                          }}
+                          disabled={saveMutation.isPending || !canEdit}
+                          className="gap-2"
+                        >
+                          <Send className="h-4 w-4" />
+                          {saveMutation.isPending && activeSaveAction === 'submit' ? 'Submitting...' : 'Submit Marks'}
+                        </Button>
+                      </div>
                  )}
               </>
             )}
@@ -969,6 +974,7 @@ export default function Marks() {
             <AlertDialogAction
               onClick={() => {
                 setSaveMode('submit');
+                setActiveSaveAction('submit');
                 saveMutation.mutate();
               }}
               className="bg-indigo-600 hover:bg-indigo-700"
