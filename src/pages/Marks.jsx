@@ -1114,7 +1114,17 @@ export default function Marks() {
       </Dialog>
 
       {/* Submit Marks Confirmation Dialog */}
-      <AlertDialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
+      <AlertDialog 
+       open={showSubmitConfirm} 
+       onOpenChange={(newState) => {
+         console.log('🔴 [ALERT_DIALOG_onOpenChange]', {
+           timestamp: new Date().toISOString(),
+           newState,
+           previousShowSubmitConfirm: showSubmitConfirm
+         });
+         setShowSubmitConfirm(newState);
+       }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
