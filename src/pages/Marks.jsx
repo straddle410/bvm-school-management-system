@@ -400,6 +400,12 @@ export default function Marks() {
        });
        },
        onSuccess: async (resolvedResults) => {
+       console.log('✅ [ON_SUCCESS_START]', {
+         timestamp: new Date().toISOString(),
+         resultsLength: resolvedResults?.length,
+         currentShowSubmitConfirm: showSubmitConfirm,
+         mode: saveMode
+       });
        console.log('✅ onSuccess FIRED with resolved results:', {
          resultsLength: resolvedResults?.length,
          resolvedResults: JSON.stringify(resolvedResults, null, 2)
