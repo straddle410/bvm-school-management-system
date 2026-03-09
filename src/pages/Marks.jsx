@@ -884,20 +884,18 @@ export default function Marks() {
                        <FileText className="h-4 w-4" />
                        {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
                      </Button>
-                     <Button 
-                       onClick={() => {
-                         if (!canEdit) {
-                           toast.error('Cannot submit. Marks are locked.');
-                           return;
-                         }
-                         setShowSubmitConfirm(true);
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <Send className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
-                     </Button>
+                     {canSubmit && (
+                       <Button 
+                         onClick={() => {
+                           setShowSubmitConfirm(true);
+                         }}
+                         disabled={saveMutation.isPending}
+                         className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                       >
+                         <Send className="h-4 w-4" />
+                         {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+                       </Button>
+                     )}
                    </div>
                  )}
               </>
