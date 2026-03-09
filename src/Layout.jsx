@@ -75,11 +75,7 @@ export default function Layout({ children, currentPageName }) {
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
   useEffect(() => {
-    // Redirect root (Index/index page) to Home
-    if (currentPageName === 'Index' || currentPageName === 'index') {
-      navigate(createPageUrl('Home'), { replace: true });
-      return;
-    }
+    // Root route is handled by pages/Index.js which does session-based restore
 
     // Check student session first
     let ss = null;
