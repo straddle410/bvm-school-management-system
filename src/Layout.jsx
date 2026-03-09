@@ -166,9 +166,12 @@ export default function Layout({ children, currentPageName }) {
         )}
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
-          <span className="font-bold text-sm sm:text-base tracking-tight leading-tight truncate">
-            {schoolProfile?.school_name || 'BVM School'}
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-bold text-sm sm:text-base tracking-tight leading-tight truncate">
+              {schoolProfile?.school_name || 'BVM School'}
+            </span>
+            {!studentSession && <span className="text-[10px] sm:text-xs text-white/70">Staff Portal</span>}
+          </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <AcademicYearSelector />
