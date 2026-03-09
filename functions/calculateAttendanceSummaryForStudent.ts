@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     }).catch(() => []);
 
     if (!allAttendance || allAttendance.length === 0) {
-      return Response.json({ data: { attendance_percentage: 0, present: 0, total: 0 } });
+      return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
     const start = new Date(startDate);
