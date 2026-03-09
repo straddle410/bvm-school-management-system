@@ -22,7 +22,7 @@ export default function StudentTimetable() {
     
     if (!parsedSession) {
       console.log('[REDIRECT] No session found, redirecting to /StudentLogin');
-      navigate('/StudentLogin');
+      navigate(createPageUrl('StudentLogin'));
       return;
     }
     console.log('[SESSION SET] student_id:', parsedSession.id);
