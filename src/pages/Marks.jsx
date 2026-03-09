@@ -265,15 +265,29 @@ export default function Marks() {
        const promises = [];
        let enteredCount = 0;
 
+       console.log('🔍 DEBUG: Save mutation started', {
+         marksData,
+         subjectList,
+         filteredStudentsCount: filteredStudents.length,
+         saveMode
+       });
+
        filteredStudents.forEach(student => {
          const studentMarks = marksData[student.student_id || student.id];
-         if (!studentMarks) return;
+         if (!studentMarks) {
+           console.log(`⚠️ No marks data for student: ${student.student_id}`);
+           return;
+         }
 
          subjectList.forEach(subject => {
            const existing = studentMarks[subject];
-           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
+           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') {
+             console.log(`⚠️ No marks for ${student.student_id} - ${subject}:`, existing);
+             return;
+           }
 
            enteredCount++;
+           console.log(`✅ Mark counted for ${student.student_id} - ${subject}: ${existing.marks_obtained}`);
            const marks = parseFloat(existing.marks_obtained);
            const percentage = (marks / maxMarks) * 100;
            let grade = 'F';
