@@ -51,7 +51,8 @@ export default function StaffLogin() {
       }
 
       // Always clear any student session — staff must never fall into student flow
-      localStorage.removeItem('student_session');
+      const { saveSession, clearSession } = await import('@/components/sessionHelper');
+      clearSession('student_session');
 
       // Store staff session with long-lived signed token (60 days)
       const session = {
@@ -70,7 +71,7 @@ export default function StaffLogin() {
         token_exp: response.data.token_exp,
       };
 
-      localStorage.setItem('staff_session', JSON.stringify(session));
+      saveSession('staff_session', session);
 
       // Debug: decode token claims to confirm structure
       try {
