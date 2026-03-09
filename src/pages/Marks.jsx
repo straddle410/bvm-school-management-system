@@ -289,6 +289,7 @@ export default function Marks() {
            }
 
            enteredCount++;
+           countedPairs.push({ studentId: student.student_id || student.id, subject, marksValue: existing.marks_obtained });
            console.log(`✅ Mark counted for ${student.student_id} - ${subject}: ${existing.marks_obtained}`);
            const marks = parseFloat(existing.marks_obtained);
            const percentage = (marks / maxMarks) * 100;
