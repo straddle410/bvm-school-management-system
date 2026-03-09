@@ -352,10 +352,59 @@ export default function Marks() {
          throw new Error('No marks entered');
        }
 
-       return Promise.all(promises);
-     },
-     onSuccess: () => {
+       return Promise.all(promises).then(results => {
+         console.log('🎉 Promise.all(promises) RESOLVED with:', {
+           promisesLength: promises.length,
+           resultsLength: results.length,
+           resultsArray: JSON.stringify(results, null, 2),
+           firstResult: results[0],
+           lastResult: results[results.length - 1]
+         });
+         return results;
+       });
+       },
+       onSuccess: async (resolvedResults) => {
+       console.log('✅ onSuccess FIRED with resolved results:', {
+         resultsLength: resolvedResults?.length,
+         resolvedResults: JSON.stringify(resolvedResults, null, 2)
+       });
+
+       console.log('📖 IMMEDIATELY READING MARKS ENTITY POST-SAVE for:', {
+         selectedClass,
+         selectedSection,
+         academicYear,
+         examTypeId: selectedExamType?.id || selectedExam
+       });
+
+       // Direct read from entity immediately after save
+       const freshMarks = await base44.entities.Marks.filter({
+         class_name: selectedClass,
+         section: selectedSection,
+         academic_year: academicYear,
+         exam_type: selectedExamType?.id || selectedExam
+       }).catch(err => {
+         console.error('❌ ERROR reading fresh marks:', err);
+         return [];
+       });
+
+       console.log('📚 FRESH MARKS FROM DB POST-SAVE:', {
+         count: freshMarks.length,
+         records: JSON.stringify(freshMarks.map(m => ({
+           id: m.id,
+           student_id: m.student_id,
+           subject: m.subject,
+           marks_obtained: m.marks_obtained,
+           status: m.status,
+           exam_type: m.exam_type,
+           class_name: m.class_name,
+           section: m.section,
+           academic_year: m.academic_year
+         })), null, 2)
+       });
+
+       console.log('🔄 INVALIDATING QUERY with key:', ['marks', selectedClass, selectedSection, selectedExam, academicYear]);
        queryClient.invalidateQueries(['marks']);
+
        if (saveMode === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
@@ -363,7 +412,7 @@ export default function Marks() {
        }
        setSaveMode('draft');
        setShowSubmitConfirm(false);
-     },
+       },
      onError: (error) => {
        if (error.message === 'PAST_YEAR_WARNING') {
          setShowPastYearWarning(true);
