@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Upload, X, Check, ChevronLeft, Image, ChevronRight } from 'lucide-react';
+import { Plus, Upload, X, Check, ChevronLeft, Image, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { getStaffSession } from '@/components/useStaffSession';
 import LoginRequired from '@/components/LoginRequired';
 import { toast } from 'sonner';
@@ -303,7 +305,14 @@ export default function Gallery() {
         <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-end justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Albums</h1>
+        <div className="flex items-center gap-2">
+          {isStudent && (
+            <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-gray-100 rounded-lg transition">
+              <ArrowLeft className="h-5 w-5 text-gray-700" />
+            </Link>
+          )}
+          <h1 className="text-2xl font-bold text-gray-900">Albums</h1>
+        </div>
         {canCreateAlbum && (
           <button
             onClick={() => setShowCreateAlbum(true)}

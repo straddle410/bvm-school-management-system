@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, BookOpen, Share2, Printer, Lock } from 'lucide-react';
+import { Search, GraduationCap, BookOpen, Share2, Printer, Lock, ArrowLeft } from 'lucide-react';
 import ProgressReport from '../components/ProgressReport';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -273,7 +273,12 @@ export default function Results() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-[#1a237e] text-white px-4 py-8 text-center">
+      <div className="bg-[#1a237e] text-white px-4 py-8 text-center relative">
+        {studentSession && !studentSession.isStaff && (
+          <Link to={createPageUrl('StudentDashboard')} className="absolute left-4 top-4 p-1 hover:bg-white/20 rounded-lg transition">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        )}
         <div className="max-w-2xl mx-auto">
           <GraduationCap className="h-10 w-10 mx-auto mb-3 text-yellow-400" />
           <h1 className="text-2xl font-bold">Exam Results</h1>

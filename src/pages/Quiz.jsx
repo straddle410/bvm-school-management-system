@@ -298,8 +298,7 @@ export default function Quiz() {
       <PageHeader 
         title="Daily Quiz"
         subtitle="Test your knowledge"
-        showBack={!!studentSession}
-        backUrl={studentSession ? createPageUrl('StudentDashboard') : undefined}
+        backTo={studentSession && !studentSession.isStaff ? 'StudentDashboard' : undefined}
         actions={
           <div className="flex gap-2">
             {Object.keys(unreadQuizNotifMap).length > 0 && (

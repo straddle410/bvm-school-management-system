@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Wallet, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Wallet, AlertCircle, CheckCircle2, Clock, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { createPageUrl } from '@/utils';
 
 export default function StudentFees() {
   const [session, setSession] = useState(null);
@@ -65,10 +67,17 @@ export default function StudentFees() {
     <div className="min-h-screen bg-[#f0f4ff] pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
-        <h1 className="text-lg font-bold flex items-center gap-2">
-          <Wallet className="h-5 w-5" /> Fees
-        </h1>
-        <p className="text-sm text-blue-100">View your fee details</p>
+        <div className="flex items-center gap-3">
+          <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-white/20 rounded-lg transition">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-lg font-bold flex items-center gap-2">
+              <Wallet className="h-5 w-5" /> Fees
+            </h1>
+            <p className="text-sm text-blue-100">View your fee details</p>
+          </div>
+        </div>
       </header>
 
       <div className="px-4 py-6 space-y-4">
