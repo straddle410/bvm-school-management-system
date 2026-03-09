@@ -237,9 +237,13 @@ export default function Marks() {
 
   const saveMutation = useMutation({
      mutationFn: async () => {
-       if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
-         throw new Error('PAST_YEAR_WARNING');
-       }
+        if (!selectedExamType?.id) {
+          throw new Error('Exam type not loaded. Please reselect the exam and try again.');
+        }
+
+        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
+          throw new Error('PAST_YEAR_WARNING');
+        }
 
        // Validation: check if all students have marks for submit mode
        if (saveMode === 'submit') {
@@ -747,18 +751,18 @@ export default function Marks() {
                 {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
                         <Button 
-                          variant="outline"
-                          onClick={() => {
-                            setSaveMode('draft');
-                            setActiveSaveAction('draft');
-                            saveMutation.mutate();
-                          }}
-                          disabled={saveMutation.isPending || !canEdit}
-                          className="gap-2"
-                        >
-                          <FileText className="h-4 w-4" />
-                          {saveMutation.isPending && activeSaveAction === 'draft' ? 'Saving...' : 'Save as Draft'}
-                        </Button>
+                           variant="outline"
+                           onClick={() => {
+                             setSaveMode('draft');
+                             setActiveSaveAction('draft');
+                             saveMutation.mutate();
+                           }}
+                           disabled={saveMutation.isPending || !canEdit || !selectedExamType?.id}
+                           className="gap-2"
+                         >
+                           <FileText className="h-4 w-4" />
+                           {saveMutation.isPending && activeSaveAction === 'draft' ? 'Saving...' : 'Save as Draft'}
+                         </Button>
                         <Button 
                           onClick={() => {
                             if (!canEdit) {
@@ -768,7 +772,7 @@ export default function Marks() {
                             setActiveSaveAction('submit');
                             setShowSubmitConfirm(true);
                           }}
-                          disabled={saveMutation.isPending || !canEdit}
+                          disabled={saveMutation.isPending || !canEdit || !selectedExamType?.id}
                           className="gap-2"
                         >
                           <Send className="h-4 w-4" />
