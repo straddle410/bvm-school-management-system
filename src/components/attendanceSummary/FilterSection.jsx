@@ -1,13 +1,64 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useAcademicYear } from '@/components/AcademicYearContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Filter } from 'lucide-react';
+import { Calendar, Filter, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function FilterSection({ filters, setFilters, onGenerate, classes, sections = ['A'] }) {
+  const { academicYear } = useAcademicYear();
+  const [academicYearData, setAcademicYearData] = useState(null);
+  const [errors, setErrors] = useState([]);
+
+  // Fetch academic year start/end dates
+  useEffect(() => {
+    const fetchAcademicYear = async () => {
+      try {
+        const data = await base44.entities.AcademicYear.filter({ year: academicYear });
+        if (data.length > 0) {
+          setAcademicYearData(data[0]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch academic year:', err);
+      }
+    };
+    if (academicYear) fetchAcademicYear();
+  }, [academicYear]);
+
+  const handleDateChange = (field, value) => {
+    const newErrors = [];
+    let finalValue = value;
+
+    if (field === 'fromDate' && academicYearData) {
+      if (value < academicYearData.start_date) {
+        finalValue = academicYearData.start_date;
+        newErrors.push(`Start date adjusted to ${academicYearData.start_date} (academic year start)`);
+        toast.warning(`Start date adjusted to ${academicYearData.start_date}`);
+      }
+    }
+
+    if (field === 'toDate' && academicYearData) {
+      if (value > academicYearData.end_date) {
+        finalValue = academicYearData.end_date;
+        newErrors.push(`End date adjusted to ${academicYearData.end_date} (academic year end)`);
+        toast.warning(`End date adjusted to ${academicYearData.end_date}`);
+      }
+    }
+
+    setFilters({ ...filters, [field]: finalValue });
+    setErrors(newErrors);
+  };
+
   const handleGenerate = () => {
     if (!filters.class || !filters.section || !filters.fromDate || !filters.toDate) {
       alert('Please select class, section, and date range');
+      return;
+    }
+    if (filters.fromDate > filters.toDate) {
+      alert('From date cannot be after to date');
       return;
     }
     onGenerate();
