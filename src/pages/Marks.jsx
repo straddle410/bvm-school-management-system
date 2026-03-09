@@ -330,12 +330,17 @@ export default function Marks() {
 
        return Promise.all(promises);
      },
-     onSuccess: (results) => {
+     onSuccess: async (results) => {
        // Check if all results have persistence verified
        const allPersisted = results.every(res => res?.success && res?.persistence_verified);
 
        if (allPersisted) {
-         queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
+         await queryClient.invalidateQueries({
+           queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear]
+         });
+         await queryClient.refetchQueries({
+           queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear]
+         });
          if (saveMode === 'submit') {
            toast.success('Marks submitted successfully');
          } else {
