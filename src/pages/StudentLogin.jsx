@@ -34,7 +34,8 @@ export default function StudentLogin() {
         return;
       }
 
-      localStorage.setItem('student_session', JSON.stringify({
+      const { saveSession } = await import('@/components/sessionHelper');
+      saveSession('student_session', {
         id: response.data.student_id,
         student_id: response.data.student_id_display,
         name: response.data.name,
@@ -45,7 +46,7 @@ export default function StudentLogin() {
         academic_year: response.data.academic_year,
         parent_name: response.data.parent_name,
         parent_phone: response.data.parent_phone,
-      }));
+      });
       window.location.href = createPageUrl('StudentDashboard');
     } catch {
       setError('Login failed. Please try again.');
