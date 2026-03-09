@@ -12,6 +12,8 @@ import { exportToExcel, exportToPDF } from '@/components/attendanceSummary/expor
 export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, setSortBy, fromDate, toDate }) {
   const handleHeaderClick = (field) => {
     if (sortBy === field) {
+      setSortBy(`${field}-desc`); // Toggle to descending
+    } else if (sortBy === `${field}-desc`) {
       setSortBy('name'); // Reset to default
     } else {
       setSortBy(field);
