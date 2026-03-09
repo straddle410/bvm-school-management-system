@@ -226,7 +226,7 @@ export default function Marks() {
     ? timetableSubjects 
     : (subjects.length > 0 ? subjects : DEFAULT_SUBJECTS);
 
-  const selectedExamType = examTypes.find(e => e.id === selectedExam);
+  const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
@@ -607,7 +607,7 @@ export default function Marks() {
                     </SelectTrigger>
                     <SelectContent>
                       {examTypes.filter(e => e.is_active !== false).map(e => (
-                        <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                        <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
