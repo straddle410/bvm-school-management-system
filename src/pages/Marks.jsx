@@ -193,21 +193,21 @@ export default function Marks() {
   });
 
   useEffect(() => {
-    if (existingMarks.length > 0) {
-      const data = {};
+    setMarksData(prev => {
+      if (existingMarks.length === 0) return prev;
+      
+      const merged = { ...prev };
       existingMarks.forEach(m => {
-        if (!data[m.student_id]) data[m.student_id] = {};
-        data[m.student_id][m.subject] = { 
+        if (!merged[m.student_id]) merged[m.student_id] = {};
+        merged[m.student_id][m.subject] = { 
           marks_obtained: m.marks_obtained, 
           id: m.id, 
           status: m.status,
           remarks: m.remarks 
         };
       });
-      setMarksData(data);
-    } else {
-      setMarksData({});
-    }
+      return merged;
+    });
   }, [existingMarks]);
 
   const filteredStudents = students.filter(s => 
