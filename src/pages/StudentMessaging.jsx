@@ -146,6 +146,9 @@ export default function StudentMessaging() {
       <div className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-white/20 rounded-lg transition mr-1">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
             <MessageSquare className="h-5 w-5 text-blue-200" />
             <h1 className="font-bold text-lg">Messages</h1>
             {unreadCount > 0 && (

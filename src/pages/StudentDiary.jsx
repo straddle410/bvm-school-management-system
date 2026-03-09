@@ -77,8 +77,15 @@ export default function StudentDiary() {
     <div className="min-h-screen bg-[#f0f4ff] pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
-        <h1 className="text-lg font-bold">Class Diary</h1>
-        <p className="text-sm text-blue-100">Academic updates and announcements</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(createPageUrl('StudentDashboard'))} className="p-1 hover:bg-white/20 rounded-lg transition">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold">Class Diary</h1>
+            <p className="text-sm text-blue-100">Academic updates and announcements</p>
+          </div>
+        </div>
       </header>
 
       <div className="px-4 py-6 space-y-4">

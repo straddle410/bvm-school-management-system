@@ -52,11 +52,18 @@ export default function StudentTimetable() {
     <div className="min-h-screen bg-gray-100 flex flex-col pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 sticky top-0 z-50 shadow-md">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Class Timetable
-        </h1>
-        <p className="text-blue-200 text-sm mt-1">Class {session.class_name}-{session.section}</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(createPageUrl('StudentDashboard'))} className="p-1 hover:bg-white/20 rounded-lg transition">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Class Timetable
+            </h1>
+            <p className="text-blue-200 text-sm mt-1">Class {session.class_name}-{session.section}</p>
+          </div>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-4 max-w-2xl mx-auto w-full">
