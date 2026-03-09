@@ -743,46 +743,26 @@ export default function Marks() {
 
                 {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
-                     <Button 
-                       variant="outline"
-                       onClick={() => {
-                         console.log('🟢 [DRAFT_BUTTON_CLICK_START]', {
-                           timestamp: new Date().toISOString(),
-                           canEdit,
-                           canSave,
-                           currentStatus,
-                           saveMutation_isPending: saveMutation.isPending
-                         });
-                         saveMutation.mutate('draft');
-                         console.log('🟢 [DRAFT_BUTTON_CLICK_END] - saveMutation.mutate("draft") called');
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <FileText className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                     </Button>
-                     {canSubmit && (
-                       <Button 
-                         onClick={() => {
-                           console.log('🔵 [SUBMIT_BUTTON_CLICK_START]', {
-                             timestamp: new Date().toISOString(),
-                             canEdit,
-                             canSave,
-                             currentStatus,
-                             canSubmit
-                           });
-                           setShowSubmitConfirm(true);
-                           console.log('🔵 [SUBMIT_BUTTON_CLICK_END] - setShowSubmitConfirm(true) called');
-                         }}
-                         disabled={saveMutation.isPending}
-                         className="gap-2 bg-indigo-600 hover:bg-indigo-700"
-                       >
-                         <Send className="h-4 w-4" />
-                         {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
-                       </Button>
-                     )}
-                   </div>
+                      <Button 
+                        variant="outline"
+                        onClick={() => saveMutation.mutate('draft')}
+                        disabled={saveMutation.isPending || !canEdit}
+                        className="gap-2"
+                      >
+                        <FileText className="h-4 w-4" />
+                        {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                      </Button>
+                      {canSubmit && (
+                        <Button 
+                          onClick={() => setShowSubmitConfirm(true)}
+                          disabled={saveMutation.isPending}
+                          className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          <Send className="h-4 w-4" />
+                          {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+                        </Button>
+                      )}
+                    </div>
                  )}
               </>
             )}
