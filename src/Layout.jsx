@@ -65,7 +65,9 @@ const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Q
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
-  const [studentSession, setStudentSession] = useState(null);
+  const [studentSession, setStudentSession] = useState(() => {
+    try { const raw = localStorage.getItem('student_session'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('');
