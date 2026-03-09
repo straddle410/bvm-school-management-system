@@ -140,12 +140,9 @@ export default function Marks() {
     queryKey: ['class-subjects', academicYear, selectedClass],
     queryFn: async () => {
       if (!selectedClass) {
-        console.log('[SUBJECT_CALLSITE] pages/Marks:113');
         return [];
       }
-      console.log('[MARKS_PAGE]', { year: academicYear, classRaw: selectedClass });
       const result = await getSubjectsForClass(academicYear, selectedClass);
-      console.log('[MARKS_PAGE_RESULT]', { source: result.source, subjects: result.subjects });
       return result.subjects;
     },
     enabled: !!academicYear,
