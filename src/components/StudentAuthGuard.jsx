@@ -30,21 +30,11 @@ export default function StudentAuthGuard({ children, currentPageName }) {
       return;
     }
 
-    // Check for student and staff sessions
-    let hasStudentSession = false;
-    let hasStaffSession = false;
-    try {
-      const studentSession = localStorage.getItem('student_session');
-      if (studentSession) {
-        const parsed = JSON.parse(studentSession);
-        hasStudentSession = !!parsed;
-      }
-      const staffSession = localStorage.getItem('staff_session');
-      if (staffSession) {
-        const parsed = JSON.parse(staffSession);
-        hasStaffSession = !!parsed;
-      }
-    } catch {}
+    // Check for student and staff sessions (localStorage + cookie fallback)
+    const studentData = getSession('student_session');
+    const staffData = getSession('staff_session');
+    const hasStudentSession = !!studentData;
+    const hasStaffSession = !!staffData;
 
     // If staff session exists BUT no student session, redirect to staff dashboard
     if (hasStaffSession && !hasStudentSession) {
