@@ -13,21 +13,13 @@ export default function StudentTimetable() {
   console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
+  const [session] = useState(() => {
+    try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
 
   useEffect(() => {
-    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
-    let parsedSession = null;
-    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) { console.error('[PARSE ERROR]', e); }
-    
-    if (!parsedSession) {
-      console.log('[REDIRECT] No session found, redirecting to /StudentLogin');
-      navigate(createPageUrl('StudentLogin'));
-      return;
-    }
-    console.log('[SESSION SET] student_id:', parsedSession.student_id);
-    setSession(parsedSession);
-  }, [navigate]);
+    if (!session) navigate(createPageUrl('StudentLogin'));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: timetableData = {}, isLoading } = useQuery({
     queryKey: ['student-timetable', session?.student_id],
@@ -43,7 +35,8 @@ export default function StudentTimetable() {
         return {};
       }
     },
-    enabled: !!session?.student_id
+    enabled: !!session?.student_id,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (!session) return null;

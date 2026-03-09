@@ -12,27 +12,22 @@ export default function StudentDiary() {
   console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
+  const [session] = useState(() => {
+    try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
   const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
-    let parsedSession = null;
-    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) { console.error('[PARSE ERROR]', e); }
-    
-    if (!parsedSession) {
-      console.log('[REDIRECT] No session found, redirecting to /StudentLogin');
-      navigate(createPageUrl('StudentLogin'));
-      return;
-    }
-    console.log('[SESSION SET] student_id:', parsedSession.student_id);
-    setSession(parsedSession);
+    if (!session) navigate(createPageUrl('StudentLogin'));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Mark DIARY_PUBLISHED notifications as read
+  // Mark DIARY_PUBLISHED notifications as read — separate effect, runs once on mount
+  useEffect(() => {
+    if (!session?.email) return;
     const markNotificationsRead = async () => {
       try {
         const notifications = await base44.entities.Notification.filter({
-          recipient_email: parsedSession.email,
+          recipient_email: session.email,
           notification_type: 'DIARY_PUBLISHED',
           is_read: false
         });
@@ -42,7 +37,7 @@ export default function StudentDiary() {
       } catch {}
     };
     markNotificationsRead();
-  }, [navigate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: diaryEntries = [], isLoading } = useQuery({
     queryKey: ['student-diary', session?.student_id],
@@ -60,7 +55,8 @@ export default function StudentDiary() {
         return [];
       }
     },
-    enabled: !!session?.student_id
+    enabled: !!session?.student_id,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (!session) return null;

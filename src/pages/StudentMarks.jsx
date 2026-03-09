@@ -11,34 +11,27 @@ export default function StudentMarks() {
   console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
+  const [session] = useState(() => {
+    try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
 
   useEffect(() => {
-    const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
-    let parsedSession = null;
-    try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) { console.error('[PARSE ERROR]', e); }
-    
-    if (!parsedSession) {
-      console.log('[REDIRECT] No session found, redirecting to /StudentLogin');
-      navigate(createPageUrl('StudentLogin'));
-      return;
-    }
-    console.log('[SESSION SET] student_id:', parsedSession.student_id);
-    setSession(parsedSession);
-  }, [navigate]);
+    if (!session) navigate(createPageUrl('StudentLogin'));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: marks = [], isLoading } = useQuery({
     queryKey: ['student-marks', session?.student_id],
     queryFn: async () => {
       if (!session?.student_id) return [];
-      // PRIORITY 3: Marks RLS is read:false — use backend function that serves only Published marks
+      // Marks RLS is read:false — use backend function that serves only Published marks
       const res = await base44.functions.invoke('getStudentMarks', {
         student_id: session.student_id,
         academic_year: session.academic_year
       });
       return res.data?.marks || [];
     },
-    enabled: !!session?.student_id
+    enabled: !!session?.student_id,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (!session) return null;
