@@ -151,6 +151,7 @@ export default function Settings() {
     start_date: '',
     end_date: ''
   });
+  const [editingYearId, setEditingYearId] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -209,7 +210,22 @@ export default function Settings() {
       queryClient.invalidateQueries(['academic-years']);
       setShowYearDialog(false);
       setYearForm({ year: '', start_date: '', end_date: '' });
+      setEditingYearId(null);
       toast.success('Academic year created');
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const updateYearDatesMutation = useMutation({
+    mutationFn: async (data) => {
+      return base44.entities.AcademicYear.update(editingYearId, { start_date: data.start_date, end_date: data.end_date });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['academic-years']);
+      setShowYearDialog(false);
+      setYearForm({ year: '', start_date: '', end_date: '' });
+      setEditingYearId(null);
+      toast.success('Academic year dates updated');
     },
     onError: (err) => toast.error(err.message)
   });
@@ -602,11 +618,11 @@ export default function Settings() {
                           year.is_current ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-50'
                         }`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-1">
                           <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0">
                             <Calendar className="h-6 w-6 text-blue-600" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <p className="font-semibold">{year.year}</p>
                             <p className="text-sm text-slate-500">{year.start_date} to {year.end_date}</p>
                           </div>
@@ -616,6 +632,17 @@ export default function Settings() {
                             <span className="text-xs text-slate-400 italic">Archived — restore via status</span>
                           ) : (
                             <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingYearId(year.id);
+                                  setYearForm({ year: year.year, start_date: year.start_date, end_date: year.end_date });
+                                  setShowYearDialog(true);
+                                }}
+                              >
+                                Edit Dates
+                              </Button>
                               <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border">
                                 <span className="text-xs font-medium text-slate-600">Admissions Open</span>
                                 <Switch
@@ -844,16 +871,21 @@ export default function Settings() {
               </div>
               </div>
 
-          {/* Add Year Dialog */}
-      <Dialog open={showYearDialog} onOpenChange={setShowYearDialog}>
-        <DialogContent>
+          {/* Add/Edit Year Dialog */}
+          <Dialog open={showYearDialog} onOpenChange={setShowYearDialog}>
+          <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Academic Year</DialogTitle>
+            <DialogTitle>{editingYearId ? 'Edit Academic Year Dates' : 'Add Academic Year'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
-            createYearMutation.mutate({...yearForm, status: 'Active', is_current: false, is_locked: false});
+            if (editingYearId) {
+              updateYearDatesMutation.mutate(yearForm);
+            } else {
+              createYearMutation.mutate({...yearForm, status: 'Active', is_current: false, is_locked: false});
+            }
           }} className="space-y-4">
+            {!editingYearId && (
             <div>
               <Label>Year</Label>
               <Input
@@ -866,6 +898,7 @@ export default function Settings() {
                 <p className="text-xs text-red-600 mt-1">⚠️ This academic year already exists.</p>
               )}
             </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Start Date</Label>
@@ -887,14 +920,21 @@ export default function Settings() {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setShowYearDialog(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                setShowYearDialog(false);
+                setEditingYearId(null);
+                setYearForm({ year: '', start_date: '', end_date: '' });
+              }}>
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={createYearMutation.isPending || (!!yearForm.year && activeYears.some(y => y.year.trim() === yearForm.year.trim()))}
+                disabled={editingYearId ? updateYearDatesMutation.isPending : createYearMutation.isPending || (!!yearForm.year && activeYears.some(y => y.year.trim() === yearForm.year.trim()))}
               >
-                {createYearMutation.isPending ? 'Creating...' : 'Create Year'}
+                {editingYearId 
+                  ? updateYearDatesMutation.isPending ? 'Updating...' : 'Update Dates'
+                  : createYearMutation.isPending ? 'Creating...' : 'Create Year'
+                }
               </Button>
             </div>
           </form>
