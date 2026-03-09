@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     const { student_id, academic_year } = await req.json();
 
     if (!student_id || !academic_year) {
-      return Response.json({ data: { attendance_percentage: 0, present: 0, total: 0 } });
+      return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
     // Fetch current academic year dates
