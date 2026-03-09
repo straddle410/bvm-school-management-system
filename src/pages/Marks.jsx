@@ -167,7 +167,7 @@ export default function Marks() {
       return base44.entities.Marks.filter({
         class_name: selectedClass,
         section: selectedSection,
-        exam_type: selectedExamType?.id || selectedExam,
+        exam_type: selectedExamType?.id,
         academic_year: academicYear
       });
     },
