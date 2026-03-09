@@ -236,13 +236,15 @@ export default function Marks() {
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const saveMutation = useMutation({
-     mutationFn: async () => {
-       if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
-         throw new Error('PAST_YEAR_WARNING');
-       }
+      mutationFn: async () => {
+        console.log('[MARKS_SAVE_START]', { saveMode, currentStatus, canEdit, marksDataKeys: Object.keys(marksData) });
 
-       // Validation: check if all students have marks for submit mode
-       if (saveMode === 'submit') {
+        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
+          throw new Error('PAST_YEAR_WARNING');
+        }
+
+        // Validation: check if all students have marks for submit mode
+        if (saveMode === 'submit') {
          const missingStudents = filteredStudents.filter(student => {
            const studentMarks = marksData[student.student_id || student.id];
            if (!studentMarks) return true;
@@ -267,14 +269,21 @@ export default function Marks() {
 
        filteredStudents.forEach(student => {
          const studentMarks = marksData[student.student_id || student.id];
-         if (!studentMarks) return;
+         if (!studentMarks) {
+           console.log('[MARKS_STUDENT_SKIP]', { studentId: student.student_id || student.id, reason: 'no_marks_data' });
+           return;
+         }
 
          subjectList.forEach(subject => {
            const existing = studentMarks[subject];
-           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
+           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') {
+             console.log('[MARKS_SUBJECT_SKIP]', { studentId: student.student_id || student.id, subject, reason: 'no_marks_value' });
+             return;
+           }
 
            enteredCount++;
            const marks = parseFloat(existing.marks_obtained);
+           console.log('[MARKS_BUILDING]', { studentId: student.student_id || student.id, subject, marks });
            const percentage = (marks / maxMarks) * 100;
            let grade = 'F';
            if (percentage >= 90) grade = 'A+';
@@ -300,20 +309,28 @@ export default function Marks() {
              remarks: existing.remarks
            };
 
+           console.log('[MARKS_PAYLOAD]', data);
+
            const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
              markData: data,
              markId: existing?.id,
              operation: existing?.id ? 'update' : 'create'
            }).then(res => {
+             console.log('[MARKS_RESPONSE]', { status: res.status, data: res.data });
              if (res.status >= 400) {
                throw new Error(res.data?.error || 'Failed to save mark');
              }
              return res.data;
+           }).catch(err => {
+             console.log('[MARKS_ERROR]', { message: err.message });
+             throw err;
            });
 
            promises.push(backendPromise);
          });
        });
+
+       console.log('[MARKS_SAVE_SUMMARY]', { enteredCount, promiseCount: promises.length });
 
        if (enteredCount === 0) {
          throw new Error('No marks entered');
@@ -322,6 +339,7 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
+       console.log('[MARKS_SAVE_SUCCESS]');
        queryClient.invalidateQueries(['marks']);
        if (saveMode === 'submit') {
          toast.success('Marks submitted successfully!');
@@ -332,6 +350,7 @@ export default function Marks() {
        setShowSubmitConfirm(false);
      },
      onError: (error) => {
+       console.log('[MARKS_SAVE_ERROR]', { message: error.message, stack: error.stack });
        if (error.message === 'PAST_YEAR_WARNING') {
          setShowPastYearWarning(true);
        } else if (error.message !== 'VALIDATION_ERROR') {
@@ -747,6 +766,7 @@ export default function Marks() {
                      <Button 
                        variant="outline"
                        onClick={() => {
+                         console.log('[MARKS_SAVE_CLICK]', { canEdit, isPending: saveMutation.isPending });
                          setSaveMode('draft');
                          saveMutation.mutate();
                        }}
