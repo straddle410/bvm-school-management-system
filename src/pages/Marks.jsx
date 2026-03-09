@@ -284,17 +284,13 @@ export default function Marks() {
            else if (percentage >= 50) grade = 'C';
            else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
-           if (!selectedExamType?.id) {
-             throw new Error(`Exam type not properly loaded. Please select exam again.`);
-           }
-
            const data = {
              student_id: student.student_id || student.id,
              student_name: student.name,
              class_name: selectedClass,
              section: selectedSection,
              subject: subject,
-             exam_type: selectedExamType.id,
+             exam_type: selectedExamType?.id || selectedExam,
              marks_obtained: marks,
              max_marks: maxMarks,
              grade,
@@ -748,18 +744,18 @@ export default function Marks() {
 
                 {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
-                      <Button 
-                        variant="outline"
-                        onClick={() => {
-                          setSaveMode('draft');
-                          saveMutation.mutate();
-                        }}
-                        disabled={saveMutation.isPending}
-                        className="gap-2"
-                      >
-                        <FileText className="h-4 w-4" />
-                        {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                      </Button>
+                     <Button 
+                       variant="outline"
+                       onClick={() => {
+                         setSaveMode('draft');
+                         saveMutation.mutate();
+                       }}
+                       disabled={saveMutation.isPending || !canEdit}
+                       className="gap-2"
+                     >
+                       <FileText className="h-4 w-4" />
+                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                     </Button>
                      <Button 
                        onClick={() => {
                          if (!canEdit) {
