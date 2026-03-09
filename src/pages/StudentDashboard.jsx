@@ -210,7 +210,22 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <main className="flex-1 overflow-y-auto pb-24 px-4 space-y-4">
+      <main
+        className="flex-1 overflow-y-auto pb-24 px-4 space-y-4"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Pull-to-refresh indicator */}
+        <div
+          className="flex items-center justify-center overflow-hidden transition-all duration-200"
+          style={{ height: pullY > 0 ? pullY : (isRefreshing ? 48 : 0) }}
+        >
+          <div className={`flex items-center gap-2 text-indigo-600 text-sm font-medium ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className={`w-5 h-5 border-2 border-indigo-400 border-t-indigo-700 rounded-full ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : pullY >= 60 ? 'Release to refresh' : 'Pull to refresh'}
+          </div>
+        </div>
 
 
 
