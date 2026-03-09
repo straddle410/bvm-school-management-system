@@ -339,22 +339,11 @@ export default function Marks() {
    });
 
   const updateMarks = (studentId, subject, value) => {
-    const prevValue = marksData[studentId]?.[subject]?.marks_obtained;
-    const nextObj = { ...marksData[studentId]?.[subject], marks_obtained: value };
-    console.log('📝 updateMarks called:', {
-      studentId,
-      subject,
-      typedValue: value,
-      previousValue: prevValue,
-      nextObject: nextObj,
-      fullMarksDataBeforeUpdate: JSON.stringify(marksData, null, 2)
-    });
-    
     setMarksData(prev => ({
       ...prev,
       [studentId]: { 
         ...prev[studentId], 
-        [subject]: nextObj
+        [subject]: { ...prev[studentId]?.[subject], marks_obtained: value }
       }
     }));
   };
