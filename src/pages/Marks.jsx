@@ -387,12 +387,12 @@ export default function Marks() {
 
   const revokePublicationMutation = useMutation({
     mutationFn: async (examTypeId) => {
-      const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId || m.exam_type === revokeExamType);
+      const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId);
       const res = await base44.functions.invoke('revokeMarksPublication', {
         marksIds: marksToRevoke.map(m => m.id),
         className: selectedClass,
         section: selectedSection,
-        examType: examTypeId || revokeExamType,
+        examType: examTypeId,
         academicYear
       });
       if (res.status >= 400) {
