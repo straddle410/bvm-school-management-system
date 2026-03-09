@@ -164,32 +164,11 @@ export default function Marks() {
   const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
-      console.log('🔎 existingMarks QUERY FETCHING with:', {
-        queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
-        filterParams: {
-          class_name: selectedClass,
-          section: selectedSection,
-          exam_type: selectedExamType?.id || selectedExam,
-          academic_year: academicYear
-        }
-      });
       return base44.entities.Marks.filter({
         class_name: selectedClass,
         section: selectedSection,
         exam_type: selectedExamType?.id || selectedExam,
         academic_year: academicYear
-      }).then(results => {
-        console.log('🔎 existingMarks QUERY RETURNED:', {
-          count: results.length,
-          records: JSON.stringify(results.map(m => ({
-            id: m.id,
-            student_id: m.student_id,
-            subject: m.subject,
-            marks_obtained: m.marks_obtained,
-            status: m.status
-          })), null, 2)
-        });
-        return results;
       });
     },
     enabled: !!(selectedClass && selectedSection && selectedExam),
