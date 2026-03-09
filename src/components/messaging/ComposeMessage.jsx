@@ -185,21 +185,26 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
                 <span className="text-sm font-medium text-gray-800">{replyTo.sender_name}</span>
               </div>
             ) : isStudent ? (
-              // Students get a dropdown of all teachers
+              // Students get a dropdown of all active staff fetched live from StaffAccount
               <Select
                 value={selectedRecipient?.id || ''}
                 onValueChange={val => {
-                  const t = allTeachers.find(t => t.email === val);
-                  if (t) setSelectedRecipient({ id: t.email, name: t.full_name || t.name, role: 'teacher', sub: t.role || 'Teacher' });
+                  const t = allTeachers.find(t => t.username === val);
+                  if (t) setSelectedRecipient({
+                    id: t.username,
+                    name: t.name,
+                    role: t.role || 'staff',
+                    sub: t.designation || t.role || 'Staff'
+                  });
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select teacher / admin..." />
+                  <SelectValue placeholder="Select staff member..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {allTeachers.filter(t => !!t.email).map(t => (
-                    <SelectItem key={t.email} value={t.email}>
-                      {t.full_name || t.name} — {t.role || 'Teacher'}
+                  {allTeachers.map(t => (
+                    <SelectItem key={t.username} value={t.username}>
+                      {t.name} — {t.designation || t.role || 'Staff'}
                     </SelectItem>
                   ))}
                 </SelectContent>
