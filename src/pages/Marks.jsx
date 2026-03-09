@@ -264,12 +264,14 @@ export default function Marks() {
 
        const promises = [];
        let enteredCount = 0;
+       const countedPairs = [];
 
-       console.log('🔍 DEBUG: Save mutation started', {
-         marksData,
+       console.log('🔍 PRE-CALCULATION STATE:', {
+         fullMarksData: JSON.stringify(marksData, null, 2),
+         filteredStudentsLength: filteredStudents.length,
          subjectList,
-         filteredStudentsCount: filteredStudents.length,
-         saveMode
+         saveMode,
+         filteredStudentIds: filteredStudents.map(s => s.student_id || s.id)
        });
 
        filteredStudents.forEach(student => {
