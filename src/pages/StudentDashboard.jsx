@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
   ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
