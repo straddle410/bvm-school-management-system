@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getSession } from '@/components/sessionHelper';
 
 const STUDENT_PAGES = [
   'StudentDashboard',
