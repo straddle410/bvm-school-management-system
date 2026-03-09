@@ -23,22 +23,22 @@ export default function StudentMarks() {
       navigate(createPageUrl('StudentLogin'));
       return;
     }
-    console.log('[SESSION SET] student_id:', parsedSession.id);
+    console.log('[SESSION SET] student_id:', parsedSession.student_id);
     setSession(parsedSession);
   }, [navigate]);
 
   const { data: marks = [], isLoading } = useQuery({
-    queryKey: ['student-marks', session?.id],
+    queryKey: ['student-marks', session?.student_id],
     queryFn: async () => {
-      if (!session?.id) return [];
+      if (!session?.student_id) return [];
       // PRIORITY 3: Marks RLS is read:false — use backend function that serves only Published marks
       const res = await base44.functions.invoke('getStudentMarks', {
-        student_id: session.id,
+        student_id: session.student_id,
         academic_year: session.academic_year
       });
       return res.data?.marks || [];
     },
-    enabled: !!session?.id
+    enabled: !!session?.student_id
   });
 
   if (!session) return null;

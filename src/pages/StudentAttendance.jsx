@@ -23,17 +23,17 @@ export default function StudentAttendance() {
       navigate(createPageUrl('StudentLogin'));
       return;
     }
-    console.log('[SESSION SET] student_id:', parsedSession.id);
+    console.log('[SESSION SET] student_id:', parsedSession.student_id);
     setSession(parsedSession);
   }, [navigate]);
 
   const { data: attendanceData = {}, isLoading } = useQuery({
-    queryKey: ['student-attendance', session?.id],
+    queryKey: ['student-attendance', session?.student_id],
     queryFn: async () => {
-      if (!session?.id) return {};
+      if (!session?.student_id) return {};
       try {
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
-          student_id: session.id,
+          student_id: session.student_id,
           academic_year: session.academic_year
         });
         return res.data || {};
@@ -41,7 +41,7 @@ export default function StudentAttendance() {
         return {};
       }
     },
-    enabled: !!session?.id
+    enabled: !!session?.student_id
   });
 
   if (!session) return null;

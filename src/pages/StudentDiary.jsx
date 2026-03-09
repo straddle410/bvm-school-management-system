@@ -25,7 +25,7 @@ export default function StudentDiary() {
       navigate(createPageUrl('StudentLogin'));
       return;
     }
-    console.log('[SESSION SET] student_id:', parsedSession.id);
+    console.log('[SESSION SET] student_id:', parsedSession.student_id);
     setSession(parsedSession);
 
     // Mark DIARY_PUBLISHED notifications as read
@@ -45,9 +45,9 @@ export default function StudentDiary() {
   }, [navigate]);
 
   const { data: diaryEntries = [], isLoading } = useQuery({
-    queryKey: ['student-diary', session?.id],
+    queryKey: ['student-diary', session?.student_id],
     queryFn: async () => {
-      if (!session?.id) return [];
+      if (!session?.student_id) return [];
       try {
         const entries = await base44.entities.Diary.filter({
           class_name: session.class_name,
@@ -60,7 +60,7 @@ export default function StudentDiary() {
         return [];
       }
     },
-    enabled: !!session?.id
+    enabled: !!session?.student_id
   });
 
   if (!session) return null;

@@ -23,7 +23,7 @@ export default function StudentNotices() {
       navigate(createPageUrl('StudentLogin'));
       return;
     }
-    console.log('[SESSION SET] student_id:', parsedSession.id);
+    console.log('[SESSION SET] student_id:', parsedSession.student_id);
     setSession(parsedSession);
 
     // Mark NOTICE_PUBLISHED notifications as read
@@ -43,9 +43,9 @@ export default function StudentNotices() {
   }, [navigate]);
 
   const { data: notices = [], isLoading } = useQuery({
-    queryKey: ['student-notices', session?.id],
+    queryKey: ['student-notices', session?.student_id],
     queryFn: async () => {
-      if (!session?.id) return [];
+      if (!session?.student_id) return [];
       try {
         const allNotices = await base44.entities.Notice.filter({
           class_name: session.class_name,
@@ -58,7 +58,7 @@ export default function StudentNotices() {
         return [];
       }
     },
-    enabled: !!session?.id
+    enabled: !!session?.student_id
   });
 
   if (!session) return null;
