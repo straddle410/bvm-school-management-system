@@ -12,6 +12,7 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
   const { academicYear } = useAcademicYear();
   const [academicYearData, setAcademicYearData] = useState(null);
   const [errors, setErrors] = useState([]);
+  const today = new Date().toISOString().split('T')[0];
 
   // Fetch academic year start/end dates and initialize date filters
   useEffect(() => {
@@ -55,7 +56,11 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
       }
 
       if (field === 'toDate') {
-        if (value > academicYearData.end_date) {
+        if (value > today) {
+          finalValue = today;
+          newErrors.push(`❌ End date cannot be in the future. Auto-corrected to today (${today})`);
+          toast.error(`End date cannot be in the future. Auto-corrected to today.`);
+        } else if (value > academicYearData.end_date) {
           finalValue = academicYearData.end_date;
           newErrors.push(`❌ End date outside academic year. Auto-corrected to ${academicYearData.end_date}`);
           toast.error(`End date after academic year end (${academicYearData.end_date}). Auto-corrected.`);
@@ -163,7 +168,7 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
                 value={filters.toDate}
                 onChange={(e) => handleDateChange('toDate', e.target.value)}
                 min={academicYearData?.start_date}
-                max={academicYearData?.end_date}
+                max={today}
                 className="w-full pl-10 pr-3 py-2 border rounded-lg text-sm"
               />
             </div>
