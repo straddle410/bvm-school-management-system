@@ -87,7 +87,6 @@ export default function MarksTable({
                            value={marks ?? ''}
                            onChange={(e) => {
                              const val = e.target.value;
-                             console.log('⌨️ MarksTable input onChange:', { studentId, subject, typedValue: val });
                              if (val === '' || parseFloat(val) <= maxMarks) {
                                onMarkChange?.(studentId, subject, val);
                              }

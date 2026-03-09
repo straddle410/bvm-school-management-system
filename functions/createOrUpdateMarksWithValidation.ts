@@ -153,8 +153,6 @@ Deno.serve(async (req) => {
     // ========================================
     // EXECUTE CREATE/UPDATE (validated)
     // ========================================
-    console.log('📝 NORMALIZED MARK DATA:', JSON.stringify(normalizedMarkData, null, 2));
-    
     let result;
     if (operation === 'create') {
       result = await base44.asServiceRole.entities.Marks.create(normalizedMarkData);
@@ -165,28 +163,10 @@ Deno.serve(async (req) => {
       result = await base44.asServiceRole.entities.Marks.update(markId, normalizedMarkData);
     }
 
-    console.log(`✍️ ${operation.toUpperCase()} RESULT:`, JSON.stringify(result, null, 2));
-    
-    // ========================================
-    // SUCCESS: Trust the result from base44.asServiceRole
-    // ========================================
-    // NOTE: Marks entity has RLS read disabled, so post-save verification read fails.
-    // The successful result object IS the persistence proof for service-role writes.
-    const savedRecordId = result?.id || markId;
-    if (!savedRecordId) {
-      console.error('❌ NO RECORD ID RETURNED from', operation);
-      return Response.json({
-        error: `Mark ${operation} failed: no record ID returned`,
-        operation
-      }, { status: 500 });
-    }
-
-    console.log(`✅ MARK ${operation.toUpperCase()} PERSISTED:`, savedRecordId);
-
     return Response.json({
       success: true,
       message: `Mark ${operation}d successfully`,
-      record_id: savedRecordId,
+      record_id: result?.id || markId,
       operation,
       uniqueness_checked: true,
       status_validated: true

@@ -92,7 +92,6 @@ export default function MobileMarksEntry({
                    value={marks ?? ''}
                    onChange={(e) => {
                      const val = e.target.value;
-                     console.log('⌨️ MobileMarksEntry input onChange:', { studentId, currentSubject, typedValue: val });
                      if (val === '' || parseFloat(val) <= maxMarks) {
                        onMarkChange?.(studentId, currentSubject, val);
                      }

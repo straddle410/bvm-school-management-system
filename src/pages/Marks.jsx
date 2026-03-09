@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import LoginRequired from '@/components/LoginRequired';
@@ -50,9 +50,9 @@ import { getClassesForYear, getSectionsForClass } from '@/components/classSectio
 const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies'];
 
 export default function Marks() {
-   const { academicYear } = useAcademicYear();
-   const [user, setUser] = useState(null);
-   const [schoolProfile, setSchoolProfile] = useState(null);
+  const { academicYear } = useAcademicYear();
+  const [user, setUser] = useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedExam, setSelectedExam] = useState('');
@@ -140,9 +140,12 @@ export default function Marks() {
     queryKey: ['class-subjects', academicYear, selectedClass],
     queryFn: async () => {
       if (!selectedClass) {
+        console.log('[SUBJECT_CALLSITE] pages/Marks:113');
         return [];
       }
+      console.log('[MARKS_PAGE]', { year: academicYear, classRaw: selectedClass });
       const result = await getSubjectsForClass(academicYear, selectedClass);
+      console.log('[MARKS_PAGE_RESULT]', { source: result.source, subjects: result.subjects });
       return result.subjects;
     },
     enabled: !!academicYear,
@@ -152,9 +155,10 @@ export default function Marks() {
   const { data: timetableEntries = [] } = useQuery({
     queryKey: ['timetable', selectedClass, selectedExam, academicYear],
     queryFn: () => {
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
       return base44.entities.ExamTimetable.filter({
         class_name: selectedClass,
-        exam_type: selectedExamType?.id,
+        exam_type: selectedExamObj?.id || selectedExam,
         academic_year: academicYear
       });
     },
@@ -164,10 +168,11 @@ export default function Marks() {
   const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
       return base44.entities.Marks.filter({
         class_name: selectedClass,
         section: selectedSection,
-        exam_type: selectedExamType?.id,
+        exam_type: selectedExamObj?.id || selectedExam,
         academic_year: academicYear
       });
     },
@@ -231,13 +236,13 @@ export default function Marks() {
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const saveMutation = useMutation({
-     mutationFn: async (mode) => {
+     mutationFn: async () => {
        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
          throw new Error('PAST_YEAR_WARNING');
        }
 
        // Validation: check if all students have marks for submit mode
-       if (mode === 'submit') {
+       if (saveMode === 'submit') {
          const missingStudents = filteredStudents.filter(student => {
            const studentMarks = marksData[student.student_id || student.id];
            if (!studentMarks) return true;
@@ -262,15 +267,11 @@ export default function Marks() {
 
        filteredStudents.forEach(student => {
          const studentMarks = marksData[student.student_id || student.id];
-         if (!studentMarks) {
-           return;
-         }
+         if (!studentMarks) return;
 
          subjectList.forEach(subject => {
            const existing = studentMarks[subject];
-           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') {
-             return;
-           }
+           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
 
            enteredCount++;
            const marks = parseFloat(existing.marks_obtained);
@@ -289,13 +290,13 @@ export default function Marks() {
              class_name: selectedClass,
              section: selectedSection,
              subject: subject,
-             exam_type: selectedExamType?.id,
+             exam_type: selectedExamType?.id || selectedExam,
              marks_obtained: marks,
              max_marks: maxMarks,
              grade,
              academic_year: academicYear,
              entered_by: user?.email,
-             status: mode === 'submit' ? 'Submitted' : 'Draft',
+             status: saveMode === 'submit' ? 'Submitted' : 'Draft',
              remarks: existing.remarks
            };
 
@@ -319,16 +320,17 @@ export default function Marks() {
        }
 
        return Promise.all(promises);
-       },
-       onSuccess: () => {
+     },
+     onSuccess: () => {
        queryClient.invalidateQueries(['marks']);
-       if (saveMutation.variables === 'submit') {
+       if (saveMode === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
          toast.success('Marks saved as draft');
        }
+       setSaveMode('draft');
        setShowSubmitConfirm(false);
-       },
+     },
      onError: (error) => {
        if (error.message === 'PAST_YEAR_WARNING') {
          setShowPastYearWarning(true);
@@ -358,9 +360,8 @@ export default function Marks() {
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
+  const canEdit = currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
   const canSave = !isPublished;
-  const canSubmit = currentStatus === 'Not Entered' || currentStatus === 'Draft';
 
   const unlockMutation = useMutation({
     mutationFn: async () => {
@@ -368,7 +369,7 @@ export default function Marks() {
         marksIds: existingMarks.map(m => m.id),
         className: selectedClass,
         section: selectedSection,
-        examType: selectedExamType?.id,
+        examType: selectedExamType?.id || selectedExam,
         academicYear
       });
       if (res.status >= 400) {
@@ -387,12 +388,12 @@ export default function Marks() {
 
   const revokePublicationMutation = useMutation({
     mutationFn: async (examTypeId) => {
-      const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId);
+      const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId || m.exam_type === revokeExamType);
       const res = await base44.functions.invoke('revokeMarksPublication', {
         marksIds: marksToRevoke.map(m => m.id),
         className: selectedClass,
         section: selectedSection,
-        examType: examTypeId,
+        examType: examTypeId || revokeExamType,
         academicYear
       });
       if (res.status >= 400) {
@@ -415,10 +416,12 @@ export default function Marks() {
   // Group marks by exam type for review - get exam name from examTypes
   const reviewGroupedData = React.useMemo(() => {
     let marksToUse = reviewMarks;
-
+    
     // If an exam is selected in review mode, filter to only that exam
-    if (selectedExam && selectedExamType?.id) {
-      marksToUse = reviewMarks.filter(m => m.exam_type === selectedExamType.id);
+    if (selectedExam) {
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+      const examId = selectedExamObj?.id || selectedExam;
+      marksToUse = reviewMarks.filter(m => m.exam_type === examId || m.exam_type === selectedExam);
     }
 
     const grouped = {};
@@ -741,26 +744,33 @@ export default function Marks() {
 
                 {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
-                      <Button 
-                        variant="outline"
-                        onClick={() => saveMutation.mutate('draft')}
-                        disabled={saveMutation.isPending || !canEdit}
-                        className="gap-2"
-                      >
-                        <FileText className="h-4 w-4" />
-                        {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                      </Button>
-                      {canSubmit && (
-                        <Button 
-                          onClick={() => setShowSubmitConfirm(true)}
-                          disabled={saveMutation.isPending}
-                          className="gap-2 bg-indigo-600 hover:bg-indigo-700"
-                        >
-                          <Send className="h-4 w-4" />
-                          {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
-                        </Button>
-                      )}
-                    </div>
+                     <Button 
+                       variant="outline"
+                       onClick={() => {
+                         setSaveMode('draft');
+                         saveMutation.mutate();
+                       }}
+                       disabled={saveMutation.isPending || !canEdit}
+                       className="gap-2"
+                     >
+                       <FileText className="h-4 w-4" />
+                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                     </Button>
+                     <Button 
+                       onClick={() => {
+                         if (!canEdit) {
+                           toast.error('Cannot submit. Marks are locked.');
+                           return;
+                         }
+                         setShowSubmitConfirm(true);
+                       }}
+                       disabled={saveMutation.isPending || !canEdit}
+                       className="gap-2"
+                     >
+                       <Send className="h-4 w-4" />
+                       {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+                     </Button>
+                   </div>
                  )}
               </>
             )}
@@ -943,10 +953,7 @@ export default function Marks() {
       </Dialog>
 
       {/* Submit Marks Confirmation Dialog */}
-      <AlertDialog 
-       open={showSubmitConfirm} 
-       onOpenChange={setShowSubmitConfirm}
-      >
+      <AlertDialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -960,7 +967,10 @@ export default function Marks() {
           <div className="flex gap-2 justify-end">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => saveMutation.mutate('submit')}
+              onClick={() => {
+                setSaveMode('submit');
+                saveMutation.mutate();
+              }}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
               Submit Marks
@@ -1030,7 +1040,7 @@ export default function Marks() {
         academicYear={academicYear}
         onConfirm={() => {
           setShowPastYearWarning(false);
-          saveMutation.mutate('draft');
+          saveMutation.mutate();
         }}
         onCancel={() => setShowPastYearWarning(false)}
       />
