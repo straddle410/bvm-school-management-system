@@ -45,8 +45,8 @@ export default function StudentAuthGuard({ children, currentPageName }) {
       }
     } catch {}
 
-    // If staff session exists, redirect to staff dashboard (cross-role protection)
-    if (hasStaffSession) {
+    // If staff session exists BUT no student session, redirect to staff dashboard
+    if (hasStaffSession && !hasStudentSession) {
       navigate(createPageUrl('Dashboard'));
       return;
     }
