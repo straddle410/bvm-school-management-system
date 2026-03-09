@@ -69,8 +69,9 @@ export default function Marks() {
    const [showPastYearWarning, setShowPastYearWarning] = useState(false);
    const [showValidationError, setShowValidationError] = useState(false);
    const [validationError, setValidationError] = useState(null);
-  
-  const queryClient = useQueryClient();
+   const [localStatus, setLocalStatus] = useState(null);
+
+   const queryClient = useQueryClient();
 
   useEffect(() => {
     setUser(getStaffSession());
@@ -208,6 +209,8 @@ export default function Marks() {
     } else {
       setMarksData({});
     }
+    // Reset local status when marks change (new exam/class/section selected)
+    setLocalStatus(null);
   }, [existingMarks]);
 
   const filteredStudents = students.filter(s => 
@@ -326,12 +329,13 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
-       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
        if (saveMode === 'submit') {
+         setLocalStatus('Submitted');
          toast.success('Marks submitted successfully!');
        } else {
          toast.success('Marks saved as draft');
        }
+       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
        setSaveMode('draft');
        setActiveSaveAction(null);
        setShowSubmitConfirm(false);
@@ -362,7 +366,7 @@ export default function Marks() {
     setShowAddSubject(false);
   };
 
-  const currentStatus = existingMarks[0]?.status || 'Not Entered';
+  const currentStatus = localStatus || existingMarks[0]?.status || 'Not Entered';
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
