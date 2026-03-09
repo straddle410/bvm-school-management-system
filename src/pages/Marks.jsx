@@ -607,7 +607,7 @@ export default function Marks() {
                     </SelectTrigger>
                     <SelectContent>
                       {examTypes.filter(e => e.is_active !== false).map(e => (
-                        <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
+                        <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
