@@ -877,7 +877,15 @@ export default function Marks() {
                      <Button 
                        variant="outline"
                        onClick={() => {
+                         console.log('🟢 [DRAFT_BUTTON_CLICK_START]', {
+                           timestamp: new Date().toISOString(),
+                           canEdit,
+                           canSave,
+                           currentStatus,
+                           saveMutation_isPending: saveMutation.isPending
+                         });
                          saveMutation.mutate('draft');
+                         console.log('🟢 [DRAFT_BUTTON_CLICK_END] - saveMutation.mutate("draft") called');
                        }}
                        disabled={saveMutation.isPending || !canEdit}
                        className="gap-2"
@@ -888,7 +896,15 @@ export default function Marks() {
                      {canSubmit && (
                        <Button 
                          onClick={() => {
+                           console.log('🔵 [SUBMIT_BUTTON_CLICK_START]', {
+                             timestamp: new Date().toISOString(),
+                             canEdit,
+                             canSave,
+                             currentStatus,
+                             canSubmit
+                           });
                            setShowSubmitConfirm(true);
+                           console.log('🔵 [SUBMIT_BUTTON_CLICK_END] - setShowSubmitConfirm(true) called');
                          }}
                          disabled={saveMutation.isPending}
                          className="gap-2 bg-indigo-600 hover:bg-indigo-700"
