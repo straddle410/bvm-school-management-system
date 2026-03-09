@@ -35,7 +35,7 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
       }
     };
     if (academicYear) fetchAcademicYear();
-  }, [academicYear]);
+  }, [academicYear, setFilters]);
 
   const handleDateChange = (field, value) => {
     const newErrors = [];
