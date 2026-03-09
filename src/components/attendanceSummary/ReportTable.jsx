@@ -173,7 +173,7 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
               </tr>
             </thead>
             <tbody>
-              {data.map((student) => {
+              {sortedData.map((student) => {
                 const isLowAttendance = student.attendancePercent < 75;
                 return (
                   <tr key={student.id} className={`border-b transition-colors ${isLowAttendance ? 'bg-red-50' : 'hover:bg-slate-50'}`}>
