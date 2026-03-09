@@ -12,7 +12,8 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
   const { academicYear } = useAcademicYear();
   const [academicYearData, setAcademicYearData] = useState(null);
   const [errors, setErrors] = useState([]);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
 
   // Fetch academic year start/end dates and initialize date filters
   useEffect(() => {
