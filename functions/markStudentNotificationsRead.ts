@@ -6,46 +6,41 @@ Deno.serve(async (req) => {
     const { student_id, event_types } = await req.json();
 
     if (!student_id || !event_types) {
-      return Response.json({ 
-        error: 'student_id and event_types (array) are required' 
-      }, { status: 400 });
+      return Response.json({ error: 'student_id and event_types (array) are required' }, { status: 400 });
     }
 
-    const eventArray = Array.isArray(event_types) ? event_types : [event_types];
-    
-    // Map event type names to notification type names
+    // Legacy uppercase keys → actual DB type values.
+    // Also accepts actual type strings directly (e.g. 'notice_posted').
     const typeMap = {
-      'DIARY_PUBLISHED': 'diary_published',
-      'QUIZ_PUBLISHED': 'quiz_posted',
-      'NOTICE_PUBLISHED': 'notice_posted',
-      'HALLTICKET_PUBLISHED': 'hall_ticket_published',
+      'DIARY_PUBLISHED':     'diary_published',
+      'QUIZ_PUBLISHED':      'quiz_posted',
+      'NOTICE_PUBLISHED':    'notice_posted',
+      'HALLTICKET_PUBLISHED':'hall_ticket_published',
+      'CLASS_MESSAGE':       'class_message',
+      'HOMEWORK_PUBLISHED':  'homework_published',
+      'MARKS_PUBLISHED':     'marks_published',
+      'RESULTS_POSTED':      'results_posted',
     };
 
+    const eventArray = Array.isArray(event_types) ? event_types : [event_types];
     let updated = 0;
 
-    for (const eventType of eventArray) {
-      const notifType = typeMap[eventType];
-      if (!notifType) continue;
+    for (const raw of eventArray) {
+      const notifType = typeMap[raw] || raw; // fallback: treat as direct type string
 
-      // Fetch unread notifications for this student and type
-      const notifications = await base44.entities.Notification.filter({
+      const notifications = await base44.asServiceRole.entities.Notification.filter({
         recipient_student_id: student_id,
         type: notifType,
         is_read: false,
       }, null, 1000);
 
-      // Mark each as read
       for (const notif of notifications) {
-        await base44.entities.Notification.update(notif.id, { is_read: true });
+        await base44.asServiceRole.entities.Notification.update(notif.id, { is_read: true });
         updated++;
       }
     }
 
-    return Response.json({
-      success: true,
-      student_id,
-      updated,
-    });
+    return Response.json({ success: true, student_id, updated });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

@@ -32,6 +32,16 @@ export default function StudentHomework() {
       const s = getStudentSession();
       if (!s) { window.location.href = createPageUrl('StudentLogin'); return; }
       setStudent(s);
+      // Mark homework_published notifications as read on page open
+      base44.entities.Notification.filter({
+        recipient_student_id: s.student_id,
+        type: 'homework_published',
+        is_read: false,
+      }).then(notifs => {
+        if (!notifs.length) return;
+        return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
+          .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
+      }).catch(() => {});
     }, []);
 
   const { data: homeworks = [], isLoading } = useQuery({

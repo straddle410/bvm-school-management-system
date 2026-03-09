@@ -143,7 +143,14 @@ export default function StudentDashboard() {
         refetchUnread();
       }
     });
-    return () => { unsub1(); unsub2(); };
+    // Immediate refresh when any student page marks notifications as read
+    const handleNotificationsRead = () => refetchUnread();
+    window.addEventListener('student-notifications-read', handleNotificationsRead);
+    return () => {
+      unsub1();
+      unsub2();
+      window.removeEventListener('student-notifications-read', handleNotificationsRead);
+    };
   }, [student?.student_id]);
 
   const notifMap = {

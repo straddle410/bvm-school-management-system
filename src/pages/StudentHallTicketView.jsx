@@ -15,6 +15,20 @@ export default function StudentHallTicketView() {
     if (ss) setStudentSession(JSON.parse(ss));
   }, []);
 
+  // Mark hall_ticket_published notifications as read on page open
+  useEffect(() => {
+    if (!studentSession?.student_id) return;
+    base44.entities.Notification.filter({
+      recipient_student_id: studentSession.student_id,
+      type: 'hall_ticket_published',
+      is_read: false,
+    }).then(notifs => {
+      if (!notifs.length) return;
+      return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
+        .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
+    }).catch(() => {});
+  }, [studentSession?.student_id]);
+
   const { data, isLoading } = useQuery({
     queryKey: ['studentHallTickets', studentSession?.student_id],
     queryFn: async () => {

@@ -21,22 +21,18 @@ export default function StudentDiary() {
     if (!session) navigate(createPageUrl('StudentLogin'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Mark DIARY_PUBLISHED notifications as read — separate effect, runs once on mount
+  // Mark diary_published notifications as read on page open
   useEffect(() => {
-    if (!session?.email) return;
-    const markNotificationsRead = async () => {
-      try {
-        const notifications = await base44.entities.Notification.filter({
-          recipient_email: session.email,
-          notification_type: 'DIARY_PUBLISHED',
-          is_read: false
-        });
-        for (const notif of notifications) {
-          await base44.entities.Notification.update(notif.id, { is_read: true });
-        }
-      } catch {}
-    };
-    markNotificationsRead();
+    if (!session?.student_id) return;
+    base44.entities.Notification.filter({
+      recipient_student_id: session.student_id,
+      type: 'diary_published',
+      is_read: false,
+    }).then(notifs => {
+      if (!notifs.length) return;
+      return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
+        .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
+    }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: diaryEntries = [], isLoading } = useQuery({

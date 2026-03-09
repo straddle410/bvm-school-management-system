@@ -25,11 +25,16 @@ export default function StudentMessaging() {
      const session = getStudentSession();
      if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
      setStudent(session);
-     // Mark all messages as read when student opens messaging page
+     // Mark class_message notifications as read on page open
      if (session?.student_id) {
-       base44.functions.invoke('markStudentNotificationsRead', {
-         student_id: session.student_id,
-         event_types: [],  // Mark all message notification types
+       base44.entities.Notification.filter({
+         recipient_student_id: session.student_id,
+         type: 'class_message',
+         is_read: false,
+       }).then(notifs => {
+         if (!notifs.length) return;
+         return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
+           .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
        }).catch(() => {});
      }
    }, []);
