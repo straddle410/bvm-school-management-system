@@ -442,12 +442,11 @@ export default function Marks() {
        console.log('🔄 INVALIDATING QUERY with key:', ['marks', selectedClass, selectedSection, selectedExam, academicYear]);
        queryClient.invalidateQueries(['marks']);
 
-       if (saveMode === 'submit') {
+       if (mode === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
          toast.success('Marks saved as draft');
        }
-       setSaveMode('draft');
        setShowSubmitConfirm(false);
        },
      onError: (error) => {
