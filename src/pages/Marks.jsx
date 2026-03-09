@@ -1148,11 +1148,26 @@ export default function Marks() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel
+              onClick={() => {
+                console.log('🟠 [CANCEL_BUTTON_CLICKED]', {
+                  timestamp: new Date().toISOString(),
+                  showSubmitConfirm
+                });
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
+                console.log('🟡 [DIALOG_ACTION_BUTTON_CLICKED]', {
+                  timestamp: new Date().toISOString(),
+                  aboutToCall: 'saveMutation.mutate("submit")'
+                });
                 saveMutation.mutate('submit');
+                console.log('🟡 [DIALOG_ACTION] saveMutation.mutate("submit") called, now calling setShowSubmitConfirm(false)');
                 setShowSubmitConfirm(false);
+                console.log('🟡 [DIALOG_ACTION_END]');
               }}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
