@@ -23,19 +23,18 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
           setAcademicYearData(yearData);
           
           // Auto-initialize date filters to academic year range on first load
-          if (!filters.fromDate) {
-            setFilters(prev => ({ ...prev, fromDate: yearData.start_date }));
-          }
-          if (!filters.toDate) {
-            setFilters(prev => ({ ...prev, toDate: yearData.end_date }));
-          }
+          setFilters(prev => ({
+            ...prev,
+            fromDate: prev.fromDate || yearData.start_date,
+            toDate: prev.toDate || yearData.end_date
+          }));
         }
       } catch (err) {
         console.error('Failed to fetch academic year:', err);
       }
     };
     if (academicYear) fetchAcademicYear();
-  }, [academicYear]);
+  }, [academicYear, setFilters]);
 
   const handleDateChange = (field, value) => {
     const newErrors = [];
