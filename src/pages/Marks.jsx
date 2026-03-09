@@ -748,18 +748,18 @@ export default function Marks() {
 
                 {filteredStudents.length > 0 && canSave && (
                    <div className="flex justify-end gap-3">
-                     <Button 
-                       variant="outline"
-                       onClick={() => {
-                         setSaveMode('draft');
-                         saveMutation.mutate();
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <FileText className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                     </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setSaveMode('draft');
+                          saveMutation.mutate();
+                        }}
+                        disabled={saveMutation.isPending}
+                        className="gap-2"
+                      >
+                        <FileText className="h-4 w-4" />
+                        {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                      </Button>
                      <Button 
                        onClick={() => {
                          if (!canEdit) {
