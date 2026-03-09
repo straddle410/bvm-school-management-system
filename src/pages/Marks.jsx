@@ -154,7 +154,7 @@ export default function Marks() {
     queryFn: () => {
       return base44.entities.ExamTimetable.filter({
         class_name: selectedClass,
-        exam_type: selectedExamType?.id || selectedExam,
+        exam_type: selectedExamType?.id,
         academic_year: academicYear
       });
     },
