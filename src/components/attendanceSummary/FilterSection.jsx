@@ -72,6 +72,17 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
           <h3 className="font-semibold text-slate-900">Report Filters</h3>
         </div>
 
+        {errors.length > 0 && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              {errors.map((err, i) => (
+                <div key={i}>{err}</div>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Class Dropdown */}
           <div className="space-y-2">
