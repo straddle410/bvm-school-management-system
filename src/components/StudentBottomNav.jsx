@@ -9,11 +9,11 @@ const navItems = [
   { label: 'Attendance', icon: BookMarked,     page: 'StudentAttendance' },
   { label: 'Marks',      icon: BarChart3,      page: 'StudentMarks' },
   { label: 'Messages',   icon: MessageSquare,  page: 'StudentMessaging', messagesBadge: true },
-  { label: 'More',       icon: MoreHorizontal, page: 'StudentMore' },
+  { label: 'More',       icon: MoreHorizontal, page: 'StudentMore', noticesBadge: true },
 ];
 
 export default function StudentBottomNav({ currentPage }) {
-  const [badges, setBadges] = useState({ quiz_posted: 0, results_posted: 0, messages: 0 });
+  const [badges, setBadges] = useState({ messages: 0, notices: 0 });
   const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
@@ -39,9 +39,10 @@ export default function StudentBottomNav({ currentPage }) {
           }),
         ]);
 
-        const counts = { messages: 0 };
+        const counts = { messages: 0, notices: 0 };
         for (const n of notifs) {
           if (n.type === 'class_message') counts.messages++;
+          else if (n.type === 'notice_posted') counts.notices++;
         }
         counts.messages += unreadMsgs.length;
         setBadges(counts);
@@ -75,6 +76,7 @@ export default function StudentBottomNav({ currentPage }) {
 
   const getBadgeCount = (item) => {
     if (item.messagesBadge) return badges.messages;
+    if (item.noticesBadge) return badges.notices;
     if (item.notifType) return badges[item.notifType] || 0;
     return 0;
   };
