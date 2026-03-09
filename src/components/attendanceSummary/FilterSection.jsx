@@ -115,7 +115,9 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
               <input
                 type="date"
                 value={filters.fromDate}
-                onChange={(e) => setFilters({...filters, fromDate: e.target.value})}
+                onChange={(e) => handleDateChange('fromDate', e.target.value)}
+                min={academicYearData?.start_date}
+                max={academicYearData?.end_date}
                 className="w-full pl-10 pr-3 py-2 border rounded-lg text-sm"
               />
             </div>
@@ -129,7 +131,9 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
               <input
                 type="date"
                 value={filters.toDate}
-                onChange={(e) => setFilters({...filters, toDate: e.target.value})}
+                onChange={(e) => handleDateChange('toDate', e.target.value)}
+                min={academicYearData?.start_date}
+                max={academicYearData?.end_date}
                 className="w-full pl-10 pr-3 py-2 border rounded-lg text-sm"
               />
             </div>
