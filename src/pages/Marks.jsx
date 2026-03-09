@@ -325,12 +325,19 @@ export default function Marks() {
 
        return Promise.all(promises);
      },
-     onSuccess: () => {
-       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
-       if (saveMode === 'submit') {
-         toast.success('Marks submitted successfully!');
+     onSuccess: (results) => {
+       // Check if all results have persistence verified
+       const allPersisted = results.every(res => res?.success && res?.persistence_verified);
+
+       if (allPersisted) {
+         queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
+         if (saveMode === 'submit') {
+           toast.success('Marks submitted successfully');
+         } else {
+           toast.success('Marks saved successfully');
+         }
        } else {
-         toast.success('Marks saved as draft');
+         toast.error('Marks were not saved. Please try again.');
        }
        setSaveMode('draft');
        setActiveSaveAction(null);
