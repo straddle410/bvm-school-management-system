@@ -231,7 +231,10 @@ export default function Marks() {
     ? timetableSubjects 
     : (subjects.length > 0 ? subjects : DEFAULT_SUBJECTS);
 
-  const selectedExamType = examTypes.find(e => e.name === selectedExam);
+  // Lookup by name first, fallback to ID in case name doesn't match
+  const selectedExamType = examTypes.find(e => 
+    e.name === selectedExam || e.id === selectedExam
+  );
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
