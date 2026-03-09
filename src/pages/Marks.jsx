@@ -329,7 +329,10 @@ export default function Marks() {
          });
        });
 
+       console.log(`📊 Total marks entered: ${enteredCount}, promises created: ${promises.length}`);
+
        if (enteredCount === 0) {
+         console.error('❌ SAVE FAILED: No marks were entered');
          throw new Error('No marks entered');
        }
 
