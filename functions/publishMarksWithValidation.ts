@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
 
     if (notPublishable.length > 0) {
       return Response.json({
-        error: `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Verified or Approved marks can be published.`,
+        error: `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Submitted, Verified, or Approved marks can be published.`,
         invalid_marks: notPublishable.map(m => ({
           id: m.id,
           student: m.student_name,
