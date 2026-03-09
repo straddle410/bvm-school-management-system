@@ -55,6 +55,23 @@ export default function DailySnapshotTab() {
     enabled: !!selectedDate
   });
 
+  const { data: staffAccounts = [] } = useQuery({
+    queryKey: ['staff-accounts', academicYear],
+    queryFn: () => base44.entities.StaffAccount.list(),
+    staleTime: 10 * 60 * 1000
+  });
+
+  // Build staff name lookup from marked_by email
+  const staffNameMap = useMemo(() => {
+    const map = {};
+    staffAccounts.forEach(staff => {
+      if (staff.email) {
+        map[staff.email] = staff.name;
+      }
+    });
+    return map;
+  }, [staffAccounts]);
+
   const reportData = useMemo(() => {
     if (!selectedDate || !allStudents.length) return [];
 
@@ -101,7 +118,8 @@ export default function DailySnapshotTab() {
           half_day_students: [],
           absent_students: [],
           holiday_students: [],
-          unmarked_students: []
+          unmarked_students: [],
+          submitted_by: 'Not Submitted' // Track submission status for class
         };
       }
       classMap[cls].total_students++;
@@ -116,6 +134,21 @@ export default function DailySnapshotTab() {
       const key = `${record.class_name}-${record.student_id}`;
       if (!attendanceMap[key]) {
         attendanceMap[key] = record;
+      }
+    });
+
+    // Determine submitted_by status per class (first record determines status)
+    const classSubmittedByMap = {};
+    dedupedAttendance.forEach(record => {
+      const cls = record.class_name;
+      if (!classSubmittedByMap[cls]) {
+        if (record.auto_submitted) {
+          classSubmittedByMap[cls] = 'System Submitted';
+        } else if (record.marked_by && record.marked_by !== 'SYSTEM') {
+          classSubmittedByMap[cls] = staffNameMap[record.marked_by] || record.marked_by;
+        } else {
+          classSubmittedByMap[cls] = 'Not Submitted';
+        }
       }
     });
 
@@ -155,8 +188,13 @@ export default function DailySnapshotTab() {
       }
     });
 
+    // Apply submitted_by status to each class
+    Object.keys(classMap).forEach(cls => {
+      classMap[cls].submitted_by = classSubmittedByMap[cls] || 'Not Submitted';
+    });
+
     return Object.values(classMap);
-  }, [selectedDate, allStudents, attendanceData, holidays, overrides]);
+  }, [selectedDate, allStudents, attendanceData, holidays, overrides, staffNameMap]);
 
   const totalStudents = reportData.reduce((s, r) => s + r.total_students, 0);
   const totalFullDay = reportData.reduce((s, r) => s + r.full_day, 0);
@@ -209,6 +247,7 @@ export default function DailySnapshotTab() {
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Holiday</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Unmarked</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-28">Attendance %</th>
+                      <th className="text-left p-3 font-semibold text-slate-700 min-w-40">Submitted By</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -255,6 +294,15 @@ export default function DailySnapshotTab() {
                               {pct}%
                             </span>
                           </td>
+                          <td className="text-left p-3 text-sm text-slate-700">
+                            <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                              row.submitted_by === 'System Submitted' ? 'bg-blue-100 text-blue-700' :
+                              row.submitted_by === 'Not Submitted' ? 'bg-gray-100 text-gray-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {row.submitted_by}
+                            </span>
+                          </td>
                         </tr>
                       );
                     })}
@@ -270,6 +318,7 @@ export default function DailySnapshotTab() {
                       <td className="text-center p-3 font-bold">
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{overallPct}%</span>
                       </td>
+                      <td className="p-3"></td>
                     </tr>
                   </tbody>
                 </table>
