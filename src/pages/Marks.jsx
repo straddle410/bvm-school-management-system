@@ -765,8 +765,10 @@ export default function Marks() {
                         <Button 
                            variant="outline"
                            onClick={() => {
+                             console.log('[SAVE_DRAFT_BUTTON_CLICK]', { canEdit, selectedExamType: selectedExamType?.name, selectedExamTypeId: selectedExamType?.id, isPending: saveMutation.isPending, disabled: saveMutation.isPending || !canEdit || !selectedExamType?.id });
                              setSaveMode('draft');
                              setActiveSaveAction('draft');
+                             console.log('[SAVE_DRAFT_CALLING_MUTATE]');
                              saveMutation.mutate();
                            }}
                            disabled={saveMutation.isPending || !canEdit || !selectedExamType?.id}
