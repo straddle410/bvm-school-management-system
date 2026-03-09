@@ -13,9 +13,7 @@ import StudentBottomNav from '@/components/StudentBottomNav';
 import StudentSimpleNotificationListener from '@/components/StudentSimpleNotificationListener';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import StudentMessageNotificationListener from '@/components/StudentMessageNotificationListener';
-import StudentQuizNotificationListener from '@/components/StudentQuizNotificationListener';
-import StudentNoticeNotificationListener from '@/components/StudentNoticeNotificationListener';
+import StudentNotificationHub from '@/components/StudentNotificationHub';
 
 function getStudentSession() {
   try {
@@ -32,7 +30,7 @@ const HOME_TILES = [
   { label: 'Attendance', page: 'StudentAttendance', icon: ClipboardList, color: '#26a69a', bg: '#e0f2f1', notifKey: null },
   { label: 'Marks', page: 'StudentMarks', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', notifKey: null },
   { label: 'Diary', page: 'StudentDiary', icon: Book, color: '#e91e63', bg: '#fce4ec', notifKey: 'Diary' },
-  { label: 'Homework', page: 'StudentHomework', icon: BookOpen, color: '#f57c00', bg: '#fff3e0', notifKey: null },
+  { label: 'Homework', page: 'StudentHomework', icon: BookOpen, color: '#f57c00', bg: '#fff3e0', notifKey: 'Homework' },
   { label: 'Notices', page: 'StudentNotices', icon: Bell, color: '#1a237e', bg: '#e8eaf6', notifKey: 'Notices' },
   { label: 'Hall Ticket', page: 'StudentHallTicketView', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', notifKey: 'HallTickets' },
   { label: 'Timetable', page: 'StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
@@ -114,15 +112,17 @@ export default function StudentDashboard() {
         base44.entities.Notification.filter({ recipient_student_id: student.student_id, is_read: false }),
         base44.entities.Message.filter({ recipient_id: student.student_id, is_read: false }),
       ]);
-      const counts = { Notices: 0, Diary: 0, Quiz: 0, Messages: 0, Results: 0, HallTickets: 0 };
-       for (const n of notifs) {
-         if (n.type === 'notice_posted') counts.Notices++;
-         else if (n.type === 'diary_published') counts.Diary++;
-         else if (n.type === 'quiz_posted') counts.Quiz++;
-         else if (n.type === 'class_message') counts.Messages++;
-         else if (n.type === 'marks_published' || n.type === 'results_posted') counts.Results++;
-         else if (n.type === 'hall_ticket_published') counts.HallTickets++;
-       }
+      const counts = { Notices: 0, Diary: 0, Quiz: 0, Messages: 0, Results: 0, HallTickets: 0, Homework: 0, Marks: 0 };
+      for (const n of notifs) {
+        if (n.type === 'notice_posted') counts.Notices++;
+        else if (n.type === 'diary_published') counts.Diary++;
+        else if (n.type === 'quiz_posted') counts.Quiz++;
+        else if (n.type === 'class_message') counts.Messages++;
+        else if (n.type === 'marks_published') counts.Marks++;
+        else if (n.type === 'results_posted') counts.Results++;
+        else if (n.type === 'hall_ticket_published') counts.HallTickets++;
+        else if (n.type === 'homework_published') counts.Homework++;
+      }
       counts.Messages += unreadMsgs.length;
       return counts;
     },
@@ -153,6 +153,8 @@ export default function StudentDashboard() {
     Results: unreadCounts.Results || 0,
     Messages: unreadCounts.Messages || 0,
     HallTickets: unreadCounts.HallTickets || 0,
+    Homework: unreadCounts.Homework || 0,
+    Marks: unreadCounts.Marks || 0,
   };
 
   // Count only SUBMISSION_REQUIRED homework as pending (exclude VIEW_ONLY)
@@ -167,10 +169,8 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
-      {/* Notification Listeners */}
-      <StudentMessageNotificationListener studentSession={student} />
-      <StudentQuizNotificationListener studentSession={student} />
-      <StudentNoticeNotificationListener studentSession={student} />
+      {/* Unified Notification Hub */}
+      <StudentNotificationHub studentSession={student} />
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 pt-4 pb-3 shadow-lg">
