@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,7 +16,7 @@ export default function DailySnapshotTab() {
   const [academicYearData, setAcademicYearData] = useState(null);
 
   // Fetch academic year data for date constraints
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchAcademicYear = async () => {
       try {
         const data = await base44.entities.AcademicYear.filter({ year: academicYear });
