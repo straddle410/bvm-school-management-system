@@ -332,7 +332,7 @@ export default function Marks() {
              grade,
              academic_year: academicYear,
              entered_by: user?.email,
-             status: saveMode === 'submit' ? 'Submitted' : 'Draft',
+             status: mode === 'submit' ? 'Submitted' : 'Draft',
              remarks: existing.remarks
            };
 
