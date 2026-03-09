@@ -54,12 +54,18 @@ Deno.serve(async (req) => {
     }
 
     // ── EXAM TYPE ACADEMIC YEAR MISMATCH GUARD ──
-    // Load the ExamType directly by ID to confirm its year matches mark's year
-    const examTypeById = await base44.asServiceRole.entities.ExamType.filter({ id: exam_type });
-    const examTypeByName = examTypeById.length === 0
-      ? await base44.asServiceRole.entities.ExamType.filter({ academic_year, name: exam_type })
-      : [];
-    const examTypeRecord = examTypeById[0] || examTypeByName[0];
+    // Load the ExamType directly by UUID, then fallback to name lookup
+    let examTypeRecord = null;
+
+    // Try to resolve by UUID first (primary lookup)
+    try {
+      examTypeRecord = await base44.asServiceRole.entities.ExamType.get(exam_type);
+    } catch (err) {
+      // get() failed, fallback to name-based lookup
+      const examTypeByName = await base44.asServiceRole.entities.ExamType.filter({ academic_year, name: exam_type });
+      examTypeRecord = examTypeByName[0] || null;
+    }
+
     if (!examTypeRecord) {
       return Response.json({
         error: `Exam type "${exam_type}" not found.`
