@@ -21,10 +21,11 @@ Deno.serve(async (req) => {
     const currentAcademicYear = diary.academic_year || '2024-25';
 
     // FIX #1a: Add academic year filter to prevent multi-year notifications
+    // Status: 'Published' = actively enrolled students (Previous statuses: Pending, Verified, Approved)
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
       section: section,
-      status: 'Approved',
+      status: 'Published',
       academic_year: currentAcademicYear,
     });
 
