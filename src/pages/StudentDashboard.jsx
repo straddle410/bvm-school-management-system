@@ -175,15 +175,28 @@ export default function StudentDashboard() {
       <StudentNotificationHub studentSession={student} />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 pt-4 pb-3 shadow-lg">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Home className="h-5 w-5 text-blue-200" />
-            <span className="font-bold text-base">Student Portal</span>
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-2.5 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            {schoolProfile?.logo_url ? (
+              <img
+                src={schoolProfile.logo_url}
+                alt="School Logo"
+                className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow"
+              />
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Home className="h-5 w-5 text-white" />
+              </div>
+            )}
+            <div className="leading-tight">
+              <p className="font-bold text-sm leading-none">{schoolProfile?.school_name || 'BVM School'}</p>
+              <p className="text-blue-200 text-[10px] mt-0.5">Student Portal</p>
+            </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 py-1 rounded-full transition-all"
+            className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 py-1.5 rounded-full transition-all"
           >
             <LogOut className="h-3 w-3" /> Logout
           </button>
