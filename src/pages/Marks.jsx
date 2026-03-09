@@ -169,11 +169,10 @@ export default function Marks() {
   const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
-      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
       return base44.entities.Marks.filter({
         class_name: selectedClass,
         section: selectedSection,
-        exam_type: selectedExamObj?.id || selectedExam,
+        exam_type: selectedExamType?.id,
         academic_year: academicYear
       });
     },
@@ -291,7 +290,7 @@ export default function Marks() {
              class_name: selectedClass,
              section: selectedSection,
              subject: subject,
-             exam_type: selectedExamType?.id || selectedExam,
+             exam_type: selectedExamType?.id,
              marks_obtained: marks,
              max_marks: maxMarks,
              grade,
@@ -323,7 +322,7 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
-       queryClient.invalidateQueries(['marks']);
+       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
        if (saveMode === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
