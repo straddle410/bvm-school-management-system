@@ -24,12 +24,12 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
           const yearData = data[0];
           setAcademicYearData(yearData);
           
-          // RESET to academic year boundaries when AY changes
+          // RESET to academic year boundaries when AY changes, but toDate defaults to today
           setFilters({
             class: filters.class || '',
             section: filters.section || '',
             fromDate: yearData.start_date,
-            toDate: yearData.end_date
+            toDate: today
           });
         }
       } catch (err) {

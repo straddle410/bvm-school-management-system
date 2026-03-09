@@ -13,6 +13,22 @@ export default function DailySnapshotTab() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedClassData, setSelectedClassData] = useState(null);
   const [viewType, setViewType] = useState('full_day');
+  const [academicYearData, setAcademicYearData] = useState(null);
+
+  // Fetch academic year data for date constraints
+  React.useEffect(() => {
+    const fetchAcademicYear = async () => {
+      try {
+        const data = await base44.entities.AcademicYear.filter({ year: academicYear });
+        if (data.length > 0) {
+          setAcademicYearData(data[0]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch academic year:', err);
+      }
+    };
+    if (academicYear) fetchAcademicYear();
+  }, [academicYear]);
 
   // Fetch all active students for the year
   const { data: allStudents = [] } = useQuery({
@@ -219,7 +235,10 @@ export default function DailySnapshotTab() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#1a237e]"
+                min={academicYearData?.start_date}
+                max={academicYearData?.end_date}
+                disabled={!academicYearData}
+                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#1a237e] disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
             <p className="text-xs text-slate-400">Full-school snapshot — aggregated across all classes and sections.</p>
