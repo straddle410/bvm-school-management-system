@@ -462,11 +462,17 @@ export default function Marks() {
        console.log('🟣 [AFTER_setShowSubmitConfirm(false)] state change queued');
        },
      onError: (error) => {
+       console.log('❌ [ON_ERROR_START]', {
+         timestamp: new Date().toISOString(),
+         errorMessage: error.message,
+         currentShowSubmitConfirm: showSubmitConfirm
+       });
        if (error.message === 'PAST_YEAR_WARNING') {
          setShowPastYearWarning(true);
        } else if (error.message !== 'VALIDATION_ERROR') {
          toast.error(error.message || 'Failed to save marks');
        }
+       console.log('❌ [ON_ERROR_END]');
      }
    });
 
