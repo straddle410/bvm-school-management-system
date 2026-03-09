@@ -62,21 +62,11 @@ export default function StaffAuthGuard({ children, currentPageName }) {
       return;
     }
 
-    // Check for staff and student sessions
-    let hasStaffSession = false;
-    let hasStudentSession = false;
-    try {
-      const staffSession = localStorage.getItem('staff_session');
-      if (staffSession) {
-        const parsed = JSON.parse(staffSession);
-        hasStaffSession = !!parsed;
-      }
-      const studentSession = localStorage.getItem('student_session');
-      if (studentSession) {
-        const parsed = JSON.parse(studentSession);
-        hasStudentSession = !!parsed;
-      }
-    } catch {}
+    // Check for staff and student sessions (localStorage + cookie fallback)
+    const staffData = getSession('staff_session');
+    const studentData = getSession('student_session');
+    const hasStaffSession = !!staffData;
+    const hasStudentSession = !!studentData;
 
     // If student session exists, redirect to student dashboard (cross-role protection)
     if (hasStudentSession) {
