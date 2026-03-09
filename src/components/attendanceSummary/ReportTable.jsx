@@ -20,6 +20,25 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
     }
   };
 
+  const sortedData = [...data].sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'rollNo') return a.rollNo - b.rollNo;
+    if (sortBy === 'rollNo-desc') return b.rollNo - a.rollNo;
+    if (sortBy === 'class') return a.class.localeCompare(b.class);
+    if (sortBy === 'class-desc') return b.class.localeCompare(a.class);
+    if (sortBy === 'totalWorkingDays') return a.totalWorkingDays - b.totalWorkingDays;
+    if (sortBy === 'totalWorkingDays-desc') return b.totalWorkingDays - a.totalWorkingDays;
+    if (sortBy === 'totalHolidays') return a.totalHolidays - b.totalHolidays;
+    if (sortBy === 'totalHolidays-desc') return b.totalHolidays - a.totalHolidays;
+    if (sortBy === 'presentDays') return a.presentDays - b.presentDays;
+    if (sortBy === 'presentDays-desc') return b.presentDays - a.presentDays;
+    if (sortBy === 'absentDays') return a.absentDays - b.absentDays;
+    if (sortBy === 'absentDays-desc') return b.absentDays - a.absentDays;
+    if (sortBy === 'attendance-asc') return a.attendancePercent - b.attendancePercent;
+    if (sortBy === 'attendance-desc') return b.attendancePercent - a.attendancePercent;
+    return 0;
+  });
+
   const handleExcelExport = async () => {
     try {
       const filename = `Attendance_Report_${format(new Date(fromDate), 'dd-MMM-yyyy')}_to_${format(new Date(toDate), 'dd-MMM-yyyy')}.xlsx`;
