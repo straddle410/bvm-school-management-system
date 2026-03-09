@@ -240,7 +240,9 @@ export default function Marks() {
 
   const saveMutation = useMutation({
      mutationFn: async () => {
+        console.log('[SAVE_MUTATION_FN_START]', { selectedExam, selectedExamType: selectedExamType?.name, selectedExamTypeId: selectedExamType?.id, examTypesCount: examTypes.length });
         if (!selectedExamType?.id) {
+          console.log('[SAVE_MUTATION_GUARD_FAIL]', { message: 'Exam type not loaded', selectedExamType, selectedExam });
           throw new Error('Exam type not loaded. Please reselect the exam and try again.');
         }
 
