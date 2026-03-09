@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, GraduationCap, BookOpen, Share2, Printer, Lock, ArrowLeft } from 'lucide-react';
 import ProgressReport from '../components/ProgressReport';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
