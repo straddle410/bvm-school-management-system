@@ -368,7 +368,7 @@ export default function Marks() {
         marksIds: existingMarks.map(m => m.id),
         className: selectedClass,
         section: selectedSection,
-        examType: selectedExamType?.id || selectedExam,
+        examType: selectedExamType?.id,
         academicYear
       });
       if (res.status >= 400) {
