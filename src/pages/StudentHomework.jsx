@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Clock, CheckCircle, AlertCircle, ChevronRight, X, Calendar } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, AlertCircle, ChevronRight, X, Calendar, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import StudentBottomNav from '@/components/StudentBottomNav';

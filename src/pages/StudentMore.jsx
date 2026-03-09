@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { HelpCircle, BarChart3, FileText, Image, User, Shield, LogOut, Lock, Eye, EyeOff, X } from 'lucide-react';
+import { HelpCircle, BarChart3, FileText, Image, User, Shield, LogOut, Lock, Eye, EyeOff, X, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';

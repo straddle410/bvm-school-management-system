@@ -221,29 +221,7 @@ export default function StudentDashboard() {
 
       <main className="flex-1 overflow-y-auto pb-24 px-4 space-y-4">
 
-        {/* Today's Classes */}
-        {!loading && (
-          <section className="bg-white rounded-2xl shadow-sm p-4">
-            <h3 className="font-bold text-gray-800 text-sm mb-3">Today's Classes</h3>
-            {todayClasses.length === 0 ? (
-              <p className="text-xs text-gray-400">No classes scheduled today</p>
-            ) : (
-              <div className="space-y-2">
-                {todayClasses.map((cls, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
-                    <div className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded min-w-max">
-                      {cls.start_time} - {cls.end_time}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{cls.subject}</p>
-                      <p className="text-xs text-gray-500">{cls.teacher_name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
+
 
         {/* Home Tiles (2-column) */}
         <section>
