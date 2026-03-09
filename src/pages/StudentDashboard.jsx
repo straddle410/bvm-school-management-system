@@ -39,7 +39,7 @@ export default function StudentDashboard() {
   const [student, setStudent] = useState(null);
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const touchStartY = React.useRef(0);
+  const touchStartY = useRef(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
