@@ -151,11 +151,10 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      data: {
-        attendance_percentage: percentage,
-        present: Math.round(totalPresent * 100) / 100,
-        total: workingDays
-      }
+      total_days: workingDays,
+      present_days: Math.round(totalPresent * 100) / 100,
+      absent_days: absentDays,
+      percentage: workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0
     });
   } catch (error) {
     console.error('Attendance summary calculation error:', error);
