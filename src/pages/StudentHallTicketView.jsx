@@ -36,7 +36,7 @@ export default function StudentHallTicketView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 p-4 pb-24">
       <div className="flex items-center justify-between mb-4 print:hidden">
         <div className="flex items-center gap-2">
           <button
