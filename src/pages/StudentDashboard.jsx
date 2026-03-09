@@ -89,6 +89,13 @@ export default function StudentDashboard() {
     staleTime: 10 * 60 * 1000,
   });
 
+  // School profile — cached 30 min
+  const { data: schoolProfile } = useQuery({
+    queryKey: ['school-profile'],
+    queryFn: () => base44.entities.SchoolProfile.list().then(d => d[0] || null),
+    staleTime: 30 * 60 * 1000,
+  });
+
   const attendancePct = attendData?.percentage ? Math.round(attendData.percentage) : 0;
   const currentYear = currentYearData?.year || null;
 
