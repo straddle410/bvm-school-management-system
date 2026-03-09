@@ -314,36 +314,11 @@ export default function Marks() {
          });
        });
 
-       console.log(`📊 FINAL COUNT:`, {
-         enteredCount,
-         countedPairs,
-         promisesLength: promises.length,
-         marksDataKeys: Object.keys(marksData),
-         marksDataStructure: JSON.stringify(marksData, null, 2)
-       });
-
        if (enteredCount === 0) {
-         console.error('❌ SAVE FAILED: enteredCount is 0', {
-           enteredCount,
-           countedPairs,
-           filteredStudentsLength: filteredStudents.length,
-           subjectListLength: subjectList.length,
-           marksDataEmpty: Object.keys(marksData).length === 0,
-           marksData: JSON.stringify(marksData, null, 2)
-         });
          throw new Error('No marks entered');
        }
 
-       return Promise.all(promises).then(results => {
-         console.log('🎉 Promise.all(promises) RESOLVED with:', {
-           promisesLength: promises.length,
-           resultsLength: results.length,
-           resultsArray: JSON.stringify(results, null, 2),
-           firstResult: results[0],
-           lastResult: results[results.length - 1]
-         });
-         return results;
-       });
+       return Promise.all(promises);
        },
        onSuccess: async (resolvedResults) => {
        console.log('✅ [ON_SUCCESS_START]', {
