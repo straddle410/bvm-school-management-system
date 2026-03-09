@@ -255,13 +255,13 @@ export default function Marks() {
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const saveMutation = useMutation({
-     mutationFn: async () => {
+     mutationFn: async (mode) => {
        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
          throw new Error('PAST_YEAR_WARNING');
        }
 
        // Validation: check if all students have marks for submit mode
-       if (saveMode === 'submit') {
+       if (mode === 'submit') {
          const missingStudents = filteredStudents.filter(student => {
            const studentMarks = marksData[student.student_id || student.id];
            if (!studentMarks) return true;
