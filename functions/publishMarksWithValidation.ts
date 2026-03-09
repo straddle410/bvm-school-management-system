@@ -39,9 +39,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No marks found matching the provided IDs' }, { status: 404 });
     }
 
-    // VALIDATION: Only Verified or Approved marks can be published
+    // VALIDATION: Only Submitted, Verified, or Approved marks can be published
     const notPublishable = marksToPublish.filter(m =>
-      !['Verified', 'Approved'].includes(m.status)
+      !['Submitted', 'Verified', 'Approved'].includes(m.status)
     );
 
     if (notPublishable.length > 0) {
