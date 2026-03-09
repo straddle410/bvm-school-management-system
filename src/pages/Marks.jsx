@@ -453,7 +453,13 @@ export default function Marks() {
        } else {
          toast.success('Marks saved as draft');
        }
+       console.log('🟣 [BEFORE_setShowSubmitConfirm(false)]', {
+         timestamp: new Date().toISOString(),
+         mode,
+         currentShowSubmitConfirm: showSubmitConfirm
+       });
        setShowSubmitConfirm(false);
+       console.log('🟣 [AFTER_setShowSubmitConfirm(false)] state change queued');
        },
      onError: (error) => {
        if (error.message === 'PAST_YEAR_WARNING') {
