@@ -41,19 +41,29 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
     const newErrors = [];
     let finalValue = value;
 
-    if (field === 'fromDate' && academicYearData) {
-      if (value < academicYearData.start_date) {
-        finalValue = academicYearData.start_date;
-        newErrors.push(`Start date adjusted to ${academicYearData.start_date} (academic year start)`);
-        toast.warning(`Start date adjusted to ${academicYearData.start_date}`);
+    if (academicYearData) {
+      if (field === 'fromDate') {
+        if (value < academicYearData.start_date) {
+          finalValue = academicYearData.start_date;
+          newErrors.push(`❌ Start date outside academic year. Auto-corrected to ${academicYearData.start_date}`);
+          toast.error(`Start date before academic year start (${academicYearData.start_date}). Auto-corrected.`);
+        } else if (value > academicYearData.end_date) {
+          finalValue = academicYearData.end_date;
+          newErrors.push(`❌ Start date outside academic year. Auto-corrected to ${academicYearData.end_date}`);
+          toast.error(`Start date after academic year end (${academicYearData.end_date}). Auto-corrected.`);
+        }
       }
-    }
 
-    if (field === 'toDate' && academicYearData) {
-      if (value > academicYearData.end_date) {
-        finalValue = academicYearData.end_date;
-        newErrors.push(`End date adjusted to ${academicYearData.end_date} (academic year end)`);
-        toast.warning(`End date adjusted to ${academicYearData.end_date}`);
+      if (field === 'toDate') {
+        if (value > academicYearData.end_date) {
+          finalValue = academicYearData.end_date;
+          newErrors.push(`❌ End date outside academic year. Auto-corrected to ${academicYearData.end_date}`);
+          toast.error(`End date after academic year end (${academicYearData.end_date}). Auto-corrected.`);
+        } else if (value < academicYearData.start_date) {
+          finalValue = academicYearData.start_date;
+          newErrors.push(`❌ End date outside academic year. Auto-corrected to ${academicYearData.start_date}`);
+          toast.error(`End date before academic year start (${academicYearData.start_date}). Auto-corrected.`);
+        }
       }
     }
 
