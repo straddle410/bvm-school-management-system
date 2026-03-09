@@ -299,32 +299,15 @@ export default function Marks() {
              remarks: existing.remarks
            };
 
-           console.log(`📤 SENDING TO BACKEND for ${student.student_id} - ${subject}:`, {
-             operation: existing?.id ? 'update' : 'create',
-             markId: existing?.id,
-             markData: JSON.stringify(data, null, 2)
-           });
-
            const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
              markData: data,
              markId: existing?.id,
              operation: existing?.id ? 'update' : 'create'
            }).then(res => {
-             console.log(`✅ BACKEND RESPONSE for ${student.student_id} - ${subject}:`, {
-               status: res.status,
-               statusOk: res.status < 400,
-               data: JSON.stringify(res.data, null, 2)
-             });
              if (res.status >= 400) {
                throw new Error(res.data?.error || 'Failed to save mark');
              }
              return res.data;
-           }).catch(err => {
-             console.error(`❌ BACKEND ERROR for ${student.student_id} - ${subject}:`, {
-               message: err.message,
-               stack: err.stack
-             });
-             throw err;
            });
 
            promises.push(backendPromise);
