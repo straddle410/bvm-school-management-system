@@ -39,64 +39,33 @@ const HOME_TILES = [
 
 export default function StudentDashboard() {
   const [student, setStudent] = useState(null);
-  const [marks, setMarks] = useState([]);
-  const [attendance, setAttendance] = useState([]);
-  const [notices, setNotices] = useState([]);
-  const [homework, setHomework] = useState([]);
-  const [submissions, setSubmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [todayClasses, setTodayClasses] = useState([]);
-  const [attendancePct, setAttendancePct] = useState(0);
-  const [currentYear, setCurrentYear] = useState(null);
 
   useEffect(() => {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
-    loadData(session);
   }, []);
 
-  const loadData = async (session) => {
-    setLoading(true);
-    try {
-      const [r, attendData, yearData, timetableData] = await Promise.all([
-        base44.functions.invoke('getStudentData', {
-          student_id: session.student_id,
-          academic_year: session.academic_year,
-          class_name: session.class_name
-        }).catch(() => ({ data: { marks: [], attendance: [], notices: [], homework: [], submissions: [] } })),
-        base44.functions.invoke('calculateAttendanceSummaryForStudent', {
-          student_id: session.student_id,
-          academic_year: session.academic_year
-        }).catch(() => ({ data: { percentage: 0 } })),
-        base44.entities.AcademicYear.filter({ is_current: true }).then(d => d[0] || null).catch(() => null),
-        base44.functions.invoke('studentGetTimetable', {
-          student_id: session.student_id,
-          academic_year: session.academic_year
-        }).catch(() => ({ classes: [] }))
-      ]);
+  // Attendance % — cached 5 min, only fetches when student is ready
+  const { data: attendData } = useQuery({
+    queryKey: ['student-attendance-pct', student?.student_id],
+    queryFn: () => base44.functions.invoke('calculateAttendanceSummaryForStudent', {
+      student_id: student.student_id,
+      academic_year: student.academic_year
+    }).then(r => r.data || {}),
+    enabled: !!student?.student_id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-      setMarks(r?.data?.marks || []);
-      setAttendance(r?.data?.attendance || []);
-      setNotices(r?.data?.notices || []);
-      setHomework(r?.data?.homework || []);
-      setSubmissions(r?.data?.submissions || []);
+  // Current academic year — cached 10 min
+  const { data: currentYearData } = useQuery({
+    queryKey: ['current-academic-year'],
+    queryFn: () => base44.entities.AcademicYear.filter({ is_current: true }).then(d => d[0] || null),
+    staleTime: 10 * 60 * 1000,
+  });
 
-      setAttendancePct(attendData?.data?.percentage ? Math.round(attendData.data.percentage) : 0);
-
-      if (yearData?.year) {
-        setCurrentYear(yearData.year);
-      }
-
-      // Filter timetable for today
-      if (timetableData?.classes && Array.isArray(timetableData.classes)) {
-        const today = format(new Date(), 'EEEE');
-        const todayFiltered = timetableData.classes.filter(c => c.day === today);
-        setTodayClasses(todayFiltered.sort((a, b) => a.start_time.localeCompare(b.start_time)));
-      }
-    } catch {}
-    setLoading(false);
-  };
+  const attendancePct = attendData?.percentage ? Math.round(attendData.percentage) : 0;
+  const currentYear = currentYearData?.year || null;
 
   const handleLogout = () => {
     localStorage.removeItem('student_session');
@@ -163,12 +132,6 @@ export default function StudentDashboard() {
     Homework: unreadCounts.Homework || 0,
     Marks: unreadCounts.Marks || 0,
   };
-
-  // Count only SUBMISSION_REQUIRED homework as pending (exclude VIEW_ONLY)
-  const pendingHw = homework.filter(hw => 
-    hw.submission_mode !== 'VIEW_ONLY' && 
-    !submissions.some(s => s.homework_id === hw.id)
-  ).length;
 
   if (!student) return null;
 
