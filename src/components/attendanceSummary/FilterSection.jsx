@@ -13,13 +13,22 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
   const [academicYearData, setAcademicYearData] = useState(null);
   const [errors, setErrors] = useState([]);
 
-  // Fetch academic year start/end dates
+  // Fetch academic year start/end dates and initialize date filters
   useEffect(() => {
     const fetchAcademicYear = async () => {
       try {
         const data = await base44.entities.AcademicYear.filter({ year: academicYear });
         if (data.length > 0) {
-          setAcademicYearData(data[0]);
+          const yearData = data[0];
+          setAcademicYearData(yearData);
+          
+          // Auto-initialize date filters to academic year range on first load
+          if (!filters.fromDate) {
+            setFilters(prev => ({ ...prev, fromDate: yearData.start_date }));
+          }
+          if (!filters.toDate) {
+            setFilters(prev => ({ ...prev, toDate: yearData.end_date }));
+          }
         }
       } catch (err) {
         console.error('Failed to fetch academic year:', err);
