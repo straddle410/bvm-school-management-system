@@ -456,7 +456,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           {isRecordLocked && (
             <Card className="border-l-4 border-l-red-500 bg-red-50">
               <CardContent className="p-4 flex items-center justify-between">
-                <p className="text-sm text-red-900 font-medium">🔒 Locked after 3:00 PM. Contact admin to unlock.</p>
+                <p className="text-sm text-red-900 font-medium">🔒 Locked after 3:30 PM. Contact admin to unlock.</p>
                 {isAdmin && (
                   <Button
                     size="sm"
