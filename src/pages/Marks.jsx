@@ -50,8 +50,19 @@ import { getClassesForYear, getSectionsForClass } from '@/components/classSectio
 const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies'];
 
 export default function Marks() {
-  const { academicYear } = useAcademicYear();
-  const [user, setUser] = useState(null);
+   const { academicYear } = useAcademicYear();
+   const [user, setUser] = useState(null);
+   const renderCountRef = useRef(0);
+
+   useEffect(() => {
+     renderCountRef.current++;
+     console.log(`🎬 [COMPONENT_RENDER #${renderCountRef.current}]`, {
+       timestamp: new Date().toISOString(),
+       showSubmitConfirm,
+       canSubmit,
+       currentStatus: existingMarks[0]?.status || 'Not Entered'
+     });
+   });
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
