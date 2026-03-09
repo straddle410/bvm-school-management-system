@@ -70,7 +70,7 @@ export default function StudentDashboard() {
         base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
           academic_year: session.academic_year
-        }).catch(() => ({ data: { attendance_percentage: 0 } })),
+        }).catch(() => ({ percentage: 0 })),
         base44.entities.AcademicYear.filter({ is_current: true }).then(d => d[0] || null).catch(() => null),
         base44.functions.invoke('studentGetTimetable', {
           student_id: session.student_id,
