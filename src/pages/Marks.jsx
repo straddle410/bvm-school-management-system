@@ -360,7 +360,7 @@ export default function Marks() {
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
+  const canEdit = currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
   const canSave = !isPublished;
 
   const unlockMutation = useMutation({
