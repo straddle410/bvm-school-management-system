@@ -415,12 +415,10 @@ export default function Marks() {
   // Group marks by exam type for review - get exam name from examTypes
   const reviewGroupedData = React.useMemo(() => {
     let marksToUse = reviewMarks;
-    
+
     // If an exam is selected in review mode, filter to only that exam
-    if (selectedExam) {
-      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
-      const examId = selectedExamObj?.id || selectedExam;
-      marksToUse = reviewMarks.filter(m => m.exam_type === examId || m.exam_type === selectedExam);
+    if (selectedExam && selectedExamType?.id) {
+      marksToUse = reviewMarks.filter(m => m.exam_type === selectedExamType.id);
     }
 
     const grouped = {};
