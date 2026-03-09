@@ -169,13 +169,35 @@ Deno.serve(async (req) => {
       result = await base44.asServiceRole.entities.Marks.update(markId, normalizedMarkData);
     }
 
+    // ========================================
+    // STRICT PERSISTENCE VALIDATION
+    // ========================================
+    // If result is null or missing id, fail immediately
+    if (!result || !result.id) {
+      return Response.json({
+        error: `Marks.${operation} returned null or invalid result. Persistence failed.`,
+        status: 'PERSISTENCE_ERROR'
+      }, { status: 500 });
+    }
+
+    // Verify the record actually exists in the database
+    const verifyRecord = await base44.asServiceRole.entities.Marks.get(result.id);
+    if (!verifyRecord) {
+      return Response.json({
+        error: `Marks.${operation} succeeded but get() verification failed. Record not persisted to database.`,
+        status: 'PERSISTENCE_VERIFICATION_FAILED',
+        claimed_id: result.id
+      }, { status: 500 });
+    }
+
     return Response.json({
       success: true,
       message: `Mark ${operation}d successfully`,
-      record_id: result?.id || markId,
+      record_id: result.id,
       operation,
       uniqueness_checked: true,
-      status_validated: true
+      status_validated: true,
+      persistence_verified: true
     }, { status: operation === 'create' ? 201 : 200 });
   } catch (error) {
     console.error('Marks operation error:', error);
