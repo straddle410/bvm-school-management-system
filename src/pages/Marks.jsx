@@ -947,14 +947,7 @@ export default function Marks() {
       {/* Submit Marks Confirmation Dialog */}
       <AlertDialog 
        open={showSubmitConfirm} 
-       onOpenChange={(newState) => {
-         console.log('🔴 [ALERT_DIALOG_onOpenChange]', {
-           timestamp: new Date().toISOString(),
-           newState,
-           previousShowSubmitConfirm: showSubmitConfirm
-         });
-         setShowSubmitConfirm(newState);
-       }}
+       onOpenChange={setShowSubmitConfirm}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -967,27 +960,9 @@ export default function Marks() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">
-            <AlertDialogCancel
-              onClick={() => {
-                console.log('🟠 [CANCEL_BUTTON_CLICKED]', {
-                  timestamp: new Date().toISOString(),
-                  showSubmitConfirm
-                });
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                console.log('🟡 [DIALOG_ACTION_BUTTON_CLICKED]', {
-                  timestamp: new Date().toISOString(),
-                  aboutToCall: 'saveMutation.mutate("submit")'
-                });
-                saveMutation.mutate('submit');
-                console.log('🟡 [DIALOG_ACTION] saveMutation.mutate("submit") called, now calling setShowSubmitConfirm(false)');
-                setShowSubmitConfirm(false);
-                console.log('🟡 [DIALOG_ACTION_END]');
-              }}
+              onClick={() => saveMutation.mutate('submit')}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
               Submit Marks
