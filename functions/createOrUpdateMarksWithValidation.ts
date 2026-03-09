@@ -153,6 +153,8 @@ Deno.serve(async (req) => {
     // ========================================
     // EXECUTE CREATE/UPDATE (validated)
     // ========================================
+    console.log('📝 NORMALIZED MARK DATA:', JSON.stringify(normalizedMarkData, null, 2));
+    
     let result;
     if (operation === 'create') {
       result = await base44.asServiceRole.entities.Marks.create(normalizedMarkData);
@@ -163,13 +165,52 @@ Deno.serve(async (req) => {
       result = await base44.asServiceRole.entities.Marks.update(markId, normalizedMarkData);
     }
 
+    console.log(`✍️ ${operation.toUpperCase()} RESULT:`, JSON.stringify(result, null, 2));
+    
+    // ========================================
+    // VERIFY PERSISTENCE (Critical)
+    // ========================================
+    const savedRecordId = result?.id || markId;
+    if (!savedRecordId) {
+      console.error('❌ NO RECORD ID RETURNED from', operation);
+      return Response.json({
+        error: `Mark ${operation} reported success but no record ID was returned.`,
+        operation,
+        result_was_empty: true
+      }, { status: 500 });
+    }
+
+    // Read back the saved record to confirm it persisted
+    const verificationRead = await base44.asServiceRole.entities.Marks.filter({ id: savedRecordId });
+    console.log('🔍 VERIFICATION READ RESULT:', JSON.stringify(verificationRead, null, 2));
+    
+    if (!verificationRead || verificationRead.length === 0) {
+      console.error(`❌ PERSISTENCE FAILURE: Record ${savedRecordId} not found after ${operation}`);
+      return Response.json({
+        error: `Mark ${operation} reported success but record could not be verified. Possible RLS or schema validation issue.`,
+        operation,
+        saved_record_id: savedRecordId,
+        persistence_failed: true
+      }, { status: 500 });
+    }
+
+    const persistedRecord = verificationRead[0];
+    console.log('✅ PERSISTENCE VERIFIED:', persistedRecord.id);
+
     return Response.json({
       success: true,
-      message: `Mark ${operation}d successfully`,
-      record_id: result?.id || markId,
+      message: `Mark ${operation}d successfully and verified persisted`,
+      record_id: persistedRecord.id,
       operation,
       uniqueness_checked: true,
-      status_validated: true
+      status_validated: true,
+      persistence_verified: true,
+      persisted_record: {
+        id: persistedRecord.id,
+        status: persistedRecord.status,
+        student_id: persistedRecord.student_id,
+        subject: persistedRecord.subject
+      }
     }, { status: operation === 'create' ? 201 : 200 });
   } catch (error) {
     console.error('Marks operation error:', error);
