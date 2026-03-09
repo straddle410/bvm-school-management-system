@@ -155,10 +155,9 @@ export default function Marks() {
   const { data: timetableEntries = [] } = useQuery({
     queryKey: ['timetable', selectedClass, selectedExam, academicYear],
     queryFn: () => {
-      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
       return base44.entities.ExamTimetable.filter({
         class_name: selectedClass,
-        exam_type: selectedExamObj?.id || selectedExam,
+        exam_type: selectedExamType?.id || selectedExam,
         academic_year: academicYear
       });
     },
