@@ -693,7 +693,7 @@ function AttendanceSummaryTab({ academicYear, user }) {
       return {
         id: student.id, student_id: student.student_id, name: student.name,
         rollNo: student.roll_no || '-', class: student.class_name, section: student.section,
-        totalWorkingDays: workingDays, totalHolidays: daysBetween.filter(d => holidaySet.has(d)).length,
+        totalWorkingDays: workingDays, totalHolidays: daysBetween.length - workingDays,
         presentDays: Math.round(totalPresent * 100) / 100, absentDays,
         attendancePercent
       };
