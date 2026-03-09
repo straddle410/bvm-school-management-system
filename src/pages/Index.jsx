@@ -1,34 +1,25 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getSession } from '@/components/sessionHelper';
 
 export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check student session first
-    try {
-      const studentRaw = localStorage.getItem('student_session');
-      if (studentRaw) {
-        const student = JSON.parse(studentRaw);
-        if (student?.student_id) {
-          navigate(createPageUrl('StudentDashboard'), { replace: true });
-          return;
-        }
-      }
-    } catch {}
+    // Check student session (localStorage + cookie fallback for iOS PWA)
+    const student = getSession('student_session');
+    if (student?.student_id || student?.id) {
+      navigate(createPageUrl('StudentDashboard'), { replace: true });
+      return;
+    }
 
     // Check staff session
-    try {
-      const staffRaw = localStorage.getItem('staff_session');
-      if (staffRaw) {
-        const staff = JSON.parse(staffRaw);
-        if (staff?.username) {
-          navigate(createPageUrl('Dashboard'), { replace: true });
-          return;
-        }
-      }
-    } catch {}
+    const staff = getSession('staff_session');
+    if (staff?.username || staff?.staff_id) {
+      navigate(createPageUrl('Dashboard'), { replace: true });
+      return;
+    }
 
     // No session — go to home/landing
     navigate(createPageUrl('Home'), { replace: true });
