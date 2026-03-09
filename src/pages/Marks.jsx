@@ -409,10 +409,11 @@ export default function Marks() {
          selectedClass,
          selectedSection,
          academicYear,
-         examTypeId: selectedExamType?.id || selectedExam
+         examTypeId: selectedExamType?.id,
+         selectedExamTypeName: selectedExamType?.name
        });
 
-       // Direct read from entity immediately after save
+       // Direct read from entity immediately after save — use same exam_type source as query
        const freshMarks = await base44.entities.Marks.filter({
          class_name: selectedClass,
          section: selectedSection,
