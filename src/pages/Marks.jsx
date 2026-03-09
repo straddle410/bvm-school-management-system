@@ -1168,7 +1168,7 @@ export default function Marks() {
         academicYear={academicYear}
         onConfirm={() => {
           setShowPastYearWarning(false);
-          saveMutation.mutate();
+          saveMutation.mutate('draft');
         }}
         onCancel={() => setShowPastYearWarning(false)}
       />
