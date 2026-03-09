@@ -259,33 +259,20 @@ export default function Marks() {
 
        const promises = [];
        let enteredCount = 0;
-       const countedPairs = [];
-
-       console.log('🔍 PRE-CALCULATION STATE:', {
-         fullMarksData: JSON.stringify(marksData, null, 2),
-         filteredStudentsLength: filteredStudents.length,
-         subjectList,
-         saveMode,
-         filteredStudentIds: filteredStudents.map(s => s.student_id || s.id)
-       });
 
        filteredStudents.forEach(student => {
          const studentMarks = marksData[student.student_id || student.id];
          if (!studentMarks) {
-           console.log(`⚠️ No marks data for student: ${student.student_id}`);
            return;
          }
 
          subjectList.forEach(subject => {
            const existing = studentMarks[subject];
            if (existing?.marks_obtained === undefined || existing.marks_obtained === '') {
-             console.log(`⚠️ No marks for ${student.student_id} - ${subject}:`, existing);
              return;
            }
 
            enteredCount++;
-           countedPairs.push({ studentId: student.student_id || student.id, subject, marksValue: existing.marks_obtained });
-           console.log(`✅ Mark counted for ${student.student_id} - ${subject}: ${existing.marks_obtained}`);
            const marks = parseFloat(existing.marks_obtained);
            const percentage = (marks / maxMarks) * 100;
            let grade = 'F';
