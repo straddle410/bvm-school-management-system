@@ -320,67 +320,14 @@ export default function Marks() {
 
        return Promise.all(promises);
        },
-       onSuccess: async (resolvedResults) => {
-       console.log('✅ [ON_SUCCESS_START]', {
-         timestamp: new Date().toISOString(),
-         resultsLength: resolvedResults?.length,
-         currentShowSubmitConfirm: showSubmitConfirm,
-         mode: saveMode
-       });
-       console.log('✅ onSuccess FIRED with resolved results:', {
-         resultsLength: resolvedResults?.length,
-         resolvedResults: JSON.stringify(resolvedResults, null, 2)
-       });
-
-       console.log('📖 IMMEDIATELY READING MARKS ENTITY POST-SAVE for:', {
-         selectedClass,
-         selectedSection,
-         academicYear,
-         examTypeId: selectedExamType?.id,
-         selectedExamTypeName: selectedExamType?.name
-       });
-
-       // Direct read from entity immediately after save — use same exam_type source as query
-       const freshMarks = await base44.entities.Marks.filter({
-         class_name: selectedClass,
-         section: selectedSection,
-         academic_year: academicYear,
-         exam_type: selectedExamType?.id || selectedExam
-       }).catch(err => {
-         console.error('❌ ERROR reading fresh marks:', err);
-         return [];
-       });
-
-       console.log('📚 FRESH MARKS FROM DB POST-SAVE:', {
-         count: freshMarks.length,
-         records: JSON.stringify(freshMarks.map(m => ({
-           id: m.id,
-           student_id: m.student_id,
-           subject: m.subject,
-           marks_obtained: m.marks_obtained,
-           status: m.status,
-           exam_type: m.exam_type,
-           class_name: m.class_name,
-           section: m.section,
-           academic_year: m.academic_year
-         })), null, 2)
-       });
-
-       console.log('🔄 INVALIDATING QUERY with key:', ['marks', selectedClass, selectedSection, selectedExam, academicYear]);
+       onSuccess: () => {
        queryClient.invalidateQueries(['marks']);
-
-       if (mode === 'submit') {
+       if (saveMutation.variables === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
          toast.success('Marks saved as draft');
        }
-       console.log('🟣 [BEFORE_setShowSubmitConfirm(false)]', {
-         timestamp: new Date().toISOString(),
-         mode,
-         currentShowSubmitConfirm: showSubmitConfirm
-       });
        setShowSubmitConfirm(false);
-       console.log('🟣 [AFTER_setShowSubmitConfirm(false)] state change queued');
        },
      onError: (error) => {
        console.log('❌ [ON_ERROR_START]', {
