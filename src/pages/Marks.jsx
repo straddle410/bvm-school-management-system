@@ -335,12 +335,26 @@ export default function Marks() {
        const allPersisted = results.every(res => res?.success && res?.persistence_verified);
 
        if (allPersisted) {
-         await queryClient.invalidateQueries({
+         const result = await queryClient.refetchQueries({
            queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear]
          });
-         await queryClient.refetchQueries({
-           queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear]
-         });
+
+         // Sync marksData from fresh existingMarks so table updates immediately
+         const freshMarks = result[0]?.data || [];
+         if (freshMarks.length > 0) {
+           const data = {};
+           freshMarks.forEach(m => {
+             if (!data[m.student_id]) data[m.student_id] = {};
+             data[m.student_id][m.subject] = { 
+               marks_obtained: m.marks_obtained, 
+               id: m.id, 
+               status: m.status,
+               remarks: m.remarks 
+             };
+           });
+           setMarksData(data);
+         }
+
          if (saveMode === 'submit') {
            toast.success('Marks submitted successfully');
          } else {
