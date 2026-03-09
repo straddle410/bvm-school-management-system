@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     // FIX #1a: Add academic year filter to prevent multi-year notifications
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: class_name,
-      status: 'Approved',
+      status: 'Published',
       academic_year: currentAcademicYear,
     });
 
