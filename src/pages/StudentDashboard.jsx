@@ -37,12 +37,39 @@ const HOME_TILES = [
 
 export default function StudentDashboard() {
   const [student, setStudent] = useState(null);
+  const [pullY, setPullY] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = React.useRef(0);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
   }, []);
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    if (scrollTop > 0) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) setPullY(Math.min(delta * 0.4, 80));
+  };
+
+  const handleTouchEnd = () => {
+    if (pullY >= 60) handleRefresh();
+    setPullY(0);
+  };
 
   // Attendance % — cached 5 min, only fetches when student is ready
   const { data: attendData } = useQuery({
