@@ -1096,8 +1096,8 @@ export default function Marks() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                setSaveMode('submit');
-                saveMutation.mutate();
+                saveMutation.mutate('submit');
+                setShowSubmitConfirm(false);
               }}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
