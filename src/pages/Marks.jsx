@@ -177,7 +177,8 @@ export default function Marks() {
       });
     },
     enabled: !!(selectedClass && selectedSection && selectedExam),
-    staleTime: 2 * 60 * 1000
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   // For review mode - fetch marks for the class/section/year directly from DB
