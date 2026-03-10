@@ -378,7 +378,7 @@ export default function PrintReceiptA5() {
 
         .sig-line {
           text-align: center;
-          height: 12mm;
+          height: 16mm;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
