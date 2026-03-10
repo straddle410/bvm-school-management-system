@@ -197,11 +197,7 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
                       size="sm"
                       variant="ghost"
                       className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-7 px-2 text-xs gap-1"
-                      onClick={() => {
-                        // Use same window to preserve session
-                        const url = `${createPageUrl('PrintReceiptA5')}?paymentId=${p.id}`;
-                        window.location.href = url;
-                      }}
+                      onClick={() => setPrintingPaymentId(p.id)}
                     >
                       <Printer className="h-3 w-3" />
                       Print
