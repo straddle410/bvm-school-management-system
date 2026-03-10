@@ -266,21 +266,24 @@ export default function PrintReceiptA5() {
         .info-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1mm;
+          gap: 1.5mm 1mm;
           font-size: 11px;
           margin-bottom: 1.5mm;
-          padding-bottom: 1mm;
-          border-bottom: 1px solid #ddd;
+          padding: 1mm 0;
+          border-top: 1px solid #e0e0e0;
+          border-bottom: 1px solid #e0e0e0;
         }
 
         .info-row {
           display: flex;
           justify-content: space-between;
+          gap: 1mm;
         }
 
         .label {
-          font-weight: bold;
-          color: #333;
+          font-weight: 700;
+          color: #1a237e;
+          min-width: 60px;
         }
 
         .box {
