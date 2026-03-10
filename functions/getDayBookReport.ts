@@ -55,27 +55,31 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const staffInfo = body.staffInfo;
     let baseUser = null;
+    let userRole = null;
     
     // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
-    if (!staffInfo?.staff_id) {
+    if (staffInfo?.staff_id || staffInfo?.role) {
+      // Mobile staff session
+      userRole = (staffInfo?.role || '').toLowerCase().trim();
+    } else {
+      // Web Base44 auth
       const base44 = createClientFromRequest(req);
       baseUser = await base44.auth.me().catch(() => null);
       if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
+      const candidates = [
+        baseUser?.role,
+        baseUser?.roleName,
+        baseUser?.user_metadata?.role,
+        baseUser?.app_metadata?.role
+      ].filter(v => v !== null && v !== undefined && v !== '');
+      userRole = String(candidates[0] || '').trim().toLowerCase();
     }
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
-    const user = staffInfo || baseUser;
-    const candidates = [
-      user?.role,
-      user?.roleName,
-      user?.user_metadata?.role,
-      user?.app_metadata?.role
-    ].filter(v => v !== null && v !== undefined && v !== '');
-    const userRole = String(candidates[0] || '').trim().toLowerCase();
     
-    if (!allowedRoles.includes(userRole)) {
+    if (!userRole || !allowedRoles.includes(userRole)) {
       return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
 
