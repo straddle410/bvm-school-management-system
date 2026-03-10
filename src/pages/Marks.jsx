@@ -335,7 +335,10 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
-       queryClient.invalidateQueries(['marks']);
+       // Invalidate all related queries to ensure fresh data
+       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
+       queryClient.invalidateQueries({ queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear] });
+
        if (saveMode === 'submit') {
          setSuccessMessage('Marks submitted successfully!');
        } else {
