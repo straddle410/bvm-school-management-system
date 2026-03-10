@@ -398,11 +398,11 @@ export default function PrintReceiptA5() {
         }
 
         .void-note {
-          font-size: 11px;
+          font-size: 10px;
           color: #d32f2f;
           font-weight: bold;
-          margin-top: 1mm;
-          padding: 1mm;
+          margin-top: 0.6mm;
+          padding: 0.8mm;
           background: #ffebee;
         }
 
