@@ -165,7 +165,7 @@ export default function Marks() {
     enabled: !!(selectedClass && selectedExam && academicYear)
   });
 
-  const { data: existingMarks = [] } = useQuery({
+  const { data: existingMarks = [], isError: existingMarksError, error: existingMarksErrorObj } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: async () => {
       const selectedExamObj = examTypes.find(e => e.name === selectedExam);
@@ -175,6 +175,7 @@ export default function Marks() {
         examType: selectedExamObj?.id || selectedExam,
         academicYear
       });
+      if (res.status >= 400) throw new Error(res.data?.error || 'Failed to load marks');
       return res.data?.marks || [];
     },
     enabled: !!(selectedClass && selectedSection && selectedExam),
