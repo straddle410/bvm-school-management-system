@@ -167,17 +167,18 @@ export default function Marks() {
 
   const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
-    queryFn: () => {
+    queryFn: async () => {
       const selectedExamObj = examTypes.find(e => e.name === selectedExam);
-      return base44.entities.Marks.filter({
-        class_name: selectedClass,
+      const res = await base44.functions.invoke('getMarksForClass', {
+        className: selectedClass,
         section: selectedSection,
-        exam_type: selectedExamObj?.id || selectedExam,
-        academic_year: academicYear
+        examType: selectedExamObj?.id || selectedExam,
+        academicYear
       });
+      return res.data?.marks || [];
     },
     enabled: !!(selectedClass && selectedSection && selectedExam),
-    staleTime: 2 * 60 * 1000
+    staleTime: 0
   });
 
   // For review mode - fetch marks for the class/section/year directly from DB
