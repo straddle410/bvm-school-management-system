@@ -26,31 +26,33 @@ function CollectionReportContent() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch via protected server function (not direct entity access)
-  const { data: allPayments = [], isLoading, error: fetchError } = useQuery({
+  const { data: reportData = {}, isLoading, error: fetchError } = useQuery({
     queryKey: ['fee-payments-collection', academicYear, dateRange, selectedClass, selectedMode, searchQuery],
     queryFn: async () => {
       try {
+        const mode = selectedClass ? 'details' : 'summary';
         const res = await base44.functions.invoke('getCollectionByClass', {
           academicYear,
           dateFrom: dateRange.start,
           dateTo: dateRange.end,
           className: selectedClass || undefined,
           mode: selectedMode || undefined,
-          reportMode: 'details',
+          reportMode: mode,
           classId: selectedClass || undefined,
           pageSize: 9999
         });
-        return res.data?.rows || [];
+        return res.data || {};
       } catch (err) {
         if (err.response?.status === 403) {
-          // Teacher or unauthorized access
-          return [];
+          return {};
         }
         throw err;
       }
     },
     enabled: !!academicYear
   });
+
+  const allPayments = reportData.rows || [];
 
   // Apply client-side filters
   const filteredPayments = allPayments.filter(p => {
