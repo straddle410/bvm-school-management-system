@@ -13,6 +13,11 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const {
       markData,
@@ -125,8 +130,13 @@ Deno.serve(async (req) => {
           }, { status: 403 });
         }
 
-        // Note: admin-only enforcement for submitted marks is handled by the frontend role check
-        // (staff cannot see the unlock button unless isAdmin)
+        const isAdminOrPrincipal = ['admin', 'principal'].includes((user.role || '').toLowerCase());
+        if (!isAdminOrPrincipal && existingMark.status === 'Submitted' && status !== 'Submitted') {
+          return Response.json({
+            error: `Only admins can change status of submitted marks.`,
+            status: 'FORBIDDEN'
+          }, { status: 403 });
+        }
       }
     }
 

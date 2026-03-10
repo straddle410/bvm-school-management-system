@@ -165,45 +165,33 @@ export default function Marks() {
     enabled: !!(selectedClass && selectedExam && academicYear)
   });
 
-  const { data: existingMarks = [], isError: existingMarksError, error: existingMarksErrorObj } = useQuery({
+  const { data: existingMarks = [] } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
-    queryFn: async () => {
+    queryFn: () => {
       const selectedExamObj = examTypes.find(e => e.name === selectedExam);
-      const res = await base44.functions.invoke('getMarksForClass', {
-        className: selectedClass,
+      return base44.entities.Marks.filter({
+        class_name: selectedClass,
         section: selectedSection,
-        examType: selectedExamObj?.id || selectedExam,
-        academicYear
+        exam_type: selectedExamObj?.id || selectedExam,
+        academic_year: academicYear
       });
-      if (res.status >= 400) throw new Error(res.data?.error || 'Failed to load marks');
-      return res.data?.marks || [];
     },
     enabled: !!(selectedClass && selectedSection && selectedExam),
-    staleTime: 0
+    staleTime: 2 * 60 * 1000
   });
 
   // For review mode - fetch marks for the class/section/year directly from DB
-  const { data: reviewMarks = [], isError: reviewMarksError, error: reviewMarksErrorObj } = useQuery({
+  const { data: reviewMarks = [] } = useQuery({
     queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
-    queryFn: async () => {
-      const res = await base44.functions.invoke('getMarksForClass', {
-        className: selectedClass,
-        section: selectedSection,
-        academicYear
-      });
-      if (res.status >= 400) throw new Error(res.data?.error || 'Failed to load marks');
-      return res.data?.marks || [];
-    },
+    queryFn: () => base44.entities.Marks.filter({
+      class_name: selectedClass,
+      section: selectedSection,
+      academic_year: academicYear
+    }),
     enabled: !!(selectedClass && selectedSection && viewMode === 'review' && academicYear),
-    staleTime: 0
+    staleTime: 2 * 60 * 1000
   });
 
-  // Clear marksData ONLY when the selection (class/section/exam) changes — not when query returns empty
-  useEffect(() => {
-    setMarksData({});
-  }, [selectedClass, selectedSection, selectedExam]);
-
-  // Populate marksData from DB when saved marks are available
   useEffect(() => {
     if (existingMarks.length > 0) {
       const data = {};
@@ -217,8 +205,9 @@ export default function Marks() {
         };
       });
       setMarksData(data);
+    } else {
+      setMarksData({});
     }
-    // intentionally NOT wiping on empty — selection change useEffect handles that
   }, [existingMarks]);
 
   const filteredStudents = students.filter(s => 
@@ -333,7 +322,7 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
-       queryClient.invalidateQueries({ queryKey: ['marks'] });
+       queryClient.invalidateQueries(['marks']);
        if (saveMode === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
@@ -367,12 +356,12 @@ export default function Marks() {
     setShowAddSubject(false);
   };
 
-  const currentStatus = existingMarksError ? 'Load Error' : (existingMarks[0]?.status || 'Not Entered');
+  const currentStatus = existingMarks[0]?.status || 'Not Entered';
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = !existingMarksError && (currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished));
-  const canSave = !existingMarksError && !isPublished;
+  const canEdit = currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
+  const canSave = !isPublished;
 
   const unlockMutation = useMutation({
     mutationFn: async () => {
@@ -389,7 +378,7 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marks'] });
+      queryClient.invalidateQueries(['marks']);
       toast.success('Marks unlocked for editing');
     },
     onError: (error) => {
@@ -413,8 +402,8 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviewMarks'] });
-      queryClient.invalidateQueries({ queryKey: ['marks'] });
+      queryClient.invalidateQueries(['reviewMarks']);
+      queryClient.invalidateQueries(['marks']);
       toast.success('Publication revoked. Admin can now edit marks.');
       setShowRevokeConfirm(false);
       setRevokeExamType(null);
@@ -492,7 +481,7 @@ export default function Marks() {
       
       const res = await base44.functions.invoke('publishMarksWithValidation', {
         marksIds,
-        examType: groupData?.exam_type,
+        examType: groupData?.exam_name || groupData?.exam_type,
         className: selectedClass,
         section: selectedSection,
         academicYear: academicYear
@@ -505,8 +494,7 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marks'] });
-      queryClient.invalidateQueries({ queryKey: ['reviewMarks'] });
+      queryClient.invalidateQueries(['marks']);
       toast.success('Results published successfully with audit trail');
     }
   });
@@ -627,15 +615,6 @@ export default function Marks() {
                 </div>
               </CardContent>
             </Card>
-
-            {existingMarksError && selectedClass && selectedSection && selectedExam && (
-              <Card className="border-red-300 shadow-sm bg-red-50">
-                <CardContent className="p-4 flex items-center gap-3 text-red-700">
-                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">Failed to load marks: {existingMarksErrorObj?.message}</span>
-                </CardContent>
-              </Card>
-            )}
 
             {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
               <>
@@ -794,15 +773,6 @@ export default function Marks() {
                    </div>
                  )}
               </>
-            )}
-
-            {reviewMarksError && viewMode === 'review' && (
-              <Card className="border-red-300 shadow-sm bg-red-50">
-                <CardContent className="p-4 flex items-center gap-3 text-red-700">
-                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">Failed to load marks: {reviewMarksErrorObj?.message}</span>
-                </CardContent>
-              </Card>
             )}
 
             {viewMode === 'review' && selectedClass && selectedSection ? (

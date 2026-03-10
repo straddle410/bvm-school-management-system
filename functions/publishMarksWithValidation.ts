@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     // VALIDATION: Only Verified or Approved marks can be published
     const notPublishable = marksToPublish.filter(m =>
-      !['Submitted', 'Verified', 'Approved'].includes(m.status)
+      !['Verified', 'Approved'].includes(m.status)
     );
 
     if (notPublishable.length > 0) {
