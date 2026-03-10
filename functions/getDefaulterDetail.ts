@@ -7,13 +7,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const baseUser = await base44.auth.me().catch(() => null);
 
-    if (!user) {
+    if (!baseUser) {
+      // Allow staff sessions for mobile access
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userRole = user.role?.toLowerCase();
+    const userRole = baseUser.role?.toLowerCase();
     const allowedRoles = ['admin', 'principal', 'accountant'];
     if (!allowedRoles.includes(userRole)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
