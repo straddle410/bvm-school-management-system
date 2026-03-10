@@ -125,12 +125,12 @@ export default function DayBookReport() {
       reportMode: 'summary',
       dateFrom: applied.dateFrom,
       dateTo: applied.dateTo,
-      academicYear: applied.academicYear || undefined,
+      academicYear: applied.academicYear,
       className: applied.className || undefined,
       mode: applied.mode?.length ? applied.mode : undefined,
       includeVoided: applied.includeVoided
     }).then(r => r.data),
-    enabled: !!applied.dateFrom && !!applied.dateTo,
+    enabled: !!applied.dateFrom && !!applied.dateTo && !!applied.academicYear,
     staleTime: 0
   });
 
@@ -155,7 +155,7 @@ export default function DayBookReport() {
         reportMode: 'export',
         dateFrom: applied.dateFrom,
         dateTo: applied.dateTo,
-        academicYear: applied.academicYear || undefined,
+        academicYear: applied.academicYear,
         className: applied.className || undefined,
         mode: applied.mode?.length ? applied.mode : undefined,
         includeVoided: applied.includeVoided,
