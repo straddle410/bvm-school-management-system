@@ -237,7 +237,6 @@ export default function Marks() {
 
   const saveMutation = useMutation({
      mutationFn: async () => {
-       console.log('[SAVE_MARKS] Starting save with:', { saveMode, selectedClass, selectedSection, selectedExam });
        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
          throw new Error('PAST_YEAR_WARNING');
        }
@@ -268,7 +267,6 @@ export default function Marks() {
 
        filteredStudents.forEach(student => {
          const studentMarks = marksData[student.student_id || student.id];
-         console.log('[SAVE_MARKS] Student:', student.name, 'Has marks:', !!studentMarks);
          if (!studentMarks) return;
 
          subjectList.forEach(subject => {
@@ -286,18 +284,13 @@ export default function Marks() {
            else if (percentage >= 50) grade = 'C';
            else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
-           if (!selectedExamType?.id) {
-             throw new Error('Exam type not found. Please select a valid exam.');
-           }
-
            const data = {
              student_id: student.student_id || student.id,
              student_name: student.name,
              class_name: selectedClass,
              section: selectedSection,
              subject: subject,
-             exam_type: selectedExamType.id,
-             exam_type_name: selectedExamType.name,
+             exam_type: selectedExamType?.id || selectedExam,
              marks_obtained: marks,
              max_marks: maxMarks,
              grade,
@@ -322,7 +315,6 @@ export default function Marks() {
          });
        });
 
-       console.log('[SAVE_MARKS] Total marks to save:', enteredCount, 'promises:', promises.length);
        if (enteredCount === 0) {
          throw new Error('No marks entered');
        }
@@ -365,11 +357,10 @@ export default function Marks() {
   };
 
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
-  const isDraft = currentStatus === 'Draft';
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = currentStatus === 'Not Entered' || isDraft || (isSubmitted && isAdmin && !isPublished);
+  const canEdit = currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
   const canSave = !isPublished;
 
   const unlockMutation = useMutation({
@@ -625,7 +616,7 @@ export default function Marks() {
               </CardContent>
             </Card>
 
-            {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && (
+            {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
               <>
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-4">
@@ -638,7 +629,7 @@ export default function Marks() {
                             Pass: <span className="font-semibold">{passingMarks}</span>
                           </p>
                         </div>
-                        <StatusBadge status={currentStatus === 'Not Entered' ? 'Draft' : currentStatus} />
+                        <StatusBadge status={currentStatus} />
                       </div>
                       <MarksImportExport
                         students={filteredStudents}
@@ -924,7 +915,15 @@ export default function Marks() {
               </Card>
             )}
 
-
+            {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-16 text-center">
+                  <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-slate-700">No Timetable Created</h3>
+                  <p className="text-slate-500 mt-2">Timetable must be created for this class and exam before entering marks</p>
+                </CardContent>
+              </Card>
+            )}
       </div>
 
       {/* Add Subject Info - Moved to Settings */}
