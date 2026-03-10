@@ -93,6 +93,11 @@ export default function StudentCard({ student, onView, onEdit, onArchive, onDele
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onView}><Eye className="mr-2 h-4 w-4" /> View Profile</DropdownMenuItem>
+            {!isDeleted && !locked && (
+              <DropdownMenuItem onClick={onResetPassword} className="text-blue-600">
+                <Key className="mr-2 h-4 w-4" /> Reset Password
+              </DropdownMenuItem>
+            )}
             {isDeleted ? (
               <DropdownMenuItem onClick={onRestore} className="text-green-600">
                 <RefreshCw className="mr-2 h-4 w-4" /> Restore Student
