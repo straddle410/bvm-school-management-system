@@ -479,17 +479,18 @@ export default function Marks() {
   }, [reviewMarks, filteredStudents, subjectList, selectedExam, examTypes]);
 
   const publishMutation = useMutation({
-    mutationFn: async ({ marksIds, examTypeUUID }) => {
-      // Use the canonical exam_type UUID passed from the reviewed group
-      // This avoids unreliable state-based lookup chain
+    mutationFn: async (marksIds) => {
+      // Route exclusively through backend function (includes audit log creation)
+      const groupData = reviewGroupedData.find(g => g.students.flatMap(s => Object.values(s.subjects).map(m => m.id)).some(id => marksIds.includes(id)));
+
       const payload = {
         marksIds,
-        examType: examTypeUUID,
+        examType: groupData?.exam_name || groupData?.exam_type,
         className: selectedClass,
-        section: selectedSection || '',
+        section: selectedSection,
         academicYear: academicYear
       };
-      console.log('[PUB_FRONTEND_PAYLOAD] Final payload:', { marksIds: marksIds?.length, examType: payload.examType, className: payload.className, section: payload.section, academicYear: payload.academicYear });
+      console.log('[PUBLISH_MUTATION] Payload:', payload);
 
       const res = await base44.functions.invoke('publishMarksWithValidation', payload);
 
@@ -505,11 +506,11 @@ export default function Marks() {
     }
   });
 
-  const handlePublish = (marksIds, examTypeUUID) => {
-    console.log('[PUBLISH_HANDLER] marksIds:', marksIds?.length, '| examTypeUUID:', examTypeUUID);
+  const handlePublish = (marksIds) => {
+    console.log('[PUBLISH_HANDLER] marksIds:', marksIds, 'count:', marksIds?.length);
     if (window.confirm('Publish these results? Students will be able to see them.')) {
       console.log('[PUBLISH_HANDLER] Confirmed - calling mutation');
-      publishMutation.mutate({ marksIds, examTypeUUID });
+      publishMutation.mutate(marksIds);
     } else {
       console.log('[PUBLISH_HANDLER] Cancelled');
     }
@@ -646,7 +647,7 @@ export default function Marks() {
             reviewGroupedData={reviewGroupedData}
             reviewSortBy={reviewSortBy}
             onSortChange={setReviewSortBy}
-            onPublish={handlePublish}
+            onPublish={(marksIds) => { if (window.confirm('Publish these results? Students will be able to see them.')) { publishMutation.mutate(marksIds); } }}
             onDownloadExcel={handleDownloadExcel}
             publishPending={publishMutation.isPending}
           />

@@ -35,8 +35,6 @@ export default function MarksReviewSection({
          const isPublished = firstMark?.status === 'Published';
          const isSubmitted = firstMark?.status === 'Submitted';
 
-         console.log('[PUB_REVIEW_DATA] Group:', { exam_type: group.exam_type, exam_name: group.exam_name, studentCount: group.students.length, markIdCount: allMarkIds.length, firstMarkId: allMarkIds[0], firstMarkStatus: firstMark?.status });
-
         return (
           <Card key={idx} className="border-0 shadow-sm overflow-hidden">
             <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
@@ -127,7 +125,7 @@ export default function MarksReviewSection({
                       Export to Excel
                     </Button>
                     <Button
-                       onClick={() => { console.log('[REVIEW_SECTION] Publish clicked - examTypeId:', group.exam_type, '| markCount:', allMarkIds.length); onPublish(allMarkIds, group.exam_type); }}
+                       onClick={() => { console.log('[REVIEW_SECTION] Publish clicked - allMarkIds:', allMarkIds); onPublish(allMarkIds); }}
                        disabled={publishPending || !isSubmitted}
                        className="bg-green-600 hover:bg-green-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                        size="sm"
