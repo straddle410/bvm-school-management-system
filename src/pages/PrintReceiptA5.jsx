@@ -152,7 +152,7 @@ export default function PrintReceiptA5() {
       <style>{`
         @page {
           size: A5 landscape;
-          margin: 3mm;
+          margin: 2.2mm;
         }
 
         html, body {
