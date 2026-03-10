@@ -4,7 +4,6 @@ const ALLOWED_ROLES = ['admin', 'principal'];
 
 Deno.serve(async (req) => {
   try {
-    console.log('[publishMarksWithValidation] Function invoked');
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
@@ -18,6 +17,8 @@ Deno.serve(async (req) => {
     }
 
     const { marksIds, examType, className, section, academicYear } = await req.json();
+    
+    console.log('[PUB_BACKEND_PAYLOAD] Received:', { marksIds: marksIds?.length, examType: typeof examType === 'string' ? examType.substring(0, 20) : examType, className, section, academicYear });
 
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
       return Response.json({ error: 'marksIds array required' }, { status: 400 });
@@ -27,14 +28,21 @@ Deno.serve(async (req) => {
     }
 
     // Fetch only the specific marks being published (by section + class + exam)
+    console.log('[PUB_BACKEND_FILTER] About to filter Marks with:', { class_name: className, section: section || 'undefined', exam_type: examType, academic_year: academicYear });
     const allMarks = await base44.asServiceRole.entities.Marks.filter({
       class_name: className,
       section: section || undefined,
       exam_type: examType,
       academic_year: academicYear
     });
+    
+    console.log('[PUB_BACKEND_FOUND] Found', allMarks.length, 'total marks matching filter');
+    if (allMarks.length > 0) {
+      console.log('[PUB_BACKEND_SAMPLE_MARK] First mark:', { id: allMarks[0].id, exam_type: allMarks[0].exam_type, class_name: allMarks[0].class_name, section: allMarks[0].section, status: allMarks[0].status });
+    }
 
     const marksToPublish = allMarks.filter(m => marksIds.includes(m.id));
+    console.log('[PUB_BACKEND_MATCHING] Matched', marksToPublish.length, 'marks from provided IDs');
 
     if (marksToPublish.length === 0) {
       return Response.json({ error: 'No marks found matching the provided IDs' }, { status: 404 });
