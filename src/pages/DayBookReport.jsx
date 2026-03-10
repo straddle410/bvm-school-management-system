@@ -25,6 +25,42 @@ const defaultDateFrom = () => {
 };
 const today = () => new Date().toISOString().split('T')[0];
 
+const getDateRange = (type) => {
+  const now = new Date();
+  const start = new Date(now);
+  
+  switch (type) {
+    case 'today':
+      return { from: today(), to: today() };
+    case 'yesterday':
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yDate = yesterday.toISOString().split('T')[0];
+      return { from: yDate, to: yDate };
+    case 'thisWeek':
+      start.setDate(now.getDate() - now.getDay());
+      return { from: start.toISOString().split('T')[0], to: today() };
+    case 'lastWeek':
+      start.setDate(now.getDate() - now.getDay() - 7);
+      const lastWeekEnd = new Date(start);
+      lastWeekEnd.setDate(lastWeekEnd.getDate() + 6);
+      return { from: start.toISOString().split('T')[0], to: lastWeekEnd.toISOString().split('T')[0] };
+    case 'thisMonth':
+      start.setDate(1);
+      return { from: start.toISOString().split('T')[0], to: today() };
+    case 'lastMonth':
+      start.setMonth(start.getMonth() - 1);
+      start.setDate(1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { from: start.toISOString().split('T')[0], to: lastMonthEnd.toISOString().split('T')[0] };
+    case 'last30':
+      start.setDate(now.getDate() - 29);
+      return { from: start.toISOString().split('T')[0], to: today() };
+    default:
+      return { from: defaultDateFrom(), to: today() };
+  }
+};
+
 function SummaryCard({ label, value, color = 'slate' }) {
   const colors = {
     green: 'bg-green-50 border-green-200 text-green-700',
