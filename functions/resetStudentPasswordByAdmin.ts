@@ -27,8 +27,8 @@ Deno.serve(async (req) => {
     }
 
     const student = students[0];
-    const tempPassword = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    const defaultPassword = 'BVM1234';
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
     // Update student password
     await base44.asServiceRole.entities.Student.update(student.id, {
@@ -46,7 +46,6 @@ Deno.serve(async (req) => {
       details: JSON.stringify({
         student_name: student.name,
         reset_by: user.email,
-        temporary_password: tempPassword,
         timestamp: new Date().toISOString()
       }),
       timestamp: new Date().toISOString()
@@ -57,8 +56,8 @@ Deno.serve(async (req) => {
       message: `Password reset for ${student.name}`,
       student_id: student.student_id,
       student_name: student.name,
-      temporary_password: tempPassword,
-      instruction: 'Share this temporary password with the student. They must change it on first login.'
+      temporary_password: defaultPassword,
+      instruction: 'Share this default password with the student: BVM1234'
     });
   } catch (error) {
     console.error('[resetStudentPasswordByAdmin] Error:', error.message);
