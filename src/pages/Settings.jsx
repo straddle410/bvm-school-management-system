@@ -368,6 +368,7 @@ export default function Settings() {
       'transport': 'Transport',
       'notifications': 'Notifications',
       'banners': 'Banners',
+      'reset-student-password': 'Reset Student Password',
       'fees-backup': 'Fees Backup',
       'full-backup': 'Full School Backup',
       'data-reset': 'Data Reset',
