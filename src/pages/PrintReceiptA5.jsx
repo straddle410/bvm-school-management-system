@@ -227,17 +227,18 @@ export default function PrintReceiptA5() {
         .school-name {
           font-size: 15px;
           font-weight: 900;
-          margin: 0;
+          margin: 0 0 0.2mm 0;
           color: #1a237e;
           letter-spacing: 0.2px;
+          line-height: 1;
         }
 
         .school-info {
           font-size: 10px;
           color: #555;
-          margin: 0 0 0;
+          margin: 0;
           font-weight: 500;
-          line-height: 1.1;
+          line-height: 1;
         }
 
         .receipt-title {
