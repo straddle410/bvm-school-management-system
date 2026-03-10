@@ -887,6 +887,56 @@ export default function Students() {
           onConfirm={handlePastYearConfirm}
           onCancel={() => setShowPastYearWarning(false)}
         />
+
+        {/* Reset Password Dialog */}
+        <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+          <DialogContent className="max-w-sm rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>Password Reset — {resetStudent?.name}</DialogTitle>
+            </DialogHeader>
+            {resetResult && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>Temporary Password:</strong>
+                  </p>
+                  <p className="text-2xl font-mono font-bold text-blue-600 mt-2 tracking-widest">{resetResult.temporary_password}</p>
+                </div>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-700">
+                    <strong>Student ID:</strong> {resetResult.student_id}
+                  </p>
+                  <p className="text-xs text-gray-700 mt-1">
+                    <strong>Student:</strong> {resetResult.student_name}
+                  </p>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-xs text-amber-900">
+                    ℹ️ Share this password with the student. They must change it on their first login.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(resetResult.temporary_password);
+                      toast.success('Password copied to clipboard');
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Copy Password
+                  </Button>
+                  <Button
+                    onClick={() => setShowResetDialog(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </LoginRequired>
   );
