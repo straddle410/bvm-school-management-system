@@ -387,7 +387,7 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['marks']);
+      queryClient.invalidateQueries({ queryKey: ['marks'] });
       toast.success('Marks unlocked for editing');
     },
     onError: (error) => {
