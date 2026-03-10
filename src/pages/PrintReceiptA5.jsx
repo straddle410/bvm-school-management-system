@@ -467,8 +467,8 @@ function ReceiptContent({ school, receipt, copyLabel }) {
         {/* Receipt Info Grid */}
         <div className="info-grid">
           <div className="info-row">
-            <span className="label">Receipt No:</span>
-            <span>{receipt.receiptNo}</span>
+            <span className="label">Receipt #:</span>
+            <span style={{ fontWeight: 'bold', color: '#1a237e', fontSize: '12px' }}>{receipt.receiptNo}</span>
           </div>
           <div className="info-row">
             <span className="label">Date:</span>
@@ -480,7 +480,7 @@ function ReceiptContent({ school, receipt, copyLabel }) {
           </div>
           <div className="info-row">
             <span className="label">Fee Type:</span>
-            <span>{feeType}</span>
+            <span style={{ fontWeight: 'bold' }}>{feeType}</span>
           </div>
         </div>
 
