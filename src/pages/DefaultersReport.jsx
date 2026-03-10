@@ -37,7 +37,7 @@ export default function DefaultersReportPage() {
         minDue: filters.minDue.toString(),
         ...(filters.className && { className: filters.className }),
         ...(filters.section && { section: filters.section }),
-        ...(filters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: filters.daysSinceLastPaymentMin }),
+        ...(filters.daysSinceLastPaymentMin !== undefined && filters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: filters.daysSinceLastPaymentMin }),
         ...(filters.status && { status: filters.status }),
         ...(filters.search && { search: filters.search })
       });
