@@ -39,7 +39,7 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
         paymentMode: form.paymentMode,
         referenceNo: form.referenceNo,
         remarks: form.remarks,
-        staffInfo: getStaffInfo()
+        staffInfo
       });
       return res.data;
     },
