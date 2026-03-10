@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, Pencil, Archive, MoreVertical, RotateCcw, Lock, Trash2, RefreshCw } from 'lucide-react';
+import { Eye, Pencil, Archive, MoreVertical, RotateCcw, Lock, Trash2, RefreshCw, Key } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { createPageUrl } from '@/utils';
 import { getProxiedImageUrl } from '@/components/imageProxy';
@@ -15,7 +15,7 @@ const STATUS_COLORS = {
   Transferred: 'bg-orange-100 text-orange-600',
 };
 
-export default function StudentCard({ student, onView, onEdit, onArchive, onDelete, onRestore, isAdmin }) {
+export default function StudentCard({ student, onView, onEdit, onArchive, onDelete, onRestore, onResetPassword, isAdmin }) {
   const navigate = useNavigate();
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const isArchived = student.status === 'Passed Out' || student.status === 'Transferred';
