@@ -10,6 +10,7 @@ import { Search, Receipt, RotateCcw, Printer } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import VoidModal from './ReversalModal';
+import ReceiptPreviewModal from './ReceiptPreviewModal';
 
 const CLASSES = ['All', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
