@@ -327,12 +327,14 @@ export default function Marks() {
      onSuccess: () => {
        queryClient.invalidateQueries(['marks']);
        if (saveMode === 'submit') {
-         toast.success('Marks submitted successfully!');
+         setSuccessMessage('Marks submitted successfully!');
        } else {
-         toast.success('Marks saved as draft');
+         setSuccessMessage('Marks saved as draft');
        }
+       setShowSuccessPopup(true);
        setSaveMode('draft');
        setShowSubmitConfirm(false);
+       setTimeout(() => setShowSuccessPopup(false), 3000);
      },
      onError: (error) => {
        if (error.message === 'PAST_YEAR_WARNING') {
