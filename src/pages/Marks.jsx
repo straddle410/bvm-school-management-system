@@ -367,12 +367,12 @@ export default function Marks() {
     setShowAddSubject(false);
   };
 
-  const currentStatus = existingMarks[0]?.status || 'Not Entered';
+  const currentStatus = existingMarksError ? 'Load Error' : (existingMarks[0]?.status || 'Not Entered');
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
-  const canSave = !isPublished;
+  const canEdit = !existingMarksError && (currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished));
+  const canSave = !existingMarksError && !isPublished;
 
   const unlockMutation = useMutation({
     mutationFn: async () => {
