@@ -169,7 +169,7 @@ export default function Marks() {
     enabled: !!(selectedClass && selectedExam && academicYear)
   });
 
-  const marksQuery = useQuery({
+  const { data: existingMarks = [], refetch: refetchMarks } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
       const selectedExamObj = examTypes.find(e => e.name === selectedExam);
@@ -184,7 +184,6 @@ export default function Marks() {
     staleTime: 0,
     refetchOnWindowFocus: true
   });
-  const { data: existingMarks = [] } = marksQuery;
 
   // For review mode - fetch marks for the class/section/year directly from DB
    // Filter to only show marks for active, non-deleted students
