@@ -336,17 +336,17 @@ export default function Marks() {
      },
      onSuccess: () => {
        // Force immediate refetch of marks data
-       marksQuery.refetch();
-
-       if (saveMode === 'submit') {
-         setSuccessMessage('Marks submitted successfully!');
-       } else {
-         setSuccessMessage('Marks saved as draft');
-       }
-       setShowSuccessPopup(true);
-       setSaveMode('draft');
-       setShowSubmitConfirm(false);
-       setTimeout(() => setShowSuccessPopup(false), 3000);
+       refetchMarks().then(() => {
+         if (saveMode === 'submit') {
+           setSuccessMessage('Marks submitted successfully!');
+         } else {
+           setSuccessMessage('Marks saved as draft');
+         }
+         setShowSuccessPopup(true);
+         setSaveMode('draft');
+         setShowSubmitConfirm(false);
+         setTimeout(() => setShowSuccessPopup(false), 3000);
+       });
      },
      onError: (error) => {
        if (error.message === 'PAST_YEAR_WARNING') {
