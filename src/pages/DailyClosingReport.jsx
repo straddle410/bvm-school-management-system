@@ -17,10 +17,20 @@ export default function DailyClosingReportPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['daily-closing', selectedDate, showVoided],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getDailyClosingSummary', {
+      const staffSession = localStorage.getItem('staff_session');
+      const payload = {
         date: selectedDate,
         includeVoided: showVoided.toString()
-      });
+      };
+      
+      // Add staffInfo if on mobile
+      if (staffSession) {
+        try {
+          payload.staffInfo = JSON.parse(staffSession);
+        } catch {}
+      }
+      
+      const res = await base44.functions.invoke('getDailyClosingSummary', payload);
       return res.data;
     }
   });
