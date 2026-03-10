@@ -125,6 +125,12 @@ function StudentLedgerContent() {
   const handleExport = async () => {
     setExporting(true);
     try {
+      const staffInfo = (() => {
+        try {
+          const raw = localStorage.getItem('staff_session');
+          return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+      })();
       const res = await base44.functions.invoke('getStudentLedger', {
         studentId: selectedStudent.student_id,
         academicYear: academicYear || undefined,
@@ -134,7 +140,8 @@ function StudentLedgerContent() {
         includeCredits,
         includeVoided,
         exportCsv: true,
-        pageSize: 9999
+        pageSize: 9999,
+        staffInfo
       });
       const blob = new Blob([res.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
