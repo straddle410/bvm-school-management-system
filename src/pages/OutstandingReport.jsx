@@ -46,6 +46,12 @@ function OutstandingReportContent() {
     queryKey: ['outstanding-report', academicYear, effectiveDate, selectedClass, search, includeZero, viewMode, sort],
     queryFn: async () => {
       try {
+        const staffInfo = (() => {
+          try {
+            const raw = localStorage.getItem('staff_session');
+            return raw ? JSON.parse(raw) : null;
+          } catch { return null; }
+        })();
         const res = await base44.functions.invoke('getOutstandingReport', {
           academicYear,
           asOfDate: asOfDate || undefined,
@@ -56,7 +62,8 @@ function OutstandingReportContent() {
           onlyCredit: viewMode === 'credit',
           sort,
           page: 1,
-          pageSize: 500
+          pageSize: 500,
+          staffInfo
         });
         return res.data;
       } catch (err) {
