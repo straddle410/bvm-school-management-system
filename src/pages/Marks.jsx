@@ -360,7 +360,7 @@ export default function Marks() {
   const isSubmitted = currentStatus === 'Submitted';
   const isPublished = currentStatus === 'Published';
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
+  const canEdit = currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isSubmitted && isAdmin && !isPublished);
   const canSave = !isPublished;
 
   const unlockMutation = useMutation({
@@ -481,7 +481,7 @@ export default function Marks() {
       
       const res = await base44.functions.invoke('publishMarksWithValidation', {
         marksIds,
-        examType: groupData?.exam_name || groupData?.exam_type,
+        examType: groupData?.exam_type,
         className: selectedClass,
         section: selectedSection,
         academicYear: academicYear
