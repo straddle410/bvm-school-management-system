@@ -93,41 +93,117 @@ export default function Fees() {
         )}
 
         <div className={`px-3 sm:px-4 lg:px-8 py-4 ${isAccountant ? 'accountant-fees-view' : ''}`}>
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <Tabs value={activeTab} onValueChange={(tab) => { handleTabChange(tab); setMobileMenuOpen(false); }}>
 
-            {/* ── ACCOUNTANT: big scrollable tabs ── */}
-            {isAccountant ? (
-              <div className="overflow-x-auto mb-4 -mx-3 px-3">
-                <div className="flex gap-2 min-w-max">
-                  {accountantTabs.map(tab => (
-                    <button
-                      key={tab.value}
-                      onClick={() => handleTabChange(tab.value)}
-                      className={`flex-shrink-0 px-5 py-3 rounded-xl text-base font-semibold border transition-all min-h-[52px] ${
-                        activeTab === tab.value
-                          ? 'bg-[#1a237e] text-white border-[#1a237e] shadow'
-                          : 'bg-white text-gray-700 border-gray-200'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+            {/* ── MOBILE DRAWER + DESKTOP TABS ── */}
+            <div className="mb-6">
+              {/* Desktop: Show tabs normally */}
+              <div className="hidden md:block">
+                {isAccountant ? (
+                  <div className="overflow-x-auto -mx-3 px-3">
+                    <div className="flex gap-2 min-w-max">
+                      {accountantTabs.map(tab => (
+                        <button
+                          key={tab.value}
+                          onClick={() => handleTabChange(tab.value)}
+                          className={`flex-shrink-0 px-5 py-3 rounded-xl text-base font-semibold border transition-all min-h-[52px] ${
+                            activeTab === tab.value
+                              ? 'bg-[#1a237e] text-white border-[#1a237e] shadow'
+                              : 'bg-white text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <TabsList className="flex flex-wrap gap-1 h-auto">
+                    {canViewLedger && <TabsTrigger value="ledger">Student Ledger</TabsTrigger>}
+                    {canViewPayments && <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
+                    {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
+                    {(isAdmin || canManageFamilies) && <TabsTrigger value="families">Families</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
+                    {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="backup">🗄 Backup</TabsTrigger>}
+                  </TabsList>
+                )}
               </div>
-            ) : (
-              /* ── OTHER ROLES: existing compact tabs ── */
-              <TabsList className="flex flex-wrap gap-1 h-auto mb-6">
-                {canViewLedger && <TabsTrigger value="ledger">Student Ledger</TabsTrigger>}
-                {canViewPayments && <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>}
-                {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
-                {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
-                {(isAdmin || canManageFamilies) && <TabsTrigger value="families">Families</TabsTrigger>}
-                {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
-                {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
-                {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
-                {isAdmin && <TabsTrigger value="backup">🗄 Backup</TabsTrigger>}
-              </TabsList>
-            )}
+
+              {/* Mobile: Hamburger Menu */}
+              <div className="md:hidden flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                <span className="text-sm font-semibold text-gray-900">
+                  {isAccountant
+                    ? accountantTabs.find(t => t.value === activeTab)?.label
+                    : ['Student Ledger', 'Payments / Receipts', 'Fee Plans', 'Discounts', 'Families', 'Fee Heads', 'Additional Charges', 'Receipt Settings', '🗄 Backup']
+                        .find((_, i) => [canViewLedger, canViewPayments, isAdmin, isAdmin || canApplyDiscount, isAdmin || canManageFamilies, isAdmin, isAdmin || canApplyCharge, isAdmin, isAdmin][i])}
+                </span>
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+              </div>
+
+              {/* Mobile Drawer Menu */}
+              {mobileMenuOpen && (
+                <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)} />
+              )}
+              {mobileMenuOpen && (
+                <div className="md:hidden fixed right-0 top-0 bottom-0 w-64 bg-white shadow-lg z-50 overflow-y-auto pt-16">
+                  <div className="p-4 space-y-2">
+                    {isAccountant ? (
+                      accountantTabs.map(tab => (
+                        <button
+                          key={tab.value}
+                          onClick={() => { handleTabChange(tab.value); setMobileMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-3 rounded-lg transition ${
+                            activeTab === tab.value
+                              ? 'bg-[#1a237e] text-white font-semibold'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))
+                    ) : (
+                      <>
+                        {canViewLedger && (
+                          <button onClick={() => { handleTabChange('ledger'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'ledger' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Student Ledger</button>
+                        )}
+                        {canViewPayments && (
+                          <button onClick={() => { handleTabChange('payments'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'payments' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Payments / Receipts</button>
+                        )}
+                        {isAdmin && (
+                          <button onClick={() => { handleTabChange('plans'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'plans' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Fee Plans</button>
+                        )}
+                        {(isAdmin || canApplyDiscount) && (
+                          <button onClick={() => { handleTabChange('discounts'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'discounts' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Discounts</button>
+                        )}
+                        {(isAdmin || canManageFamilies) && (
+                          <button onClick={() => { handleTabChange('families'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'families' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Families</button>
+                        )}
+                        {isAdmin && (
+                          <button onClick={() => { handleTabChange('fee-heads'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'fee-heads' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Fee Heads</button>
+                        )}
+                        {(isAdmin || canApplyCharge) && (
+                          <button onClick={() => { handleTabChange('adhoc'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'adhoc' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Additional Charges</button>
+                        )}
+                        {isAdmin && (
+                          <button onClick={() => { handleTabChange('receipt-settings'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'receipt-settings' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>Receipt Settings</button>
+                        )}
+                        {isAdmin && (
+                          <button onClick={() => { handleTabChange('backup'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'backup' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}>🗄 Backup</button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {canViewLedger && (
               <TabsContent value="ledger">
