@@ -243,19 +243,24 @@ export default function PrintReceiptA5() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-weight: bold;
-          font-size: 13px;
-          margin: 1.5mm 0 1mm;
-          padding-bottom: 0.5mm;
-          border-bottom: 1px solid #999;
+          font-weight: 900;
+          font-size: 14px;
+          margin: 1.5mm 0 1.2mm;
+          padding: 1mm 0;
+          border-bottom: 2px solid #1a237e;
+          color: #1a237e;
+          letter-spacing: 0.5px;
         }
 
         .copy-badge {
-          font-size: 10px;
+          font-size: 9px;
           font-weight: bold;
-          background: #f0f0f0;
-          padding: 1px 4px;
-          border-radius: 2px;
+          background: #1a237e;
+          color: white;
+          padding: 1.5px 5px;
+          border-radius: 3px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
         }
 
         .info-grid {
