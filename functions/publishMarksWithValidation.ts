@@ -19,19 +19,49 @@ Deno.serve(async (req) => {
 
     const { marksIds, examType, className, section, academicYear } = await req.json();
 
+    console.log('[publishMarksWithValidation] Received payload:');
+    console.log('[publishMarksWithValidation] marksIds.length:', marksIds?.length);
+    console.log('[publishMarksWithValidation] marksIds[0-4]:', marksIds?.slice(0, 5));
+    console.log('[publishMarksWithValidation] examType:', examType, 'type:', typeof examType);
+    console.log('[publishMarksWithValidation] className:', className);
+    console.log('[publishMarksWithValidation] section:', section);
+    console.log('[publishMarksWithValidation] academicYear:', academicYear);
+
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
+      console.log('[publishMarksWithValidation] ERROR: marksIds invalid');
       return Response.json({ error: 'marksIds array required' }, { status: 400 });
     }
     if (!examType || !className || !academicYear) {
+      console.log('[publishMarksWithValidation] ERROR: missing required fields');
       return Response.json({ error: 'Required: examType, className, academicYear' }, { status: 400 });
     }
 
     // Fetch only the specific marks by ID (bypass filter since exam_type is ID, not name)
+    console.log('[publishMarksWithValidation] Fetching marks by ID...');
     const marksToPublish = await Promise.all(
-      marksIds.map(id => base44.asServiceRole.entities.Marks.get(id))
-    ).then(results => results.filter(m => m !== null));
+      marksIds.map(id => {
+        console.log('[publishMarksWithValidation] Fetching ID:', id);
+        return base44.asServiceRole.entities.Marks.get(id);
+      })
+    ).then(results => {
+      console.log('[publishMarksWithValidation] Fetch results count:', results.length);
+      console.log('[publishMarksWithValidation] First result sample:', results[0]);
+      return results.filter(m => m !== null);
+    });
+
+    console.log('[publishMarksWithValidation] marksToPublish.length:', marksToPublish.length);
+    if (marksToPublish.length > 0) {
+      console.log('[publishMarksWithValidation] First mark record:');
+      console.log('  id:', marksToPublish[0].id);
+      console.log('  exam_type:', marksToPublish[0].exam_type);
+      console.log('  class_name:', marksToPublish[0].class_name);
+      console.log('  section:', marksToPublish[0].section);
+      console.log('  academic_year:', marksToPublish[0].academic_year);
+      console.log('  status:', marksToPublish[0].status);
+    }
 
     if (marksToPublish.length === 0) {
+      console.log('[publishMarksWithValidation] ERROR: No marks found after fetch');
       return Response.json({ error: 'No marks found matching the provided IDs' }, { status: 404 });
     }
 
