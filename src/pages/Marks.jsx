@@ -336,9 +336,8 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
-       // Invalidate all related queries to ensure fresh data
-       queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
-       queryClient.invalidateQueries({ queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear] });
+       // Force immediate refetch of marks data
+       marksQuery.refetch();
 
        if (saveMode === 'submit') {
          setSuccessMessage('Marks submitted successfully!');
