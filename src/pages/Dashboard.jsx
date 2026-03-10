@@ -160,6 +160,16 @@ export default function Dashboard() {
       { label: 'Parent Statement',  icon: DollarSign,   page: 'ParentStatement',        gradient: 'from-pink-500 to-rose-500' },
     ];
 
+    const adminFeeActions = [
+      { label: 'Fee Collection',    icon: Wallet,       page: 'Fees',                gradient: 'from-emerald-400 to-emerald-600' },
+      { label: 'Collection Rpt',    icon: BarChart3,    page: 'CollectionReport',    gradient: 'from-blue-400 to-blue-600' },
+      { label: 'Outstanding',       icon: TrendingUp,   page: 'OutstandingReport',   gradient: 'from-red-400 to-red-600' },
+      { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport', gradient: 'from-violet-400 to-violet-600' },
+      { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',       gradient: 'from-slate-400 to-slate-600' },
+      { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',  gradient: 'from-teal-400 to-teal-600' },
+      { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',    gradient: 'from-orange-400 to-orange-600' },
+    ];
+
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-4">
         <div className="max-w-6xl mx-auto">
