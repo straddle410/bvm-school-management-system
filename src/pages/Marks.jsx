@@ -284,14 +284,18 @@ export default function Marks() {
            else if (percentage >= 50) grade = 'C';
            else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
+           if (!selectedExamType?.id) {
+             throw new Error('Exam type not found. Please select a valid exam.');
+           }
+
            const data = {
              student_id: student.student_id || student.id,
              student_name: student.name,
              class_name: selectedClass,
              section: selectedSection,
              subject: subject,
-             exam_type: selectedExamType?.id || selectedExam,
-             exam_type_name: selectedExamType?.name || selectedExam,
+             exam_type: selectedExamType.id,
+             exam_type_name: selectedExamType.name,
              marks_obtained: marks,
              max_marks: maxMarks,
              grade,
