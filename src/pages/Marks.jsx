@@ -482,14 +482,17 @@ export default function Marks() {
     mutationFn: async (marksIds) => {
       // Route exclusively through backend function (includes audit log creation)
       const groupData = reviewGroupedData.find(g => g.students.flatMap(s => Object.values(s.subjects).map(m => m.id)).some(id => marksIds.includes(id)));
-      
-      const res = await base44.functions.invoke('publishMarksWithValidation', {
+
+      const payload = {
         marksIds,
         examType: groupData?.exam_name || groupData?.exam_type,
         className: selectedClass,
         section: selectedSection,
         academicYear: academicYear
-      });
+      };
+      console.log('[PUBLISH_MUTATION] Payload:', payload);
+
+      const res = await base44.functions.invoke('publishMarksWithValidation', payload);
 
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to publish marks');
