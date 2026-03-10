@@ -12,6 +12,21 @@ const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 export default function PaymentModal({ invoice, onClose, onSuccess }) {
   const staffInfo = getStaffSession();
+  
+  if (!staffInfo) {
+    return (
+      <Dialog open onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+          </DialogHeader>
+          <p className="text-red-600">No staff session found. Please log in again.</p>
+          <Button onClick={onClose}>Close</Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
 
   const [form, setForm] = useState({
