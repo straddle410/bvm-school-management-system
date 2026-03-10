@@ -78,14 +78,33 @@ function CollectionReportContent() {
     return true;
   });
 
-  // Calculate summary
-  const summary = {
-    totalAmount: filteredPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0),
-    receiptCount: filteredPayments.length,
-    avgPerReceipt: filteredPayments.length > 0 
-      ? filteredPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0) / filteredPayments.length 
-      : 0
+  // Calculate summary based on mode (summary vs details)
+  const isSummaryMode = !selectedClass;
+  let summary = {
+    totalAmount: 0,
+    receiptCount: 0,
+    avgPerReceipt: 0
   };
+
+  if (isSummaryMode && reportData.summary) {
+    // Summary mode - aggregate all classes
+    summary = {
+      totalAmount: reportData.summary.totalCollected || 0,
+      receiptCount: reportData.summary.totalReceipts || 0,
+      avgPerReceipt: reportData.summary.totalReceipts > 0 
+        ? (reportData.summary.totalCollected || 0) / (reportData.summary.totalReceipts || 1) 
+        : 0
+    };
+  } else {
+    // Details mode - calculate from filtered payments
+    summary = {
+      totalAmount: filteredPayments.reduce((sum, p) => sum + (p.amount || 0), 0),
+      receiptCount: filteredPayments.length,
+      avgPerReceipt: filteredPayments.length > 0 
+        ? filteredPayments.reduce((sum, p) => sum + (p.amount || 0), 0) / filteredPayments.length 
+        : 0
+    };
+  }
 
   // Mode breakdown
   const modeBreakdown = {};
