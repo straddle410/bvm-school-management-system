@@ -12,11 +12,7 @@ import { getStaffSession } from '@/components/useStaffSession';
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 export default function PaymentModal({ invoice, onClose, onSuccess }) {
-  const [staffInfo, setStaffInfo] = useState(null);
-
-  useEffect(() => {
-    setStaffInfo(getStaffSession());
-  }, []);
+  const staffInfo = getStaffSession();
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
 
   const [form, setForm] = useState({
