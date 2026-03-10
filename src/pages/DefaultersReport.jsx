@@ -168,7 +168,7 @@ export default function DefaultersReportPage() {
                   placeholder="Min Due (₹)"
                   type="number"
                   value={filters.minDue}
-                  onChange={(e) => { setFilters({ ...filters, minDue: e.target.value }); setPage(1); }}
+                  onChange={(e) => { setFilters({ ...filters, minDue: parseInt(e.target.value) || 0 }); setPage(1); }}
                 />
                 <Input
                   placeholder="Days Since Last Payment"
