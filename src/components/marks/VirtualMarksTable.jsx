@@ -1,5 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { FixedSizeList as List } from 'react-window';
+import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 
 const ROW_HEIGHT = 50;
@@ -42,15 +41,12 @@ export default function VirtualMarksTable({
     }
   };
 
-  const Row = ({ index, style }) => {
-    const student = paginatedStudents[index];
-    if (!student) return null;
-
+  const renderRow = (student, index) => {
     const studentId = student.student_id || student.id;
     const globalIdx = currentPage * PAGE_SIZE + index;
 
     return (
-      <div style={style} className={`flex border-b ${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+      <div key={studentId} className={`flex border-b ${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
         {/* Roll */}
         <div className="w-12 flex items-center px-2 font-medium text-slate-700 text-xs border-r">
           {student.roll_no || '—'}
@@ -154,10 +150,10 @@ export default function VirtualMarksTable({
           </div>
         </div>
 
-        {/* Virtual List */}
-        <List height={600} itemCount={paginatedStudents.length} itemSize={ROW_HEIGHT} width="100%">
-          {Row}
-        </List>
+        {/* Paginated List */}
+        <div className="divide-y max-h-[600px] overflow-y-auto">
+          {paginatedStudents.map((student, index) => renderRow(student, index))}
+        </div>
       </div>
 
       {/* Pagination */}

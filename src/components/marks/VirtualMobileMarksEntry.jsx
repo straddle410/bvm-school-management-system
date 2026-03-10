@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { FixedSizeList as List } from 'react-window';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -46,16 +45,13 @@ export default function VirtualMobileMarksEntry({
     }
   };
 
-  const Row = ({ index, style }) => {
-    const student = paginatedStudents[index];
-    if (!student) return null;
-
+  const renderCard = (student, index) => {
     const studentId = student.student_id || student.id;
     const marks = marksData[studentId]?.[currentSubject]?.marks_obtained;
     const status = getMarkStatus(marks);
 
     return (
-      <div style={style} className="bg-white p-3 border-b space-y-2">
+      <div key={studentId} className="bg-white p-3 border-b space-y-2">
         <div className="flex justify-between items-start">
           <div>
             <div className="font-semibold text-slate-900 text-sm">{student.name}</div>
@@ -121,12 +117,10 @@ export default function VirtualMobileMarksEntry({
         </button>
       </div>
 
-      {/* Virtual List */}
+      {/* Paginated Cards */}
       {paginatedStudents.length > 0 ? (
-        <div className="border rounded-lg bg-white overflow-hidden">
-          <List height={500} itemCount={paginatedStudents.length} itemSize={ROW_HEIGHT} width="100%">
-            {Row}
-          </List>
+        <div className="border rounded-lg bg-white overflow-hidden max-h-[500px] overflow-y-auto">
+          {paginatedStudents.map((student, index) => renderCard(student, index))}
         </div>
       ) : (
         <div className="py-8 text-center text-slate-400 text-sm border rounded-lg">

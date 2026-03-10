@@ -120,26 +120,50 @@ export default function MarksEntrySection({
           )}
 
           <div className="hidden md:block">
-            <MarksTable
-              students={filteredStudents}
-              subjects={subjectList}
-              marksData={marksData}
-              onMarkChange={canEdit ? onMarkChange : undefined}
-              maxMarks={maxMarks}
-              passingMarks={passingMarks}
-              isLocked={isLocked}
-            />
+            {filteredStudents.length > 500 ? (
+              <VirtualMarksTable
+                students={filteredStudents}
+                subjects={subjectList}
+                marksData={marksData}
+                onMarkChange={canEdit ? onMarkChange : undefined}
+                maxMarks={maxMarks}
+                passingMarks={passingMarks}
+                isLocked={isLocked}
+              />
+            ) : (
+              <MarksTable
+                students={filteredStudents}
+                subjects={subjectList}
+                marksData={marksData}
+                onMarkChange={canEdit ? onMarkChange : undefined}
+                maxMarks={maxMarks}
+                passingMarks={passingMarks}
+                isLocked={isLocked}
+              />
+            )}
           </div>
           <div className="md:hidden">
-            <MobileMarksEntry
-              students={filteredStudents}
-              subjects={subjectList}
-              marksData={marksData}
-              onMarkChange={canEdit ? onMarkChange : undefined}
-              maxMarks={maxMarks}
-              passingMarks={passingMarks}
-              isLocked={isLocked}
-            />
+            {filteredStudents.length > 500 ? (
+              <VirtualMobileMarksEntry
+                students={filteredStudents}
+                subjects={subjectList}
+                marksData={marksData}
+                onMarkChange={canEdit ? onMarkChange : undefined}
+                maxMarks={maxMarks}
+                passingMarks={passingMarks}
+                isLocked={isLocked}
+              />
+            ) : (
+              <MobileMarksEntry
+                students={filteredStudents}
+                subjects={subjectList}
+                marksData={marksData}
+                onMarkChange={canEdit ? onMarkChange : undefined}
+                maxMarks={maxMarks}
+                passingMarks={passingMarks}
+                isLocked={isLocked}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
