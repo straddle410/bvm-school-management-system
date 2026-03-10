@@ -125,7 +125,7 @@ export default function MarksReviewSection({
                       Export to Excel
                     </Button>
                     <Button
-                       onClick={() => onPublish(allMarkIds)}
+                       onClick={() => { console.log('[REVIEW_SECTION] Publish clicked - allMarkIds:', allMarkIds); onPublish(allMarkIds); }}
                        disabled={publishPending || !isSubmitted}
                        className="bg-green-600 hover:bg-green-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                        size="sm"
