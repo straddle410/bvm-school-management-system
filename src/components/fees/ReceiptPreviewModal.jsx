@@ -97,13 +97,26 @@ export default function ReceiptPreviewModal({ isOpen, onClose, receiptData, isLo
           ) : receiptData ? (
             <>
               {/* Receipt Preview */}
-              <div className="bg-gray-50 p-6 rounded-lg mb-6 border border-gray-200">
-                <iframe
-                  srcDoc={getReceiptHTML()}
-                  className="w-full border-none"
-                  style={{ height: '500px' }}
-                  title="Receipt Preview"
-                />
+              <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+                <div className="mb-3 text-xs text-gray-600">A5 Landscape Preview (fits 2 copies per sheet):</div>
+                <div style={{ 
+                  background: 'white', 
+                  aspectRatio: '297/210', 
+                  width: '100%',
+                  maxWidth: '600px',
+                  margin: '0 auto',
+                  border: '1px solid #ccc',
+                  padding: '8px',
+                  boxSizing: 'border-box',
+                  overflow: 'auto',
+                  fontSize: '10px'
+                }}>
+                  <iframe
+                    srcDoc={getReceiptHTML()}
+                    className="w-full h-full border-none"
+                    title="Receipt Preview"
+                  />
+                </div>
               </div>
 
               {/* Action Buttons */}
