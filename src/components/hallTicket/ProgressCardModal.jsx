@@ -5,14 +5,18 @@ import { X, Printer } from 'lucide-react';
 
 export default function ProgressCardModal({ card, isOpen, onClose }) {
   const handlePrint = () => {
-    // Add print styles temporarily
     const style = document.createElement('style');
     style.innerHTML = `
+      @page { 
+        size: A4; 
+        margin: 8mm;
+      }
       @media print {
         body * { display: none; }
         [role="dialog"] { display: block !important; }
         [role="dialog"] * { display: block !important; }
         .print-content { display: block !important; }
+        .print-content { font-size: 10px !important; line-height: 1.2 !important; }
       }
     `;
     document.head.appendChild(style);
@@ -41,180 +45,128 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           </Button>
         </DialogHeader>
 
-        <div className="print-content print:p-8 space-y-6">
-          {/* Header */}
-          <div className="text-center border-b-2 border-gray-300 pb-4">
-            <h1 className="text-2xl font-bold text-gray-900">PROGRESS CARD</h1>
-            <p className="text-sm text-gray-600 mt-2">Academic Year: {card.academic_year}</p>
+        <div className="print-content print:p-8 space-y-2">
+          {/* Header — Compact */}
+          <div className="text-center border-b border-gray-300 pb-2">
+            <h1 className="text-lg font-bold text-gray-900">PROGRESS CARD</h1>
+            <p className="text-xs text-gray-600">{card.academic_year}</p>
           </div>
 
-          {/* Student Info */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
+          {/* Student Info — Compact */}
+          <div className="grid grid-cols-4 gap-1 bg-gray-50 p-2 rounded text-xs">
             <div>
-              <p className="text-xs text-gray-600 font-medium">Name</p>
+              <p className="text-gray-500 font-semibold">Name</p>
               <p className="font-semibold text-gray-900">{card.student_name}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-600 font-medium">Class</p>
-              <p className="font-semibold text-gray-900">{card.class_name}</p>
+              <p className="text-gray-500 font-semibold">Class</p>
+              <p className="font-semibold text-gray-900">{card.class_name}-{card.section}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-600 font-medium">Section</p>
-              <p className="font-semibold text-gray-900">{card.section}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-600 font-medium">Roll Number</p>
+              <p className="text-gray-500 font-semibold">Roll</p>
               <p className="font-semibold text-gray-900">{card.roll_number}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 font-semibold">Rank</p>
+              <p className="font-semibold text-gray-900">#{card.overall_stats?.overall_rank || '-'}</p>
             </div>
           </div>
 
-          {/* Overall Statistics */}
+          {/* Overall Statistics — Compact */}
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Overall Performance</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <p className="text-xs text-blue-600 font-medium mb-1">Percentage</p>
-                <p className="text-3xl font-bold text-blue-700">
-                  {card.overall_stats?.overall_percentage?.toFixed(2) || 0}%
+            <h2 className="text-xs font-bold text-gray-900 mb-1">Overall Performance</h2>
+            <div className="grid grid-cols-4 gap-1 text-xs">
+              <div className="bg-blue-50 border border-blue-200 p-1.5 rounded">
+                <p className="text-blue-600 font-medium">Percentage</p>
+                <p className="text-lg font-bold text-blue-700">
+                  {card.overall_stats?.overall_percentage?.toFixed(1) || 0}%
                 </p>
               </div>
-              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                <p className="text-xs text-green-600 font-medium mb-1">Grade</p>
-                <p className="text-3xl font-bold text-green-700">
+              <div className="bg-green-50 border border-green-200 p-1.5 rounded">
+                <p className="text-green-600 font-medium">Grade</p>
+                <p className="text-lg font-bold text-green-700">
                   {card.overall_stats?.overall_grade || '-'}
                 </p>
               </div>
-              <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-                <p className="text-xs text-purple-600 font-medium mb-1">Rank</p>
-                <p className="text-3xl font-bold text-purple-700">
-                  #{card.overall_stats?.overall_rank || '-'}
+              <div className="bg-purple-50 border border-purple-200 p-1.5 rounded">
+                <p className="text-purple-600 font-medium">Total Marks</p>
+                <p className="text-sm font-bold text-purple-700">
+                  {card.overall_stats?.total_marks_obtained || 0}/{card.overall_stats?.total_possible_marks || 0}
                 </p>
               </div>
-              <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                <p className="text-xs text-orange-600 font-medium mb-1">Total Marks</p>
-                <p className="text-2xl font-bold text-orange-700">
-                  {card.overall_stats?.total_marks_obtained || 0}/{card.overall_stats?.total_possible_marks || 0}
+              <div className="bg-orange-50 border border-orange-200 p-1.5 rounded">
+                <p className="text-orange-600 font-medium">Attendance</p>
+                <p className="text-sm font-bold text-orange-700">
+                  {card.attendance_summary?.attendance_percentage || 0}%
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Exam Performance Details */}
+          {/* Exam Performance & Attendance — Compact */}
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Exam Details & Attendance</h2>
-            <div className="space-y-4">
-              {card.exam_performance?.map((exam, idx) => (
-                <div key={idx} className="border border-gray-300 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+            <h2 className="text-xs font-bold text-gray-900 mb-1">Exam Details & Attendance</h2>
+            <div className="space-y-1">
+              {card.exam_performance?.slice(0, 3).map((exam, idx) => (
+                <div key={idx} className="border border-gray-300 rounded p-1.5">
+                  {/* Exam header */}
+                  <div className="flex items-center justify-between mb-1 pb-1 border-b border-gray-200 text-xs">
                     <h3 className="font-bold text-gray-900">{exam.exam_name}</h3>
-                    <div className="flex gap-6 text-sm">
+                    <div className="flex gap-2 text-xs">
                       <div className="text-center">
-                        <p className="text-xs text-gray-600">Percentage</p>
-                        <p className="font-bold text-blue-600">{exam.percentage?.toFixed(2) || 0}%</p>
+                        <p className="text-gray-600">%</p>
+                        <p className="font-bold text-blue-600">{exam.percentage?.toFixed(1) || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-gray-600">Grade</p>
+                        <p className="text-gray-600">Gr</p>
                         <p className="font-bold text-green-600">{exam.grade}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-gray-600">Rank</p>
-                        <p className="font-bold text-purple-600">#{exam.rank || '-'}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-gray-600">Marks</p>
-                        <p className="font-bold text-orange-600">
-                          {exam.total_marks}/{exam.max_marks}
-                        </p>
+                        <p className="text-gray-600">Mk</p>
+                        <p className="font-bold text-orange-600">{exam.total_marks}/{exam.max_marks}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Subject Details */}
+                  {/* Subject Details — Inline */}
                   {exam.subject_details?.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-0.5">
                       {exam.subject_details.map((sub, sidx) => (
-                        <div key={sidx} className="grid grid-cols-12 gap-2 text-sm bg-gray-50 p-3 rounded">
-                          <div className="col-span-4 font-medium text-gray-900">{sub.subject}</div>
-                          <div className="col-span-2 text-center">
-                            <span className="text-gray-600">{sub.marks_obtained}/{sub.max_marks}</span>
-                          </div>
-                          <div className="col-span-2 text-center">
-                            <span className="text-blue-600">
-                              {((sub.marks_obtained / sub.max_marks) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                          <div className="col-span-2 text-center">
-                            <span className="font-semibold text-green-600">{sub.grade}</span>
-                          </div>
-                          <div className="col-span-2 text-center">
-                            <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded">
-                              {sub.marks_obtained >= 40 ? 'Pass' : 'Fail'}
-                            </span>
+                        <div key={sidx} className="grid grid-cols-12 gap-0.5 text-xs bg-gray-50 p-1 rounded">
+                          <div className="col-span-4 font-medium text-gray-900 truncate">{sub.subject}</div>
+                          <div className="col-span-2 text-center text-gray-600">{sub.marks_obtained}/{sub.max_marks}</div>
+                          <div className="col-span-2 text-center text-blue-600">{((sub.marks_obtained / sub.max_marks) * 100).toFixed(0)}%</div>
+                          <div className="col-span-2 text-center font-semibold text-green-600">{sub.grade}</div>
+                          <div className="col-span-2 text-center text-xs font-semibold" style={{color: sub.marks_obtained >= 40 ? '#22c55e' : '#ef4444'}}>
+                            {sub.marks_obtained >= 40 ? 'P' : 'F'}
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Attendance Report for this Exam Period */}
+                  {/* Attendance Summary — Single row */}
                   {card.attendance_summary && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-3 uppercase">Attendance ({card.attendance_summary.range_start} to {card.attendance_summary.range_end})</p>
-                      {/* Summary row */}
-                      <div className="grid grid-cols-4 gap-3 mb-4">
-                        <div className="bg-blue-50 p-2 rounded">
-                          <p className="text-xs text-gray-600">Working Days</p>
-                          <p className="text-lg font-bold text-gray-900">{card.attendance_summary.working_days}</p>
+                    <div className="mt-1 pt-1 border-t border-gray-200">
+                      <p className="text-xs font-semibold text-gray-600 mb-0.5 uppercase">Attendance</p>
+                      <div className="grid grid-cols-4 gap-0.5 text-xs">
+                        <div className="bg-blue-50 p-0.5 rounded">
+                          <p className="text-gray-600">WD</p>
+                          <p className="font-bold">{card.attendance_summary.working_days}</p>
                         </div>
-                        <div className="bg-green-50 p-2 rounded">
-                          <p className="text-xs text-gray-600">Days Present</p>
-                          <p className="text-lg font-bold text-green-600">{card.attendance_summary.total_present_days}</p>
+                        <div className="bg-green-50 p-0.5 rounded">
+                          <p className="text-gray-600">Pres</p>
+                          <p className="font-bold text-green-600">{card.attendance_summary.total_present_days}</p>
                         </div>
-                        <div className="bg-red-50 p-2 rounded">
-                          <p className="text-xs text-gray-600">Days Absent</p>
-                          <p className="text-lg font-bold text-red-600">{(card.attendance_summary.working_days - card.attendance_summary.total_present_days).toFixed(1)}</p>
+                        <div className="bg-red-50 p-0.5 rounded">
+                          <p className="text-gray-600">Abs</p>
+                          <p className="font-bold text-red-600">{(card.attendance_summary.working_days - card.attendance_summary.total_present_days).toFixed(0)}</p>
                         </div>
-                        <div className="bg-purple-50 p-2 rounded">
-                          <p className="text-xs text-gray-600">Attendance %</p>
-                          <p className="text-lg font-bold text-purple-600">{card.attendance_summary.attendance_percentage}%</p>
+                        <div className="bg-purple-50 p-0.5 rounded">
+                          <p className="text-gray-600">%</p>
+                          <p className="font-bold text-purple-600">{card.attendance_summary.attendance_percentage}%</p>
                         </div>
                       </div>
-                      {/* Month-wise breakdown */}
-                      {card.attendance_summary.month_wise_breakdown?.filter(m => m.working_days > 0).length > 0 && (
-                        <div>
-                          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">Month-wise Breakdown</p>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-xs border border-gray-200 rounded">
-                              <thead className="bg-gray-100">
-                                <tr>
-                                  <th className="text-left p-2 font-semibold text-gray-700 border-b border-gray-200">Month</th>
-                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Working Days</th>
-                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Full Days</th>
-                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Half Days</th>
-                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Present</th>
-                                  <th className="text-center p-2 font-semibold text-gray-700 border-b border-gray-200">Attendance %</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {card.attendance_summary.month_wise_breakdown.filter(m => m.working_days > 0).map((m, midx) => (
-                                  <tr key={midx} className={midx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                    <td className="p-2 font-medium text-gray-800">{m.month_display || m.month}</td>
-                                    <td className="p-2 text-center text-gray-700">{m.working_days}</td>
-                                    <td className="p-2 text-center text-gray-700">{m.full_days_present}</td>
-                                    <td className="p-2 text-center text-gray-700">{m.half_days_present}</td>
-                                    <td className="p-2 text-center font-semibold text-green-700">{m.total_present}</td>
-                                    <td className="p-2 text-center">
-                                      <span className={`font-semibold ${m.attendance_percentage >= 75 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {m.attendance_percentage}%
-                                      </span>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -225,9 +177,8 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
 
           {/* Footer */}
-          <div className="text-center text-xs text-gray-500 border-t pt-4 mt-8">
-            <p>Generated on: {new Date(card.generated_at).toLocaleDateString()}</p>
-            <p className="text-gray-400">This is an official progress report from the school management system</p>
+          <div className="text-center text-xs text-gray-500 border-t pt-1 mt-2">
+            <p>Generated: {new Date(card.generated_at).toLocaleDateString()}</p>
           </div>
         </div>
       </DialogContent>
