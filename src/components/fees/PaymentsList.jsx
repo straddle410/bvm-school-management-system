@@ -173,21 +173,18 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
                       ₹{(p.amount_paid || 0).toLocaleString()}
                     </p>
                     <Button
-                       size="sm"
-                       variant="ghost"
-                       className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-7 px-2 text-xs gap-1"
-                       onClick={() => {
-                         const w = window.open('', '_blank');
-                         if (!w) {
-                           alert('Print blocked. Please allow pop-ups and try again.');
-                           return;
-                         }
-                         w.location = `${createPageUrl('PrintReceiptA5')}?paymentId=${p.id}`;
-                       }}
-                     >
-                       <Printer className="h-3 w-3" />
-                       Print
-                     </Button>
+                      size="sm"
+                      variant="ghost"
+                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-7 px-2 text-xs gap-1"
+                      onClick={() => {
+                        // Use same window to preserve session
+                        const url = `${createPageUrl('PrintReceiptA5')}?paymentId=${p.id}`;
+                        window.location.href = url;
+                      }}
+                    >
+                      <Printer className="h-3 w-3" />
+                      Print
+                    </Button>
                     {!isVoid && canVoidReceipt && (
                        <Button
                          size="sm"
