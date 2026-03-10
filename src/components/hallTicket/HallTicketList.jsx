@@ -92,6 +92,9 @@ export default function HallTicketList() {
       queryClient.invalidateQueries({ queryKey: ['hallTickets'] });
       setSelected([]);
       toast.success('Hall tickets deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete: ' + (error.message || 'Unknown error'));
     }
   });
 
