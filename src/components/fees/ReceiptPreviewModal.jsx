@@ -8,11 +8,13 @@ export default function ReceiptPreviewModal({ isOpen, onClose, receiptData, isLo
   const isVoid = receipt?.payment?.status === 'VOID';
 
   const handlePrint = () => {
-    const printWindow = window.open('', '', 'width=800,height=600');
+    const printWindow = window.open('', '', 'width=1200,height=800');
     if (printWindow) {
       printWindow.document.write(getReceiptHTML());
       printWindow.document.close();
-      printWindow.print();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
     }
   };
 
