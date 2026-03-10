@@ -415,13 +415,19 @@ function ReceiptContent({ school, receipt, copyLabel }) {
       {isVoid && <div className="void-watermark">VOID</div>}
       
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Header */}
-        <div className="header">
-          {school.logoUrl && <img src={school.logoUrl} alt="Logo" className="logo" />}
-          <div className="school-name">{school.name}</div>
-          {school.addressLine1 && <div className="school-info">{school.addressLine1}</div>}
-          {school.phone && <div className="school-info">Ph: {school.phone}</div>}
-        </div>
+         {/* Header */}
+         <div className="header">
+           <div className="header-top">
+             {school.logoUrl && <img src={school.logoUrl} alt="Logo" className="logo" />}
+             <div>
+               <div className="school-name">{school.name}</div>
+             </div>
+           </div>
+           <div>
+             {school.addressLine1 && <div className="school-info">{school.addressLine1}</div>}
+             {school.phone && <div className="school-info">Ph: {school.phone}</div>}
+           </div>
+         </div>
 
         {/* Title Row */}
         <div className="receipt-title">
