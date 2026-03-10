@@ -183,7 +183,7 @@ export default function Marks() {
   });
 
   // For review mode - fetch marks for the class/section/year directly from DB
-  const { data: reviewMarks = [] } = useQuery({
+  const { data: reviewMarks = [], isError: reviewMarksError, error: reviewMarksErrorObj } = useQuery({
     queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
     queryFn: async () => {
       const res = await base44.functions.invoke('getMarksForClass', {
@@ -191,6 +191,7 @@ export default function Marks() {
         section: selectedSection,
         academicYear
       });
+      if (res.status >= 400) throw new Error(res.data?.error || 'Failed to load marks');
       return res.data?.marks || [];
     },
     enabled: !!(selectedClass && selectedSection && viewMode === 'review' && academicYear),
