@@ -76,6 +76,12 @@ function StudentLedgerContent() {
     queryKey: ['student-ledger', selectedStudent?.student_id, academicYear, dateFrom, dateTo, includeReversals, includeCredits, includeVoided],
     queryFn: async () => {
       try {
+        const staffInfo = (() => {
+          try {
+            const raw = localStorage.getItem('staff_session');
+            return raw ? JSON.parse(raw) : null;
+          } catch { return null; }
+        })();
         const res = await base44.functions.invoke('getStudentLedger', {
           studentId: selectedStudent.student_id,
           academicYear: academicYear || undefined,
@@ -84,7 +90,8 @@ function StudentLedgerContent() {
           includeReversals,
           includeCredits,
           includeVoided,
-          pageSize: 500
+          pageSize: 500,
+          staffInfo
         });
         return res.data;
       } catch (err) {
