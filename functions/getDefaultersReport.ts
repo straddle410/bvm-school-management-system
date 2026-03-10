@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
     const className = params.get('className') || null;
     const section = params.get('section') || null;
     const minDue = parseFloat(params.get('minDue')) || 1;
-    const daysSinceLastPaymentMin = parseInt(params.get('daysSinceLastPaymentMin')) || null;
+    const daysSinceLastPaymentMinParam = params.get('daysSinceLastPaymentMin');
+    const daysSinceLastPaymentMin = daysSinceLastPaymentMinParam !== null && daysSinceLastPaymentMinParam !== '' ? parseInt(daysSinceLastPaymentMinParam) : null;
     const followUpStatus = params.get('status') ? params.get('status').split(',') : null;
     const search = params.get('search')?.trim().toLowerCase() || null;
     const sort = params.get('sort') || 'due_desc';
