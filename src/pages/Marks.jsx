@@ -196,6 +196,12 @@ export default function Marks() {
     staleTime: 0
   });
 
+  // Clear marksData ONLY when the selection (class/section/exam) changes — not when query returns empty
+  useEffect(() => {
+    setMarksData({});
+  }, [selectedClass, selectedSection, selectedExam]);
+
+  // Populate marksData from DB when saved marks are available
   useEffect(() => {
     if (existingMarks.length > 0) {
       const data = {};
@@ -209,9 +215,8 @@ export default function Marks() {
         };
       });
       setMarksData(data);
-    } else {
-      setMarksData({});
     }
+    // intentionally NOT wiping on empty — selection change useEffect handles that
   }, [existingMarks]);
 
   const filteredStudents = students.filter(s => 
