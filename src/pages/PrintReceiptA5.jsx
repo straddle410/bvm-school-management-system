@@ -393,7 +393,9 @@ function ReceiptContent({ school, receipt, copyLabel }) {
   // Determine Fee Type
   const feeType = receipt.invoice.type === 'ANNUAL' 
     ? 'Annual Fee'
-    : receipt.invoice.chargeName || 'Additional Charge';
+    : receipt.invoice.type === 'ADDITIONAL'
+    ? 'Additional Fee'
+    : receipt.invoice.chargeName || 'Additional Fee';
 
   return (
     <div style={{ position: 'relative' }}>
