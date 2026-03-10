@@ -11,11 +11,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const role = String(user.role || '').trim().toLowerCase();
-    if (!STAFF_ROLES.includes(role)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const { className, section, examType, academicYear } = await req.json();
 
     if (!className || !section || !academicYear) {
