@@ -39,12 +39,16 @@ export default function StudentNotices() {
       if (!session?.student_id) return [];
       try {
         const allNotices = await base44.entities.Notice.filter({
-          class_name: session.class_name,
-          section: session.section,
           academic_year: session.academic_year,
           status: 'Published'
         }, '-created_date', 500);
-        return allNotices || [];
+        
+        // Filter notices that target this student's class or all classes
+        return (allNotices || []).filter(notice => {
+          if (notice.target_audience !== 'Students') return false;
+          if (!notice.target_classes || notice.target_classes.length === 0) return true;
+          return notice.target_classes.includes(session.class_name);
+        });
       } catch {
         return [];
       }
