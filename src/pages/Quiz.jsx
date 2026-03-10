@@ -630,6 +630,18 @@ export default function Quiz() {
                                          Submit for Approval
                                        </Button>
                                      )}
+                                     {isAdmin && quiz.status !== 'Published' && (
+                                       <Button 
+                                         size="sm"
+                                         className="bg-green-600 hover:bg-green-700"
+                                         onClick={() => {
+                                           submitQuizMutation.mutate(quiz.id);
+                                         }}
+                                         disabled={submitQuizMutation.isPending}
+                                       >
+                                         Publish
+                                       </Button>
+                                     )}
                                      {(userPermissions.quiz || isAdmin) && (
                                        <Button 
                                          size="sm"
