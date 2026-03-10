@@ -64,10 +64,12 @@ export default function Marks() {
   const [reviewSortBy, setReviewSortBy] = useState('rank'); // 'rank', 'name', 'total'
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
    const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
-   const [revokeExamType, setRevokeExamType] = useState(null);
-   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
-   const [showValidationError, setShowValidationError] = useState(false);
-   const [validationError, setValidationError] = useState(null);
+    const [revokeExamType, setRevokeExamType] = useState(null);
+    const [showPastYearWarning, setShowPastYearWarning] = useState(false);
+    const [showValidationError, setShowValidationError] = useState(false);
+    const [validationError, setValidationError] = useState(null);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
   
   const queryClient = useQueryClient();
 
