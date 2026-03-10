@@ -266,7 +266,7 @@ export default function DayBookReport() {
            <Card className="border-0 shadow-sm">
              <CardContent className="p-4 space-y-4">
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
                   <Label className="text-xs text-slate-500 mb-1 block">From Date</Label>
                   <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-9 text-sm" />
@@ -291,6 +291,34 @@ export default function DayBookReport() {
                   <Button className="h-9 w-full bg-[#1a237e] hover:bg-[#283593]" onClick={handleApply}>
                     <Search className="h-4 w-4 mr-1" /> Apply
                   </Button>
+                </div>
+              </div>
+
+              {/* Quick Range Buttons */}
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold text-slate-700 mb-2">Quick Range:</div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Today', key: 'today' },
+                    { label: 'Yesterday', key: 'yesterday' },
+                    { label: 'This Week', key: 'thisWeek' },
+                    { label: 'Last Week', key: 'lastWeek' },
+                    { label: 'This Month', key: 'thisMonth' },
+                    { label: 'Last Month', key: 'lastMonth' },
+                    { label: 'Last 30 Days', key: 'last30' }
+                  ].map(({ label, key }) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        const range = getDateRange(key);
+                        setDateFrom(range.from);
+                        setDateTo(range.to);
+                      }}
+                      className="px-3 py-1.5 text-sm rounded-md border border-[#1a237e]/30 bg-white hover:bg-[#1a237e] hover:text-white text-slate-700 font-medium transition-all"
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
