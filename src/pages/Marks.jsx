@@ -411,8 +411,8 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['reviewMarks']);
-      queryClient.invalidateQueries(['marks']);
+      queryClient.invalidateQueries({ queryKey: ['reviewMarks'] });
+      queryClient.invalidateQueries({ queryKey: ['marks'] });
       toast.success('Publication revoked. Admin can now edit marks.');
       setShowRevokeConfirm(false);
       setRevokeExamType(null);
