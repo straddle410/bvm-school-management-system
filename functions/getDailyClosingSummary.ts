@@ -7,7 +7,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    let body = {};
+    let date, includeVoided;
+    
+    if (req.method === 'POST') {
+      body = await req.json().catch(() => ({}));
+      date = body.date;
+      includeVoided = body.includeVoided === true || body.includeVoided === 'true';
+    } else {
+      const params = new URL(req.url).searchParams;
+      date = params.get('date');
+      includeVoided = params.get('includeVoided') === 'true';
+    }
+
     const staffInfo = body.staffInfo;
     let baseUser = null;
     
@@ -27,19 +39,6 @@ Deno.serve(async (req) => {
     }
 
     const base44 = createClientFromRequest(req);
-
-    // Parse request
-    let date, includeVoided;
-    
-    if (req.method === 'POST') {
-      const body = await req.json();
-      date = body.date;
-      includeVoided = body.includeVoided === true || body.includeVoided === 'true';
-    } else {
-      const params = new URL(req.url).searchParams;
-      date = params.get('date');
-      includeVoided = params.get('includeVoided') === 'true';
-    }
 
     if (!date) {
       return Response.json({ error: 'date parameter required (YYYY-MM-DD)' }, { status: 400 });
