@@ -71,7 +71,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
 
-    const body = await req.json().catch(() => ({}));
     const {
       dateFrom,
       dateTo,
