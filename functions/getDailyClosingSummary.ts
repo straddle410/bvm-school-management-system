@@ -7,15 +7,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
-    
-    // Try Base44 auth first, fallback to staff session in body
-    const baseUser = await base44.auth.me().catch(() => null);
     const staffInfo = body.staffInfo;
     
-    if (!baseUser && !staffInfo?.staff_id) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
+    if (!staffInfo?.staff_id) {
+      const base44 = createClientFromRequest(req);
+      const baseUser = await base44.auth.me().catch(() => null);
+      if (!baseUser) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     const userRole = (baseUser?.role || staffInfo?.role || '').toLowerCase();
