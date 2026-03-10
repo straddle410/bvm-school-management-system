@@ -112,8 +112,9 @@ Deno.serve(async (req) => {
 
       if (contribution === 0) continue;
 
-      const inv = activeInvoices.find(i => i.id === p.invoice_id) ||
-                  invoices.find(i => i.id === p.invoice_id);
+      // Always lookup in ALL invoices (including non-active) to find student context
+      // Only filter which invoices contribute to netInvoiced above
+      const inv = invoices.find(i => i.id === p.invoice_id);
       const sid = p.student_id || inv?.student_id;
       if (!sid) continue;
 
