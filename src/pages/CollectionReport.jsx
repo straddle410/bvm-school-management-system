@@ -31,6 +31,12 @@ function CollectionReportContent() {
     queryFn: async () => {
       try {
         const mode = selectedClass ? 'details' : 'summary';
+        const staffInfo = (() => {
+          try {
+            const raw = localStorage.getItem('staff_session');
+            return raw ? JSON.parse(raw) : null;
+          } catch { return null; }
+        })();
         const res = await base44.functions.invoke('getCollectionByClass', {
           academicYear,
           dateFrom: dateRange.start,
@@ -39,7 +45,8 @@ function CollectionReportContent() {
           mode: selectedMode || undefined,
           reportMode: mode,
           classId: selectedClass || undefined,
-          pageSize: 9999
+          pageSize: 9999,
+          staffInfo
         });
         return res.data?.data || res.data || {};
       } catch (err) {
