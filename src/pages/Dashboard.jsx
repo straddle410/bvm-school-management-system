@@ -147,28 +147,29 @@ export default function Dashboard() {
     );
   }
 
+  const feeActions = [
+    { label: 'Fee Collection',    icon: Wallet,      page: 'Fees',                  gradient: 'from-green-500 to-emerald-600' },
+    { label: 'Collection Report', icon: BarChart3,    page: 'CollectionReport',       gradient: 'from-blue-500 to-blue-700' },
+    { label: 'Outstanding Dues',  icon: TrendingUp,   page: 'OutstandingReport',      gradient: 'from-red-500 to-rose-600' },
+    { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport',    gradient: 'from-indigo-500 to-indigo-700' },
+    { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',          gradient: 'from-violet-500 to-purple-600' },
+    { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',     gradient: 'from-teal-500 to-cyan-600' },
+    { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',       gradient: 'from-orange-500 to-amber-600' },
+    { label: 'Parent Statement',  icon: DollarSign,   page: 'ParentStatement',        gradient: 'from-pink-500 to-rose-500' },
+  ];
+
+  const adminFeeActions = [
+    { label: 'Fee Collection',    icon: Wallet,       page: 'Fees',                gradient: 'from-emerald-400 to-emerald-600' },
+    { label: 'Collection Rpt',    icon: BarChart3,    page: 'CollectionReport',    gradient: 'from-blue-400 to-blue-600' },
+    { label: 'Outstanding',       icon: TrendingUp,   page: 'OutstandingReport',   gradient: 'from-red-400 to-red-600' },
+    { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport', gradient: 'from-violet-400 to-violet-600' },
+    { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',       gradient: 'from-slate-400 to-slate-600' },
+    { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',  gradient: 'from-teal-400 to-teal-600' },
+    { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',    gradient: 'from-orange-400 to-orange-600' },
+  ];
+
   // ─── ACCOUNTANT DASHBOARD ───────────────────────────────────────────────────
   if (isAccountant) {
-    const feeActions = [
-      { label: 'Fee Collection',    icon: Wallet,      page: 'Fees',                  gradient: 'from-green-500 to-emerald-600' },
-      { label: 'Collection Report', icon: BarChart3,    page: 'CollectionReport',       gradient: 'from-blue-500 to-blue-700' },
-      { label: 'Outstanding Dues',  icon: TrendingUp,   page: 'OutstandingReport',      gradient: 'from-red-500 to-rose-600' },
-      { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport',    gradient: 'from-indigo-500 to-indigo-700' },
-      { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',          gradient: 'from-violet-500 to-purple-600' },
-      { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',     gradient: 'from-teal-500 to-cyan-600' },
-      { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',       gradient: 'from-orange-500 to-amber-600' },
-      { label: 'Parent Statement',  icon: DollarSign,   page: 'ParentStatement',        gradient: 'from-pink-500 to-rose-500' },
-    ];
-
-    const adminFeeActions = [
-      { label: 'Fee Collection',    icon: Wallet,       page: 'Fees',                gradient: 'from-emerald-400 to-emerald-600' },
-      { label: 'Collection Rpt',    icon: BarChart3,    page: 'CollectionReport',    gradient: 'from-blue-400 to-blue-600' },
-      { label: 'Outstanding',       icon: TrendingUp,   page: 'OutstandingReport',   gradient: 'from-red-400 to-red-600' },
-      { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport', gradient: 'from-violet-400 to-violet-600' },
-      { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',       gradient: 'from-slate-400 to-slate-600' },
-      { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',  gradient: 'from-teal-400 to-teal-600' },
-      { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',    gradient: 'from-orange-400 to-orange-600' },
-    ];
 
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-4">
