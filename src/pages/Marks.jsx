@@ -237,6 +237,7 @@ export default function Marks() {
 
   const saveMutation = useMutation({
      mutationFn: async () => {
+       console.log('[SAVE_MARKS] Starting save with:', { saveMode, selectedClass, selectedSection, selectedExam });
        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
          throw new Error('PAST_YEAR_WARNING');
        }
@@ -267,6 +268,7 @@ export default function Marks() {
 
        filteredStudents.forEach(student => {
          const studentMarks = marksData[student.student_id || student.id];
+         console.log('[SAVE_MARKS] Student:', student.name, 'Has marks:', !!studentMarks);
          if (!studentMarks) return;
 
          subjectList.forEach(subject => {
@@ -320,6 +322,7 @@ export default function Marks() {
          });
        });
 
+       console.log('[SAVE_MARKS] Total marks to save:', enteredCount, 'promises:', promises.length);
        if (enteredCount === 0) {
          throw new Error('No marks entered');
        }
