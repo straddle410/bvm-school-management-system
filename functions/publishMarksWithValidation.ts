@@ -4,6 +4,7 @@ const ALLOWED_ROLES = ['admin', 'principal'];
 
 Deno.serve(async (req) => {
   try {
+    console.log('[publishMarksWithValidation] Function invoked');
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
