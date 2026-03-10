@@ -485,7 +485,7 @@ export default function Marks() {
 
       const payload = {
         marksIds,
-        examType: groupData?.exam_name || groupData?.exam_type,
+        examType: groupData?.exam_type,
         className: selectedClass,
         section: selectedSection,
         academicYear: academicYear
