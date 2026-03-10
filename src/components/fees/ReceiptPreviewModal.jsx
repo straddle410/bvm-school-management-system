@@ -120,13 +120,13 @@ export default function ReceiptPreviewModal({ isOpen, onClose, receiptData, isLo
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 justify-end">
+              <div className="flex gap-3 justify-end border-t pt-4">
                 <Button variant="outline" onClick={onClose}>
                   Close
                 </Button>
-                <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700 gap-2">
+                <Button onClick={handlePrint} className="bg-green-600 hover:bg-green-700 gap-2">
                   <Printer className="h-4 w-4" />
-                  Print Receipt
+                  Print Now
                 </Button>
               </div>
             </>
