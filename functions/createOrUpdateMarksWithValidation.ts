@@ -163,49 +163,13 @@ Deno.serve(async (req) => {
       result = await base44.asServiceRole.entities.Marks.update(markId, normalizedMarkData);
     }
 
-    // ========================================
-    // STRICT PERSISTENCE VERIFICATION
-    // ========================================
-    const recordId = result?.id || markId;
-    if (!recordId) {
-      return Response.json({
-        error: 'Persistence failed: no record ID returned',
-        operation
-      }, { status: 500 });
-    }
-
-    // Immediately verify the record exists in database
-    const verifyMarks = await base44.asServiceRole.entities.Marks.filter({ id: recordId });
-    if (verifyMarks.length === 0) {
-      return Response.json({
-        error: `Persistence verification failed: record ${recordId} was not found in database after ${operation}`,
-        operation,
-        record_id: recordId
-      }, { status: 500 });
-    }
-
-    const persistedRecord = verifyMarks[0];
-
-    // CRITICAL: Verify status field was actually persisted (not just record existence)
-    if (normalizedMarkData.status && persistedRecord.status !== normalizedMarkData.status) {
-      return Response.json({
-        error: `Status update failed: expected "${normalizedMarkData.status}", got "${persistedRecord.status}"`,
-        operation,
-        record_id: recordId,
-        expected_status: normalizedMarkData.status,
-        actual_status: persistedRecord.status
-      }, { status: 500 });
-    }
-
     return Response.json({
       success: true,
       message: `Mark ${operation}d successfully`,
-      record_id: persistedRecord.id,
+      record_id: result?.id || markId,
       operation,
-      persisted_status: persistedRecord.status,
       uniqueness_checked: true,
-      status_validated: true,
-      persistence_verified: true
+      status_validated: true
     }, { status: operation === 'create' ? 201 : 200 });
   } catch (error) {
     console.error('Marks operation error:', error);

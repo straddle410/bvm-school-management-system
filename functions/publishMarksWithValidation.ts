@@ -39,14 +39,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No marks found matching the provided IDs' }, { status: 404 });
     }
 
-    // VALIDATION: Only Submitted, Verified, or Approved marks can be published
+    // VALIDATION: Only Verified or Approved marks can be published
     const notPublishable = marksToPublish.filter(m =>
-      !['Submitted', 'Verified', 'Approved'].includes(m.status)
+      !['Verified', 'Approved'].includes(m.status)
     );
 
     if (notPublishable.length > 0) {
       return Response.json({
-        error: `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Submitted, Verified, or Approved marks can be published.`,
+        error: `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Verified or Approved marks can be published.`,
         invalid_marks: notPublishable.map(m => ({
           id: m.id,
           student: m.student_name,
