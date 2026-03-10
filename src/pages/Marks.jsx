@@ -305,6 +305,7 @@ export default function Marks() {
              markId: existing?.id,
              operation: existing?.id ? 'update' : 'create'
            }).then(res => {
+             console.log('[MARKS_SAVE_RESPONSE]', { status: res.status, data: res.data });
              if (res.status >= 400) {
                throw new Error(res.data?.error || 'Failed to save mark');
              }
