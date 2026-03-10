@@ -150,7 +150,7 @@ export default function DailyClosingReportPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Collected</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-green-600">₹{(totals.totalCollected || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-2xl font-bold text-green-600">₹{(totals.totalCollected || 0).toLocaleString()}</p>
               </CardContent>
             </Card>
 
@@ -180,7 +180,7 @@ export default function DailyClosingReportPage() {
                   <CardTitle className="text-sm font-medium text-gray-600">Voided Amount</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-red-600">₹{(totals.totalVoidedAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-2xl font-bold text-red-600">₹{(totals.totalVoidedAmount || 0).toLocaleString()}</p>
                 </CardContent>
               </Card>
             )}
@@ -212,7 +212,7 @@ export default function DailyClosingReportPage() {
                       byMode.map((mode, idx) => (
                         <tr key={idx} className="border-b hover:bg-gray-50">
                           <td className="px-4 py-3 font-medium">{mode.mode}</td>
-                          <td className="px-4 py-3 text-right font-bold text-green-600">₹{(mode.collected || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="px-4 py-3 text-right font-bold text-green-600">₹{(mode.collected || 0).toLocaleString()}</td>
                           <td className="px-4 py-3 text-right">{mode.receiptCount}</td>
                         </tr>
                       ))
@@ -255,7 +255,7 @@ export default function DailyClosingReportPage() {
                           <td className="px-4 py-3">{r.studentName}</td>
                           <td className="px-4 py-3">{r.className}</td>
                           <td className="px-4 py-3">{r.mode}</td>
-                          <td className="px-4 py-3 text-right font-bold">₹{(r.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="px-4 py-3 text-right font-bold">₹{(r.amount || 0).toLocaleString()}</td>
                           <td className="px-4 py-3 text-center">
                             {r.status === 'VOID' ? (
                               <span className="inline-block px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">VOID</span>
@@ -319,7 +319,7 @@ function DailyClosingPrintTemplate({ date, data }) {
       <div className="summary">
         <div className="summary-item">
           <span className="summary-label">Total Collected:</span>
-          <span className="summary-value">₹{(totals.totalCollected || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="summary-value">₹{(totals.totalCollected || 0).toLocaleString()}</span>
         </div>
         <div className="summary-item">
           <span className="summary-label">Total Receipts:</span>
@@ -333,7 +333,7 @@ function DailyClosingPrintTemplate({ date, data }) {
             </div>
             <div className="summary-item">
               <span className="summary-label">Voided Amount:</span>
-              <span className="summary-value">₹{(totals.totalVoidedAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="summary-value">₹{(totals.totalVoidedAmount || 0).toLocaleString()}</span>
             </div>
           </>
         )}
@@ -352,7 +352,7 @@ function DailyClosingPrintTemplate({ date, data }) {
           {byMode.map((m, idx) => (
             <tr key={idx}>
               <td>{m.mode}</td>
-              <td className="text-right">₹{(m.collected || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td className="text-right">₹{(m.collected || 0).toLocaleString()}</td>
               <td className="text-right">{m.receiptCount}</td>
             </tr>
           ))}
@@ -377,7 +377,7 @@ function DailyClosingPrintTemplate({ date, data }) {
               <td>{r.studentName}</td>
               <td>{r.className}</td>
               <td>{r.mode}</td>
-              <td className="text-right">₹{(r.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td className="text-right">₹{(r.amount || 0).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
