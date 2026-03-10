@@ -35,12 +35,6 @@ const EMPTY_FORM = {
   admission_date: '', academic_year: '', status: 'Pending', photo_url: ''
 };
 
-// Password reset dialog state
-const [showResetDialog, setShowResetDialog] = React.useState(false);
-const [resetStudent, setResetStudent] = React.useState(null);
-const [resetLoading, setResetLoading] = React.useState(false);
-const [resetResult, setResetResult] = React.useState(null);
-
 // Student ID is NEVER generated at create time.
 // It is generated only when status transitions to Approved (via approveStudentAndGenerateId).
 
