@@ -503,7 +503,8 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['marks']);
+      queryClient.invalidateQueries({ queryKey: ['marks'] });
+      queryClient.invalidateQueries({ queryKey: ['reviewMarks'] });
       toast.success('Results published successfully with audit trail');
     }
   });
