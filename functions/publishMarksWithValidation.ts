@@ -70,9 +70,17 @@ Deno.serve(async (req) => {
       !['Submitted', 'Verified', 'Approved'].includes(m.status)
     );
 
+    console.log('[publishMarksWithValidation] Status validation:');
+    console.log('[publishMarksWithValidation] Total marks:', marksToPublish.length);
+    console.log('[publishMarksWithValidation] Publishable statuses: Submitted, Verified, Approved');
+    console.log('[publishMarksWithValidation] Not publishable count:', notPublishable.length);
     if (notPublishable.length > 0) {
+      console.log('[publishMarksWithValidation] First unpublishable mark:', notPublishable[0]);
+      console.log('[publishMarksWithValidation] Status check failed: Status is', notPublishable[0].status);
+      const errorMsg = `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Submitted, Verified or Approved marks can be published.`;
+      console.log('[publishMarksWithValidation] ERROR: 400 -', errorMsg);
       return Response.json({
-        error: `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Submitted, Verified or Approved marks can be published.`,
+        error: errorMsg,
         invalid_marks: notPublishable.map(m => ({
           id: m.id,
           student: m.student_name,
