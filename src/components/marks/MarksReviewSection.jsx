@@ -28,10 +28,12 @@ export default function MarksReviewSection({
   return (
     <div className="space-y-4">
       {reviewGroupedData.map((group, idx) => {
-        const allMarkIds = group.students.flatMap(s => 
-          Object.values(s.subjects).map(m => m.id)
-        );
-        const isPublished = group.students.length > 0 && Object.values(group.students[0].subjects).length > 0 && Object.values(group.students[0].subjects)[0].status === 'Published';
+         const allMarkIds = group.students.flatMap(s => 
+           Object.values(s.subjects).map(m => m.id)
+         );
+         const firstMark = group.students.length > 0 && Object.values(group.students[0].subjects).length > 0 ? Object.values(group.students[0].subjects)[0] : null;
+         const isPublished = firstMark?.status === 'Published';
+         const isSubmitted = firstMark?.status === 'Submitted';
 
         return (
           <Card key={idx} className="border-0 shadow-sm overflow-hidden">
