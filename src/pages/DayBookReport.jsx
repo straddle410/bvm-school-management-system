@@ -121,15 +121,27 @@ export default function DayBookReport() {
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['daybook', applied],
-    queryFn: () => base44.functions.invoke('getDayBookReport', {
-      reportMode: 'summary',
-      dateFrom: applied.dateFrom,
-      dateTo: applied.dateTo,
-      academicYear: applied.academicYear || undefined,
-      className: applied.className || undefined,
-      mode: applied.mode?.length ? applied.mode : undefined,
-      includeVoided: applied.includeVoided
-    }).then(r => r.data),
+    queryFn: async () => {
+      const staffSession = localStorage.getItem('staff_session');
+      const payload = {
+        reportMode: 'summary',
+        dateFrom: applied.dateFrom,
+        dateTo: applied.dateTo,
+        academicYear: applied.academicYear || undefined,
+        className: applied.className || undefined,
+        mode: applied.mode?.length ? applied.mode : undefined,
+        includeVoided: applied.includeVoided
+      };
+      
+      // Add staffInfo if on mobile
+      if (staffSession) {
+        try {
+          payload.staffInfo = JSON.parse(staffSession);
+        } catch {}
+      }
+      
+      return base44.functions.invoke('getDayBookReport', payload).then(r => r.data);
+    },
     enabled: !!applied.dateFrom && !!applied.dateTo,
     staleTime: 0
   });
