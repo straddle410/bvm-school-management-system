@@ -638,7 +638,7 @@ export default function Marks() {
                             Pass: <span className="font-semibold">{passingMarks}</span>
                           </p>
                         </div>
-                        <StatusBadge status={currentStatus} />
+                        <StatusBadge status={currentStatus === 'Not Entered' ? 'Draft' : currentStatus} />
                       </div>
                       <MarksImportExport
                         students={filteredStudents}
