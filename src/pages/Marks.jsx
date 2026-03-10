@@ -1039,15 +1039,31 @@ export default function Marks() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Success Popup */}
+      <Dialog open={showSuccessPopup} onOpenChange={setShowSuccessPopup}>
+       <DialogContent className="max-w-sm">
+         <DialogHeader>
+           <DialogTitle className="flex items-center gap-2 text-green-600">
+             <Check className="h-5 w-5" />
+             Success!
+           </DialogTitle>
+         </DialogHeader>
+         <p className="text-sm text-slate-600">{successMessage}</p>
+         <Button onClick={() => setShowSuccessPopup(false)} className="w-full bg-green-600 hover:bg-green-700">
+           OK
+         </Button>
+       </DialogContent>
+      </Dialog>
+
       {/* Past Year Warning */}
       <PastYearWarning
-        open={showPastYearWarning}
-        academicYear={academicYear}
-        onConfirm={() => {
-          setShowPastYearWarning(false);
-          saveMutation.mutate();
-        }}
-        onCancel={() => setShowPastYearWarning(false)}
+       open={showPastYearWarning}
+       academicYear={academicYear}
+       onConfirm={() => {
+         setShowPastYearWarning(false);
+         saveMutation.mutate();
+       }}
+       onCancel={() => setShowPastYearWarning(false)}
       />
 
       </div>
