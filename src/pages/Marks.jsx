@@ -480,12 +480,10 @@ export default function Marks() {
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
-      // Route exclusively through backend function (includes audit log creation)
-      const groupData = reviewGroupedData.find(g => g.students.flatMap(s => Object.values(s.subjects).map(m => m.id)).some(id => marksIds.includes(id)));
-
+      // Use selectedExamType directly instead of scanning all groups
       const payload = {
         marksIds,
-        examType: groupData?.exam_name || groupData?.exam_type,
+        examType: selectedExamType?.id || selectedExam,
         className: selectedClass,
         section: selectedSection,
         academicYear: academicYear
