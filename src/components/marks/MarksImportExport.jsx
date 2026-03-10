@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import ExcelJS from 'exceljs';
 
 export default function MarksImportExport({ 
   students, 
