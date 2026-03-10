@@ -18,10 +18,6 @@ const ACTIVE_STATUSES = new Set(['', null, undefined, 'POSTED', 'Active', 'ACTIV
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-
-    // ── RBAC: Only Admin/Principal/Accountant can access ──
-    const baseUser = await base44.auth.me().catch(() => null);
     let body = {};
     try {
       body = await req.json().catch(() => ({}));
@@ -29,12 +25,18 @@ Deno.serve(async (req) => {
     
     const staffInfo = body.staffInfo;
     
-    if (!baseUser && !staffInfo?.staff_id) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
+    let user = null;
+    if (!staffInfo?.staff_id) {
+      const base44 = createClientFromRequest(req);
+      const baseUser = await base44.auth.me().catch(() => null);
+      if (!baseUser) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      user = baseUser;
+    } else {
+      user = { role: staffInfo?.role };
     }
-    
-    // Use base44 user or staff info
-    const user = baseUser || { role: staffInfo?.role };
     
     // Extract effective role with normalization
     const candidates = [
