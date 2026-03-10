@@ -373,12 +373,12 @@ export default function PrintReceiptA5() {
           grid-template-columns: 1fr 1fr;
           gap: 1.5mm;
           font-size: 10px;
-          margin-top: 1mm;
+          margin-top: 0.5mm;
         }
 
         .sig-line {
           text-align: center;
-          height: 13mm;
+          height: 12mm;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
@@ -386,15 +386,15 @@ export default function PrintReceiptA5() {
 
         .sig-space {
           border-top: 1.5px solid #333;
-          height: 9mm;
-          margin-bottom: 0.8mm;
+          height: 8mm;
+          margin-bottom: 0.6mm;
         }
 
         .sig-label {
           font-weight: 700;
           color: #1a237e;
           letter-spacing: 0.1px;
-          font-size: 10px;
+          font-size: 11px;
         }
 
         .void-note {
