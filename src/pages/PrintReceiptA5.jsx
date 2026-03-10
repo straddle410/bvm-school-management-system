@@ -362,8 +362,8 @@ export default function PrintReceiptA5() {
           font-size: 8px;
           text-align: center;
           color: #888;
-          margin-top: 0.6mm;
-          padding: 0.4mm 0;
+          margin-top: 0.3mm;
+          padding: 0.3mm 0;
           border-top: 1px solid #e0e0e0;
           font-style: italic;
         }
