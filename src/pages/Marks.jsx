@@ -628,6 +628,15 @@ export default function Marks() {
               </CardContent>
             </Card>
 
+            {existingMarksError && selectedClass && selectedSection && selectedExam && (
+              <Card className="border-red-300 shadow-sm bg-red-50">
+                <CardContent className="p-4 flex items-center gap-3 text-red-700">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">Failed to load marks: {existingMarksErrorObj?.message}</span>
+                </CardContent>
+              </Card>
+            )}
+
             {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
               <>
                 <Card className="border-0 shadow-sm">
