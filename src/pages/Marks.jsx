@@ -331,7 +331,7 @@ export default function Marks() {
        return Promise.all(promises);
      },
      onSuccess: () => {
-       queryClient.invalidateQueries(['marks']);
+       queryClient.invalidateQueries({ queryKey: ['marks'] });
        if (saveMode === 'submit') {
          toast.success('Marks submitted successfully!');
        } else {
