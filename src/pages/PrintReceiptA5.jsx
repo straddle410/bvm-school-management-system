@@ -203,8 +203,8 @@ export default function PrintReceiptA5() {
         .header {
           text-align: center;
           border-bottom: 2px solid #1a237e;
-          padding-bottom: 0.6mm;
-          margin-bottom: 0.8mm;
+          padding-bottom: 0.4mm;
+          margin-bottom: 0.6mm;
         }
 
         .header-top {
