@@ -46,11 +46,12 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear })
     ]);
 
-    // Active invoices: not Cancelled, due on or before cutoff
+    // Active invoices: not Cancelled/Waived, created on or before cutoff (ignoring empty due_date)
     const activeInvoices = invoices.filter(inv => {
-      if (inv.status === 'Cancelled' || inv.status === 'Waived') return false;
-      const invDate = (inv.due_date && inv.due_date.trim()) ? inv.due_date : inv.created_date;
-      if (invDate && invDate > cutoff) return false;
+      const excludedStatuses = new Set(['Cancelled', 'Waived']);
+      if (excludedStatuses.has(inv.status)) return false;
+      const createdDate = (inv.created_date || '').split('T')[0];
+      if (createdDate && createdDate > cutoff) return false;
       return true;
     });
 
