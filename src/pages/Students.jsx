@@ -766,6 +766,7 @@ export default function Students() {
                      onArchive={() => handleArchive(student)}
                      onDelete={() => handleDelete(student)}
                      onRestore={() => handleRestore(student)}
+                     onResetPassword={() => handleResetPassword(student)}
                      isAdmin={isAdmin}
                    />
                  </div>
