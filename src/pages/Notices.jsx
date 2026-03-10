@@ -560,6 +560,11 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
                 {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
               </Button>
             )}
+            {isAdmin && notice.status !== 'Published' && (
+              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" onClick={() => onPublish(notice.id)}>
+                Publish
+              </Button>
+            )}
             {(isAdmin || canEdit) && (
               <Button size="sm" variant="destructive" className="flex-1" onClick={() => {
                 if (confirm('Delete this notice?')) onDelete(notice.id);
