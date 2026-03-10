@@ -43,6 +43,8 @@ import { toast } from "sonner";
 import MarksTable from '@/components/marks/MarksTable';
 import MobileMarksEntry from '@/components/marks/MobileMarksEntry';
 import MarksImportExport from '@/components/marks/MarksImportExport';
+import MarksHeader from '@/components/marks/MarksHeader';
+import SuccessPopup from '@/components/marks/SuccessPopup';
 
 import { getSubjectsForClass, getSubjectSourceLabel } from '@/components/subjectHelper';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
