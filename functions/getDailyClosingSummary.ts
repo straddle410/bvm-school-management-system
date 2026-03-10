@@ -22,19 +22,24 @@ Deno.serve(async (req) => {
 
     const staffInfo = body.staffInfo;
     let baseUser = null;
+    let userRole = null;
     
     // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
-    if (!staffInfo?.staff_id) {
+    if (staffInfo?.staff_id || staffInfo?.role) {
+      // Mobile staff session
+      userRole = (staffInfo?.role || '').toLowerCase().trim();
+    } else {
+      // Web Base44 auth
       const base44 = createClientFromRequest(req);
       baseUser = await base44.auth.me().catch(() => null);
       if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
+      userRole = (baseUser?.role || '').toLowerCase().trim();
     }
 
-    const userRole = (baseUser?.role || staffInfo?.role || '').toLowerCase();
     const allowedRoles = ['admin', 'principal', 'accountant'];
-    if (!allowedRoles.includes(userRole)) {
+    if (!userRole || !allowedRoles.includes(userRole)) {
       return Response.json({ error: 'Forbidden: Only Admin/Principal/Accountant can access' }, { status: 403 });
     }
 
