@@ -8,13 +8,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
+    const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    
+    // Try Base44 auth first, fallback to staff session in body
+    const baseUser = await base44.auth.me().catch(() => null);
+    const staffInfo = body.staffInfo;
+    
+    if (!baseUser && !staffInfo?.staff_id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userRole = user.role?.toLowerCase();
+    const userRole = (baseUser?.role || staffInfo?.role || '').toLowerCase();
     const allowedRoles = ['admin', 'principal', 'accountant'];
     if (!allowedRoles.includes(userRole)) {
       return Response.json({ error: 'Forbidden: Only Admin/Principal/Accountant can access' }, { status: 403 });
