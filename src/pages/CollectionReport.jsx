@@ -41,7 +41,7 @@ function CollectionReportContent() {
           classId: selectedClass || undefined,
           pageSize: 9999
         });
-        return res.data || {};
+        return res.data?.data || res.data || {};
       } catch (err) {
         if (err.response?.status === 403) {
           return {};
