@@ -28,11 +28,16 @@ Deno.serve(async (req) => {
     console.log('[publishMarksWithValidation] academicYear:', academicYear);
 
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
-      console.log('[publishMarksWithValidation] ERROR: marksIds invalid');
+      console.log('[publishMarksWithValidation] ERROR 400: marksIds invalid or empty');
+      console.log('[publishMarksWithValidation] marksIds value:', marksIds);
+      console.log('[publishMarksWithValidation] marksIds isArray:', Array.isArray(marksIds));
       return Response.json({ error: 'marksIds array required' }, { status: 400 });
     }
     if (!examType || !className || !academicYear) {
-      console.log('[publishMarksWithValidation] ERROR: missing required fields');
+      console.log('[publishMarksWithValidation] ERROR 400: missing required fields');
+      console.log('[publishMarksWithValidation] examType:', examType);
+      console.log('[publishMarksWithValidation] className:', className);
+      console.log('[publishMarksWithValidation] academicYear:', academicYear);
       return Response.json({ error: 'Required: examType, className, academicYear' }, { status: 400 });
     }
 
