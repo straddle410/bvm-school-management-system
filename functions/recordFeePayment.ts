@@ -8,11 +8,16 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks, entryType, staffInfo } = body;
     
-    if (!staffInfo || !staffInfo.email) {
+    if (!staffInfo || !staffInfo.staff_id) {
+      console.log('[recordFeePayment] Missing staffInfo or staff_id:', staffInfo);
       return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
     
     const user = staffInfo;
+    // Fallback email for audit logging if not present
+    if (!user.email && user.username) {
+      user.email = user.username + '@school.local';
+    }
 
     // ── RBAC: Only Admin/Principal/Accountant can create payments ──
     // Extract effective role with normalization
