@@ -176,9 +176,44 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
 
 
+          {/* Class Teacher Remarks */}
+          {card.class_teacher_remarks && (
+            <div className="mt-2 pt-2 border-t border-gray-300">
+              <p className="text-xs font-bold text-gray-900 mb-1">CLASS TEACHER REMARKS</p>
+              <p className="text-xs text-gray-700 leading-tight">{card.class_teacher_remarks}</p>
+            </div>
+          )}
+
+          {/* Signature Section */}
+          <div className="mt-3 pt-2 border-t border-gray-300">
+            <div className="grid grid-cols-3 gap-4 text-xs">
+              {/* Class Teacher */}
+              <div className="text-center">
+                <div className="border-t border-gray-400 h-12 mb-0.5"></div>
+                <p className="font-semibold text-gray-900">{card.class_teacher_name || 'Class Teacher'}</p>
+                <p className="text-gray-600">Class Teacher</p>
+              </div>
+              
+              {/* Principal */}
+              <div className="text-center">
+                <div className="border-t border-gray-400 h-12 mb-0.5"></div>
+                <p className="font-semibold text-gray-900">{card.principal_name || 'Principal'}</p>
+                <p className="text-gray-600">Principal</p>
+              </div>
+              
+              {/* Parent/Guardian */}
+              <div className="text-center">
+                <div className="border-t border-gray-400 h-12 mb-0.5"></div>
+                <p className="font-semibold text-gray-900">Parent/Guardian</p>
+                <p className="text-gray-600">Signature</p>
+              </div>
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="text-center text-xs text-gray-500 border-t pt-1 mt-2">
             <p>Generated: {new Date(card.generated_at).toLocaleDateString()}</p>
+            <p className="text-gray-400 text-xs">Official Progress Report — School Management System</p>
           </div>
         </div>
       </DialogContent>
