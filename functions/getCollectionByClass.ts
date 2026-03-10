@@ -46,11 +46,12 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const staffInfo = body.staffInfo;
+    let baseUser = null;
     
     // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
     if (!staffInfo?.staff_id) {
       const base44 = createClientFromRequest(req);
-      const baseUser = await base44.auth.me().catch(() => null);
+      baseUser = await base44.auth.me().catch(() => null);
       if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
     // Extract effective role with normalization
-    const user = staffInfo ? { role: staffInfo?.role } : { role: (await base44?.auth.me?.())?.role };
+    const user = staffInfo || baseUser;
     const candidates = [
       user?.role,
       user?.roleName,
