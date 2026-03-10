@@ -294,29 +294,31 @@ export default function DayBookReport() {
               </div>
 
               {/* Quick Range Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-slate-500 font-medium self-center">Quick range:</span>
-                {[
-                  { label: 'Today', key: 'today' },
-                  { label: 'Yesterday', key: 'yesterday' },
-                  { label: 'This Week', key: 'thisWeek' },
-                  { label: 'Last Week', key: 'lastWeek' },
-                  { label: 'This Month', key: 'thisMonth' },
-                  { label: 'Last Month', key: 'lastMonth' },
-                  { label: 'Last 30 Days', key: 'last30' }
-                ].map(({ label, key }) => (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      const range = getDateRange(key);
-                      setDateFrom(range.from);
-                      setDateTo(range.to);
-                    }}
-                    className="px-2.5 py-1 text-xs rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-600 font-medium transition-colors"
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold text-slate-700 mb-2">Quick Range:</div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Today', key: 'today' },
+                    { label: 'Yesterday', key: 'yesterday' },
+                    { label: 'This Week', key: 'thisWeek' },
+                    { label: 'Last Week', key: 'lastWeek' },
+                    { label: 'This Month', key: 'thisMonth' },
+                    { label: 'Last Month', key: 'lastMonth' },
+                    { label: 'Last 30 Days', key: 'last30' }
+                  ].map(({ label, key }) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        const range = getDateRange(key);
+                        setDateFrom(range.from);
+                        setDateTo(range.to);
+                      }}
+                      className="px-3 py-1.5 text-sm rounded-md border border-[#1a237e]/30 bg-white hover:bg-[#1a237e] hover:text-white text-slate-700 font-medium transition-all"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Mode chips + toggles */}
