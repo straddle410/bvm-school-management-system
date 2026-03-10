@@ -315,36 +315,44 @@ export default function PrintReceiptA5() {
         }
 
         .amount-box {
-          font-weight: bold;
-          font-size: 12px;
-          color: #000;
+          font-weight: 900;
+          font-size: 13px;
+          color: #1a237e;
           text-align: center;
-          padding: 1mm;
-          margin: 1mm 0;
-          border: 1px solid #333;
-          background: #fafafa;
+          padding: 1.5mm 1mm;
+          margin: 1.2mm 0;
+          border: 2px solid #1a237e;
+          background: #f3f7ff;
+          border-radius: 2px;
         }
 
         .summary {
           width: 100%;
           border-collapse: collapse;
           font-size: 11px;
-          margin: 1mm 0;
+          margin: 1.5mm 0;
+          border: 1px solid #d0d0d0;
         }
 
         .summary td {
-          border-bottom: 1px solid #ddd;
-          padding: 0.5mm 1mm;
+          border-bottom: 1px solid #e0e0e0;
+          padding: 0.7mm 1.5mm;
+        }
+
+        .summary td:first-child {
+          text-align: left;
         }
 
         .summary .label {
           text-align: left;
-          font-weight: bold;
+          font-weight: 700;
+          color: #1a237e;
         }
 
         .summary .value {
           text-align: right;
-          font-weight: bold;
+          font-weight: 700;
+          color: #000;
         }
 
         .footer {
