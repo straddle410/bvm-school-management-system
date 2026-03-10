@@ -10,6 +10,15 @@ import { format } from 'date-fns';
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 export default function PaymentModal({ invoice, onClose, onSuccess }) {
+  // Get staff info from localStorage
+  const getStaffInfo = () => {
+    try {
+      const staffRaw = localStorage.getItem('staff_session');
+      return staffRaw ? JSON.parse(staffRaw) : { email: 'unknown', role: 'accountant' };
+    } catch {
+      return { email: 'unknown', role: 'accountant' };
+    }
+  };
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
 
   const [form, setForm] = useState({
