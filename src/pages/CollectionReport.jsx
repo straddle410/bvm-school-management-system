@@ -298,7 +298,7 @@ function CollectionReportContent() {
       {/* Table */}
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardHeader className="pb-3">
-          <h3 className="font-semibold text-slate-700">Collection Details</h3>
+          <h3 className="font-semibold text-slate-700">{isSummaryMode ? 'Collection by Class' : 'Collection Details'}</h3>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {isLoading ? (
@@ -309,23 +309,49 @@ function CollectionReportContent() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="text-xs font-semibold">Date</TableHead>
-                  <TableHead className="text-xs font-semibold">Receipt No.</TableHead>
-                  <TableHead className="text-xs font-semibold">Student</TableHead>
-                  <TableHead className="text-xs font-semibold">Class</TableHead>
-                  <TableHead className="text-xs font-semibold">Mode</TableHead>
-                  <TableHead className="text-xs font-semibold text-right">Amount (₹)</TableHead>
+                  {isSummaryMode ? (
+                    <>
+                      <TableHead className="text-xs font-semibold">Class</TableHead>
+                      <TableHead className="text-xs font-semibold text-right">Invoiced (₹)</TableHead>
+                      <TableHead className="text-xs font-semibold text-right">Collected (₹)</TableHead>
+                      <TableHead className="text-xs font-semibold text-right">Coverage %</TableHead>
+                      <TableHead className="text-xs font-semibold text-right">Receipts</TableHead>
+                      <TableHead className="text-xs font-semibold text-right">Students Paid</TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className="text-xs font-semibold">Date</TableHead>
+                      <TableHead className="text-xs font-semibold">Receipt No.</TableHead>
+                      <TableHead className="text-xs font-semibold">Student</TableHead>
+                      <TableHead className="text-xs font-semibold">Class</TableHead>
+                      <TableHead className="text-xs font-semibold">Mode</TableHead>
+                      <TableHead className="text-xs font-semibold text-right">Amount (₹)</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map(payment => (
-                  <TableRow key={payment.id} className="text-xs border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell>{moment(payment.payment_date).format('YYYY-MM-DD')}</TableCell>
-                    <TableCell className="font-mono text-slate-600">{payment.receipt_no || '—'}</TableCell>
-                    <TableCell>{payment.student_name || '—'}</TableCell>
-                    <TableCell>{payment.class_name || '—'}</TableCell>
-                    <TableCell className="text-slate-600">{payment.payment_mode || '—'}</TableCell>
-                    <TableCell className="text-right font-medium">{(payment.amount_paid || 0).toLocaleString('en-IN')}</TableCell>
+                {filteredPayments.map((payment, idx) => (
+                  <TableRow key={idx} className="text-xs border-b border-slate-100 hover:bg-slate-50">
+                    {isSummaryMode ? (
+                      <>
+                        <TableCell className="font-medium">{payment.class?.name || '—'}</TableCell>
+                        <TableCell className="text-right">{(payment.totalInvoicedNet || 0).toLocaleString('en-IN')}</TableCell>
+                        <TableCell className="text-right font-medium">{(payment.collectedAmount || 0).toLocaleString('en-IN')}</TableCell>
+                        <TableCell className="text-right">{(payment.coveragePercent || 0).toFixed(1)}%</TableCell>
+                        <TableCell className="text-right">{payment.receiptsCount || 0}</TableCell>
+                        <TableCell className="text-right">{payment.studentsPaidCount || 0}</TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell>{moment(payment.postedAt).format('YYYY-MM-DD')}</TableCell>
+                        <TableCell className="font-mono text-slate-600">{payment.receiptNo || '—'}</TableCell>
+                        <TableCell>{payment.student?.name || '—'}</TableCell>
+                        <TableCell>Class {payment.student?.class || '—'}</TableCell>
+                        <TableCell className="text-slate-600">{payment.mode || '—'}</TableCell>
+                        <TableCell className="text-right font-medium">{(payment.amount || 0).toLocaleString('en-IN')}</TableCell>
+                      </>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
