@@ -51,8 +51,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
     console.log(`[RBAC-ALLOW] role="${userRole}"`);
-
-    const body = await req.json().catch(() => ({}));
     const {
       studentId,
       academicYear,
