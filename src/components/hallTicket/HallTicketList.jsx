@@ -11,23 +11,26 @@ import HallTicketPreviewModal from './HallTicketPreviewModal';
 import { printHallTickets } from './PrintHallTickets';
 import { getClassesForYear } from '@/components/classSectionHelper';
 
-export default function HallTicketList() {
-  const { academicYear } = useAcademicYear();
-  const [availableClasses, setAvailableClasses] = useState([]);
+const PAGE_SIZE = 100;
 
-  useEffect(() => {
-    if (!academicYear) return;
-    getClassesForYear(academicYear)
-      .then(res => setAvailableClasses(res.classes || []))
-      .catch(() => setAvailableClasses([]));
-  }, [academicYear]);
-  const [selected, setSelected] = useState([]);
-  const [filterClass, setFilterClass] = useState('');
-  const [filterExamType, setFilterExamType] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [previewTicket, setPreviewTicket] = useState(null);
-  const [isPrinting, setIsPrinting] = useState(false);
-  const queryClient = useQueryClient();
+export default function HallTicketList() {
+   const { academicYear } = useAcademicYear();
+   const [availableClasses, setAvailableClasses] = useState([]);
+   const [currentPage, setCurrentPage] = useState(0);
+
+   useEffect(() => {
+     if (!academicYear) return;
+     getClassesForYear(academicYear)
+       .then(res => setAvailableClasses(res.classes || []))
+       .catch(() => setAvailableClasses([]));
+   }, [academicYear]);
+   const [selected, setSelected] = useState([]);
+   const [filterClass, setFilterClass] = useState('');
+   const [filterExamType, setFilterExamType] = useState('');
+   const [filterStatus, setFilterStatus] = useState('');
+   const [previewTicket, setPreviewTicket] = useState(null);
+   const [isPrinting, setIsPrinting] = useState(false);
+   const queryClient = useQueryClient();
 
   const { data: schoolProfile } = useQuery({
     queryKey: ['schoolProfile'],
@@ -46,9 +49,12 @@ export default function HallTicketList() {
       if (filterExamType) query.exam_type = filterExamType;
       if (filterClass) query.class_name = filterClass;
       if (filterStatus) query.status = filterStatus;
-      return base44.entities.HallTicket.filter(query, '-created_date');
+      return base44.entities.HallTicket.filter(query, '-created_date', 10000);
     }
   });
+
+  const paginatedTickets = hallTickets.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil(hallTickets.length / PAGE_SIZE);
 
   const approveMutation = useMutation({
     mutationFn: async (ticketIds) => {
@@ -172,31 +178,31 @@ export default function HallTicketList() {
           {/* Filters */}
           <div className="flex flex-wrap gap-2 mb-4">
             <select
-              value={filterClass}
-              onChange={e => { setFilterClass(e.target.value); setSelected([]); }}
-              className="px-3 py-1.5 border rounded-lg text-sm"
-            >
-              <option value="">All Classes</option>
-              {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
-            </select>
+               value={filterClass}
+               onChange={e => { setFilterClass(e.target.value); setSelected([]); setCurrentPage(0); }}
+               className="px-3 py-1.5 border rounded-lg text-sm"
+             >
+               <option value="">All Classes</option>
+               {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
+             </select>
             <select
-              value={filterExamType}
-              onChange={e => { setFilterExamType(e.target.value); setSelected([]); }}
-              className="px-3 py-1.5 border rounded-lg text-sm"
-            >
-              <option value="">All Exam Types</option>
-              {examTypes.map(et => <option key={et.id} value={et.id}>{et.name}</option>)}
-            </select>
+               value={filterExamType}
+               onChange={e => { setFilterExamType(e.target.value); setSelected([]); setCurrentPage(0); }}
+               className="px-3 py-1.5 border rounded-lg text-sm"
+             >
+               <option value="">All Exam Types</option>
+               {examTypes.map(et => <option key={et.id} value={et.id}>{et.name}</option>)}
+             </select>
             <select
-              value={filterStatus}
-              onChange={e => { setFilterStatus(e.target.value); setSelected([]); }}
-              className="px-3 py-1.5 border rounded-lg text-sm"
-            >
-              <option value="">All Statuses</option>
-              <option value="Generated">Generated</option>
-              <option value="Approved">Approved</option>
-              <option value="Published">Published</option>
-            </select>
+               value={filterStatus}
+               onChange={e => { setFilterStatus(e.target.value); setSelected([]); setCurrentPage(0); }}
+               className="px-3 py-1.5 border rounded-lg text-sm"
+             >
+               <option value="">All Statuses</option>
+               <option value="Generated">Generated</option>
+               <option value="Approved">Approved</option>
+               <option value="Published">Published</option>
+             </select>
           </div>
 
           <div className="overflow-x-auto">
@@ -218,47 +224,71 @@ export default function HallTicketList() {
                 </tr>
               </thead>
               <tbody>
-                {hallTickets.map(ticket => (
-                  <tr key={ticket.id} className="border-b hover:bg-slate-50">
-                    <td className="p-2">
-                      <Checkbox
-                        checked={selected.includes(ticket.id)}
-                        onCheckedChange={(checked) => {
-                          setSelected(checked ? [...selected, ticket.id] : selected.filter(id => id !== ticket.id));
-                        }}
-                      />
-                    </td>
-                    <td className="p-2 font-semibold">{ticket.hall_ticket_number}</td>
-                    <td className="p-2">{ticket.student_name}</td>
-                    <td className="p-2">{ticket.roll_number}</td>
-                    <td className="p-2">{ticket.class_name}-{ticket.section}</td>
-                    <td className="p-2">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        ticket.status === 'Approved' ? 'bg-yellow-100 text-yellow-800' :
-                        ticket.status === 'Published' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {ticket.status}
-                      </span>
-                    </td>
-                    <td className="p-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        onClick={() => setPreviewTicket(ticket)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-                {hallTickets.length === 0 && (
-                  <tr><td colSpan={7} className="p-6 text-center text-slate-400">No hall tickets found</td></tr>
-                )}
-              </tbody>
+                 {paginatedTickets.map(ticket => (
+                   <tr key={ticket.id} className="border-b hover:bg-slate-50">
+                     <td className="p-2">
+                       <Checkbox
+                         checked={selected.includes(ticket.id)}
+                         onCheckedChange={(checked) => {
+                           setSelected(checked ? [...selected, ticket.id] : selected.filter(id => id !== ticket.id));
+                         }}
+                       />
+                     </td>
+                     <td className="p-2 font-semibold">{ticket.hall_ticket_number}</td>
+                     <td className="p-2">{ticket.student_name}</td>
+                     <td className="p-2">{ticket.roll_number}</td>
+                     <td className="p-2">{ticket.class_name}-{ticket.section}</td>
+                     <td className="p-2">
+                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                         ticket.status === 'Approved' ? 'bg-yellow-100 text-yellow-800' :
+                         ticket.status === 'Published' ? 'bg-blue-100 text-blue-800' :
+                         'bg-gray-100 text-gray-800'
+                       }`}>
+                         {ticket.status}
+                       </span>
+                     </td>
+                     <td className="p-2">
+                       <Button
+                         size="icon"
+                         variant="ghost"
+                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                         onClick={() => setPreviewTicket(ticket)}
+                       >
+                         <Eye className="w-4 h-4" />
+                       </Button>
+                     </td>
+                   </tr>
+                 ))}
+                 {hallTickets.length === 0 && (
+                   <tr><td colSpan={7} className="p-6 text-center text-slate-400">No hall tickets found</td></tr>
+                 )}
+               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 items-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                disabled={currentPage === 0}
+              >
+                ← Previous
+              </Button>
+              <span className="text-sm text-slate-600">
+                Page {currentPage + 1} of {totalPages} ({paginatedTickets.length} of {hallTickets.length})
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                disabled={currentPage === totalPages - 1}
+              >
+                Next →
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
