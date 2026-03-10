@@ -37,22 +37,36 @@ const getDateRange = (type) => {
       yesterday.setDate(yesterday.getDate() - 1);
       const yDate = yesterday.toISOString().split('T')[0];
       return { from: yDate, to: yDate };
-    case 'thisWeek':
-      start.setDate(now.getDate() - now.getDay());
-      return { from: start.toISOString().split('T')[0], to: today() };
-    case 'lastWeek':
-      start.setDate(now.getDate() - now.getDay() - 7);
-      const lastWeekEnd = new Date(start);
-      lastWeekEnd.setDate(lastWeekEnd.getDate() + 6);
-      return { from: start.toISOString().split('T')[0], to: lastWeekEnd.toISOString().split('T')[0] };
+    case 'thisWeek': {
+      // Monday to today (week starts Monday)
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - daysToMonday);
+      return { from: weekStart.toISOString().split('T')[0], to: today() };
+    }
+    case 'lastWeek': {
+      // Last Monday to last Sunday (full week)
+      const dayOfWeek = now.getDay();
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      const thisMonday = new Date(now);
+      thisMonday.setDate(now.getDate() - daysToMonday);
+      const lastMonday = new Date(thisMonday);
+      lastMonday.setDate(thisMonday.getDate() - 7);
+      const lastSunday = new Date(lastMonday);
+      lastSunday.setDate(lastMonday.getDate() + 6);
+      return { from: lastMonday.toISOString().split('T')[0], to: lastSunday.toISOString().split('T')[0] };
+    }
     case 'thisMonth':
+      // 1st to today
       start.setDate(1);
       return { from: start.toISOString().split('T')[0], to: today() };
-    case 'lastMonth':
-      start.setMonth(start.getMonth() - 1);
-      start.setDate(1);
+    case 'lastMonth': {
+      // 1st of last month to last day of last month
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-      return { from: start.toISOString().split('T')[0], to: lastMonthEnd.toISOString().split('T')[0] };
+      return { from: lastMonthStart.toISOString().split('T')[0], to: lastMonthEnd.toISOString().split('T')[0] };
+    }
     case 'last30':
       start.setDate(now.getDate() - 29);
       return { from: start.toISOString().split('T')[0], to: today() };
