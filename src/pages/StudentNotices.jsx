@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, ArrowLeft } from 'lucide-react';
 
 export default function StudentNotices() {
@@ -11,6 +12,7 @@ export default function StudentNotices() {
   console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [session] = useState(() => {
     try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
@@ -19,7 +21,7 @@ export default function StudentNotices() {
     if (!session) navigate(createPageUrl('StudentLogin'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Mark notice_posted notifications as read on page open
+  // Mark notice_posted notifications as read on page open & refresh notices
   useEffect(() => {
     if (!session?.student_id) return;
     base44.entities.Notification.filter({
@@ -29,9 +31,12 @@ export default function StudentNotices() {
     }).then(notifs => {
       if (!notifs.length) return;
       return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
-        .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['student-notices'] });
+          window.dispatchEvent(new CustomEvent('student-notifications-read'));
+        });
     }).catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session?.student_id, queryClient]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: notices = [], isLoading } = useQuery({
     queryKey: ['student-notices', session?.student_id],
