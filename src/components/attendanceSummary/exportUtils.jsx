@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
 
 export const exportToExcel = async (data, filename, fromDate, toDate) => {
