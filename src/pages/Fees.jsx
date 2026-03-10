@@ -5,7 +5,7 @@ import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lock, AlertCircle, Bus } from 'lucide-react';
+import { Lock, AlertCircle, Bus, Menu, X } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import FeeHeadsManager from '@/components/fees/FeeHeadsManager';
 import AnnualFeePlanTab from '@/components/fees/AnnualFeePlanTab';
