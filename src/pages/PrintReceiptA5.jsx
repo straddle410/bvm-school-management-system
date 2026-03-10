@@ -152,7 +152,7 @@ export default function PrintReceiptA5() {
       <style>{`
         @page {
           size: A5 landscape;
-          margin: 4mm;
+          margin: 3mm;
         }
 
         html, body {
@@ -160,8 +160,8 @@ export default function PrintReceiptA5() {
           padding: 0 !important;
           background: white;
           font-family: Arial, sans-serif;
-          font-size: 12px;
-          line-height: 1.18;
+          font-size: 11px;
+          line-height: 1.1;
         }
 
         body {
