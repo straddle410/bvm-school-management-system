@@ -112,6 +112,7 @@ import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import index from './pages/index';
 import StudentForgotPassword from './pages/StudentForgotPassword';
+import ResetStudentPassword from './pages/ResetStudentPassword';
 import __Layout from './Layout.jsx';
 
 
@@ -181,6 +182,7 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "index": index,
     "StudentForgotPassword": StudentForgotPassword,
+    "ResetStudentPassword": ResetStudentPassword,
 }
 
 export const pagesConfig = {
