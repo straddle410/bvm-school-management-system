@@ -97,6 +97,8 @@ Deno.serve(async (req) => {
       ? (Array.isArray(filterMode) ? filterMode : [filterMode]).map(m => m.toUpperCase())
       : null;
 
+    const base44 = createClientFromRequest(req);
+
     // ── Fetch payments + invoices in parallel ───────────────────────────────
     const invoiceFilter = academicYear ? { academic_year: academicYear } : {};
     const [payments_raw, invoices_raw] = await Promise.all([
