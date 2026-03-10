@@ -820,6 +820,17 @@ export default function Settings() {
             />
           )}
 
+          {/* Reset Student Password */}
+          {activeItem === 'reset-student-password' && (
+            <div className="max-w-4xl">
+              <iframe
+                src={createPageUrl('ResetStudentPassword')}
+                style={{ width: '100%', height: '800px', border: 'none', borderRadius: '8px' }}
+                title="Reset Student Password"
+              />
+            </div>
+          )}
+
           {/* Data Reset */}
           {activeItem === 'data-reset' && (
             <DataResetTab schoolProfiles={schoolProfiles} academicYears={academicYears} />
