@@ -479,12 +479,12 @@ export default function Marks() {
   }, [reviewMarks, filteredStudents, subjectList, selectedExam, examTypes]);
 
   const publishMutation = useMutation({
-    mutationFn: async (marksIds, passedExamTypeUUID) => {
+    mutationFn: async ({ marksIds, examTypeUUID }) => {
       // Use the canonical exam_type UUID passed from the reviewed group
       // This avoids unreliable state-based lookup chain
       const payload = {
         marksIds,
-        examType: passedExamTypeUUID,
+        examType: examTypeUUID,
         className: selectedClass,
         section: selectedSection || '',
         academicYear: academicYear
@@ -509,7 +509,7 @@ export default function Marks() {
     console.log('[PUBLISH_HANDLER] marksIds:', marksIds?.length, '| examTypeUUID:', examTypeUUID);
     if (window.confirm('Publish these results? Students will be able to see them.')) {
       console.log('[PUBLISH_HANDLER] Confirmed - calling mutation');
-      publishMutation.mutate(marksIds, examTypeUUID);
+      publishMutation.mutate({ marksIds, examTypeUUID });
     } else {
       console.log('[PUBLISH_HANDLER] Cancelled');
     }
