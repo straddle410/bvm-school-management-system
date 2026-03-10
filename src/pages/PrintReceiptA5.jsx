@@ -533,11 +533,11 @@ function ReceiptContent({ school, receipt, copyLabel }) {
           )}
           
           {receipt.payment.collectedByName && (
-            <div className="box-row" style={{ marginTop: '1mm', paddingTop: '1mm', borderTop: '1px solid #ddd' }}>
-              <span className="label">Received By:</span>
-              <span>{receipt.payment.collectedByName}</span>
-            </div>
-          )}
+             <div className="box-row" style={{ marginTop: '0.6mm', paddingTop: '0.6mm', borderTop: '1px solid #ddd' }}>
+               <span className="label">Received By:</span>
+               <span>{receipt.payment.collectedByName}</span>
+             </div>
+           )}
           
           {isVoid && receipt.voidInfo && (
             <div className="void-note">
