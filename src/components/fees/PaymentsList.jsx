@@ -42,7 +42,27 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
   const [toDate, setToDate] = useState(today());
   const [reversingPayment, setReversingPayment] = useState(null);
   const [voidingPaymentId, setVoidingPaymentId] = useState(null);
+  const [printingPaymentId, setPrintingPaymentId] = useState(null);
+  const [receiptPreview, setReceiptPreview] = useState(null);
   const queryClient = useQueryClient();
+
+  const { data: receiptData, isLoading: isLoadingReceipt } = useQuery({
+    queryKey: ['receipt-print', printingPaymentId],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getReceiptForPrint', {
+        payment_id: printingPaymentId
+      });
+      return res.data;
+    },
+    enabled: !!printingPaymentId,
+    retry: 1
+  });
+
+  React.useEffect(() => {
+    if (receiptData && !isLoadingReceipt) {
+      setReceiptPreview(receiptData);
+    }
+  }, [receiptData, isLoadingReceipt]);
 
   const applyPreset = (preset) => {
     setActivePreset(preset.label);
