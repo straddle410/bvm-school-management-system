@@ -184,13 +184,16 @@ export default function Marks() {
   // For review mode - fetch marks for the class/section/year directly from DB
   const { data: reviewMarks = [] } = useQuery({
     queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
-    queryFn: () => base44.entities.Marks.filter({
-      class_name: selectedClass,
-      section: selectedSection,
-      academic_year: academicYear
-    }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getMarksForClass', {
+        className: selectedClass,
+        section: selectedSection,
+        academicYear
+      });
+      return res.data?.marks || [];
+    },
     enabled: !!(selectedClass && selectedSection && viewMode === 'review' && academicYear),
-    staleTime: 2 * 60 * 1000
+    staleTime: 0
   });
 
   useEffect(() => {
