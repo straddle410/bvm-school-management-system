@@ -52,19 +52,17 @@ function toCsvRow(r) {
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
+    const body = await req.json().catch(() => ({}));
+    const staffInfo = body.staffInfo;
     
-    // Check if user is authenticated (staff session or Base44 auth)
-    const baseUser = await base44.auth.me().catch(() => null);
-    if (!baseUser) {
-      // Try to extract staff session from body to verify staff auth (for mobile staff)
-      const bodyCheck = await req.clone().json().catch(() => ({}));
-      if (!bodyCheck.staffInfo && !bodyCheck.token) {
+    // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
+    if (!staffInfo?.staff_id) {
+      const base44 = createClientFromRequest(req);
+      const baseUser = await base44.auth.me().catch(() => null);
+      if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
-
-    const body = await req.json().catch(() => ({}));
     const {
       dateFrom,
       dateTo,
