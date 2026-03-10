@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-const ROW_HEIGHT = 50;
-const PAGE_SIZE = 200; // Load 200 students at a time
+const PAGE_SIZE = 200;
 
 export default function VirtualMarksTable({
   students,
@@ -19,7 +19,6 @@ export default function VirtualMarksTable({
     return [...students].sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
   }, [students]);
 
-  // Paginate: only load PAGE_SIZE students at a time
   const paginatedStudents = useMemo(() => {
     return sortedStudents.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   }, [sortedStudents, currentPage]);
@@ -41,85 +40,6 @@ export default function VirtualMarksTable({
     }
   };
 
-  const renderRow = (student, index) => {
-    const studentId = student.student_id || student.id;
-    const globalIdx = currentPage * PAGE_SIZE + index;
-
-    return (
-      <div key={studentId} className={`flex border-b ${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
-        {/* Roll */}
-        <div className="w-12 flex items-center px-2 font-medium text-slate-700 text-xs border-r">
-          {student.roll_no || '—'}
-        </div>
-
-        {/* ID */}
-        <div className="w-20 flex items-center px-2 text-slate-600 text-xs border-r">
-          {student.student_id}
-        </div>
-
-        {/* Name */}
-        <div className="w-40 flex items-center px-2 font-medium text-slate-900 text-xs border-r truncate">
-          {student.name}
-        </div>
-
-        {/* Marks for each subject */}
-        <div className="flex flex-1 overflow-x-auto">
-          {subjects.map((subject, subjectIdx) => {
-            const marks = marksData[studentId]?.[subject]?.marks_obtained;
-            const status = getMarkStatus(marks);
-
-            return (
-              <div key={subject} className="w-20 flex-shrink-0 flex items-center justify-center px-1 border-r">
-                <div className={`flex items-center justify-center rounded p-0.5 ${
-                  status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
-                }`}>
-                  <Input
-                    id={`marks-${globalIdx}-${subjectIdx}`}
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    max={maxMarks}
-                    step="0.5"
-                    value={marks ?? ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === '' || parseFloat(val) <= maxMarks) {
-                        onMarkChange?.(studentId, subject, val);
-                      }
-                    }}
-                    onKeyDown={(e) => handleKeyDown(e, index, subjectIdx)}
-                    disabled={isLocked}
-                    className={`w-12 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 ${
-                      status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
-                    } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    placeholder="—"
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Total */}
-        <div className="w-16 flex-shrink-0 flex items-center justify-center px-1 bg-slate-100 border-l">
-          <span className="text-xs font-bold text-slate-800">
-            {(() => {
-              const total = subjects.reduce((sum, subject) => {
-                const m = marksData[studentId]?.[subject]?.marks_obtained;
-                return m !== undefined && m !== '' ? sum + parseFloat(m) : sum;
-              }, 0);
-              const hasAny = subjects.some(subject => {
-                const m = marksData[studentId]?.[subject]?.marks_obtained;
-                return m !== undefined && m !== '';
-              });
-              return hasAny ? total : '—';
-            })()}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
   const totalPages = Math.ceil(sortedStudents.length / PAGE_SIZE);
 
   if (sortedStudents.length === 0) {
@@ -132,50 +52,115 @@ export default function VirtualMarksTable({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="overflow-x-auto border rounded-lg bg-white">
-        <div className="flex bg-slate-800 text-white sticky top-0 z-20">
-          <div className="w-12 flex items-center px-2 font-semibold text-xs border-r">Roll</div>
-          <div className="w-20 flex items-center px-2 font-semibold text-xs border-r">ID</div>
-          <div className="w-40 flex items-center px-2 font-semibold text-xs border-r">Name</div>
-          <div className="flex flex-1 overflow-x-auto">
-            {subjects.map(subject => (
-              <div key={subject} className="w-20 flex-shrink-0 flex items-center justify-center px-1 border-r font-semibold text-xs bg-slate-700">
-                {subject}
-              </div>
-            ))}
-          </div>
-          <div className="w-16 flex-shrink-0 flex items-center justify-center px-1 font-semibold text-xs bg-slate-600">
-            Total
-          </div>
-        </div>
+        <table className="w-full border-collapse text-sm" style={{ tableLayout: 'fixed' }}>
+          <thead>
+            <tr className="bg-slate-800 text-white sticky top-0 z-20">
+              <th className="border border-slate-200 px-2 py-2 text-left font-semibold w-12 sticky left-0 bg-slate-800">Roll</th>
+              <th className="border border-slate-200 px-2 py-2 text-left font-semibold w-16 sticky left-12 bg-slate-800">ID</th>
+              <th className="border border-slate-200 px-2 py-2 text-left font-semibold w-32 sticky left-28 bg-slate-800">Name</th>
+              {subjects.map(subject => (
+                <th key={subject} className="border border-slate-200 px-2 py-2 text-center font-semibold bg-slate-700 whitespace-normal text-xs w-20">
+                  {subject}
+                </th>
+              ))}
+              <th className="border border-slate-200 px-2 py-2 text-center font-semibold bg-slate-600 w-16">
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedStudents.map((student, idx) => {
+              const studentId = student.student_id || student.id;
+              const globalIdx = currentPage * PAGE_SIZE + idx;
+              return (
+                <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
+                  <td className="border border-slate-200 px-2 py-2 font-medium text-slate-700 text-center sticky left-0 w-12" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>
+                    {student.roll_no || '—'}
+                  </td>
+                  <td className="border border-slate-200 px-2 py-2 text-slate-600 text-xs sticky left-12 w-16" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>
+                    {student.student_id}
+                  </td>
+                  <td className="border border-slate-200 px-2 py-2 font-medium text-slate-900 text-xs sticky left-28 w-32 truncate" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>
+                    {student.name}
+                  </td>
+                  {subjects.map((subject, subjectIdx) => {
+                    const marks = marksData[studentId]?.[subject]?.marks_obtained;
+                    const status = getMarkStatus(marks);
 
-        {/* Paginated List */}
-        <div className="divide-y max-h-[600px] overflow-y-auto">
-          {paginatedStudents.map((student, index) => renderRow(student, index))}
-        </div>
+                    return (
+                      <td key={subject} className="border border-slate-200 px-1 py-1 text-center w-20">
+                        <div className={`flex items-center justify-center rounded p-0.5 ${
+                          status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
+                        }`}>
+                          <Input
+                            id={`marks-${globalIdx}-${subjectIdx}`}
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            max={maxMarks}
+                            step="0.5"
+                            value={marks ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || parseFloat(val) <= maxMarks) {
+                                onMarkChange?.(studentId, subject, val);
+                              }
+                            }}
+                            onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
+                            disabled={isLocked}
+                            className={`w-14 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 ${
+                              status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                            } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            placeholder="—"
+                          />
+                        </div>
+                      </td>
+                    );
+                  })}
+                  <td className="border border-slate-200 px-2 py-1 text-center w-16 bg-slate-100">
+                    <span className="text-xs font-bold text-slate-800">
+                      {(() => {
+                        const total = subjects.reduce((sum, subject) => {
+                          const m = marksData[studentId]?.[subject]?.marks_obtained;
+                          return m !== undefined && m !== '' ? sum + parseFloat(m) : sum;
+                        }, 0);
+                        const hasAny = subjects.some(subject => {
+                          const m = marksData[studentId]?.[subject]?.marks_obtained;
+                          return m !== undefined && m !== '';
+                        });
+                        return hasAny ? total : '—';
+                      })()}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 items-center">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
-            className="px-3 py-2 border rounded disabled:opacity-50"
           >
             ← Previous
-          </button>
+          </Button>
           <span className="text-sm text-slate-600">
-            Page {currentPage + 1} of {totalPages} ({paginatedStudents.length} students)
+            Page {currentPage + 1} of {totalPages} ({paginatedStudents.length} of {sortedStudents.length})
           </span>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
             disabled={currentPage === totalPages - 1}
-            className="px-3 py-2 border rounded disabled:opacity-50"
           >
             Next →
-          </button>
+          </Button>
         </div>
       )}
     </div>
