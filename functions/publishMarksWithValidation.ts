@@ -106,3 +106,5 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message || 'Failed to publish marks' }, { status: 500 });
   }
 });
+
+// Marks publish endpoint deployed
