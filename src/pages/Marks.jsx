@@ -490,7 +490,13 @@ export default function Marks() {
         section: selectedSection,
         academicYear: academicYear
       };
-      console.log('[PUBLISH_MUTATION] Payload:', payload);
+      console.log('[PUBLISH_MUTATION] marksIds.length:', marksIds.length);
+      console.log('[PUBLISH_MUTATION] marksIds[0-4]:', marksIds.slice(0, 5));
+      console.log('[PUBLISH_MUTATION] marksIds[0] type:', typeof marksIds[0]);
+      console.log('[PUBLISH_MUTATION] examType sent:', payload.examType);
+      console.log('[PUBLISH_MUTATION] Full Payload:', payload);
+      console.log('[PUBLISH_MUTATION] groupData.exam_type (UUID):', groupData?.exam_type);
+      console.log('[PUBLISH_MUTATION] groupData.exam_name:', groupData?.exam_name);
 
       const res = await base44.functions.invoke('publishMarksWithValidation', payload);
 
