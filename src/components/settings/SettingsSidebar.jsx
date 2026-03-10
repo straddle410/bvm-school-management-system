@@ -27,6 +27,12 @@ const MENU_GROUPS = [
     ],
   },
   {
+    label: 'Student',
+    items: [
+      { id: 'reset-student-password', label: 'Reset Student Password', requiredRoles: ['admin', 'principal'] },
+    ],
+  },
+  {
     label: 'Fees',
     items: [
       { id: 'fees-backup', label: 'Fees Backup', requiredRoles: ['admin', 'principal', 'accountant'] },
