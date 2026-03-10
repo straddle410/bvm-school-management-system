@@ -95,6 +95,23 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Auto-approve any Submitted marks before publishing
+    console.log('[publishMarksWithValidation] Auto-approving Submitted marks...');
+    const submittedIds = marksToPublish
+      .filter(m => m.status === 'Submitted')
+      .map(m => m.id);
+    
+    if (submittedIds.length > 0) {
+      console.log('[publishMarksWithValidation] Auto-approving', submittedIds.length, 'marks');
+      await Promise.all(submittedIds.map(id =>
+        base44.asServiceRole.entities.Marks.update(id, {
+          status: 'Approved',
+          verified_by: user.email,
+          approved_by: user.email
+        })
+      ));
+    }
+
     const previousStatus = marksToPublish[0]?.status || 'Verified';
 
     // Audit log
