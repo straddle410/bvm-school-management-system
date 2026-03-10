@@ -106,12 +106,14 @@ function CollectionReportContent() {
     };
   }
 
-  // Mode breakdown
+  // Mode breakdown (only for details mode)
   const modeBreakdown = {};
-  filteredPayments.forEach(p => {
-    const mode = p.payment_mode || 'Unknown';
-    modeBreakdown[mode] = (modeBreakdown[mode] || 0) + (p.amount_paid || 0);
-  });
+  if (!isSummaryMode) {
+    filteredPayments.forEach(p => {
+      const mode = p.mode || p.payment_mode || 'Unknown';
+      modeBreakdown[mode] = (modeBreakdown[mode] || 0) + (p.amount || p.amount_paid || 0);
+    });
+  }
 
   // Export to CSV
   const exportCSV = () => {
