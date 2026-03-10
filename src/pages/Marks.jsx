@@ -169,6 +169,7 @@ export default function Marks() {
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
       const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+      console.log('[EXISTING_MARKS_QUERY]', { selectedExamObj: selectedExamObj?.id, examName: selectedExam, examTypesLoaded: examTypes.length });
       return base44.entities.Marks.filter({
         class_name: selectedClass,
         section: selectedSection,
@@ -232,6 +233,7 @@ export default function Marks() {
     : (subjects.length > 0 ? subjects : DEFAULT_SUBJECTS);
 
   const selectedExamType = examTypes.find(e => e.name === selectedExam);
+  console.log('[SELECTED_EXAM_TYPE]', { selectedExam, selectedExamType: selectedExamType?.id, examTypesCount: examTypes.length });
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
