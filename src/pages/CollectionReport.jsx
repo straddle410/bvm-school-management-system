@@ -17,9 +17,10 @@ const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 function CollectionReportContent() {
   const { academicYear } = useAcademicYear();
+  const today = new Date().toISOString().split('T')[0];
   
-  // Filters
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  // Filters - default to today
+  const [dateRange, setDateRange] = useState({ start: today, end: today });
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,8 +32,8 @@ function CollectionReportContent() {
       try {
         const res = await base44.functions.invoke('getCollectionByClass', {
           academicYear,
-          dateFrom: dateRange.start || undefined,
-          dateTo: dateRange.end || undefined,
+          dateFrom: dateRange.start,
+          dateTo: dateRange.end,
           className: selectedClass || undefined,
           mode: selectedMode || undefined,
           reportMode: 'details',
