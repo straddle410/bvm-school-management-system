@@ -13,15 +13,31 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const staffInfo = body.staffInfo;
+    let baseUser = null;
     
     // Check auth: staff session from body (mobile) OR Base44 user (web)
     if (!staffInfo?.staff_id) {
       const base44 = createClientFromRequest(req);
-      const baseUser = await base44.auth.me().catch(() => null);
+      baseUser = await base44.auth.me().catch(() => null);
       if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
+
+    const allowedRoles = ['admin', 'principal', 'accountant'];
+    const user = staffInfo || baseUser;
+    const candidates = [
+      user?.role,
+      user?.roleName,
+      user?.user_metadata?.role,
+      user?.app_metadata?.role
+    ].filter(v => v !== null && v !== undefined && v !== '');
+    const userRole = String(candidates[0] || '').trim().toLowerCase();
+    
+    if (!allowedRoles.includes(userRole)) {
+      return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
+    }
+
     const {
       academicYear,
       asOfDate,
@@ -41,6 +57,8 @@ Deno.serve(async (req) => {
     }
 
     const cutoff = asOfDate || new Date().toISOString().split('T')[0];
+
+    const base44 = createClientFromRequest(req);
 
     const [invoices, payments] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
