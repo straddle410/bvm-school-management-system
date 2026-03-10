@@ -87,6 +87,7 @@ import Quiz from './pages/Quiz';
 import RbacTest from './pages/RbacTest';
 import Reports from './pages/Reports';
 import ReportsManagement from './pages/ReportsManagement';
+import ResetStudentPassword from './pages/ResetStudentPassword';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
 import Staff from './pages/Staff';
@@ -95,6 +96,7 @@ import StudentAttendance from './pages/StudentAttendance';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentDiary from './pages/StudentDiary';
 import StudentFees from './pages/StudentFees';
+import StudentForgotPassword from './pages/StudentForgotPassword';
 import StudentHallTicketView from './pages/StudentHallTicketView';
 import StudentHomework from './pages/StudentHomework';
 import StudentLedgerReport from './pages/StudentLedgerReport';
@@ -111,8 +113,6 @@ import SubjectManagement from './pages/SubjectManagement';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import index from './pages/index';
-import StudentForgotPassword from './pages/StudentForgotPassword';
-import ResetStudentPassword from './pages/ResetStudentPassword';
 import __Layout from './Layout.jsx';
 
 
@@ -157,6 +157,7 @@ export const PAGES = {
     "RbacTest": RbacTest,
     "Reports": Reports,
     "ReportsManagement": ReportsManagement,
+    "ResetStudentPassword": ResetStudentPassword,
     "Results": Results,
     "Settings": Settings,
     "Staff": Staff,
@@ -165,6 +166,7 @@ export const PAGES = {
     "StudentDashboard": StudentDashboard,
     "StudentDiary": StudentDiary,
     "StudentFees": StudentFees,
+    "StudentForgotPassword": StudentForgotPassword,
     "StudentHallTicketView": StudentHallTicketView,
     "StudentHomework": StudentHomework,
     "StudentLedgerReport": StudentLedgerReport,
@@ -181,8 +183,6 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "index": index,
-    "StudentForgotPassword": StudentForgotPassword,
-    "ResetStudentPassword": ResetStudentPassword,
 }
 
 export const pagesConfig = {

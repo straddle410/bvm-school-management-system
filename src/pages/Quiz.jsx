@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
@@ -161,12 +161,8 @@ export default function Quiz() {
 
    const createQuizMutation = useMutation({
     mutationFn: async (data) => {
-      const res = await base44.functions.invoke('submitQuizAttempt', {
-        quiz_data: { ...data, academic_year: academicYear }
-      });
-      if (res.data?.error) throw new Error(res.data.error);
       const quiz = await base44.entities.Quiz.create({ ...data, academic_year: academicYear });
-      await base44.entities.Quiz.update(quiz.id, { status: 'Published' });
+      await base44.entities.Quiz.update(quiz.id, { status: 'Draft' });
       return quiz;
     },
     onSuccess: () => {
@@ -174,7 +170,7 @@ export default function Quiz() {
       setShowCreateDialog(false);
       setActiveTab('manage');
       resetQuizForm();
-      toast.success('Quiz created and published successfully');
+      toast.success('Quiz created successfully');
     }
    });
 
