@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
     // Extract effective role with normalization
-    const user = baseUser || { role: staffInfo?.role };
+    const user = staffInfo ? { role: staffInfo?.role } : { role: (await base44?.auth.me?.())?.role };
     const candidates = [
       user?.role,
       user?.roleName,
