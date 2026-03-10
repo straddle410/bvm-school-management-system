@@ -356,27 +356,34 @@ export default function PrintReceiptA5() {
         }
 
         .footer {
-          font-size: 10px;
+          font-size: 9px;
           text-align: center;
-          color: #666;
-          margin-top: 1.5mm;
-          padding-top: 0.5mm;
-          border-top: 1px solid #ddd;
+          color: #888;
+          margin-top: 1.2mm;
+          padding: 0.8mm 0;
+          border-top: 1px solid #e0e0e0;
+          font-style: italic;
         }
 
         .signatures {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 2mm;
-          font-size: 10px;
+          font-size: 9px;
           margin-top: 1.5mm;
         }
 
         .sig-line {
           text-align: center;
-          border-top: 1px solid #333;
-          padding-top: 3mm;
-          height: 10mm;
+          border-top: 1.5px solid #333;
+          padding-top: 2.5mm;
+          height: 9mm;
+        }
+
+        .sig-line div {
+          font-weight: 600;
+          color: #1a237e;
+          letter-spacing: 0.2px;
         }
 
         .void-note {
