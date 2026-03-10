@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus } from 'lucide-react';
 import MarksTable from './MarksTable';
 import MobileMarksEntry from './MobileMarksEntry';
+import VirtualMarksTable from './VirtualMarksTable';
+import VirtualMobileMarksEntry from './VirtualMobileMarksEntry';
 import MarksImportExport from './MarksImportExport';
 import StatusBadge from '@/components/ui/StatusBadge';
 
