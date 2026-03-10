@@ -247,6 +247,16 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
           }}
         />
       )}
+
+      <ReceiptPreviewModal
+        isOpen={!!printingPaymentId && !!receiptPreview}
+        onClose={() => {
+          setPrintingPaymentId(null);
+          setReceiptPreview(null);
+        }}
+        receiptData={receiptPreview}
+        isLoading={isLoadingReceipt}
+      />
     </div>
   );
 }
