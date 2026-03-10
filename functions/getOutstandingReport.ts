@@ -11,15 +11,16 @@ const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    // Check auth: Base44 user OR staff session
-    const baseUser = await base44.auth.me().catch(() => null);
     const body = await req.json().catch(() => ({}));
     const staffInfo = body.staffInfo;
     
-    if (!baseUser && !staffInfo?.staff_id) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check auth: staff session from body (mobile) OR Base44 user (web)
+    if (!staffInfo?.staff_id) {
+      const base44 = createClientFromRequest(req);
+      const baseUser = await base44.auth.me().catch(() => null);
+      if (!baseUser) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
     const {
       academicYear,
