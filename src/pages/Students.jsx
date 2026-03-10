@@ -415,6 +415,25 @@ export default function Students() {
     softDeleteMutation.mutate({ id: student.id, action: 'restore' });
   };
 
+  const handleResetPassword = async (student) => {
+    setResetStudent(student);
+    setResetLoading(true);
+    setResetResult(null);
+    try {
+      const res = await base44.functions.invoke('resetStudentPasswordByAdmin', { student_id: student.student_id });
+      if (res.data?.success) {
+        setResetResult(res.data);
+        setShowResetDialog(true);
+      } else {
+        toast.error(res.data?.message || 'Failed to reset password');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to reset password');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   // Selectable students = those on the current page that are not locked and not deleted
   const selectableStudents = students.filter(s => !isLocked(s) && !s.is_deleted);
 
