@@ -330,14 +330,14 @@ export default function PrintReceiptA5() {
         .summary {
           width: 100%;
           border-collapse: collapse;
-          font-size: 11px;
+          font-size: 12px;
           margin: 1.5mm 0;
           border: 1px solid #d0d0d0;
         }
 
         .summary td {
           border-bottom: 1px solid #e0e0e0;
-          padding: 0.7mm 1.5mm;
+          padding: 0.9mm 1.5mm;
         }
 
         .summary td:first-child {
