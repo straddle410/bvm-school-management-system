@@ -287,25 +287,31 @@ export default function PrintReceiptA5() {
         }
 
         .box {
-          border: 1px solid #ccc;
+          border: 1px solid #d0d0d0;
           padding: 2mm;
           margin: 1.5mm 0;
           font-size: 11px;
+          background: #fafafa;
+          border-radius: 2px;
         }
 
         .box-title {
-          font-weight: bold;
-          font-size: 11px;
-          border-bottom: 1px solid #ccc;
-          padding-bottom: 0.5mm;
-          margin-bottom: 0.5mm;
+          font-weight: 800;
+          font-size: 10px;
+          border-bottom: 2px solid #1a237e;
+          padding-bottom: 0.8mm;
+          margin-bottom: 0.8mm;
+          color: #1a237e;
+          text-transform: uppercase;
+          letter-spacing: 0.2px;
         }
 
         .box-row {
           display: flex;
           justify-content: space-between;
-          padding: 0.5mm 0;
+          padding: 0.6mm 0;
           font-size: 11px;
+          gap: 1mm;
         }
 
         .amount-box {
