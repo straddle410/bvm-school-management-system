@@ -4,7 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Extract staff info from request body (sent by frontend)
+    // Extract staff info and payment data from request body
     const body = await req.json();
     const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks, entryType, staffInfo } = body;
     
@@ -29,8 +29,6 @@ Deno.serve(async (req) => {
       console.log(`[RBAC-BLOCK] ${user.email} role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
       return Response.json({ error: 'Forbidden', userRole, allowedRoles, email: user.email }, { status: 403 });
     }
-
-    const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks, entryType } = await req.json();
 
     if (!invoiceId || !amountPaid || !paymentDate) {
       return Response.json({ error: 'invoiceId, amountPaid and paymentDate are required' }, { status: 400 });
