@@ -143,7 +143,7 @@ function getReceiptContent(school, receipt, feeType, amountInWords, copyLabel) {
   return `
     <div style="position: relative;">
       ${isVoid ? '<div class="void-watermark">VOID</div>' : ''}
-      <div style="position: relative; z-index: 1;">
+      <div style="position: relative; z-index: 1; transform: scale(0.98); transform-origin: top left;">
         <div class="header">
           <div class="header-top">
             ${school.logoUrl ? `<img src="${school.logoUrl}" alt="Logo" class="logo" />` : ''}
