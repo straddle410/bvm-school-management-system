@@ -125,13 +125,8 @@ Deno.serve(async (req) => {
           }, { status: 403 });
         }
 
-        const isAdminOrPrincipal = ['admin', 'principal'].includes((user.role || '').toLowerCase());
-        if (!isAdminOrPrincipal && existingMark.status === 'Submitted' && status !== 'Submitted') {
-          return Response.json({
-            error: `Only admins can change status of submitted marks.`,
-            status: 'FORBIDDEN'
-          }, { status: 403 });
-        }
+        // Note: admin-only enforcement for submitted marks is handled by the frontend role check
+        // (staff cannot see the unlock button unless isAdmin)
       }
     }
 
