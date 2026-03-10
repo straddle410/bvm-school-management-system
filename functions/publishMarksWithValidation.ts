@@ -52,12 +52,6 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Already-published marks
-    const alreadyPublished = allMarks.filter(m => marksIds.includes(m.id) && m.status === 'Published');
-    if (alreadyPublished.length === marksIds.length) {
-      return Response.json({ error: 'All selected marks are already published' }, { status: 400 });
-    }
-
     const previousStatus = marksToPublish[0]?.status || 'Verified';
 
     // Audit log
