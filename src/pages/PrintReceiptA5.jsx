@@ -202,28 +202,41 @@ export default function PrintReceiptA5() {
 
         .header {
           text-align: center;
-          border-bottom: 1px solid #333;
-          padding-bottom: 1.5mm;
-          margin-bottom: 1.5mm;
+          border-bottom: 2px solid #1a237e;
+          padding-bottom: 2mm;
+          margin-bottom: 2mm;
+        }
+
+        .header-top {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 3mm;
+          margin-bottom: 1mm;
         }
 
         .logo {
-          width: 70px;
-          height: auto;
-          margin: 0 auto 2px;
-          display: block;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          object-fit: cover;
+          flex-shrink: 0;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .school-name {
-          font-size: 15px;
-          font-weight: 800;
-          margin: 1mm 0 0;
+          font-size: 16px;
+          font-weight: 900;
+          margin: 0;
+          color: #1a237e;
+          letter-spacing: 0.3px;
         }
 
         .school-info {
-          font-size: 11px;
-          color: #333;
-          margin: 0.5mm 0 0;
+          font-size: 10px;
+          color: #555;
+          margin: 0.3mm 0 0;
+          font-weight: 500;
         }
 
         .receipt-title {
