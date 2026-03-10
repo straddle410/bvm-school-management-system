@@ -527,7 +527,7 @@ function ReceiptContent({ school, receipt, copyLabel }) {
             Amount Paid: ₹{receipt.payment.amount.toLocaleString('en-IN')}
           </div>
           {amountInWords && (
-            <div style={{ textAlign: 'center', fontSize: '10px', marginTop: '1mm' }}>
+            <div style={{ textAlign: 'center', fontSize: '10px', marginTop: '0.5mm' }}>
               ({amountInWords})
             </div>
           )}
