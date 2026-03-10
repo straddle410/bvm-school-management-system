@@ -392,7 +392,19 @@ export default function Marks() {
 
   const revokePublicationMutation = useMutation({
     mutationFn: async (examTypeId) => {
-      const marksToRevoke = reviewMarks.filter(m => m.exam_type === examTypeId || m.exam_type === revokeExamType);
+      // Fetch published marks fresh for this exam type
+      const allMarksForExam = await base44.entities.Marks.filter({
+        class_name: selectedClass,
+        section: selectedSection,
+        exam_type: examTypeId || revokeExamType,
+        academic_year: academicYear
+      });
+      const marksToRevoke = allMarksForExam.filter(m => m.status === 'Published');
+      
+      if (!marksToRevoke || marksToRevoke.length === 0) {
+        throw new Error('No published marks found to revoke');
+      }
+      
       const res = await base44.functions.invoke('revokeMarksPublication', {
         marksIds: marksToRevoke.map(m => m.id),
         className: selectedClass,
