@@ -4,31 +4,15 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Extract staff session from request headers
-    const staffToken = req.headers.get('x-staff-token');
-    if (!staffToken) {
-      return Response.json({ error: 'Unauthorized: No staff token' }, { status: 401 });
+    // Extract staff info from request body (sent by frontend)
+    const body = await req.json();
+    const { invoiceId, amountPaid, paymentDate, paymentMode, referenceNo, remarks, entryType, staffInfo } = body;
+    
+    if (!staffInfo || !staffInfo.email) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
     
-    // Decode staff token to get user info
-    const tokenParts = staffToken.split('.');
-    if (tokenParts.length !== 3) {
-      return Response.json({ error: 'Invalid token format' }, { status: 401 });
-    }
-    
-    let user = null;
-    try {
-      const payloadB64 = tokenParts[1];
-      const payload = JSON.parse(new TextDecoder().decode(Deno.core.ops.op_base64_decode(payloadB64)));
-      user = {
-        email: payload.username + '@staff.local',
-        full_name: payload.username,
-        role: payload.role,
-        staff_id: payload.staff_id
-      };
-    } catch (e) {
-      return Response.json({ error: 'Invalid token' }, { status: 401 });
-    }
+    const user = staffInfo;
 
     // ── RBAC: Only Admin/Principal/Accountant can create payments ──
     // Extract effective role with normalization
