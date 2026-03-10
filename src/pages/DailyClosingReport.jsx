@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Printer, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
-import { useAcademicYear } from '@/components/AcademicYearContext';
 
 export default function DailyClosingReportPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -15,18 +14,15 @@ export default function DailyClosingReportPage() {
   const printRef = useRef(null);
 
   // Fetch daily closing summary
-  const { academicYear } = useAcademicYear();
   const { data, isLoading, error } = useQuery({
-    queryKey: ['daily-closing', selectedDate, showVoided, academicYear],
+    queryKey: ['daily-closing', selectedDate, showVoided],
     queryFn: async () => {
       const res = await base44.functions.invoke('getDailyClosingSummary', {
         date: selectedDate,
-        academicYear: academicYear,
         includeVoided: showVoided.toString()
       });
       return res.data;
-    },
-    enabled: !!academicYear
+    }
   });
 
   const handlePrint = () => {
