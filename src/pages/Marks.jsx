@@ -554,380 +554,123 @@ export default function Marks() {
       />
 
       <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
+        {/* Mode Toggle */}
+        {isAdmin && (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex gap-2">
+                <Button variant={viewMode === 'entry' ? 'default' : 'outline'} onClick={() => setViewMode('entry')} className="gap-2">
+                  <FileText className="h-4 w-4" /> Entry
+                </Button>
+                <Button variant={viewMode === 'review' ? 'default' : 'outline'} onClick={() => setViewMode('review')} className="gap-2">
+                  <Eye className="h-4 w-4" /> Review & Publish
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Mode Toggle - Admin Only */}
-            {isAdmin && (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant={viewMode === 'entry' ? 'default' : 'outline'}
-                      onClick={() => setViewMode('entry')}
-                      className="gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Entry
-                    </Button>
-                    <Button
-                      variant={viewMode === 'review' ? 'default' : 'outline'}
-                      onClick={() => setViewMode('review')}
-                      className="gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Review & Publish
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Filter Section */}
+        <MarksFilterSection
+          selectedClass={selectedClass}
+          selectedSection={selectedSection}
+          selectedExam={selectedExam}
+          availableClasses={availableClasses}
+          availableSections={availableSections}
+          examTypes={examTypes}
+          onClassChange={(v) => { setSelectedClass(v); setSelectedSection(''); }}
+          onSectionChange={setSelectedSection}
+          onExamChange={setSelectedExam}
+        />
+
+        {/* Entry Mode */}
+        {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
+          <>
+            <MarksEntrySection
+              selectedExam={selectedExam}
+              maxMarks={maxMarks}
+              passingMarks={passingMarks}
+              currentStatus={currentStatus}
+              filteredStudents={filteredStudents}
+              subjectList={subjectList}
+              marksData={marksData}
+              canEdit={canEdit}
+              isLocked={!canEdit}
+              isPublished={isPublished}
+              isAdmin={isAdmin}
+              isSubmitted={isSubmitted}
+              onMarkChange={updateMarks}
+              onImport={(importedData) => {
+                setMarksData(prev => ({
+                  ...prev,
+                  ...Object.entries(importedData).reduce((acc, [stdId, subjectMarks]) => {
+                    acc[stdId] = { ...prev[stdId], ...subjectMarks };
+                    return acc;
+                  }, {})
+                }));
+              }}
+              onAddSubject={() => setShowAddSubject(true)}
+              onRevoke={(examTypeId) => {
+                setRevokeExamType(examTypeId);
+                setShowRevokeConfirm(true);
+              }}
+              onUnlock={() => unlockMutation.mutate()}
+              unlockPending={unlockMutation.isPending}
+              selectedExamType={selectedExamType}
+              selectedClass={selectedClass}
+              selectedSection={selectedSection}
+            />
+
+            {filteredStudents.length > 0 && canSave && (
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => { setSaveMode('draft'); saveMutation.mutate(); }} disabled={saveMutation.isPending || !canEdit} className="gap-2">
+                  <FileText className="h-4 w-4" /> {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                </Button>
+                <Button onClick={() => { if (!canEdit) { toast.error('Cannot submit. Marks are locked.'); return; } setShowSubmitConfirm(true); }} disabled={saveMutation.isPending || !canEdit} className="gap-2">
+                  <Send className="h-4 w-4" /> {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+                </Button>
+              </div>
             )}
+          </>
+        )}
 
-            {/* Selection */}
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedSection(''); }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableClasses.map(c => (
-                        <SelectItem key={c} value={c}>Class {c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedSection} onValueChange={setSelectedSection} disabled={!selectedClass || availableSections.length === 0}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Section" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableSections.map(s => (
-                        <SelectItem key={s} value={s}>Section {s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        {/* Review Mode */}
+        {viewMode === 'review' && selectedClass && selectedSection ? (
+          <MarksReviewSection
+            reviewGroupedData={reviewGroupedData}
+            reviewSortBy={reviewSortBy}
+            onSortChange={setReviewSortBy}
+            onPublish={(marksIds) => { if (window.confirm('Publish these results? Students will be able to see them.')) { publishMutation.mutate(marksIds); } }}
+            onDownloadExcel={handleDownloadExcel}
+            publishPending={publishMutation.isPending}
+          />
+        ) : viewMode === 'review' ? (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="py-16 text-center">
+              <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700">Select Class & Section</h3>
+              <p className="text-slate-500 mt-2">Choose a class and section to review marks</p>
+            </CardContent>
+          </Card>
+        ) : (!selectedClass || !selectedSection || !selectedExam) && (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="py-16 text-center">
+              <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700">Select Options</h3>
+              <p className="text-slate-500 mt-2">Choose class, section and exam type to enter marks</p>
+            </CardContent>
+          </Card>
+        )}
 
-                  <Select value={selectedExam} onValueChange={setSelectedExam}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Exam" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {examTypes.filter(e => e.is_active !== false).map(e => (
-                        <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
-              <>
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h3 className="font-semibold text-base">{selectedExam}</h3>
-                          <p className="text-xs text-slate-500">
-                            Max Marks: <span className="font-semibold">{maxMarks}</span> | 
-                            Pass: <span className="font-semibold">{passingMarks}</span>
-                          </p>
-                        </div>
-                        <StatusBadge status={currentStatus} />
-                      </div>
-                      <MarksImportExport
-                        students={filteredStudents}
-                        subjects={subjectList}
-                        marksData={marksData}
-                        onImport={(importedData) => {
-                          setMarksData(prev => ({
-                            ...prev,
-                            ...Object.entries(importedData).reduce((acc, [stdId, subjectMarks]) => {
-                              acc[stdId] = { ...prev[stdId], ...subjectMarks };
-                              return acc;
-                            }, {})
-                          }));
-                        }}
-                        examInfo={{ exam: selectedExam }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm">
-                   <CardContent className="p-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-semibold">Subject Columns</h3>
-                        {viewMode === 'entry' && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="gap-2"
-                            onClick={() => setShowAddSubject(true)}
-                          >
-                            <Plus className="h-4 w-4" />
-                            Add Subject
-                          </Button>
-                        )}
-                      </div>
-                      {isPublished && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-red-900 flex items-center gap-2">
-                              <Lock className="h-4 w-4" /> Marks Published
-                            </p>
-                            <p className="text-xs text-red-700 mt-1">Published marks cannot be edited. Admin must revoke publication first.</p>
-                          </div>
-                          {isAdmin && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setRevokeExamType(selectedExamType?.id || selectedExam);
-                                setShowRevokeConfirm(true);
-                              }}
-                              className="whitespace-nowrap"
-                            >
-                              Revoke Publication
-                            </Button>
-                          )}
-                        </div>
-                      )}
-
-                      {isSubmitted && !isPublished && !isAdmin && (
-                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 text-center">
-                          <p className="text-sm font-medium text-blue-900">✓ Marks Submitted</p>
-                          <p className="text-xs text-blue-700 mt-1">Editing is not allowed for submitted marks</p>
-                        </div>
-                      )}
-
-                      {isSubmitted && !isPublished && isAdmin && (
-                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-amber-900">✓ Marks Submitted</p>
-                            <p className="text-xs text-amber-700 mt-1">These marks are locked. Click unlock to allow editing.</p>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => unlockMutation.mutate()}
-                            disabled={unlockMutation.isPending}
-                            className="whitespace-nowrap"
-                          >
-                            {unlockMutation.isPending ? 'Unlocking...' : 'Unlock for Editing'}
-                          </Button>
-                        </div>
-                      )}
-
-                      {/* Desktop Table View */}
-                      <div className="hidden md:block">
-                        <MarksTable
-                          students={filteredStudents}
-                          subjects={subjectList}
-                          marksData={marksData}
-                          onMarkChange={canEdit ? updateMarks : undefined}
-                          maxMarks={maxMarks}
-                          passingMarks={passingMarks}
-                          isLocked={!canEdit}
-                        />
-                      </div>
-                      {/* Mobile Subject Tabs View */}
-                      <div className="md:hidden">
-                        <MobileMarksEntry
-                          students={filteredStudents}
-                          subjects={subjectList}
-                          marksData={marksData}
-                          onMarkChange={canEdit ? updateMarks : undefined}
-                          maxMarks={maxMarks}
-                          passingMarks={passingMarks}
-                          isLocked={!canEdit}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                {filteredStudents.length > 0 && canSave && (
-                   <div className="flex justify-end gap-3">
-                     <Button 
-                       variant="outline"
-                       onClick={() => {
-                         setSaveMode('draft');
-                         saveMutation.mutate();
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <FileText className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
-                     </Button>
-                     <Button 
-                       onClick={() => {
-                         if (!canEdit) {
-                           toast.error('Cannot submit. Marks are locked.');
-                           return;
-                         }
-                         setShowSubmitConfirm(true);
-                       }}
-                       disabled={saveMutation.isPending || !canEdit}
-                       className="gap-2"
-                     >
-                       <Send className="h-4 w-4" />
-                       {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
-                     </Button>
-                   </div>
-                 )}
-              </>
-            )}
-
-            {viewMode === 'review' && selectedClass && selectedSection ? (
-              reviewGroupedData.length > 0 ? (
-                <div className="space-y-4">
-                  {reviewGroupedData.map((group, idx) => {
-                    const allMarkIds = group.students.flatMap(s => 
-                      Object.values(s.subjects).map(m => m.id)
-                    );
-                    return (
-                      <Card key={idx} className="border-0 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
-                          <h3 className="text-white font-semibold flex items-center justify-between">
-                            <span>{group.exam_name || group.exam_type}</span>
-                            <span className="text-sm">({group.students.length} students)</span>
-                          </h3>
-                        </div>
-                        <CardContent className="p-4 space-y-4">
-                           <div className="flex gap-2 mb-4">
-                            <Button
-                              variant={reviewSortBy === 'rank' ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setReviewSortBy('rank')}
-                            >
-                              Sort by Rank
-                            </Button>
-                            <Button
-                              variant={reviewSortBy === 'name' ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setReviewSortBy('name')}
-                            >
-                              Sort by Name
-                            </Button>
-                            <Button
-                              variant={reviewSortBy === 'total' ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setReviewSortBy('total')}
-                            >
-                              Sort by Total
-                            </Button>
-                          </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead>
-                                <tr className="border-b border-slate-200 bg-slate-50">
-                                  <th className="text-center p-2 font-semibold text-slate-700 w-16">Roll No</th>
-                                  <th className="text-left p-2 font-semibold text-slate-700 w-16">Rank</th>
-                                  <th className="text-left p-2 font-semibold text-slate-700 min-w-40">Student Name</th>
-                                  {group.subjects.map(subject => (
-                                    <th key={subject} className="text-center p-2 font-semibold text-slate-700 min-w-24">
-                                      {subject}
-                                    </th>
-                                  ))}
-                                  <th className="text-center p-2 font-semibold text-slate-700 w-20">Total</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {(() => {
-                                  let sorted = [...group.students];
-                                  if (reviewSortBy === 'name') {
-                                    sorted.sort((a, b) => a.student_name.localeCompare(b.student_name));
-                                  } else if (reviewSortBy === 'total') {
-                                    sorted.sort((a, b) => b.total - a.total);
-                                  }
-                                  return sorted.map((student) => (
-                                    <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
-                                      <td className="text-center p-2 text-slate-700">{student.roll_no || '-'}</td>
-                                      <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
-                                      <td className="p-2">{student.student_name}</td>
-                                      {group.subjects.map(subject => {
-                                        const mark = student.subjects[subject];
-                                        return (
-                                          <td key={subject} className="text-center p-2">
-                                            {mark ? mark.marks_obtained : '-'}
-                                          </td>
-                                        );
-                                      })}
-                                      <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
-                                    </tr>
-                                  ));
-                                })()}
-                              </tbody>
-                            </table>
-                          </div>
-                          <div className="flex flex-wrap gap-2 pt-2 items-center">
-                            {group.students.length > 0 && Object.values(group.students[0].subjects).length > 0 && Object.values(group.students[0].subjects)[0].status === 'Published' ? (
-                              <StatusBadge status="Published" />
-                            ) : (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDownloadExcel(group.exam_type)}
-                                  className="gap-2"
-                                >
-                                  <Download className="h-4 w-4" />
-                                  Export to Excel
-                                </Button>
-                                <Button
-                                  onClick={() => handlePublish(allMarkIds)}
-                                  disabled={publishMutation.isPending}
-                                  className="bg-green-600 hover:bg-green-700 gap-2"
-                                  size="sm"
-                                >
-                                  <Check className="h-4 w-4" />
-                                  {publishMutation.isPending ? 'Publishing...' : 'Publish Results'}
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              ) : (
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="py-16 text-center">
-                    <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-700">No marks to review</h3>
-                    <p className="text-slate-500 mt-2">No submitted marks for this class and section</p>
-                  </CardContent>
-                </Card>
-              )
-            ) : viewMode === 'review' ? (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="py-16 text-center">
-                  <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-700">Select Class & Section</h3>
-                  <p className="text-slate-500 mt-2">Choose a class and section to review marks</p>
-                </CardContent>
-              </Card>
-            ) : (!selectedClass || !selectedSection || !selectedExam) && (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="py-16 text-center">
-                  <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-700">Select Options</h3>
-                  <p className="text-slate-500 mt-2">Choose class, section and exam type to enter marks</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="py-16 text-center">
-                  <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-700">No Timetable Created</h3>
-                  <p className="text-slate-500 mt-2">Timetable must be created for this class and exam before entering marks</p>
-                </CardContent>
-              </Card>
-            )}
+        {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="py-16 text-center">
+              <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700">No Timetable Created</h3>
+              <p className="text-slate-500 mt-2">Timetable must be created for this class and exam before entering marks</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Add Subject Info - Moved to Settings */}
