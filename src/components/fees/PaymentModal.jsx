@@ -42,7 +42,7 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
 
   const payMutation = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke('recordFeePayment', {
+      const payload = {
         invoiceId: invoice.id,
         amountPaid: parseFloat(form.amountPaid),
         paymentDate: form.paymentDate,
@@ -50,14 +50,20 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
         referenceNo: form.referenceNo,
         remarks: form.remarks,
         staffInfo
-      });
+      };
+      console.log('[PaymentModal] Sending payload:', payload);
+      const res = await base44.functions.invoke('recordFeePayment', payload);
+      console.log('[PaymentModal] Response:', res.data);
       return res.data;
     },
     onSuccess: (data) => {
       toast.success(`Payment recorded! Receipt: ${data.receipt_no}`);
       onSuccess();
     },
-    onError: (e) => toast.error(e.response?.data?.error || e.message)
+    onError: (e) => {
+      console.error('[PaymentModal] Error:', e);
+      toast.error(e.response?.data?.error || e.message);
+    }
   });
 
   return (
