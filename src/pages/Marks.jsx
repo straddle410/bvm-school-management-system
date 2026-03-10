@@ -479,19 +479,14 @@ export default function Marks() {
   }, [reviewMarks, filteredStudents, subjectList, selectedExam, examTypes]);
 
   const publishMutation = useMutation({
-    mutationFn: async (marksIds) => {
-      // Use direct exam context instead of expensive nested search
-      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
-      const examTypeId = selectedExamObj?.id || selectedExam;
-      const groupData = reviewGroupedData.find(g => g.exam_type === examTypeId);
-
-      console.log('[PUB_FRONTEND_DEBUG] selectedExam:', selectedExam, '| selectedExamObj:', selectedExamObj ? { id: selectedExamObj.id, name: selectedExamObj.name } : 'UNDEFINED', '| examTypeId:', examTypeId, '| groupData:', groupData ? { exam_type: groupData.exam_type } : 'NOT_FOUND');
-
+    mutationFn: async (marksIds, passedExamTypeUUID) => {
+      // Use the canonical exam_type UUID passed from the reviewed group
+      // This avoids unreliable state-based lookup chain
       const payload = {
         marksIds,
-        examType: groupData?.exam_type || examTypeId,
+        examType: passedExamTypeUUID,
         className: selectedClass,
-        section: selectedSection,
+        section: selectedSection || '',
         academicYear: academicYear
       };
       console.log('[PUB_FRONTEND_PAYLOAD] Final payload:', { marksIds: marksIds?.length, examType: payload.examType, className: payload.className, section: payload.section, academicYear: payload.academicYear });
