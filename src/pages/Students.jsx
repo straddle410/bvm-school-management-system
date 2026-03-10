@@ -74,6 +74,10 @@ export default function Students() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [sfAvailableClasses, setSfAvailableClasses] = useState([]);
   const [sfAvailableSections, setSfAvailableSections] = useState([]);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [resetStudent, setResetStudent] = useState(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetResult, setResetResult] = useState(null);
   const LIMIT = 25;
   const debounceRef = useRef(null);
 
