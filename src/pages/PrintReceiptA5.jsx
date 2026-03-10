@@ -579,14 +579,16 @@ function ReceiptContent({ school, receipt, copyLabel }) {
         </div>
 
         {/* Signature Section */}
-        <div className="signatures">
-          <div className="sig-line">
-            <div style={{ fontSize: '10px' }}>Accountant</div>
-          </div>
-          <div className="sig-line">
-            <div style={{ fontSize: '10px' }}>Authorized By</div>
-          </div>
-        </div>
+         <div className="signatures">
+           <div className="sig-line">
+             <div className="sig-space"></div>
+             <div className="sig-label">Accountant</div>
+           </div>
+           <div className="sig-line">
+             <div className="sig-space"></div>
+             <div className="sig-label">Authorized By</div>
+           </div>
+         </div>
       </div>
     </div>
   );
