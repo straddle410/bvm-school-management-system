@@ -74,7 +74,7 @@ export default function ReceiptPreviewModal({ isOpen, onClose, receiptData, isLo
       ${getReceiptContent(school, receipt, feeType, amountInWords, 'PARENT COPY')}
     </div>
   </div>
-  <script>window.print();</script>
+
 </body>
 </html>`;
   };
