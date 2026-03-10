@@ -561,7 +561,13 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
               </Button>
             )}
             {isAdmin && notice.status !== 'Published' && (
-              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" onClick={() => onPublish(notice.id)}>
+              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" onClick={async () => {
+                // Ensure target_audience is set before publishing
+                const updateData = { status: 'Published' };
+                if (!notice.target_audience) updateData.target_audience = 'All';
+                await base44.entities.Notice.update(notice.id, updateData);
+                onPublish(notice.id);
+              }}>
                 Publish
               </Button>
             )}
