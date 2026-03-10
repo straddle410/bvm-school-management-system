@@ -291,14 +291,14 @@ export default function PrintReceiptA5() {
           border: 1px solid #d0d0d0;
           padding: 2mm;
           margin: 1.5mm 0;
-          font-size: 11px;
+          font-size: 12px;
           background: #fafafa;
           border-radius: 2px;
         }
 
         .box-title {
           font-weight: 800;
-          font-size: 10px;
+          font-size: 11px;
           border-bottom: 2px solid #1a237e;
           padding-bottom: 0.8mm;
           margin-bottom: 0.8mm;
@@ -311,7 +311,7 @@ export default function PrintReceiptA5() {
           display: flex;
           justify-content: space-between;
           padding: 0.6mm 0;
-          font-size: 11px;
+          font-size: 12px;
           gap: 1mm;
         }
 
