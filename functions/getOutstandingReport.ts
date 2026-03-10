@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
 
     // Active invoices: not Cancelled, due on or before cutoff
     const activeInvoices = invoices.filter(inv => {
-      if (inv.status === 'Cancelled') return false;
-      const invDate = inv.due_date || inv.created_date;
+      if (inv.status === 'Cancelled' || inv.status === 'Waived') return false;
+      const invDate = (inv.due_date && inv.due_date.trim()) ? inv.due_date : inv.created_date;
       if (invDate && invDate > cutoff) return false;
       return true;
     });
