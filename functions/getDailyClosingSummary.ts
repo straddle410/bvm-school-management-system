@@ -45,9 +45,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'date parameter required (YYYY-MM-DD)' }, { status: 400 });
     }
 
-    // Fetch all payments for the date
-    const allPayments = await base44.asServiceRole.entities.FeePayment.filter({
-      payment_date: date
+    // Fetch all payments and filter by date
+    let allPayments = await base44.asServiceRole.entities.FeePayment.filter({});
+    allPayments = allPayments.filter(p => {
+      const pDate = p.payment_date || (p.created_date || '').split('T')[0];
+      return pDate === date;
     });
 
     // Separate valid and voided payments
