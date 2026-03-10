@@ -796,6 +796,15 @@ export default function Marks() {
               </>
             )}
 
+            {reviewMarksError && viewMode === 'review' && (
+              <Card className="border-red-300 shadow-sm bg-red-50">
+                <CardContent className="p-4 flex items-center gap-3 text-red-700">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">Failed to load marks: {reviewMarksErrorObj?.message}</span>
+                </CardContent>
+              </Card>
+            )}
+
             {viewMode === 'review' && selectedClass && selectedSection ? (
               reviewGroupedData.length > 0 ? (
                 <div className="space-y-4">
