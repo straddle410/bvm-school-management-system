@@ -12,27 +12,6 @@ const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    // ── RBAC: Only Admin/Principal/Accountant can access ──
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    // Extract effective role with normalization
-    const candidates = [
-      user?.role,
-      user?.roleName,
-      user?.user_metadata?.role,
-      user?.app_metadata?.role
-    ].filter(v => v !== null && v !== undefined && v !== '');
-    const userRole = String(candidates[0] || '').trim().toLowerCase();
-    const allowedRoles = ['admin', 'principal', 'accountant'];
-    
-    if (!allowedRoles.includes(userRole)) {
-      console.log(`[RBAC-BLOCK] ${user.email} role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
-      return Response.json({ error: 'Forbidden', userRole, allowedRoles, email: user.email }, { status: 403 });
-    }
 
     const body = await req.json().catch(() => ({}));
     const {

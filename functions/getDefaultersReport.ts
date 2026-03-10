@@ -8,18 +8,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Permission check: Admin/Principal/Accountant
-    const userRole = user.role?.toLowerCase();
-    const allowedRoles = ['admin', 'principal', 'accountant'];
-    if (!allowedRoles.includes(userRole)) {
-      return Response.json({ error: 'Forbidden: Only Admin/Principal/Accountant can access defaulters' }, { status: 403 });
-    }
 
     // Parse request parameters
     const params = new URL(req.url).searchParams;
