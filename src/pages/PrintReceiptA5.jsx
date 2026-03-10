@@ -178,7 +178,7 @@ export default function PrintReceiptA5() {
           flex: 1;
           border: 1px solid #111;
           border-radius: 4px;
-          padding: 2.5mm;
+          padding: 2.2mm;
           box-sizing: border-box;
           overflow: hidden;
           background: white;
