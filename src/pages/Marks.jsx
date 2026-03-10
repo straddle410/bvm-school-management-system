@@ -480,10 +480,14 @@ export default function Marks() {
 
   const publishMutation = useMutation({
     mutationFn: async (marksIds) => {
-      // Use selectedExamType directly instead of scanning all groups
+      // Use direct exam context instead of expensive nested search
+      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+      const examTypeId = selectedExamObj?.id || selectedExam;
+      const groupData = reviewGroupedData.find(g => g.exam_type === examTypeId);
+
       const payload = {
         marksIds,
-        examType: selectedExamType?.id || selectedExam,
+        examType: groupData?.exam_name || examTypeId,
         className: selectedClass,
         section: selectedSection,
         academicYear: academicYear

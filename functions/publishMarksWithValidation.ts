@@ -108,4 +108,4 @@ Deno.serve(async (req) => {
   }
 });
 
-// Marks publish endpoint deployed - force rebuild
+// Marks publish endpoint deployed - v2 clean redeploy 2026-03-10
