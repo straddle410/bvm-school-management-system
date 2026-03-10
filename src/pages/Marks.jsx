@@ -7,18 +7,8 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
-import StatusBadge from '@/components/ui/StatusBadge';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -34,19 +24,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  BookOpen, Save, Send, Settings, FileText, Plus, Check, Download, Eye, Lock, Unlock, AlertTriangle
+  BookOpen, Send, FileText, Plus, Eye, AlertTriangle
 } from 'lucide-react';
 import { toast } from "sonner";
-import MarksTable from '@/components/marks/MarksTable';
-import MobileMarksEntry from '@/components/marks/MobileMarksEntry';
-import MarksImportExport from '@/components/marks/MarksImportExport';
-import MarksHeader from '@/components/marks/MarksHeader';
 import SuccessPopup from '@/components/marks/SuccessPopup';
+import MarksFilterSection from '@/components/marks/MarksFilterSection';
+import MarksEntrySection from '@/components/marks/MarksEntrySection';
+import MarksReviewSection from '@/components/marks/MarksReviewSection';
 
-import { getSubjectsForClass, getSubjectSourceLabel } from '@/components/subjectHelper';
+import { getSubjectsForClass } from '@/components/subjectHelper';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 const DEFAULT_SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies'];
