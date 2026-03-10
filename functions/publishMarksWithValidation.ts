@@ -18,13 +18,16 @@ Deno.serve(async (req) => {
 
     const { marksIds, examType, className, section, academicYear } = await req.json();
     
-    console.log('[PUB_BACKEND_PAYLOAD] Received:', { marksIds: marksIds?.length, examType: typeof examType === 'string' ? examType.substring(0, 20) : examType, className, section, academicYear });
+    console.log('[PUB_BACKEND_PAYLOAD] Received:', { marksIds: marksIds?.length, examType: typeof examType === 'string' ? examType.substring(0, 20) : examType, className, section: section || 'undefined', academicYear });
 
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
       return Response.json({ error: 'marksIds array required' }, { status: 400 });
     }
     if (!examType || !className || !academicYear) {
       return Response.json({ error: 'Required: examType, className, academicYear' }, { status: 400 });
+    }
+    if (!section || section.trim() === '') {
+      return Response.json({ error: 'Section is required' }, { status: 400 });
     }
 
     // Fetch only the specific marks being published (by section + class + exam)
