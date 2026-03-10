@@ -31,10 +31,10 @@ Deno.serve(async (req) => {
     }
 
     // Fetch only the specific marks being published (by section + class + exam)
-    console.log('[PUB_BACKEND_FILTER] About to filter Marks with:', { class_name: className, section: section || 'undefined', exam_type: examType, academic_year: academicYear });
+    console.log('[PUB_BACKEND_FILTER] About to filter Marks with:', { class_name: className, section: section.trim(), exam_type: examType, academic_year: academicYear });
     const allMarks = await base44.asServiceRole.entities.Marks.filter({
       class_name: className,
-      section: section || undefined,
+      section: section.trim(),
       exam_type: examType,
       academic_year: academicYear
     });
