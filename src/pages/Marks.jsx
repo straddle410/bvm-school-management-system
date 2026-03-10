@@ -505,11 +505,11 @@ export default function Marks() {
     }
   });
 
-  const handlePublish = (marksIds) => {
-    console.log('[PUBLISH_HANDLER] marksIds:', marksIds, 'count:', marksIds?.length);
+  const handlePublish = (marksIds, examTypeUUID) => {
+    console.log('[PUBLISH_HANDLER] marksIds:', marksIds?.length, '| examTypeUUID:', examTypeUUID);
     if (window.confirm('Publish these results? Students will be able to see them.')) {
       console.log('[PUBLISH_HANDLER] Confirmed - calling mutation');
-      publishMutation.mutate(marksIds);
+      publishMutation.mutate(marksIds, examTypeUUID);
     } else {
       console.log('[PUBLISH_HANDLER] Cancelled');
     }
