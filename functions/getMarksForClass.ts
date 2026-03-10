@@ -1,7 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-const STAFF_ROLES = ['admin', 'principal', 'teacher', 'staff', 'exam_staff', 'accountant'];
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
