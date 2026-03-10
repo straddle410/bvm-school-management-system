@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, User } from 'lucide-react';
 import PaymentModal from './PaymentModal';
+import StudentListVirtual from './StudentListVirtual';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
@@ -37,7 +38,9 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
       });
       return all.filter(s => s.is_active !== false);
     },
-    enabled: !!selectedClass && !!academicYear
+    enabled: !!selectedClass && !!academicYear,
+    staleTime: 5 * 60 * 1000, // 5 min cache
+    gcTime: 10 * 60 * 1000 // 10 min memory
   });
 
   const { data: allInvoices = [], refetch: refetchInvoice } = useQuery({
@@ -99,8 +102,11 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
 
   const balance = Math.max(net - paid, 0);
 
-  const filteredStudents = students.filter(s =>
-    s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
+  const filteredStudents = useMemo(() => 
+    students.filter(s =>
+      s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
+    ),
+    [students, search]
   );
 
   return (
@@ -119,24 +125,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
       </div>
 
       {selectedClass && !selectedStudent && (
-        <div className="grid gap-2">
-          {filteredStudents.length === 0 ? (
-            <Card><CardContent className="py-8 text-center text-slate-400">No students found</CardContent></Card>
-          ) : filteredStudents.map(s => (
-            <Card key={s.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedStudent(s)}>
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-indigo-700 font-bold text-sm">{s.name?.[0]}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-900">{s.name}</p>
-                  <p className="text-xs text-slate-500">{s.student_id} · Roll {s.roll_no}</p>
-                </div>
-                <span className="text-xs text-slate-400">→</span>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <StudentListVirtual students={filteredStudents} onSelect={setSelectedStudent} />
       )}
 
       {selectedStudent && (
