@@ -163,7 +163,8 @@ export default function DayBookReport() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await base44.functions.invoke('getDayBookReport', {
+      const staffSession = localStorage.getItem('staff_session');
+      const payload = {
         reportMode: 'export',
         dateFrom: applied.dateFrom,
         dateTo: applied.dateTo,
@@ -172,7 +173,16 @@ export default function DayBookReport() {
         mode: applied.mode?.length ? applied.mode : undefined,
         includeVoided: applied.includeVoided,
         exportCsv: true
-      });
+      };
+      
+      // Add staffInfo if on mobile
+      if (staffSession) {
+        try {
+          payload.staffInfo = JSON.parse(staffSession);
+        } catch {}
+      }
+      
+      const res = await base44.functions.invoke('getDayBookReport', payload);
       const blob = new Blob([res.data], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
