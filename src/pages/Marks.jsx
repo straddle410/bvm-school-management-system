@@ -1042,20 +1042,11 @@ export default function Marks() {
       </AlertDialog>
 
       {/* Success Popup */}
-      <Dialog open={showSuccessPopup} onOpenChange={setShowSuccessPopup}>
-       <DialogContent className="max-w-sm">
-         <DialogHeader>
-           <DialogTitle className="flex items-center gap-2 text-green-600">
-             <Check className="h-5 w-5" />
-             Success!
-           </DialogTitle>
-         </DialogHeader>
-         <p className="text-sm text-slate-600">{successMessage}</p>
-         <Button onClick={() => setShowSuccessPopup(false)} className="w-full bg-green-600 hover:bg-green-700">
-           OK
-         </Button>
-       </DialogContent>
-      </Dialog>
+      <SuccessPopup 
+       open={showSuccessPopup} 
+       onOpenChange={setShowSuccessPopup} 
+       message={successMessage} 
+      />
 
       {/* Past Year Warning */}
       <PastYearWarning
