@@ -45,27 +45,30 @@ function classSort(a, b) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const body = await req.json().catch(() => ({}));
     
     // Check if user is authenticated (staff session or Base44 auth)
     const baseUser = await base44.auth.me().catch(() => null);
-    if (!baseUser) {
-      // Allow staff sessions for mobile access
+    const staffInfo = body.staffInfo;
+    
+    if (!baseUser && !staffInfo?.staff_id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
     // Extract effective role with normalization
+    const user = baseUser || { role: staffInfo?.role };
     const candidates = [
-      baseUser?.role,
-      baseUser?.roleName,
-      baseUser?.user_metadata?.role,
-      baseUser?.app_metadata?.role
+      user?.role,
+      user?.roleName,
+      user?.user_metadata?.role,
+      user?.app_metadata?.role
     ].filter(v => v !== null && v !== undefined && v !== '');
     const userRole = String(candidates[0] || '').trim().toLowerCase();
     
     if (!allowedRoles.includes(userRole)) {
-      console.log(`[RBAC-BLOCK] ${baseUser.email} role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
-      return Response.json({ error: 'Forbidden', userRole, allowedRoles, email: baseUser.email }, { status: 403 });
+      console.log(`[RBAC-BLOCK] role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
+      return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
