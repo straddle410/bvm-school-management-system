@@ -53,12 +53,6 @@ function toCsvRow(r) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Get staff info from request headers (sent from frontend)
-    const staffToken = req.headers.get('x-staff-token');
-    if (!staffToken) {
-      return Response.json({ error: 'Unauthorized: No staff token' }, { status: 401 });
-    }
 
     const body = await req.json().catch(() => ({}));
     const {
