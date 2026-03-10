@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { getStaffSession } from '@/components/useStaffSession';
 
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 export default function PaymentModal({ invoice, onClose, onSuccess }) {
-  // Get staff info from localStorage
-  const getStaffInfo = () => {
-    try {
-      const staffRaw = localStorage.getItem('staff_session');
-      return staffRaw ? JSON.parse(staffRaw) : { email: 'unknown', role: 'accountant' };
-    } catch {
-      return { email: 'unknown', role: 'accountant' };
-    }
-  };
+  const [staffInfo, setStaffInfo] = useState(null);
+
+  useEffect(() => {
+    setStaffInfo(getStaffSession());
+  }, []);
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
 
   const [form, setForm] = useState({
