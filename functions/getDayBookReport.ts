@@ -54,15 +54,31 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const staffInfo = body.staffInfo;
+    let baseUser = null;
     
     // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
     if (!staffInfo?.staff_id) {
       const base44 = createClientFromRequest(req);
-      const baseUser = await base44.auth.me().catch(() => null);
+      baseUser = await base44.auth.me().catch(() => null);
       if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
+
+    const allowedRoles = ['admin', 'principal', 'accountant'];
+    const user = staffInfo || baseUser;
+    const candidates = [
+      user?.role,
+      user?.roleName,
+      user?.user_metadata?.role,
+      user?.app_metadata?.role
+    ].filter(v => v !== null && v !== undefined && v !== '');
+    const userRole = String(candidates[0] || '').trim().toLowerCase();
+    
+    if (!allowedRoles.includes(userRole)) {
+      return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
+    }
+
     const {
       dateFrom,
       dateTo,
@@ -91,6 +107,8 @@ Deno.serve(async (req) => {
     const modeFilter = filterMode
       ? (Array.isArray(filterMode) ? filterMode : [filterMode]).map(m => m.toUpperCase())
       : null;
+
+    const base44 = createClientFromRequest(req);
 
     // ── Fetch payments in date range ──────────────────────────────────────
     let payments = await base44.asServiceRole.entities.FeePayment.filter(
