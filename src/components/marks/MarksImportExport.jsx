@@ -13,51 +13,31 @@ export default function MarksImportExport({
   const fileInputRef = useRef(null);
   const [isImporting, setIsImporting] = useState(false);
 
-  const handleExportExcel = async () => {
+  const handleExportExcel = () => {
     if (students.length === 0) {
       toast.error('No students to export');
       return;
     }
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Marks');
-
     const headers = ['Student ID', 'Roll No', 'Name', ...subjects];
-    worksheet.addRow(headers);
+    const rows = students.map(student => [
+      student.student_id || student.id,
+      student.roll_no || '',
+      student.name,
+      ...subjects.map(subject =>
+        marksData[student.student_id || student.id]?.[subject]?.marks_obtained ?? ''
+      )
+    ]);
 
-    // Style header row
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
-    headerRow.alignment = { horizontal: 'center', vertical: 'center' };
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(v => `"${v}"`).join(','))
+      .join('\n');
 
-    // Add data rows
-    students.forEach(student => {
-      const row = [
-        student.student_id || student.id,
-        student.roll_no || '',
-        student.name,
-        ...subjects.map(subject => 
-          marksData[student.student_id || student.id]?.[subject]?.marks_obtained || ''
-        )
-      ];
-      worksheet.addRow(row);
-    });
-
-    // Set column widths evenly
-    const colWidth = 15;
-    worksheet.columns.forEach(col => {
-      col.width = colWidth;
-      col.alignment = { horizontal: 'center', vertical: 'center' };
-    });
-
-    // Generate buffer and download
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.download = `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
