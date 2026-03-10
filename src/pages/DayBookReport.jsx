@@ -265,7 +265,7 @@ export default function DayBookReport() {
           {/* Filters */}
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
                   <Label className="text-xs text-slate-500 mb-1 block">From Date</Label>
                   <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-9 text-sm" />
@@ -291,6 +291,32 @@ export default function DayBookReport() {
                     <Search className="h-4 w-4 mr-1" /> Apply
                   </Button>
                 </div>
+              </div>
+
+              {/* Quick Range Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-slate-500 font-medium self-center">Quick range:</span>
+                {[
+                  { label: 'Today', key: 'today' },
+                  { label: 'Yesterday', key: 'yesterday' },
+                  { label: 'This Week', key: 'thisWeek' },
+                  { label: 'Last Week', key: 'lastWeek' },
+                  { label: 'This Month', key: 'thisMonth' },
+                  { label: 'Last Month', key: 'lastMonth' },
+                  { label: 'Last 30 Days', key: 'last30' }
+                ].map(({ label, key }) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      const range = getDateRange(key);
+                      setDateFrom(range.from);
+                      setDateTo(range.to);
+                    }}
+                    className="px-2.5 py-1 text-xs rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-600 font-medium transition-colors"
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
 
               {/* Mode chips + toggles */}
