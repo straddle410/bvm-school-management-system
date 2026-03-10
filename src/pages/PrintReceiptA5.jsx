@@ -216,8 +216,8 @@ export default function PrintReceiptA5() {
         }
 
         .logo {
-          width: 45px;
-          height: 45px;
+          width: 50px;
+          height: 50px;
           border-radius: 50%;
           object-fit: cover;
           flex-shrink: 0;
@@ -225,20 +225,20 @@ export default function PrintReceiptA5() {
         }
 
         .school-name {
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 900;
-          margin: 0 0 0.2mm 0;
+          margin: 0 0 0.3mm 0;
           color: #1a237e;
           letter-spacing: 0.2px;
-          line-height: 1;
+          line-height: 1.1;
         }
 
         .school-info {
-          font-size: 10px;
+          font-size: 11px;
           color: #555;
           margin: 0;
           font-weight: 500;
-          line-height: 1;
+          line-height: 1.1;
         }
 
         .receipt-title {
