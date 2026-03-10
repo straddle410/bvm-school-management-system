@@ -268,7 +268,7 @@ export default function PrintReceiptA5() {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 1.5mm 1mm;
-          font-size: 11px;
+          font-size: 12px;
           margin-bottom: 1.5mm;
           padding: 1mm 0;
           border-top: 1px solid #e0e0e0;
