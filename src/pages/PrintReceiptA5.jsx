@@ -318,10 +318,10 @@ export default function PrintReceiptA5() {
 
         .amount-box {
           font-weight: 900;
-          font-size: 12px;
+          font-size: 13px;
           color: #1a237e;
           text-align: center;
-          padding: 1mm 0.8mm;
+          padding: 1.2mm 0.9mm;
           margin: 0.6mm 0;
           border: 2px solid #1a237e;
           background: #f3f7ff;
@@ -331,14 +331,14 @@ export default function PrintReceiptA5() {
         .summary {
           width: 100%;
           border-collapse: collapse;
-          font-size: 11px;
-          margin: 0.8mm 0;
+          font-size: 12px;
+          margin: 0.7mm 0;
           border: 1px solid #d0d0d0;
         }
 
         .summary td {
           border-bottom: 1px solid #e0e0e0;
-          padding: 0.5mm 1mm;
+          padding: 0.6mm 1.2mm;
         }
 
         .summary td:first-child {
