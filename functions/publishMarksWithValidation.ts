@@ -26,15 +26,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Required: examType, className, academicYear' }, { status: 400 });
     }
 
-    // Fetch only the specific marks being published (by section + class + exam)
-    const allMarks = await base44.asServiceRole.entities.Marks.filter({
-      class_name: className,
-      section: section || undefined,
-      exam_type: examType,
-      academic_year: academicYear
-    });
-
-    const marksToPublish = allMarks.filter(m => marksIds.includes(m.id));
+    // Fetch only the specific marks by ID (bypass filter since exam_type is ID, not name)
+    const marksToPublish = await Promise.all(
+      marksIds.map(id => base44.asServiceRole.entities.Marks.get(id))
+    ).then(results => results.filter(m => m !== null));
 
     if (marksToPublish.length === 0) {
       return Response.json({ error: 'No marks found matching the provided IDs' }, { status: 404 });
