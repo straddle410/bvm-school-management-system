@@ -25,6 +25,7 @@ export default function Fees() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('ledger');
   const [showTransportModal, setShowTransportModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => { setUser(getStaffSession()); }, []);
 
