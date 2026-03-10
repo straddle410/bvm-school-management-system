@@ -43,11 +43,20 @@ export default function StudentNotices() {
           status: 'Published'
         }, '-created_date', 500);
         
-        // Filter notices that target this student's class or all classes
+        // Filter notices that target this student's class or all
+        console.log('[NOTICES] Found:', allNotices.length, 'Session class:', session.class_name);
         return (allNotices || []).filter(notice => {
-          if (notice.target_audience !== 'Students') return false;
+          // Include if targeting all audiences or students
+          const isForStudent = notice.target_audience === 'All' || notice.target_audience === 'Students';
+          if (!isForStudent) return false;
+          
+          // If no specific classes targeted, show to all
           if (!notice.target_classes || notice.target_classes.length === 0) return true;
-          return notice.target_classes.includes(session.class_name);
+          
+          // Otherwise, check if student's class is in target_classes
+          const isInClass = notice.target_classes.includes(session.class_name);
+          console.log('[NOTICE] Title:', notice.title, 'Classes:', notice.target_classes, 'Match:', isInClass);
+          return isInClass;
         });
       } catch {
         return [];
