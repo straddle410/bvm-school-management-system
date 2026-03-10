@@ -118,26 +118,31 @@ Deno.serve(async (req) => {
     });
 
     // Publish
-    await Promise.all(marksIds.map(id =>
+    console.log('[publishMarksWithValidation] All validations passed. Publishing now...');
+    const updateResults = await Promise.all(marksIds.map(id =>
       base44.asServiceRole.entities.Marks.update(id, {
         status: 'Published',
         verified_by: user.email,
         approved_by: user.email
       })
     ));
+    console.log('[publishMarksWithValidation] Update completed for', updateResults.length, 'marks');
 
-    return Response.json({
+    const response = {
       success: true,
       message: `Published ${marksIds.length} marks for ${className}${section ? ' ' + section : ''} (${examType}, ${academicYear})`,
       records_published: marksIds.length,
       status_transition: `${previousStatus} → Published`,
       published_by: user.email,
       timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Marks publish error:', error);
+    };
+    console.log('[publishMarksWithValidation] SUCCESS: Marks published');
+    return Response.json(response);
+    } catch (error) {
+    console.error('[publishMarksWithValidation] CATCH block error:', error.message);
+    console.error('[publishMarksWithValidation] Error stack:', error.stack);
     return Response.json({ error: error.message || 'Failed to publish marks' }, { status: 500 });
-  }
+    }
 });
 
 // Marks publish endpoint deployed
