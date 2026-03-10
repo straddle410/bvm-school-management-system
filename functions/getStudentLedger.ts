@@ -19,12 +19,22 @@ const ACTIVE_STATUSES = new Set(['', null, undefined, 'POSTED', 'Active', 'ACTIV
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
 
     // ── RBAC: Only Admin/Principal/Accountant can access ──
-    if (!user) {
+    const baseUser = await base44.auth.me().catch(() => null);
+    let body = {};
+    try {
+      body = await req.json().catch(() => ({}));
+    } catch {}
+    
+    const staffInfo = body.staffInfo;
+    
+    if (!baseUser && !staffInfo?.staff_id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Use base44 user or staff info
+    const user = baseUser || { role: staffInfo?.role };
     
     // Extract effective role with normalization
     const candidates = [
@@ -37,10 +47,10 @@ Deno.serve(async (req) => {
     const allowedRoles = ['admin', 'principal', 'accountant'];
     
     if (!allowedRoles.includes(userRole)) {
-      console.log(`[RBAC-BLOCK] ${user.email} role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
-      return Response.json({ error: 'Forbidden', userRole, allowedRoles, email: user.email }, { status: 403 });
+      console.log(`[RBAC-BLOCK] role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
+      return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
-    console.log(`[RBAC-ALLOW] ${user.email} role="${userRole}"`);
+    console.log(`[RBAC-ALLOW] role="${userRole}"`);
 
     const body = await req.json().catch(() => ({}));
     const {
