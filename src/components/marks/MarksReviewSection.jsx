@@ -125,14 +125,15 @@ export default function MarksReviewSection({
                       Export to Excel
                     </Button>
                     <Button
-                      onClick={() => onPublish(allMarkIds)}
-                      disabled={publishPending}
-                      className="bg-green-600 hover:bg-green-700 gap-2"
-                      size="sm"
-                    >
-                      <Check className="h-4 w-4" />
-                      {publishPending ? 'Publishing...' : 'Publish Results'}
-                    </Button>
+                       onClick={() => onPublish(allMarkIds)}
+                       disabled={publishPending || !isSubmitted}
+                       className="bg-green-600 hover:bg-green-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                       size="sm"
+                       title={!isSubmitted ? 'Marks must be submitted before publishing' : ''}
+                     >
+                       <Check className="h-4 w-4" />
+                       {publishPending ? 'Publishing...' : 'Publish Results'}
+                     </Button>
                   </>
                 )}
               </div>
