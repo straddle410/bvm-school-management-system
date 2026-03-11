@@ -297,7 +297,7 @@ export default function Notices() {
             <div className="space-y-3">
               {pinned.map(notice => (
                 <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm}
-                  isUnread={!!unreadNotifMap[notice.id]} onRead={() => markNoticeRead(notice.id)} />
+                  isUnread={!!unreadNotifMap[notice.id]} onRead={() => markNoticeRead(notice.id)} canApproveNotices={canApproveNotices} queryClient={queryClient} />
               ))}
             </div>
           </div>
@@ -307,7 +307,7 @@ export default function Notices() {
         <div className="space-y-3">
           {regular.map(notice => (
             <NoticeCard key={notice.id} notice={notice} isAdmin={isAdmin} user={user} onPublish={publishMutation.mutate} onDelete={deleteMutation.mutate} onEdit={openEditForm}
-              isUnread={!!unreadNotifMap[notice.id]} onRead={() => markNoticeRead(notice.id)} />
+              isUnread={!!unreadNotifMap[notice.id]} onRead={() => markNoticeRead(notice.id)} canApproveNotices={canApproveNotices} queryClient={queryClient} />
           ))}
         </div>
 
@@ -473,7 +473,7 @@ export default function Notices() {
   );
 }
 
-function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnread, onRead, onSubmit, onReject }) {
+function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnread, onRead, onSubmit, onReject, canApproveNotices, queryClient }) {
   const [expanded, setExpanded] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
@@ -481,7 +481,9 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
   const typeColor = TYPE_COLORS[notice.notice_type] || 'bg-slate-100 text-slate-700';
   const isCreator = user && (notice.created_by_name === (user.full_name || user.name) || notice.created_by_name === user.email);
   const canEdit = (isCreator && (notice.status === 'Draft' || notice.status === 'Rejected')) || isAdmin;
-  const canSubmit = isCreator && (notice.status === 'Draft' || notice.status === 'Rejected') && !isAdmin;
+  // Approvers can publish directly; others must submit for approval
+  const canSubmit = isCreator && (notice.status === 'Draft' || notice.status === 'Rejected') && !isAdmin && !canApproveNotices;
+  const canPublishDirectly = (isCreator || isAdmin) && (notice.status === 'Draft' || notice.status === 'Rejected') && (isAdmin || canApproveNotices);
 
   const handleExpand = () => {
     setExpanded(true);
@@ -553,6 +555,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
                     const res = await base44.functions.invoke('submitNoticeForApproval', { noticeId: notice.id });
                     if (res.status === 200) {
                       toast.success('Notice submitted for approval');
+                      queryClient.invalidateQueries({ queryKey: ['notices'] });
                       onSubmit?.(notice.id);
                     } else {
                       toast.error(res.data?.error || 'Failed to submit');
@@ -566,15 +569,44 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
                 {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
               </Button>
             )}
-            {isAdmin && notice.status !== 'Published' && (
-              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" onClick={async () => {
-                // Ensure target_audience is set before publishing
-                const updateData = { status: 'Published' };
-                if (!notice.target_audience) updateData.target_audience = 'All';
-                await base44.entities.Notice.update(notice.id, updateData);
-                onPublish(notice.id);
-              }}>
-                Publish
+            {canPublishDirectly && notice.status !== 'Published' && (
+              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" disabled={isSubmitting}
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    const updateData = { status: 'Published' };
+                    if (!notice.target_audience) updateData.target_audience = 'All';
+                    await base44.entities.Notice.update(notice.id, updateData);
+                    toast.success('Notice published');
+                    queryClient.invalidateQueries({ queryKey: ['notices'] });
+                    onPublish(notice.id);
+                  } catch (e) {
+                    toast.error('Error publishing notice');
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}>
+                {isSubmitting ? 'Publishing...' : 'Publish'}
+              </Button>
+            )}
+            {isAdmin && notice.status === 'PendingApproval' && (
+              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs" disabled={isSubmitting}
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    const updateData = { status: 'Published' };
+                    if (!notice.target_audience) updateData.target_audience = 'All';
+                    await base44.entities.Notice.update(notice.id, updateData);
+                    toast.success('Notice published');
+                    queryClient.invalidateQueries({ queryKey: ['notices'] });
+                    onPublish(notice.id);
+                  } catch (e) {
+                    toast.error('Error publishing notice');
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}>
+                {isSubmitting ? 'Publishing...' : 'Approve & Publish'}
               </Button>
             )}
             {(isAdmin || canEdit) && (
