@@ -438,7 +438,7 @@ export const PAGE_PERMISSION_MAP = {
   Dashboard:           { staffOnly: true },
   Students:            { staffOnly: true },
   Reports:             { staffOnly: true },
-  ReportsManagement:   { staffOnly: true },
+  ReportsManagement:   { adminOnly: true },
   Approvals:           { staffOnly: true },
   Calendar:            { staffOnly: true },
   More:                { staffOnly: true },
