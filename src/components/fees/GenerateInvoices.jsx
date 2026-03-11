@@ -21,7 +21,7 @@ export default function GenerateInvoices({ academicYear }) {
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', selectedClass, academicYear],
-    queryFn: () => base44.entities.Student.filter({ class_name: selectedClass, academic_year: academicYear, status: 'Published' }),
+    queryFn: () => base44.entities.Student.filter({ class_name: selectedClass, academic_year: academicYear, status: 'Published', is_active: true }),
     enabled: !!selectedClass && !!academicYear
   });
 
