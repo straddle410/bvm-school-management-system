@@ -12,6 +12,7 @@ import {
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
+import { clearSession } from '@/components/sessionHelper';
 
 function getStudentSession() {
   try {
@@ -100,8 +101,8 @@ export default function StudentDashboard() {
   const currentYear = currentYearData?.year || null;
 
   const handleLogout = () => {
-    localStorage.removeItem('student_session');
-    window.location.href = createPageUrl('StudentLogin');
+    clearSession('student_session');
+    window.location.replace(createPageUrl('StudentLogin'));
   };
 
   const { data: unreadCounts = {}, refetch: refetchUnread } = useQuery({
