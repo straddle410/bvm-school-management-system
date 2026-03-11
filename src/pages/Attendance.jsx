@@ -99,10 +99,12 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
   const lockedAtTime = existingAttendance[0]?.locked_at ? new Date(existingAttendance[0].locked_at).toLocaleString() : null;
 
+  // Phase 5: Staff account fetch (kept for backward compat, but use effective_permissions above)
   const { data: staffAccount } = useQuery({
     queryKey: ['staff-account', user?.email],
     queryFn: () => base44.entities.StaffAccount.filter({ email: user?.email }),
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    staleTime: 10 * 60 * 1000  // Cache for 10 mins
   });
 
   const { data: holidays = [] } = useQuery({
@@ -737,35 +739,31 @@ function AttendanceSummaryTab({ academicYear, user }) {
 
 // ─── Holidays Tab ─────────────────────────────────────────────────────────────
 function HolidaysTab({ academicYear, user, isAdmin }) {
-  const [showForm, setShowForm] = useState(false);
-  const [editingHoliday, setEditingHoliday] = useState(null);
-  const [formData, setFormData] = useState({ date: '', title: '', reason: '' });
-  const queryClient = useQueryClient();
+   const [showForm, setShowForm] = useState(false);
+   const [editingHoliday, setEditingHoliday] = useState(null);
+   const [formData, setFormData] = useState({ date: '', title: '', reason: '' });
+   const queryClient = useQueryClient();
 
-  const { data: academicYearData = [] } = useQuery({
-    queryKey: ['academic-year', academicYear],
-    queryFn: () => base44.entities.AcademicYear.filter({ year: academicYear }),
-    enabled: !!academicYear
-  });
+   // Phase 5: Permission check using can() helper
+   const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
+   const canManage = can(userWithPerms, 'attendance_manage_holidays');
 
-  const yearLocked = academicYearData.length > 0 && (
-    academicYearData[0].is_locked === true ||
-    academicYearData[0].status === 'Closed' ||
-    academicYearData[0].status === 'Archived'
-  );
+   const { data: academicYearData = [] } = useQuery({
+     queryKey: ['academic-year', academicYear],
+     queryFn: () => base44.entities.AcademicYear.filter({ year: academicYear }),
+     enabled: !!academicYear
+   });
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays', academicYear],
-    queryFn: () => base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' })
-  });
+   const yearLocked = academicYearData.length > 0 && (
+     academicYearData[0].is_locked === true ||
+     academicYearData[0].status === 'Closed' ||
+     academicYearData[0].status === 'Archived'
+   );
 
-  const { data: staffAccount } = useQuery({
-    queryKey: ['staff-account', user?.email],
-    queryFn: () => base44.entities.StaffAccount.filter({ email: user?.email }),
-    enabled: !!user?.email
-  });
-
-  const canManage = staffAccount?.[0]?.permissions?.manage_holidays || isAdmin;
+   const { data: holidays = [] } = useQuery({
+     queryKey: ['holidays', academicYear],
+     queryFn: () => base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' })
+   });
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Holiday.create({ ...data, marked_by: user?.email, academic_year: academicYear, status: 'Active' }),
