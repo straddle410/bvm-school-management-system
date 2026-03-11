@@ -85,7 +85,7 @@ function ClassCollectionContent() {
   const rows = data?.rows || [];
 
   return (
-    <div className="p-4 space-y-5 max-w-5xl mx-auto">
+    <div className="p-4 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
