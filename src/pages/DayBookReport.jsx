@@ -43,15 +43,14 @@ const getDateRange = (type) => {
     case 'yesterday':
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      const yDate = yesterday.toISOString().split('T')[0];
-      return { from: yDate, to: yDate };
+      return { from: localDate(yesterday), to: localDate(yesterday) };
     case 'thisWeek': {
       // Monday to today (week starts Monday)
-      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+      const dayOfWeek = now.getDay();
       const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       const weekStart = new Date(now);
       weekStart.setDate(now.getDate() - daysToMonday);
-      return { from: weekStart.toISOString().split('T')[0], to: today() };
+      return { from: localDate(weekStart), to: today() };
     }
     case 'lastWeek': {
       // Last Monday to last Sunday (full week)
@@ -63,21 +62,21 @@ const getDateRange = (type) => {
       lastMonday.setDate(thisMonday.getDate() - 7);
       const lastSunday = new Date(lastMonday);
       lastSunday.setDate(lastMonday.getDate() + 6);
-      return { from: lastMonday.toISOString().split('T')[0], to: lastSunday.toISOString().split('T')[0] };
+      return { from: localDate(lastMonday), to: localDate(lastSunday) };
     }
     case 'thisMonth':
       // 1st to today
       start.setDate(1);
-      return { from: start.toISOString().split('T')[0], to: today() };
+      return { from: localDate(start), to: today() };
     case 'lastMonth': {
       // 1st of last month to last day of last month
       const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-      return { from: lastMonthStart.toISOString().split('T')[0], to: lastMonthEnd.toISOString().split('T')[0] };
+      return { from: localDate(lastMonthStart), to: localDate(lastMonthEnd) };
     }
     case 'last30':
       start.setDate(now.getDate() - 29);
-      return { from: start.toISOString().split('T')[0], to: today() };
+      return { from: localDate(start), to: today() };
     default:
       return { from: defaultDateFrom(), to: today() };
   }
