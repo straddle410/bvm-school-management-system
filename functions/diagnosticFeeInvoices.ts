@@ -3,11 +3,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const role = (user.role || '').toLowerCase();
-    if (role !== 'admin' && role !== 'principal') {
+    const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
+    const userRole = (staffSession.role || '').toLowerCase();
+    if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
