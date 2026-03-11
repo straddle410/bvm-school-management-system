@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       fee_head_name: scope === 'FEE_HEAD' ? (fee_head_name || '') : '',
       notes: notes || '',
       status: 'Active',
-      created_by: user.email
+      created_by: user?.email || user?.username || 'system'
     };
 
     // Upsert: find existing active discount for this student+AY
