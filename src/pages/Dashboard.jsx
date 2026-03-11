@@ -5,13 +5,22 @@ import { base44 } from '@/api/base44Client';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { getEffectivePermissions } from '@/components/permissionHelper';
+import { DASHBOARD_TILES } from '@/components/permissionRegistry';
 import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser,
 } from 'lucide-react';
 
-// Read staff session from localStorage — this is the source of truth for role
+// ── Icon name → lucide component map ─────────────────────────────────────────
+// Dashboard tiles store iconName as a string; resolved here at render time.
+const ICON_MAP = {
+  Users, CheckSquare, BookOpen, BookMarked, Calendar, NotebookPen,
+  FileText, Bell, Image, ListChecks, MessageSquare, Wallet, BarChart3,
+  TrendingUp, Receipt, AlertCircle, DollarSign, BookUser, Settings, ClipboardCheck,
+};
+
+// ── Session helpers ───────────────────────────────────────────────────────────
 function getStaffSession() {
   try {
     const raw = localStorage.getItem('staff_session');
@@ -20,19 +29,99 @@ function getStaffSession() {
   return null;
 }
 
-// Normalise role string
 function normaliseRole(r) {
   return (r || '').trim().toLowerCase();
 }
 
+// ── Tile filtering helpers ────────────────────────────────────────────────────
+
+/**
+ * Extended legacy key fallback for tile visibility.
+ * Handles old pre-Phase-2 session permission keys (e.g. `attendance: true`)
+ * mapping to canonical DASHBOARD_TILES requiredPerm keys.
+ * Only invoked when the direct canonical key check fails.
+ */
+const TILE_LEGACY_MAP = {
+  attendance_view:              ['attendance', 'attendance_mark', 'attendance_view_module'],
+  marks_view:                   ['marks', 'marks_enter', 'marks_view_module'],
+  exams_view:                   ['marks_enter', 'marks_view_module'],
+  notices_view:                 ['post_notices', 'notices_create', 'notices_view_module'],
+  gallery_view:                 ['gallery', 'gallery_upload', 'gallery_view_module'],
+  quiz_view:                    ['quiz', 'quiz_create', 'quiz_create_edit', 'quiz_view_module'],
+  homework_view:                ['homework_manage'],
+  diary_view:                   ['diary_manage'],
+  timetable_view:               ['timetable_manage'],
+  admissions_view:              ['admissions_view_module', 'student_admission_permission'],
+  fees_view:                    ['fees_view_module'],
+  fees_ledger_view:             ['fees_view_ledger'],
+  fee_reports_collection:       ['fee_reports_collection', 'fee_reports_view'],
+  fee_reports_outstanding:      ['fee_reports_outstanding', 'fee_reports_view'],
+  fee_reports_ledger:           ['fee_reports_student_ledger', 'fees_view_ledger', 'fee_reports_view'],
+  fee_reports_parent_statement: ['fees_view_parent_statement'],
+  messages_view:                ['messages_send'],
+};
+
+/**
+ * Determines whether a single tile should be visible.
+ *
+ * Priority:
+ *   1. adminOnly tiles → only admins
+ *   2. admin role → sees everything
+ *   3. staffOnly tiles → any authenticated staff
+ *   4. canonical permission key check
+ *   5. legacy key fallback (for pre-Phase-2 sessions)
+ */
+function canSeeTile(tile, isAdmin, effectivePermissions) {
+  if (tile.adminOnly) return isAdmin;
+  if (isAdmin) return true;
+  if (tile.staffOnly) return true;
+  if (!tile.requiredPerm) return false;
+
+  // Direct canonical key check (Phase 2+ sessions)
+  if (effectivePermissions[tile.requiredPerm] === true) return true;
+
+  // Legacy key fallback (pre-Phase-2 sessions or server-unreachable fallback)
+  const altKeys = TILE_LEGACY_MAP[tile.requiredPerm] || [];
+  return altKeys.some(k => effectivePermissions[k] === true);
+}
+
+/** Returns all DASHBOARD_TILES visible to the current user. */
+function getVisibleTiles(isAdmin, effectivePermissions) {
+  return DASHBOARD_TILES.filter(tile => canSeeTile(tile, isAdmin, effectivePermissions));
+}
+
+/** Groups a flat tile array by section, preserving DASHBOARD_TILES order. */
+function groupBySection(tiles) {
+  const order = [];
+  const sectionMap = {};
+  tiles.forEach(tile => {
+    if (!sectionMap[tile.section]) {
+      sectionMap[tile.section] = [];
+      order.push(tile.section);
+    }
+    sectionMap[tile.section].push(tile);
+  });
+  return order.map(s => ({ title: s, tiles: sectionMap[s] }));
+}
+
+/** Converts a DASHBOARD_TILES entry to ActionCard props. */
+function tileToAction(tile) {
+  return {
+    label: tile.label,
+    icon: ICON_MAP[tile.iconName] || FileText,
+    page: tile.page,
+    gradient: tile.gradient,
+  };
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { academicYear } = useAcademicYear();
   const [staffRole, setStaffRole] = useState('');
   const [staffName, setStaffName] = useState('');
   const [roleSource, setRoleSource] = useState('');
   const [permissionsCount, setPermissionsCount] = useState(0);
-  // effective_permissions: populated from getMyStaffProfile (Phase 2+).
-  // Initialized from session so first render has permissions before the profile call resolves.
+  // Initialised from session so first render has permissions before profile call resolves
   const [effectivePermissions, setEffectivePermissions] = useState(() => {
     try {
       const raw = localStorage.getItem('staff_session');
@@ -51,9 +140,7 @@ export default function Dashboard() {
 
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
-  useEffect(() => {
-    loadDashboard();
-  }, [academicYear]);
+  useEffect(() => { loadDashboard(); }, [academicYear]);
 
   const loadDashboard = async () => {
     try {
@@ -62,7 +149,6 @@ export default function Dashboard() {
       let resolvedRole = '';
 
       if (session) {
-        // Always re-verify role from StaffAccount via signed session token
         const token = session.staff_session_token;
         if (token) {
           try {
@@ -79,13 +165,11 @@ export default function Dashboard() {
               setPermissionsCount(Object.values(resolvedPerms).filter(Boolean).length);
               setRoleSource('staff_session_token (verified)');
 
-              // Patch stale session role if needed
               if (normaliseRole(session.role) !== resolvedRole) {
                 const updated = { ...session, role: resolvedRole };
                 localStorage.setItem('staff_session', JSON.stringify(updated));
               }
             } else {
-              // Server returned error — fall back to session
               resolvedRole = normaliseRole(session.role);
               setStaffRole(resolvedRole);
               setStaffName(session.name || '');
@@ -93,7 +177,6 @@ export default function Dashboard() {
               setRoleSource('staff_session (localStorage fallback)');
             }
           } catch {
-            // Network error — use session as fallback
             resolvedRole = normaliseRole(session.role);
             setStaffRole(resolvedRole);
             setStaffName(session.name || '');
@@ -101,7 +184,6 @@ export default function Dashboard() {
             setRoleSource('staff_session (fallback — server unreachable)');
           }
         } else {
-          // No token in session — use session data directly
           resolvedRole = normaliseRole(session.role);
           setStaffRole(resolvedRole);
           setStaffName(session.name || '');
@@ -109,7 +191,6 @@ export default function Dashboard() {
           setRoleSource('staff_session (no token — localStorage only)');
         }
       } else {
-        // No staff session — try base44.auth.me() (for admin users who log in via platform)
         const currentUser = await base44.auth.me().catch(() => null);
         if (currentUser) {
           resolvedRole = normaliseRole(currentUser.role);
@@ -119,7 +200,6 @@ export default function Dashboard() {
         }
       }
 
-      // Load content for non-accountant roles
       if (resolvedRole !== 'accountant') {
         try {
           const diaries = await base44.entities.Diary.list('-created_date', 3);
@@ -137,6 +217,7 @@ export default function Dashboard() {
     }
   };
 
+  // ── Shared sub-components ──────────────────────────────────────────────────
   const GradientIcon = ({ gradient, icon: Icon }) => (
     <div className={`bg-gradient-to-br ${gradient} p-3 rounded-2xl text-white`}>
       <Icon className="h-6 w-6" />
@@ -152,6 +233,20 @@ export default function Dashboard() {
     </Link>
   );
 
+  const EmptyTilesMessage = () => (
+    <div className="bg-white rounded-2xl p-8 shadow-sm flex flex-col items-center text-center gap-3">
+      <AlertCircle className="h-8 w-8 text-gray-300" />
+      <p className="font-semibold text-gray-500">No modules assigned.</p>
+      <p className="text-sm text-gray-400">Contact your admin to get access to modules.</p>
+    </div>
+  );
+
+  const TileGrid = ({ tiles }) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      {tiles.map(tile => <ActionCard key={tile.id} {...tileToAction(tile)} />)}
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -160,29 +255,12 @@ export default function Dashboard() {
     );
   }
 
-  const feeActions = [
-    { label: 'Fee Collection',    icon: Wallet,      page: 'Fees',                  gradient: 'from-green-500 to-emerald-600' },
-    { label: 'Collection Report', icon: BarChart3,    page: 'CollectionReport',       gradient: 'from-blue-500 to-blue-700' },
-    { label: 'Outstanding Dues',  icon: TrendingUp,   page: 'OutstandingReport',      gradient: 'from-red-500 to-rose-600' },
-    { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport',    gradient: 'from-indigo-500 to-indigo-700' },
-    { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',          gradient: 'from-violet-500 to-purple-600' },
-    { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',     gradient: 'from-teal-500 to-cyan-600' },
-    { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',       gradient: 'from-orange-500 to-amber-600' },
-    { label: 'Parent Statement',  icon: DollarSign,   page: 'ParentStatement',        gradient: 'from-pink-500 to-rose-500' },
-  ];
-
-  const adminFeeActions = [
-    { label: 'Fee Collection',    icon: Wallet,       page: 'Fees',                gradient: 'from-emerald-400 to-emerald-600' },
-    { label: 'Collection Rpt',    icon: BarChart3,    page: 'CollectionReport',    gradient: 'from-blue-400 to-blue-600' },
-    { label: 'Outstanding',       icon: TrendingUp,   page: 'OutstandingReport',   gradient: 'from-red-400 to-red-600' },
-    { label: 'Ledger',            icon: BookOpen,     page: 'StudentLedgerReport', gradient: 'from-violet-400 to-violet-600' },
-    { label: 'Day Book',          icon: FileText,     page: 'DayBookReport',       gradient: 'from-slate-400 to-slate-600' },
-    { label: 'Daily Closing',     icon: Receipt,      page: 'DailyClosingReport',  gradient: 'from-teal-400 to-teal-600' },
-    { label: 'Defaulters',        icon: AlertCircle,  page: 'DefaultersReport',    gradient: 'from-orange-400 to-orange-600' },
-  ];
+  // Compute once — all tiles visible to this user given role + effectivePermissions
+  const visibleTiles = getVisibleTiles(isAdmin, effectivePermissions);
 
   // ─── ACCOUNTANT DASHBOARD ───────────────────────────────────────────────────
   if (isAccountant) {
+    const feeTiles = visibleTiles.filter(t => t.section === 'Fees & Finance');
 
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-4">
@@ -191,12 +269,9 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Accountant'}</h1>
             <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
-
           <section>
             <h2 className="text-lg font-bold text-gray-700 mb-4">Fees &amp; Accounts</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {feeActions.map(a => <ActionCard key={a.label} {...a} />)}
-            </div>
+            {feeTiles.length > 0 ? <TileGrid tiles={feeTiles} /> : <EmptyTilesMessage />}
           </section>
         </div>
       </div>
@@ -205,17 +280,7 @@ export default function Dashboard() {
 
   // ─── TEACHER DASHBOARD ──────────────────────────────────────────────────────
   if (isTeacher) {
-    const teacherActions = [
-      { label: 'Attendance',  icon: CheckSquare,   page: 'Attendance',          gradient: 'from-blue-400 to-blue-600' },
-      { label: 'Marks Entry', icon: BookOpen,       page: 'Marks',               gradient: 'from-green-400 to-green-600' },
-      { label: 'Homework',    icon: BookMarked,     page: 'Homework',            gradient: 'from-purple-400 to-purple-600' },
-      { label: 'Diary',        icon: NotebookPen,    page: 'Diary',               gradient: 'from-pink-400 to-pink-600' },
-      { label: 'Notices',     icon: Bell,           page: 'Notices',             gradient: 'from-yellow-400 to-yellow-600' },
-      { label: 'Quiz',        icon: ListChecks,     page: 'Quiz',                gradient: 'from-indigo-400 to-indigo-600' },
-      { label: 'Gallery',     icon: Image,          page: 'Gallery',             gradient: 'from-orange-400 to-orange-600' },
-      { label: 'Messages',    icon: MessageSquare,  page: 'Messaging',           gradient: 'from-teal-400 to-teal-600' },
-      { label: 'Timetable',   icon: Calendar,       page: 'TimetableManagement', gradient: 'from-cyan-400 to-cyan-600' },
-    ];
+    const teacherTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
 
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-4">
@@ -227,9 +292,7 @@ export default function Dashboard() {
 
           <section className="mb-8">
             <h2 className="text-lg font-bold text-gray-700 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {teacherActions.map(a => <ActionCard key={a.label} {...a} />)}
-            </div>
+            {teacherTiles.length > 0 ? <TileGrid tiles={teacherTiles} /> : <EmptyTilesMessage />}
           </section>
 
           {recentNotices.length > 0 && (
@@ -253,12 +316,7 @@ export default function Dashboard() {
 
   // ─── EXAM STAFF DASHBOARD ───────────────────────────────────────────────────
   if (isExamStaff) {
-    const examActions = [
-      { label: 'Marks Entry',  icon: BookOpen,    page: 'Marks',               gradient: 'from-green-400 to-green-600' },
-      { label: 'Attendance',   icon: CheckSquare, page: 'Attendance',          gradient: 'from-blue-400 to-blue-600' },
-      { label: 'Exams',        icon: BookMarked,  page: 'ExamManagement',      gradient: 'from-purple-400 to-purple-600' },
-      { label: 'Att. Snapshot', icon: BarChart3,   page: 'Attendance',          gradient: 'from-teal-400 to-teal-600' },
-    ];
+    const examTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
 
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-4">
@@ -269,9 +327,7 @@ export default function Dashboard() {
           </div>
           <section>
             <h2 className="text-lg font-bold text-gray-700 mb-4">Exam &amp; Attendance</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {examActions.map(a => <ActionCard key={a.label} {...a} />)}
-            </div>
+            {examTiles.length > 0 ? <TileGrid tiles={examTiles} /> : <EmptyTilesMessage />}
           </section>
         </div>
       </div>
@@ -280,48 +336,7 @@ export default function Dashboard() {
 
   // ─── ADMIN / PRINCIPAL DASHBOARD ────────────────────────────────────────────
   if (isAdmin) {
-    const adminSections = [
-      {
-        title: 'Academics',
-        actions: [
-          { label: 'Students',     icon: Users,          page: 'Students',            gradient: 'from-blue-400 to-blue-600' },
-          { label: 'Attendance',   icon: CheckSquare,    page: 'Attendance',          gradient: 'from-teal-400 to-teal-600' },
-          { label: 'Marks',        icon: BookOpen,       page: 'Marks',               gradient: 'from-green-400 to-green-600' },
-          { label: 'Exams',        icon: BookMarked,     page: 'ExamManagement',      gradient: 'from-purple-400 to-purple-600' },
-          { label: 'Timetable',    icon: Calendar,       page: 'TimetableManagement', gradient: 'from-cyan-400 to-cyan-600' },
-          { label: 'Homework',     icon: BookMarked,     page: 'Homework',            gradient: 'from-pink-400 to-pink-600' },
-          { label: 'Diary',        icon: NotebookPen,    page: 'Diary',               gradient: 'from-rose-400 to-rose-600' },
-          { label: 'Admissions',   icon: FileText,       page: 'Admissions',          gradient: 'from-amber-400 to-amber-600' },
-        ],
-      },
-      {
-        title: 'Communication',
-        actions: [
-          { label: 'Notices',      icon: Bell,           page: 'Notices',             gradient: 'from-yellow-400 to-yellow-600' },
-          { label: 'Gallery',      icon: Image,          page: 'Gallery',             gradient: 'from-orange-400 to-orange-600' },
-          { label: 'Quiz',         icon: ListChecks,     page: 'Quiz',                gradient: 'from-indigo-400 to-indigo-600' },
-          { label: 'Messages',     icon: MessageSquare,  page: 'Messaging',           gradient: 'from-sky-400 to-sky-600' },
-        ],
-      },
-      {
-        title: 'Fees & Finance',
-        actions: adminFeeActions,
-      },
-      {
-        title: 'Reports & Analytics',
-        actions: [
-          { label: 'Reports',        icon: BarChart3,    page: 'Reports',             gradient: 'from-purple-400 to-purple-600' },
-          { label: 'Att. Snapshot',  icon: ClipboardCheck, page: 'Attendance',        gradient: 'from-teal-400 to-teal-600' },
-        ],
-      },
-      {
-        title: 'Administration',
-        actions: [
-          { label: 'Staff',          icon: BookUser,     page: 'Staff',               gradient: 'from-amber-400 to-amber-600' },
-          { label: 'Settings',       icon: Settings,     page: 'Settings',            gradient: 'from-gray-400 to-gray-600' },
-        ],
-      },
-    ];
+    const adminSections = groupBySection(visibleTiles);
 
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-4">
@@ -351,9 +366,7 @@ export default function Dashboard() {
           {adminSections.map(section => (
             <section key={section.title} className="mb-8">
               <h2 className="text-lg font-bold text-gray-700 mb-4">{section.title}</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {section.actions.map(a => <ActionCard key={a.label} {...a} />)}
-              </div>
+              <TileGrid tiles={section.tiles} />
             </section>
           ))}
 
@@ -376,20 +389,31 @@ export default function Dashboard() {
     );
   }
 
-  // ─── UNKNOWN / GENERIC ROLE ─────────────────────────────────────────────────
+  // ─── GENERIC DASHBOARD (staff, librarian, custom role templates) ─────────────
+  // Role is used only to select this shell. Tiles shown are entirely permission-driven.
+  const genericTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
+  const genericSections = groupBySection(genericTiles);
+
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Staff'}</h1>
+          <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
         </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-amber-500 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-gray-900">Role not recognised: &quot;{staffRole || 'unknown'}&quot;</p>
-            <p className="text-sm text-gray-600 mt-1">Contact your administrator to ensure your role is correctly assigned in StaffAccount.</p>
-          </div>
-        </div>
+
+        {genericTiles.length === 0 ? (
+          <EmptyTilesMessage />
+        ) : (
+          genericSections.map(section => (
+            <section key={section.title} className="mb-8">
+              {genericSections.length > 1 && (
+                <h2 className="text-lg font-bold text-gray-700 mb-4">{section.title}</h2>
+              )}
+              <TileGrid tiles={section.tiles} />
+            </section>
+          ))
+        )}
       </div>
     </div>
   );
