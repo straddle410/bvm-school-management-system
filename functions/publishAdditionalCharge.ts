@@ -3,9 +3,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
+    const userRole = (staffSession.role || '').toLowerCase();
 
-    if (!user || !['admin', 'principal'].includes(user.role?.toLowerCase())) {
+    if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -95,7 +96,7 @@ Deno.serve(async (req) => {
         paid_amount: 0,
         balance: charge.amount,
         status: 'Pending',
-        generated_by: user.email
+        generated_by: staffSession.email || 'system'
       });
       created++;
     }
