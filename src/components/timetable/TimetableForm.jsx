@@ -10,7 +10,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const TIME_SLOTS = [];
 const STATIC_SECTIONS = ['A', 'B', 'C', 'D']; // fallback only
 for (let h = 8; h < 16; h++) {
-  for (let m = 0; m < 60; m += 30) {
+  for (let m = 0; m < 60; m += 5) {
     TIME_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }
 }
