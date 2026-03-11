@@ -99,13 +99,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
   const lockedAtTime = existingAttendance[0]?.locked_at ? new Date(existingAttendance[0].locked_at).toLocaleString() : null;
 
-  // Phase 5: Staff account fetch (kept for backward compat, but use effective_permissions above)
-  const { data: staffAccount } = useQuery({
-    queryKey: ['staff-account', user?.email],
-    queryFn: () => base44.entities.StaffAccount.filter({ email: user?.email }),
-    enabled: !!user?.email,
-    staleTime: 10 * 60 * 1000  // Cache for 10 mins
-  });
+
 
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', workingDate, academicYear],

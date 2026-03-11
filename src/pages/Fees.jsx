@@ -30,17 +30,17 @@ export default function Fees() {
 
   useEffect(() => { setUser(getStaffSession()); }, []);
 
-  // Phase 5: Use permission-based checks with can() helper
+  // Phase 6: Use only effective_permissions
   const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
   const role = (user?.role || '').toLowerCase();
-   const isAdmin = role === 'admin' || role === 'principal';
+  const isAdmin = role === 'admin' || role === 'principal';
 
-   const canVoidReceipt = can(userWithPerms, 'fees_void_receipt');
-   const canViewLedger = can(userWithPerms, 'fees_view') || can(userWithPerms, 'fees_view_ledger');
-   const canViewPayments = can(userWithPerms, 'fees_record_payment') || can(userWithPerms, 'fees_view');
-   const canApplyDiscount = can(userWithPerms, 'fees_apply_discount');
-   const canApplyCharge = can(userWithPerms, 'fees_manage_adhoc_charges') || role === 'accountant';
-   const canManageFamilies = can(userWithPerms, 'fees_manage_families');
+  const canVoidReceipt = can(userWithPerms, 'fees_void_receipt');
+  const canViewLedger = can(userWithPerms, 'fees_view') || can(userWithPerms, 'fees_ledger_view');
+  const canViewPayments = can(userWithPerms, 'fees_record_payment') || can(userWithPerms, 'fees_view');
+  const canApplyDiscount = can(userWithPerms, 'fees_apply_discount');
+  const canApplyCharge = can(userWithPerms, 'fees_manage_adhoc_charges') || role === 'accountant';
+  const canManageFamilies = can(userWithPerms, 'fees_manage_families');
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
   const isArchivedYear = selectedYearObj?.status === 'Archived';

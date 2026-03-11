@@ -257,7 +257,7 @@ export default function Quiz() {
     setQuizForm({ ...quizForm, questions: newQuestions });
   };
 
-  // Phase 5: Use permission-based checks
+  // Phase 6: Use only effective_permissions
   const userWithPerms = user ? { ...user, effective_permissions: getEffectivePermissions(user || {}) } : null;
   const canCreateQuiz = userWithPerms ? can(userWithPerms, 'quiz_create') : false;
   const canPublishQuiz = userWithPerms ? can(userWithPerms, 'quiz_publish') : false;

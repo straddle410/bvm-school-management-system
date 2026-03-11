@@ -65,20 +65,16 @@ export default function Admissions() {
   useEffect(() => {
     base44.auth.me().then(user => {
       if (!user) return;
-      // Phase 5: Use permission-based checks with can() helper
+      // Phase 6: Use only effective_permissions
       const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
       const canReviewAdmissions = can(userWithPerms, 'admissions_review');
 
-      console.log('[Admissions] Auth Check:', { canReviewAdmissions });
-
       if (!canReviewAdmissions) {
-        console.log('[Admissions] Access Denied - Redirecting to Dashboard');
         window.location.replace(createPageUrl('Dashboard'));
         return;
       }
       setUser(user);
     }).catch((err) => {
-      console.error('[Admissions] Auth Error:', err);
       window.location.replace(createPageUrl('Dashboard'));
     });
   }, []);

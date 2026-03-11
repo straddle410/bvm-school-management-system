@@ -40,16 +40,16 @@ export default function Gallery() {
   // Check if student session exists — students can only view (not upload)
   const isStudent = !!localStorage.getItem('student_session');
 
-  // Phase 5: Use permission-based checks
+  // Phase 6: Use only permission-based checks
   const userWithPerms = user ? { ...user, effective_permissions: getEffectivePermissions(user || {}) } : null;
   const canUploadPhotos = userWithPerms ? can(userWithPerms, 'gallery_upload') : false;
   const canApprovePhotos = userWithPerms ? can(userWithPerms, 'gallery_approve') : false;
 
-  const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin' || user?.role === 'principal';
-     // Students can only view; staff can upload based on permissions
-     const canUpload = !isStudent && (isAdmin || canUploadPhotos);
-     const canCreateAlbum = !isStudent && (isAdmin || canUploadPhotos);
-     const needsApproval = !isAdmin;
+  const isAdmin = user?.role === 'admin' || user?.role === 'principal';
+  // Students can only view; staff can upload based on permissions
+  const canUpload = !isStudent && (isAdmin || canUploadPhotos);
+  const canCreateAlbum = !isStudent && (isAdmin || canUploadPhotos);
+  const needsApproval = !isAdmin;
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums', academicYear],

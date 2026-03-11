@@ -361,17 +361,17 @@ export default function Marks() {
     setShowAddSubject(false);
   };
 
-  // Phase 5: Use permission-based checks instead of legacy permissions
+  // Phase 6: Use only effective_permissions
   const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
   const canEnterMarks = can(userWithPerms, 'marks_enter');
   const canPublishMarks = can(userWithPerms, 'marks_publish');
 
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
-   const isSubmitted = currentStatus === 'Submitted';
-   const isPublished = currentStatus === 'Published';
-   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-   const canEdit = (canEnterMarks && (currentStatus === 'Not Entered' || currentStatus === 'Draft')) || (isAdmin && currentStatus === 'Verified');
-   const canSave = !isPublished && canEnterMarks;
+  const isSubmitted = currentStatus === 'Submitted';
+  const isPublished = currentStatus === 'Published';
+  const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
+  const canEdit = (canEnterMarks && (currentStatus === 'Not Entered' || currentStatus === 'Draft')) || (isAdmin && currentStatus === 'Verified');
+  const canSave = !isPublished && canEnterMarks;
 
   const unlockMutation = useMutation({
     mutationFn: async () => {
