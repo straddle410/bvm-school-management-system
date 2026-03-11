@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { getStaffSession } from '@/components/useStaffSession';
 
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
@@ -57,13 +58,14 @@ export default function FeePlanManager({ academicYear }) {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const staffUser = getStaffSession();
       const data = {
         academic_year: academicYear,
         class_name: selectedClass,
         due_date: dueDate,
         fee_items: feeItems,
         total_amount: totalAmount,
-        created_by: (await base44.auth.me()).email
+        created_by: staffUser?.email || 'system'
       };
       if (plan?.id) return base44.entities.FeePlan.update(plan.id, data);
       return base44.entities.FeePlan.create(data);
