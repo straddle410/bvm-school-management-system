@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
                 affects_cash: false,
                 reference_no: creditEntry.reference_no, // same discount instance reference for tracking
                 remarks: `[SIBLING-DISCOUNT-REV:${creditEntry.reference_no}] Family discount credit reversal`,
-                collected_by: user.email,
+                collected_by: user?.email || user?.username || 'system',
                 status: 'Active'
               });
             }
