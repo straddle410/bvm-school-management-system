@@ -3,13 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
+    const user = await base44.auth.me();
     
-    if (!staffSession.id) {
-      return Response.json({ error: 'Unauthorized: No valid session' }, { status: 401 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const userRole = (staffSession.role || '').toLowerCase();
+    const userRole = (user.role || '').toLowerCase();
     if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
