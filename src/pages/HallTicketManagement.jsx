@@ -15,7 +15,7 @@ export default function HallTicketManagement() {
   const { academicYear } = useAcademicYear();
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Hall Ticket Management">
+    <LoginRequired allowedRoles={['admin', 'principal', 'exam_staff']} pageName="Hall Ticket Management">
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <PageHeader
         title="Exam Hall Ticket Management"

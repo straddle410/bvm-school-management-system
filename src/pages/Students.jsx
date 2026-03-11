@@ -567,7 +567,7 @@ export default function Students() {
   const totalArchived = students.filter(s => s.status === 'Passed Out' || s.status === 'Transferred').length;
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff']} pageName="Students">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Students">
       <div className="min-h-screen bg-[#f0f4ff]">
         {/* Compact Header */}
         <div className="bg-white border-b border-slate-100 sticky top-0 z-40 px-4 py-2.5">
