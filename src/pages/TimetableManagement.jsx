@@ -76,14 +76,42 @@ export default function TimetableManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Timetable.create(data),
+    mutationFn: async (data, days) => {
+      // For multi-day creation, create one entry per day
+      if (days && days.length > 1) {
+        const existingEntries = await base44.entities.Timetable.filter({
+          academic_year: data.academic_year,
+          class_name: data.class_name,
+          section: data.section,
+          subject: data.subject,
+          start_time: data.start_time,
+          end_time: data.end_time
+        });
+        
+        // Check for existing entries on any selected day
+        const conflictingDays = days.filter(day =>
+          existingEntries.some(e => e.day === day)
+        );
+        
+        if (conflictingDays.length > 0) {
+          throw new Error(`Duplicate entry exists for ${conflictingDays.join(', ')} on this subject/time slot`);
+        }
+        
+        const promises = days.map(day =>
+          base44.entities.Timetable.create({ ...data, day })
+        );
+        return Promise.all(promises);
+      } else {
+        return base44.entities.Timetable.create(data);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetables'] });
       setShowForm(false);
       setEditingEntry(null);
       toast.success('Timetable entry created successfully');
     },
-    onError: (error) => toast.error('Failed to create entry')
+    onError: (error) => toast.error(error.message || 'Failed to create entry')
   });
 
   const updateMutation = useMutation({
@@ -106,11 +134,11 @@ export default function TimetableManagement() {
     onError: (error) => toast.error('Failed to delete entry')
   });
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = (formData, selectedDays) => {
     if (editingEntry) {
       updateMutation.mutate({ id: editingEntry.id, data: formData });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(formData, selectedDays);
     }
   };
 
