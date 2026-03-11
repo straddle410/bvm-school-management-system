@@ -64,6 +64,7 @@ export default function StaffLogin() {
         designation: response.data.designation,
         role_template_id: response.data.role_template_id,
         permissions: response.data.permissions || {},
+        effective_permissions: response.data.effective_permissions || {},
         permissions_override: response.data.permissions_override || {},
         logged_in_at: new Date().toISOString(),
         // Long-lived signed session token — primary identity proof for all staff API calls
