@@ -98,8 +98,8 @@ Deno.serve(async (req) => {
     skipped = students.length - invoiceData.length;
     created = 0;
 
-    // Create in batches of 20 to avoid timeout
-    const BATCH_SIZE = 20;
+    // Create in small sequential batches to avoid CPU timeout
+    const BATCH_SIZE = 5;
     for (let i = 0; i < invoiceData.length; i += BATCH_SIZE) {
       const batch = invoiceData.slice(i, i + BATCH_SIZE);
       await Promise.all(
