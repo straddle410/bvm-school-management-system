@@ -144,7 +144,7 @@ export default function Notices() {
   const canCreateNotices = userWithPerms ? can(userWithPerms, 'notices_create') : false;
   const canApproveNotices = userWithPerms ? can(userWithPerms, 'notices_approve') : false;
 
-  const isStaff = user && ['admin', 'principal', 'teacher', 'staff'].includes((user.role || '').toLowerCase());
+  const isStaff = user && ['admin', 'principal', 'teacher', 'staff', 'exam_staff'].includes((user.role || '').toLowerCase());
   const isAdmin = user && ['admin', 'principal'].includes((user.role || '').toLowerCase());
 
   const { data: notices = [], isLoading } = useQuery({
