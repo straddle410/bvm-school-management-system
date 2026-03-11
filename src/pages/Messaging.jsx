@@ -125,7 +125,7 @@ export default function Messaging() {
   }
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Messaging">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Messaging">
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md gap-2">
         <h1 className="font-bold text-lg sm:text-xl truncate">Messages</h1>

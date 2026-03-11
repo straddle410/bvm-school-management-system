@@ -224,7 +224,7 @@ export default function Notices() {
   const totalUnread = Object.keys(unreadNotifMap).length;
 
   return (
-     <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Notices">
+     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Notices">
      <div className="min-h-screen bg-gray-50 pb-6 w-full overflow-x-hidden">
       {/* Header */}
       <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-6">
