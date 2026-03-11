@@ -22,15 +22,15 @@ Deno.serve(async (req) => {
     const currentPlans = await base44.asServiceRole.entities.FeePlan.filter({
       class_name: className,
       academic_year: academicYear
-    });
+    }, '-created_date', 1);
     const currentPlan = currentPlans[0] || null;
 
-    // Get all annual invoices for this class/year
+    // Get annual invoices for this class/year (limit to 100 to avoid timeout)
     const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       class_name: className,
       academic_year: academicYear,
       invoice_type: 'ANNUAL'
-    });
+    }, '-created_date', 100);
 
     // For each invoice, extract plan source and breakdown
     const diagnosis = invoices.map(inv => {
