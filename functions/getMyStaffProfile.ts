@@ -133,6 +133,25 @@ Deno.serve(async (req) => {
     }
 
     if (!token) {
+      // Check if called from browser/UI with staff session in localStorage
+      const staffSessionHeader = req.headers.get('X-Staff-Session');
+      if (staffSessionHeader) {
+        try {
+          const staffSession = JSON.parse(staffSessionHeader);
+          if (staffSession.id && staffSession.role) {
+            // Quick session return (no token verification needed)
+            return Response.json({
+              staff_id: staffSession.id,
+              id: staffSession.id,
+              role: (staffSession.role || '').toLowerCase(),
+              name: staffSession.name || 'Staff',
+              email: staffSession.email || '',
+              effective_permissions: {},
+              identity_source: 'staff_session_header'
+            });
+          }
+        } catch {}
+      }
       console.error('[getMyStaffProfile] No token in body or Authorization header');
       return Response.json({ error: 'No session token provided. Please login again.', code: 'TOKEN_MISSING' }, { status: 401 });
     }
