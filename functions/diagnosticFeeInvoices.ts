@@ -5,6 +5,10 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
     const userRole = (staffSession.role || '').toLowerCase();
+    
+    if (!staffSession.id) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
