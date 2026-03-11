@@ -18,6 +18,7 @@ for (let h = 8; h < 16; h++) {
 export default function TimetableForm({ entry, onSubmit, onCancel, academicYear }) {
   const [availableClasses, setAvailableClasses] = useState([]);
   const [availableSections, setAvailableSections] = useState([]);
+  const [selectedDays, setSelectedDays] = useState(entry ? [entry.day] : []);
   const [formData, setFormData] = useState(entry || {
     class_name: '',
     section: '',
@@ -89,9 +90,23 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
     });
   };
 
+  const handleDayToggle = (day) => {
+    if (entry) {
+      // Editing: keep single day behavior
+      setFormData({ ...formData, day });
+      setSelectedDays([day]);
+    } else {
+      // Creating: allow multi-select
+      setSelectedDays(prev =>
+        prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+      );
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const daysToApply = entry ? [formData.day] : (selectedDays.length > 0 ? selectedDays : [formData.day]);
+    onSubmit(formData, daysToApply);
   };
 
   return (
@@ -133,18 +148,42 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Day</label>
-              <select
-                value={formData.day}
-                onChange={(e) => setFormData({ ...formData, day: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              >
-                {DAYS.map(day => (
-                  <option key={day} value={day}>{day}</option>
-                ))}
-              </select>
+            <div className="md:col-span-3">
+              <label className="block text-sm font-medium mb-2">
+                {entry ? 'Day' : 'Select Days (Multi-select)'}
+              </label>
+              {entry ? (
+                <select
+                  value={formData.day}
+                  onChange={(e) => setFormData({ ...formData, day: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                >
+                  {DAYS.map(day => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  {DAYS.map(day => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleDayToggle(day)}
+                      className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                        selectedDays.includes(day)
+                          ? 'bg-blue-600 text-white border border-blue-600'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400'
+                      }`}
+                    >
+                      {day.slice(0, 3)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {!entry && selectedDays.length === 0 && (
+                <p className="text-xs text-red-500 mt-1">Select at least one day</p>
+              )}
             </div>
           </div>
 
