@@ -30,24 +30,23 @@ Deno.serve(async (req) => {
     }
     // ──────────────────────────────────────────────────────────────────────
 
-    // Get target students
+    // Get target students — optimized single query
     let students = [];
     if (charge.applies_to === 'SELECTED') {
       if (!charge.student_ids || charge.student_ids.length === 0) {
         return Response.json({ error: 'No students selected' }, { status: 400 });
       }
-      // Fetch each student
-      const results = await Promise.all(
-        charge.student_ids.map(sid =>
-          base44.asServiceRole.entities.Student.filter({ student_id: sid, academic_year: charge.academic_year })
-        )
-      );
-      students = results.flat();
+      students = await base44.asServiceRole.entities.Student.filter({
+        is_active: true,
+        academic_year: charge.academic_year
+      });
+      students = students.filter(s => charge.student_ids.includes(s.student_id));
     } else {
-      // CLASS — all published students in that class/year
+      // CLASS — all active students in that class/year
       students = await base44.asServiceRole.entities.Student.filter({
         class_name: charge.class_name,
         academic_year: charge.academic_year,
+        is_active: true,
         status: 'Published'
       });
     }
@@ -66,13 +65,10 @@ Deno.serve(async (req) => {
     let created = 0;
     let skipped = 0;
 
-    for (const student of students) {
-      if (alreadyHasInvoice.has(student.student_id)) {
-        skipped++;
-        continue;
-      }
-
-      await base44.asServiceRole.entities.FeeInvoice.create({
+    // Batch create invoices (avoid sequential await)
+    const invoicesToCreate = students
+      .filter(student => !alreadyHasInvoice.has(student.student_id))
+      .map(student => ({
         academic_year: charge.academic_year,
         student_id: student.student_id,
         student_name: student.name,
@@ -97,8 +93,13 @@ Deno.serve(async (req) => {
         balance: charge.amount,
         status: 'Pending',
         generated_by: staffSession.email || 'system'
-      });
-      created++;
+      }));
+
+    skipped = students.length - invoicesToCreate.length;
+    
+    if (invoicesToCreate.length > 0) {
+      await base44.asServiceRole.entities.FeeInvoice.bulkCreate(invoicesToCreate);
+      created = invoicesToCreate.length;
     }
 
     // Update charge status and counts
