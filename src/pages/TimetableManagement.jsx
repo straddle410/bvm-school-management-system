@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getStaffSession } from '@/components/useStaffSession';
 import LoginRequired from '@/components/LoginRequired';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import PageHeader from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
