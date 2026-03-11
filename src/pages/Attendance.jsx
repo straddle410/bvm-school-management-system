@@ -917,7 +917,7 @@ export default function Attendance() {
 
         <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className={`mb-6 grid grid-cols-${tabCount}`}>
+            <TabsList className={`mb-6 grid ${tabCount === 1 ? 'grid-cols-1' : tabCount === 2 ? 'grid-cols-2' : tabCount === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
               <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
               {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
               {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}

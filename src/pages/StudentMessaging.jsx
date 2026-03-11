@@ -117,7 +117,7 @@ export default function StudentMessaging() {
 
   if (selectedThread) {
     return (
-      <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto">
+      <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md sm:max-w-xl mx-auto">
         <MessageThread
           messages={selectedThread}
           currentUserId={student.student_id}
@@ -146,7 +146,7 @@ export default function StudentMessaging() {
     : [...sent].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto pb-24">
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md sm:max-w-xl mx-auto pb-24">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center justify-between">

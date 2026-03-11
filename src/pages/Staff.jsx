@@ -550,7 +550,7 @@ export default function Staff() {
                     }}
                     className="space-y-4 max-w-2xl"
                   >
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label>Full Name *</Label>
                         <Input
@@ -647,7 +647,7 @@ export default function Staff() {
                         <AccordionTrigger className="text-sm font-semibold">Profile Details (Optional)</AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-4 pt-2">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <Label>Staff Code</Label>
                                 <Input value={form.staff_code} onChange={(e) => setForm(f => ({ ...f, staff_code: e.target.value }))} placeholder="T001" />
@@ -920,7 +920,7 @@ export default function Staff() {
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Full Name *</Label>
                   <Input
@@ -997,7 +997,7 @@ export default function Staff() {
                   <AccordionTrigger className="text-sm font-semibold">Profile Details</AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pt-2">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label>Staff Code</Label>
                           <Input value={form.staff_code} onChange={(e) => setForm(f => ({ ...f, staff_code: e.target.value }))} placeholder="T001" />

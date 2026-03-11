@@ -24,13 +24,15 @@ export default function HallTicketManagement() {
 
       <div className="mt-6">
         <Tabs defaultValue="exam-types" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <div className="overflow-x-auto">
+          <TabsList className="grid grid-cols-5 min-w-[480px] sm:min-w-0 sm:w-full">
             <TabsTrigger value="exam-types">Exam Types</TabsTrigger>
             <TabsTrigger value="timetable">Timetable</TabsTrigger>
             <TabsTrigger value="generate">Generate</TabsTrigger>
             <TabsTrigger value="manage">Manage</TabsTrigger>
             <TabsTrigger value="progress-cards">Progress Cards</TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="exam-types" className="mt-6">
             <div className="space-y-6">

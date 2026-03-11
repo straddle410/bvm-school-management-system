@@ -91,7 +91,7 @@ export default function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center max-w-md mx-auto">
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center w-full">
         <div className="text-center">
           <p className="text-gray-600">Loading...</p>
         </div>
@@ -113,7 +113,7 @@ export default function AnalyticsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] max-w-md mx-auto pb-10">
+    <div className="min-h-screen bg-[#f0f4ff] max-w-md sm:max-w-4xl mx-auto pb-10">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 sticky top-0 z-40 shadow">
         <div className="flex items-center gap-3 mb-4">

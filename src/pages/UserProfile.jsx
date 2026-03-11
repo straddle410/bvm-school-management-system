@@ -184,7 +184,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] max-w-md mx-auto pb-10">
+    <div className="min-h-screen bg-[#f0f4ff] max-w-md sm:max-w-xl lg:max-w-2xl mx-auto pb-10">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] px-4 pt-4 pb-20 relative">
         <div className="flex items-center justify-between mb-4">

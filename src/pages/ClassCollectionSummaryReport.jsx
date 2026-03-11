@@ -185,8 +185,8 @@ function ClassCollectionContent() {
       </div>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm overflow-hidden">
-        <CardContent className="p-0">
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-0 overflow-x-auto">
           {isLoading ? (
             <div className="text-center py-12 text-slate-400">Loading...</div>
           ) : rows.length === 0 ? (
