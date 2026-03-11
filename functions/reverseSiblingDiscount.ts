@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
           affects_cash: false,
           reference_no: discount_application_id, // same discount instance reference
           remarks: `[SIBLING-DISCOUNT-REV:${discount_application_id}] Sibling discount reversal`,
-          collected_by: user.email,
+          collected_by: user?.email || user?.username || 'system',
           status: 'Active'
         });
       }

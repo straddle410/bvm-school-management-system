@@ -177,8 +177,8 @@ Deno.serve(async (req) => {
       entry_type: finalEntryType,
       affects_cash: finalEntryType === 'CASH_PAYMENT',
       remarks: remarks || '',
-      collected_by: user.email,
-      collected_by_name: user.full_name || user.email
+      collected_by: user?.email || user?.username || 'system',
+      collected_by_name: user?.full_name || user?.email || user?.username || 'system'
     });
     
     // ── Log archived-year collection for audit trail ──────────────────────

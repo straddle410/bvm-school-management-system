@@ -242,11 +242,11 @@ Deno.serve(async (req) => {
         scope: family.sibling_discount_scope || 'TOTAL',
         fee_head_id: family.sibling_discount_fee_head_id || '',
         fee_head_name: family.sibling_discount_fee_head_name || '',
-        notes: `[SIBLING] Family: ${family.family_name} (proportional)`,
+         notes: `[SIBLING] Family: ${family.family_name} (proportional)`,
         discount_source: 'FAMILY',
         family_id: family_id,
         status: 'Active',
-        created_by: user.email
+        created_by: user?.email || user?.username || 'system'
       });
       
       const discount_application_id = discountRecord.id;
@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
             affects_cash: false,
             reference_no: discount_application_id,
             remarks: `[SIBLING-DISCOUNT:${discount_application_id}] ${family.family_name} proportional discount credit`,
-            collected_by: user.email,
+            collected_by: user?.email || user?.username || 'system',
             status: 'Active'
           });
         }
