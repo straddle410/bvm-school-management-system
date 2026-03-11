@@ -48,7 +48,8 @@ export default function DiscountManager({ academicYear, isArchived }) {
       class_name: filterClass, 
       academic_year: academicYear, 
       status: 'Published',
-      is_deleted: false 
+      is_deleted: false,
+      is_active: true
     }),
     enabled: !!filterClass && !!academicYear
   });

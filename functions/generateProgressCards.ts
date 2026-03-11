@@ -225,11 +225,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch only Published, non-deleted students for this year (global filter)
+    // Fetch only Published, non-deleted, active students for this year (global filter)
     const allStudentsInYear = await base44.asServiceRole.entities.Student.filter({
       academic_year: academicYear,
       status: 'Published',
-      is_deleted: false
+      is_deleted: false,
+      is_active: true
     });
     // Build a set of VALID student_ids for fast lookup
     const validStudentIds = new Set(allStudentsInYear.map(s => s.student_id).filter(Boolean));

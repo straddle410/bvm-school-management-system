@@ -62,13 +62,14 @@ export default function FamilyManager({ academicYear, isArchived }) {
     queryFn: () => base44.entities.FeeHead.filter({ is_active: true })
   });
 
-  // Fetch all published, non-deleted students (global filter: status=Published, is_deleted=false, current AY only)
+  // Fetch all published, non-deleted, active students (global filter: status=Published, is_deleted=false, is_active=true, current AY only)
   const { data: allStudents = [] } = useQuery({
     queryKey: ['students-all-published', academicYear],
     queryFn: () => base44.entities.Student.filter({ 
       academic_year: academicYear, 
       status: 'Published', 
-      is_deleted: false 
+      is_deleted: false,
+      is_active: true
     }),
     enabled: !!academicYear
   });
