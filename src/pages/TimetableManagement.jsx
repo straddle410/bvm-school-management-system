@@ -76,7 +76,7 @@ export default function TimetableManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data, days) => {
+    mutationFn: async ({ data, days }) => {
       // For multi-day creation, create one entry per day
       if (days && days.length > 1) {
         const existingEntries = await base44.entities.Timetable.filter({
@@ -138,7 +138,7 @@ export default function TimetableManagement() {
     if (editingEntry) {
       updateMutation.mutate({ id: editingEntry.id, data: formData });
     } else {
-      createMutation.mutate(formData, selectedDays);
+      createMutation.mutate({ data: formData, days: selectedDays });
     }
   };
 
