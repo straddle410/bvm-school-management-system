@@ -22,7 +22,9 @@ Deno.serve(async (req) => {
 
     // Get all active staff
     const staffList = await base44.asServiceRole.entities.StaffAccount.filter({ is_active: true });
-    const staffEmails = staffList.map(s => s.email).filter(Boolean);
+    const staffEmails = staffList
+      .filter(s => s.email) // Skip records without email
+      .map(s => s.email);
 
     if (staffEmails.length === 0) {
       return Response.json({ success: true, notified: 0 });

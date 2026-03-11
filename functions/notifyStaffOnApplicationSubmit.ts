@@ -18,6 +18,9 @@ Deno.serve(async (req) => {
 
     // Notify each staff member
     for (const staff of admissionStaff) {
+      // Skip if email is missing
+      if (!staff.email) continue;
+      
       try {
         await base44.asServiceRole.entities.Notification.create({
           user_email: staff.email,
@@ -35,6 +38,9 @@ Deno.serve(async (req) => {
     // Also notify all admin staff
     const admins = await base44.asServiceRole.entities.StaffAccount.filter({ role: 'Admin' });
     for (const admin of admins) {
+      // Skip if email is missing
+      if (!admin.email) continue;
+      
       try {
         await base44.asServiceRole.entities.Notification.create({
           user_email: admin.email,
