@@ -159,6 +159,9 @@ export default function Staff() {
       });
       toast.success(editingStaff ? 'Staff updated' : 'Staff account created');
     },
+    onError: (error) => {
+      toast.error(error?.message || 'Failed to save staff. Please try again.');
+    },
   });
 
   const toggleActiveMutation = useMutation({
@@ -363,8 +366,12 @@ export default function Staff() {
       'exam staff': 'exam_staff',
       'exam_staff': 'exam_staff',
     };
-    const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase();
-    const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
+    // Strip trailing " 2" / " 3" etc. so renamed canonical templates still map correctly
+    const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
+    // If no template is selected (role_template_id is empty/null), preserve the staff member's existing role
+    const derivedRole = selectedTemplate
+      ? (ROLE_NAME_MAP[rawRoleName] || rawRoleName)
+      : (editingStaff?.role || '');
 
     // Coerce experience_years: empty string → null, otherwise parse as number
     let experienceYears = null;
