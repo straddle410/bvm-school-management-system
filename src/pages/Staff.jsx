@@ -136,9 +136,9 @@ export default function Staff() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data) => {
-      if (editingStaff) {
-        return base44.entities.StaffAccount.update(editingStaff.id, data);
+    mutationFn: async ({ _editId, ...data }) => {
+      if (_editId) {
+        return base44.entities.StaffAccount.update(_editId, data);
       }
       return base44.entities.StaffAccount.create(data);
     },
@@ -341,15 +341,18 @@ export default function Staff() {
     // Normalize username
     const normalizedUsername = form.username.trim().toLowerCase();
 
-    // Check for duplicate username if editing
+    // Check for duplicate username only when the username is actually being changed
     if (editingStaff) {
-      const existingWithUsername = staffList.filter(s => 
-        s.id !== editingStaff.id && 
-        s.username.toLowerCase() === normalizedUsername
-      );
-      if (existingWithUsername.length > 0) {
-        toast.error('Username already exists');
-        return;
+      const originalUsername = editingStaff.username?.toLowerCase() || '';
+      if (normalizedUsername !== originalUsername) {
+        const existingWithUsername = staffList.filter(s =>
+          s.id !== editingStaff.id &&
+          s.username?.toLowerCase() === normalizedUsername
+        );
+        if (existingWithUsername.length > 0) {
+          toast.error('Username already exists');
+          return;
+        }
       }
     }
 
@@ -412,7 +415,7 @@ export default function Staff() {
       password_hash: passwordHash,
     };
 
-    saveMutation.mutate(dataToSave);
+    saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
   };
 
   const filtered = staffList.filter(s => {
@@ -915,7 +918,7 @@ export default function Staff() {
         </div>
 
         {/* Edit Staff Dialog */}
-        <Dialog open={showDialog && editingStaff} onOpenChange={(open) => {
+        <Dialog open={!!(showDialog && editingStaff)} onOpenChange={(open) => {
           if (!open) {
             setShowDialog(false);
             setEditingStaff(null);
