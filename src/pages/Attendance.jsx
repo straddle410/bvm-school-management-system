@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { getAttendancePercentage, deduplicateAttendanceRecords } from '@/components/attendanceCalculations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -115,10 +116,12 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear })
   });
 
-  const canOverrideHoliday = isAdmin || staffAccount?.[0]?.permissions?.override_holidays === true;
+  // Phase 5: Use can() helper with effective permissions
+  const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
+  const canOverrideHoliday = can(userWithPerms, 'attendance_override_holiday');
   const isMarkedHoliday = holidays.length > 0;
   const hasOverride = overrides.length > 0;
-  const canManageHolidays = isAdmin;
+  const canManageHolidays = isAdmin || can(userWithPerms, 'attendance_manage_holidays');
   // Single source of truth for holiday override state
   const effectiveHoliday = hasOverride ? false : (isSunday || isMarkedHoliday);
 
