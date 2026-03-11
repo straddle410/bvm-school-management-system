@@ -4,13 +4,14 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
-    const userRole = (staffSession.role || '').toLowerCase();
     
     if (!staffSession.id) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized: No valid session' }, { status: 401 });
     }
+    
+    const userRole = (staffSession.role || '').toLowerCase();
     if (!['admin', 'principal'].includes(userRole)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     const { className, academicYear } = await req.json();

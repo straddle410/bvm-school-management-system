@@ -4,8 +4,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
+    
+    if (!staffSession.id) {
+      return Response.json({ error: 'Unauthorized: No valid session' }, { status: 401 });
+    }
+    
     const userRole = (staffSession.role || '').toLowerCase();
-
     if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
