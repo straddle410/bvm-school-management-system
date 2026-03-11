@@ -13,9 +13,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'academicYear required' }, { status: 400 });
     }
 
-    // Note: Staff users use staff_session (localStorage), not Base44 auth
-    // Access control is enforced on frontend, use asServiceRole here
-    const user = { email: 'system' }; // Staff identity passed via session; backend uses service role
+    const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
+    
+    if (!staffSession.id || !staffSession.email) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const userRole = (staffSession.role || '').toLowerCase();
+    if (!['admin', 'principal'].includes(userRole)) {
+      return Response.json({ error: 'Forbidden: Insufficient permissions' }, { status: 403 });
+    }
+    
+    const user = { email: staffSession.email };
 
     // Fetch tickets to be published (all must be "Approved")
     const ticketsToPublish = await Promise.all(

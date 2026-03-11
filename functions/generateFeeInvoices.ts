@@ -64,10 +64,16 @@ function applyDiscount(feeItems, grossTotal, discount) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    // Note: Staff users use staff_session (localStorage), not Base44 auth
-    // For backend functions, use asServiceRole since auth verification happens at frontend
-    const user = await base44.asServiceRole.entities.StaffAccount.list().catch(() => null);
-    // If needed, access control should be enforced on frontend before calling this function
+    const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
+    
+    if (!staffSession.id || !staffSession.email) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const userRole = (staffSession.role || '').toLowerCase();
+    if (!['admin', 'principal', 'accountant'].includes(userRole)) {
+      return Response.json({ error: 'Forbidden: Insufficient permissions' }, { status: 403 });
+    }
 
     const { feePlanId, academicYear, className } = await req.json();
     if (!feePlanId || !academicYear || !className) {
@@ -167,7 +173,7 @@ Deno.serve(async (req) => {
         paid_amount: 0,
         balance: netTotal,
         status: 'Pending',
-        generated_by: user.email,
+        generated_by: staffSession.email,
         ...(discount ? {
           discount_snapshot: {
             discount_id: discount.id,
