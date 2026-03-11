@@ -410,6 +410,7 @@ export const PAGE_PERMISSION_MAP = {
   // Permission-gated
   Attendance:            { permission: PERMS.ATTENDANCE_VIEW },
   Marks:                 { permission: PERMS.MARKS_VIEW },
+  Results:               { permission: PERMS.MARKS_VIEW },
   ExamManagement:        { permission: PERMS.EXAMS_VIEW },
   HallTicketManagement:  { permission: PERMS.EXAMS_VIEW },
   Homework:              { permission: PERMS.HOMEWORK_VIEW },
