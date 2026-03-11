@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
+import { getEffectivePermissions } from '@/components/permissionHelper';
 import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
@@ -30,6 +31,15 @@ export default function Dashboard() {
   const [staffName, setStaffName] = useState('');
   const [roleSource, setRoleSource] = useState('');
   const [permissionsCount, setPermissionsCount] = useState(0);
+  // effective_permissions: populated from getMyStaffProfile (Phase 2+).
+  // Initialized from session so first render has permissions before the profile call resolves.
+  const [effectivePermissions, setEffectivePermissions] = useState(() => {
+    try {
+      const raw = localStorage.getItem('staff_session');
+      if (raw) return getEffectivePermissions(JSON.parse(raw));
+    } catch {}
+    return {};
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [latestDiaries, setLatestDiaries] = useState([]);
   const [recentNotices, setRecentNotices] = useState([]);
@@ -63,7 +73,10 @@ export default function Dashboard() {
               resolvedRole = normaliseRole(res.data.role);
               setStaffRole(resolvedRole);
               setStaffName(res.data.name || session.name || '');
-              setPermissionsCount(Object.values(res.data.permissions || {}).filter(Boolean).length);
+              // Prefer effective_permissions (Phase 2+ format), fall back to permissions (legacy)
+              const resolvedPerms = res.data.effective_permissions ?? res.data.permissions ?? {};
+              setEffectivePermissions(resolvedPerms);
+              setPermissionsCount(Object.values(resolvedPerms).filter(Boolean).length);
               setRoleSource('staff_session_token (verified)');
 
               // Patch stale session role if needed

@@ -211,18 +211,35 @@ Deno.serve(async (req) => {
 
     const role = (account.role || '').trim().toLowerCase();
 
-    // Merge permissions: template → legacy → override
+    // ── Compute effective_permissions (three-layer model — mirrors staffLogin) ─
+    // Layer 1: RoleTemplate.permissions  — if role_template_id set and loads
+    // Layer 2: StaffAccount.permissions  — legacy fallback ONLY if no template loaded
+    // Layer 3: StaffAccount.permissions_override — always applied last
+    // Admin / Principal: can() bypasses lookups via role check — return {} here
     let effectivePermissions = {};
-    if (account.role_template_id) {
-      try {
-        const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
-        if (templates && templates.length > 0 && templates[0].permissions) {
-          effectivePermissions = { ...templates[0].permissions };
-        }
-      } catch {}
+    if (role !== 'admin' && role !== 'principal') {
+      let templateLoaded = false;
+
+      if (account.role_template_id) {
+        try {
+          const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
+          if (templates && templates.length > 0 && templates[0].permissions) {
+            effectivePermissions = { ...templates[0].permissions };
+            templateLoaded = true;
+          }
+        } catch {}
+      }
+
+      // Fall back to legacy StaffAccount.permissions ONLY if no template was loaded
+      if (!templateLoaded) {
+        effectivePermissions = { ...(account.permissions || {}) };
+      }
+
+      // Always apply per-user overrides last
+      if (account.permissions_override && Object.keys(account.permissions_override).length > 0) {
+        effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
+      }
     }
-    if (account.permissions) effectivePermissions = { ...effectivePermissions, ...account.permissions };
-    if (account.permissions_override) effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
 
     return Response.json({
       staff_id: account.id,
@@ -249,7 +266,9 @@ Deno.serve(async (req) => {
       classes: account.classes || [],
       subjects: account.subjects || [],
       is_active: account.is_active,
-      permissions: effectivePermissions,
+      permissions: effectivePermissions,           // backward-compat key — existing pages read this
+      effective_permissions: effectivePermissions, // new canonical key — Phase 3+ pages read this
+      role_template_id: account.role_template_id || null,
       identity_source: 'staff_session_token',
     });
   } catch (error) {

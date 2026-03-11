@@ -170,20 +170,44 @@ Deno.serve(async (req) => {
       linkStatus = 'SKIPPED';
     }
 
-    // Resolve effective permissions
-    let effectivePermissions = {};
-    if (account.role_template_id) {
-      try {
-        const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
-        if (templates && templates.length > 0 && templates[0].permissions) {
-          effectivePermissions = { ...templates[0].permissions };
-        }
-      } catch {}
-    }
-    if (account.permissions) effectivePermissions = { ...effectivePermissions, ...account.permissions };
-    if (account.permissions_override) effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
-
     const normalizedRole = (account.role || '').trim().toLowerCase();
+
+    // ── Compute effective_permissions (three-layer model) ────────────────────
+    // Layer 1: RoleTemplate.permissions  — if role_template_id is set and loads successfully
+    // Layer 2: StaffAccount.permissions  — legacy fallback ONLY if no template was loaded
+    // Layer 3: StaffAccount.permissions_override — always applied last (additive/subtractive)
+    // Admin / Principal: role check in can() bypasses all lookups — return {} here
+    let effectivePermissions = {};
+    if (normalizedRole !== 'admin' && normalizedRole !== 'principal') {
+      let templateLoaded = false;
+
+      if (account.role_template_id) {
+        try {
+          const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
+          if (templates && templates.length > 0 && templates[0].permissions) {
+            effectivePermissions = { ...templates[0].permissions };
+            templateLoaded = true;
+            console.log(`[staffLogin] PERMISSIONS: loaded from RoleTemplate id=${account.role_template_id} keys=${Object.keys(effectivePermissions).length}`);
+          }
+        } catch (tmplErr) {
+          console.warn(`[staffLogin] RoleTemplate load failed, falling back to legacy: ${tmplErr.message}`);
+        }
+      }
+
+      // Fall back to legacy StaffAccount.permissions ONLY if no template was found
+      if (!templateLoaded) {
+        effectivePermissions = { ...(account.permissions || {}) };
+        console.log(`[staffLogin] PERMISSIONS: using legacy object keys=${Object.keys(effectivePermissions).length}`);
+      }
+
+      // Always apply per-user overrides last
+      if (account.permissions_override && Object.keys(account.permissions_override).length > 0) {
+        effectivePermissions = { ...effectivePermissions, ...account.permissions_override };
+        console.log(`[staffLogin] PERMISSIONS: applied ${Object.keys(account.permissions_override).length} override(s)`);
+      }
+    } else {
+      console.log(`[staffLogin] PERMISSIONS: admin/principal role — full bypass, effective_permissions={}`);
+    }
     // iat and exp are in SECONDS (not milliseconds) — JWT standard
     const nowSec = Math.floor(Date.now() / 1000);
     const iat = nowSec;
@@ -215,7 +239,8 @@ Deno.serve(async (req) => {
       role: normalizedRole,
       designation: account.designation,
       role_template_id: account.role_template_id,
-      permissions: effectivePermissions,
+      permissions: effectivePermissions,           // backward-compat key — existing pages read this
+      effective_permissions: effectivePermissions, // new canonical key — Phase 3+ pages read this
       permissions_override: account.permissions_override,
       force_password_change: account.force_password_change || false,
       redirect_to: account.force_password_change ? 'ChangeStaffPassword' : 'Dashboard',
