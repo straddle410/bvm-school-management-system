@@ -11,7 +11,7 @@ export default function ExamManagement() {
   const { academicYear } = useAcademicYear();
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']} pageName="Exam Management">
+    <LoginRequired allowedRoles={['admin', 'principal', 'exam_staff']} pageName="Exam Management">
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <PageHeader
         title="Exam Management"
