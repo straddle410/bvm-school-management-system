@@ -24,9 +24,21 @@ export default function AdditionalChargesList({ academicYear, isArchived }) {
     enabled: !!academicYear
   });
 
+  const getStaffSession = () => {
+    try {
+      const raw = localStorage.getItem('staff_session');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  };
+
   const publishMutation = useMutation({
     mutationFn: async (chargeId) => {
-      const res = await base44.functions.invoke('publishAdditionalCharge', { chargeId });
+      const staffSession = getStaffSession();
+      const res = await base44.functions.invoke('publishAdditionalCharge', { chargeId }, {
+        headers: { 'X-Staff-Session': JSON.stringify(staffSession) }
+      });
       if (res.data?.error) throw new Error(res.data.error);
       return res.data;
     },
@@ -39,7 +51,10 @@ export default function AdditionalChargesList({ academicYear, isArchived }) {
 
   const cancelMutation = useMutation({
     mutationFn: async (chargeId) => {
-      const res = await base44.functions.invoke('cancelAdditionalCharge', { chargeId });
+      const staffSession = getStaffSession();
+      const res = await base44.functions.invoke('cancelAdditionalCharge', { chargeId }, {
+        headers: { 'X-Staff-Session': JSON.stringify(staffSession) }
+      });
       if (res.data?.error) throw new Error(res.data.error);
       return res.data;
     },
