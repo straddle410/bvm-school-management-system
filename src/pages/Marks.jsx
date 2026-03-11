@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -360,12 +361,17 @@ export default function Marks() {
     setShowAddSubject(false);
   };
 
+  // Phase 5: Use permission-based checks instead of legacy permissions
+  const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
+  const canEnterMarks = can(userWithPerms, 'marks_enter');
+  const canPublishMarks = can(userWithPerms, 'marks_publish');
+
   const currentStatus = existingMarks[0]?.status || 'Not Entered';
-  const isSubmitted = currentStatus === 'Submitted';
-  const isPublished = currentStatus === 'Published';
-  const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
-  const canEdit = currentStatus === 'Not Entered' || currentStatus === 'Draft' || (isAdmin && currentStatus === 'Verified');
-  const canSave = !isPublished;
+   const isSubmitted = currentStatus === 'Submitted';
+   const isPublished = currentStatus === 'Published';
+   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
+   const canEdit = (canEnterMarks && (currentStatus === 'Not Entered' || currentStatus === 'Draft')) || (isAdmin && currentStatus === 'Verified');
+   const canSave = !isPublished && canEnterMarks;
 
   const unlockMutation = useMutation({
     mutationFn: async () => {

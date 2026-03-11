@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { getStaffSession } from '@/components/useStaffSession';
 import { markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -138,6 +139,11 @@ export default function Notices() {
     } catch {}
   };
 
+  // Phase 5: Use permission-based checks
+  const userWithPerms = user ? { ...user, effective_permissions: getEffectivePermissions(user || {}) } : null;
+  const canCreateNotices = userWithPerms ? can(userWithPerms, 'notices_create') : false;
+  const canApproveNotices = userWithPerms ? can(userWithPerms, 'notices_approve') : false;
+
   const isStaff = user && ['admin', 'principal', 'teacher', 'staff'].includes((user.role || '').toLowerCase());
   const isAdmin = user && ['admin', 'principal'].includes((user.role || '').toLowerCase());
 
@@ -240,7 +246,7 @@ export default function Notices() {
                 <CheckCheck className="h-3.5 w-3.5 mr-1" /> Mark All Read
               </Button>
             )}
-            {isStaff && (
+            {(canCreateNotices || isAdmin) && (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => setShowAIAssist(true)}

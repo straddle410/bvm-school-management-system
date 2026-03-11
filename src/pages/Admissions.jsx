@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -64,13 +65,13 @@ export default function Admissions() {
   useEffect(() => {
     base44.auth.me().then(user => {
       if (!user) return;
-      const userRole = (user.role || '').toLowerCase();
-      const isAdmin = userRole === 'admin' || userRole === 'principal';
-      const hasPermission = user.permissions?.student_admission_permission;
-      
-      console.log('[Admissions] Auth Check:', { userRole, isAdmin, hasPermission });
-      
-      if (!isAdmin && !hasPermission) {
+      // Phase 5: Use permission-based checks with can() helper
+      const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
+      const canReviewAdmissions = can(userWithPerms, 'admissions_review');
+
+      console.log('[Admissions] Auth Check:', { canReviewAdmissions });
+
+      if (!canReviewAdmissions) {
         console.log('[Admissions] Access Denied - Redirecting to Dashboard');
         window.location.replace(createPageUrl('Dashboard'));
         return;

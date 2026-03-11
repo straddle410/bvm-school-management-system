@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -256,6 +257,11 @@ export default function Quiz() {
     setQuizForm({ ...quizForm, questions: newQuestions });
   };
 
+  // Phase 5: Use permission-based checks
+  const userWithPerms = user ? { ...user, effective_permissions: getEffectivePermissions(user || {}) } : null;
+  const canCreateQuiz = userWithPerms ? can(userWithPerms, 'quiz_create') : false;
+  const canPublishQuiz = userWithPerms ? can(userWithPerms, 'quiz_publish') : false;
+
   const userRole = user?.role || 'user';
   const isTeacher = ['admin', 'principal', 'teacher'].includes(userRole);
   const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -302,7 +308,7 @@ export default function Quiz() {
                 <CheckCheck className="mr-1.5 h-3.5 w-3.5" /> Mark All Read
               </Button>
             )}
-            {(userPermissions.quiz || isTeacher) && (
+            {(canCreateQuiz || isTeacher) && (
               <div className="flex gap-2">
                 <Button onClick={() => setShowAIAssist(true)} className="bg-purple-600 hover:bg-purple-700">
                   <Sparkles className="mr-2 h-4 w-4" /> AI Assist
@@ -546,20 +552,20 @@ export default function Quiz() {
                             >
                               {attempted ? 'Already Answered' : 'Start Quiz'}
                             </Button>
-                            {(userPermissions.quiz || user?.role === 'admin' || user?.role === 'Admin') && (
-                              <Button
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => {
-                                  if (confirm('Are you sure you want to delete this quiz?')) {
-                                    deleteQuizMutation.mutate(quiz.id);
-                                  }
-                                }}
-                                disabled={deleteQuizMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
+                            {(canCreateQuiz || user?.role === 'admin' || user?.role === 'Admin') && (
+                                      <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => {
+                                          if (confirm('Are you sure you want to delete this quiz?')) {
+                                            deleteQuizMutation.mutate(quiz.id);
+                                          }
+                                        }}
+                                        disabled={deleteQuizMutation.isPending}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    )}
                           </div>
                         </div>
                       </CardContent>
@@ -642,20 +648,20 @@ export default function Quiz() {
                                          Publish
                                        </Button>
                                      )}
-                                     {(userPermissions.quiz || isAdmin) && (
-                                       <Button 
-                                         size="sm"
-                                         variant="destructive"
-                                         onClick={() => {
-                                           if (confirm('Are you sure you want to delete this quiz?')) {
-                                             deleteQuizMutation.mutate(quiz.id);
-                                           }
-                                         }}
-                                         disabled={deleteQuizMutation.isPending}
-                                       >
-                                         <Trash2 className="h-4 w-4" />
-                                       </Button>
-                                     )}
+                                     {(canCreateQuiz || isAdmin) && (
+                                                         <Button 
+                                                           size="sm"
+                                                           variant="destructive"
+                                                           onClick={() => {
+                                                             if (confirm('Are you sure you want to delete this quiz?')) {
+                                                               deleteQuizMutation.mutate(quiz.id);
+                                                             }
+                                                           }}
+                                                           disabled={deleteQuizMutation.isPending}
+                                                         >
+                                                           <Trash2 className="h-4 w-4" />
+                                                         </Button>
+                                                       )}
                                    </div>
                                  </CardContent>
                                </Card>

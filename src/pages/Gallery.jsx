@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import GalleryImage from '@/components/GalleryImage';
 import UploadDialog from '@/components/gallery/UploadDialog';
 import { Button } from '@/components/ui/button';
@@ -39,12 +40,16 @@ export default function Gallery() {
   // Check if student session exists — students can only view (not upload)
   const isStudent = !!localStorage.getItem('student_session');
 
+  // Phase 5: Use permission-based checks
+  const userWithPerms = user ? { ...user, effective_permissions: getEffectivePermissions(user || {}) } : null;
+  const canUploadPhotos = userWithPerms ? can(userWithPerms, 'gallery_upload') : false;
+  const canApprovePhotos = userWithPerms ? can(userWithPerms, 'gallery_approve') : false;
+
   const isAdmin = user?.role === 'Admin' || user?.role === 'Principal' || user?.role === 'admin' || user?.role === 'principal';
-    const hasGalleryPermission = user?.permissions?.gallery === true;
-    // Students can only view; staff can upload
-    const canUpload = !isStudent && (isAdmin || hasGalleryPermission);
-    const canCreateAlbum = !isStudent && (isAdmin || hasGalleryPermission);
-    const needsApproval = !isAdmin;
+     // Students can only view; staff can upload based on permissions
+     const canUpload = !isStudent && (isAdmin || canUploadPhotos);
+     const canCreateAlbum = !isStudent && (isAdmin || canUploadPhotos);
+     const needsApproval = !isAdmin;
 
   const { data: albums = [] } = useQuery({
     queryKey: ['albums', academicYear],

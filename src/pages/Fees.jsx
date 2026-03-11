@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Lock, AlertCircle, Bus, Menu, X } from 'lucide-react';
@@ -29,15 +30,17 @@ export default function Fees() {
 
   useEffect(() => { setUser(getStaffSession()); }, []);
 
+  // Phase 5: Use permission-based checks with can() helper
+  const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
   const role = (user?.role || '').toLowerCase();
-  const isAdmin = role === 'admin' || role === 'principal';
-  const permissions = user?.permissions || {};
-  const canVoidReceipt = isAdmin || !!permissions.fees_reverse_receipt;
-  const canViewLedger = isAdmin || !!permissions.fees_view_ledger || !!permissions.fees_view_module;
-  const canViewPayments = isAdmin || !!permissions.fees_record_payment || !!permissions.fees_view_module;
-  const canApplyDiscount = isAdmin || !!permissions.fees_apply_discount;
-  const canApplyCharge = isAdmin || role === 'accountant' || !!permissions.fees_apply_charge;
-  const canManageFamilies = isAdmin || !!permissions.fees_manage_families;
+   const isAdmin = role === 'admin' || role === 'principal';
+
+   const canVoidReceipt = can(userWithPerms, 'fees_void_receipt');
+   const canViewLedger = can(userWithPerms, 'fees_view') || can(userWithPerms, 'fees_view_ledger');
+   const canViewPayments = can(userWithPerms, 'fees_record_payment') || can(userWithPerms, 'fees_view');
+   const canApplyDiscount = can(userWithPerms, 'fees_apply_discount');
+   const canApplyCharge = can(userWithPerms, 'fees_manage_adhoc_charges') || role === 'accountant';
+   const canManageFamilies = can(userWithPerms, 'fees_manage_families');
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
   const isArchivedYear = selectedYearObj?.status === 'Archived';
