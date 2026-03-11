@@ -45,10 +45,12 @@ export default function TimetableManagement() {
     });
   }, [filters.class, academicYear]);
 
-  // Check if user has edit permissions (admin or principal)
-  const canEdit = user && ['admin', 'principal'].includes(user.role);
+  // Check if user has edit permissions (admin, principal, or exam_staff with timetable_manage)
+  const userWithPerms = user ? { ...user, effective_permissions: getEffectivePermissions(user || {}) } : null;
+  const canManageTimetable = userWithPerms ? can(userWithPerms, 'timetable_manage') : false;
+  const canEdit = user && (['admin', 'principal'].includes(user.role) || canManageTimetable);
   const isTeacher = user && user.role === 'teacher';
-  const viewOnly = isTeacher;
+  const viewOnly = isTeacher && !canManageTimetable;
 
   const { data: timetables = [], isLoading } = useQuery({
     queryKey: ['timetables', academicYear, filters],
