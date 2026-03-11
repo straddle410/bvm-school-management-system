@@ -18,28 +18,15 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-// Get today's date in IST
-const getTodayIST = () => {
-  const now = new Date();
-  const istDate = new Date(now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
-  return istDate.toISOString().split('T')[0];
-};
-
-// Get a date in IST timezone
-const getDateInIST = (date) => {
-  const istDate = new Date(date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
-  return istDate;
-};
-
 const defaultDateFrom = () => {
-  const istToday = getDateInIST(new Date());
-  istToday.setDate(istToday.getDate() - 6);
-  return istToday.toISOString().split('T')[0];
+  const d = new Date();
+  d.setDate(d.getDate() - 6);
+  return d.toISOString().split('T')[0];
 };
-const today = () => getTodayIST();
+const today = () => new Date().toISOString().split('T')[0];
 
 const getDateRange = (type) => {
-  const now = getDateInIST(new Date());
+  const now = new Date();
   const start = new Date(now);
   
   switch (type) {
