@@ -3,18 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    let user;
-    try {
-      user = await base44.asServiceRole.auth.me();
-    } catch {
-      user = await base44.auth.me();
-    }
+    const staffSession = JSON.parse(req.headers.get('X-Staff-Session') || '{}');
     
-    if (!user) {
+    if (!staffSession.id || !staffSession.email) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const userRole = (user.role || '').toLowerCase();
+    const userRole = (staffSession.role || '').toLowerCase();
     if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
@@ -101,7 +96,7 @@ Deno.serve(async (req) => {
         paid_amount: 0,
         balance: charge.amount,
         status: 'Pending',
-        generated_by: user.email || 'system'
+        generated_by: staffSession.email || 'system'
       }));
 
     skipped = students.length - invoiceData.length;
