@@ -18,12 +18,20 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+// Use local calendar date (avoids UTC off-by-one in IST near midnight)
+const localDate = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 const defaultDateFrom = () => {
   const d = new Date();
   d.setDate(d.getDate() - 6);
-  return d.toISOString().split('T')[0];
+  return localDate(d);
 };
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => localDate(new Date());
 
 const getDateRange = (type) => {
   const now = new Date();
