@@ -217,7 +217,7 @@ export default function Gallery() {
                       }`}>{photo.status === 'Draft' ? 'Draft' : 'Pending'}</span>
                     </div>
                   )}
-                  {isAdmin && photo.status === 'PendingApproval' && (
+                  {(isAdmin || canApprovePhotos) && photo.status === 'PendingApproval' && (
                     <div className="absolute top-1 right-1 flex gap-0.5">
                       <button
                         onClick={e => { e.stopPropagation(); approveMutation.mutate(photo.id); }}
@@ -225,12 +225,14 @@ export default function Gallery() {
                       >
                         <Check className="h-2.5 w-2.5" />
                       </button>
-                      <button
-                        onClick={e => { e.stopPropagation(); deleteMutation.mutate(photo.id); }}
-                        className="bg-red-500 text-white rounded-full p-1 shadow"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          onClick={e => { e.stopPropagation(); deleteMutation.mutate(photo.id); }}
+                          className="bg-red-500 text-white rounded-full p-1 shadow"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      )}
                     </div>
                   )}
                   {!isAdmin && canUpload && photo.status === 'Draft' && (
