@@ -221,14 +221,14 @@ Deno.serve(async (req) => {
       let templateLoaded = false;
 
       if (account.role_template_id) {
-        try {
-          const templates = await base44.asServiceRole.entities.RoleTemplate.filter({ id: account.role_template_id });
-          if (templates && templates.length > 0 && templates[0].permissions) {
-            effectivePermissions = { ...templates[0].permissions };
-            templateLoaded = true;
-          }
-        } catch {}
-      }
+         try {
+           const template = await base44.asServiceRole.entities.RoleTemplate.get(account.role_template_id);
+           if (template && template.permissions) {
+             effectivePermissions = { ...template.permissions };
+             templateLoaded = true;
+           }
+         } catch {}
+       }
 
       // Fall back to legacy StaffAccount.permissions ONLY if no template was loaded
       if (!templateLoaded) {
