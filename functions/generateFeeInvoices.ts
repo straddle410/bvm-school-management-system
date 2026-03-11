@@ -91,7 +91,8 @@ Deno.serve(async (req) => {
     const students = await base44.asServiceRole.entities.Student.filter({
       class_name: className,
       academic_year: academicYear,
-      status: 'Published'
+      status: 'Published',
+      is_active: true
     });
 
     if (students.length === 0) return Response.json({ created: 0, skipped: 0, message: 'No published students found' });
