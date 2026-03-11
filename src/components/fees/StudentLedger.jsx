@@ -34,9 +34,10 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
         class_name: selectedClass, 
         academic_year: academicYear, 
         status: 'Published', 
-        is_deleted: false 
+        is_deleted: false,
+        is_active: true
       });
-      return all.filter(s => s.is_active !== false);
+      return all;
     },
     enabled: !!selectedClass && !!academicYear,
     staleTime: 5 * 60 * 1000, // 5 min cache
