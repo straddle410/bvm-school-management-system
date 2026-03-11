@@ -490,7 +490,7 @@ export const DASHBOARD_TILES = [
   { id: 'parent_stmt',     label: 'Parent Statement', page: 'ParentStatement',      section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_PARENT_STATEMENT, iconName: 'DollarSign',  gradient: 'from-pink-400 to-pink-600' },
 
   // ── Reports & Analytics ────────────────────────────────────────────────────
-  { id: 'reports',   label: 'Reports',   page: 'ReportsManagement',  section: 'Reports & Analytics', requiredPerm: null, staffOnly: true,  iconName: 'BarChart3',  gradient: 'from-purple-400 to-purple-600' },
+  { id: 'reports',   label: 'Reports',   page: 'ReportsManagement',  section: 'Reports & Analytics', requiredPerm: null, adminOnly: true,  iconName: 'BarChart3',  gradient: 'from-purple-400 to-purple-600' },
   { id: 'analytics', label: 'Analytics', page: 'AnalyticsDashboard', section: 'Reports & Analytics', requiredPerm: null, adminOnly: true,  iconName: 'TrendingUp', gradient: 'from-fuchsia-400 to-fuchsia-600' },
 
   // ── Administration (admin/principal only) ──────────────────────────────────
