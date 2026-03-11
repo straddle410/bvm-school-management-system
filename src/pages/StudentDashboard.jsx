@@ -170,7 +170,7 @@ export default function StudentDashboard() {
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md mx-auto relative">
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col relative">
       {/* Unified Notification Hub */}
       <StudentNotificationHub studentSession={student} />
 
