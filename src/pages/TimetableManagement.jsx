@@ -131,7 +131,7 @@ export default function TimetableManagement() {
   const uniqueTeachers = [...new Set(timetables.map(t => t.teacher_name))];
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Timetable Management">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Timetable Management">
     <div className="min-h-screen bg-gray-100 p-4">
       <PageHeader
         title="Timetable Management"
