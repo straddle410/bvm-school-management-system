@@ -20,12 +20,32 @@ Deno.serve(async (req) => {
     // Hash password using bcrypt
     const password_hash = await bcrypt.hash(password, 10);
 
+    // Generate staff_code (A001, A002, etc. for admins)
+    const counterKey = 'staff_code_A';
+    let counter = await base44.asServiceRole.entities.Counter.filter({ key: counterKey }).then(r => r[0]);
+    
+    if (!counter) {
+      counter = await base44.asServiceRole.entities.Counter.create({
+        key: counterKey,
+        current_value: 0
+      });
+    }
+
+    const nextValue = counter.current_value + 1;
+    const staffCode = `A${String(nextValue).padStart(3, '0')}`;
+
+    // Update counter
+    await base44.asServiceRole.entities.Counter.update(counter.id, {
+      current_value: nextValue
+    });
+
     // Create staff account
     const staffAccount = await base44.asServiceRole.entities.StaffAccount.create({
       name: name,
       username: username,
       password_hash: password_hash,
       role: 'admin',
+      staff_code: staffCode,
       is_active: true,
       force_password_change: true,
       designation: 'Administrator',
