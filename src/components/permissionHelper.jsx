@@ -7,15 +7,50 @@
 /**
  * Backward compatibility mapping: old permission keys → new keys
  */
+// Bidirectional legacy key map.
+// OLD → CANONICAL: when code checks an old key, also check the canonical alt in permissions.
+// CANONICAL → OLD: when code checks a new canonical key, also check old key in legacy sessions.
 const LEGACY_PERMISSION_MAP = {
-  attendance: 'attendance_mark',
-  manage_holidays: 'attendance_manage_holidays',
-  override_holidays: 'attendance_override_holiday',
-  marks: 'marks_enter',
-  post_notices: 'post_notices',
-  gallery: 'gallery_upload',
-  quiz: 'quiz_create_edit',
-  fees_reverse_receipt: 'fees_void_receipt',
+  // Old StaffAccount.permissions keys → canonical (supports old sessions with new code)
+  attendance:                   'attendance_mark',
+  manage_holidays:              'attendance_manage_holidays',
+  override_holidays:            'attendance_override_holiday',
+  marks:                        'marks_enter',
+  post_notices:                 'notices_create',
+  gallery:                      'gallery_upload',
+  quiz:                         'quiz_create',
+  quiz_create_edit:             'quiz_create',
+  fees_reverse_receipt:         'fees_void_receipt',       // CRITICAL: old void key
+  fees_apply_charge:            'fees_manage_adhoc_charges', // CRITICAL: old adhoc key
+  fees_view_module:             'fees_view',
+  fees_view_ledger:             'fees_ledger_view',
+  student_admission_permission: 'admissions_review',
+  admissions_view_module:       'admissions_view',
+  attendance_view_module:       'attendance_view',
+  marks_view_module:            'marks_view',
+  notices_view_module:          'notices_view',
+  gallery_view_module:          'gallery_view',
+  quiz_view_module:             'quiz_view',
+
+  // Canonical keys → old keys (supports new code with old legacy sessions)
+  attendance_mark:              'attendance',
+  attendance_manage_holidays:   'manage_holidays',
+  attendance_override_holiday:  'override_holidays',
+  marks_enter:                  'marks',
+  notices_create:               'post_notices',
+  gallery_upload:               'gallery',
+  quiz_create:                  'quiz',
+  fees_void_receipt:            'fees_reverse_receipt',
+  fees_manage_adhoc_charges:    'fees_apply_charge',
+  fees_view:                    'fees_view_module',
+  fees_ledger_view:             'fees_view_ledger',
+  admissions_review:            'student_admission_permission',
+  admissions_view:              'admissions_view_module',
+  attendance_view:              'attendance_view_module',
+  marks_view:                   'marks_view_module',
+  notices_view:                 'notices_view_module',
+  gallery_view:                 'gallery_view_module',
+  quiz_view:                    'quiz_view_module',
 };
 
 /**
@@ -32,17 +67,39 @@ export function isExamStaffRole(role) {
   return (role || '').toLowerCase() === 'exam_staff';
 }
 
+/**
+ * Returns the effective permissions object for a session or staff record.
+ * Prefers effective_permissions (Phase 2+ session format).
+ * Falls back to permissions (legacy session format).
+ * Always returns a plain object — never undefined or null.
+ */
+export function getEffectivePermissions(session) {
+  if (!session) return {};
+  if (session.effective_permissions !== undefined) {
+    return session.effective_permissions || {};
+  }
+  return session.permissions || {};
+}
+
 export function can(user, permissionKey) {
   if (!user) return false;
 
-  // Admin/Principal override (bypass all checks)
+  // Admin/Principal override — bypass all permission checks
   const isAdmin = isAdminRole(user?.role);
   if (isAdmin) return true;
 
-  // Direct permission check
+  // Phase 2+ sessions: check effective_permissions first
+  if (user?.effective_permissions) {
+    if (user.effective_permissions[permissionKey] === true) return true;
+    // Also check if a legacy/alternate key in effective_permissions matches
+    const altKey = LEGACY_PERMISSION_MAP[permissionKey];
+    if (altKey && user.effective_permissions[altKey] === true) return true;
+  }
+
+  // Legacy: direct check on permissions flat object (current session format)
   if (user?.permissions?.[permissionKey] === true) return true;
 
-  // Backward compatibility: map old keys to new ones
+  // Legacy: check via bidirectional key mapping (old session, new canonical key in code)
   const mappedKey = LEGACY_PERMISSION_MAP[permissionKey];
   if (mappedKey && user?.permissions?.[mappedKey] === true) {
     return true;
