@@ -31,6 +31,7 @@ const getBottomNav = (isAdmin, userRole) => {
       { name: 'Attendance', icon: ClipboardCheck, page: 'Attendance' },
       { name: 'Marks',      icon: BookOpen,       page: 'Marks' },
       { name: 'Exams',      icon: Calendar,       page: 'ExamManagement' },
+      { name: 'More',       icon: MoreHorizontal, page: 'More' },
     ];
   }
   return [
