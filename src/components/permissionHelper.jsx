@@ -1,57 +1,8 @@
 /**
- * Permission helper for role-based access control.
- * Checks user permissions against required keys.
- * Supports admin override, legacy fees_reverse_receipt → fees_void_receipt mapping.
+ * Permission helper for role-based access control (Phase 6+).
+ * Checks user permissions against required keys using only effective_permissions.
+ * Supports admin override, no legacy fallbacks.
  */
-
-/**
- * Backward compatibility mapping: old permission keys → new keys
- */
-// Bidirectional legacy key map.
-// OLD → CANONICAL: when code checks an old key, also check the canonical alt in permissions.
-// CANONICAL → OLD: when code checks a new canonical key, also check old key in legacy sessions.
-const LEGACY_PERMISSION_MAP = {
-  // Old StaffAccount.permissions keys → canonical (supports old sessions with new code)
-  attendance:                   'attendance_mark',
-  manage_holidays:              'attendance_manage_holidays',
-  override_holidays:            'attendance_override_holiday',
-  marks:                        'marks_enter',
-  post_notices:                 'notices_create',
-  gallery:                      'gallery_upload',
-  quiz:                         'quiz_create',
-  quiz_create_edit:             'quiz_create',
-  fees_reverse_receipt:         'fees_void_receipt',       // CRITICAL: old void key
-  fees_apply_charge:            'fees_manage_adhoc_charges', // CRITICAL: old adhoc key
-  fees_view_module:             'fees_view',
-  fees_view_ledger:             'fees_ledger_view',
-  student_admission_permission: 'admissions_review',
-  admissions_view_module:       'admissions_view',
-  attendance_view_module:       'attendance_view',
-  marks_view_module:            'marks_view',
-  notices_view_module:          'notices_view',
-  gallery_view_module:          'gallery_view',
-  quiz_view_module:             'quiz_view',
-
-  // Canonical keys → old keys (supports new code with old legacy sessions)
-  attendance_mark:              'attendance',
-  attendance_manage_holidays:   'manage_holidays',
-  attendance_override_holiday:  'override_holidays',
-  marks_enter:                  'marks',
-  notices_create:               'post_notices',
-  gallery_upload:               'gallery',
-  quiz_create:                  'quiz',
-  fees_void_receipt:            'fees_reverse_receipt',
-  fees_manage_adhoc_charges:    'fees_apply_charge',
-  fees_view:                    'fees_view_module',
-  fees_ledger_view:             'fees_view_ledger',
-  admissions_review:            'student_admission_permission',
-  admissions_view:              'admissions_view_module',
-  attendance_view:              'attendance_view_module',
-  marks_view:                   'marks_view_module',
-  notices_view:                 'notices_view_module',
-  gallery_view:                 'gallery_view_module',
-  quiz_view:                    'quiz_view_module',
-};
 
 /**
  * Role checks — centralised so one change propagates everywhere.
@@ -69,16 +20,12 @@ export function isExamStaffRole(role) {
 
 /**
  * Returns the effective permissions object for a session or staff record.
- * Prefers effective_permissions (Phase 2+ session format).
- * Falls back to permissions (legacy session format).
+ * Phase 6+: Only uses effective_permissions (no legacy fallback).
  * Always returns a plain object — never undefined or null.
  */
 export function getEffectivePermissions(session) {
   if (!session) return {};
-  if (session.effective_permissions !== undefined) {
-    return session.effective_permissions || {};
-  }
-  return session.permissions || {};
+  return session.effective_permissions || {};
 }
 
 export function can(user, permissionKey) {
@@ -88,20 +35,8 @@ export function can(user, permissionKey) {
   const isAdmin = isAdminRole(user?.role);
   if (isAdmin) return true;
 
-  // Phase 2+ sessions: check effective_permissions first
-  if (user?.effective_permissions) {
-    if (user.effective_permissions[permissionKey] === true) return true;
-    // Also check if a legacy/alternate key in effective_permissions matches
-    const altKey = LEGACY_PERMISSION_MAP[permissionKey];
-    if (altKey && user.effective_permissions[altKey] === true) return true;
-  }
-
-  // Legacy: direct check on permissions flat object (current session format)
-  if (user?.permissions?.[permissionKey] === true) return true;
-
-  // Legacy: check via bidirectional key mapping (old session, new canonical key in code)
-  const mappedKey = LEGACY_PERMISSION_MAP[permissionKey];
-  if (mappedKey && user?.permissions?.[mappedKey] === true) {
+  // Phase 6+: Check only effective_permissions (no legacy fallback)
+  if (user?.effective_permissions && user.effective_permissions[permissionKey] === true) {
     return true;
   }
 
@@ -110,11 +45,12 @@ export function can(user, permissionKey) {
 
 /**
  * Gets default permissions object for a new staff member.
+ * Phase 6+: Only canonical permission keys (no legacy keys).
  * Used when creating staff accounts to ensure all keys are present.
  */
 export const DEFAULT_PERMISSIONS = {
   // ===== ATTENDANCE =====
-  attendance_view_module: false,
+  attendance_view: false,
   attendance_mark: false,
   attendance_view_summary: false,
   attendance_manage_holidays: false,
@@ -122,36 +58,36 @@ export const DEFAULT_PERMISSIONS = {
   attendance_needs_approval: true,
 
   // ===== MARKS =====
-  marks_view_module: false,
+  marks_view: false,
   marks_enter: false,
   marks_publish: false,
   marks_needs_approval: true,
 
   // ===== NOTICES =====
-  notices_view_module: false,
-  post_notices: false,
+  notices_view: false,
+  notices_create: false,
   notices_approve: false,
   notices_needs_approval: true,
 
   // ===== GALLERY =====
-  gallery_view_module: false,
+  gallery_view: false,
   gallery_upload: false,
   gallery_approve: false,
   gallery_needs_approval: true,
 
   // ===== QUIZ =====
-  quiz_view_module: false,
-  quiz_create_edit: false,
+  quiz_view: false,
+  quiz_create: false,
   quiz_publish: false,
   quiz_needs_approval: true,
 
   // ===== ADMISSIONS =====
-  admissions_view_module: false,
-  student_admission_permission: false,
+  admissions_view: false,
+  admissions_review: false,
 
   // ===== FEES MODULE =====
-  fees_view_module: false,
-  fees_view_ledger: false,
+  fees_view: false,
+  fees_ledger_view: false,
   fees_record_payment: false,
   fees_void_receipt: false,
   fees_print_receipt: false,
@@ -171,17 +107,6 @@ export const DEFAULT_PERMISSIONS = {
   fee_reports_discount: false,
   fee_reports_student_ledger: false,
   fee_reports_export: false,
-
-  // ===== LEGACY (for backward compatibility) =====
-  attendance: false,
-  manage_holidays: false,
-  override_holidays: false,
-  marks: false,
-  gallery: false,
-  quiz: false,
-  fees_reverse_receipt: false,
-  fees_apply_charge: false,
-  fees_view_parent_statement: false,
 };
 
 /**
