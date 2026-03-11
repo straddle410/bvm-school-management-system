@@ -327,6 +327,7 @@ export default function DayBookReport() {
                         const range = getDateRange(key);
                         setDateFrom(range.from);
                         setDateTo(range.to);
+                        setApplied(prev => ({ ...prev, dateFrom: range.from, dateTo: range.to }));
                       }}
                       className="px-3 py-1.5 text-sm rounded-md border border-[#1a237e]/30 bg-white hover:bg-[#1a237e] hover:text-white text-slate-700 font-medium transition-all"
                     >
