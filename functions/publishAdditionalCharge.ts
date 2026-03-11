@@ -65,8 +65,8 @@ Deno.serve(async (req) => {
     let created = 0;
     let skipped = 0;
 
-    // Batch create invoices (avoid sequential await)
-    const invoicesToCreate = students
+    // Create invoices with batch limit to avoid timeouts
+    const invoiceData = students
       .filter(student => !alreadyHasInvoice.has(student.student_id))
       .map(student => ({
         academic_year: charge.academic_year,
@@ -95,11 +95,17 @@ Deno.serve(async (req) => {
         generated_by: staffSession.email || 'system'
       }));
 
-    skipped = students.length - invoicesToCreate.length;
-    
-    if (invoicesToCreate.length > 0) {
-      await base44.asServiceRole.entities.FeeInvoice.bulkCreate(invoicesToCreate);
-      created = invoicesToCreate.length;
+    skipped = students.length - invoiceData.length;
+    created = 0;
+
+    // Create in batches of 20 to avoid timeout
+    const BATCH_SIZE = 20;
+    for (let i = 0; i < invoiceData.length; i += BATCH_SIZE) {
+      const batch = invoiceData.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(data => base44.asServiceRole.entities.FeeInvoice.create(data))
+      );
+      created += batch.length;
     }
 
     // Update charge status and counts
