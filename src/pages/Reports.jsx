@@ -124,7 +124,7 @@ export default function Reports() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Academic Reports">
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <PageHeader 
         title="Reports"
         subtitle="Analytics and insights"
@@ -137,7 +137,7 @@ export default function Reports() {
 
       <div className="p-4 lg:p-8">
         <Tabs defaultValue="overview">
-          <TabsList className="bg-white border shadow-sm mb-6">
+          <TabsList className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-sm mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="academics">Academics</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
@@ -147,56 +147,56 @@ export default function Reports() {
           <TabsContent value="overview" className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                      <Users className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Active Students</p>
-                      <p className="text-2xl font-bold">{students.length}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center">
-                      <BookOpen className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Exams Conducted</p>
-                      <p className="text-2xl font-bold">{examTypes.filter(e => e.status === 'Published').length}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Avg. Performance</p>
-                      <p className="text-2xl font-bold">
-                        {Math.round(marks.reduce((sum, m) => sum + (m.marks_obtained / m.max_marks * 100), 0) / marks.length) || 0}%
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                      <BarChart3 className="h-6 w-6 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Attendance Rate</p>
-                      <p className="text-2xl font-bold">
+              <Card className="border-0 shadow-sm dark:bg-gray-800">
+                 <CardContent className="pt-6">
+                   <div className="flex items-center gap-4">
+                     <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                       <Users className="h-6 w-6 text-blue-600" />
+                     </div>
+                     <div>
+                       <p className="text-sm text-slate-500 dark:text-gray-400">Active Students</p>
+                       <p className="text-2xl font-bold dark:text-white">{students.length}</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+               <Card className="border-0 shadow-sm dark:bg-gray-800">
+                 <CardContent className="pt-6">
+                   <div className="flex items-center gap-4">
+                     <div className="h-12 w-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                       <BookOpen className="h-6 w-6 text-green-600" />
+                     </div>
+                     <div>
+                       <p className="text-sm text-slate-500 dark:text-gray-400">Exams Conducted</p>
+                       <p className="text-2xl font-bold dark:text-white">{examTypes.filter(e => e.status === 'Published').length}</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+               <Card className="border-0 shadow-sm dark:bg-gray-800">
+                 <CardContent className="pt-6">
+                   <div className="flex items-center gap-4">
+                     <div className="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                       <TrendingUp className="h-6 w-6 text-purple-600" />
+                     </div>
+                     <div>
+                       <p className="text-sm text-slate-500 dark:text-gray-400">Avg. Performance</p>
+                       <p className="text-2xl font-bold dark:text-white">
+                         {Math.round(marks.reduce((sum, m) => sum + (m.marks_obtained / m.max_marks * 100), 0) / marks.length) || 0}%
+                       </p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+               <Card className="border-0 shadow-sm dark:bg-gray-800">
+                 <CardContent className="pt-6">
+                   <div className="flex items-center gap-4">
+                     <div className="h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                       <BarChart3 className="h-6 w-6 text-amber-600" />
+                     </div>
+                     <div>
+                       <p className="text-sm text-slate-500 dark:text-gray-400">Attendance Rate</p>
+                       <p className="text-2xl font-bold dark:text-white">
                         {(() => { const overrideSet = new Set(overrides.map(o => o.date)); const working = attendance.filter(a => { const isHolidayRecord = (a.attendance_type === 'holiday' || a.status === 'Holiday') && !overrideSet.has(a.date); return !isHolidayRecord; }); const presentCount = working.reduce((sum, a) => sum + (a.attendance_type === 'half_day' ? 0.5 : (a.is_present ? 1 : 0)), 0); return working.length > 0 ? Math.round((presentCount / working.length) * 100) : 0; })()}%
                       </p>
                     </div>
@@ -207,9 +207,9 @@ export default function Reports() {
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Class-wise Students</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Class-wise Students</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -224,9 +224,9 @@ export default function Reports() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Grade Distribution</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Grade Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -255,7 +255,7 @@ export default function Reports() {
 
           <TabsContent value="academics" className="space-y-6">
             {/* Filters */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-4">
                 <div className="flex gap-4">
                   <Select value={selectedClass} onValueChange={setSelectedClass}>
@@ -284,9 +284,9 @@ export default function Reports() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader>
-                <CardTitle className="text-lg">Subject-wise Performance</CardTitle>
+                <CardTitle className="text-lg dark:text-white">Subject-wise Performance</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
@@ -304,9 +304,9 @@ export default function Reports() {
 
           <TabsContent value="attendance" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Overall Attendance</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Overall Attendance</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -331,26 +331,26 @@ export default function Reports() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Attendance Summary</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Attendance Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-                    <span className="font-medium text-green-700">Total Present</span>
-                    <span className="text-2xl font-bold text-green-700">
+                  <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                    <span className="font-medium text-green-700 dark:text-green-400">Total Present</span>
+                    <span className="text-2xl font-bold text-green-700 dark:text-green-400">
                       {attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday' && a.is_present).length}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl">
-                    <span className="font-medium text-red-700">Total Absent</span>
-                    <span className="text-2xl font-bold text-red-700">
+                  <div className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                    <span className="font-medium text-red-700 dark:text-red-400">Total Absent</span>
+                    <span className="text-2xl font-bold text-red-700 dark:text-red-400">
                       {attendance.filter(a => a.attendance_type !== 'holiday' && a.status !== 'Holiday' && !a.is_present).length}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
-                    <span className="font-medium text-blue-700">Total Records</span>
-                    <span className="text-2xl font-bold text-blue-700">
+                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <span className="font-medium text-blue-700 dark:text-blue-400">Total Records</span>
+                    <span className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                       {attendance.length}
                     </span>
                   </div>
