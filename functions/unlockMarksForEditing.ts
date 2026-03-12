@@ -44,12 +44,16 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.Marks.update(m.id, { status: 'Draft' })
     ));
 
+    // Get authenticated user email for audit log
+    const authenticatedUser = await base44.auth.me().catch(() => null);
+    const performedBy = authenticatedUser?.email || user.email || 'system';
+
     // Audit log for unlock action
     await base44.asServiceRole.entities.AuditLog.create({
       action: 'marks_unlocked',
       module: 'Marks',
       date: new Date().toISOString().split('T')[0],
-      performed_by: user.email,
+      performed_by: performedBy,
       details: JSON.stringify({
         records_unlocked: marksToUnlock.length,
         marks_ids: marksIds,
@@ -59,7 +63,7 @@ Deno.serve(async (req) => {
         academic_year: academicYear || '',
         status_transition: 'Submitted/Verified/Approved → Draft',
         timestamp: new Date().toISOString(),
-        unlocked_by_email: user.email
+        unlocked_by_email: performedBy
       }),
       academic_year: academicYear || ''
     });
