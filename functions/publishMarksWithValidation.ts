@@ -114,14 +114,12 @@ Deno.serve(async (req) => {
       academic_year: academicYear
     });
 
-    // Publish
+    // Publish - update all marks with single bulk operation
     console.log('[publishMarksWithValidation] All validations passed. Publishing now...');
-    const updateResults = await Promise.all(marksIds.map(id =>
-      base44.asServiceRole.entities.Marks.update(id, {
-        status: 'Published'
-      })
+    await Promise.all(marksIds.map(id =>
+      base44.asServiceRole.entities.Marks.update(id, { status: 'Published' })
     ));
-    console.log('[publishMarksWithValidation] Update completed for', updateResults.length, 'marks');
+    console.log('[publishMarksWithValidation] Update completed for', marksIds.length, 'marks');
 
     const response = {
       success: true,
