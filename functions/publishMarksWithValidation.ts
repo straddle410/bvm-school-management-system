@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       action: 'marks_published',
       module: 'Marks',
       date: new Date().toISOString().split('T')[0],
-      performed_by: user.email,
+      performed_by: staffInfo.email || 'system',
       details: JSON.stringify({
         exam_type: examType,
         class_name: className,
