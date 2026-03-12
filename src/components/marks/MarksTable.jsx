@@ -66,8 +66,8 @@ export default function MarksTable({
             return (
               <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}>
                  <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 font-medium text-slate-700 text-center sticky left-0 z-10 text-xs ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.roll_no || '—'}</td>
-                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-slate-600 text-xs md:text-sm sticky left-6 md:left-16 z-10 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.student_id}</td>
-                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 font-medium text-slate-900 text-xs md:text-sm sticky left-16 md:left-40 z-10 max-w-24 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.name}</td>
+                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-slate-600 dark:text-gray-400 text-xs md:text-sm sticky left-6 md:left-16 z-10 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.student_id}</td>
+                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 font-medium text-slate-900 dark:text-gray-200 text-xs md:text-sm sticky left-16 md:left-40 z-10 max-w-24 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.name || student.student_id}</td>
                 {subjects.map((subject, subjectIdx) => {
                   const marks = marksData[studentId]?.[subject]?.marks_obtained;
                   const status = getMarkStatus(marks);
@@ -93,8 +93,8 @@ export default function MarksTable({
                            }}
                            onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
                            disabled={isLocked}
-                           className={`w-10 md:w-14 text-center text-xs md:text-sm font-semibold border-0 bg-transparent px-0.5 md:px-1 py-0.5 md:py-1 ${
-                             status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                           className={`w-10 md:w-14 text-center text-xs md:text-sm font-semibold border-0 bg-transparent dark:bg-gray-700 px-0.5 md:px-1 py-0.5 md:py-1 ${
+                             status === 'pass' ? 'text-green-700 dark:text-green-400' : status === 'fail' ? 'text-red-700 dark:text-red-400' : 'text-slate-700 dark:text-gray-300'
                            } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                            placeholder="—"
                          />
@@ -114,10 +114,10 @@ export default function MarksTable({
                   });
                   return (
                     <td className="border border-slate-200 px-1 md:px-3 py-1 md:py-2 text-center min-w-16 bg-slate-100 dark:bg-gray-700">
-                      <span className="text-xs md:text-sm font-bold text-slate-800">
-                        {hasAny ? total : '—'}
-                      </span>
-                    </td>
+                       <span className="text-xs md:text-sm font-bold text-slate-800 dark:text-gray-200">
+                         {hasAny ? total : '—'}
+                       </span>
+                     </td>
                   );
                 })()}
               </tr>

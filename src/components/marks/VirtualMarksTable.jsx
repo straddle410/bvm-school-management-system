@@ -78,11 +78,11 @@ export default function VirtualMarksTable({
                   <td className={`border border-slate-200 px-2 py-2 font-medium text-slate-700 text-center sticky left-0 w-12 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
                     {student.roll_no || '—'}
                   </td>
-                  <td className={`border border-slate-200 px-2 py-2 text-slate-600 text-xs sticky left-12 w-16 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
+                  <td className={`border border-slate-200 px-2 py-2 text-slate-600 dark:text-gray-400 text-xs sticky left-12 w-16 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
                     {student.student_id}
                   </td>
-                  <td className={`border border-slate-200 px-2 py-2 font-medium text-slate-900 text-xs sticky left-28 w-32 truncate ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
-                    {student.name}
+                  <td className={`border border-slate-200 px-2 py-2 font-medium text-slate-900 dark:text-gray-200 text-xs sticky left-28 w-32 truncate ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
+                    {student.name || student.student_id}
                   </td>
                   {subjects.map((subject, subjectIdx) => {
                     const marks = marksData[studentId]?.[subject]?.marks_obtained;
@@ -109,8 +109,8 @@ export default function VirtualMarksTable({
                             }}
                             onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
                             disabled={isLocked}
-                            className={`w-14 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 ${
-                              status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                            className={`w-14 text-center text-xs font-semibold border-0 bg-transparent dark:bg-gray-700 px-0.5 py-0.5 ${
+                              status === 'pass' ? 'text-green-700 dark:text-green-400' : status === 'fail' ? 'text-red-700 dark:text-red-400' : 'text-slate-700 dark:text-gray-300'
                             } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                             placeholder="—"
                           />
@@ -119,7 +119,7 @@ export default function VirtualMarksTable({
                     );
                   })}
                   <td className="border border-slate-200 px-2 py-1 text-center w-16 bg-slate-100 dark:bg-gray-700">
-                    <span className="text-xs font-bold text-slate-800">
+                    <span className="text-xs font-bold text-slate-800 dark:text-gray-200">
                       {(() => {
                         const total = subjects.reduce((sum, subject) => {
                           const m = marksData[studentId]?.[subject]?.marks_obtained;
