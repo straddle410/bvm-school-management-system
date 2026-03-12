@@ -37,7 +37,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
     queryKey: ['student-fee-discounts-all', academicYear],
     queryFn: () => base44.entities.StudentFeeDiscount.filter({ academic_year: academicYear }),
     enabled: !!academicYear,
-    staleTime: 5 * 60 * 1000
+    staleTime: 0
   });
 
   // Apply pagination after fetching all (for filtering/search)
@@ -123,6 +123,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
        queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
        queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
        queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
+       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts-all', academicYear] });
       toast.success(data?.action === 'updated' ? 'Discount updated' : 'Discount set');
       closeDialog();
     },
