@@ -149,7 +149,7 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [],
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-3">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 space-y-3">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <select value={filterClass} onChange={e => { setFilterClass(e.target.value); setFilterSection(''); setFilterHomework(''); }}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
@@ -187,23 +187,23 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [],
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-x-auto">
         {rows.length === 0 ? (
           <p className="text-center text-gray-400 py-12 text-sm">No data for the selected filters.</p>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Student</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">ID</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Class</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Homework</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Subject</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Eff. Due</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Status</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Marks</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Max</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Remark</th>
+              <tr className="border-b border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Student</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">ID</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Class</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Homework</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Subject</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Eff. Due</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Status</th>
+                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Marks</th>
+                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Max</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Remark</th>
               </tr>
             </thead>
             <tbody>
@@ -251,7 +251,7 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [],
 
       {/* Per-student totals */}
       {rows.length > 0 && studentTotals.size > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-x-auto">
           <div className="px-4 py-3 border-b border-gray-100">
             <h3 className="font-semibold text-sm text-slate-800">Per-Student Totals</h3>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -261,12 +261,12 @@ export default function HomeworkReportTab({ homeworkList = [], submissions = [],
           </div>
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Student</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600">ID</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600">Total Awarded</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600">Total Max</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600">Percentage</th>
+              <tr className="border-b border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300">Student</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300">ID</th>
+                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300">Total Awarded</th>
+                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300">Total Max</th>
+                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 dark:text-gray-300">Percentage</th>
               </tr>
             </thead>
             <tbody>

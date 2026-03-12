@@ -52,7 +52,7 @@ export default function VirtualMarksTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto border rounded-lg bg-white">
+      <div className="overflow-x-auto border rounded-lg bg-white dark:bg-gray-900">
         <table className="w-full border-collapse text-sm" style={{ tableLayout: 'fixed' }}>
           <thead>
             <tr className="bg-slate-800 text-white sticky top-0 z-20">
@@ -74,14 +74,14 @@ export default function VirtualMarksTable({
               const studentId = student.student_id || student.id;
               const globalIdx = currentPage * PAGE_SIZE + idx;
               return (
-                <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                  <td className="border border-slate-200 px-2 py-2 font-medium text-slate-700 text-center sticky left-0 w-12" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>
+                <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}>
+                  <td className={`border border-slate-200 px-2 py-2 font-medium text-slate-700 text-center sticky left-0 w-12 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
                     {student.roll_no || '—'}
                   </td>
-                  <td className="border border-slate-200 px-2 py-2 text-slate-600 text-xs sticky left-12 w-16" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>
+                  <td className={`border border-slate-200 px-2 py-2 text-slate-600 text-xs sticky left-12 w-16 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
                     {student.student_id}
                   </td>
-                  <td className="border border-slate-200 px-2 py-2 font-medium text-slate-900 text-xs sticky left-28 w-32 truncate" style={{backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff'}}>
+                  <td className={`border border-slate-200 px-2 py-2 font-medium text-slate-900 text-xs sticky left-28 w-32 truncate ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
                     {student.name}
                   </td>
                   {subjects.map((subject, subjectIdx) => {
@@ -118,7 +118,7 @@ export default function VirtualMarksTable({
                       </td>
                     );
                   })}
-                  <td className="border border-slate-200 px-2 py-1 text-center w-16 bg-slate-100">
+                  <td className="border border-slate-200 px-2 py-1 text-center w-16 bg-slate-100 dark:bg-gray-700">
                     <span className="text-xs font-bold text-slate-800">
                       {(() => {
                         const total = subjects.reduce((sum, subject) => {

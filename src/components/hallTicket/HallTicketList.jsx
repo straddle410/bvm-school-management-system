@@ -208,24 +208,24 @@ export default function HallTicketList() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-100">
-                  <th className="p-2 text-left">
-                    <Checkbox
-                      checked={selected.length === hallTickets.length && hallTickets.length > 0}
-                      onCheckedChange={(checked) => setSelected(checked ? hallTickets.map(t => t.id) : [])}
-                    />
-                  </th>
-                  <th className="p-2 text-left">Hall Ticket No</th>
-                  <th className="p-2 text-left">Student Name</th>
-                  <th className="p-2 text-left">Roll No</th>
-                  <th className="p-2 text-left">Class</th>
-                  <th className="p-2 text-left">Status</th>
-                  <th className="p-2 text-left">Action</th>
+                <tr className="bg-slate-100 dark:bg-gray-700">
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">
+                   <Checkbox
+                     checked={selected.length === hallTickets.length && hallTickets.length > 0}
+                     onCheckedChange={(checked) => setSelected(checked ? hallTickets.map(t => t.id) : [])}
+                   />
+                 </th>
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">Hall Ticket No</th>
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">Student Name</th>
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">Roll No</th>
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">Class</th>
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">Status</th>
+                 <th className="p-2 text-left text-gray-700 dark:text-gray-200">Action</th>
                 </tr>
               </thead>
               <tbody>
                  {paginatedTickets.map(ticket => (
-                   <tr key={ticket.id} className="border-b hover:bg-slate-50">
+                   <tr key={ticket.id} className="border-b hover:bg-slate-50 dark:hover:bg-gray-700/50">
                      <td className="p-2">
                        <Checkbox
                          checked={selected.includes(ticket.id)}

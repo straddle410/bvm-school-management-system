@@ -144,7 +144,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
             <Card><CardContent className="py-8 text-center text-slate-400">No annual invoice generated for this student yet.</CardContent></Card>
           ) : (
             <Card className="border-0 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-slate-50 flex items-center justify-between">
+              <div className="px-4 py-3 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-slate-800">Annual Fee</span>
                   {invoice.due_date && <span className="ml-2 text-xs text-slate-500">Due: {invoice.due_date}</span>}
@@ -160,10 +160,10 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left pb-1.5 text-slate-500 font-medium text-xs">Fee Head</th>
-                        <th className="text-right pb-1.5 text-slate-500 font-medium text-xs">Gross</th>
-                        {invoice.discount_total > 0 && <th className="text-right pb-1.5 text-slate-500 font-medium text-xs">Discount</th>}
-                        <th className="text-right pb-1.5 text-slate-500 font-medium text-xs">Net</th>
+                        <th className="text-left pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Fee Head</th>
+                        <th className="text-right pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Gross</th>
+                        {invoice.discount_total > 0 && <th className="text-right pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Discount</th>}
+                        <th className="text-right pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Net</th>
                       </tr>
                     </thead>
                     <tbody>

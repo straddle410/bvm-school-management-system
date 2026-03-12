@@ -334,8 +334,8 @@ export default function TimetableManager() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-100">
-                  <th className="p-2 text-left w-8">
+                <tr className="bg-slate-100 dark:bg-gray-700">
+                  <th className="p-2 text-left w-8 text-gray-700 dark:text-gray-200">
                     <input 
                       type="checkbox" 
                       checked={selectedEntries.length === displayedTimetable.length && displayedTimetable.length > 0}
@@ -343,19 +343,19 @@ export default function TimetableManager() {
                       className="w-4 h-4 cursor-pointer"
                     />
                   </th>
-                  <th className="p-2 text-left">Class</th>
-                  <th className="p-2 text-left">Subject</th>
-                  <th className="p-2 text-left">Exam Type</th>
-                  <th className="p-2 text-left">Date</th>
-                  <th className="p-2 text-left">Day</th>
-                  <th className="p-2 text-left">Time</th>
-                  <th className="p-2 text-left">Room</th>
-                  <th className="p-2 text-left">Action</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Class</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Subject</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Exam Type</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Date</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Day</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Time</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Room</th>
+                  <th className="p-2 text-left text-gray-700 dark:text-gray-200">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedTimetable.map(entry => (
-                  <tr key={entry.id} className={`border-b hover:bg-slate-50 ${selectedEntries.includes(entry.id) ? 'bg-blue-50' : ''}`}>
+                  <tr key={entry.id} className={`border-b hover:bg-slate-50 dark:hover:bg-gray-700/50 ${selectedEntries.includes(entry.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''}`}>
                     <td className="p-2 w-8">
                       <input 
                         type="checkbox" 

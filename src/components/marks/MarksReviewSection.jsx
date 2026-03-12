@@ -70,16 +70,16 @@ export default function MarksReviewSection({
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                      <th className="text-center p-2 font-semibold text-slate-700 w-16">Roll No</th>
-                      <th className="text-left p-2 font-semibold text-slate-700 w-16">Rank</th>
-                      <th className="text-left p-2 font-semibold text-slate-700 min-w-40">Student Name</th>
+                    <tr className="border-b border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700">
+                      <th className="text-center p-2 font-semibold text-slate-700 dark:text-gray-200 w-16">Roll No</th>
+                      <th className="text-left p-2 font-semibold text-slate-700 dark:text-gray-200 w-16">Rank</th>
+                      <th className="text-left p-2 font-semibold text-slate-700 dark:text-gray-200 min-w-40">Student Name</th>
                       {group.subjects.map(subject => (
-                        <th key={subject} className="text-center p-2 font-semibold text-slate-700 min-w-24">
+                        <th key={subject} className="text-center p-2 font-semibold text-slate-700 dark:text-gray-200 min-w-24">
                           {subject}
                         </th>
                       ))}
-                      <th className="text-center p-2 font-semibold text-slate-700 w-20">Total</th>
+                      <th className="text-center p-2 font-semibold text-slate-700 dark:text-gray-200 w-20">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -93,7 +93,7 @@ export default function MarksReviewSection({
                       return sorted.map((student) => (
                         <tr key={student.student_id} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="text-center p-2 text-slate-700">{student.roll_no || '-'}</td>
-                          <td className="p-2 font-semibold text-slate-700">{student.rank}</td>
+                          <td className="p-2 font-semibold text-slate-700 dark:text-gray-200">{student.rank}</td>
                           <td className="p-2">{student.student_name}</td>
                           {group.subjects.map(subject => {
                             const mark = student.subjects[subject];
@@ -103,7 +103,7 @@ export default function MarksReviewSection({
                               </td>
                             );
                           })}
-                          <td className="text-center p-2 font-semibold text-slate-700">{student.total}</td>
+                          <td className="text-center p-2 font-semibold text-slate-700 dark:text-gray-200">{student.total}</td>
                         </tr>
                       ));
                     })()}

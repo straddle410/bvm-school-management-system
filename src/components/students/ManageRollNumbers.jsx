@@ -274,15 +274,15 @@ export default function ManageRollNumbers({ open, onClose, academicYear }) {
             ) : (
               <div className="border rounded-xl overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                     <tr>
-                      <th className="text-left px-3 py-2 text-xs text-gray-500 font-medium">Name</th>
-                      <th className="text-left px-3 py-2 text-xs text-gray-500 font-medium w-24">Roll No</th>
+                      <th className="text-left px-3 py-2 text-xs text-gray-500 dark:text-gray-400 font-medium">Name</th>
+                      <th className="text-left px-3 py-2 text-xs text-gray-500 dark:text-gray-400 font-medium w-24">Roll No</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y dark:divide-gray-700">
                     {students.map(s => (
-                      <tr key={s.id} className="hover:bg-gray-50">
+                      <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-3 py-2">
                           <p className="font-medium text-gray-800">{s.name}</p>
                           <p className="text-xs text-gray-400">{s.student_id}</p>
