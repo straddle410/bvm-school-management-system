@@ -561,12 +561,7 @@ export default function Marks() {
       console.log('[PUBLISH_MUTATION] groupData.exam_type (UUID):', groupData?.exam_type);
       console.log('[PUBLISH_MUTATION] groupData.exam_name:', groupData?.exam_name);
 
-      const res = await base44.functions.invoke('publishMarksWithValidation', { 
-        ...payload, 
-        staffInfo: user,
-        performed_by: user?.id || user?.email,
-        performed_by_name: user?.full_name || user?.name || user?.email
-      });
+      const res = await base44.functions.invoke('publishMarksWithValidation', { ...payload, staffInfo: user });
 
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to publish marks');
