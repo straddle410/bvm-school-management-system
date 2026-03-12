@@ -46,7 +46,7 @@ const TabLoadingSpinner = () => (
 );
 
 // ─── Mark Attendance Tab ──────────────────────────────────────────────────────
-function MarkAttendanceTab({ user, academicYear, isAdmin }) {
+function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
   const todayDate = format(new Date(), 'yyyy-MM-dd');
   const [selectedDate, setSelectedDate] = useState(isAdmin ? '' : todayDate);
   const [selectedClass, setSelectedClass] = useState('');
@@ -132,10 +132,12 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear })
   });
 
+  // Filter holidays for current working date from parent-level holidays data
+  const isMarkedHoliday = holidays.some(h => h.date === workingDate && h.status === 'Active');
+
   // Phase 5: Use can() helper with effective permissions
   const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
   const canOverrideHoliday = can(userWithPerms, 'attendance_override_holiday');
-  const isMarkedHoliday = holidays.length > 0;
   const hasOverride = overrides.length > 0;
   const canManageHolidays = isAdmin || can(userWithPerms, 'attendance_manage_holidays');
   // Single source of truth for holiday override state
@@ -644,7 +646,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 }
 
 // ─── Attendance Summary Tab ───────────────────────────────────────────────────
-function AttendanceSummaryTab({ academicYear, user }) {
+function AttendanceSummaryTab({ academicYear, user, holidays }) {
   const [filters, setFilters] = useState({ class: '', section: '', fromDate: '', toDate: '' });
 
   const { data: classSectionData } = useQuery({
@@ -686,27 +688,14 @@ function AttendanceSummaryTab({ academicYear, user }) {
     enabled: hasGenerated && !!filters.class && !!filters.fromDate && !!filters.toDate
   });
 
-  // Combined holiday data fetch (reduces API calls from 2 to 1)
-  const { data: holidayData = { holidays: [], overrides: [] } } = useQuery({
-    queryKey: ['holidays-combined', filters.fromDate, filters.toDate, filters.class, filters.section, academicYear],
-    queryFn: async () => {
-      if (!filters.fromDate || !filters.toDate) return { holidays: [], overrides: [] };
-      
-      const [allHolidays, allOverrides] = await Promise.all([
-        base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear }),
-        base44.entities.HolidayOverride.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear })
-      ]);
-      
-      return {
-        holidays: allHolidays.filter(h => h.date >= filters.fromDate && h.date <= filters.toDate).slice(0, 500),
-        overrides: allOverrides.filter(o => o.date >= filters.fromDate && o.date <= filters.toDate).slice(0, 500)
-      };
-    },
-    enabled: hasGenerated && !!filters.fromDate && !!filters.toDate && !!filters.class && !!filters.section
+  // Fetch holiday overrides for summary report
+  const { data: overrideData = [] } = useQuery({
+    queryKey: ['holiday-overrides-summary', filters.class, filters.section, academicYear],
+    queryFn: () => base44.entities.HolidayOverride.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear }),
+    enabled: hasGenerated && !!filters.class && !!filters.section
   });
 
-  const holidays = holidayData.holidays;
-  const overrides = holidayData.overrides;
+  const overrides = overrideData;
 
   const reportData = useMemo(() => {
     if (!hasGenerated || students.length === 0) return [];
@@ -934,6 +923,14 @@ export default function Attendance() {
     setUser(getStaffSession());
   }, []);
 
+  // Single holidays query shared by both tabs
+  const { data: holidays = [] } = useQuery({
+    queryKey: ['holidays', academicYear],
+    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear }),
+    enabled: !!academicYear,
+    staleTime: 10 * 60 * 1000 // Cache for 10 mins
+  });
+
   const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
   const isExamStaff = (user?.role || '').toLowerCase() === 'exam_staff';
   // exam_staff can access snapshot + summary but NOT holidays management
@@ -963,7 +960,7 @@ export default function Attendance() {
             </TabsList>
 
             <TabsContent value="mark">
-              <MarkAttendanceTab user={user} academicYear={academicYear} isAdmin={isAdmin} />
+              <MarkAttendanceTab user={user} academicYear={academicYear} isAdmin={isAdmin} holidays={holidays} />
             </TabsContent>
 
             {canViewReports && (
@@ -976,7 +973,7 @@ export default function Attendance() {
 
             {canViewReports && (
               <TabsContent value="summary">
-                <AttendanceSummaryTab academicYear={academicYear} user={user} />
+                <AttendanceSummaryTab academicYear={academicYear} user={user} holidays={holidays} />
               </TabsContent>
             )}
 
