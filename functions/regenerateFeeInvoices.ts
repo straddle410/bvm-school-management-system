@@ -63,15 +63,18 @@ function applyDiscount(feeItems, grossTotal, discount) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const { className, academicYear, studentIds, staffInfo } = await req.json();
 
-    const role = (user.role || '').toLowerCase();
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
+    }
+
+    const role = (staffInfo.role || '').toLowerCase();
     if (role !== 'admin' && role !== 'principal') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { className, academicYear, studentIds } = await req.json();
+    const user = staffInfo;
     if (!className || !academicYear) {
       return Response.json({ error: 'className and academicYear required' }, { status: 400 });
     }

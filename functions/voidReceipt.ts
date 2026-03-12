@@ -12,26 +12,24 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const { paymentId, reason, staffInfo } = await req.json();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
 
-    const userRole = user.role?.toLowerCase();
+    const user = staffInfo;
+    const userRole = (staffInfo.role || '').toLowerCase();
     const isAdmin = ['admin', 'principal'].includes(userRole);
 
     // Non-admins need the fees_reverse_receipt permission
     if (!isAdmin) {
-      const staffAccounts = await base44.asServiceRole.entities.StaffAccount.filter({ email: user.email });
-      const staffAccount = staffAccounts?.[0];
+      const staffAccount = await base44.asServiceRole.entities.StaffAccount.get(staffInfo.staff_id);
       const hasPermission = staffAccount?.permissions?.fees_reverse_receipt === true;
       if (!hasPermission) {
         return Response.json({ error: 'Forbidden: You do not have permission to void receipts' }, { status: 403 });
       }
     }
-
-    const { paymentId, reason } = await req.json();
     if (!paymentId) return Response.json({ error: 'paymentId is required' }, { status: 400 });
     if (!reason?.trim()) return Response.json({ error: 'Void reason is required' }, { status: 400 });
 

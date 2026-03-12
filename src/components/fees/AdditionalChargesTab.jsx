@@ -79,7 +79,7 @@ export default function AdditionalChargesTab({ academicYear, isArchived }) {
   });
 
   const publishMutation = useMutation({
-    mutationFn: (chargeId) => base44.functions.invoke('publishAdditionalCharge', { chargeId }).then(r => r.data),
+    mutationFn: (chargeId) => base44.functions.invoke('publishAdditionalCharge', { chargeId, staffInfo: user }).then(r => r.data),
     onSuccess: (data) => {
       toast.success(`Published! ${data.created} invoices created, ${data.skipped} skipped.`);
       qc.invalidateQueries({ queryKey: ['additional-charges', academicYear] });
@@ -92,7 +92,7 @@ export default function AdditionalChargesTab({ academicYear, isArchived }) {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (chargeId) => base44.functions.invoke('cancelAdditionalCharge', { chargeId }).then(r => r.data),
+    mutationFn: (chargeId) => base44.functions.invoke('cancelAdditionalCharge', { chargeId, staffInfo: user }).then(r => r.data),
     onSuccess: () => {
       toast.success('Charge cancelled');
       qc.invalidateQueries({ queryKey: ['additional-charges', academicYear] });

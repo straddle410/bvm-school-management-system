@@ -27,7 +27,7 @@ export default function InvoiceRegenerator({ academicYear }) {
 
   const regenerateMutation = useMutation({
     mutationFn: ({ className, studentIds }) =>
-      base44.functions.invoke('regenerateFeeInvoices', { className, academicYear, studentIds }),
+      base44.functions.invoke('regenerateFeeInvoices', { className, academicYear, studentIds, staffInfo }),
     onSuccess: (res) => {
       const msg = res.data?.message || `Regenerated invoices`;
       toast.success(msg);

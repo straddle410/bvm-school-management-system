@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getStaffSession } from '@/components/useStaffSession';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 export default function VoidModal({ payment, onClose, onSuccess, onVoidingStart }) {
   const [reason, setReason] = useState('');
   const queryClient = useQueryClient();
+  const staffInfo = getStaffSession();
 
   const voidMutation = useMutation({
     mutationFn: async () => {
@@ -17,7 +19,8 @@ export default function VoidModal({ payment, onClose, onSuccess, onVoidingStart 
       try {
         const res = await base44.functions.invoke('voidReceipt', {
           paymentId: payment.id,
-          reason: reason.trim()
+          reason: reason.trim(),
+          staffInfo
         });
         
         // Check for error in response data
