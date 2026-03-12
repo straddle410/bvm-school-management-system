@@ -305,11 +305,9 @@ export default function Marks() {
             else if (percentage >= 50) grade = 'C';
             else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
-            const data = {
+            markEntries.push({
               student_id: student.student_id || student.id,
               student_name: student.name,
-              class_name: selectedClass,
-              section: selectedSection,
               subject: subject,
               exam_type: selectedExamType?.id || selectedExam,
               marks_obtained: marks,
@@ -317,15 +315,7 @@ export default function Marks() {
               grade,
               academic_year: academicYear,
               entered_by: user?.email,
-              status: saveMode === 'submit' ? 'Submitted' : 'Draft',
               remarks: existing.remarks
-            };
-
-            markEntries.push({
-              markData: data,
-              markId: existing?.id,
-              operation: existing?.id ? 'update' : 'create',
-              staffInfo: user
             });
           });
         });
@@ -334,27 +324,21 @@ export default function Marks() {
           throw new Error('No marks entered');
         }
 
-        // Save marks with 200ms delay between each operation to prevent rate limiting
-        const DELAY_MS = 200;
-        const results = [];
+        // Single bulk API call to save all marks at once
+        const res = await base44.functions.invoke('bulkSubmitMarks', {
+          marksData: markEntries,
+          status: saveMode === 'submit' ? 'Submitted' : 'Draft',
+          className: selectedClass,
+          section: selectedSection,
+          academicYear,
+          staffInfo: user
+        });
 
-        for (let i = 0; i < markEntries.length; i++) {
-          const entry = markEntries[i];
-          const res = await base44.functions.invoke('createOrUpdateMarksWithValidation', entry);
-          
-          if (res.status >= 400) {
-            throw new Error(res.data?.error || 'Failed to save mark');
-          }
-          
-          results.push(res.data);
-
-          // Add 200ms delay between each save (except after last one)
-          if (i < markEntries.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, DELAY_MS));
-          }
+        if (res.status >= 400) {
+          throw new Error(res.data?.error || 'Failed to save marks');
         }
 
-        return results;
+        return res.data;
       },
      onSuccess: () => {
        // Force immediate refetch of marks data
