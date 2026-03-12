@@ -1,8 +1,44 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, ChevronDown, ChevronRight, HelpCircle, Phone, Mail, Globe, BookOpen, GraduationCap, Users, User, X } from 'lucide-react';
+import { ArrowLeft, Search, ChevronDown, ChevronRight, HelpCircle, Phone, Mail, Globe, BookOpen, GraduationCap, Users, User, X, CheckCircle2, Clock } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+
+// ─── EASY TO UPDATE: Edit this object whenever features change ───────────────
+const UPDATES = {
+  recentlyAdded: [
+    'Student Login with Student ID and secure password',
+    'Attendance tracking with half-day and holiday support',
+    'Fee management with invoices, receipts, and PDF download',
+    'Marks entry and result publishing with grade calculation',
+    'Homework module with MCQ, descriptive, and file submission',
+    'School gallery with album-based photo management',
+    'Notice board with audience targeting and pinning',
+    'Hall ticket and progress card generation',
+    'Class timetable for teachers and students',
+    'Staff role management with granular permissions',
+    'Google Drive backup for fees and full school data',
+    'Push notifications for key events (notices, homework, marks)',
+    'Exam timetable management and student view',
+    'Student diary visible to students and parents',
+    'Performance analytics and attendance summary reports',
+  ],
+  comingSoon: [
+    'Parent portal with dedicated parent login',
+    'Online fee payment through payment gateway',
+    'Live chat / messaging between teachers and parents',
+    'Automated SMS/WhatsApp notifications to parents',
+    'Student ID card generation and printing',
+    'Library management module',
+    'Transport tracking and route management',
+    'Student leave application and approval workflow',
+    'Teacher leave management',
+    'Online admission test / entrance exam module',
+    'Multi-branch / multi-school support',
+    'Dark mode for the app',
+  ],
+};
+// ─────────────────────────────────────────────────────────────────────────────
 
 const GUIDES = [
   {
@@ -465,6 +501,17 @@ export default function HelpGuide() {
           <p className="text-xs text-indigo-600 mt-1">Find step-by-step instructions for every feature. Select your role below to get started.</p>
         </div>
 
+        {/* Notice Banner */}
+        <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl px-5 py-4 flex gap-3">
+          <span className="text-xl flex-shrink-0 mt-0.5">📌</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Please Note</p>
+            <p className="text-sm text-amber-700 mt-1 leading-relaxed">
+              Some features mentioned in this guide may not be available in the current version of the app. These features are planned and will be included in future updates. We are constantly improving the app to serve you better. Thank you for your patience!
+            </p>
+          </div>
+        </div>
+
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -503,6 +550,49 @@ export default function HelpGuide() {
               <button onClick={() => setQuery('')} className="mt-2 text-indigo-500 text-sm underline">Clear search</button>
             </div>
           )}
+
+        {/* Recent Updates & Coming Soon */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+            <span className="text-lg">🚀</span>
+            <p className="font-bold text-slate-800">Recent Updates &amp; Coming Soon</p>
+          </div>
+
+          {/* Recently Added */}
+          <div className="px-5 pt-4 pb-2">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <p className="text-sm font-semibold text-green-700">✅ Recently Added Features</p>
+            </div>
+            <ul className="space-y-2">
+              {UPDATES.recentlyAdded.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                  <span className="text-green-400 mt-0.5 flex-shrink-0">•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Coming Soon */}
+          <div className="px-5 pt-3 pb-5 mt-1 border-t border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <p className="text-sm font-semibold text-blue-700">🔜 Coming Soon</p>
+            </div>
+            <ul className="space-y-2">
+              {UPDATES.comingSoon.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-slate-500">
+                  <span className="text-blue-300 mt-0.5 flex-shrink-0">•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-slate-400 italic mt-4">
+              This list is updated regularly. Check back for the latest improvements!
+            </p>
+          </div>
+        </div>
 
         {/* Contact Support */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mt-2">
