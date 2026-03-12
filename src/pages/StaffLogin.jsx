@@ -254,17 +254,17 @@ export default function StaffLogin() {
               For account issues, contact your administrator.
             </p>
           </form>
+
+          {/* Legal Links inside card */}
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex items-center justify-center gap-4 flex-wrap text-xs text-slate-500 dark:text-slate-400">
+            <Link to={createPageUrl('HelpGuide')} className="hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2 transition-colors">Help &amp; Guide</Link>
+            <span>·</span>
+            <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2 transition-colors">Privacy Policy</Link>
+            <span>·</span>
+            <Link to={createPageUrl('TermsAndConditions')} className="hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2 transition-colors">Terms &amp; Conditions</Link>
+          </div>
         </CardContent>
       </Card>
-
-      {/* Legal Links */}
-      <div className="mt-6 flex items-center justify-center gap-4 flex-wrap text-xs text-white/60">
-        <Link to={createPageUrl('HelpGuide')} className="hover:text-white underline underline-offset-2 transition-colors">Help &amp; Guide</Link>
-        <span>·</span>
-        <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-white underline underline-offset-2 transition-colors">Privacy Policy</Link>
-        <span>·</span>
-        <Link to={createPageUrl('TermsAndConditions')} className="hover:text-white underline underline-offset-2 transition-colors">Terms &amp; Conditions</Link>
-      </div>
     </div>
   );
 }
