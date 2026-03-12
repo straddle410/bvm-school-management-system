@@ -132,7 +132,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
     queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear })
   });
 
-  // Filter holidays for current working date from parent-level holidays data
+  // Filter holidays for current working date from parent-level holidays prop
   const isMarkedHoliday = holidays.some(h => h.date === workingDate && h.status === 'Active');
 
   // Phase 5: Use can() helper with effective permissions
