@@ -4,6 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Eye, Phone } from 'lucide-react';
+
+const LoadingSpinner = () => (
+  <div className="flex justify-center py-12">
+    <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+  </div>
+);
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getDay } from 'date-fns';
 import { deduplicateAttendanceRecords } from '@/components/attendanceCalculations';
@@ -41,7 +47,7 @@ export default function DailySnapshotTab() {
   });
 
   // Fetch attendance records for selected date
-  const { data: attendanceData = [] } = useQuery({
+  const { data: attendanceData = [], isLoading: isLoadingAttendance } = useQuery({
     queryKey: ['daily-snapshot-attendance', selectedDate, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
       academic_year: academicYear,
@@ -248,7 +254,9 @@ export default function DailySnapshotTab() {
 
       {/* Report Table */}
       {selectedDate ? (
-        reportData.length > 0 ? (
+        isLoadingAttendance ? (
+          <Card className="border-0 shadow-sm"><CardContent className="py-12"><LoadingSpinner /></CardContent></Card>
+        ) : reportData.length > 0 ? (
           <Card className="border-0 shadow-sm overflow-hidden">
             <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-4 py-3">
               <h3 className="text-white font-semibold">Attendance Snapshot — {selectedDate}</h3>
