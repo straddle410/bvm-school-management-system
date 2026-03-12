@@ -38,8 +38,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No published marks found to revoke' }, { status: 404 });
     }
 
-    await Promise.all(marksToRevoke.map(m =>
-     base44.asServiceRole.entities.Marks.update(m.id, { status: 'Submitted' })
+    // Bulk update all revoked marks at once
+    const revokeIds = marksToRevoke.map(m => m.id);
+    await Promise.all(revokeIds.map(id =>
+     base44.asServiceRole.entities.Marks.update(id, { status: 'Submitted' })
     ));
 
     await base44.asServiceRole.entities.AuditLog.create({
