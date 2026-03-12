@@ -801,13 +801,13 @@ export default function Marks() {
           </AlertDialogHeader>
           <div className="space-y-3">
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 max-h-40 overflow-y-auto">
-              <ul className="text-sm text-red-700 dark:text-red-400 space-y-1">
+              <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                 {validationError?.missingStudents?.map((name, idx) => (
                   <li key={idx}>• {name}</li>
                 ))}
               </ul>
               {validationError?.missingCount > 10 && (
-                <p className="text-xs text-red-600 mt-2">...and {validationError.missingCount - 10} more</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-2">...and {validationError.missingCount - 10} more</p>
               )}
             </div>
             <AlertDialogCancel className="w-full">Close</AlertDialogCancel>

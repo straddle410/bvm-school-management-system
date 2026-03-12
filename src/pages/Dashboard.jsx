@@ -357,7 +357,7 @@ export default function Dashboard() {
                     <p className="font-semibold text-gray-900 dark:text-white">Pending Approvals</p>
                     <p className="text-sm text-gray-600 dark:text-gray-300">Review and approve pending submissions</p>
                   </div>
-                  <ClipboardCheck className="h-5 w-5 text-red-400 ml-auto" />
+                  <ClipboardCheck className="h-5 w-5 text-red-400 dark:text-red-500 ml-auto" />
                 </div>
               </Link>
             </section>

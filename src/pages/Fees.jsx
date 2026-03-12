@@ -166,7 +166,7 @@ export default function Fees() {
                           className={`w-full text-left px-4 py-3 rounded-lg transition ${
                             activeTab === tab.value
                               ? 'bg-[#1a237e] text-white font-semibold'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                         >
                           {tab.label}
@@ -175,32 +175,32 @@ export default function Fees() {
                     ) : (
                       <>
                         {canViewLedger && (
-                          <button onClick={() => { handleTabChange('ledger'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'ledger' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Student Ledger</button>
-                        )}
-                        {canViewPayments && (
-                          <button onClick={() => { handleTabChange('payments'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'payments' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Payments / Receipts</button>
-                        )}
-                        {isAdmin && (
-                          <button onClick={() => { handleTabChange('plans'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'plans' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Fee Plans</button>
-                        )}
-                        {(isAdmin || canApplyDiscount) && (
-                          <button onClick={() => { handleTabChange('discounts'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'discounts' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Discounts</button>
-                        )}
-                        {(isAdmin || canManageFamilies) && (
-                          <button onClick={() => { handleTabChange('families'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'families' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Families</button>
-                        )}
-                        {isAdmin && (
-                          <button onClick={() => { handleTabChange('fee-heads'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'fee-heads' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Fee Heads</button>
-                        )}
-                        {(isAdmin || canApplyCharge) && (
-                          <button onClick={() => { handleTabChange('adhoc'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'adhoc' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Additional Charges</button>
-                        )}
-                        {isAdmin && (
-                          <button onClick={() => { handleTabChange('receipt-settings'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'receipt-settings' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Receipt Settings</button>
-                        )}
-                        {isAdmin && (
-                          <button onClick={() => { handleTabChange('backup'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'backup' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>🗄 Backup</button>
-                        )}
+                          <button onClick={() => { handleTabChange('ledger'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'ledger' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Student Ledger</button>
+                          )}
+                          {canViewPayments && (
+                           <button onClick={() => { handleTabChange('payments'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'payments' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Payments / Receipts</button>
+                          )}
+                          {isAdmin && (
+                           <button onClick={() => { handleTabChange('plans'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'plans' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Fee Plans</button>
+                          )}
+                          {(isAdmin || canApplyDiscount) && (
+                           <button onClick={() => { handleTabChange('discounts'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'discounts' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Discounts</button>
+                          )}
+                          {(isAdmin || canManageFamilies) && (
+                           <button onClick={() => { handleTabChange('families'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'families' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Families</button>
+                          )}
+                          {isAdmin && (
+                           <button onClick={() => { handleTabChange('fee-heads'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'fee-heads' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Fee Heads</button>
+                          )}
+                          {(isAdmin || canApplyCharge) && (
+                           <button onClick={() => { handleTabChange('adhoc'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'adhoc' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Additional Charges</button>
+                          )}
+                          {isAdmin && (
+                           <button onClick={() => { handleTabChange('receipt-settings'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'receipt-settings' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Receipt Settings</button>
+                          )}
+                          {isAdmin && (
+                           <button onClick={() => { handleTabChange('backup'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-3 rounded-lg ${activeTab === 'backup' ? 'bg-[#1a237e] text-white font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>🗄 Backup</button>
+                          )}
                       </>
                     )}
                   </div>

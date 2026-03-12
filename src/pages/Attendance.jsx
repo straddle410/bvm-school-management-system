@@ -381,7 +381,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           )}
 
           {!canManageHolidays && (isHoliday || isSunday) && (
-            <div className="pt-2 border-t text-amber-600 text-sm font-medium flex items-center gap-2">
+            <div className="pt-2 border-t text-amber-600 dark:text-amber-400 text-sm font-medium flex items-center gap-2">
               <Palmtree className="h-4 w-4" />
               {isSunday ? '🔴 Sunday — Auto Holiday' : `📌 ${holidayReason}`}
             </div>
@@ -422,7 +422,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           {(isSunday || isMarkedHoliday) && !hasOverride && (
             <Card className="border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-900/20">
               <CardContent className="p-4 flex items-center justify-between">
-                <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
+                <p className="text-sm text-amber-900 dark:text-amber-300 font-medium">👉 Attendance is disabled due to holiday</p>
                 {canOverrideHoliday && (
                   <Button
                     type="button"
@@ -442,7 +442,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           {(isSunday || isMarkedHoliday) && hasOverride && (
             <Card className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20">
               <CardContent className="p-4 flex items-center justify-between">
-                <p className="text-sm text-blue-900 font-medium">✓ Holiday override active — attendance enabled</p>
+                <p className="text-sm text-blue-900 dark:text-blue-300 font-medium">✓ Holiday override active — attendance enabled</p>
                 {canOverrideHoliday && (
                   <Button
                     type="button"
@@ -461,7 +461,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           {isRecordLocked && (
             <Card className="border-l-4 border-l-red-500 bg-red-50 dark:bg-red-900/20">
               <CardContent className="p-4 flex items-center justify-between">
-                <p className="text-sm text-red-900 font-medium">🔒 Locked after 3:30 PM. Contact admin to unlock.</p>
+                <p className="text-sm text-red-900 dark:text-red-300 font-medium">🔒 Locked after 3:30 PM. Contact admin to unlock.</p>
                 {isAdmin && (
                   <Button
                     size="sm"
@@ -821,13 +821,13 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
          </Button>
        </div>
        {yearLocked && (
-         <Card className="border-red-200 bg-red-50">
-           <CardContent className="p-4 flex gap-3">
-             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-             <p className="text-sm text-red-800">This academic year is locked. Holiday mutations are disabled.</p>
-           </CardContent>
-         </Card>
-       )}
+          <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+            <CardContent className="p-4 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800 dark:text-red-300">This academic year is locked. Holiday mutations are disabled.</p>
+            </CardContent>
+          </Card>
+        )}
 
       {showForm && (
         <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
