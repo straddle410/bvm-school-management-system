@@ -115,6 +115,7 @@ import UserProfile from './pages/UserProfile';
 import index from './pages/index';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import HelpGuide from './pages/HelpGuide';
 import __Layout from './Layout.jsx';
 
 
@@ -187,6 +188,7 @@ export const PAGES = {
     "index": index,
     "TermsAndConditions": TermsAndConditions,
     "PrivacyPolicy": PrivacyPolicy,
+    "HelpGuide": HelpGuide,
 }
 
 export const pagesConfig = {
