@@ -136,19 +136,30 @@
   }
 }
 
-/* Global dark mode fix for form elements */
-select,
-input:not([type="checkbox"]):not([type="radio"]) {
-  @apply dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600;
-}
+/* Native HTML form elements use CSS variables for automatic dark mode */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    @apply bg-background text-foreground border-border placeholder:text-muted-foreground;
+  }
 
-select::placeholder,
-input::placeholder {
-  @apply dark:text-gray-400;
-}
+  select option {
+    @apply bg-background text-foreground;
+  }
 
-select option {
-  @apply dark:bg-gray-700 dark:text-gray-200;
+  textarea {
+    @apply bg-background text-foreground border-border placeholder:text-muted-foreground;
+  }
+
+  label {
+    @apply text-foreground;
+  }
+
+  table th,
+  table td {
+    @apply text-foreground;
+  }
 }
 
 /* ── Accountant Fees View: larger, senior-friendly text ── */
