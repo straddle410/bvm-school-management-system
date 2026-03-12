@@ -103,31 +103,37 @@ export default function Marks() {
     staleTime: 5 * 60 * 1000
   });
 
-  const { data: examTypes = [], isLoading: examTypesLoading } = useQuery({
-    queryKey: ['exam-types', academicYear],
+  // Combined query: fetch exam types + timetable in one go for better efficiency
+  const { data: examTypesData = { types: [], timetable: [] }, isLoading: examTypesLoading } = useQuery({
+    queryKey: ['exam-types-with-timetable', academicYear],
     queryFn: async () => {
       const types = await base44.entities.ExamType.filter({ academic_year: academicYear });
-      // Limit timetable fetch to active exam types only
-      if (types.length === 0) return types;
+      if (types.length === 0) return { types, timetable: [] };
+      
       const examIds = types.map(t => t.id);
       const timetable = await base44.entities.ExamTimetable.filter({ academic_year: academicYear })
-        .then(all => all.filter(t => examIds.includes(t.exam_type)).slice(0, 500)); // Limit timetable entries
-      if (timetable.length === 0) return types;
-      const examDates = {};
-      timetable.forEach(t => {
-        const key = t.exam_type;
-        if (!examDates[key] || new Date(t.exam_date) < new Date(examDates[key])) {
-          examDates[key] = t.exam_date;
-        }
-      });
-      return types.sort((a, b) => {
-        const dateA = examDates[a.id] || examDates[a.name] || '9999-12-31';
-        const dateB = examDates[b.id] || examDates[b.name] || '9999-12-31';
-        return new Date(dateA) - new Date(dateB);
-      });
+        .then(all => all.filter(t => examIds.includes(t.exam_type)).slice(0, 500));
+      
+      if (timetable.length > 0) {
+        const examDates = {};
+        timetable.forEach(t => {
+          const key = t.exam_type;
+          if (!examDates[key] || new Date(t.exam_date) < new Date(examDates[key])) {
+            examDates[key] = t.exam_date;
+          }
+        });
+        types.sort((a, b) => {
+          const dateA = examDates[a.id] || examDates[a.name] || '9999-12-31';
+          const dateB = examDates[b.id] || examDates[b.name] || '9999-12-31';
+          return new Date(dateA) - new Date(dateB);
+        });
+      }
+      return { types, timetable };
     },
     staleTime: 5 * 60 * 1000
   });
+
+  const examTypes = examTypesData.types;
 
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
     queryKey: ['class-subjects', academicYear, selectedClass],
@@ -145,18 +151,15 @@ export default function Marks() {
     staleTime: 5 * 60 * 1000
   });
 
-  const { data: timetableEntries = [] } = useQuery({
-    queryKey: ['timetable', selectedClass, selectedExam, academicYear],
-    queryFn: () => {
-      const selectedExamObj = examTypes.find(e => e.name === selectedExam);
-      return base44.entities.ExamTimetable.filter({
-        class_name: selectedClass,
-        exam_type: selectedExamObj?.id || selectedExam,
-        academic_year: academicYear
-      }).then(all => all.slice(0, 100)); // Limit timetable entries per class/exam to 100
-    },
-    enabled: !!(selectedClass && selectedExam && academicYear)
-  });
+  // Filter timetable for selected class/exam from combined data
+  const timetableEntries = useMemo(() => {
+    if (!selectedClass || !selectedExam) return [];
+    const selectedExamObj = examTypes.find(e => e.name === selectedExam);
+    const examId = selectedExamObj?.id || selectedExam;
+    return examTypesData.timetable
+      .filter(t => t.class_name === selectedClass && t.exam_type === examId)
+      .slice(0, 100);
+  }, [selectedClass, selectedExam, examTypes, examTypesData.timetable]);
 
   const { data: existingMarks = [], refetch: refetchMarks } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
