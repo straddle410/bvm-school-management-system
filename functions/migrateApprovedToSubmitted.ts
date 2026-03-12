@@ -9,15 +9,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin only' }, { status: 403 });
     }
 
-    const { examType, className, section, academicYear } = await req.json();
+    const { className, section, academicYear } = await req.json();
 
-    if (!examType || !className || !academicYear) {
-      return Response.json({ error: 'Required: examType, className, academicYear' }, { status: 400 });
+    if (!className || !academicYear) {
+      return Response.json({ error: 'Required: className, academicYear' }, { status: 400 });
     }
 
-    // Fetch all marks with "Approved" status for this exam
+    // Fetch all marks with "Approved" status for this class/section (any exam)
     const approvedMarks = await base44.asServiceRole.entities.Marks.filter({
-      exam_type: examType,
       class_name: className,
       section: section || undefined,
       academic_year: academicYear,
