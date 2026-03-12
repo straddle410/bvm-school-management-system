@@ -48,7 +48,6 @@ Deno.serve(async (req) => {
       success: true,
       message: `Migrated ${approvedMarks.length} marks from Approved to Submitted`,
       count: updateResults.length,
-      examType,
       className,
       section,
       academicYear
