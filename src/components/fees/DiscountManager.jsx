@@ -66,7 +66,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
   // Fetch invoice + existing discount for selected student to compute settled status
   const { data: studentInvoice } = useQuery({
     queryKey: ['fee-invoice-discount-check', selectedStudent?.student_id, academicYear],
-    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear })
+    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear, invoice_type: 'ANNUAL' })
       .then(r => r[0] || null),
     enabled: !!selectedStudent && !!academicYear
   });
