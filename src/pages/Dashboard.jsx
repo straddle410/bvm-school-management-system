@@ -140,11 +140,14 @@ export default function Dashboard() {
 
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
 
-  useEffect(() => { loadDashboard(); }, [academicYear]);
+  // Load staff profile only once — role doesn't change mid-session
+  useEffect(() => { loadStaffProfile(); }, []);
 
-  const loadDashboard = async () => {
+  // Load notices/diaries only on first mount, not on academicYear change
+  useEffect(() => { loadContentData(); }, []);
+
+  const loadStaffProfile = async () => {
     try {
-      setIsLoading(true);
       const session = getStaffSession();
       let resolvedRole = '';
 
@@ -159,7 +162,6 @@ export default function Dashboard() {
               resolvedRole = normaliseRole(res.data.role);
               setStaffRole(resolvedRole);
               setStaffName(res.data.name || session.name || '');
-              // Prefer effective_permissions (Phase 2+ format), fall back to permissions (legacy)
               const resolvedPerms = res.data.effective_permissions ?? res.data.permissions ?? {};
               setEffectivePermissions(resolvedPerms);
               setPermissionsCount(Object.values(resolvedPerms).filter(Boolean).length);
@@ -199,7 +201,18 @@ export default function Dashboard() {
           setRoleSource('platform auth.me()');
         }
       }
+      setIsLoading(false);
+    } catch (e) {
+      console.error('Dashboard profile load error:', e);
+      setIsLoading(false);
+    }
+  };
 
+  const loadContentData = async () => {
+    try {
+      const session = getStaffSession();
+      const resolvedRole = normaliseRole(session?.role || '');
+      
       if (resolvedRole !== 'accountant') {
         try {
           const diaries = await base44.entities.Diary.list('-created_date', 3);
@@ -211,9 +224,7 @@ export default function Dashboard() {
         } catch {}
       }
     } catch (e) {
-      console.error('Dashboard load error:', e);
-    } finally {
-      setIsLoading(false);
+      console.error('Dashboard content load error:', e);
     }
   };
 
