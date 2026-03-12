@@ -12,6 +12,7 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 export default function GenerateInvoices({ academicYear }) {
   const [selectedClass, setSelectedClass] = useState('');
   const [result, setResult] = useState(null);
+  const staffInfo = (() => { try { const r = localStorage.getItem('staff_session'); return r ? JSON.parse(r) : null; } catch { return null; } })();
 
   const { data: plan } = useQuery({
     queryKey: ['fee-plan', academicYear, selectedClass],
@@ -30,7 +31,8 @@ export default function GenerateInvoices({ academicYear }) {
       const res = await base44.functions.invoke('generateFeeInvoices', {
         feePlanId: plan.id,
         academicYear,
-        className: selectedClass
+        className: selectedClass,
+        staffInfo
       });
       return res.data;
     },
