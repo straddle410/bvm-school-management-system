@@ -136,6 +136,21 @@
   }
 }
 
+/* Global dark mode fix for form elements */
+select,
+input:not([type="checkbox"]):not([type="radio"]) {
+  @apply dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600;
+}
+
+select::placeholder,
+input::placeholder {
+  @apply dark:text-gray-400;
+}
+
+select option {
+  @apply dark:bg-gray-700 dark:text-gray-200;
+}
+
 /* ── Accountant Fees View: larger, senior-friendly text ── */
 .accountant-fees-view table td,
 .accountant-fees-view table th {

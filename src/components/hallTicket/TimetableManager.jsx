@@ -175,7 +175,7 @@ export default function TimetableManager() {
                 <select
                    value={examType}
                    onChange={(e) => setExamType(e.target.value)}
-                   className="w-full px-3 py-2 border rounded-lg text-sm"
+                   className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800"
                    required
                  >
                    <option value="">{examTypes.length === 0 ? 'No exam types available' : 'Select Exam Type'}</option>
@@ -212,22 +212,22 @@ export default function TimetableManager() {
                   <div className="flex-1">
                     <label className="text-xs text-slate-500 block mb-1">Start Time</label>
                     <input
-                      type="time"
-                      value={rows[0]?.start_time || ''}
-                      onChange={(e) => setRows(prev => prev.map(r => ({ ...r, start_time: e.target.value })))}
-                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white text-slate-800 font-medium"
-                      required
-                    />
+                       type="time"
+                       value={rows[0]?.start_time || ''}
+                       onChange={(e) => setRows(prev => prev.map(r => ({ ...r, start_time: e.target.value })))}
+                       className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800 font-medium"
+                       required
+                     />
                   </div>
                   <div className="flex-1">
                     <label className="text-xs text-slate-500 block mb-1">End Time</label>
                     <input
-                      type="time"
-                      value={rows[0]?.end_time || ''}
-                      onChange={(e) => setRows(prev => prev.map(r => ({ ...r, end_time: e.target.value })))}
-                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white text-slate-800 font-medium"
-                      required
-                    />
+                       type="time"
+                       value={rows[0]?.end_time || ''}
+                       onChange={(e) => setRows(prev => prev.map(r => ({ ...r, end_time: e.target.value })))}
+                       className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800 font-medium"
+                       required
+                     />
                   </div>
                   {rows[0]?.start_time && rows[0]?.end_time && (
                     <div className="text-sm text-blue-700 font-semibold whitespace-nowrap pt-4">
@@ -248,7 +248,7 @@ export default function TimetableManager() {
                         <select
                           value={row.subject_name}
                           onChange={(e) => updateRow(idx, 'subject_name', e.target.value)}
-                          className="w-full px-2 py-1.5 border rounded-lg text-sm"
+                          className="w-full px-2 py-1.5 border rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800"
                           required
                           disabled={selectedClasses.length === 0}
                         >
@@ -264,7 +264,7 @@ export default function TimetableManager() {
                           type="date"
                           value={row.exam_date}
                           onChange={(e) => updateRow(idx, 'exam_date', e.target.value)}
-                          className="w-full px-2 py-1.5 border rounded-lg text-sm"
+                          className="w-full px-2 py-1.5 border rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800"
                           required
                         />
                       </div>
@@ -305,11 +305,11 @@ export default function TimetableManager() {
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-2 mb-3 items-start sm:items-center">
             <div className="flex gap-2 flex-1">
-              <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none">
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800">
                 <option value="">All Classes</option>
                 {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
-              <select value={filterExamType} onChange={e => setFilterExamType(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none">
+              <select value={filterExamType} onChange={e => setFilterExamType(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm flex-1 sm:flex-none bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 text-slate-800">
                 <option value="">All Exam Types</option>
                 {examTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
               </select>
