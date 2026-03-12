@@ -48,7 +48,6 @@ const TabLoadingSpinner = () => (
 import { toast } from "sonner";
 import SuccessPopup from '@/components/marks/SuccessPopup';
 import MarksFilterSection from '@/components/marks/MarksFilterSection';
-import MarksEntrySection from '@/components/marks/MarksEntrySection';
 import MarksReviewSection from '@/components/marks/MarksReviewSection';
 
 import { getSubjectsForClass } from '@/components/subjectHelper';
@@ -639,42 +638,44 @@ export default function Marks() {
         />
 
         {/* Entry Mode */}
-        {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
-          <>
-            <MarksEntrySection
-              selectedExam={selectedExam}
-              maxMarks={maxMarks}
-              passingMarks={passingMarks}
-              currentStatus={currentStatus}
-              filteredStudents={filteredStudents}
-              subjectList={subjectList}
-              marksData={marksData}
-              canEdit={canEdit}
-              isLocked={!canEdit}
-              isPublished={isPublished}
-              isAdmin={isAdmin}
-              isSubmitted={isSubmitted}
-              onMarkChange={updateMarks}
-              onImport={(importedData) => {
-                setMarksData(prev => ({
-                  ...prev,
-                  ...Object.entries(importedData).reduce((acc, [stdId, subjectMarks]) => {
-                    acc[stdId] = { ...prev[stdId], ...subjectMarks };
-                    return acc;
-                  }, {})
-                }));
-              }}
-              onAddSubject={() => setShowAddSubject(true)}
-              onRevoke={(examTypeId) => {
-                setRevokeExamType(examTypeId);
-                setShowRevokeConfirm(true);
-              }}
-              onUnlock={() => unlockMutation.mutate()}
-              unlockPending={unlockMutation.isPending}
-              selectedExamType={selectedExamType}
-              selectedClass={selectedClass}
-              selectedSection={selectedSection}
-            />
+         {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length > 0 && (
+           <>
+             <Suspense fallback={<TabLoadingSpinner />}>
+               <MarksEntrySectionLazy
+                 selectedExam={selectedExam}
+                 maxMarks={maxMarks}
+                 passingMarks={passingMarks}
+                 currentStatus={currentStatus}
+                 filteredStudents={filteredStudents}
+                 subjectList={subjectList}
+                 marksData={marksData}
+                 canEdit={canEdit}
+                 isLocked={!canEdit}
+                 isPublished={isPublished}
+                 isAdmin={isAdmin}
+                 isSubmitted={isSubmitted}
+                 onMarkChange={updateMarks}
+                 onImport={(importedData) => {
+                   setMarksData(prev => ({
+                     ...prev,
+                     ...Object.entries(importedData).reduce((acc, [stdId, subjectMarks]) => {
+                       acc[stdId] = { ...prev[stdId], ...subjectMarks };
+                       return acc;
+                     }, {})
+                   }));
+                 }}
+                 onAddSubject={() => setShowAddSubject(true)}
+                 onRevoke={(examTypeId) => {
+                   setRevokeExamType(examTypeId);
+                   setShowRevokeConfirm(true);
+                 }}
+                 onUnlock={() => unlockMutation.mutate()}
+                 unlockPending={unlockMutation.isPending}
+                 selectedExamType={selectedExamType}
+                 selectedClass={selectedClass}
+                 selectedSection={selectedSection}
+               />
+             </Suspense>
 
             {filteredStudents.length > 0 && canSave && (
               <div className="flex justify-end gap-3">
