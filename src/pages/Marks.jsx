@@ -257,92 +257,112 @@ export default function Marks() {
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
   const saveMutation = useMutation({
-     mutationFn: async () => {
-       if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
-         throw new Error('PAST_YEAR_WARNING');
-       }
+      mutationFn: async () => {
+        if (isPastAcademicYear(academicYear) && schoolProfile?.academic_year !== academicYear) {
+          throw new Error('PAST_YEAR_WARNING');
+        }
 
-       // Validation: check if all students have marks for submit mode
-       if (saveMode === 'submit') {
-         const missingStudents = filteredStudents.filter(student => {
-           const studentMarks = marksData[student.student_id || student.id];
-           if (!studentMarks) return true;
-           return subjectList.some(subject => {
-             const existing = studentMarks[subject];
-             return existing?.marks_obtained === undefined || existing.marks_obtained === '';
-           });
-         });
+        // Validation: check if all students have marks for submit mode
+        if (saveMode === 'submit') {
+          const missingStudents = filteredStudents.filter(student => {
+            const studentMarks = marksData[student.student_id || student.id];
+            if (!studentMarks) return true;
+            return subjectList.some(subject => {
+              const existing = studentMarks[subject];
+              return existing?.marks_obtained === undefined || existing.marks_obtained === '';
+            });
+          });
 
-         if (missingStudents.length > 0) {
-           setValidationError({
-             missingCount: missingStudents.length,
-             missingStudents: missingStudents.slice(0, 10).map(s => s.name || s.student_id)
-           });
-           setShowValidationError(true);
-           throw new Error('VALIDATION_ERROR');
-         }
-       }
+          if (missingStudents.length > 0) {
+            setValidationError({
+              missingCount: missingStudents.length,
+              missingStudents: missingStudents.slice(0, 10).map(s => s.name || s.student_id)
+            });
+            setShowValidationError(true);
+            throw new Error('VALIDATION_ERROR');
+          }
+        }
 
-       const promises = [];
-       let enteredCount = 0;
+        const markEntries = [];
+        let enteredCount = 0;
 
-       filteredStudents.forEach(student => {
-         const studentMarks = marksData[student.student_id || student.id];
-         if (!studentMarks) return;
+        filteredStudents.forEach(student => {
+          const studentMarks = marksData[student.student_id || student.id];
+          if (!studentMarks) return;
 
-         subjectList.forEach(subject => {
-           const existing = studentMarks[subject];
-           if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
+          subjectList.forEach(subject => {
+            const existing = studentMarks[subject];
+            if (existing?.marks_obtained === undefined || existing.marks_obtained === '') return;
 
-           enteredCount++;
-           const marks = parseFloat(existing.marks_obtained);
-           const percentage = (marks / maxMarks) * 100;
-           let grade = 'F';
-           if (percentage >= 90) grade = 'A+';
-           else if (percentage >= 80) grade = 'A';
-           else if (percentage >= 70) grade = 'B+';
-           else if (percentage >= 60) grade = 'B';
-           else if (percentage >= 50) grade = 'C';
-           else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
+            enteredCount++;
+            const marks = parseFloat(existing.marks_obtained);
+            const percentage = (marks / maxMarks) * 100;
+            let grade = 'F';
+            if (percentage >= 90) grade = 'A+';
+            else if (percentage >= 80) grade = 'A';
+            else if (percentage >= 70) grade = 'B+';
+            else if (percentage >= 60) grade = 'B';
+            else if (percentage >= 50) grade = 'C';
+            else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
-           const data = {
-             student_id: student.student_id || student.id,
-             student_name: student.name,
-             class_name: selectedClass,
-             section: selectedSection,
-             subject: subject,
-             exam_type: selectedExamType?.id || selectedExam,
-             marks_obtained: marks,
-             max_marks: maxMarks,
-             grade,
-             academic_year: academicYear,
-             entered_by: user?.email,
-             status: saveMode === 'submit' ? 'Submitted' : 'Draft',
-             remarks: existing.remarks
-           };
+            const data = {
+              student_id: student.student_id || student.id,
+              student_name: student.name,
+              class_name: selectedClass,
+              section: selectedSection,
+              subject: subject,
+              exam_type: selectedExamType?.id || selectedExam,
+              marks_obtained: marks,
+              max_marks: maxMarks,
+              grade,
+              academic_year: academicYear,
+              entered_by: user?.email,
+              status: saveMode === 'submit' ? 'Submitted' : 'Draft',
+              remarks: existing.remarks
+            };
 
-           const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
-             markData: data,
-             markId: existing?.id,
-             operation: existing?.id ? 'update' : 'create',
-             staffInfo: user
-           }).then(res => {
-             if (res.status >= 400) {
-               throw new Error(res.data?.error || 'Failed to save mark');
-             }
-             return res.data;
-           });
+            markEntries.push({
+              markData: data,
+              markId: existing?.id,
+              operation: existing?.id ? 'update' : 'create',
+              staffInfo: user
+            });
+          });
+        });
 
-           promises.push(backendPromise);
-         });
-       });
+        if (enteredCount === 0) {
+          throw new Error('No marks entered');
+        }
 
-       if (enteredCount === 0) {
-         throw new Error('No marks entered');
-       }
+        // Batch API calls with throttling to prevent rate limit errors
+        // Process in chunks of 10 with 500ms delay between chunks
+        const CHUNK_SIZE = 10;
+        const DELAY_MS = 500;
+        const results = [];
 
-       return Promise.all(promises);
-     },
+        for (let i = 0; i < markEntries.length; i += CHUNK_SIZE) {
+          const chunk = markEntries.slice(i, i + CHUNK_SIZE);
+          const chunkPromises = chunk.map(entry =>
+            base44.functions.invoke('createOrUpdateMarksWithValidation', entry)
+              .then(res => {
+                if (res.status >= 400) {
+                  throw new Error(res.data?.error || 'Failed to save mark');
+                }
+                return res.data;
+              })
+          );
+
+          const chunkResults = await Promise.all(chunkPromises);
+          results.push(...chunkResults);
+
+          // Add delay between chunks to throttle API calls (except after last chunk)
+          if (i + CHUNK_SIZE < markEntries.length) {
+            await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+          }
+        }
+
+        return results;
+      },
      onSuccess: () => {
        // Force immediate refetch of marks data
        refetchMarks().then(() => {
