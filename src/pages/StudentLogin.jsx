@@ -56,7 +56,7 @@ export default function StudentLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#f0f4ff] dark:bg-gray-900 flex flex-col relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl" />
@@ -66,7 +66,7 @@ export default function StudentLogin() {
 
       <Link
         to={createPageUrl('Dashboard')}
-        className="absolute top-5 left-5 z-20 flex items-center gap-1.5 text-indigo-700 bg-white/80 backdrop-blur-sm hover:bg-white px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
+        className="absolute top-5 left-5 z-20 flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </Link>
@@ -78,17 +78,17 @@ export default function StudentLogin() {
           <div className="w-20 h-20 bg-gradient-to-br from-[#1a237e] to-[#3949ab] rounded-3xl flex items-center justify-center shadow-xl mb-4">
             <GraduationCap className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">BVM School</h1>
-          <p className="text-gray-500 text-sm mt-1">Student Portal — Sign In</p>
+          <h1 className="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight">BVM School</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Student Portal — Sign In</p>
         </div>
 
         {/* Card */}
-        <div className="w-full max-w-sm bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-6">
+        <div className="w-full max-w-sm bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-xl border border-white dark:border-gray-700 p-6">
 
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Student ID */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Student ID</label>
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider block mb-1.5">Student ID</label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
                   <User className="h-4 w-4 text-gray-400" />
@@ -99,15 +99,15 @@ export default function StudentLogin() {
                   onChange={e => setUsername(e.target.value)}
                   placeholder="e.g. S25011"
                   required
-                  className="w-full border border-gray-200 bg-gray-50 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                  className="w-full border border-gray-200 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">Case-insensitive (S25011 or s25011)</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Case-insensitive (S25011 or s25011)</p>
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Password</label>
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider block mb-1.5">Password</label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
                   <Lock className="h-4 w-4 text-gray-400" />
@@ -118,7 +118,7 @@ export default function StudentLogin() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full border border-gray-200 bg-gray-50 rounded-xl pl-10 pr-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                  className="w-full border border-gray-200 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl pl-10 pr-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                 />
                 <button
                   type="button"
@@ -131,7 +131,7 @@ export default function StudentLogin() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
                 <span className="text-red-500">⚠</span> {error}
               </div>
             )}
@@ -149,18 +149,18 @@ export default function StudentLogin() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-400 mt-5">
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-5">
             Default password: <strong className="text-gray-600">BVM123</strong> · Contact admin to reset
           </p>
         </div>
 
         {/* Legal Links */}
-        <div className="mt-6 flex items-center justify-center gap-4 flex-wrap text-xs text-gray-400">
-          <Link to={createPageUrl('HelpGuide')} className="hover:text-indigo-600 underline underline-offset-2 transition-colors">Help &amp; Guide</Link>
+        <div className="mt-6 flex items-center justify-center gap-4 flex-wrap text-xs text-gray-400 dark:text-gray-500">
+          <Link to={createPageUrl('HelpGuide')} className="hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2 transition-colors">Help &amp; Guide</Link>
           <span>·</span>
-          <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-indigo-600 underline underline-offset-2 transition-colors">Privacy Policy</Link>
+          <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2 transition-colors">Privacy Policy</Link>
           <span>·</span>
-          <Link to={createPageUrl('TermsAndConditions')} className="hover:text-indigo-600 underline underline-offset-2 transition-colors">Terms &amp; Conditions</Link>
+          <Link to={createPageUrl('TermsAndConditions')} className="hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2 transition-colors">Terms &amp; Conditions</Link>
         </div>
       </div>
     </div>

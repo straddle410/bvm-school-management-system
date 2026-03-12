@@ -226,18 +226,18 @@ export default function Dashboard() {
 
   const ActionCard = ({ label, icon, page, gradient }) => (
     <Link to={createPageUrl(page)} className="block">
-      <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
         <GradientIcon gradient={gradient} icon={icon} />
-        <span className="text-[11px] font-semibold text-gray-700 text-center leading-tight">{label}</span>
+        <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">{label}</span>
       </div>
     </Link>
   );
 
   const EmptyTilesMessage = () => (
-    <div className="bg-white rounded-2xl p-8 shadow-sm flex flex-col items-center text-center gap-3">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center gap-3">
       <AlertCircle className="h-8 w-8 text-gray-300" />
-      <p className="font-semibold text-gray-500">No modules assigned.</p>
-      <p className="text-sm text-gray-400">Contact your admin to get access to modules.</p>
+      <p className="font-semibold text-gray-500 dark:text-gray-400">No modules assigned.</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500">Contact your admin to get access to modules.</p>
     </div>
   );
 
@@ -249,7 +249,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#1a237e] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -263,14 +263,14 @@ export default function Dashboard() {
     const feeTiles = visibleTiles.filter(t => t.section === 'Fees & Finance');
 
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Accountant'}</h1>
-            <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Accountant'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
           <section>
-            <h2 className="text-lg font-bold text-gray-700 mb-4">Fees &amp; Accounts</h2>
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Fees &amp; Accounts</h2>
             {feeTiles.length > 0 ? <TileGrid tiles={feeTiles} /> : <EmptyTilesMessage />}
           </section>
         </div>
@@ -283,27 +283,27 @@ export default function Dashboard() {
     const teacherTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
 
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Teacher'}</h1>
-            <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Teacher'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
 
           <section className="mb-8">
-            <h2 className="text-lg font-bold text-gray-700 mb-4">Quick Actions</h2>
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Quick Actions</h2>
             {teacherTiles.length > 0 ? <TileGrid tiles={teacherTiles} /> : <EmptyTilesMessage />}
           </section>
 
           {recentNotices.length > 0 && (
             <section>
-              <h2 className="text-lg font-bold text-gray-700 mb-4">Recent Notices</h2>
+              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Recent Notices</h2>
               <div className="space-y-3">
                 {recentNotices.slice(0, 3).map(notice => (
-                  <div key={notice.id} className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-yellow-500">
-                    <p className="font-semibold text-gray-900">{notice.title}</p>
-                    <p className="text-xs text-gray-500 mt-1">{notice.notice_type}</p>
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{notice.description}</p>
+                  <div key={notice.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border-l-4 border-yellow-500">
+                    <p className="font-semibold text-gray-900 dark:text-white">{notice.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notice.notice_type}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{notice.description}</p>
                   </div>
                 ))}
               </div>
@@ -319,14 +319,14 @@ export default function Dashboard() {
     const examTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
 
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Exam Staff'}</h1>
-            <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Exam Staff'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
           <section>
-            <h2 className="text-lg font-bold text-gray-700 mb-4">Exam &amp; Attendance</h2>
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Exam &amp; Attendance</h2>
             {examTiles.length > 0 ? <TileGrid tiles={examTiles} /> : <EmptyTilesMessage />}
           </section>
         </div>
@@ -339,23 +339,23 @@ export default function Dashboard() {
     const adminSections = groupBySection(visibleTiles);
 
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || staffRole}</h1>
-            <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || staffRole}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
 
           {approvalsCount > 0 && (
             <section className="mb-6">
               <Link to={createPageUrl('Approvals')}>
-                <div className="bg-red-50 rounded-2xl p-4 shadow-sm border border-red-200 hover:shadow-md transition-shadow flex items-center gap-3">
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-4 shadow-sm border border-red-200 dark:border-red-800 hover:shadow-md transition-shadow flex items-center gap-3">
                   <div className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold flex-shrink-0">
                     {approvalsCount > 9 ? '9+' : approvalsCount}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">Pending Approvals</p>
-                    <p className="text-sm text-gray-600">Review and approve pending submissions</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">Pending Approvals</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Review and approve pending submissions</p>
                   </div>
                   <ClipboardCheck className="h-5 w-5 text-red-400 ml-auto" />
                 </div>
@@ -365,20 +365,20 @@ export default function Dashboard() {
 
           {adminSections.map(section => (
             <section key={section.title} className="mb-8">
-              <h2 className="text-lg font-bold text-gray-700 mb-4">{section.title}</h2>
+              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">{section.title}</h2>
               <TileGrid tiles={section.tiles} />
             </section>
           ))}
 
           {latestDiaries.length > 0 && (
             <section>
-              <h2 className="text-lg font-bold text-gray-700 mb-4">Latest Diary Entries</h2>
+              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Latest Diary Entries</h2>
               <div className="space-y-3">
                 {latestDiaries.map(diary => (
-                  <div key={diary.id} className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-pink-500">
-                    <p className="font-semibold text-gray-900">{diary.title}</p>
-                    <p className="text-xs text-gray-500 mt-1">Class {diary.class_name} • {diary.subject}</p>
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{diary.description}</p>
+                  <div key={diary.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border-l-4 border-pink-500">
+                    <p className="font-semibold text-gray-900 dark:text-white">{diary.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Class {diary.class_name} • {diary.subject}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{diary.description}</p>
                   </div>
                 ))}
               </div>
@@ -395,11 +395,11 @@ export default function Dashboard() {
   const genericSections = groupBySection(genericTiles);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome, {staffName || 'Staff'}</h1>
-          <p className="text-gray-500 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Staff'}</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
         </div>
 
         {genericTiles.length === 0 ? (
@@ -408,7 +408,7 @@ export default function Dashboard() {
           genericSections.map(section => (
             <section key={section.title} className="mb-8">
               {genericSections.length > 1 && (
-                <h2 className="text-lg font-bold text-gray-700 mb-4">{section.title}</h2>
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">{section.title}</h2>
               )}
               <TileGrid tiles={section.tiles} />
             </section>

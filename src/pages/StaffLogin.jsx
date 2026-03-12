@@ -195,13 +195,13 @@ export default function StaffLogin() {
         <CardContent className="pt-8">
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg">
+                <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-slate-700 font-medium">
+              <Label htmlFor="username" className="text-slate-700 dark:text-slate-300 font-medium">
                 <User className="inline h-4 w-4 mr-1" />
                 Username
               </Label>
@@ -211,7 +211,7 @@ export default function StaffLogin() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g., ravi.kumar01"
-                className="border-slate-300"
+                className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
                 autoFocus
                 required
@@ -219,7 +219,7 @@ export default function StaffLogin() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-700 font-medium">
+              <Label htmlFor="password" className="text-slate-700 dark:text-slate-300 font-medium">
                 <Lock className="inline h-4 w-4 mr-1" />
                 Password
               </Label>
@@ -229,7 +229,7 @@ export default function StaffLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="border-slate-300"
+                className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
                 required
               />
@@ -250,7 +250,7 @@ export default function StaffLogin() {
               )}
             </Button>
 
-            <p className="text-center text-xs text-slate-500 mt-6">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
               For account issues, contact your administrator.
             </p>
           </form>
