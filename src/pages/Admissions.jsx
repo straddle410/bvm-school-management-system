@@ -297,8 +297,8 @@ export default function Admissions() {
              </AvatarFallback>
            </Avatar>
           <div>
-            <p className="font-medium text-slate-900">{row.student_name}</p>
-            <p className="text-sm text-slate-500">{row.application_no || `APP-${row.id?.slice(0,6)}`}</p>
+            <p className="font-medium text-slate-900 dark:text-white">{row.student_name}</p>
+            <p className="text-sm text-slate-500 dark:text-gray-400">{row.application_no || `APP-${row.id?.slice(0,6)}`}</p>
           </div>
         </div>
       )
@@ -313,8 +313,8 @@ export default function Admissions() {
       header: 'Parent Contact',
       cell: (row) => (
         <div>
-          <p className="text-sm text-slate-900">{row.parent_name}</p>
-          <p className="text-sm text-slate-500">{row.parent_phone}</p>
+          <p className="text-sm text-slate-900 dark:text-white">{row.parent_name}</p>
+          <p className="text-sm text-slate-500 dark:text-gray-400">{row.parent_phone}</p>
         </div>
       )
     },
@@ -332,7 +332,7 @@ export default function Admissions() {
         <div className="flex flex-col gap-1">
           <StatusBadge status={row.status} />
           {row.slaBreached && (
-            <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-1 rounded w-fit">
+            <span className="text-[10px] font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded w-fit">
               SLA: {row.daysInStatus} days
             </span>
           )}
@@ -387,9 +387,9 @@ export default function Admissions() {
   if (!user) {
     console.log('[Admissions] Rendering loading state - user not authenticated');
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-600">Loading...</p>
+          <p className="text-slate-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
@@ -398,16 +398,16 @@ export default function Admissions() {
   if (!academicYear) {
     console.log('[Admissions] Rendering loading state - academicYear undefined');
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-600">Loading academic year...</p>
+          <p className="text-slate-600 dark:text-gray-300">Loading academic year...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <PageHeader 
         title="Admissions"
         subtitle={`${paginatedData.total_count} total applications`}
@@ -427,29 +427,29 @@ export default function Admissions() {
         {/* Analytics Summary */}
         {yearReport && (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <Card className="border-0 shadow-sm p-4">
-              <p className="text-sm text-slate-500">Total</p>
-              <p className="text-2xl font-bold mt-1">{yearReport.summary.total_applications}</p>
+            <Card className="border-0 shadow-sm p-4 dark:bg-gray-800">
+              <p className="text-sm text-slate-500 dark:text-gray-400">Total</p>
+              <p className="text-2xl font-bold mt-1 dark:text-white">{yearReport.summary.total_applications}</p>
             </Card>
-            <Card className="border-0 shadow-sm p-4">
-              <p className="text-sm text-slate-500">Verified</p>
+            <Card className="border-0 shadow-sm p-4 dark:bg-gray-800">
+              <p className="text-sm text-slate-500 dark:text-gray-400">Verified</p>
               <p className="text-2xl font-bold mt-1 text-blue-600">{yearReport.summary.total_verified}</p>
-              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.verification_rate}%</p>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{yearReport.summary.verification_rate}%</p>
             </Card>
-            <Card className="border-0 shadow-sm p-4">
-              <p className="text-sm text-slate-500">Approved</p>
+            <Card className="border-0 shadow-sm p-4 dark:bg-gray-800">
+              <p className="text-sm text-slate-500 dark:text-gray-400">Approved</p>
               <p className="text-2xl font-bold mt-1 text-green-600">{yearReport.summary.total_approved}</p>
-              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.approval_rate}%</p>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{yearReport.summary.approval_rate}%</p>
             </Card>
-            <Card className="border-0 shadow-sm p-4">
-              <p className="text-sm text-slate-500">Converted</p>
+            <Card className="border-0 shadow-sm p-4 dark:bg-gray-800">
+              <p className="text-sm text-slate-500 dark:text-gray-400">Converted</p>
               <p className="text-2xl font-bold mt-1 text-indigo-600">{yearReport.summary.total_converted}</p>
-              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.conversion_rate}%</p>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{yearReport.summary.conversion_rate}%</p>
             </Card>
-            <Card className="border-0 shadow-sm p-4">
-              <p className="text-sm text-slate-500">Rejected</p>
+            <Card className="border-0 shadow-sm p-4 dark:bg-gray-800">
+              <p className="text-sm text-slate-500 dark:text-gray-400">Rejected</p>
               <p className="text-2xl font-bold mt-1 text-red-600">{yearReport.summary.total_rejected}</p>
-              <p className="text-xs text-slate-500 mt-1">{yearReport.summary.rejection_rate}%</p>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{yearReport.summary.rejection_rate}%</p>
             </Card>
           </div>
         )}
@@ -486,8 +486,8 @@ export default function Admissions() {
               </div>
               
               {selectedIds.size > 0 && (
-                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                  <span className="text-sm font-medium text-blue-900">{selectedIds.size} selected</span>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-300">{selectedIds.size} selected</span>
                   <Button
                     size="sm"
                     onClick={() => bulkVerifyMutation.mutate(selectedIds)}
@@ -519,8 +519,8 @@ export default function Admissions() {
 
         {/* Pagination */}
         {paginatedData.total_pages > 1 && (
-          <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-slate-200">
-            <span className="text-sm text-slate-600">
+          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
+            <span className="text-sm text-slate-600 dark:text-gray-300">
               Page {currentPage} of {paginatedData.total_pages} ({paginatedData.total_count} total)
             </span>
             <div className="flex gap-2">
@@ -576,8 +576,8 @@ export default function Admissions() {
                     </AvatarFallback>
                   </Avatar>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">{selectedAdmission.student_name}</h3>
-                  <p className="text-slate-500">Applying for Class {selectedAdmission.applying_for_class}</p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{selectedAdmission.student_name}</h3>
+                  <p className="text-slate-500 dark:text-gray-400">Applying for Class {selectedAdmission.applying_for_class}</p>
                   <StatusBadge status={selectedAdmission.status} className="mt-2" />
                 </div>
               </div>
@@ -654,7 +654,7 @@ export default function Admissions() {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="text-sm text-red-600 p-2 bg-red-50 rounded">
+                    <div className="text-sm text-red-600 dark:text-red-400 p-2 bg-red-50 dark:bg-red-900/20 rounded">
                       No active sections available for {editData.applying_for_class} in {academicYear}
                     </div>
                   )}
@@ -663,7 +663,7 @@ export default function Admissions() {
 
                 {selectedAdmission.documents?.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">Documents</p>
+                  <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Documents</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedAdmission.documents.map((doc, i) => (
                       <a 
@@ -671,7 +671,7 @@ export default function Admissions() {
                         href={doc}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg text-sm hover:bg-slate-200"
+                        className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-gray-700 rounded-lg text-sm hover:bg-slate-200 dark:hover:bg-gray-600 dark:text-gray-300"
                       >
                         <FileText className="h-4 w-4" />
                         Document {i + 1}

@@ -569,9 +569,9 @@ export default function Students() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Students">
-      <div className="min-h-screen bg-[#f0f4ff]">
+      <div className="min-h-screen bg-[#f0f4ff] dark:bg-gray-900">
         {/* Compact Header */}
-        <div className="bg-white border-b border-slate-100 sticky top-0 z-40 px-4 py-2.5">
+        <div className="bg-white dark:bg-gray-800 border-b border-slate-100 dark:border-gray-700 sticky top-0 z-40 px-4 py-2.5">
           <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
             {/* Left: back + title */}
             <div className="flex items-center gap-2 min-w-0">
@@ -579,8 +579,8 @@ export default function Students() {
                 <ArrowLeft className="h-4 w-4 text-slate-600" />
               </Link>
               <div className="min-w-0">
-                <h1 className="text-base font-bold text-slate-900 truncate leading-tight">Students <span className="text-[#1a237e]">— {academicYear}</span></h1>
-                <p className="text-xs text-slate-400 leading-tight">{totalCount} students</p>
+                <h1 className="text-base font-bold text-slate-900 dark:text-white truncate leading-tight">Students <span className="text-[#1a237e]">— {academicYear}</span></h1>
+                <p className="text-xs text-slate-400 dark:text-gray-500 leading-tight">{totalCount} students</p>
               </div>
             </div>
 
@@ -621,14 +621,14 @@ export default function Students() {
 
         <div className="max-w-5xl mx-auto px-4 py-4 space-y-3">
           {/* Compact stats strip */}
-          <div className="bg-white rounded-xl shadow-sm px-4 py-2 flex items-center gap-4 text-sm">
-            <span className="font-semibold text-green-600">{totalActive} <span className="font-normal text-gray-400">Active</span></span>
-            <span className="text-gray-200">|</span>
-            <span className="font-semibold text-yellow-600">{totalPending} <span className="font-normal text-gray-400">Pending</span></span>
-            <span className="text-gray-200">|</span>
-            <span className="font-semibold text-gray-500">{totalArchived} <span className="font-normal text-gray-400">Archived</span></span>
-            <span className="text-gray-200 hidden sm:inline">|</span>
-            <span className="hidden sm:inline font-semibold text-[#1a237e]">{totalCount} <span className="font-normal text-gray-400">Total</span></span>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm px-4 py-2 flex items-center gap-4 text-sm">
+            <span className="font-semibold text-green-600">{totalActive} <span className="font-normal text-gray-400 dark:text-gray-500">Active</span></span>
+            <span className="text-gray-200 dark:text-gray-600">|</span>
+            <span className="font-semibold text-yellow-600">{totalPending} <span className="font-normal text-gray-400 dark:text-gray-500">Pending</span></span>
+            <span className="text-gray-200 dark:text-gray-600">|</span>
+            <span className="font-semibold text-gray-500 dark:text-gray-400">{totalArchived} <span className="font-normal text-gray-400 dark:text-gray-500">Archived</span></span>
+            <span className="text-gray-200 dark:text-gray-600 hidden sm:inline">|</span>
+            <span className="hidden sm:inline font-semibold text-[#1a237e]">{totalCount} <span className="font-normal text-gray-400 dark:text-gray-500">Total</span></span>
           </div>
 
           {/* Filters */}
@@ -645,7 +645,7 @@ export default function Students() {
 
           {/* Bulk Actions — Admin only */}
           {isAdmin && selectableStudents.length > 0 && !showArchived && !showDeleted && (
-            <div className="bg-white rounded-2xl shadow-sm p-3 flex flex-wrap items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-3 flex flex-wrap items-center gap-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -653,7 +653,7 @@ export default function Students() {
                   onChange={handleSelectAll}
                   className="w-4 h-4 rounded cursor-pointer accent-[#1a237e]"
                 />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
                 </span>
               </label>
@@ -718,12 +718,12 @@ export default function Students() {
           {/* List */}
           {isLoading ? (
             <div className="space-y-3">
-              {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white rounded-2xl animate-pulse" />)}
+              {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white dark:bg-gray-800 rounded-2xl animate-pulse" />)}
             </div>
           ) : students.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-              <Users className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">No students found.</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center">
+              <Users className="h-10 w-10 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400 dark:text-gray-500 text-sm">No students found.</p>
               {isAdmin && (
                 <button onClick={openAdd} className="mt-4 text-[#1a237e] font-semibold text-sm hover:underline">
                   + Add first student
@@ -733,7 +733,7 @@ export default function Students() {
           ) : (
             <div className="space-y-1.5">
               {/* Desktop column headers */}
-              <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                 <div className="w-4 flex-shrink-0" /> {/* checkbox spacer */}
                 <div className="w-9 flex-shrink-0" /> {/* avatar spacer */}
                 <div className="w-48 flex-shrink-0">Name / ID</div>
@@ -771,7 +771,7 @@ export default function Students() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 bg-white rounded-2xl shadow-sm p-3">
+            <div className="flex items-center justify-center gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -781,7 +781,7 @@ export default function Students() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm text-gray-600 font-medium">
+              <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
                 Page {page} of {totalPages}
               </span>
               <Button
@@ -891,22 +891,22 @@ export default function Students() {
             </DialogHeader>
             {resetResult && (
               <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-900">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-900 dark:text-blue-300">
                     <strong>Temporary Password:</strong>
                   </p>
                   <p className="text-2xl font-mono font-bold text-blue-600 mt-2 tracking-widest">{resetResult.temporary_password}</p>
                 </div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  <p className="text-xs text-gray-700">
+                <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                  <p className="text-xs text-gray-700 dark:text-gray-300">
                     <strong>Student ID:</strong> {resetResult.student_id}
                   </p>
-                  <p className="text-xs text-gray-700 mt-1">
+                  <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">
                     <strong>Student:</strong> {resetResult.student_name}
                   </p>
                 </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-xs text-amber-900">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <p className="text-xs text-amber-900 dark:text-amber-300">
                     ℹ️ Share this password with the student. They must change it on their first login.
                   </p>
                 </div>

@@ -535,7 +535,7 @@ export default function Staff() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Staff Module">
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
         <PageHeader
           title="Staff Management"
           subtitle="Manage staff accounts and roles with RBAC"
@@ -543,7 +543,7 @@ export default function Staff() {
 
         <div className="p-4 lg:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="bg-white border shadow-sm w-full justify-start">
+            <TabsList className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-sm w-full justify-start">
               <TabsTrigger value="add">Add Staff</TabsTrigger>
               <TabsTrigger value="manage">Staff Management</TabsTrigger>
               <TabsTrigger value="roles">Role Templates</TabsTrigger>
@@ -630,7 +630,7 @@ export default function Staff() {
                             type="text"
                             value={tempPassword}
                             readOnly
-                            className="bg-slate-100"
+                            className="bg-slate-100 dark:bg-gray-700 dark:text-white"
                           />
                           <Button
                            type="button"
@@ -778,7 +778,7 @@ export default function Staff() {
               ) : (
                 <div className="space-y-2">
                   {filtered.map(member => (
-                    <Card key={member.id} className="border-0 shadow-sm">
+                    <Card key={member.id} className="border-0 shadow-sm dark:bg-gray-800">
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-11 w-11 flex-shrink-0">
@@ -789,12 +789,12 @@ export default function Staff() {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-semibold text-slate-900 text-sm">{member.name}</p>
+                              <p className="font-semibold text-slate-900 dark:text-white text-sm">{member.name}</p>
                               {getStatusBadge(member)}
                             </div>
-                            <p className="text-xs text-slate-500">@{member.username}</p>
+                            <p className="text-xs text-slate-500 dark:text-gray-400">@{member.username}</p>
                             {member.last_login_at && (
-                              <p className="text-xs text-slate-400 mt-0.5">
+                              <p className="text-xs text-slate-400 dark:text-gray-500 mt-0.5">
                                 Last login: {new Date(member.last_login_at).toLocaleString()}
                               </p>
                             )}
@@ -853,8 +853,8 @@ export default function Staff() {
             {/* Roles Tab */}
             <TabsContent value="roles" className="space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-sm text-slate-600">
-                  Manage role templates and assign them to staff members. System roles cannot be deleted.
+                <p className="text-sm text-slate-600 dark:text-gray-300">
+                 Manage role templates and assign them to staff members. System roles cannot be deleted.
                 </p>
                 <Button onClick={openCreateRole} className="bg-[#1a237e] hover:bg-[#283593]">
                   <Plus className="h-4 w-4 mr-2" />
@@ -866,11 +866,11 @@ export default function Staff() {
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     {roleTemplates.map(role => (
-                      <div key={role.id} className="border rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition">
+                      <div key={role.id} className="border dark:border-gray-700 rounded-lg p-4 bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 transition">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <p className="font-semibold text-slate-900">{role.name}</p>
-                            <p className="text-xs text-slate-500 mt-1">{role.description}</p>
+                            <p className="font-semibold text-slate-900 dark:text-white">{role.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{role.description}</p>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {role.is_system && (
@@ -904,7 +904,7 @@ export default function Staff() {
                           </div>
                         </div>
                         {role.permissions && Object.keys(role.permissions).length > 0 && (
-                          <div className="text-xs text-slate-600">
+                          <div className="text-xs text-slate-600 dark:text-gray-400">
                             <span className="font-medium">Permissions:</span> {Object.entries(role.permissions).filter(([,v]) => v).map(([k]) => k).join(', ') || 'None'}
                           </div>
                         )}
@@ -1117,16 +1117,16 @@ export default function Staff() {
             </DialogHeader>
 
             <div className="space-y-4">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-gray-300">
                 Password for <span className="font-semibold">{resetPasswordStaff?.name}</span> will be reset to:
               </p>
               
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="font-mono font-semibold text-blue-900 text-center text-lg">Bvm@1234</p>
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="font-mono font-semibold text-blue-900 dark:text-blue-300 text-center text-lg">Bvm@1234</p>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-xs text-amber-800">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-xs text-amber-800 dark:text-amber-300">
                   <span className="font-semibold">Note:</span> The staff member must change this password on their next login.
                 </p>
               </div>
@@ -1157,10 +1157,10 @@ export default function Staff() {
               <DialogTitle className="text-green-600">✓ Password Reset Complete</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-slate-700 dark:text-gray-300">
                 Password for <span className="font-semibold">{resetPasswordStaff?.name}</span> has been successfully reset.
               </p>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-gray-300">
                 The staff member will be forced to change their password on next login.
               </p>
               <Button
@@ -1208,7 +1208,7 @@ export default function Staff() {
                     const someEnabled = category.permissions.some(p => roleForm.permissions[p.key]);
                     
                     return (
-                      <div key={category.label} className="border rounded-lg p-4 bg-slate-50">
+                      <div key={category.label} className="border dark:border-gray-600 rounded-lg p-4 bg-slate-50 dark:bg-gray-700">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <Checkbox
@@ -1217,7 +1217,7 @@ export default function Staff() {
                               indeterminate={someEnabled && !allPermEnabled}
                               onCheckedChange={() => toggleModuleAll(category)}
                             />
-                            <label htmlFor={`module-${category.label}`} className="font-semibold text-slate-900 cursor-pointer">
+                            <label htmlFor={`module-${category.label}`} className="font-semibold text-slate-900 dark:text-white cursor-pointer">
                               {category.label}
                             </label>
                           </div>
@@ -1247,7 +1247,7 @@ export default function Staff() {
                                 checked={roleForm.permissions[perm.key] || false}
                                 onCheckedChange={() => togglePermission(perm.key)}
                               />
-                              <label htmlFor={perm.key} className="text-sm cursor-pointer">
+                              <label htmlFor={perm.key} className="text-sm cursor-pointer dark:text-gray-300">
                                 {perm.label}
                               </label>
                             </div>
