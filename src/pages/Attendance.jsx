@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Suspense, lazy } from 'react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -32,6 +33,17 @@ import {
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
+
+// Lazy load heavy attendance tab components
+const DailySnapshotTabLazy = lazy(() => import('@/components/attendance/DailySnapshotTab'));
+
+const TabLoadingSpinner = () => (
+  <Card className="border-0 shadow-sm dark:bg-gray-800">
+    <CardContent className="py-12 flex justify-center">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+    </CardContent>
+  </Card>
+);
 
 // ─── Mark Attendance Tab ──────────────────────────────────────────────────────
 function MarkAttendanceTab({ user, academicYear, isAdmin }) {
@@ -946,7 +958,9 @@ export default function Attendance() {
 
             {canViewReports && (
               <TabsContent value="snapshot">
-                <DailySnapshotTab />
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  <DailySnapshotTabLazy />
+                </Suspense>
               </TabsContent>
             )}
 
