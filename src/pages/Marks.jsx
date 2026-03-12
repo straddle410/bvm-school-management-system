@@ -334,29 +334,22 @@ export default function Marks() {
           throw new Error('No marks entered');
         }
 
-        // Batch API calls with throttling to prevent rate limit errors
-        // Process in chunks of 10 with 500ms delay between chunks
-        const CHUNK_SIZE = 10;
-        const DELAY_MS = 500;
+        // Save marks with 200ms delay between each operation to prevent rate limiting
+        const DELAY_MS = 200;
         const results = [];
 
-        for (let i = 0; i < markEntries.length; i += CHUNK_SIZE) {
-          const chunk = markEntries.slice(i, i + CHUNK_SIZE);
-          const chunkPromises = chunk.map(entry =>
-            base44.functions.invoke('createOrUpdateMarksWithValidation', entry)
-              .then(res => {
-                if (res.status >= 400) {
-                  throw new Error(res.data?.error || 'Failed to save mark');
-                }
-                return res.data;
-              })
-          );
+        for (let i = 0; i < markEntries.length; i++) {
+          const entry = markEntries[i];
+          const res = await base44.functions.invoke('createOrUpdateMarksWithValidation', entry);
+          
+          if (res.status >= 400) {
+            throw new Error(res.data?.error || 'Failed to save mark');
+          }
+          
+          results.push(res.data);
 
-          const chunkResults = await Promise.all(chunkPromises);
-          results.push(...chunkResults);
-
-          // Add delay between chunks to throttle API calls (except after last chunk)
-          if (i + CHUNK_SIZE < markEntries.length) {
+          // Add 200ms delay between each save (except after last one)
+          if (i < markEntries.length - 1) {
             await new Promise(resolve => setTimeout(resolve, DELAY_MS));
           }
         }
