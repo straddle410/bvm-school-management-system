@@ -166,7 +166,7 @@ export default function Calendar() {
   const selectedDateEvents = selectedDate ? getEventsForDay(selectedDate) : [];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <PageHeader 
          title="School Calendar"
          subtitle="Events, holidays and important dates"
@@ -189,7 +189,7 @@ export default function Calendar() {
       <div className="p-4 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar */}
-          <Card className="border-0 shadow-sm lg:col-span-2">
+          <Card className="border-0 shadow-sm lg:col-span-2 dark:bg-gray-800">
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <CardTitle>{format(currentMonth, 'MMMM yyyy')}</CardTitle>
               <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function Calendar() {
               {/* Day Headers */}
               <div className="grid grid-cols-7 mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-center text-sm font-medium text-slate-500 py-2">
+                    <div key={day} className="text-center text-sm font-medium text-slate-500 dark:text-gray-400 py-2">
                     {day}
                   </div>
                 ))}
@@ -242,15 +242,15 @@ export default function Calendar() {
                      onClick={() => handleDateClick(day)}
                      className={`
                        aspect-square p-1 rounded-xl cursor-pointer transition-all
-                       ${isHolidayDay && !isToday(day) ? 'bg-red-50' : ''}
-                       ${isToday(day) ? 'bg-blue-50' : ''}
+                       ${isHolidayDay && !isToday(day) ? 'bg-red-50 dark:bg-red-900/20' : ''}
+                       ${isToday(day) ? 'bg-blue-50 dark:bg-blue-900/30' : ''}
                        ${isSelected ? 'ring-2 ring-blue-500' : ''}
-                       hover:bg-slate-100
+                       hover:bg-slate-100 dark:hover:bg-gray-700
                      `}
                    >
                      <div className={`
                        h-7 w-7 rounded-full flex items-center justify-center text-sm mx-auto
-                       ${isToday(day) ? 'bg-blue-600 text-white' : isHolidayDay ? 'bg-red-500 text-white' : 'text-slate-700'}
+                       ${isToday(day) ? 'bg-blue-600 text-white' : isHolidayDay ? 'bg-red-500 text-white' : 'text-slate-700 dark:text-gray-300'}
                      `}>
                         {format(day, 'd')}
                       </div>
@@ -264,7 +264,7 @@ export default function Calendar() {
                           </div>
                         ))}
                         {dayEvents.length > 2 && (
-                          <div className="text-xs text-slate-500 text-center">
+                          <div className="text-xs text-slate-500 dark:text-gray-400 text-center">
                             +{dayEvents.length - 2} more
                           </div>
                         )}
@@ -280,9 +280,9 @@ export default function Calendar() {
           <div className="space-y-6">
             {/* Selected Date Events */}
             {selectedDate && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-gray-800">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg dark:text-white">
                     {format(selectedDate, 'MMMM d, yyyy')}
                   </CardTitle>
                 </CardHeader>
@@ -290,32 +290,32 @@ export default function Calendar() {
                   {selectedDateEvents.length > 0 ? (
                     <div className="space-y-3">
                       {selectedDateEvents.map(event => (
-                        <div key={event.id} className="p-3 bg-slate-50 rounded-xl">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium text-slate-900">{event.title}</p>
+                        <div key={event.id} className="p-3 bg-slate-50 dark:bg-gray-700 rounded-xl">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="font-medium text-slate-900 dark:text-white">{event.title}</p>
                               <Badge variant="outline" className={`mt-1 ${getEventColor(event.event_type)}`}>
                                 {event.event_type}
                               </Badge>
                             </div>
                           </div>
                           {event.description && (
-                            <p className="text-sm text-slate-600 mt-2">{event.description}</p>
+                            <p className="text-sm text-slate-600 dark:text-gray-300 mt-2">{event.description}</p>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-slate-500 text-center py-4">No events on this day</p>
+                    <p className="text-slate-500 dark:text-gray-400 text-center py-4">No events on this day</p>
                   )}
                 </CardContent>
               </Card>
             )}
 
             {/* Legend */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Event Types</CardTitle>
+                <CardTitle className="text-lg dark:text-white">Event Types</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -329,9 +329,9 @@ export default function Calendar() {
             </Card>
 
             {/* Upcoming Events */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Upcoming Events</CardTitle>
+                <CardTitle className="text-lg dark:text-white">Upcoming Events</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -341,19 +341,19 @@ export default function Calendar() {
                     .slice(0, 5)
                     .map(event => (
                       <div key={event.id} className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
                           <CalendarIcon className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-slate-900 truncate">{event.title}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="font-medium text-slate-900 dark:text-white truncate">{event.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-gray-400">
                             {format(new Date(event.start_date), 'MMM d')}
                           </p>
                         </div>
                       </div>
                     ))}
                   {events.filter(e => new Date(e.start_date) >= new Date()).length === 0 && (
-                    <p className="text-slate-500 text-center py-4">No upcoming events</p>
+                    <p className="text-slate-500 dark:text-gray-400 text-center py-4">No upcoming events</p>
                   )}
                 </div>
               </CardContent>

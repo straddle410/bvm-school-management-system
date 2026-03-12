@@ -167,7 +167,7 @@ export default function Diary() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Diary">
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {/* Left: List */}
           <div className="lg:col-span-2 space-y-4">
@@ -176,8 +176,8 @@ export default function Diary() {
               <div className="flex items-center gap-3">
                 <Notebook className="h-8 w-8 text-pink-600" />
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Class Diary</h1>
-                  <p className="text-gray-600 text-sm">Daily class updates and activities</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Class Diary</h1>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Daily class updates and activities</p>
                 </div>
               </div>
               <Button
@@ -198,9 +198,9 @@ export default function Diary() {
                 <div className="inline-block w-8 h-8 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin" />
               </div>
             ) : diaryList.length === 0 ? (
-              <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-                <Notebook className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No diary entries yet</p>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm">
+                <Notebook className="h-12 w-12 text-gray-200 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 mb-4">No diary entries yet</p>
                 <Button onClick={() => setShowForm(true)} className="bg-pink-600 hover:bg-pink-700">
                   <Plus className="h-4 w-4 mr-2" /> Post First Entry
                 </Button>
@@ -208,11 +208,11 @@ export default function Diary() {
             ) : (
               <div className="space-y-3">
                 {diaryList.map((item) => (
-                  <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow border-l-4 border-pink-500">
+                  <div key={item.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow border-l-4 border-pink-500">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{item.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{item.description}</p>
                         <div className="flex gap-2 mt-2 flex-wrap">
                           <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
                             Class {item.class_name}-{item.section}
@@ -221,7 +221,7 @@ export default function Diary() {
                             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{item.subject_name}</span>
                           )}
                           {item.diary_date && (
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                            <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
                               {format(new Date(item.diary_date + 'T00:00:00'), 'MMM d, yyyy')}
                             </span>
                           )}

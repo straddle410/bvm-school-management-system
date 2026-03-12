@@ -113,15 +113,15 @@ export default function More() {
 
   const MenuItem = ({ item, onClick, showArrow = true }) => {
     const inner = (
-      <div className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+      <div className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 transition-colors">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
           <item.icon className="h-5 w-5" style={{ color: item.color }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">{item.label}</p>
-          {item.sub && <p className="text-xs text-gray-500 mt-0.5">{item.sub}</p>}
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.label}</p>
+          {item.sub && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.sub}</p>}
         </div>
-        {showArrow && <ChevronRight className="h-4 w-4 text-gray-300 flex-shrink-0" />}
+        {showArrow && <ChevronRight className="h-4 w-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />}
       </div>
     );
 
@@ -134,7 +134,7 @@ export default function More() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen pb-6">
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen pb-6">
 
       {/* ---- LOGGED OUT STATE ---- */}
       {!loading && !user ? (
@@ -159,13 +159,13 @@ export default function More() {
 
           {/* Support Section */}
           <div className="-mt-4 px-4 space-y-4">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Support</p>
-              <div className="divide-y divide-gray-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+              <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Support</p>
+              <div className="divide-y divide-gray-50 dark:divide-gray-700">
                 {supportItems.map(item => <MenuItem key={item.label} item={item} />)}
               </div>
             </div>
-            <p className="text-center text-xs text-gray-400 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
+            <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
           </div>
         </>
       ) : (
@@ -215,8 +215,8 @@ export default function More() {
                <div className="-mt-4 px-4 space-y-4">
                  {/* Exam Management - Admin */}
                  {isAdmin && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <button onClick={() => setExpandedExams(!expandedExams)} className="w-full text-left">
+                   <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                       <button onClick={() => setExpandedExams(!expandedExams)} className="w-full text-left">
                        <MenuItem 
                          item={{ 
                            label: 'Exam Management', 
@@ -229,7 +229,7 @@ export default function More() {
                        />
                      </button>
                      {expandedExams && (
-                       <div className="divide-y divide-gray-50 bg-gray-50">
+                       <div className="divide-y divide-gray-50 dark:divide-gray-700 bg-gray-50 dark:bg-gray-700/50">
                          {examItems.admin.map(item => (
                            <div key={item.label} className="pl-4">
                              <MenuItem item={item} />
@@ -242,9 +242,9 @@ export default function More() {
 
                  {/* Exam Section - Teachers (not accountant) */}
                   {isTeacher && !isAdmin && role !== 'accountant' && examItems.teacher.length > 0 && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Exams</p>
-                     <div className="divide-y divide-gray-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Exams</p>
+                      <div className="divide-y divide-gray-50 dark:divide-gray-700">
                        {examItems.teacher.map(item => <MenuItem key={item.label} item={item} />)}
                      </div>
                    </div>
@@ -252,9 +252,9 @@ export default function More() {
 
                  {/* Create Content - Teachers & Staff (not accountant) */}
                  {isTeacher && role !== 'accountant' && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Create Content</p>
-                     <div className="divide-y divide-gray-50">
+                   <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Create Content</p>
+                     <div className="divide-y divide-gray-50 dark:divide-gray-700">
                        {contentItems.map(item => <MenuItem key={item.label} item={item} />)}
                      </div>
                    </div>
@@ -262,9 +262,9 @@ export default function More() {
 
                  {/* Finance Reports - Accountant: big buttons, always visible */}
                   {role === 'accountant' && (
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Finance</p>
-                      <div className="divide-y divide-gray-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                      <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Finance</p>
+                      <div className="divide-y divide-gray-50 dark:divide-gray-700">
                         {financeReportItems.map(item => (
                           <MenuItem key={item.label} item={item} />
                         ))}
@@ -274,7 +274,7 @@ export default function More() {
 
                   {/* Finance Reports - Admin or other staff with fee permissions (collapsible) */}
                   {role !== 'accountant' && canViewFinance && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                   <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
                      <button onClick={() => setExpandedFinance(!expandedFinance)} className="w-full text-left">
                        <MenuItem
                          item={{
@@ -288,7 +288,7 @@ export default function More() {
                        />
                      </button>
                      {expandedFinance && (
-                       <div className="divide-y divide-gray-50 bg-gray-50">
+                       <div className="divide-y divide-gray-50 dark:divide-gray-700 bg-gray-50 dark:bg-gray-700/50">
                          {financeReportItems
                            .filter(item => {
                              if (isAdmin) return true;
@@ -311,9 +311,9 @@ export default function More() {
 
                  {/* Fees Module shortcut for non-admin, non-accountant fee staff */}
                   {!isAdmin && role !== 'accountant' && !!permissions.fees_view_module && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Fees</p>
-                     <div className="divide-y divide-gray-50">
+                   <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Fees</p>
+                     <div className="divide-y divide-gray-50 dark:divide-gray-700">
                        <MenuItem item={{ label: 'Fees Module', sub: 'Collect & manage fee payments', icon: TrendingUp, color: '#388e3c', bg: '#e8f5e9', page: 'Fees' }} />
                      </div>
                    </div>
@@ -321,32 +321,32 @@ export default function More() {
 
                  {/* Admin Controls */}
                  {isAdmin && (
-                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Other Controls</p>
-                     <div className="divide-y divide-gray-50">
+                   <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                     <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Other Controls</p>
+                     <div className="divide-y divide-gray-50 dark:divide-gray-700">
                        {adminItems.map(item => <MenuItem key={item.label} item={item} />)}
                      </div>
                    </div>
                  )}
 
                  {/* Profile & Account — always visible for ALL logged-in staff */}
-                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">My Account</p>
-                   <div className="divide-y divide-gray-50">
+                 <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">My Account</p>
+                   <div className="divide-y divide-gray-50 dark:divide-gray-700">
                      <MenuItem item={{ label: 'My Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' }} />
                      <MenuItem item={{ label: 'Change Password', sub: 'Update your login password', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'ChangeStaffPassword' }} />
                    </div>
                  </div>
 
                  {/* Support */}
-                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Support</p>
-                   <div className="divide-y divide-gray-50">
+                 <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Support</p>
+                   <div className="divide-y divide-gray-50 dark:divide-gray-700">
                      {supportItems.map(item => <MenuItem key={item.label} item={item} />)}
                    </div>
                  </div>
 
-                 <p className="text-center text-xs text-gray-400 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
+                 <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-2">{schoolProfile?.school_name || 'BVM School of Excellence'}</p>
                </div>
              </>
            )}

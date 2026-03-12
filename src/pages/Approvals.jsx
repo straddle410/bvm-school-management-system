@@ -113,11 +113,11 @@ export default function Approvals() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Approvals">
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Pending Approvals</h1>
-            <p className="text-gray-500 mt-1">Review and approve pending content</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pending Approvals</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Review and approve pending content</p>
           </div>
 
           <Tabs defaultValue="notices" className="space-y-6">
@@ -131,26 +131,26 @@ export default function Approvals() {
             <TabsContent value="notices">
               <div className="space-y-4">
                 {pendingNotices.length === 0 ? (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border-0 shadow-sm dark:bg-gray-800">
                     <CardContent className="py-12 text-center">
-                      <p className="text-gray-500">No pending notices</p>
+                      <p className="text-gray-500 dark:text-gray-400">No pending notices</p>
                     </CardContent>
                   </Card>
                 ) : (
                   pendingNotices.map(notice => (
-                    <Card key={notice.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={notice.id} className="border-0 shadow-sm dark:bg-gray-800 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900">{notice.title}</h3>
-                            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{notice.title}</h3>
+                            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                               <span>By {notice.created_by_name || 'Unknown'}</span>
                               <span>•</span>
                               <span>{notice.notice_type}</span>
                               <span>•</span>
                               <span>{format(new Date(notice.created_date), 'MMM d, yyyy HH:mm')}</span>
                             </div>
-                            <p className="mt-3 text-sm text-gray-600 line-clamp-2">{notice.content}</p>
+                            <p className="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{notice.content}</p>
                           </div>
                           <div className="flex gap-2 flex-shrink-0">
                             <Button
@@ -191,19 +191,19 @@ export default function Approvals() {
             <TabsContent value="quizzes">
               <div className="space-y-4">
                 {pendingQuizzes.length === 0 ? (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border-0 shadow-sm dark:bg-gray-800">
                     <CardContent className="py-12 text-center">
-                      <p className="text-gray-500">No pending quizzes</p>
+                      <p className="text-gray-500 dark:text-gray-400">No pending quizzes</p>
                     </CardContent>
                   </Card>
                 ) : (
                   pendingQuizzes.map(quiz => (
-                    <Card key={quiz.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={quiz.id} className="border-0 shadow-sm dark:bg-gray-800 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900">{quiz.title}</h3>
-                            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{quiz.title}</h3>
+                            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                               <span>Class {quiz.class_name || 'All'}</span>
                               <span>•</span>
                               <span>{quiz.subject}</span>
@@ -252,14 +252,14 @@ export default function Approvals() {
             <TabsContent value="photos">
               <div className="space-y-4">
                 {pendingPhotos.length === 0 ? (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border-0 shadow-sm dark:bg-gray-800">
                     <CardContent className="py-12 text-center">
-                      <p className="text-gray-500">No pending photos</p>
+                      <p className="text-gray-500 dark:text-gray-400">No pending photos</p>
                     </CardContent>
                   </Card>
                 ) : (
                   pendingPhotos.map(photo => (
-                    <Card key={photo.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={photo.id} className="border-0 shadow-sm dark:bg-gray-800 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-4 flex-1">
@@ -271,8 +271,8 @@ export default function Approvals() {
                               />
                             )}
                             <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900">{photo.caption || 'Untitled'}</h3>
-                              <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
+                              <h3 className="font-semibold text-gray-900 dark:text-white">{photo.caption || 'Untitled'}</h3>
+                              <div className="mt-2 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                                 <span>By {photo.uploaded_by}</span>
                                 <span>•</span>
                                 <span>{format(new Date(photo.created_date), 'MMM d, yyyy HH:mm')}</span>

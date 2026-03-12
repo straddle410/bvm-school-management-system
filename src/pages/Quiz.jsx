@@ -281,11 +281,11 @@ export default function Quiz() {
   const isStaffLoggedIn = !!(localStorage.getItem('staff_session'));
   if (sessionLoaded && !studentSession && !isStaffLoggedIn && !user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm p-8 max-w-sm w-full text-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex flex-col items-center justify-center px-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 max-w-sm w-full text-center">
           <Lock className="h-12 w-12 text-[#1a237e] mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Student Login Required</h2>
-          <p className="text-gray-500 text-sm mb-6">Please login as a student to attend the quiz.</p>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Student Login Required</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Please login as a student to attend the quiz.</p>
           <Link to={createPageUrl('StudentLogin')}>
             <Button className="w-full bg-[#1a237e] hover:bg-[#283593]">Go to Student Login</Button>
           </Link>
@@ -296,7 +296,7 @@ export default function Quiz() {
 
   return (
      <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'student']} pageName="Quiz">
-     <div className="min-h-screen bg-slate-50">
+     <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <PageHeader 
         title="Daily Quiz"
         subtitle="Test your knowledge"
@@ -328,12 +328,12 @@ export default function Quiz() {
       <div className="p-4 lg:p-8">
         {showResults ? (
           // Quiz Results View
-          <Card className="border-0 shadow-sm max-w-2xl mx-auto">
-            <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="border-0 shadow-sm max-w-2xl mx-auto dark:bg-gray-800">
+            <CardHeader className="border-b dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Quiz Results</CardTitle>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">
                     {selectedQuiz?.title || 'Quiz'}
                   </p>
                 </div>
@@ -344,32 +344,32 @@ export default function Quiz() {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="text-center">
-                <p className="text-sm text-slate-500 mb-2">Your Score</p>
+                <p className="text-sm text-slate-500 dark:text-gray-400 mb-2">Your Score</p>
                 <p className="text-5xl font-bold text-blue-600 mb-2">
                   {showResults.score}/{selectedQuiz?.questions?.filter(q => q.type === 'MCQ').length || 0}
                 </p>
-                <p className="text-lg text-slate-700">
+                <p className="text-lg text-slate-700 dark:text-gray-300">
                   {Math.round((showResults.score / (selectedQuiz?.questions?.filter(q => q.type === 'MCQ').length || 1)) * 100)}% Correct
                 </p>
               </div>
 
-              <div className="border-t pt-6 space-y-4">
-                <h3 className="font-semibold text-slate-900">Answer Review</h3>
+              <div className="border-t dark:border-gray-700 pt-6 space-y-4">
+              <h3 className="font-semibold text-slate-900 dark:text-white">Answer Review</h3>
                 {selectedQuiz?.questions.map((q, i) => {
                   const isCorrect = q.type === 'MCQ' && answers[i] === q.correct_answer;
                   const userAnswer = answers[i];
                   return (
-                    <div key={i} className={`p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 border-green-200' : q.type === 'Descriptive' ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`}>
+                    <div key={i} className={`p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : q.type === 'Descriptive' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                       <div className="flex items-start gap-3">
                         <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white font-semibold ${isCorrect ? 'bg-green-600' : q.type === 'Descriptive' ? 'bg-yellow-600' : 'bg-red-600'}`}>
                           {i + 1}
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium text-slate-900">{q.question}</p>
+                          <p className="font-medium text-slate-900 dark:text-white">{q.question}</p>
                           <div className="mt-2 space-y-1 text-sm">
                             {q.type === 'MCQ' ? (
                               <>
-                                <p className="text-slate-600">Your answer: <span className="font-semibold">{userAnswer || 'Not answered'}</span></p>
+                                <p className="text-slate-600 dark:text-gray-300">Your answer: <span className="font-semibold">{userAnswer || 'Not answered'}</span></p>
                                 <p className={`${isCorrect ? 'text-green-700 font-semibold' : 'text-red-700'}`}>
                                   Correct answer: <span className="font-semibold">{q.correct_answer}</span>
                                 </p>
@@ -402,12 +402,12 @@ export default function Quiz() {
           </Card>
         ) : selectedQuiz ? (
           // Quiz Taking View
-          <Card className="border-0 shadow-sm max-w-2xl mx-auto">
-            <CardHeader className="border-b">
+          <Card className="border-0 shadow-sm max-w-2xl mx-auto dark:bg-gray-800">
+            <CardHeader className="border-b dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>{selectedQuiz.title}</CardTitle>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <CardTitle className="dark:text-white">{selectedQuiz.title}</CardTitle>
+                  <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">
                     {selectedQuiz.subject}
                   </p>
                 </div>
@@ -424,8 +424,8 @@ export default function Quiz() {
                       {i + 1}
                     </span>
                     <div className="flex-1">
-                      <p className="font-medium text-slate-900">{q.question}</p>
-                      <span className="text-xs text-slate-400 uppercase">{q.type}</span>
+                      <p className="font-medium text-slate-900 dark:text-white">{q.question}</p>
+                        <span className="text-xs text-slate-400 dark:text-gray-500 uppercase">{q.type}</span>
                     </div>
                   </div>
 
@@ -490,7 +490,7 @@ export default function Quiz() {
               ))}
 
               <div className="flex justify-between items-center pt-4">
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-gray-400">
                   Answered: {Object.keys(answeredQuestions).length}/{selectedQuiz.questions.length}
                 </p>
                 <Button 
@@ -505,7 +505,7 @@ export default function Quiz() {
           </Card>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="bg-white border shadow-sm">
+                  <TabsList className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-sm">
                     <TabsTrigger value="quizzes">Today's Quizzes</TabsTrigger>
                     {userPermissions.quiz && <TabsTrigger value="manage">Manage Quizzes</TabsTrigger>}
                     <TabsTrigger value="history">My Attempts</TabsTrigger>
@@ -537,10 +537,10 @@ export default function Quiz() {
                       <CardContent>
                         <div className="space-y-3">
                           <div>
-                            <p className="text-sm text-slate-600 mb-1">
-                              {quiz.questions?.length || 2} questions
-                            </p>
-                            <p className="text-xs text-blue-600 font-semibold">
+                            <p className="text-sm text-slate-600 dark:text-gray-300 mb-1">
+                                      {quiz.questions?.length || 2} questions
+                                    </p>
+                                    <p className="text-xs text-blue-600 font-semibold">
                               {attemptCount} student{attemptCount !== 1 ? 's' : ''} answered
                             </p>
                           </div>
@@ -575,9 +575,9 @@ export default function Quiz() {
 
                 {todayQuizzes.length === 0 && (
                   <div className="col-span-full py-16 text-center">
-                    <HelpCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-700">No Quizzes Today</h3>
-                    <p className="text-slate-500 mt-1">Check back later for new quizzes</p>
+                    <HelpCircle className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">No Quizzes Today</h3>
+                    <p className="text-slate-500 dark:text-gray-400 mt-1">Check back later for new quizzes</p>
                   </div>
                 )}
               </div>
@@ -598,9 +598,9 @@ export default function Quiz() {
                                        <HelpCircle className="h-6 w-6 text-amber-600" />
                                      </div>
                                      <div className="flex-1">
-                                       <h3 className="font-semibold">{quiz.title}</h3>
-                                       <p className="text-sm text-slate-500">
-                                         {quiz.subject} • {quiz.quiz_date}
+                                       <h3 className="font-semibold dark:text-white">{quiz.title}</h3>
+                                                  <p className="text-sm text-slate-500 dark:text-gray-400">
+                                                    {quiz.subject} • {quiz.quiz_date}
                                        </p>
                                        {quiz.status === 'Published' && (
                                          <p className="text-xs text-blue-600 font-semibold mt-1">
@@ -670,9 +670,9 @@ export default function Quiz() {
 
                   {quizzes.length === 0 && (
                     <div className="py-16 text-center">
-                      <HelpCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-slate-700">No Quizzes Created</h3>
-                      <p className="text-slate-500 mt-1">Create your first quiz to get started</p>
+                      <HelpCircle className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">No Quizzes Created</h3>
+                      <p className="text-slate-500 dark:text-gray-400 mt-1">Create your first quiz to get started</p>
                     </div>
                   )}
                 </div>
@@ -692,9 +692,9 @@ export default function Quiz() {
                               <CheckCircle2 className="h-6 w-6 text-green-600" />
                             </div>
                             <div>
-                              <h3 className="font-semibold">{quiz?.title || 'Quiz'}</h3>
-                              <p className="text-sm text-slate-500">
-                                {quiz?.subject} • {attempt.attempt_date}
+                              <h3 className="font-semibold dark:text-white">{quiz?.title || 'Quiz'}</h3>
+                                      <p className="text-sm text-slate-500 dark:text-gray-400">
+                                        {quiz?.subject} • {attempt.attempt_date}
                               </p>
                             </div>
                           </div>
@@ -702,7 +702,7 @@ export default function Quiz() {
                             <p className="text-2xl font-bold text-blue-600">
                               {attempt.score}/{quiz?.questions?.length || 3}
                             </p>
-                            <p className="text-sm text-slate-500">Score</p>
+                            <p className="text-sm text-slate-500 dark:text-gray-400">Score</p>
                           </div>
                         </CardContent>
                       </Card>
@@ -711,9 +711,9 @@ export default function Quiz() {
 
                 {attempts.filter(a => a.student_id === studentSession?.student_id).length === 0 && (
                   <div className="py-16 text-center">
-                    <HelpCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-700">No Attempts Yet</h3>
-                    <p className="text-slate-500 mt-1">Take a quiz to see your history</p>
+                    <HelpCircle className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">No Attempts Yet</h3>
+                    <p className="text-slate-500 dark:text-gray-400 mt-1">Take a quiz to see your history</p>
                   </div>
                 )}
               </div>
