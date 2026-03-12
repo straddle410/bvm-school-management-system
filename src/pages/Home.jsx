@@ -5,6 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin, Home as HomeIcon } from 'lucide-react';
 
 export default function Home() {
+  const [schoolProfile, setSchoolProfile] = React.useState(null);
+
+  React.useEffect(() => {
+    import('@/api/base44Client').then(({ base44 }) => {
+      base44.entities.SchoolProfile.list().then(profiles => {
+        if (profiles && profiles.length > 0) setSchoolProfile(profiles[0]);
+      }).catch(() => {});
+    });
+  }, []);
+
+  const schoolName = schoolProfile?.school_name || 'BVM School of Excellence';
+  const schoolPhone = schoolProfile?.phone || '+91-98765-43210';
+  const schoolEmail = schoolProfile?.email || 'info@school.com';
+  const schoolAddress = schoolProfile?.address || '123 School Lane, City, State 12345';
+  const schoolWebsite = schoolProfile?.website || 'www.school.edu';
+
   const features = [
     { icon: ClipboardList, label: 'Attendance', color: '#26a69a', bg: '#e0f2f1' },
     { icon: BarChart3, label: 'Marks', color: '#1976d2', bg: '#e3f2fd' },
@@ -34,7 +50,7 @@ export default function Home() {
               <Building2 className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-lg font-bold">BVM SCHOOL OF EXCELLENCE</h1>
+              <h1 className="text-lg font-bold">{schoolName.toUpperCase()}</h1>
             </div>
           </Link>
           <div className="flex gap-2">
@@ -140,7 +156,7 @@ export default function Home() {
                 </div>
               </div>
               <h4 className="font-semibold text-gray-900 mb-1">Address</h4>
-              <p className="text-sm text-gray-600">123 School Lane, City, State 12345</p>
+              <p className="text-sm text-gray-600">{schoolAddress}</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center mb-3">
@@ -149,7 +165,7 @@ export default function Home() {
                 </div>
               </div>
               <h4 className="font-semibold text-gray-900 mb-1">Phone</h4>
-              <p className="text-sm text-gray-600">+91-98765-43210</p>
+              <p className="text-sm text-gray-600">{schoolPhone}</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center mb-3">
@@ -158,7 +174,7 @@ export default function Home() {
                 </div>
               </div>
               <h4 className="font-semibold text-gray-900 mb-1">Email</h4>
-              <p className="text-sm text-gray-600">info@school.com</p>
+              <p className="text-sm text-gray-600">{schoolEmail}</p>
             </div>
           </div>
         </div>
@@ -179,9 +195,9 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-lg mb-2">Contact</h3>
               <ul className="space-y-1 text-sm text-blue-100">
-                <li>Phone: +91-98765-43210</li>
-                <li>Email: info@school.com</li>
-                <li>Address: 123 School Lane, City</li>
+                <li>Phone: {schoolPhone}</li>
+                <li>Email: {schoolEmail}</li>
+                <li>{schoolAddress}</li>
               </ul>
             </div>
             <div>
@@ -194,7 +210,7 @@ export default function Home() {
             </div>
           </div>
           <div className="text-center text-sm text-blue-100">
-            <p>© {currentYear} BVM School of Excellence. All rights reserved.</p>
+            <p>© {currentYear} {schoolName}. All rights reserved.</p>
           </div>
         </div>
       </footer>
