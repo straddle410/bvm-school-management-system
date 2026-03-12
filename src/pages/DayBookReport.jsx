@@ -103,10 +103,10 @@ function DayRow({ day, filters, onDrillDown, showVoided }) {
   return (
     <>
       <tr
-        className="hover:bg-blue-50 cursor-pointer transition-colors border-b border-slate-100"
+        className="hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-colors border-b border-slate-100 dark:border-gray-700"
         onClick={() => setExpanded(v => !v)}
       >
-        <td className="px-4 py-3 font-medium text-slate-800 flex items-center gap-2">
+        <td className="px-4 py-3 font-medium text-slate-800 dark:text-gray-200 flex items-center gap-2">
           {expanded ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
           {day.date}
           {day.voidCount > 0 && (
@@ -131,10 +131,10 @@ function DayRow({ day, filters, onDrillDown, showVoided }) {
       </tr>
 
       {expanded && day.byMode?.map((m, i) => (
-        <tr key={i} className="bg-slate-50 border-b border-slate-100 text-sm">
-          <td className="pl-12 pr-4 py-2 text-slate-600">
+        <tr key={i} className="bg-slate-50 dark:bg-gray-700/50 border-b border-slate-100 dark:border-gray-700 text-sm">
+         <td className="pl-12 pr-4 py-2 text-slate-600 dark:text-gray-400">
             <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">{m.mode}</span>
-            <span className="ml-2 text-slate-400 text-xs">{m.count} receipt{m.count !== 1 ? 's' : ''}</span>
+            <span className="ml-2 text-slate-400 dark:text-gray-500 text-xs">{m.count} receipt{m.count !== 1 ? 's' : ''}</span>
           </td>
           <td className="px-4 py-2 text-right text-green-600 tabular-nums">₹{fmt(m.grossCollected)}</td>
           <td className="px-4 py-2 text-right text-slate-700 font-semibold tabular-nums">₹{fmt(m.netCollected)}</td>
@@ -270,7 +270,7 @@ export default function DayBookReport() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Day Book Report">
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
         <PageHeader
           title="Day Book Report"
           subtitle="Daily fee collections grouped by date and payment mode"
@@ -316,8 +316,8 @@ export default function DayBookReport() {
               </div>
 
               {/* Quick Range Buttons */}
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold text-slate-700 mb-2">Quick Range:</div>
+              <div className="bg-slate-50 dark:bg-gray-700 rounded-lg p-3 border border-slate-200 dark:border-gray-600">
+               <div className="text-xs font-semibold text-slate-700 dark:text-gray-300 mb-2">Quick Range:</div>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { label: 'Today', key: 'today' },
@@ -336,7 +336,7 @@ export default function DayBookReport() {
                         setDateTo(range.to);
                         setApplied(prev => ({ ...prev, dateFrom: range.from, dateTo: range.to }));
                       }}
-                      className="px-3 py-1.5 text-sm rounded-md border border-[#1a237e]/30 bg-white hover:bg-[#1a237e] hover:text-white text-slate-700 font-medium transition-all"
+                      className="px-3 py-1.5 text-sm rounded-md border border-[#1a237e]/30 bg-white dark:bg-gray-800 dark:border-gray-600 hover:bg-[#1a237e] hover:text-white text-slate-700 dark:text-gray-300 font-medium transition-all"
                     >
                       {label}
                     </button>
@@ -346,23 +346,23 @@ export default function DayBookReport() {
 
               {/* Mode chips + toggles */}
               <div className="flex flex-wrap gap-3 items-center">
-                <span className="text-xs text-slate-500 font-medium">Modes:</span>
+                <span className="text-xs text-slate-500 dark:text-gray-400 font-medium">Modes:</span>
                 {PAYMENT_MODES.map(m => (
-                  <button
-                    key={m}
-                    onClick={() => toggleMode(m)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      selectedModes.includes(m)
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400'
-                    }`}
+                 <button
+                   key={m}
+                   onClick={() => toggleMode(m)}
+                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                     selectedModes.includes(m)
+                       ? 'bg-blue-600 text-white border-blue-600'
+                       : 'bg-white dark:bg-gray-700 text-slate-600 dark:text-gray-300 border-slate-300 dark:border-gray-600 hover:border-blue-400'
+                   }`}
                   >
                     {m}
                   </button>
                 ))}
                 <div className="ml-auto flex items-center gap-2">
                   <Switch checked={includeVoided} onCheckedChange={setIncludeVoided} id="inc-void" />
-                  <Label htmlFor="inc-void" className="text-xs text-slate-600 cursor-pointer">
+                  <Label htmlFor="inc-void" className="text-xs text-slate-600 dark:text-gray-400 cursor-pointer">
                     Show Voided (audit only, not counted)
                   </Label>
                 </div>
@@ -388,11 +388,11 @@ export default function DayBookReport() {
           {summary?.byMode?.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {summary.byMode.map(m => (
-                <div key={m.mode} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs shadow-sm">
-                  <span className="font-semibold text-slate-700">{m.mode}</span>
-                  <span className="mx-1 text-slate-400">·</span>
+                <div key={m.mode} className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs shadow-sm">
+                  <span className="font-semibold text-slate-700 dark:text-gray-300">{m.mode}</span>
+                  <span className="mx-1 text-slate-400 dark:text-gray-500">·</span>
                   <span className="text-green-600">₹{fmt(m.netCollected)}</span>
-                  <span className="text-slate-400 ml-1">({m.count})</span>
+                  <span className="text-slate-400 dark:text-gray-500 ml-1">({m.count})</span>
                 </div>
               ))}
             </div>
@@ -406,14 +406,14 @@ export default function DayBookReport() {
                   <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                 </div>
               ) : days.length === 0 ? (
-                <div className="text-center py-16 text-slate-400 text-sm">
-                  No collections found for the selected date range.
+                <div className="text-center py-16 text-slate-400 dark:text-gray-500 text-sm">
+                No collections found for the selected date range.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wide">
+                      <tr className="bg-slate-100 dark:bg-gray-700 text-slate-500 dark:text-gray-400 text-xs uppercase tracking-wide">
                         <th className="px-4 py-3 text-left">Date</th>
                         <th className="px-4 py-3 text-right">Collected</th>
                         <th className="px-4 py-3 text-right">Net</th>
@@ -435,8 +435,8 @@ export default function DayBookReport() {
                     {/* Footer totals */}
                     {summary && (
                       <tfoot>
-                        <tr className="bg-slate-100 font-bold text-sm border-t-2 border-slate-300">
-                          <td className="px-4 py-3 text-slate-700">Total</td>
+                        <tr className="bg-slate-100 dark:bg-gray-700 font-bold text-sm border-t-2 border-slate-300 dark:border-gray-600">
+                         <td className="px-4 py-3 text-slate-700 dark:text-gray-300">Total</td>
                           <td className="px-4 py-3 text-right text-green-700 tabular-nums">₹{fmt(summary.grossCollected)}</td>
                           <td className="px-4 py-3 text-right text-slate-800 tabular-nums">₹{fmt(summary.netCollected)}</td>
                           {applied.includeVoided && (

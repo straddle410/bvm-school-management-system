@@ -131,12 +131,12 @@ function OutstandingReportContent() {
   };
 
   return (
-    <div className="p-4 space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Outstanding / Due Report</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+    <div className="p-4 space-y-5 dark:bg-gray-900 min-h-screen">
+    {/* Header */}
+    <div className="flex items-start justify-between gap-3 flex-wrap">
+     <div>
+       <h1 className="text-xl font-bold text-slate-900 dark:text-white">Outstanding / Due Report</h1>
+       <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
             As of: <strong>{moment(effectiveDate).format('DD MMM YYYY')}</strong> · Year: <strong>{academicYear}</strong>
           </p>
         </div>
@@ -206,8 +206,8 @@ function OutstandingReportContent() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4 pb-3">
-            <p className="text-[11px] text-slate-500">Total Students</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{summary.countTotal ?? 0}</p>
+            <p className="text-[11px] text-slate-500 dark:text-gray-400">Total Students</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{summary.countTotal ?? 0}</p>
             {(summary.countCreditStudents ?? 0) > 0 && (
               <p className="text-[10px] text-emerald-600 mt-0.5">{summary.countCreditStudents} with credit</p>
             )}
@@ -227,9 +227,9 @@ function OutstandingReportContent() {
             <p className="text-[10px] text-emerald-500 mt-0.5">{summary.countCreditStudents ?? 0} overpaid</p>
           </CardContent>
         </Card>
-        <Card className={`border-0 shadow-sm ${(summary.netReceivable ?? 0) > 0 ? 'bg-orange-50 border-orange-100' : 'bg-slate-50'}`}>
-          <CardContent className="pt-4 pb-3">
-            <p className="text-[11px] text-slate-500">Net Receivable</p>
+        <Card className={`border-0 shadow-sm ${(summary.netReceivable ?? 0) > 0 ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-100' : 'bg-slate-50 dark:bg-gray-800'}`}>
+         <CardContent className="pt-4 pb-3">
+           <p className="text-[11px] text-slate-500 dark:text-gray-400">Net Receivable</p>
             <p className={`text-xl font-bold mt-1 ${(summary.netReceivable ?? 0) > 0 ? 'text-orange-600' : 'text-slate-700'}`}>
               ₹{fmt(summary.netReceivable)}
             </p>
@@ -242,14 +242,14 @@ function OutstandingReportContent() {
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardContent className="p-0 overflow-x-auto">
           {isLoading ? (
-            <div className="text-center py-12 text-slate-400">Loading…</div>
-          ) : rows.length === 0 ? (
-            <div className="text-center py-12 text-slate-400">No outstanding dues found.</div>
+            <div className="text-center py-12 text-slate-400 dark:text-gray-500">Loading…</div>
+            ) : rows.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 dark:text-gray-500">No outstanding dues found.</div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead className="text-xs font-semibold cursor-pointer" onClick={() => toggleSort('name')}>
+                <TableRow className="bg-slate-50 dark:bg-gray-700">
+                 <TableHead className="text-xs font-semibold cursor-pointer" onClick={() => toggleSort('name')}>
                     Student <SortIcon field="name" sort={sort} />
                   </TableHead>
                   <TableHead className="text-xs font-semibold">Class</TableHead>
@@ -268,15 +268,15 @@ function OutstandingReportContent() {
                 {rows.map((row) => (
                   <TableRow
                     key={row.student.id}
-                    className="text-xs cursor-pointer hover:bg-slate-50 border-b border-slate-100"
+                    className="text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 border-b border-slate-100 dark:border-gray-700"
                     onClick={() => setSelectedRow(row)}
                   >
                     <TableCell>
-                      <div className="font-medium text-slate-800">{row.student.name}</div>
-                      <div className="text-[10px] text-slate-400">{row.student.id}</div>
+                      <div className="font-medium text-slate-800 dark:text-gray-200">{row.student.name}</div>
+                      <div className="text-[10px] text-slate-400 dark:text-gray-500">{row.student.id}</div>
                     </TableCell>
-                    <TableCell className="text-slate-600">{row.class.name}</TableCell>
-                    <TableCell className="text-right text-slate-600">₹{fmt(row.grossAmount)}</TableCell>
+                    <TableCell className="text-slate-600 dark:text-gray-400">{row.class.name}</TableCell>
+                    <TableCell className="text-right text-slate-600 dark:text-gray-400">₹{fmt(row.grossAmount)}</TableCell>
                     <TableCell className="text-right text-amber-600">-₹{fmt(row.discountAmount)}</TableCell>
                     <TableCell className="text-right font-medium text-slate-700">₹{fmt(row.netInvoiced)}</TableCell>
                     <TableCell className="text-right text-emerald-600">₹{fmt(row.paidAmount)}</TableCell>
@@ -286,8 +286,8 @@ function OutstandingReportContent() {
                     <TableCell className={`text-right font-bold ${row.creditBalance > 0 ? 'text-emerald-600' : 'text-slate-300'}`}>
                       {row.creditBalance > 0 ? `₹${fmt(row.creditBalance)}` : '—'}
                     </TableCell>
-                    <TableCell className="text-slate-500">
-                      {row.lastPaymentDate ? moment(row.lastPaymentDate).format('DD MMM YY') : '—'}
+                    <TableCell className="text-slate-500 dark:text-gray-400">
+                     {row.lastPaymentDate ? moment(row.lastPaymentDate).format('DD MMM YY') : '—'}
                     </TableCell>
                   </TableRow>
                 ))}

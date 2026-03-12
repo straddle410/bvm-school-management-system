@@ -85,15 +85,15 @@ function ClassCollectionContent() {
   const rows = data?.rows || [];
 
   return (
-    <div className="p-4 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+    <div className="p-4 space-y-5 dark:bg-gray-900 min-h-screen">
+    {/* Header */}
+    <div className="flex items-center justify-between">
+     <div>
+       <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart3 className="h-6 w-6 text-[#1a237e]" />
             Collection by Class
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">Fee collection summary grouped by class</p>
+          <p className="text-sm text-slate-500 dark:text-gray-400 mt-0.5">Fee collection summary grouped by class</p>
         </div>
         <Button onClick={handleExport} variant="outline" className="gap-2 hidden sm:flex">
           <Download className="h-4 w-4" /> Export CSV
@@ -105,15 +105,15 @@ function ClassCollectionContent() {
         <CardContent className="pt-4 pb-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
             <div>
-              <Label className="text-xs text-slate-500">From Date</Label>
+              <Label className="text-xs text-slate-500 dark:text-gray-400">From Date</Label>
               <Input type="date" className="mt-1" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs text-slate-500">To Date</Label>
+              <Label className="text-xs text-slate-500 dark:text-gray-400">To Date</Label>
               <Input type="date" className="mt-1" value={dateTo} onChange={e => setDateTo(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs text-slate-500">Class</Label>
+              <Label className="text-xs text-slate-500 dark:text-gray-400">Class</Label>
               <Select value={selectedClass} onValueChange={v => setSelectedClass(v === 'all' ? '' : v)}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="All Classes" /></SelectTrigger>
                 <SelectContent>
@@ -123,7 +123,7 @@ function ClassCollectionContent() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-slate-500">Mode</Label>
+              <Label className="text-xs text-slate-500 dark:text-gray-400">Mode</Label>
               <Select value={selectedMode} onValueChange={v => setSelectedMode(v === 'all' ? '' : v)}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="All Modes" /></SelectTrigger>
                 <SelectContent>
@@ -133,10 +133,10 @@ function ClassCollectionContent() {
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <Label className="text-xs text-slate-500">Show Voided (audit)</Label>
+              <Label className="text-xs text-slate-500 dark:text-gray-400">Show Voided (audit)</Label>
               <div className="flex items-center gap-2 mt-2">
                 <Switch checked={includeVoided} onCheckedChange={setIncludeVoided} />
-                <span className="text-xs text-slate-500">{includeVoided ? 'ON' : 'OFF'}</span>
+                <span className="text-xs text-slate-500 dark:text-gray-400">{includeVoided ? 'ON' : 'OFF'}</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -152,26 +152,26 @@ function ClassCollectionContent() {
       <div className={`grid gap-4 grid-cols-2 ${appliedFilters.includeVoided ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Total Invoiced (Net)</p>
-            <p className="text-xl font-bold text-slate-700 mt-1">₹{fmt(summary.totalInvoicedNetAllClasses)}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Total Invoiced (Net)</p>
+            <p className="text-xl font-bold text-slate-700 dark:text-gray-200 mt-1">₹{fmt(summary.totalInvoicedNetAllClasses)}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Total Collected</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Total Collected</p>
             <p className="text-xl font-bold text-emerald-600 mt-1">₹{fmt(summary.totalCollected)}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Overall Coverage (Range/Annual)</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Overall Coverage (Range/Annual)</p>
             <p className="text-xl font-bold text-blue-600 mt-1">{(summary.overallCoveragePercent ?? 0).toFixed(1)}%</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs text-slate-500">Total Receipts</p>
-            <p className="text-xl font-bold text-slate-900 mt-1">{summary.totalReceipts ?? 0}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Total Receipts</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">{summary.totalReceipts ?? 0}</p>
           </CardContent>
         </Card>
         {appliedFilters.includeVoided && (
@@ -188,14 +188,14 @@ function ClassCollectionContent() {
       <Card className="border-0 shadow-sm">
         <CardContent className="p-0 overflow-x-auto">
           {isLoading ? (
-            <div className="text-center py-12 text-slate-400">Loading...</div>
-          ) : rows.length === 0 ? (
-            <div className="text-center py-12 text-slate-400">No data for the selected filters.</div>
+            <div className="text-center py-12 text-slate-400 dark:text-gray-500">Loading...</div>
+            ) : rows.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 dark:text-gray-500">No data for the selected filters.</div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead className="text-xs font-semibold pl-4">Class</TableHead>
+                <TableRow className="bg-slate-50 dark:bg-gray-700">
+                 <TableHead className="text-xs font-semibold pl-4">Class</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Annual Invoiced (Net)</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Collected (₹)</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Coverage (Range/Annual) %</TableHead>
@@ -213,13 +213,13 @@ function ClassCollectionContent() {
                 {rows.map(row => (
                   <TableRow
                     key={row.class.id}
-                    className="cursor-pointer hover:bg-blue-50 transition-colors border-b border-slate-100"
+                    className="cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors border-b border-slate-100 dark:border-gray-700"
                     onClick={() => setDrawerClass(row.class.name)}
                   >
-                    <TableCell className="font-semibold text-slate-800 pl-4">
-                      Class {row.class.name}
+                    <TableCell className="font-semibold text-slate-800 dark:text-gray-200 pl-4">
+                     Class {row.class.name}
                     </TableCell>
-                    <TableCell className="text-right text-slate-500">₹{fmt(row.totalInvoicedNet)}</TableCell>
+                    <TableCell className="text-right text-slate-500 dark:text-gray-400">₹{fmt(row.totalInvoicedNet)}</TableCell>
                     <TableCell className="text-right font-bold text-emerald-700">
                       ₹{fmt(row.collectedAmount)}
                     </TableCell>
@@ -228,8 +228,8 @@ function ClassCollectionContent() {
                         {(row.coveragePercent ?? 0).toFixed(1)}%
                       </span>
                     </TableCell>
-                    <TableCell className="text-right text-slate-600">{row.receiptsCount}</TableCell>
-                    <TableCell className="text-right text-slate-600">{row.studentsPaidCount}</TableCell>
+                    <TableCell className="text-right text-slate-600 dark:text-gray-400">{row.receiptsCount}</TableCell>
+                    <TableCell className="text-right text-slate-600 dark:text-gray-400">{row.studentsPaidCount}</TableCell>
                     {appliedFilters.includeVoided && (
                       <>
                         <TableCell className="text-right text-red-400">{row.voidedReceiptsCount}</TableCell>
@@ -239,13 +239,13 @@ function ClassCollectionContent() {
                   </TableRow>
                 ))}
                 {/* Totals row */}
-                <TableRow className="bg-slate-50 font-bold">
-                  <TableCell className="pl-4 text-slate-700">Total (Range/Annual)</TableCell>
-                  <TableCell className="text-right text-slate-600">₹{fmt(summary.totalInvoicedNetAllClasses)}</TableCell>
+                <TableRow className="bg-slate-50 dark:bg-gray-700 font-bold">
+                 <TableCell className="pl-4 text-slate-700 dark:text-gray-300">Total (Range/Annual)</TableCell>
+                 <TableCell className="text-right text-slate-600 dark:text-gray-400">₹{fmt(summary.totalInvoicedNetAllClasses)}</TableCell>
                   <TableCell className="text-right text-emerald-700">₹{fmt(summary.totalCollected)}</TableCell>
                   <TableCell className="text-right text-blue-600">{(summary.overallCoveragePercent ?? 0).toFixed(1)}%</TableCell>
-                  <TableCell className="text-right text-slate-700">{summary.totalReceipts ?? 0}</TableCell>
-                  <TableCell className="text-right text-slate-500">—</TableCell>
+                  <TableCell className="text-right text-slate-700 dark:text-gray-300">{summary.totalReceipts ?? 0}</TableCell>
+                  <TableCell className="text-right text-slate-500 dark:text-gray-400">—</TableCell>
                   {appliedFilters.includeVoided && (
                     <>
                       <TableCell className="text-right text-red-400">

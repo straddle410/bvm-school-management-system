@@ -91,9 +91,9 @@ export default function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center w-full">
-        <div className="text-center">
-          <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-[#f0f4ff] dark:bg-gray-900 flex items-center justify-center w-full">
+       <div className="text-center">
+         <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -101,11 +101,11 @@ export default function AnalyticsDashboard() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center p-4">
-        <div className="text-center bg-white rounded-lg p-8 max-w-sm shadow-sm">
-          <Lock className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
-          <p className="text-sm text-gray-600 mb-6">You do not have permission to access this page.</p>
+      <div className="min-h-screen bg-[#f0f4ff] dark:bg-gray-900 flex items-center justify-center p-4">
+       <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-8 max-w-sm shadow-sm">
+         <Lock className="h-12 w-12 text-red-500 mx-auto mb-4" />
+         <h2 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2">Access Denied</h2>
+         <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">You do not have permission to access this page.</p>
           <Button onClick={() => window.history.back()} variant="outline">Go Back</Button>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function AnalyticsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] max-w-md sm:max-w-4xl mx-auto pb-10">
+    <div className="min-h-screen bg-[#f0f4ff] dark:bg-gray-900 max-w-md sm:max-w-4xl mx-auto pb-10">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 sticky top-0 z-40 shadow">
         <div className="flex items-center gap-3 mb-4">
@@ -202,7 +202,7 @@ export default function AnalyticsDashboard() {
               <CardTitle className="text-base">Student-wise Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-gray-500 mb-3">Click on a student card to view detailed analytics</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Click on a student card to view detailed analytics</p>
               <StudentAnalyticsModal 
                 classFilter={selectedClass}
                 academicYear={academicYear}
@@ -215,19 +215,19 @@ export default function AnalyticsDashboard() {
       {/* Student Details Modal */}
       {selectedStudent && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full max-w-md rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto">
             <button 
               onClick={() => setSelectedStudent(null)}
-              className="float-right text-gray-500 hover:text-gray-700"
+              className="float-right text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               ✕
             </button>
-            <h2 className="text-lg font-bold mb-4">{selectedStudent.name}</h2>
+            <h2 className="text-lg font-bold mb-4 dark:text-white">{selectedStudent.name}</h2>
             <div className="space-y-3 text-sm">
-              <div><span className="text-gray-600">Class:</span> {selectedStudent.class_name}-{selectedStudent.section}</div>
-              <div><span className="text-gray-600">Roll No:</span> {selectedStudent.roll_no}</div>
-              <div><span className="text-gray-600">Attendance:</span> {selectedStudent.attendance}%</div>
-              <div><span className="text-gray-600">Avg Marks:</span> {selectedStudent.avgMarks?.toFixed(2)}</div>
+              <div><span className="text-gray-600 dark:text-gray-400">Class:</span> <span className="dark:text-gray-200">{selectedStudent.class_name}-{selectedStudent.section}</span></div>
+              <div><span className="text-gray-600 dark:text-gray-400">Roll No:</span> <span className="dark:text-gray-200">{selectedStudent.roll_no}</span></div>
+              <div><span className="text-gray-600 dark:text-gray-400">Attendance:</span> <span className="dark:text-gray-200">{selectedStudent.attendance}%</span></div>
+              <div><span className="text-gray-600 dark:text-gray-400">Avg Marks:</span> <span className="dark:text-gray-200">{selectedStudent.avgMarks?.toFixed(2)}</span></div>
             </div>
           </div>
         </div>

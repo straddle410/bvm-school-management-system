@@ -185,19 +185,19 @@ function CollectionReportContent() {
   }
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Wave 3A Collection Report</h1>
-        <p className="text-sm text-slate-500 mt-1">Cash payments collected (excluding reversals, credits, adjustments)</p>
+    <div className="p-4 space-y-6 dark:bg-gray-900 min-h-screen">
+    {/* Header */}
+    <div>
+     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Wave 3A Collection Report</h1>
+     <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">Cash payments collected (excluding reversals, credits, adjustments)</p>
       </div>
 
       {/* Filters */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-600" />
-            <h2 className="font-semibold text-slate-700">Filters</h2>
+           <Filter className="h-4 w-4 text-slate-600 dark:text-gray-400" />
+           <h2 className="font-semibold text-slate-700 dark:text-gray-300">Filters</h2>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -257,20 +257,20 @@ function CollectionReportContent() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
-            <p className="text-xs text-slate-500">Total Receipts</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">{summary.receiptCount}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Total Receipts</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{summary.receiptCount}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
-            <p className="text-xs text-slate-500">Total Amount Collected</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Total Amount Collected</p>
             <p className="text-2xl font-bold text-emerald-600 mt-2">₹{summary.totalAmount.toLocaleString('en-IN')}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
-            <p className="text-xs text-slate-500">Average Per Receipt</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">₹{summary.avgPerReceipt.toFixed(0).toLocaleString('en-IN')}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Average Per Receipt</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">₹{summary.avgPerReceipt.toFixed(0).toLocaleString('en-IN')}</p>
           </CardContent>
         </Card>
       </div>
@@ -279,14 +279,14 @@ function CollectionReportContent() {
       {Object.keys(modeBreakdown).length > 0 && (
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-3">
-            <h3 className="font-semibold text-slate-700">Breakdown by Payment Mode</h3>
+            <h3 className="font-semibold text-slate-700 dark:text-gray-300">Breakdown by Payment Mode</h3>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {Object.entries(modeBreakdown).map(([mode, amount]) => (
-                <div key={mode} className="bg-slate-50 rounded-lg p-3">
-                  <p className="text-xs text-slate-500">{mode}</p>
-                  <p className="text-lg font-semibold text-slate-900 mt-1">₹{amount.toLocaleString('en-IN')}</p>
+                <div key={mode} className="bg-slate-50 dark:bg-gray-700 rounded-lg p-3">
+                 <p className="text-xs text-slate-500 dark:text-gray-400">{mode}</p>
+                 <p className="text-lg font-semibold text-slate-900 dark:text-white mt-1">₹{amount.toLocaleString('en-IN')}</p>
                 </div>
               ))}
             </div>
@@ -305,17 +305,17 @@ function CollectionReportContent() {
       {/* Table */}
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardHeader className="pb-3">
-          <h3 className="font-semibold text-slate-700">{isSummaryMode ? 'Collection by Class' : 'Collection Details'}</h3>
+          <h3 className="font-semibold text-slate-700 dark:text-gray-300">{isSummaryMode ? 'Collection by Class' : 'Collection Details'}</h3>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {isLoading ? (
-            <div className="text-center py-8 text-slate-400">Loading...</div>
-          ) : filteredPayments.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">No payments found for the selected filters.</div>
+            <div className="text-center py-8 text-slate-400 dark:text-gray-500">Loading...</div>
+            ) : filteredPayments.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 dark:text-gray-500">No payments found for the selected filters.</div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50">
+                <TableRow className="bg-slate-50 dark:bg-gray-700">
                   {isSummaryMode ? (
                     <>
                       <TableHead className="text-xs font-semibold">Class</TableHead>
@@ -339,7 +339,7 @@ function CollectionReportContent() {
               </TableHeader>
               <TableBody>
                 {filteredPayments.map((payment, idx) => (
-                  <TableRow key={idx} className="text-xs border-b border-slate-100 hover:bg-slate-50">
+                  <TableRow key={idx} className="text-xs border-b border-slate-100 dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-700">
                     {isSummaryMode ? (
                       <>
                         <TableCell className="font-medium">{payment.class?.name || '—'}</TableCell>
@@ -352,10 +352,10 @@ function CollectionReportContent() {
                     ) : (
                       <>
                         <TableCell>{moment(payment.postedAt).format('YYYY-MM-DD')}</TableCell>
-                        <TableCell className="font-mono text-slate-600">{payment.receiptNo || '—'}</TableCell>
-                        <TableCell>{payment.student?.name || '—'}</TableCell>
-                        <TableCell>Class {payment.student?.class || '—'}</TableCell>
-                        <TableCell className="text-slate-600">{payment.mode || '—'}</TableCell>
+                        <TableCell className="font-mono text-slate-600 dark:text-gray-400">{payment.receiptNo || '—'}</TableCell>
+                        <TableCell className="dark:text-gray-300">{payment.student?.name || '—'}</TableCell>
+                        <TableCell className="dark:text-gray-300">Class {payment.student?.class || '—'}</TableCell>
+                        <TableCell className="text-slate-600 dark:text-gray-400">{payment.mode || '—'}</TableCell>
                         <TableCell className="text-right font-medium">{(payment.amount || 0).toLocaleString('en-IN')}</TableCell>
                       </>
                     )}

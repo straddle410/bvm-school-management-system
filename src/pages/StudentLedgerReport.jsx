@@ -158,12 +158,12 @@ function StudentLedgerContent() {
   };
 
   return (
-    <div className="p-4 space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Student Ledger Report</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Chronological fee ledger with running balance</p>
+    <div className="p-4 space-y-5 dark:bg-gray-900 min-h-screen">
+    {/* Header */}
+    <div className="flex items-start justify-between gap-3 flex-wrap">
+     <div>
+       <h1 className="text-xl font-bold text-slate-900 dark:text-white">Student Ledger Report</h1>
+       <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">Chronological fee ledger with running balance</p>
         </div>
         {selectedStudent && (
           <div className="flex gap-2">
@@ -198,12 +198,12 @@ function StudentLedgerContent() {
                 />
               </div>
               {studentSuggestions.length > 0 && !selectedStudent && (
-                <div className="absolute z-20 top-full left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-lg mt-1 max-h-52 overflow-y-auto">
+                <div className="absolute z-20 top-full left-0 right-0 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg mt-1 max-h-52 overflow-y-auto">
                   {studentSuggestions.map(s => (
-                    <button key={s.id} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-sm border-b border-slate-50 last:border-0"
+                    <button key={s.id} className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm border-b border-slate-50 dark:border-gray-700 last:border-0"
                       onClick={() => { setSelectedStudent(s); setSearchInput(s.name); setStudentSuggestions([]); }}>
-                      <div className="font-medium text-slate-800">{s.name}</div>
-                      <div className="text-xs text-slate-400">ID: {s.student_id} · Class {s.class_name}-{s.section}</div>
+                      <div className="font-medium text-slate-800 dark:text-gray-200">{s.name}</div>
+                      <div className="text-xs text-slate-400 dark:text-gray-500">ID: {s.student_id} · Class {s.class_name}-{s.section}</div>
                     </button>
                   ))}
                 </div>
@@ -238,23 +238,23 @@ function StudentLedgerContent() {
 
       {/* Student info strip */}
       {selectedStudent && (
-        <div className="bg-[#e8eaf6] rounded-xl px-4 py-3 flex flex-wrap gap-4 items-center text-sm">
+        <div className="bg-[#e8eaf6] dark:bg-gray-800 rounded-xl px-4 py-3 flex flex-wrap gap-4 items-center text-sm">
           <div>
             <span className="text-[11px] text-[#3949ab] font-semibold uppercase tracking-wide">Student</span>
             <p className="font-bold text-[#1a237e]">{selectedStudent.name}</p>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 uppercase tracking-wide">ID</span>
-            <p className="font-mono text-slate-700">{selectedStudent.student_id}</p>
-          </div>
-          <div>
-            <span className="text-[11px] text-slate-500 uppercase tracking-wide">Class</span>
-            <p className="text-slate-700">Class {selectedStudent.class_name}-{selectedStudent.section}</p>
-          </div>
-          {selectedStudent.parent_phone && (
+            <span className="text-[11px] text-slate-500 dark:text-gray-400 uppercase tracking-wide">ID</span>
+            <p className="font-mono text-slate-700 dark:text-gray-300">{selectedStudent.student_id}</p>
+            </div>
             <div>
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">Phone</span>
-              <p className="text-slate-700">{selectedStudent.parent_phone}</p>
+            <span className="text-[11px] text-slate-500 dark:text-gray-400 uppercase tracking-wide">Class</span>
+            <p className="text-slate-700 dark:text-gray-300">Class {selectedStudent.class_name}-{selectedStudent.section}</p>
+            </div>
+            {selectedStudent.parent_phone && (
+            <div>
+             <span className="text-[11px] text-slate-500 dark:text-gray-400 uppercase tracking-wide">Phone</span>
+             <p className="text-slate-700 dark:text-gray-300">{selectedStudent.parent_phone}</p>
             </div>
           )}
         </div>
@@ -265,19 +265,19 @@ function StudentLedgerContent() {
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-3 pb-3">
-              <p className="text-[11px] text-slate-500">Opening Balance</p>
-              <p className="text-lg font-bold text-slate-700 mt-0.5">₹{fmt(data.openingBalance)}</p>
+              <p className="text-[11px] text-slate-500 dark:text-gray-400">Opening Balance</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-gray-200 mt-0.5">₹{fmt(data.openingBalance)}</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-3 pb-3">
-              <p className="text-[11px] text-slate-500">Total Invoiced</p>
+              <p className="text-[11px] text-slate-500 dark:text-gray-400">Total Invoiced</p>
               <p className="text-lg font-bold text-blue-700 mt-0.5">₹{fmt(summary.totalInvoiced)}</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-3 pb-3">
-              <p className="text-[11px] text-slate-500">Total Paid</p>
+              <p className="text-[11px] text-slate-500 dark:text-gray-400">Total Paid</p>
               <p className="text-lg font-bold text-emerald-600 mt-0.5">₹{fmt(summary.totalPaid)}</p>
             </CardContent>
           </Card>
@@ -289,8 +289,8 @@ function StudentLedgerContent() {
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-3 pb-3">
-              <p className="text-[11px] text-slate-500">Entries</p>
-              <p className="text-lg font-bold text-slate-700 mt-0.5">{data.meta?.totalRows ?? 0}</p>
+              <p className="text-[11px] text-slate-500 dark:text-gray-400">Entries</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-gray-200 mt-0.5">{data.meta?.totalRows ?? 0}</p>
             </CardContent>
           </Card>
         </div>
@@ -301,14 +301,14 @@ function StudentLedgerContent() {
         <Card className="border-0 shadow-sm overflow-hidden">
           <CardContent className="p-0 overflow-x-auto">
             {isLoading ? (
-              <div className="text-center py-12 text-slate-400">Loading ledger…</div>
-            ) : rows.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">No ledger entries found for this student.</div>
+              <div className="text-center py-12 text-slate-400 dark:text-gray-500">Loading ledger…</div>
+              ) : rows.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 dark:text-gray-500">No ledger entries found for this student.</div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
-                    <TableHead className="text-xs font-semibold">Date</TableHead>
+                  <TableRow className="bg-slate-50 dark:bg-gray-700">
+                   <TableHead className="text-xs font-semibold">Date</TableHead>
                     <TableHead className="text-xs font-semibold">Type</TableHead>
                     <TableHead className="text-xs font-semibold">Ref</TableHead>
                     <TableHead className="text-xs font-semibold">Description</TableHead>
@@ -322,12 +322,12 @@ function StudentLedgerContent() {
                 <TableBody>
                   {rows.map((row, idx) => (
                     <TableRow key={idx}
-                      className={`text-xs cursor-pointer border-b border-slate-100 transition-colors ${
-                        row.status === 'VOID' ? 'opacity-50' : 'hover:bg-slate-50'
+                      className={`text-xs cursor-pointer border-b border-slate-100 dark:border-gray-700 transition-colors ${
+                       row.status === 'VOID' ? 'opacity-50' : 'hover:bg-slate-50 dark:hover:bg-gray-700'
                       }`}
                       onClick={() => setSelectedRow(row)}
                     >
-                      <TableCell className="text-slate-600 whitespace-nowrap">
+                      <TableCell className="text-slate-600 dark:text-gray-400 whitespace-nowrap">
                         {row.date ? moment(row.date).format('DD MMM YY') : '—'}
                       </TableCell>
                       <TableCell>
@@ -335,8 +335,8 @@ function StudentLedgerContent() {
                           {row.type}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-[10px] text-slate-400">{row.refNo || '—'}</TableCell>
-                      <TableCell className="max-w-[200px] truncate text-slate-700">{row.description}</TableCell>
+                      <TableCell className="font-mono text-[10px] text-slate-400 dark:text-gray-500">{row.refNo || '—'}</TableCell>
+                      <TableCell className="max-w-[200px] truncate text-slate-700 dark:text-gray-300">{row.description}</TableCell>
                       <TableCell className={`text-right font-medium ${row.debit > 0 ? 'text-red-600' : 'text-slate-300'}`}>
                         {row.debit > 0 ? `₹${fmt(row.debit)}` : '—'}
                       </TableCell>
@@ -346,7 +346,7 @@ function StudentLedgerContent() {
                       <TableCell className={`text-right font-bold ${row.runningBalance > 0 ? 'text-slate-800' : 'text-emerald-600'}`}>
                         ₹{fmt(row.runningBalance)}
                       </TableCell>
-                      <TableCell className="text-slate-500">{row.mode || '—'}</TableCell>
+                      <TableCell className="text-slate-500 dark:text-gray-400">{row.mode || '—'}</TableCell>
                       <TableCell>
                         {row.status === 'VOID' ? (
                           <Badge className="text-[10px] bg-slate-200 text-slate-500 line-through">VOID</Badge>
@@ -359,9 +359,9 @@ function StudentLedgerContent() {
                     </TableRow>
                   ))}
                   {/* Closing balance row */}
-                  <TableRow className="bg-slate-50 font-semibold text-xs">
-                    <TableCell colSpan={6} className="text-right text-slate-600">Closing Balance</TableCell>
-                    <TableCell className="text-right font-bold text-slate-900">₹{fmt(data?.closingBalance)}</TableCell>
+                  <TableRow className="bg-slate-50 dark:bg-gray-700 font-semibold text-xs">
+                   <TableCell colSpan={6} className="text-right text-slate-600 dark:text-gray-400">Closing Balance</TableCell>
+                   <TableCell className="text-right font-bold text-slate-900 dark:text-white">₹{fmt(data?.closingBalance)}</TableCell>
                     <TableCell colSpan={2} />
                   </TableRow>
                 </TableBody>
@@ -370,9 +370,9 @@ function StudentLedgerContent() {
           </CardContent>
         </Card>
       ) : (
-        <div className="text-center py-16 text-slate-400">
-          <Search className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Search for a student above to view their ledger</p>
+        <div className="text-center py-16 text-slate-400 dark:text-gray-500">
+         <Search className="h-10 w-10 mx-auto mb-3 opacity-30" />
+         <p className="text-sm">Search for a student above to view their ledger</p>
         </div>
       )}
 

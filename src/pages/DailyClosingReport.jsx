@@ -106,12 +106,12 @@ export default function DailyClosingReportPage() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Daily Closing">
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Daily Closing Report</h1>
-            <p className="text-gray-600">End-of-day collection summary</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
+       <div className="max-w-5xl mx-auto">
+         {/* Header */}
+         <div className="mb-6">
+           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daily Closing Report</h1>
+           <p className="text-gray-600 dark:text-gray-400">End-of-day collection summary</p>
           </div>
 
           {/* Controls */}
@@ -119,7 +119,7 @@ export default function DailyClosingReportPage() {
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">Select Date</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Select Date</label>
                   <Input
                     type="date"
                     value={selectedDate}
@@ -136,7 +136,7 @@ export default function DailyClosingReportPage() {
                     onChange={(e) => setShowVoided(e.target.checked)}
                     className="h-4 w-4"
                   />
-                  <label htmlFor="showVoided" className="text-sm text-gray-600 cursor-pointer">
+                  <label htmlFor="showVoided" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                     Show Voided (Audit)
                   </label>
                 </div>
@@ -157,7 +157,7 @@ export default function DailyClosingReportPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Collected</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Collected</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-green-600">₹{(totals.totalCollected || 0).toLocaleString()}</p>
@@ -166,17 +166,17 @@ export default function DailyClosingReportPage() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Receipts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-gray-900">{totals.totalReceipts || 0}</p>
+                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Receipts</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{totals.totalReceipts || 0}</p>
               </CardContent>
             </Card>
 
             {totals.totalVoidedCount > 0 && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Voided Count</CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Voided Count</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold text-red-600">{totals.totalVoidedCount}</p>
@@ -187,7 +187,7 @@ export default function DailyClosingReportPage() {
             {totals.totalVoidedCount > 0 && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Voided Amount</CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Voided Amount</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold text-red-600">₹{(totals.totalVoidedAmount || 0).toLocaleString()}</p>
@@ -204,26 +204,26 @@ export default function DailyClosingReportPage() {
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100 border-b">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold">Mode</th>
-                      <th className="px-4 py-3 text-right font-semibold">Amount</th>
-                      <th className="px-4 py-3 text-right font-semibold">Receipt Count</th>
-                    </tr>
+                  <thead className="bg-gray-100 dark:bg-gray-700 border-b dark:border-gray-600">
+                   <tr>
+                     <th className="px-4 py-3 text-left font-semibold dark:text-gray-300">Mode</th>
+                     <th className="px-4 py-3 text-right font-semibold dark:text-gray-300">Amount</th>
+                     <th className="px-4 py-3 text-right font-semibold dark:text-gray-300">Receipt Count</th>
+                   </tr>
                   </thead>
                   <tbody>
-                    {byMode.length === 0 ? (
-                      <tr>
-                        <td colSpan="3" className="px-4 py-6 text-center text-gray-500">
+                   {byMode.length === 0 ? (
+                     <tr>
+                       <td colSpan="3" className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                           No collections recorded
                         </td>
                       </tr>
                     ) : (
                       byMode.map((mode, idx) => (
-                        <tr key={idx} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium">{mode.mode}</td>
+                        <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-4 py-3 font-medium dark:text-gray-200">{mode.mode}</td>
                           <td className="px-4 py-3 text-right font-bold text-green-600">₹{(mode.collected || 0).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right">{mode.receiptCount}</td>
+                          <td className="px-4 py-3 text-right dark:text-gray-300">{mode.receiptCount}</td>
                         </tr>
                       ))
                     )}
@@ -241,30 +241,30 @@ export default function DailyClosingReportPage() {
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100 border-b">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold">Receipt No</th>
-                      <th className="px-4 py-3 text-left font-semibold">Student</th>
-                      <th className="px-4 py-3 text-left font-semibold">Class</th>
-                      <th className="px-4 py-3 text-left font-semibold">Mode</th>
-                      <th className="px-4 py-3 text-right font-semibold">Amount</th>
-                      <th className="px-4 py-3 text-center font-semibold">Status</th>
+                  <thead className="bg-gray-100 dark:bg-gray-700 border-b dark:border-gray-600">
+                   <tr>
+                     <th className="px-4 py-3 text-left font-semibold dark:text-gray-300">Receipt No</th>
+                      <th className="px-4 py-3 text-left font-semibold dark:text-gray-300">Student</th>
+                      <th className="px-4 py-3 text-left font-semibold dark:text-gray-300">Class</th>
+                      <th className="px-4 py-3 text-left font-semibold dark:text-gray-300">Mode</th>
+                      <th className="px-4 py-3 text-right font-semibold dark:text-gray-300">Amount</th>
+                      <th className="px-4 py-3 text-center font-semibold dark:text-gray-300">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {receipts.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="px-4 py-6 text-center text-gray-500">
+                        <td colSpan="6" className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                           No receipts recorded
                         </td>
                       </tr>
                     ) : (
                       receipts.map((r, idx) => (
-                        <tr key={idx} className={`border-b hover:bg-gray-50 ${r.status === 'VOID' ? 'opacity-60 bg-red-50' : ''}`}>
-                          <td className="px-4 py-3 font-mono text-sm">{r.receiptNo}</td>
-                          <td className="px-4 py-3">{r.studentName}</td>
-                          <td className="px-4 py-3">{r.className}</td>
-                          <td className="px-4 py-3">{r.mode}</td>
+                        <tr key={idx} className={`border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${r.status === 'VOID' ? 'opacity-60 bg-red-50 dark:bg-red-900/20' : ''}`}>
+                         <td className="px-4 py-3 font-mono text-sm dark:text-gray-300">{r.receiptNo}</td>
+                         <td className="px-4 py-3 dark:text-gray-300">{r.studentName}</td>
+                         <td className="px-4 py-3 dark:text-gray-300">{r.className}</td>
+                         <td className="px-4 py-3 dark:text-gray-300">{r.mode}</td>
                           <td className="px-4 py-3 text-right font-bold">₹{(r.amount || 0).toLocaleString()}</td>
                           <td className="px-4 py-3 text-center">
                             {r.status === 'VOID' ? (
