@@ -255,7 +255,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
     try {
       setIsUnlocking(true);
       const session = getStaffSession();
-      const response = await base44.functions.invoke('unlockAttendanceForAdmin', {
+      const response = await base44.functions.invoke('unlockAttendanceDaily', {
         date: workingDate,
         class_name: selectedClass,
         section: selectedSection,
