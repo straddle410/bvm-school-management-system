@@ -322,7 +322,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
         action: action === 'remove' ? 'override_removed' : 'override_applied',
         module: 'Override',
         date: workingDate,
-        performed_by: user?.staff_id,
+        performed_by: user?.email || user?.username || 'system',
         details: action === 'remove' ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
         academic_year: academicYear
       });
@@ -791,7 +791,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
     mutationFn: (data) => base44.entities.Holiday.create({ ...data, marked_by: user?.email, academic_year: academicYear, status: 'Active' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
-      base44.entities.AuditLog.create({ action: 'holiday_marked', module: 'Holiday', date: formData.date, performed_by: user?.email, details: `Marked ${formData.title}`, academic_year: academicYear });
+      base44.entities.AuditLog.create({ action: 'holiday_marked', module: 'Holiday', date: formData.date, performed_by: user?.email || user?.username || 'system', details: `Marked ${formData.title}`, academic_year: academicYear });
       toast.success('Holiday added');
       setShowForm(false); setFormData({ date: '', title: '', reason: '' });
     }
@@ -810,7 +810,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
     mutationFn: (id) => base44.entities.Holiday.update(id, { status: 'Cancelled' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
-      base44.entities.AuditLog.create({ action: 'holiday_removed', module: 'Holiday', performed_by: user?.email, details: 'Removed holiday', academic_year: academicYear });
+      base44.entities.AuditLog.create({ action: 'holiday_removed', module: 'Holiday', performed_by: user?.email || user?.username || 'system', details: 'Removed holiday', academic_year: academicYear });
       toast.success('Holiday removed');
     }
   });
