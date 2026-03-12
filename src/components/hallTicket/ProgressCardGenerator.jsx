@@ -196,9 +196,9 @@ export default function ProgressCardGenerator() {
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-            <p className="font-medium mb-1">Note:</p>
-            <p>Progress cards will be generated for all students with published marks matching your filters. This will regenerate cards for the selected scope.</p>
+          <div className="bg-amber-50 dark:bg-gray-800 border border-amber-200 dark:border-gray-600 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300">
+            <p className="font-medium dark:text-amber-400 mb-1">Note:</p>
+            <p className="dark:text-gray-400">Progress cards will be generated for all students with published marks matching your filters. This will regenerate cards for the selected scope.</p>
           </div>
 
           <Button

@@ -121,11 +121,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Class</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Class</label>
               <select
                 value={formData.class_name}
                 onChange={(e) => setFormData({ ...formData, class_name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 required
               >
                 <option value="">Select Class</option>
@@ -135,11 +135,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Section</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Section</label>
               <select
                 value={formData.section}
                 onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 required
               >
                 <option value="">Select Section</option>
@@ -149,14 +149,14 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               </select>
             </div>
             <div className="md:col-span-3">
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">
                 {entry ? 'Day' : 'Select Days (Multi-select)'}
               </label>
               {entry ? (
                 <select
                   value={formData.day}
                   onChange={(e) => setFormData({ ...formData, day: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                   required
                 >
                   {DAYS.map(day => (
@@ -173,7 +173,7 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
                       className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                         selectedDays.includes(day)
                           ? 'bg-blue-600 text-white border border-blue-600'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400'
                       }`}
                     >
                       {day.slice(0, 3)}
@@ -189,11 +189,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Start Time</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Start Time</label>
               <select
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 required
               >
                 {TIME_SLOTS.map(time => (
@@ -202,11 +202,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">End Time</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">End Time</label>
               <select
                 value={formData.end_time}
                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 required
               >
                 {TIME_SLOTS.map(time => (
@@ -215,24 +215,24 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Room Number</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Room Number</label>
               <input
                 type="text"
                 placeholder="e.g., 101, A1"
                 value={formData.room_number}
                 onChange={(e) => setFormData({ ...formData, room_number: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:placeholder-gray-400"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Subject</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Subject</label>
               <select
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 required
               >
                 <option value="">Select Subject</option>
@@ -243,11 +243,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Teacher</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Teacher</label>
               <select
                 value={formData.teacher_id}
                 onChange={handleTeacherChange}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 required
               >
                 <option value="">Select Teacher</option>
@@ -257,11 +257,11 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Status</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Status</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="Draft">Draft</option>
                 <option value="Published">Published</option>
@@ -270,12 +270,12 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
+            <label className="block text-sm font-medium dark:text-gray-300 mb-2">Notes</label>
             <textarea
               placeholder="Additional notes or special instructions"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg min-h-20"
+              className="w-full px-3 py-2 border rounded-lg min-h-20 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:placeholder-gray-400"
             />
           </div>
 
