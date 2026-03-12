@@ -479,7 +479,8 @@ export default function Students() {
        // This generates student_id AND roll_no in SAME transaction, no automation dependency
        if (toStatus === 'Approved' && !student.student_id) {
          const approveRes = await base44.functions.invoke('approveStudentAndGenerateRollNo', {
-           student_db_id: id
+           student_db_id: id,
+           staffInfo: user
          });
          if (approveRes.data?.error) {
            failed++;

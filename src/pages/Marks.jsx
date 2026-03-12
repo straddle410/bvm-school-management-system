@@ -380,7 +380,8 @@ export default function Marks() {
         className: selectedClass,
         section: selectedSection,
         examType: selectedExamType?.id || selectedExam,
-        academicYear
+        academicYear,
+        staffInfo: user
       });
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to unlock marks');
@@ -416,7 +417,8 @@ export default function Marks() {
         className: selectedClass,
         section: selectedSection,
         examType: examTypeId || revokeExamType,
-        academicYear
+        academicYear,
+        staffInfo: user
       });
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to revoke publication');
@@ -516,7 +518,7 @@ export default function Marks() {
       console.log('[PUBLISH_MUTATION] groupData.exam_type (UUID):', groupData?.exam_type);
       console.log('[PUBLISH_MUTATION] groupData.exam_name:', groupData?.exam_name);
 
-      const res = await base44.functions.invoke('publishMarksWithValidation', payload);
+      const res = await base44.functions.invoke('publishMarksWithValidation', { ...payload, staffInfo: user });
 
       if (res.status >= 400) {
         throw new Error(res.data?.error || 'Failed to publish marks');

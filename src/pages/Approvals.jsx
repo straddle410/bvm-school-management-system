@@ -59,7 +59,8 @@ export default function Approvals() {
   const approveMutation = useMutation({
     mutationFn: async (item) => {
       const res = await base44.functions.invoke(`approve${item.type}`, { 
-        [item.idField]: item.id 
+        [item.idField]: item.id,
+        staffInfo: user
       });
       if (res.status !== 200) throw new Error(res.data?.error || 'Failed to approve');
       return res.data;
@@ -78,7 +79,8 @@ export default function Approvals() {
       if (!rejectingItem) return;
       const res = await base44.functions.invoke(`reject${rejectingItem.type}`, {
         [rejectingItem.idField]: rejectingItem.id,
-        reason: rejectReason
+        reason: rejectReason,
+        staffInfo: user
       });
       if (res.status !== 200) throw new Error(res.data?.error || 'Failed to reject');
       return res.data;

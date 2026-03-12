@@ -79,6 +79,10 @@ export default function Admissions() {
     });
   }, []);
 
+  const [staffInfo] = useState(() => {
+    try { const raw = localStorage.getItem('staff_session'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+
   const { data: paginatedData = { results: [], total_count: 0, total_pages: 0 }, isLoading } = useQuery({
     queryKey: ['admissions-paginated', academicYear, filterStatus, searchQuery, currentPage],
     queryFn: async () => {
@@ -148,7 +152,8 @@ export default function Admissions() {
         try {
           await base44.functions.invoke('notifyAdminOnApplicationVerified', { 
             applicationId: admission.id,
-            studentName: admission.student_name 
+            studentName: admission.student_name,
+            staffInfo
           });
         } catch (err) {
           console.error('Failed to send notification:', err);
