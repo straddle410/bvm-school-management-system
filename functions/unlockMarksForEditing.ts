@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
         section: section || '',
         exam_type: examType || '',
         academic_year: academicYear || '',
-        status_transition: 'Submitted/Verified/Approved → Draft',
+        status_transition: 'Submitted/Published → Draft',
         timestamp: new Date().toISOString(),
         unlocked_by_email: performedBy
       }),
