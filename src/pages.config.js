@@ -114,6 +114,7 @@ import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import index from './pages/index';
 import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -185,6 +186,7 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "index": index,
     "TermsAndConditions": TermsAndConditions,
+    "PrivacyPolicy": PrivacyPolicy,
 }
 
 export const pagesConfig = {
