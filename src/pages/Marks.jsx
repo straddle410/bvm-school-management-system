@@ -304,7 +304,8 @@ export default function Marks() {
            const backendPromise = base44.functions.invoke('createOrUpdateMarksWithValidation', {
              markData: data,
              markId: existing?.id,
-             operation: existing?.id ? 'update' : 'create'
+             operation: existing?.id ? 'update' : 'create',
+             staffInfo: user
            }).then(res => {
              if (res.status >= 400) {
                throw new Error(res.data?.error || 'Failed to save mark');
