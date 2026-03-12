@@ -34,10 +34,10 @@ export default function TimetableGrid({ entries, title }) {
       <CardContent className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-3 text-left font-semibold">Time</th>
+            <tr className="bg-gray-100 dark:bg-gray-700">
+              <th className="border p-3 text-left font-semibold dark:text-gray-200">Time</th>
               {DAYS.map(day => (
-                <th key={day} className="border p-3 text-left font-semibold">{day}</th>
+                <th key={day} className="border p-3 text-left font-semibold dark:text-gray-200">{day}</th>
               ))}
             </tr>
           </thead>
