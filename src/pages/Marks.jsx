@@ -551,7 +551,8 @@ export default function Marks() {
         examType: groupData?.exam_type,
         className: selectedClass,
         section: selectedSection,
-        academicYear: academicYear
+        academicYear: academicYear,
+        performed_by: user?.id || user?.email
       };
       console.log('[PUBLISH_MUTATION] marksIds.length:', marksIds.length);
       console.log('[PUBLISH_MUTATION] marksIds[0-4]:', marksIds.slice(0, 5));
