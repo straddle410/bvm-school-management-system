@@ -129,7 +129,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
 
   const { data: overrides = [] } = useQuery({
     queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear],
-    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear })
+    queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
+    staleTime: 5 * 60 * 1000
   });
 
   // Filter holidays for current working date from parent-level holidays prop
