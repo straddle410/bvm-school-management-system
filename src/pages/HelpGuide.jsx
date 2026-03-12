@@ -526,47 +526,59 @@ export default function HelpGuide() {
           )}
 
         {/* Recent Updates & Coming Soon */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-            <span className="text-lg">🚀</span>
-            <p className="font-bold text-slate-800">Recent Updates &amp; Coming Soon</p>
-          </div>
-
-          {/* Recently Added */}
-          <div className="px-5 pt-4 pb-2">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-              <p className="text-sm font-semibold text-green-700">✅ Recently Added Features</p>
+        {(updates.recent.length > 0 || updates.comingSoon.length > 0) && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+              <span className="text-lg">🚀</span>
+              <p className="font-bold text-slate-800">Recent Updates &amp; Coming Soon</p>
             </div>
-            <ul className="space-y-2">
-              {UPDATES.recentlyAdded.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                  <span className="text-green-400 mt-0.5 flex-shrink-0">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Coming Soon */}
-          <div className="px-5 pt-3 pb-5 mt-1 border-t border-slate-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
-              <p className="text-sm font-semibold text-blue-700">🔜 Coming Soon</p>
-            </div>
-            <ul className="space-y-2">
-              {UPDATES.comingSoon.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-500">
-                  <span className="text-blue-300 mt-0.5 flex-shrink-0">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-slate-400 italic mt-4">
-              This list is updated regularly. Check back for the latest improvements!
-            </p>
+            {/* Recently Added */}
+            {updates.recent.length > 0 && (
+              <div className="px-5 pt-4 pb-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <p className="text-sm font-semibold text-green-700">✅ Recently Added Features</p>
+                </div>
+                <ul className="space-y-2">
+                  {updates.recent.map(item => (
+                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-600">
+                      <span className="text-green-400 mt-0.5 flex-shrink-0">•</span>
+                      <span>
+                        {item.title}
+                        {item.description && <span className="text-slate-400 ml-1">— {item.description}</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Coming Soon */}
+            {updates.comingSoon.length > 0 && (
+              <div className={`px-5 pt-3 pb-5 mt-1 ${updates.recent.length > 0 ? 'border-t border-slate-100' : ''}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <p className="text-sm font-semibold text-blue-700">🔜 Coming Soon</p>
+                </div>
+                <ul className="space-y-2">
+                  {updates.comingSoon.map(item => (
+                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-500">
+                      <span className="text-blue-300 mt-0.5 flex-shrink-0">•</span>
+                      <span>
+                        {item.title}
+                        {item.description && <span className="text-slate-400 ml-1">— {item.description}</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-slate-400 italic mt-4">
+                  This list is updated regularly. Check back for the latest improvements!
+                </p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Contact Support */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mt-2">
