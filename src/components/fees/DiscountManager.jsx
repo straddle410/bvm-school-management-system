@@ -30,12 +30,21 @@ export default function DiscountManager({ academicYear, isArchived }) {
   const [editingDiscount, setEditingDiscount] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [discountPage, setDiscountPage] = useState(0);
+  const DISCOUNTS_LIMIT = 100;
 
-  const { data: discounts = [] } = useQuery({
-    queryKey: ['student-fee-discounts', academicYear],
+  const { data: allDiscounts = [] } = useQuery({
+    queryKey: ['student-fee-discounts-all', academicYear],
     queryFn: () => base44.entities.StudentFeeDiscount.filter({ academic_year: academicYear }),
-    enabled: !!academicYear
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000
   });
+
+  // Apply pagination after fetching all (for filtering/search)
+  const discounts = useMemo(() => {
+    const start = discountPage * DISCOUNTS_LIMIT;
+    return allDiscounts.slice(start, start + DISCOUNTS_LIMIT);
+  }, [allDiscounts, discountPage]);
 
   const { data: feeHeads = [] } = useQuery({
     queryKey: ['fee-heads'],
@@ -201,6 +210,9 @@ export default function DiscountManager({ academicYear, isArchived }) {
     !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.includes(search)
   );
 
+  // Add useMemo to avoid importing issues
+  const useMemo = React.useMemo;
+
   return (
     <div className="space-y-4">
       {isArchived && (
@@ -310,6 +322,15 @@ export default function DiscountManager({ academicYear, isArchived }) {
             ))}
           </div>
         </details>
+      )}
+
+      {/* Pagination for discounts view */}
+      {allDiscounts.length > DISCOUNTS_LIMIT && (
+        <div className="flex justify-center gap-2 pt-2">
+          <button onClick={() => setDiscountPage(p => Math.max(0, p - 1))} disabled={discountPage === 0} className="px-3 py-1 text-sm border rounded disabled:opacity-50">Prev</button>
+          <span className="px-3 py-1 text-sm text-slate-500">Page {discountPage + 1}</span>
+          <button onClick={() => setDiscountPage(p => p + 1)} className="px-3 py-1 text-sm border rounded">Next</button>
+        </div>
       )}
 
       {/* Add/Edit Dialog */}
