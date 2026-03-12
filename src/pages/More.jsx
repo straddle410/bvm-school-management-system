@@ -104,7 +104,7 @@ export default function More() {
     { label: 'School Website', sub: schoolProfile?.website || 'www.bvmschool.edu', icon: Globe, color: '#1e88e5', bg: '#e3f2fd' },
     { label: 'Privacy Policy', sub: 'How we handle your data', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'PrivacyPolicy' },
     { label: 'Terms & Conditions', sub: 'Usage policy', icon: FileText, color: '#0288d1', bg: '#e1f5fe', page: 'TermsAndConditions' },
-    { label: 'Help & FAQ', icon: HelpCircle, color: '#9c27b0', bg: '#f3e5f5' },
+    { label: 'Help & FAQ', sub: 'Step-by-step user guide', icon: HelpCircle, color: '#9c27b0', bg: '#f3e5f5', page: 'HelpGuide' },
     { label: 'About App', sub: 'Version 2.0.0', icon: Info, color: '#78909c', bg: '#eceff1' },
   ];
 
