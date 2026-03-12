@@ -410,7 +410,9 @@ export default function Marks() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['marks']);
+      // Invalidate with correct query key structure and immediately refetch
+      queryClient.invalidateQueries({ queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear] });
+      refetchMarks();
       toast.success('Marks unlocked for editing');
     },
     onError: (error) => {
