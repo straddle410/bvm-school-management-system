@@ -112,7 +112,7 @@ export default function MarksEntrySection({
                 variant="outline"
                 size="sm"
                 onClick={onUnlock}
-                disabled={unlockPending}
+                disabled={unlockPending || !existingMarksCount}
                 className="whitespace-nowrap"
               >
                 {unlockPending ? 'Unlocking...' : 'Unlock for Editing'}
