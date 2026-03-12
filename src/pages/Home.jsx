@@ -2,18 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
-import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin, Home as HomeIcon } from 'lucide-react';
+import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin, Home as HomeIcon, Sun, Moon } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const [schoolProfile, setSchoolProfile] = useState(null);
+  const [notices, setNotices] = useState([]);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
 
   useEffect(() => {
-    import('@/api/base44Client').then(({ base44 }) => {
-      base44.entities.SchoolProfile.list().then(profiles => {
-        if (profiles && profiles.length > 0) setSchoolProfile(profiles[0]);
-      }).catch(() => {});
-    });
+    base44.entities.SchoolProfile.list().then(profiles => {
+      if (profiles && profiles.length > 0) setSchoolProfile(profiles[0]);
+    }).catch(() => {});
+
+    base44.entities.Notice.list('-publish_date', 10).then(noticeList => {
+      setNotices(noticeList || []);
+    }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
 
   const schoolName = schoolProfile?.school_name || 'BVM School of Excellence';
   const schoolPhone = schoolProfile?.phone || '+91-98765-43210';
@@ -32,12 +53,6 @@ export default function Home() {
     { icon: Trophy, label: 'Results', color: '#388e3c', bgClass: 'bg-green-50 dark:bg-green-900/20' },
   ];
 
-  const announcements = [
-    { date: 'Today', title: 'Classes will resume at 9:00 AM', content: 'All classes have been rescheduled due to the holiday.' },
-    { date: 'Yesterday', title: 'Annual sports day scheduled', content: 'The annual sports day will be held next month.' },
-    { date: '2 days ago', title: 'Mid-term exam results published', content: 'Check your marks in the student portal.' },
-  ];
-
   const currentYear = new Date().getFullYear();
 
   return (
@@ -53,7 +68,14 @@ export default function Home() {
               <h1 className="text-lg font-bold">{schoolName.toUpperCase()}</h1>
             </div>
           </Link>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
+              title={darkMode ? 'Light mode' : 'Dark mode'}
+            >
+              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
             <Link to={createPageUrl('StudentLogin')}>
               <Button variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
                 Student Login
@@ -125,19 +147,26 @@ export default function Home() {
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
             Latest Announcements
           </h3>
-          <div className="space-y-4">
-            {announcements.map((announcement, idx) => (
-              <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border-l-4 border-[#3949ab]">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-bold text-gray-900 dark:text-white">{announcement.title}</h4>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-                    {announcement.date}
-                  </span>
+          {notices.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center">
+              <Bell className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">No announcements yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notices.map((notice, idx) => (
+                <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border-l-4 border-[#3949ab]">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-bold text-gray-900 dark:text-white">{notice.title}</h4>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                      {notice.publish_date}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{notice.content}</p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{announcement.content}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -202,9 +231,7 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-lg mb-2">Hours</h3>
               <ul className="space-y-1 text-sm text-blue-100">
-                <li>Mon - Fri: 9:00 AM - 4:00 PM</li>
-                <li>Saturday: 9:00 AM - 1:00 PM</li>
-                <li>Sunday: Closed</li>
+                <li>Monday - Saturday: 9:30 AM - 4:20 PM</li>
               </ul>
             </div>
           </div>
