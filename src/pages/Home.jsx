@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Building2, ClipboardList, BarChart3, BookOpen, Bell, Calendar, MessageSquare, FileText, Trophy, Phone, Mail, MapPin, Home as HomeIcon } from 'lucide-react';
 
 export default function Home() {
-  const [schoolProfile, setSchoolProfile] = React.useState(null);
+  const [schoolProfile, setSchoolProfile] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     import('@/api/base44Client').then(({ base44 }) => {
       base44.entities.SchoolProfile.list().then(profiles => {
         if (profiles && profiles.length > 0) setSchoolProfile(profiles[0]);
