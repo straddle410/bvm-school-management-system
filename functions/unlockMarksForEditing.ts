@@ -40,8 +40,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No marks found in unlockable state (Submitted/Published)' }, { status: 404 });
     }
 
-    await Promise.all(marksToUnlock.map(m =>
-      base44.asServiceRole.entities.Marks.update(m.id, { status: 'Draft' })
+    // Bulk update all unlocked marks at once
+    const unlockIds = marksToUnlock.map(m => m.id);
+    await Promise.all(unlockIds.map(id =>
+      base44.asServiceRole.entities.Marks.update(id, { status: 'Draft' })
     ));
 
     // Get authenticated user email for audit log
