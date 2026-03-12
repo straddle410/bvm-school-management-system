@@ -66,6 +66,7 @@ import ExamManagement from './pages/ExamManagement';
 import Fees from './pages/Fees';
 import Gallery from './pages/Gallery';
 import HallTicketManagement from './pages/HallTicketManagement';
+import HelpGuide from './pages/HelpGuide';
 import HolidayCalendar from './pages/HolidayCalendar';
 import Home from './pages/Home';
 import Homework from './pages/Homework';
@@ -80,6 +81,7 @@ import OutstandingReport from './pages/OutstandingReport';
 import ParentStatement from './pages/ParentStatement';
 import PostingDashboard from './pages/PostingDashboard';
 import PrintReceiptA5 from './pages/PrintReceiptA5';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProductionReset from './pages/ProductionReset';
 import Profile from './pages/Profile';
 import PublicAdmissionForm from './pages/PublicAdmissionForm';
@@ -110,12 +112,10 @@ import StudentProfile from './pages/StudentProfile';
 import StudentTimetable from './pages/StudentTimetable';
 import Students from './pages/Students';
 import SubjectManagement from './pages/SubjectManagement';
+import TermsAndConditions from './pages/TermsAndConditions';
 import TimetableManagement from './pages/TimetableManagement';
 import UserProfile from './pages/UserProfile';
 import index from './pages/index';
-import TermsAndConditions from './pages/TermsAndConditions';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import HelpGuide from './pages/HelpGuide';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +139,7 @@ export const PAGES = {
     "Fees": Fees,
     "Gallery": Gallery,
     "HallTicketManagement": HallTicketManagement,
+    "HelpGuide": HelpGuide,
     "HolidayCalendar": HolidayCalendar,
     "Home": Home,
     "Homework": Homework,
@@ -153,6 +154,7 @@ export const PAGES = {
     "ParentStatement": ParentStatement,
     "PostingDashboard": PostingDashboard,
     "PrintReceiptA5": PrintReceiptA5,
+    "PrivacyPolicy": PrivacyPolicy,
     "ProductionReset": ProductionReset,
     "Profile": Profile,
     "PublicAdmissionForm": PublicAdmissionForm,
@@ -183,12 +185,10 @@ export const PAGES = {
     "StudentTimetable": StudentTimetable,
     "Students": Students,
     "SubjectManagement": SubjectManagement,
+    "TermsAndConditions": TermsAndConditions,
     "TimetableManagement": TimetableManagement,
     "UserProfile": UserProfile,
     "index": index,
-    "TermsAndConditions": TermsAndConditions,
-    "PrivacyPolicy": PrivacyPolicy,
-    "HelpGuide": HelpGuide,
 }
 
 export const pagesConfig = {
