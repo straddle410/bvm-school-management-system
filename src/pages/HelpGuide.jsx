@@ -4,42 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, ChevronDown, ChevronRight, HelpCircle, Phone, Mail, Globe, BookOpen, GraduationCap, Users, User, X, CheckCircle2, Clock } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
-// ─── EASY TO UPDATE: Edit this object whenever features change ───────────────
-const UPDATES = {
-  recentlyAdded: [
-    'Student Login with Student ID and secure password',
-    'Attendance tracking with half-day and holiday support',
-    'Fee management with invoices, receipts, and PDF download',
-    'Marks entry and result publishing with grade calculation',
-    'Homework module with MCQ, descriptive, and file submission',
-    'School gallery with album-based photo management',
-    'Notice board with audience targeting and pinning',
-    'Hall ticket and progress card generation',
-    'Class timetable for teachers and students',
-    'Staff role management with granular permissions',
-    'Google Drive backup for fees and full school data',
-    'Push notifications for key events (notices, homework, marks)',
-    'Exam timetable management and student view',
-    'Student diary visible to students and parents',
-    'Performance analytics and attendance summary reports',
-  ],
-  comingSoon: [
-    'Parent portal with dedicated parent login',
-    'Online fee payment through payment gateway',
-    'Live chat / messaging between teachers and parents',
-    'Automated SMS/WhatsApp notifications to parents',
-    'Student ID card generation and printing',
-    'Library management module',
-    'Transport tracking and route management',
-    'Student leave application and approval workflow',
-    'Teacher leave management',
-    'Online admission test / entrance exam module',
-    'Multi-branch / multi-school support',
-    'Dark mode for the app',
-  ],
-};
-// ─────────────────────────────────────────────────────────────────────────────
-
 const GUIDES = [
   {
     id: 'admin',
