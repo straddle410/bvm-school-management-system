@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { base44 } from '@/api/base44Client';
 import LoginRequired from '@/components/LoginRequired';
 import { getStaffSession } from '@/components/useStaffSession';
@@ -20,6 +20,23 @@ import FamilyManager from '@/components/fees/FamilyManager';
 import RecalculateTransportModal from '@/components/fees/RecalculateTransportModal';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import { useQuery } from '@tanstack/react-query';
+
+// Lazy load heavy fee tab components
+const StudentLedgerLazy = lazy(() => import('@/components/fees/StudentLedger'));
+const StudentLedgerArchivedYearLazy = lazy(() => import('@/components/fees/StudentLedgerArchivedYear'));
+const PaymentsListLazy = lazy(() => import('@/components/fees/PaymentsList'));
+const AnnualFeePlanTabLazy = lazy(() => import('@/components/fees/AnnualFeePlanTab'));
+const DiscountManagerLazy = lazy(() => import('@/components/fees/DiscountManager'));
+const FamilyManagerLazy = lazy(() => import('@/components/fees/FamilyManager'));
+const AdditionalChargesTabLazy = lazy(() => import('@/components/fees/AdditionalChargesTab'));
+
+const TabLoadingSpinner = () => (
+  <Card className="border-0 shadow-sm">
+    <CardContent className="py-16 flex justify-center">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+    </CardContent>
+  </Card>
+);
 
 export default function Fees() {
   const { academicYear, academicYears } = useAcademicYear();
@@ -210,46 +227,58 @@ export default function Fees() {
 
             {canViewLedger && (
               <TabsContent value="ledger">
-                {isArchivedYear ? (
-                  <StudentLedgerArchivedYear academicYear={academicYear} isArchived={true} />
-                ) : (
-                  <StudentLedger academicYear={academicYear} isArchivedYear={isArchivedYear} />
-                )}
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  {isArchivedYear ? (
+                    <StudentLedgerArchivedYearLazy academicYear={academicYear} isArchived={true} />
+                  ) : (
+                    <StudentLedgerLazy academicYear={academicYear} isArchivedYear={isArchivedYear} />
+                  )}
+                </Suspense>
               </TabsContent>
             )}
 
             {canViewPayments && (
               <TabsContent value="payments">
-                <PaymentsList academicYear={academicYear} isAdmin={isAdmin} canVoidReceipt={canVoidReceipt} />
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  <PaymentsListLazy academicYear={academicYear} isAdmin={isAdmin} canVoidReceipt={canVoidReceipt} />
+                </Suspense>
               </TabsContent>
             )}
 
             {isAdmin && (
               <TabsContent value="plans">
-                {isArchivedYear ? (
-                  <Card className="border-red-200 bg-red-50"><CardContent className="p-6 text-center">
-                    <Lock className="h-8 w-8 text-red-400 mx-auto mb-2" />
-                    <p className="text-red-800 font-medium">Plan editing is disabled for archived years.</p>
-                  </CardContent></Card>
-                ) : <AnnualFeePlanTab academicYear={academicYear} />}
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  {isArchivedYear ? (
+                    <Card className="border-red-200 bg-red-50"><CardContent className="p-6 text-center">
+                      <Lock className="h-8 w-8 text-red-400 mx-auto mb-2" />
+                      <p className="text-red-800 font-medium">Plan editing is disabled for archived years.</p>
+                    </CardContent></Card>
+                  ) : <AnnualFeePlanTabLazy academicYear={academicYear} />}
+                </Suspense>
               </TabsContent>
             )}
 
             {(isAdmin || canApplyDiscount) && (
               <TabsContent value="discounts">
-                <DiscountManager academicYear={academicYear} isArchived={isArchivedYear} />
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  <DiscountManagerLazy academicYear={academicYear} isArchived={isArchivedYear} />
+                </Suspense>
               </TabsContent>
             )}
 
             {(isAdmin || canManageFamilies) && (
               <TabsContent value="families">
-                <FamilyManager academicYear={academicYear} isArchived={isArchivedYear} />
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  <FamilyManagerLazy academicYear={academicYear} isArchived={isArchivedYear} />
+                </Suspense>
               </TabsContent>
             )}
 
             {(isAdmin || canApplyCharge) && (
               <TabsContent value="adhoc">
-                <AdditionalChargesTab academicYear={academicYear} isArchived={isArchivedYear} />
+                <Suspense fallback={<TabLoadingSpinner />}>
+                  <AdditionalChargesTabLazy academicYear={academicYear} isArchived={isArchivedYear} />
+                </Suspense>
               </TabsContent>
             )}
 
