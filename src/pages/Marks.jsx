@@ -750,7 +750,7 @@ export default function Marks() {
                reviewGroupedData={reviewGroupedData}
                reviewSortBy={reviewSortBy}
                onSortChange={setReviewSortBy}
-               onPublish={(marksIds) => { if (window.confirm('Publish these results? Students will be able to see them.')) { publishMutation.mutate(marksIds); } }}
+               onPublish={(marksIds) => { publishMutation.mutate(marksIds); }}
                onDownloadExcel={handleDownloadExcel}
                publishPending={publishMutation.isPending}
              />
