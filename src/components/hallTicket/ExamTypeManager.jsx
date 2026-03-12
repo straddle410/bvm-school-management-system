@@ -157,7 +157,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
         </CardHeader>
         <CardContent>
           {showForm && hasPermission && (
-            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 rounded-lg space-y-3">
+            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-50 dark:bg-gray-700/50 rounded-lg space-y-3 dark:border dark:border-gray-600">
               {!useCustomName ? (
                 <div>
                   <select
@@ -218,7 +218,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
 
               <div className="grid grid-cols-2 gap-3">
                  <div>
-                   <label className="text-sm font-medium text-slate-700">Max Marks</label>
+                   <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Max Marks</label>
                    <Input
                      type="number"
                      min="1"
@@ -228,7 +228,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                    />
                  </div>
                  <div>
-                   <label className="text-sm font-medium text-slate-700">Min Marks to Pass</label>
+                   <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Min Marks to Pass</label>
                    <Input
                      type="number"
                      min="0"
@@ -240,10 +240,10 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                </div>
 
                <div className="border-t pt-4">
-                 <p className="text-sm font-semibold text-slate-700 mb-3">Attendance Report Range</p>
+                 <p className="text-sm font-semibold text-slate-700 dark:text-gray-300 mb-3">Attendance Report Range</p>
                  <div className="grid grid-cols-2 gap-3">
                    <div>
-                     <label className="text-sm font-medium text-slate-700">Start Date</label>
+                     <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Start Date</label>
                      <Input
                        type="date"
                        value={formData.attendance_range_start}
@@ -252,7 +252,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                      />
                    </div>
                    <div>
-                     <label className="text-sm font-medium text-slate-700">End Date</label>
+                     <label className="text-sm font-medium text-slate-700 dark:text-gray-300">End Date</label>
                      <Input
                        type="date"
                        value={formData.attendance_range_end}

@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export default function StudentFilters({ search, onSearch, filterClass, onFilterClass, filterSection, onFilterSection, filterStatus, onFilterStatus, showArchived, onToggleArchived, showDeleted, onToggleDeleted, availableClasses = [], availableSections = [] }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm px-3 py-2.5 flex flex-col gap-2">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm px-3 py-2.5 flex flex-col gap-2">
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
@@ -13,12 +13,12 @@ export default function StudentFilters({ search, onSearch, filterClass, onFilter
             placeholder="Search name or Student ID…"
             value={search}
             onChange={e => onSearch(e.target.value)}
-            className="pl-8 h-8 text-sm rounded-lg border-gray-200 bg-gray-50"
+            className="pl-8 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
           />
         </div>
         <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <Select value={filterClass} onValueChange={onFilterClass}>
-            <SelectTrigger className="w-full sm:w-32 h-8 text-sm rounded-lg border-gray-200 bg-gray-50">
+            <SelectTrigger className="w-full sm:w-32 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
               <SelectValue placeholder="All Classes" />
             </SelectTrigger>
             <SelectContent>
@@ -27,7 +27,7 @@ export default function StudentFilters({ search, onSearch, filterClass, onFilter
             </SelectContent>
           </Select>
           <Select value={filterSection} onValueChange={onFilterSection}>
-            <SelectTrigger className="w-full sm:w-28 h-8 text-sm rounded-lg border-gray-200 bg-gray-50">
+            <SelectTrigger className="w-full sm:w-28 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
               <SelectValue placeholder="Section" />
             </SelectTrigger>
             <SelectContent>
@@ -36,7 +36,7 @@ export default function StudentFilters({ search, onSearch, filterClass, onFilter
             </SelectContent>
           </Select>
           <Select value={filterStatus} onValueChange={onFilterStatus}>
-            <SelectTrigger className="w-full sm:w-32 h-8 text-sm rounded-lg border-gray-200 bg-gray-50">
+            <SelectTrigger className="w-full sm:w-32 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>

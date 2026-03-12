@@ -162,9 +162,9 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
-      <div className="bg-white w-full max-w-md rounded-t-3xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
-        <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b">
-             <h2 className="font-bold text-slate-800">{editItem ? 'Edit Homework' : 'Create Homework'}</h2>
+      <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
+         <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 px-4 pt-4 pb-3 flex items-center justify-between border-b dark:border-gray-700">
+             <h2 className="font-bold text-slate-800 dark:text-gray-200">{editItem ? 'Edit Homework' : 'Create Homework'}</h2>
              <div className="flex items-center gap-2">
                <Button
                  size="sm"
@@ -178,20 +178,20 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
            </div>
         <div className="p-4 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1 block">Title *</label>
-            <input className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="e.g. Chapter 3 Exercise" value={form.title} onChange={e => set('title', e.target.value)} />
+             <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Title *</label>
+             <input className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" placeholder="e.g. Chapter 3 Exercise" value={form.title} onChange={e => set('title', e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block">Class *</label>
-              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.class_name} onChange={e => set('class_name', e.target.value)}>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Class *</label>
+              <select className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.class_name} onChange={e => set('class_name', e.target.value)}>
                 <option value="">Select</option>
                 {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block">Section</label>
-              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.section} onChange={e => set('section', e.target.value)}>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Section</label>
+              <select className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.section} onChange={e => set('section', e.target.value)}>
                 <option value="All">All</option>
                 {availableSections.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -199,8 +199,8 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block">Subject *</label>
-              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.subject} onChange={e => set('subject', e.target.value)}>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Subject *</label>
+              <select className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.subject} onChange={e => set('subject', e.target.value)}>
                 <option value="">Select</option>
                 {subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -208,8 +208,8 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
               <p className="text-xs text-gray-400 mt-0.5">Year: {academicYear} | Class: {form.class_name || '—'} | Source: {subjectSource} | Count: {subjects.length}</p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block">Due Date *</label>
-              <input type="date" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.due_date} onChange={e => set('due_date', e.target.value)} />
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Due Date *</label>
+              <input type="date" className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.due_date} onChange={e => set('due_date', e.target.value)} />
             </div>
           </div>
           {/* Extended Due Date */}
@@ -219,7 +219,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
               <input
                 type="date"
                 min={form.due_date || undefined}
-                className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm bg-white"
+                className="w-full border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-gray-200"
                 value={form.extended_due_date}
                 onChange={e => set('extended_due_date', e.target.value)}
               />
@@ -237,27 +237,27 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block">Type *</label>
-              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.homework_type} onChange={e => set('homework_type', e.target.value)}>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Type *</label>
+              <select className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.homework_type} onChange={e => set('homework_type', e.target.value)}>
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block">Max Marks</label>
-              <input type="number" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.max_marks} onChange={e => set('max_marks', e.target.value)} />
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Max Marks</label>
+              <input type="number" className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.max_marks} onChange={e => set('max_marks', e.target.value)} />
             </div>
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1 block">Submission Mode</label>
-            <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.submission_mode} onChange={e => set('submission_mode', e.target.value)}>
+            <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Submission Mode</label>
+            <select className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.submission_mode} onChange={e => set('submission_mode', e.target.value)}>
               <option value="VIEW_ONLY">View Only</option>
               <option value="SUBMISSION_REQUIRED">Students Must Submit</option>
             </select>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1 block">Instructions</label>
-            <textarea className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Write homework instructions..." />
+            <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Instructions</label>
+            <textarea className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400" rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Write homework instructions..." />
           </div>
 
           {/* MCQ Section */}
@@ -335,8 +335,8 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1 block">Teacher Name</label>
-            <input className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value={form.assigned_by} onChange={e => set('assigned_by', e.target.value)} />
+            <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Teacher Name</label>
+            <input className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200" value={form.assigned_by} onChange={e => set('assigned_by', e.target.value)} />
           </div>
 
           <div className="flex gap-3 pt-2 pb-4">
