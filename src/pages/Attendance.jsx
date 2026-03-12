@@ -647,6 +647,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
 // ─── Attendance Summary Tab ───────────────────────────────────────────────────
 function AttendanceSummaryTab({ academicYear, user, holidays }) {
   const [filters, setFilters] = useState({ class: '', section: '', fromDate: '', toDate: '' });
+  const [recordsLimitHit, setRecordsLimitHit] = useState(false);
 
   const { data: classSectionData } = useQuery({
     queryKey: ['classes-for-year', academicYear],
@@ -682,7 +683,11 @@ function AttendanceSummaryTab({ academicYear, user, holidays }) {
         section: filters.section, 
         academic_year: academicYear 
       })
-        .then(all => all.filter(a => a.date >= filters.fromDate && a.date <= filters.toDate).slice(0, 1000)); // Limit to 1000 records
+        .then(all => {
+          const filtered = all.filter(a => a.date >= filters.fromDate && a.date <= filters.toDate);
+          setRecordsLimitHit(filtered.length > 1000);
+          return filtered.slice(0, 1000);
+        });
     },
     enabled: hasGenerated && !!filters.class && !!filters.fromDate && !!filters.toDate
   });
@@ -745,6 +750,14 @@ function AttendanceSummaryTab({ academicYear, user, holidays }) {
       <FilterSection filters={filters} setFilters={setFilters} onGenerate={() => setHasGenerated(true)} classes={availableClasses} sections={availableSections} />
       {hasGenerated && (
         <>
+          {recordsLimitHit && (
+            <Card className="border-amber-200 bg-amber-50 dark:bg-amber-900/20">
+              <CardContent className="p-4 flex gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800 dark:text-amber-300">Warning: Only showing first 1000 attendance records. Please narrow your date range for complete data.</p>
+              </CardContent>
+            </Card>
+          )}
           <SummaryCards totalStudents={students.length} avgAttendance={avgAttendance} workingDays={reportData[0]?.totalWorkingDays || 0} />
           <ReportTable data={filteredData} searchTerm={searchTerm} setSearchTerm={setSearchTerm} sortBy={sortBy} setSortBy={setSortBy} fromDate={filters.fromDate} toDate={filters.toDate} />
         </>
