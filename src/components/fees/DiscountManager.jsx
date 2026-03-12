@@ -71,14 +71,15 @@ export default function DiscountManager({ academicYear, isArchived }) {
     enabled: !!selectedStudent && !!academicYear
   });
 
-  // Compute settled: invoice is fully paid when paid_amount >= total_amount (net after all discounts)
-  const isSettled = (() => {
-    if (!studentInvoice) return false;
-    if (studentInvoice.status === 'Paid') return true;
-    const net = studentInvoice.total_amount ?? 0;
-    const paid = studentInvoice.paid_amount ?? 0;
-    return paid >= net && net > 0;
-  })();
+  // Compute settled: compare paid_amount against ANNUAL FEE GROSS ONLY (exclude additional charges)
+   const isSettled = (() => {
+     if (!studentInvoice) return false;
+     if (studentInvoice.status === 'Paid') return true;
+     // Use gross_total (annual fee only) instead of total_amount (which includes additional charges)
+     const gross = studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0;
+     const paid = studentInvoice.paid_amount ?? 0;
+     return paid >= gross && gross > 0;
+   })();
 
   const saveMutation = useMutation({
     mutationFn: async () => {
