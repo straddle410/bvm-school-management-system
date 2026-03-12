@@ -65,6 +65,7 @@ const NO_LAYOUT_PAGES = ['Index', 'index', 'Home', 'PublicAdmission', 'StaffLogi
 const STUDENT_ALLOWED_PAGES = ['Dashboard', 'Notices', 'Gallery', 'Calendar', 'Quiz', 'Results', 'More'];
 
 export default function Layout({ children, currentPageName }) {
+  const [isDark, setIsDark] = useDarkMode();
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [studentSession, setStudentSession] = useState(() => {
