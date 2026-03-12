@@ -45,6 +45,9 @@ import { createPageUrl } from '@/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Admissions() {
+  const [staffInfo] = useState(() => {
+    try { const raw = localStorage.getItem('staff_session'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
