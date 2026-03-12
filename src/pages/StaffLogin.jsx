@@ -103,7 +103,7 @@ export default function StaffLogin() {
   if (linkConflict) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-2xl border-0">
+        <Card className="w-full max-w-md shadow-2xl border-0 dark:bg-gray-800">
           <CardHeader className="bg-red-600 text-white rounded-t-lg">
             <div className="flex items-center justify-center mb-3">
               <ShieldAlert className="h-10 w-10" />
@@ -181,7 +181,7 @@ export default function StaffLogin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className="w-full max-w-md shadow-2xl border-0">
+      <Card className="w-full max-w-md shadow-2xl border-0 dark:bg-gray-800">
         <CardHeader className="bg-gradient-to-r from-[#1a237e] to-[#283593] text-white rounded-t-lg">
           <div className="flex items-center justify-center mb-3">
             <Building2 className="h-10 w-10" />
