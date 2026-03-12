@@ -20,6 +20,7 @@ import FamilyManager from '@/components/fees/FamilyManager';
 import RecalculateTransportModal from '@/components/fees/RecalculateTransportModal';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import { useQuery } from '@tanstack/react-query';
+import { Suspense, lazy } from 'react';
 
 // Lazy load heavy fee tab components
 const StudentLedgerLazy = lazy(() => import('@/components/fees/StudentLedger'));
