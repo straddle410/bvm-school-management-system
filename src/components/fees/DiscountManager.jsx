@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -201,17 +201,14 @@ export default function DiscountManager({ academicYear, isArchived }) {
   const archivedDiscounts = filteredDiscounts.filter(d => d.status === 'Archived');
 
   const discountPreview = (d) => {
-    const val = d.discount_type === 'PERCENT' ? `${d.discount_value}%` : `₹${d.discount_value}`;
-    const scopeLabel = d.scope === 'TOTAL' ? 'on total' : `on ${d.fee_head_name || 'fee head'}`;
-    return `${val} off ${scopeLabel}`;
-  };
+     const val = d.discount_type === 'PERCENT' ? `${d.discount_value}%` : `₹${d.discount_value}`;
+     const scopeLabel = d.scope === 'TOTAL' ? 'on total' : `on ${d.fee_head_name || 'fee head'}`;
+     return `${val} off ${scopeLabel}`;
+   };
 
-  const filteredStudents = students.filter(s =>
-    !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.includes(search)
-  );
-
-  // Add useMemo to avoid importing issues
-  const useMemo = React.useMemo;
+   const filteredStudents = students.filter(s =>
+     !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.includes(search)
+   );
 
   return (
     <div className="space-y-4">
