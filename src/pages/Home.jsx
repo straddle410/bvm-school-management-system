@@ -22,14 +22,14 @@ export default function Home() {
   const schoolWebsite = schoolProfile?.website || 'www.school.edu';
 
   const features = [
-    { icon: ClipboardList, label: 'Attendance', color: '#26a69a', bg: '#e0f2f1' },
-    { icon: BarChart3, label: 'Marks', color: '#1976d2', bg: '#e3f2fd' },
-    { icon: BookOpen, label: 'Homework', color: '#f57c00', bg: '#fff3e0' },
-    { icon: Bell, label: 'Notices', color: '#1a237e', bg: '#e8eaf6' },
-    { icon: Calendar, label: 'Timetable', color: '#6a1b9a', bg: '#f3e5f5' },
-    { icon: MessageSquare, label: 'Messages', color: '#0288d1', bg: '#e1f5fe' },
-    { icon: FileText, label: 'Diary', color: '#e91e63', bg: '#fce4ec' },
-    { icon: Trophy, label: 'Results', color: '#388e3c', bg: '#e8f5e9' },
+    { icon: ClipboardList, label: 'Attendance', color: '#26a69a', bgClass: 'bg-teal-50 dark:bg-teal-900/20' },
+    { icon: BarChart3, label: 'Marks', color: '#1976d2', bgClass: 'bg-blue-50 dark:bg-blue-900/20' },
+    { icon: BookOpen, label: 'Homework', color: '#f57c00', bgClass: 'bg-orange-50 dark:bg-orange-900/20' },
+    { icon: Bell, label: 'Notices', color: '#1a237e', bgClass: 'bg-indigo-50 dark:bg-indigo-900/20' },
+    { icon: Calendar, label: 'Timetable', color: '#6a1b9a', bgClass: 'bg-purple-50 dark:bg-purple-900/20' },
+    { icon: MessageSquare, label: 'Messages', color: '#0288d1', bgClass: 'bg-sky-50 dark:bg-sky-900/20' },
+    { icon: FileText, label: 'Diary', color: '#e91e63', bgClass: 'bg-pink-50 dark:bg-pink-900/20' },
+    { icon: Trophy, label: 'Results', color: '#388e3c', bgClass: 'bg-green-50 dark:bg-green-900/20' },
   ];
 
   const announcements = [
@@ -41,7 +41,7 @@ export default function Home() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f4ff] to-[#f5f7ff] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f4ff] to-[#f5f7ff] dark:from-gray-900 dark:to-gray-900 dark:bg-gray-900 flex flex-col">
       {/* Header / Navigation */}
       <nav className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-lg sticky top-0 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -71,10 +71,10 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex-1 flex items-center justify-center px-4 py-12 sm:py-16">
         <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Welcome to the School Portal
           </h2>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
             Access attendance, marks, notices, homework, and school updates all in one place.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -93,9 +93,9 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="px-4 py-12 bg-white/50">
+      <section className="px-4 py-12 bg-white/50 dark:bg-gray-800/50">
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-10">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-10">
             What's Inside
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -104,15 +104,14 @@ export default function Home() {
               return (
                 <div
                   key={feature.label}
-                  className="rounded-2xl p-6 text-center transition-transform hover:scale-105"
-                  style={{ backgroundColor: feature.bg }}
+                  className={`rounded-2xl p-6 text-center transition-transform hover:scale-105 ${feature.bgClass}`}
                 >
                   <div className="flex justify-center mb-3">
-                    <div className="p-3 rounded-xl" style={{ backgroundColor: feature.color + '20' }}>
+                    <div className="p-3 rounded-xl bg-white/60 dark:bg-gray-700/60">
                       <Icon className="h-6 w-6" style={{ color: feature.color }} />
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-gray-800">{feature.label}</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{feature.label}</p>
                 </div>
               );
             })}
@@ -123,19 +122,19 @@ export default function Home() {
       {/* Announcements Section */}
       <section className="px-4 py-12">
         <div className="max-w-2xl mx-auto">
-          <h3 className="text-2xl font-bold text-gray-900 mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
             Latest Announcements
           </h3>
           <div className="space-y-4">
             {announcements.map((announcement, idx) => (
-              <div key={idx} className="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-[#3949ab]">
+              <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border-l-4 border-[#3949ab]">
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-bold text-gray-900">{announcement.title}</h4>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  <h4 className="font-bold text-gray-900 dark:text-white">{announcement.title}</h4>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
                     {announcement.date}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">{announcement.content}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{announcement.content}</p>
               </div>
             ))}
           </div>
@@ -143,38 +142,38 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section className="px-4 py-12 bg-white/50">
+      <section className="px-4 py-12 bg-white/50 dark:bg-gray-800/50">
         <div className="max-w-2xl mx-auto">
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
             Contact Us
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="flex justify-center mb-3">
-                <div className="p-3 rounded-lg bg-blue-100">
-                  <MapPin className="h-6 w-6 text-[#1a237e]" />
+                <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <MapPin className="h-6 w-6 text-[#1a237e] dark:text-blue-400" />
                 </div>
               </div>
-              <h4 className="font-semibold text-gray-900 mb-1">Address</h4>
-              <p className="text-sm text-gray-600">{schoolAddress}</p>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Address</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{schoolAddress}</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center mb-3">
-                <div className="p-3 rounded-lg bg-blue-100">
-                  <Phone className="h-6 w-6 text-[#1a237e]" />
+                <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <Phone className="h-6 w-6 text-[#1a237e] dark:text-blue-400" />
                 </div>
               </div>
-              <h4 className="font-semibold text-gray-900 mb-1">Phone</h4>
-              <p className="text-sm text-gray-600">{schoolPhone}</p>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Phone</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{schoolPhone}</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center mb-3">
-                <div className="p-3 rounded-lg bg-blue-100">
-                  <Mail className="h-6 w-6 text-[#1a237e]" />
+                <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <Mail className="h-6 w-6 text-[#1a237e] dark:text-blue-400" />
                 </div>
               </div>
-              <h4 className="font-semibold text-gray-900 mb-1">Email</h4>
-              <p className="text-sm text-gray-600">{schoolEmail}</p>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Email</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{schoolEmail}</p>
             </div>
           </div>
         </div>
