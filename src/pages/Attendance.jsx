@@ -84,8 +84,16 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
   const isSunday = getDay(new Date(workingDate + 'T00:00:00')) === 0;
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students-published', academicYear],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear, is_deleted: false })
+    queryKey: ['students-published', academicYear, selectedClass, selectedSection],
+    queryFn: () => base44.entities.Student.filter({
+      status: 'Published',
+      academic_year: academicYear,
+      class_name: selectedClass,
+      section: selectedSection,
+      is_deleted: false
+    }),
+    enabled: !!selectedClass && !!selectedSection && !!academicYear,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: existingAttendance = [] } = useQuery({
