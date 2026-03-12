@@ -64,12 +64,8 @@ function applyDiscount(feeItems, grossTotal, discount) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    // Note: Staff users use staff_session (localStorage), not Base44 auth
-    // For backend functions, use asServiceRole since auth verification happens at frontend
-    const user = await base44.asServiceRole.entities.StaffAccount.list().catch(() => null);
-    // If needed, access control should be enforced on frontend before calling this function
-
-    const { feePlanId, academicYear, className } = await req.json();
+    const { feePlanId, academicYear, className, staffInfo } = await req.json();
+    const performedBy = staffInfo?.name || staffInfo?.username || 'system';
     if (!feePlanId || !academicYear || !className) {
       return Response.json({ error: 'feePlanId, academicYear and className are required' }, { status: 400 });
     }
@@ -167,7 +163,7 @@ Deno.serve(async (req) => {
         paid_amount: 0,
         balance: netTotal,
         status: 'Pending',
-        generated_by: user.email,
+        generated_by: performedBy,
         ...(discount ? {
           discount_snapshot: {
             discount_id: discount.id,

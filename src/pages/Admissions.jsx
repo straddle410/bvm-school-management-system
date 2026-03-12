@@ -63,20 +63,19 @@ export default function Admissions() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(user => {
-      if (!user) return;
-      // Phase 6: Use only effective_permissions
-      const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
-      const canReviewAdmissions = can(userWithPerms, 'admissions_review');
-
-      if (!canReviewAdmissions) {
-        window.location.replace(createPageUrl('Dashboard'));
-        return;
-      }
-      setUser(user);
-    }).catch((err) => {
+    // Use staff session — do NOT call auth.me() in production (causes 500 on published app)
+    const session = staffInfo;
+    if (!session) {
       window.location.replace(createPageUrl('Dashboard'));
-    });
+      return;
+    }
+    const userWithPerms = { ...session, effective_permissions: getEffectivePermissions(session || {}) };
+    const canReviewAdmissions = can(userWithPerms, 'admissions_review');
+    if (!canReviewAdmissions) {
+      window.location.replace(createPageUrl('Dashboard'));
+      return;
+    }
+    setUser(session);
   }, []);
 
   const [staffInfo] = useState(() => {
