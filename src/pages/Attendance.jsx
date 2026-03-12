@@ -318,14 +318,17 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
     onSuccess: (action) => {
       // Invalidate all holiday-override queries to refresh immediately
       queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
-      base44.entities.AuditLog.create({
-        action: action === 'remove' ? 'override_removed' : 'override_applied',
-        module: 'Override',
-        date: workingDate,
-        performed_by: user?.email || user?.username || 'system',
-        details: action === 'remove' ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
-        academic_year: academicYear
-      });
+      const performedBy = user?.email || user?.username || user?.name || 'system';
+      if (performedBy && performedBy !== 'system') {
+        base44.entities.AuditLog.create({
+          action: action === 'remove' ? 'override_removed' : 'override_applied',
+          module: 'Override',
+          date: workingDate,
+          performed_by: performedBy,
+          details: action === 'remove' ? `Removed holiday override for ${selectedClass}-${selectedSection}` : `Applied holiday override for ${selectedClass}-${selectedSection}`,
+          academic_year: academicYear
+        });
+      }
       toast.success(action === 'remove' ? 'Holiday override disabled successfully' : 'Holiday override enabled successfully');
     },
     onError: (err) => {
@@ -791,7 +794,10 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
     mutationFn: (data) => base44.entities.Holiday.create({ ...data, marked_by: user?.email, academic_year: academicYear, status: 'Active' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
-      base44.entities.AuditLog.create({ action: 'holiday_marked', module: 'Holiday', date: formData.date, performed_by: user?.email || user?.username || 'system', details: `Marked ${formData.title}`, academic_year: academicYear });
+      const performedBy = user?.email || user?.username || user?.name || 'system';
+      if (performedBy && performedBy !== 'system') {
+        base44.entities.AuditLog.create({ action: 'holiday_marked', module: 'Holiday', date: formData.date, performed_by: performedBy, details: `Marked ${formData.title}`, academic_year: academicYear });
+      }
       toast.success('Holiday added');
       setShowForm(false); setFormData({ date: '', title: '', reason: '' });
     }
@@ -810,7 +816,10 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
     mutationFn: (id) => base44.entities.Holiday.update(id, { status: 'Cancelled' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
-      base44.entities.AuditLog.create({ action: 'holiday_removed', module: 'Holiday', performed_by: user?.email || user?.username || 'system', details: 'Removed holiday', academic_year: academicYear });
+      const performedBy = user?.email || user?.username || user?.name || 'system';
+      if (performedBy && performedBy !== 'system') {
+        base44.entities.AuditLog.create({ action: 'holiday_removed', module: 'Holiday', performed_by: performedBy, details: 'Removed holiday', academic_year: academicYear });
+      }
       toast.success('Holiday removed');
     }
   });
@@ -918,6 +927,14 @@ export default function Attendance() {
   useEffect(() => {
     setUser(getStaffSession());
   }, []);
+
+  // Helper to get performer name for audit logs
+  const getPerformedBy = () => {
+    if (user?.email) return user.email;
+    if (user?.username) return user.username;
+    if (user?.name) return user.name;
+    return 'system';
+  };
 
   // Single holidays query shared by both tabs
   const { data: holidays = [] } = useQuery({
