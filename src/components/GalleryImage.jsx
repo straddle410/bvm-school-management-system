@@ -57,17 +57,19 @@ export default function GalleryImage({ src, alt, className, onClick, loading = '
   }
 
   return (
-    <img
-      src={displayUrl}
-      alt={alt || ''}
-      loading={loading}
-      className={className}
-      onClick={onClick}
-      onError={() => {
-        console.error('[GalleryImage] Failed to load:', displayUrl);
-        setHasError(true);
-      }}
-      style={{ display: 'block' }}
-    />
-  );
+     <img
+       src={displayUrl}
+       alt={alt || ''}
+       loading={loading}
+       width="800"
+       height="600"
+       className={className}
+       onClick={onClick}
+       onError={() => {
+         console.error('[GalleryImage] Failed to load:', displayUrl);
+         setHasError(true);
+       }}
+       style={{ display: 'block' }}
+     />
+   );
 }
