@@ -119,15 +119,14 @@ function aggregateAllDiscounts(feeItems, grossTotal, allDiscountsForStudent) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const role = (user.role || '').toLowerCase();
-    if (role !== 'admin' && role !== 'principal') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    const { academicYear, className, staffInfo } = await req.json();
+    const user = staffInfo || { email: 'system' };
+    if (staffInfo) {
+      const role = (staffInfo.role || '').toLowerCase();
+      if (role !== 'admin' && role !== 'principal') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
     }
-
-    const { academicYear, className } = await req.json();
     if (!academicYear) {
       return Response.json({ error: 'academicYear is required' }, { status: 400 });
     }

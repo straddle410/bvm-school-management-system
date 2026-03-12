@@ -6,18 +6,15 @@ Deno.serve(async (req) => {
   try {
     console.log('[publishMarksWithValidation] Function invoked');
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const { marksIds, examType, className, section, academicYear, staffInfo } = await req.json();
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
-
-    const role = String(user.role || '').trim().toLowerCase();
+    const user = staffInfo;
+    const role = String(staffInfo.role || '').trim().toLowerCase();
     if (!ALLOWED_ROLES.includes(role)) {
       return Response.json({ error: 'Forbidden: admin or principal only' }, { status: 403 });
     }
-
-    const { marksIds, examType, className, section, academicYear } = await req.json();
 
     console.log('[publishMarksWithValidation] Received payload:');
     console.log('[publishMarksWithValidation] marksIds.length:', marksIds?.length);

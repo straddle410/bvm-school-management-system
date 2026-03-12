@@ -5,19 +5,15 @@ const ALLOWED_ROLES = ['admin', 'principal'];
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const { marksIds, className, section, examType, academicYear, staffInfo } = await req.json();
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
-
-    const role = String(user.role || '').trim().toLowerCase();
+    const user = staffInfo;
+    const role = String(staffInfo.role || '').trim().toLowerCase();
     if (!ALLOWED_ROLES.includes(role)) {
       return Response.json({ error: 'Forbidden: admin or principal only' }, { status: 403 });
     }
-
-    // Accepts either a list of IDs, or a scope (class+section+exam+year) to filter by
-    const { marksIds, className, section, examType, academicYear } = await req.json();
 
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
       return Response.json({ error: 'marksIds array required' }, { status: 400 });

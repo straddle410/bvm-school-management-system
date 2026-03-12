@@ -13,17 +13,16 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const {
       markData,
       markId,
-      operation // 'create' or 'update'
+      operation, // 'create' or 'update'
+      staffInfo
     } = await req.json();
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
+    }
+    const user = staffInfo;
 
     if (!markData || !operation) {
       return Response.json({

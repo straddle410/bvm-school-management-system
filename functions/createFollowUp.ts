@@ -7,19 +7,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const { student_id, academic_year, status, priority, note, next_followup_date, staffInfo } = await req.json();
+    const user = staffInfo || { email: 'system' };
+    if (staffInfo) {
+      const userRole = (staffInfo.role || '').toLowerCase();
+      if (!['admin', 'principal', 'accountant'].includes(userRole)) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
-
-    const userRole = user.role?.toLowerCase();
-    const allowedRoles = ['admin', 'principal', 'accountant'];
-    if (!allowedRoles.includes(userRole)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { student_id, academic_year, status, priority, note, next_followup_date } = await req.json();
 
     if (!student_id || !academic_year || !note?.trim()) {
       return Response.json({ error: 'Missing required fields: student_id, academic_year, note' }, { status: 400 });

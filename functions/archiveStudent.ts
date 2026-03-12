@@ -3,14 +3,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    // Admin-only
-    if (user?.role?.toLowerCase() !== 'admin' && user?.role?.toLowerCase() !== 'principal') {
+    const { student_id, academic_year, staffInfo } = await req.json();
+    const user = staffInfo || { email: 'system' };
+    if (staffInfo && !['admin', 'principal'].includes((staffInfo.role || '').toLowerCase())) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
-
-    const { student_id, academic_year } = await req.json();
 
     if (!student_id || !academic_year) {
       return Response.json({ error: 'Missing student_id or academic_year' }, { status: 400 });

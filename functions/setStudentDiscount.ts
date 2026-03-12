@@ -12,21 +12,17 @@ function computeDiscountAmount(discountRecord, gross) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    // Try to get user context if available; if not (backend-to-backend), allow service role
-    let user = null;
-    try {
-      user = await base44.auth.me();
-    } catch {
-      // Backend-to-backend call: no user context, use service role
-    }
-    
-    // For frontend calls, enforce role. For backend-to-backend, allow service role.
-    if (user && user.role !== 'admin' && user.role !== 'principal') {
-      return Response.json({ error: 'Forbidden: Admin or Principal access required' }, { status: 403 });
-    }
-
     const body = await req.json();
-    const { student_id, academic_year, discount_type, discount_value, scope, fee_head_id, fee_head_name, notes } = body;
+    const { student_id, academic_year, discount_type, discount_value, scope, fee_head_id, fee_head_name, notes, staffInfo } = body;
+
+    // For frontend calls, enforce role. For backend-to-backend (no staffInfo), allow service role.
+    if (staffInfo) {
+      const role = (staffInfo.role || '').toLowerCase();
+      if (!['admin', 'principal'].includes(role)) {
+        return Response.json({ error: 'Forbidden: Admin or Principal access required' }, { status: 403 });
+      }
+    }
+    const user = staffInfo || { email: 'system' };
 
     if (!student_id || !academic_year) {
       return Response.json({ error: 'student_id and academic_year are required' }, { status: 400 });

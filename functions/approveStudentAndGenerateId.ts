@@ -18,12 +18,11 @@ import bcrypt from 'npm:bcryptjs@2.4.3';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me().catch(() => null);
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const { student_db_id, staffInfo } = await req.json();
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
-
-    const { student_db_id } = await req.json();
+    const user = staffInfo;
 
     if (!student_db_id) {
       return Response.json({ error: 'student_db_id required in payload' }, { status: 400 });

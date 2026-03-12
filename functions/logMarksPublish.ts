@@ -3,12 +3,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user?.role || user.role !== 'admin') {
-      return Response.json({ error: 'Admin only' }, { status: 403 });
-    }
-
     const {
       marksIds,
       examType,
@@ -16,8 +10,13 @@ Deno.serve(async (req) => {
       section,
       academicYear,
       previousStatus,
-      recordCount
+      recordCount,
+      staffInfo
     } = await req.json();
+    const user = staffInfo || { email: 'system', role: 'admin' };
+    if (staffInfo && !['admin', 'principal'].includes((staffInfo.role || '').toLowerCase())) {
+      return Response.json({ error: 'Admin only' }, { status: 403 });
+    }
 
     if (!marksIds || !Array.isArray(marksIds) || marksIds.length === 0) {
       return Response.json({ error: 'marksIds array required' }, { status: 400 });
