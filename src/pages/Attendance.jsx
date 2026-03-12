@@ -664,25 +664,27 @@ function AttendanceSummaryTab({ academicYear, user }) {
     enabled: hasGenerated && !!filters.class && !!filters.fromDate && !!filters.toDate
   });
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays-range', filters.fromDate, filters.toDate, academicYear],
-    queryFn: () => {
-      if (!filters.fromDate || !filters.toDate) return [];
-      return base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear })
-        .then(all => all.filter(h => h.date >= filters.fromDate && h.date <= filters.toDate).slice(0, 500));
+  // Combined holiday data fetch (reduces API calls from 2 to 1)
+  const { data: holidayData = { holidays: [], overrides: [] } } = useQuery({
+    queryKey: ['holidays-combined', filters.fromDate, filters.toDate, filters.class, filters.section, academicYear],
+    queryFn: async () => {
+      if (!filters.fromDate || !filters.toDate) return { holidays: [], overrides: [] };
+      
+      const [allHolidays, allOverrides] = await Promise.all([
+        base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear }),
+        base44.entities.HolidayOverride.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear })
+      ]);
+      
+      return {
+        holidays: allHolidays.filter(h => h.date >= filters.fromDate && h.date <= filters.toDate).slice(0, 500),
+        overrides: allOverrides.filter(o => o.date >= filters.fromDate && o.date <= filters.toDate).slice(0, 500)
+      };
     },
-    enabled: hasGenerated && !!filters.fromDate && !!filters.toDate
+    enabled: hasGenerated && !!filters.fromDate && !!filters.toDate && !!filters.class && !!filters.section
   });
 
-  const { data: overrides = [] } = useQuery({
-    queryKey: ['holiday-overrides-range', filters.fromDate, filters.toDate, filters.class, filters.section, academicYear],
-    queryFn: () => {
-      if (!filters.fromDate || !filters.toDate) return [];
-      return base44.entities.HolidayOverride.filter({ class_name: filters.class, section: filters.section, academic_year: academicYear })
-        .then(all => all.filter(o => o.date >= filters.fromDate && o.date <= filters.toDate).slice(0, 500));
-    },
-    enabled: hasGenerated && !!filters.class && !!filters.section && !!filters.fromDate && !!filters.toDate
-  });
+  const holidays = holidayData.holidays;
+  const overrides = holidayData.overrides;
 
   const reportData = useMemo(() => {
     if (!hasGenerated || students.length === 0) return [];
