@@ -38,18 +38,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Required: examType, className, academicYear' }, { status: 400 });
     }
 
-    // Fetch only the specific marks by ID (bypass filter since exam_type is ID, not name)
-    console.log('[publishMarksWithValidation] Fetching marks by ID...');
-    const marksToPublish = await Promise.all(
-      marksIds.map(id => {
-        console.log('[publishMarksWithValidation] Fetching ID:', id);
-        return base44.asServiceRole.entities.Marks.get(id);
-      })
-    ).then(results => {
-      console.log('[publishMarksWithValidation] Fetch results count:', results.length);
-      console.log('[publishMarksWithValidation] First result sample:', results[0]);
-      return results.filter(m => m !== null);
+    // SINGLE filter to fetch all marks for this class/section/exam instead of 400 individual .get() calls
+    console.log('[publishMarksWithValidation] Fetching marks for class...');
+    const allMarksForClass = await base44.asServiceRole.entities.Marks.filter({
+      class_name: className,
+      section: section,
+      exam_type: examType,
+      academic_year: academicYear
     });
+    console.log('[publishMarksWithValidation] Fetched marks count:', allMarksForClass.length);
+
+    // Filter to only marks in the provided IDs list
+    const marksToPublish = allMarksForClass.filter(m => marksIds.includes(m.id));
 
     console.log('[publishMarksWithValidation] marksToPublish.length:', marksToPublish.length);
     if (marksToPublish.length > 0) {
