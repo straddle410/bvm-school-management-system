@@ -37,7 +37,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
     queryKey: ['student-fee-discounts-all', academicYear],
     queryFn: () => base44.entities.StudentFeeDiscount.filter({ academic_year: academicYear }),
     enabled: !!academicYear,
-    staleTime: 0
+    staleTime: 2 * 60 * 1000
   });
 
   // Apply pagination after fetching all (for filtering/search)
