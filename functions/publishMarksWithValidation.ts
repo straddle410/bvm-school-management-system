@@ -67,17 +67,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No marks found matching the provided IDs' }, { status: 404 });
     }
 
-    // VALIDATION: Only Submitted marks can be published
-    const notPublishable = marksToPublish.filter(m => m.status !== 'Submitted');
+    // VALIDATION: Only Submitted, Verified or Approved marks can be published
+    const notPublishable = marksToPublish.filter(m =>
+      !['Submitted', 'Verified', 'Approved'].includes(m.status)
+    );
 
     console.log('[publishMarksWithValidation] Status validation:');
     console.log('[publishMarksWithValidation] Total marks:', marksToPublish.length);
-    console.log('[publishMarksWithValidation] Publishable status: Submitted');
+    console.log('[publishMarksWithValidation] Publishable statuses: Submitted, Verified, Approved');
     console.log('[publishMarksWithValidation] Not publishable count:', notPublishable.length);
     if (notPublishable.length > 0) {
       console.log('[publishMarksWithValidation] First unpublishable mark:', notPublishable[0]);
       console.log('[publishMarksWithValidation] Status check failed: Status is', notPublishable[0].status);
-      const errorMsg = `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Submitted marks can be published.`;
+      const errorMsg = `Cannot publish. ${notPublishable.length} mark(s) are in status "${notPublishable[0].status}" — only Submitted, Verified or Approved marks can be published.`;
       console.log('[publishMarksWithValidation] ERROR: 400 -', errorMsg);
       return Response.json({
         error: errorMsg,
@@ -90,7 +92,24 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const previousStatus = 'Submitted';
+    // Auto-approve any Submitted marks before publishing
+    console.log('[publishMarksWithValidation] Auto-approving Submitted marks...');
+    const submittedIds = marksToPublish
+      .filter(m => m.status === 'Submitted')
+      .map(m => m.id);
+    
+    if (submittedIds.length > 0) {
+      console.log('[publishMarksWithValidation] Auto-approving', submittedIds.length, 'marks');
+      await Promise.all(submittedIds.map(id =>
+        base44.asServiceRole.entities.Marks.update(id, {
+          status: 'Approved',
+          verified_by: user.email,
+          approved_by: user.email
+        })
+      ));
+    }
+
+    const previousStatus = marksToPublish[0]?.status || 'Verified';
 
     // Audit log
     await base44.asServiceRole.entities.AuditLog.create({
