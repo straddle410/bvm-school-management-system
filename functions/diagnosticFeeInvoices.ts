@@ -3,23 +3,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    let user;
-    try {
-      user = await base44.asServiceRole.auth.me();
-    } catch {
-      user = await base44.auth.me();
+
+    const { className, academicYear, staffInfo } = await req.json();
+
+    if (!staffInfo || !staffInfo.staff_id) {
+      return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
-    
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    const userRole = (user.role || '').toLowerCase();
+
+    const userRole = (staffInfo.role || '').toLowerCase();
     if (!['admin', 'principal'].includes(userRole)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
-
-    const { className, academicYear } = await req.json();
     if (!className || !academicYear) {
       return Response.json({ error: 'className and academicYear required' }, { status: 400 });
     }
