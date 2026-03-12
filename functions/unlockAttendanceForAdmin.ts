@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+// Function to verify staff session token validity and extract user payload
 async function verifyStaffToken(token) {
   try {
     const secret = Deno.env.get('STAFF_SESSION_SECRET');
