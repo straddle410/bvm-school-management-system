@@ -816,16 +816,17 @@ export default function Marks() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setSaveMode('submit');
-                saveMutation.mutate();
-              }}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              Submit Marks
-            </AlertDialogAction>
+           <AlertDialogCancel disabled={saveMutation.isPending}>Cancel</AlertDialogCancel>
+           <AlertDialogAction
+             onClick={() => {
+               setSaveMode('submit');
+               saveMutation.mutate();
+             }}
+             disabled={saveMutation.isPending}
+             className="bg-indigo-600 hover:bg-indigo-700"
+           >
+             {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+           </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>
