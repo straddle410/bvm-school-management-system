@@ -103,6 +103,7 @@ export default function More() {
     { label: 'Contact School', sub: schoolProfile?.phone || '+91 98765 43210', icon: Phone, color: '#e53935', bg: '#ffebee' },
     { label: 'School Website', sub: schoolProfile?.website || 'www.bvmschool.edu', icon: Globe, color: '#1e88e5', bg: '#e3f2fd' },
     { label: 'Privacy Policy', icon: Shield, color: '#7e57c2', bg: '#ede7f6' },
+    { label: 'Terms & Conditions', sub: 'Usage policy', icon: FileText, color: '#0288d1', bg: '#e1f5fe', page: 'TermsAndConditions' },
     { label: 'Help & FAQ', icon: HelpCircle, color: '#9c27b0', bg: '#f3e5f5' },
     { label: 'About App', sub: 'Version 2.0.0', icon: Info, color: '#78909c', bg: '#eceff1' },
   ];
