@@ -256,6 +256,13 @@ export default function StaffLogin() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Legal Links */}
+      <div className="mt-6 flex items-center justify-center gap-4 text-xs text-white/60">
+        <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-white underline underline-offset-2 transition-colors">Privacy Policy</Link>
+        <span>·</span>
+        <Link to={createPageUrl('TermsAndConditions')} className="hover:text-white underline underline-offset-2 transition-colors">Terms &amp; Conditions</Link>
+      </div>
     </div>
   );
 }
