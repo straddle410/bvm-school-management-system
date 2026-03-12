@@ -33,11 +33,11 @@ Deno.serve(async (req) => {
     // Only unlock marks in the provided IDs that are in unlockable statuses
     const marksToUnlock = scopedMarks.filter(m =>
       marksIds.includes(m.id) &&
-      ['Submitted', 'Verified', 'Approved'].includes(m.status)
+      ['Submitted', 'Published'].includes(m.status)
     );
 
     if (marksToUnlock.length === 0) {
-      return Response.json({ error: 'No marks found in unlockable state (Submitted/Verified/Approved)' }, { status: 404 });
+      return Response.json({ error: 'No marks found in unlockable state (Submitted/Published)' }, { status: 404 });
     }
 
     await Promise.all(marksToUnlock.map(m =>
