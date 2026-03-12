@@ -62,26 +62,13 @@ export default function DiscountManager({ academicYear, isArchived }) {
     enabled: !!selectedStudent && !!academicYear
   });
 
-  // Compute settled: paid_amount >= (gross - existingDiscount) using NET, not gross
+  // Compute settled: invoice is fully paid when paid_amount >= total_amount (net after all discounts)
   const isSettled = (() => {
     if (!studentInvoice) return false;
     if (studentInvoice.status === 'Paid') return true;
-    const gross = studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0;
+    const net = studentInvoice.total_amount ?? 0;
     const paid = studentInvoice.paid_amount ?? 0;
-    // Find existing discount for this student+AY
-    const existingDiscount = discounts.find(d =>
-      d.student_id === selectedStudent?.student_id &&
-      d.academic_year === academicYear &&
-      d.status === 'Active'
-    );
-    let discountAmt = 0;
-    if (existingDiscount) {
-      discountAmt = existingDiscount.discount_type === 'PERCENT'
-        ? Math.min((existingDiscount.discount_value / 100) * gross, gross)
-        : Math.min(existingDiscount.discount_value, gross);
-    }
-    const net = Math.max(gross - discountAmt, 0);
-    return paid >= net && net >= 0;
+    return paid >= net && net > 0;
   })();
 
   const saveMutation = useMutation({
