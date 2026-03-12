@@ -10,6 +10,12 @@ import { Search, User } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import StudentListVirtual from './StudentListVirtual';
 
+const LoadingSpinner = () => (
+  <div className="flex justify-center py-12">
+    <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+  </div>
+);
+
 const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 const statusColor = {
@@ -29,7 +35,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const [studentPage, setStudentPage] = useState(0);
   const STUDENTS_LIMIT = 50;
 
-  const { data: students = [] } = useQuery({
+  const { data: students = [], isLoading: isLoadingStudents } = useQuery({
     queryKey: ['students-published', selectedClass, academicYear, studentPage],
     queryFn: async () => {
       const all = await base44.entities.Student.filter({ 
@@ -132,13 +138,19 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
 
       {selectedClass && !selectedStudent && (
         <>
-          <StudentListVirtual students={filteredStudents} onSelect={setSelectedStudent} />
-          {students.length === STUDENTS_LIMIT && (
-            <div className="flex justify-center gap-2 pt-2">
-              <button onClick={() => setStudentPage(p => Math.max(0, p - 1))} disabled={studentPage === 0} className="px-3 py-1 text-sm border rounded disabled:opacity-50">Prev</button>
-              <span className="px-3 py-1 text-sm text-slate-500">Page {studentPage + 1}</span>
-              <button onClick={() => setStudentPage(p => p + 1)} className="px-3 py-1 text-sm border rounded">Next</button>
-            </div>
+          {isLoadingStudents ? (
+            <Card><CardContent className="py-12"><LoadingSpinner /></CardContent></Card>
+          ) : (
+            <>
+              <StudentListVirtual students={filteredStudents} onSelect={setSelectedStudent} />
+              {students.length === STUDENTS_LIMIT && (
+                <div className="flex justify-center gap-2 pt-2">
+                  <button onClick={() => setStudentPage(p => Math.max(0, p - 1))} disabled={studentPage === 0} className="px-3 py-1 text-sm border rounded disabled:opacity-50">Prev</button>
+                  <span className="px-3 py-1 text-sm text-slate-500">Page {studentPage + 1}</span>
+                  <button onClick={() => setStudentPage(p => p + 1)} className="px-3 py-1 text-sm border rounded">Next</button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
