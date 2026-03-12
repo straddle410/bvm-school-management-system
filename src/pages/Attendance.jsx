@@ -30,6 +30,7 @@ import {
   Calendar, CheckCircle2, XCircle, Users, Save, Palmtree, CalendarRange,
   AlertCircle, Lock, BarChart3, Plus, Trash2, Edit2, LockOpen, Zap
 } from 'lucide-react';
+import PullToRefresh from '@/components/PullToRefresh';
 import { format, getDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { toast } from "sonner";
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
@@ -982,11 +983,16 @@ export default function Attendance() {
 
   const tabCount = isAdmin ? 4 : canViewReports ? 3 : 1;
 
+  const handleRefresh = async () => {
+    queryClient.invalidateQueries({ queryKey: ['holidays'] });
+  };
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Attendance">
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
         <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
+        <PullToRefresh onRefresh={handleRefresh}>
         <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-6 flex flex-wrap h-auto gap-1 p-1">
@@ -1047,6 +1053,7 @@ export default function Attendance() {
             )}
           </Tabs>
         </div>
+        </PullToRefresh>
       </div>
     </LoginRequired>
   );

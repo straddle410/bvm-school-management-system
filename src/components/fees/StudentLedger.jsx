@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Search, User } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import StudentListVirtual from './StudentListVirtual';
+import PullToRefresh from '@/components/PullToRefresh';
 
 const LoadingSpinner = () => (
   <div className="flex justify-center py-12">
@@ -120,8 +121,13 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     [students, search]
   );
 
+  const handleRefresh = async () => {
+    await refetchFeeData();
+  };
+
   return (
-    <div className="space-y-4">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
         <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(null); setSearch(''); setStudentPage(0); }}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Select Class" /></SelectTrigger>
@@ -378,6 +384,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
           }}
         />
       )}
-    </div>
-  );
-}
+      </div>
+      </PullToRefresh>
+      );
+      }

@@ -187,6 +187,74 @@
 .accountant-fees-view .p-2 { padding: 0.6rem !important; }
 .accountant-fees-view .p-3 { padding: 0.85rem !important; }
 
+/* ── Google Play Compliance: Safe Area Handling ── */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ── Page Transitions & Animations ── */
+main, [role="main"] {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page transition effect */
+.page-transition {
+  animation: slideInUp 0.25s ease-out;
+}
+
+/* ── Disable System Gestures & Text Selection ── */
+button, a, [role="button"], .interactive {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Preserve selection for inputs and text areas */
+input, textarea, [contenteditable="true"] {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* ── Native-Like Touch Targets (44px minimum) ── */
+button, a[role="button"], [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn, [class*="Button"], [class*="btn"] {
+  min-height: 44px;
+}
+
+/* Icon buttons */
+button[size="icon"], button[size="sm"]:has(svg:only-child) {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px !important;
+}
+
+/* Touch-friendly spacing */
+a, button {
+  min-touch-target: 44px;
+  margin-bottom: 4px;
+}
+
 /* Print-specific styles */
 @media print {
   .no-print,

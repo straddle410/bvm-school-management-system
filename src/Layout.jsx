@@ -159,7 +159,13 @@ export default function Layout({ children, currentPageName }) {
     <AcademicYearProvider>
       <MessageNotificationListener />
       <StaffAuthGuard currentPageName={currentPageName}>
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
+      fontFamily: "'Segoe UI', sans-serif",
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+      paddingLeft: 'env(safe-area-inset-left)',
+      paddingRight: 'env(safe-area-inset-right)'
+    }}>
       {/* Top Header */}
       <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
         {currentPageName !== 'Dashboard' && (
