@@ -58,12 +58,25 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Prepare bulk data - separate creates and updates
+    // SINGLE filter query to get ALL existing marks for this class/section/exam (memory comparison instead of loop filters)
+    const existingMarksInClass = await base44.asServiceRole.entities.Marks.filter({
+      class_name: className,
+      section: section,
+      academic_year: academicYear
+    });
+
+    // Build map for fast O(1) lookup
+    const existingMarksMap = {};
+    existingMarksInClass.forEach(mark => {
+      const key = `${mark.student_id}|${mark.subject}|${mark.exam_type}`;
+      existingMarksMap[key] = mark.id;
+    });
+
+    // Prepare bulk data - separate creates and updates (all comparisons done in memory)
     const creates = [];
     const updates = [];
 
-    for (const markData of marksData) {
-      // Normalize exam_type to ID
+    marksData.forEach(markData => {
       const examTypeRecord = examTypeMap[markData.exam_type];
       const normalizedMark = {
         ...markData,
@@ -75,26 +88,15 @@ Deno.serve(async (req) => {
         academic_year: academicYear
       };
 
-      // Check if mark already exists
-      const existing = await base44.asServiceRole.entities.Marks.filter({
-        student_id: markData.student_id,
-        subject: markData.subject,
-        exam_type: examTypeRecord.id,
-        class_name: className,
-        academic_year: academicYear
-      });
+      const key = `${markData.student_id}|${markData.subject}|${examTypeRecord.id}`;
+      const existingId = existingMarksMap[key];
 
-      if (existing.length > 0) {
-        // Update existing
-        updates.push({
-          id: existing[0].id,
-          data: normalizedMark
-        });
+      if (existingId) {
+        updates.push({ id: existingId, data: normalizedMark });
       } else {
-        // Create new
         creates.push(normalizedMark);
       }
-    }
+    });
 
     // Execute bulk operations
     let createdCount = 0;
@@ -106,10 +108,11 @@ Deno.serve(async (req) => {
     }
 
     if (updates.length > 0) {
-      for (const { id, data } of updates) {
-        await base44.asServiceRole.entities.Marks.update(id, data);
-        updatedCount++;
-      }
+      // Bulk update all at once instead of individual updates
+      await Promise.all(updates.map(({ id, data }) =>
+        base44.asServiceRole.entities.Marks.update(id, data)
+      ));
+      updatedCount = updates.length;
     }
 
     // Create audit log
