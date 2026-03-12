@@ -81,10 +81,6 @@ export default function Admissions() {
     setUser(session);
   }, []);
 
-  const [staffInfo] = useState(() => {
-    try { const raw = localStorage.getItem('staff_session'); return raw ? JSON.parse(raw) : null; } catch { return null; }
-  });
-
   const { data: paginatedData = { results: [], total_count: 0, total_pages: 0 }, isLoading } = useQuery({
     queryKey: ['admissions-paginated', academicYear, filterStatus, searchQuery, currentPage],
     queryFn: async () => {
