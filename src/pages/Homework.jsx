@@ -514,15 +514,15 @@ export default function Homework() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Homework">
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <BookMarked className="h-8 w-8 text-purple-600" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Homework Dashboard</h1>
-                <p className="text-gray-600 text-sm">Track assignments and submission progress</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Homework Dashboard</h1>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Track assignments and submission progress</p>
               </div>
             </div>
             <Button
@@ -538,17 +538,17 @@ export default function Homework() {
           </div>
 
           {/* Tab switcher */}
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'dashboard' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              <BookMarked className="inline h-4 w-4 mr-1.5 -mt-0.5" />Dashboard
-            </button>
-            <button
-              onClick={() => setActiveTab('report')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'report' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit">
+             <button
+               onClick={() => setActiveTab('dashboard')}
+               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'dashboard' ? 'bg-white dark:bg-gray-700 text-purple-700 dark:text-purple-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+             >
+               <BookMarked className="inline h-4 w-4 mr-1.5 -mt-0.5" />Dashboard
+             </button>
+             <button
+               onClick={() => setActiveTab('report')}
+               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'report' ? 'bg-white dark:bg-gray-700 text-purple-700 dark:text-purple-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+             >
               <BarChart2 className="inline h-4 w-4 mr-1.5 -mt-0.5" />Report
             </button>
           </div>
@@ -601,8 +601,8 @@ export default function Homework() {
 
           {/* Bulk Action Bar */}
           {selected.size > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-blue-900">{selected.size} selected</span>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 mb-4 flex items-center justify-between">
+              <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">{selected.size} selected</span>
               <div className="flex gap-2">
                 <Button
                   onClick={handleBulkPublish}
@@ -639,17 +639,17 @@ export default function Homework() {
               <div className="inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
             </div>
           ) : filteredList.length === 0 && homeworkList.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-              <BookMarked className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No homework assigned yet</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm">
+              <BookMarked className="h-12 w-12 text-gray-200 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 mb-4">No homework assigned yet</p>
               <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="h-4 w-4 mr-2" /> Create First Homework
               </Button>
             </div>
           ) : filteredList.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-              <BookMarked className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No homework found with current filters</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm">
+              <BookMarked className="h-12 w-12 text-gray-200 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 mb-4">No homework found with current filters</p>
               <Button onClick={handleClearFilters} variant="outline" className="text-sm">
                 Clear Filters
               </Button>
@@ -657,13 +657,13 @@ export default function Homework() {
           ) : (
             <div className="space-y-4">
               {/* Select All Row */}
-              <div className="bg-gray-100 rounded-lg p-4 flex items-center gap-3">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 flex items-center gap-3">
                 <Checkbox
                   checked={selected.size === filteredList.length && filteredList.length > 0}
                   onCheckedChange={toggleSelectAll}
                   id="select-all"
                 />
-                <label htmlFor="select-all" className="text-sm font-semibold text-gray-900 cursor-pointer">
+                <label htmlFor="select-all" className="text-sm font-semibold text-gray-900 dark:text-white cursor-pointer">
                   Select All ({filteredList.length})
                 </label>
               </div>
@@ -673,7 +673,7 @@ export default function Homework() {
                 {filteredList.map((item) => (
                   <div
                     key={item.id}
-                    className={`bg-white rounded-lg p-4 shadow-sm border border-gray-200 ${
+                    className={`bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 ${
                       selected.has(item.id) ? 'ring-2 ring-blue-500' : ''
                     }`}
                   >
@@ -764,7 +764,7 @@ export default function Homework() {
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogContent className="max-w-lg w-full flex flex-col" style={{ maxHeight: '90vh' }}>
               {/* Fixed Header */}
-              <DialogHeader className="flex-shrink-0 pb-2 border-b border-gray-100">
+              <DialogHeader className="flex-shrink-0 pb-2 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <DialogTitle>{editingItem ? 'Edit Homework' : 'Add Homework'}</DialogTitle>
                   <Button
@@ -832,7 +832,7 @@ export default function Homework() {
                   <div>
                     <Label>Subject *</Label>
                     {!form.class_name ? (
-                      <div className="text-xs text-gray-500 py-2 px-3 bg-gray-100 rounded-lg">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 py-2 px-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                         Select class first
                       </div>
                     ) : subjects.length === 0 ? (
@@ -871,8 +871,8 @@ export default function Homework() {
                     />
                   </div>
                   {form.submission_mode === 'SUBMISSION_REQUIRED' && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
-                      <Label className="text-amber-800">Extended Due Date <span className="font-normal text-amber-600">(optional)</span></Label>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-1">
+                      <Label className="text-amber-800 dark:text-amber-300">Extended Due Date <span className="font-normal text-amber-600">(optional)</span></Label>
                       <Input
                         type="date"
                         min={form.due_date || undefined}
@@ -914,7 +914,7 @@ export default function Homework() {
                 </div>
 
                 {/* Fixed Footer */}
-                <div className="flex-shrink-0 flex justify-end gap-3 pt-3 mt-1 border-t border-gray-100">
+                <div className="flex-shrink-0 flex justify-end gap-3 pt-3 mt-1 border-t border-gray-100 dark:border-gray-700">
                   <Button
                     type="button"
                     variant="outline"

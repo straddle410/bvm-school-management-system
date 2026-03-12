@@ -256,11 +256,11 @@ export default function Results() {
     const isStaffMode = localStorage.getItem('staff_session');
     if (!isStaffMode) {
       return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-          <div className="bg-white rounded-2xl shadow-sm p-8 max-w-sm w-full text-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 max-w-sm w-full text-center">
             <Lock className="h-12 w-12 text-[#1a237e] mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Login Required</h2>
-            <p className="text-gray-500 text-sm mb-6">Please login to view results.</p>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Login Required</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Please login to view results.</p>
             <Link to={createPageUrl('StudentLogin')}>
               <Button className="w-full bg-[#1a237e] hover:bg-[#283593]">Go to Login</Button>
             </Link>
@@ -271,7 +271,7 @@ export default function Results() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="bg-[#1a237e] text-white px-4 py-8 text-center relative">
         {studentSession && !studentSession.isStaff && (
@@ -288,7 +288,7 @@ export default function Results() {
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Search Form — visible to staff only */}
-        {studentSession?.isStaff && (<Card className="border-0 shadow-sm">
+        {studentSession?.isStaff && (<Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Search className="h-5 w-5 text-[#1a237e]" />
@@ -347,9 +347,9 @@ export default function Results() {
 
             {/* Divider */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-xs text-slate-400 font-medium">OR</span>
-              <div className="flex-1 h-px bg-slate-200" />
+              <div className="flex-1 h-px bg-slate-200 dark:bg-gray-600" />
+              <span className="text-xs text-slate-400 dark:text-gray-500 font-medium">OR</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-gray-600" />
             </div>
 
             {/* Direct Roll / Student ID entry */}
@@ -469,12 +469,12 @@ export default function Results() {
                           <CardContent className="p-4">
                             <div className="space-y-2">
                               {sortedMarks.map((m, i) => (
-                                <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
+                                <div key={i} className="flex items-center justify-between py-2 border-b dark:border-gray-700 last:border-0">
                                   <div>
-                                    <p className="font-medium text-sm text-slate-800">{m.subject}</p>
+                                    <p className="font-medium text-sm text-slate-800 dark:text-gray-200">{m.subject}</p>
                                   </div>
                                   <div className="flex items-center gap-3">
-                                    <span className="text-sm font-semibold text-slate-700">
+                                    <span className="text-sm font-semibold text-slate-700 dark:text-gray-300">
                                       {m.marks_obtained}/{m.max_marks}
                                     </span>
                                     {m.grade && (
@@ -494,11 +494,11 @@ export default function Results() {
                   )}
               </div>
             ) : (
-             <Card className="border-0 shadow-sm">
-               <CardContent className="py-16 text-center">
-                 <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                 <h3 className="font-medium text-slate-700">No results found</h3>
-                 <p className="text-sm text-slate-500 mt-1">Try a different student or exam</p>
+             <Card className="border-0 shadow-sm dark:bg-gray-800">
+             <CardContent className="py-16 text-center">
+               <BookOpen className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-3" />
+               <h3 className="font-medium text-slate-700 dark:text-gray-300">No results found</h3>
+               <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">Try a different student or exam</p>
                </CardContent>
              </Card>
            )

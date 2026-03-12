@@ -581,7 +581,7 @@ export default function Marks() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Exams & Marks">
-      <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
       <PageHeader 
         title={viewMode === 'entry' ? "Enter Marks" : "Review Marks"}
         subtitle={viewMode === 'entry' ? "Enter and manage student marks" : "Review and publish student results"}
@@ -590,7 +590,7 @@ export default function Marks() {
       <div className="px-3 sm:px-4 lg:px-8 py-4 space-y-6 max-w-full">
         {/* Mode Toggle */}
         {isAdmin && (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="flex gap-2">
                 <Button variant={viewMode === 'entry' ? 'default' : 'outline'} onClick={() => setViewMode('entry')} className="gap-2">
@@ -679,29 +679,29 @@ export default function Marks() {
             publishPending={publishMutation.isPending}
           />
         ) : viewMode === 'review' ? (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="py-16 text-center">
-              <Eye className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700">Select Class & Section</h3>
-              <p className="text-slate-500 mt-2">Choose a class and section to review marks</p>
+              <Eye className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">Select Class & Section</h3>
+              <p className="text-slate-500 dark:text-gray-400 mt-2">Choose a class and section to review marks</p>
             </CardContent>
           </Card>
         ) : (!selectedClass || !selectedSection || !selectedExam) && (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="py-16 text-center">
-              <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700">Select Options</h3>
-              <p className="text-slate-500 mt-2">Choose class, section and exam type to enter marks</p>
+              <BookOpen className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">Select Options</h3>
+              <p className="text-slate-500 dark:text-gray-400 mt-2">Choose class, section and exam type to enter marks</p>
             </CardContent>
           </Card>
         )}
 
         {viewMode === 'entry' && selectedClass && selectedSection && selectedExam && timetableEntries.length === 0 && (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="py-16 text-center">
-              <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700">No Timetable Created</h3>
-              <p className="text-slate-500 mt-2">Timetable must be created for this class and exam before entering marks</p>
+              <BookOpen className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">No Timetable Created</h3>
+              <p className="text-slate-500 dark:text-gray-400 mt-2">Timetable must be created for this class and exam before entering marks</p>
             </CardContent>
           </Card>
         )}
@@ -714,7 +714,7 @@ export default function Marks() {
       <DialogTitle>Add Subjects in Settings</DialogTitle>
       </DialogHeader>
       <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-slate-600 dark:text-gray-300">
       Subjects are managed in <strong>Settings → Subjects</strong>. Please navigate to Settings to add or edit subjects.
       </p>
       <Button 
@@ -800,8 +800,8 @@ export default function Marks() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-3">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 max-h-40 overflow-y-auto">
-              <ul className="text-sm text-red-700 space-y-1">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 max-h-40 overflow-y-auto">
+              <ul className="text-sm text-red-700 dark:text-red-400 space-y-1">
                 {validationError?.missingStudents?.map((name, idx) => (
                   <li key={idx}>• {name}</li>
                 ))}

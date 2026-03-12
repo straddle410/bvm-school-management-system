@@ -316,19 +316,19 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
 
   return (
     <div className="space-y-4">
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
          <CardContent className="p-3 sm:p-4 space-y-3">
            <div className="flex flex-col gap-3">
              {/* Date: Read-only for Teacher, Editable for Admin */}
              {isAdmin ? (
                <div className="flex items-center gap-2">
-                 <label className="text-xs font-medium text-slate-600 whitespace-nowrap">Date:</label>
-                 <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border rounded-lg px-3 py-2 text-sm flex-1" />
+                 <label className="text-xs font-medium text-slate-600 dark:text-gray-400 whitespace-nowrap">Date:</label>
+                 <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm flex-1" />
                </div>
              ) : (
-               <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg border border-slate-200">
-                 <Calendar className="h-5 w-5 text-slate-400" />
-                 <span className="text-sm font-medium text-slate-700">{format(new Date(todayDate), 'MMM dd, yyyy')} (Today)</span>
+               <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600">
+                <Calendar className="h-5 w-5 text-slate-400" />
+                <span className="text-sm font-medium text-slate-700 dark:text-gray-200">{format(new Date(todayDate), 'MMM dd, yyyy')} (Today)</span>
                </div>
              )}
 
@@ -395,8 +395,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                 <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Admin</span>
               </button>
               {showRangeMode && (
-                <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
-                  <p className="text-xs text-amber-700 font-medium">Marks ALL classes as holiday for the date range.</p>
+                <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 space-y-3">
+                  <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Marks ALL classes as holiday for the date range.</p>
                   <div className="flex flex-wrap gap-3 items-center">
                     <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600">From</label><input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm" /></div>
                     <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600">To</label><input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm" /></div>
@@ -483,12 +483,12 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
               { label: 'Draft Full Day', value: fullDayCount, color: 'green', Icon: CheckCircle2 },
               { label: 'Draft Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
               { label: 'Draft Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
-              <Card key={label} className="border-0 shadow-sm p-4">
+              <Card key={label} className="border-0 shadow-sm p-4 dark:bg-gray-800">
                 <div className="flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl bg-${color}-50 flex items-center justify-center`}>
                     <Icon className={`h-5 w-5 text-${color}-600`} />
                   </div>
-                  <div><p className="text-sm text-slate-500">{label}</p><p className={`text-xl font-bold ${color !== 'blue' ? `text-${color}-600` : ''}`}>{value}</p></div>
+                  <div><p className="text-sm text-slate-500 dark:text-gray-400">{label}</p><p className={`text-xl font-bold ${color !== 'blue' ? `text-${color}-600` : 'dark:text-white'}`}>{value}</p></div>
                 </div>
               </Card>
             ))}
@@ -497,8 +497,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             </Card>
           </div>
 
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
+           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
                <CardTitle className="text-base">Class {selectedClass}-{selectedSection}</CardTitle>
                {!effectiveHoliday && <Button variant="outline" size="sm" onClick={markAllPresent}>Mark All Present</Button>}
              </CardHeader>
@@ -506,27 +506,27 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                {effectiveHoliday ? (
                  <div className="py-12 text-center text-amber-500">
                    <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
-                   <p className="font-medium text-slate-700">Holiday: {holidayReason || 'Holiday'}</p>
-                   <p className="text-sm text-slate-400 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
+                   <p className="font-medium text-slate-700 dark:text-gray-300">Holiday: {holidayReason || 'Holiday'}</p>
+                   <p className="text-sm text-slate-400 dark:text-gray-500 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
                  </div>
                ) : filteredStudents.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">No published students in this class</div>
+                <div className="py-12 text-center text-slate-400 dark:text-gray-500">No published students in this class</div>
               ) : (
-                <div className="divide-y">
+                <div className="divide-y dark:divide-gray-700">
                   {filteredStudents.map((student, index) => {
                     const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
                     const attendanceDisabled = effectiveHoliday || isRecordLocked;
-                    const bgColor = attType === 'absent' ? 'bg-red-50' : attType === 'half_day' ? 'bg-yellow-50' : 'bg-white';
+                    const bgColor = attType === 'absent' ? 'bg-red-50 dark:bg-red-900/20' : attType === 'half_day' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-white dark:bg-gray-800';
                     return (
-                      <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 opacity-60' : bgColor}`}>
-                        <span className="text-xs text-slate-400 w-6 flex-shrink-0">{student.roll_no || index + 1}</span>
+                      <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 dark:bg-gray-700 opacity-60' : bgColor}`}>
+                        <span className="text-xs text-slate-400 dark:text-gray-500 w-6 flex-shrink-0">{student.roll_no || index + 1}</span>
                         <Avatar className="h-8 w-8 flex-shrink-0">
                           <AvatarImage src={student.photo_url} />
                           <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">{student.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-slate-900 truncate text-sm">{student.name}</p>
-                          <p className="text-xs text-slate-500">{student.student_id}</p>
+                          <p className="font-medium text-slate-900 dark:text-white truncate text-sm">{student.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-gray-400">{student.student_id}</p>
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
                           {[
@@ -575,31 +575,31 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       )}
 
       {!selectedClass && (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="py-16 text-center">
-            <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-700">Select Date, Class and Section</h3>
-            <p className="text-slate-500 mt-2">{isAdmin ? 'Choose a date, class and section to mark attendance' : 'Choose a class and section to mark attendance for today'}</p>
+            <Calendar className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">Select Date, Class and Section</h3>
+            <p className="text-slate-500 dark:text-gray-400 mt-2">{isAdmin ? 'Choose a date, class and section to mark attendance' : 'Choose a class and section to mark attendance for today'}</p>
           </CardContent>
         </Card>
       )}
 
       {selectedClass && !selectedSection && (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="py-16 text-center">
-            <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-700">Select Section</h3>
-            <p className="text-slate-500 mt-2">Choose a section to proceed</p>
+            <Calendar className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">Select Section</h3>
+            <p className="text-slate-500 dark:text-gray-400 mt-2">Choose a section to proceed</p>
           </CardContent>
         </Card>
       )}
 
       {selectedClass && selectedSection && filteredStudents.length === 0 && (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="py-16 text-center">
-            <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-700">No students found</h3>
-            <p className="text-slate-500 mt-2">No students found for this class and section.</p>
+            <Users className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">No students found</h3>
+            <p className="text-slate-500 dark:text-gray-400 mt-2">No students found for this class and section.</p>
           </CardContent>
         </Card>
       )}
@@ -815,7 +815,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-         <h2 className="text-lg font-semibold text-slate-900">Active Holidays — {academicYear}</h2>
+         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Active Holidays — {academicYear}</h2>
          <Button onClick={() => { setEditingHoliday(null); setFormData({ date: '', title: '', reason: '' }); setShowForm(true); }} disabled={yearLocked}>
            <Plus className="h-4 w-4 mr-2" />Add Holiday
          </Button>
@@ -830,21 +830,21 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
        )}
 
       {showForm && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
           <CardContent className="p-4 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-slate-700">Date</label>
-                <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Date</label>
+                <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm w-full mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700">Holiday Name</label>
-                <input type="text" placeholder="e.g., Diwali" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Holiday Name</label>
+                <input type="text" placeholder="e.g., Diwali" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm w-full mt-1" />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700">Reason (optional)</label>
-              <input type="text" value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+              <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Reason (optional)</label>
+              <input type="text" value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm w-full mt-1" />
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
@@ -855,19 +855,19 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
       )}
 
       {sortedHolidays.length === 0 ? (
-        <Card className="border-0 shadow-sm"><CardContent className="py-12 text-center text-slate-400"><Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" /><p>No holidays marked yet</p></CardContent></Card>
+        <Card className="border-0 shadow-sm dark:bg-gray-800"><CardContent className="py-12 text-center text-slate-400 dark:text-gray-500"><Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" /><p>No holidays marked yet</p></CardContent></Card>
       ) : (
         <div className="grid gap-3">
           {sortedHolidays.map((holiday) => (
-            <Card key={holiday.id} className="border-0 shadow-sm">
+            <Card key={holiday.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
                     <Calendar className="h-5 w-5 text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900">{holiday.title}</p>
-                    <p className="text-sm text-slate-500">{format(parseISO(holiday.date), 'MMM dd, yyyy')} {holiday.reason && `· ${holiday.reason}`}</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{holiday.title}</p>
+                    <p className="text-sm text-slate-500 dark:text-gray-400">{format(parseISO(holiday.date), 'MMM dd, yyyy')} {holiday.reason && `· ${holiday.reason}`}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -913,7 +913,7 @@ export default function Attendance() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Attendance">
-      <div className="min-h-screen bg-slate-50 w-full overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
         <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
         <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
