@@ -126,20 +126,20 @@ export default function MarksReviewSection({
                     </Button>
                     <Button
                       onClick={() => { 
-                        console.log('[REVIEW_SECTION] Publish clicked');
-                        console.log('[REVIEW_SECTION] allMarkIds.length:', allMarkIds.length);
-                        console.log('[REVIEW_SECTION] allMarkIds:', allMarkIds);
-                        console.log('[REVIEW_SECTION] first 5 IDs:', allMarkIds.slice(0, 5));
-                        console.log('[REVIEW_SECTION] first ID type:', typeof allMarkIds[0]);
-                        console.log('[REVIEW_SECTION] first ID sample:', allMarkIds[0]);
-                        console.log('[REVIEW_SECTION] exam_name:', group.exam_name);
-                        console.log('[REVIEW_SECTION] exam_type UUID:', group.exam_type);
-                        onPublish(allMarkIds); 
-                      }}
-                       disabled={publishPending || !isSubmitted}
-                       className="bg-green-600 hover:bg-green-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                       size="sm"
-                       title={!isSubmitted ? 'Marks must be submitted before publishing' : ''}
+                         console.log('[REVIEW_SECTION] Publish clicked');
+                         console.log('[REVIEW_SECTION] allMarkIds.length:', allMarkIds.length);
+                         console.log('[REVIEW_SECTION] allMarkIds:', allMarkIds);
+                         console.log('[REVIEW_SECTION] first 5 IDs:', allMarkIds.slice(0, 5));
+                         console.log('[REVIEW_SECTION] first ID type:', typeof allMarkIds[0]);
+                         console.log('[REVIEW_SECTION] first ID sample:', allMarkIds[0]);
+                         console.log('[REVIEW_SECTION] exam_name:', group.exam_name);
+                         console.log('[REVIEW_SECTION] exam_type UUID:', group.exam_type);
+                         onPublish(allMarkIds); 
+                       }}
+                        disabled={publishPending || !isPublishable}
+                        className="bg-green-600 hover:bg-green-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        size="sm"
+                        title={!isPublishable ? 'Marks must be submitted, verified, or approved before publishing' : ''}
                      >
                        <Check className="h-4 w-4" />
                        {publishPending ? 'Publishing...' : 'Publish Results'}
