@@ -118,10 +118,11 @@ export default function DiscountManager({ academicYear, isArchived }) {
       } catch (e) {
         console.error('Invoice recalculation failed:', e.message);
       }
-      queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
-      queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
-      queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
-      queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
+      queryClient.invalidateQueries({ queryKey: ['fee-invoice-discount-check'] });
+       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
+       queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
+       queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
+       queryClient.invalidateQueries({ queryKey: ['fee-outstanding'] });
       toast.success(data?.action === 'updated' ? 'Discount updated' : 'Discount set');
       closeDialog();
     },
