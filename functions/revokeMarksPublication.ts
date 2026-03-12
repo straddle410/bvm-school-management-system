@@ -39,33 +39,33 @@ Deno.serve(async (req) => {
     }
 
     await Promise.all(marksToRevoke.map(m =>
-      base44.asServiceRole.entities.Marks.update(m.id, { status: 'Verified' })
+     base44.asServiceRole.entities.Marks.update(m.id, { status: 'Submitted' })
     ));
 
     await base44.asServiceRole.entities.AuditLog.create({
-      action: 'marks_publication_revoked',
-      module: 'Marks',
-      date: new Date().toISOString().split('T')[0],
-      performed_by: user.email,
-      details: JSON.stringify({
-        records_revoked: marksToRevoke.length,
-        marks_ids: marksIds,
-        class_name: className || '',
-        section: section || '',
-        exam_type: examType || '',
-        academic_year: academicYear || '',
-        status_transition: 'Published → Verified',
-        timestamp: new Date().toISOString(),
-        revoked_by_email: user.email
-      }),
-      academic_year: academicYear || ''
+     action: 'marks_publication_revoked',
+     module: 'Marks',
+     date: new Date().toISOString().split('T')[0],
+     performed_by: user.email,
+     details: JSON.stringify({
+       records_revoked: marksToRevoke.length,
+       marks_ids: marksIds,
+       class_name: className || '',
+       section: section || '',
+       exam_type: examType || '',
+       academic_year: academicYear || '',
+       status_transition: 'Published → Submitted',
+       timestamp: new Date().toISOString(),
+       revoked_by_email: user.email
+     }),
+     academic_year: academicYear || ''
     });
 
     return Response.json({
-      success: true,
-      message: `Revoked publication of ${marksToRevoke.length} marks`,
-      records_revoked: marksToRevoke.length,
-      new_status: 'Verified'
+     success: true,
+     message: `Revoked publication of ${marksToRevoke.length} marks`,
+     records_revoked: marksToRevoke.length,
+     new_status: 'Submitted'
     });
   } catch (error) {
     console.error('Marks revocation error:', error);
