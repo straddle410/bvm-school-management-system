@@ -847,8 +847,8 @@ export default function Settings() {
                 <CardDescription>Manually trigger cleanup of old read notifications</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-900">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-900 dark:text-blue-300">
                     <strong>What this does:</strong> Deletes read notifications older than 90 days (excluding current academic year). Runs automatically every Sunday at 2:00 AM.
                   </p>
                 </div>

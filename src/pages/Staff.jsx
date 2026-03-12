@@ -763,7 +763,7 @@ export default function Staff() {
                     placeholder="Search staff..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9 bg-white"
+                    className="pl-9 bg-white dark:bg-gray-800"
                   />
                 </div>
               </div>

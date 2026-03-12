@@ -398,9 +398,9 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
                 <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 space-y-3">
                   <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Marks ALL classes as holiday for the date range.</p>
                   <div className="flex flex-wrap gap-3 items-center">
-                    <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600">From</label><input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm" /></div>
-                    <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600">To</label><input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm" /></div>
-                    <input type="text" placeholder="Reason (e.g. Summer Vacation)" value={rangeReason} onChange={e => setRangeReason(e.target.value)} className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]" />
+                    <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600 dark:text-gray-400">From</label><input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm" /></div>
+                    <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600 dark:text-gray-400">To</label><input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm" /></div>
+                    <input type="text" placeholder="Reason (e.g. Summer Vacation)" value={rangeReason} onChange={e => setRangeReason(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button size="sm" className="bg-amber-500 hover:bg-amber-600" onClick={() => saveRangeMutation.mutate()} disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}>
@@ -420,7 +420,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       {selectedClass && selectedSection && (
         <>
           {(isSunday || isMarkedHoliday) && !hasOverride && (
-            <Card className="border-l-4 border-l-amber-500 bg-amber-50">
+            <Card className="border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-900/20">
               <CardContent className="p-4 flex items-center justify-between">
                 <p className="text-sm text-amber-900 font-medium">👉 Attendance is disabled due to holiday</p>
                 {canOverrideHoliday && (
@@ -440,7 +440,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
           )}
 
           {(isSunday || isMarkedHoliday) && hasOverride && (
-            <Card className="border-l-4 border-l-blue-500 bg-blue-50">
+            <Card className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20">
               <CardContent className="p-4 flex items-center justify-between">
                 <p className="text-sm text-blue-900 font-medium">✓ Holiday override active — attendance enabled</p>
                 {canOverrideHoliday && (
@@ -459,7 +459,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
             </Card>
           )}
           {isRecordLocked && (
-            <Card className="border-l-4 border-l-red-500 bg-red-50">
+            <Card className="border-l-4 border-l-red-500 bg-red-50 dark:bg-red-900/20">
               <CardContent className="p-4 flex items-center justify-between">
                 <p className="text-sm text-red-900 font-medium">🔒 Locked after 3:30 PM. Contact admin to unlock.</p>
                 {isAdmin && (

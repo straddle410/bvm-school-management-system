@@ -140,7 +140,7 @@ export default function Gallery() {
 
   if (user === null && !isStudent) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center px-4">
+      <div className="bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <Image className="h-16 w-16 mx-auto mb-4 text-gray-300" />
           <h2 className="text-lg font-bold text-gray-900 mb-2">Login Required</h2>
@@ -155,7 +155,7 @@ export default function Gallery() {
 
   if (user === undefined) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1a237e]" />
       </div>
     );
