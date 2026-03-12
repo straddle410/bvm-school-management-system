@@ -163,7 +163,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                   <select
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                     required
                   >
                     <option value="">Select Exam Type</option>
@@ -204,7 +204,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                   const defaults = getDefaultMarks(category);
                   setFormData({ ...formData, category, ...defaults });
                 }}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="Summative">Summative (SA)</option>
                 <option value="Formative">Formative (FA)</option>
