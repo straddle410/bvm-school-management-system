@@ -132,11 +132,11 @@ export default function HallTicketGenerator() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Exam Type */}
           <div>
-            <label className="block text-sm font-medium mb-2">Exam Type *</label>
+            <label className="block text-sm font-medium dark:text-gray-300 mb-2">Exam Type *</label>
             <select
               value={filters.exam_type}
               onChange={(e) => setFilters({ ...filters, exam_type: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
             >
               <option value="">Select Exam Type</option>
               {examTypes.map(type => (
@@ -155,7 +155,7 @@ export default function HallTicketGenerator() {
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
                 disabled={loadingClasses}
-                className="w-full px-3 py-2 border rounded-lg text-left bg-white flex items-center justify-between hover:bg-gray-50 disabled:opacity-50"
+                className="w-full px-3 py-2 border rounded-lg text-left bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
               >
                 <span className="text-sm">
                   {filters.classes.length === 0 ? 'Select Classes' : `${filters.classes.length} selected`}
@@ -166,9 +166,9 @@ export default function HallTicketGenerator() {
               </button>
 
               {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
                   {availableClasses.map(className => (
-                    <label key={className} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                    <label key={className} className="flex items-center px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-gray-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={filters.classes.includes(className)}
@@ -198,7 +198,7 @@ export default function HallTicketGenerator() {
 
           {/* Section — dynamic */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium dark:text-gray-300 mb-2">
               Section *
               {loadingSections && <span className="text-xs text-gray-400 ml-2">Loading...</span>}
             </label>
@@ -211,7 +211,7 @@ export default function HallTicketGenerator() {
                 value={filters.section}
                 onChange={(e) => setFilters({ ...filters, section: e.target.value })}
                 disabled={loadingSections || availableSections.length === 0}
-                className="w-full px-3 py-2 border rounded-lg disabled:bg-slate-50"
+                className="w-full px-3 py-2 border rounded-lg disabled:bg-slate-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:disabled:bg-gray-600"
               >
                 <option value="">Select Section</option>
                 {availableSections.map(s => (
@@ -228,11 +228,11 @@ export default function HallTicketGenerator() {
 
           {/* Assignment Type */}
           <div>
-            <label className="block text-sm font-medium mb-2">Assignment Type</label>
+            <label className="block text-sm font-medium dark:text-gray-300 mb-2">Assignment Type</label>
             <select
               value={filters.assignment_type}
               onChange={(e) => setFilters({ ...filters, assignment_type: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
             >
               <option value="sequential">Sequential (by Roll No)</option>
               <option value="random">Random</option>

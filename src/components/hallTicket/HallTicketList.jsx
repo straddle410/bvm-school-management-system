@@ -158,9 +158,9 @@ export default function HallTicketList() {
             </div>
           </div>
           {/* Print Selected Row */}
-          <div className="flex items-center gap-2 flex-wrap bg-blue-50 rounded-lg p-2 border border-blue-100">
+          <div className="flex items-center gap-2 flex-wrap bg-blue-50 dark:bg-gray-800 rounded-lg p-2 border border-blue-100 dark:border-gray-600">
             <Printer className="w-4 h-4 text-blue-600 flex-shrink-0" />
-            <span className="text-sm text-blue-800 font-medium">
+            <span className="text-sm text-blue-800 dark:text-blue-300 font-medium">
               {selected.length > 0 ? `${selected.length} ticket(s) selected` : 'Select tickets to print'}
             </span>
             <Button
@@ -180,7 +180,7 @@ export default function HallTicketList() {
             <select
                value={filterClass}
                onChange={e => { setFilterClass(e.target.value); setSelected([]); setCurrentPage(0); }}
-               className="px-3 py-1.5 border rounded-lg text-sm"
+               className="px-3 py-1.5 border rounded-lg text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
              >
                <option value="">All Classes</option>
                {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
@@ -188,7 +188,7 @@ export default function HallTicketList() {
             <select
                value={filterExamType}
                onChange={e => { setFilterExamType(e.target.value); setSelected([]); setCurrentPage(0); }}
-               className="px-3 py-1.5 border rounded-lg text-sm"
+               className="px-3 py-1.5 border rounded-lg text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
              >
                <option value="">All Exam Types</option>
                {examTypes.map(et => <option key={et.id} value={et.id}>{et.name}</option>)}
@@ -196,7 +196,7 @@ export default function HallTicketList() {
             <select
                value={filterStatus}
                onChange={e => { setFilterStatus(e.target.value); setSelected([]); setCurrentPage(0); }}
-               className="px-3 py-1.5 border rounded-lg text-sm"
+               className="px-3 py-1.5 border rounded-lg text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
              >
                <option value="">All Statuses</option>
                <option value="Generated">Generated</option>

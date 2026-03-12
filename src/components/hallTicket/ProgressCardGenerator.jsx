@@ -135,24 +135,24 @@ export default function ProgressCardGenerator() {
         <CardContent className="space-y-4">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="text-sm text-blue-600 font-medium">Published Marks</div>
-              <div className="text-2xl font-bold text-blue-900">{publishedMarkStats.totalMarks || 0}</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="text-sm text-green-600 font-medium">Students with Published Marks</div>
-              <div className="text-2xl font-bold text-green-900">{publishedMarkStats.students || 0}</div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <div className="text-sm text-purple-600 font-medium">Exams Completed</div>
-              <div className="text-2xl font-bold text-purple-900">{publishedMarkStats.exams || 0}</div>
+            <div className="bg-blue-50 dark:bg-gray-800 p-4 rounded-lg border border-blue-200 dark:border-gray-600">
+              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Published Marks</div>
+              <div className="text-2xl font-bold text-blue-900 dark:text-gray-200">{publishedMarkStats.totalMarks || 0}</div>
+              </div>
+              <div className="bg-green-50 dark:bg-gray-800 p-4 rounded-lg border border-green-200 dark:border-gray-600">
+              <div className="text-sm text-green-600 dark:text-green-400 font-medium">Students with Published Marks</div>
+              <div className="text-2xl font-bold text-green-900 dark:text-gray-200">{publishedMarkStats.students || 0}</div>
+              </div>
+              <div className="bg-purple-50 dark:bg-gray-800 p-4 rounded-lg border border-purple-200 dark:border-gray-600">
+              <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Exams Completed</div>
+              <div className="text-2xl font-bold text-purple-900 dark:text-gray-200">{publishedMarkStats.exams || 0}</div>
             </div>
           </div>
 
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">
                 Class (Optional)
                 {loadingClasses && <span className="text-xs text-gray-400 ml-1">Loading...</span>}
               </label>
@@ -160,7 +160,7 @@ export default function ProgressCardGenerator() {
                 value={filters.class}
                 onChange={(e) => setFilters({ ...filters, class: e.target.value })}
                 disabled={loadingClasses}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="">All Classes</option>
                 {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
@@ -168,7 +168,7 @@ export default function ProgressCardGenerator() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">
                 Section (Optional)
                 {loadingSections && <span className="text-xs text-gray-400 ml-1">Loading...</span>}
               </label>
@@ -176,7 +176,7 @@ export default function ProgressCardGenerator() {
                 value={filters.section}
                 onChange={(e) => setFilters({ ...filters, section: e.target.value })}
                 disabled={!filters.class || loadingSections}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="">All Sections</option>
                 {availableSections.map(s => <option key={s} value={s}>Section {s}</option>)}
@@ -184,11 +184,11 @@ export default function ProgressCardGenerator() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Exam Type (Optional)</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Exam Type (Optional)</label>
               <select
                 value={filters.exam_type}
                 onChange={(e) => setFilters({ ...filters, exam_type: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="">All Exam Types</option>
                 {examTypes.map(exam => <option key={exam.id} value={exam.id}>{exam.name}</option>)}
