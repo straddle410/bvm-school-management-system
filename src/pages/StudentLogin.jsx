@@ -153,6 +153,13 @@ export default function StudentLogin() {
             Default password: <strong className="text-gray-600">BVM123</strong> · Contact admin to reset
           </p>
         </div>
+
+        {/* Legal Links */}
+        <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
+          <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-indigo-600 underline underline-offset-2 transition-colors">Privacy Policy</Link>
+          <span>·</span>
+          <Link to={createPageUrl('TermsAndConditions')} className="hover:text-indigo-600 underline underline-offset-2 transition-colors">Terms &amp; Conditions</Link>
+        </div>
       </div>
     </div>
   );
