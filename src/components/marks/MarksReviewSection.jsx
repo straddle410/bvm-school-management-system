@@ -33,7 +33,7 @@ export default function MarksReviewSection({
          );
          const firstMark = group.students.length > 0 && Object.values(group.students[0].subjects).length > 0 ? Object.values(group.students[0].subjects)[0] : null;
          const isPublished = firstMark?.status === 'Published';
-         const isSubmitted = firstMark?.status === 'Submitted';
+         const isPublishable = firstMark && ['Submitted', 'Verified', 'Approved'].includes(firstMark.status);
 
         return (
           <Card key={idx} className="border-0 shadow-sm overflow-hidden">
