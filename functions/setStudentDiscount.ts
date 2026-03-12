@@ -54,11 +54,12 @@ Deno.serve(async (req) => {
     // ──────────────────────────────────────────────────────────────────────
 
     // ── Settled invoice guardrail ─────────────────────────────────────────
-    // Load invoice for this student+AY
+    // Load ANNUAL invoice only (exclude ADHOC). Filter by invoice_type and sort by gross descending.
     const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       student_id,
-      academic_year
-    });
+      academic_year,
+      invoice_type: 'ANNUAL'
+    }, '-gross_total'); // Sort by gross_total descending
     const invoice = invoices[0] || null;
 
     if (invoice) {
