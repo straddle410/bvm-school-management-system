@@ -26,9 +26,11 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const [search, setSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [payingInvoice, setPayingInvoice] = useState(null);
+  const [studentPage, setStudentPage] = useState(0);
+  const STUDENTS_LIMIT = 50;
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students-published', selectedClass, academicYear],
+    queryKey: ['students-published', selectedClass, academicYear, studentPage],
     queryFn: async () => {
       const all = await base44.entities.Student.filter({ 
         class_name: selectedClass, 
@@ -37,7 +39,8 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
         is_deleted: false,
         is_active: true
       });
-      return all;
+      const start = studentPage * STUDENTS_LIMIT;
+      return all.slice(start, start + STUDENTS_LIMIT);
     },
     enabled: !!selectedClass && !!academicYear,
     staleTime: 5 * 60 * 1000, // 5 min cache
@@ -113,7 +116,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
-        <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(null); setSearch(''); }}>
+        <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(null); setSearch(''); setStudentPage(0); }}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Select Class" /></SelectTrigger>
           <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
         </Select>
@@ -126,7 +129,16 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
       </div>
 
       {selectedClass && !selectedStudent && (
-        <StudentListVirtual students={filteredStudents} onSelect={setSelectedStudent} />
+        <>
+          <StudentListVirtual students={filteredStudents} onSelect={setSelectedStudent} />
+          {students.length === STUDENTS_LIMIT && (
+            <div className="flex justify-center gap-2 pt-2">
+              <button onClick={() => setStudentPage(p => Math.max(0, p - 1))} disabled={studentPage === 0} className="px-3 py-1 text-sm border rounded disabled:opacity-50">Prev</button>
+              <span className="px-3 py-1 text-sm text-slate-500">Page {studentPage + 1}</span>
+              <button onClick={() => setStudentPage(p => p + 1)} className="px-3 py-1 text-sm border rounded">Next</button>
+            </div>
+          )}
+        </>
       )}
 
       {selectedStudent && (
