@@ -72,7 +72,9 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
   const { data: discounts = [] } = useQuery({
     queryKey: ['fee-discounts-student', selectedStudent?.student_id, academicYear],
     queryFn: () => base44.entities.StudentFeeDiscount.filter({ student_id: selectedStudent.student_id, academic_year: academicYear, status: 'Active' }),
-    enabled: !!selectedStudent && !!academicYear
+    enabled: !!selectedStudent && !!academicYear,
+    staleTime: 10 * 60 * 1000, // Cache for 10 mins — discount changes are rare
+    gcTime: 30 * 60 * 1000 // Keep in memory for 30 mins
   });
 
   // Compute ledger figures from source of truth
