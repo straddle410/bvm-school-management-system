@@ -113,7 +113,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
     queryFn: () => base44.entities.Attendance.filter({
       date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
     }),
-    enabled: !!selectedClass && !!selectedSection && !!workingDate
+    enabled: !!selectedClass && !!selectedSection && !!workingDate,
+    staleTime: 1 * 60 * 1000
   });
 
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
@@ -124,7 +125,8 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', workingDate, academicYear],
     queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear, date: workingDate }),
-    enabled: !!academicYear && !!workingDate
+    enabled: !!academicYear && !!workingDate,
+    staleTime: 10 * 60 * 1000
   });
 
   const { data: overrides = [] } = useQuery({
