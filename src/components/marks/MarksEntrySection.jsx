@@ -30,7 +30,8 @@ export default function MarksEntrySection({
   unlockPending,
   selectedExamType,
   selectedClass,
-  selectedSection
+  selectedSection,
+  existingMarksCount
 }) {
   return (
     <>
