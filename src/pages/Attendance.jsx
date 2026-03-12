@@ -172,37 +172,52 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
       if (!workingDate) throw new Error('Date is required');
       if (isPastAcademicYear(academicYear)) throw new Error('PAST_YEAR_WARNING');
       const session = getStaffSession();
-      const promises = filteredStudents.map(async (student) => {
-        const existing = attendanceData[student.student_id];
+      
+      // ✅ OPTIMIZATION: Fetch ALL existing attendance records for this date/class/section in ONE call
+      const existingRecords = await base44.entities.Attendance.filter({
+        date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
+      });
+      const existingMap = Object.fromEntries(existingRecords.map(r => [r.student_id, r]));
+      
+      // ✅ Separate new vs existing in memory (no API calls for this)
+      const toCreate = [];
+      const toUpdate = [];
+      
+      filteredStudents.forEach(student => {
+        const sid = student.student_id || student.id;
+        const existing = attendanceData[sid] || existingMap[sid];
         const attType = existing?.attendance_type || 'full_day';
         const data = {
           date: workingDate, class_name: selectedClass, section: selectedSection,
-          student_id: student.student_id || student.id, student_name: student.name,
+          student_id: sid, student_name: student.name,
           attendance_type: effectiveHoliday ? 'holiday' : attType,
           half_day_period: existing?.half_day_period || null,
           half_day_reason: existing?.half_day_reason || '',
           is_present: effectiveHoliday ? false : (attType !== 'absent'),
           is_holiday: effectiveHoliday, holiday_reason: effectiveHoliday ? (holidayReason || 'Holiday') : '',
           marked_by: user?.email, academic_year: academicYear,
-          // Status Convention: 'Taken' = normal attendance record, 'Holiday' = holiday marked
           status: effectiveHoliday ? 'Holiday' : 'Taken'
         };
-        if (existing?.id) {
-          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: existing.id, data, staff_session_token: session?.staff_session_token || null });
-          return response.data;
+        
+        if (existingMap[sid]) {
+          toUpdate.push({ id: existingMap[sid].id, data });
+        } else {
+          toCreate.push(data);
         }
-        const dedupCheck = await base44.functions.invoke('validateAttendanceCreateDedup', {
-          date: workingDate, studentId: student.student_id || student.id,
-          classname: selectedClass, section: selectedSection, academicYear,
-          staff_session_token: session?.staff_session_token || null
-        });
-        if (dedupCheck.data?.isDuplicate) {
-          const response = await base44.functions.invoke('updateAttendanceWithValidation', { attendanceId: dedupCheck.data.existingRecordId, data, staff_session_token: session?.staff_session_token || null });
-          return response.data;
-        }
-        return base44.entities.Attendance.create(data);
       });
-      return Promise.all(promises);
+      
+      // ✅ Bulk operations: 1 bulkCreate + 1 bulk update
+      const results = [];
+      if (toCreate.length > 0) {
+        results.push(await base44.entities.Attendance.bulkCreate(toCreate));
+      }
+      if (toUpdate.length > 0) {
+        const updatePromises = toUpdate.map(({ id, data }) =>
+          base44.entities.Attendance.update(id, data)
+        );
+        results.push(await Promise.all(updatePromises));
+      }
+      return results;
     },
     onSuccess: () => {
        queryClient.invalidateQueries(['attendance']);
@@ -221,21 +236,17 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
     mutationFn: async () => {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
+      
+      // ✅ OPTIMIZATION: Fetch ALL holidays for the range in ONE call
+      const existingHolidays = await base44.entities.Holiday.filter({ academic_year: academicYear });
+      const existingDates = new Set(existingHolidays.map(h => h.date));
+      
+      // ✅ In-memory filtering: determine which dates need new holiday records
       const holidaysToCreate = [];
-      
-      // Check all holidays in parallel
-      const results = await Promise.all(
-        days.map(day => {
-          const dateStr = format(day, 'yyyy-MM-dd');
-          return base44.entities.Holiday.filter({ date: dateStr, academic_year: academicYear })
-            .then(existing => ({ dateStr, existing }));
-        })
-      );
-      
-      // Collect holidays to create from results
-      results.forEach((result, index) => {
-        if (result.existing.length === 0) {
-          holidaysToCreate.push({ date: result.dateStr, title: rangeReason || 'Holiday', reason: rangeReason || 'Holiday', marked_by: user?.email, academic_year: academicYear, status: 'Active' });
+      days.forEach((day, index) => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        if (!existingDates.has(dateStr)) {
+          holidaysToCreate.push({ date: dateStr, title: rangeReason || 'Holiday', reason: rangeReason || 'Holiday', marked_by: user?.email, academic_year: academicYear, status: 'Active' });
         }
         setRangeProgress(Math.round(((index + 1) / days.length) * 100));
       });

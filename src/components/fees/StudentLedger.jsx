@@ -53,20 +53,27 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     gcTime: 10 * 60 * 1000 // 10 min memory
   });
 
-  const { data: allInvoices = [], refetch: refetchInvoice } = useQuery({
-    queryKey: ['fee-invoice', selectedStudent?.student_id, academicYear],
-    queryFn: () => base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
-    enabled: !!selectedStudent && !!academicYear
+  // ✅ OPTIMIZATION: Load all fee data in parallel with ONE query per entity type
+  const { data: allData = { invoices: [], payments: [], discounts: [] }, refetch: refetchFeeData } = useQuery({
+    queryKey: ['student-fee-data', selectedStudent?.student_id, academicYear],
+    queryFn: async () => {
+      const [invoices, payments, discounts] = await Promise.all([
+        base44.entities.FeeInvoice.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
+        base44.entities.FeePayment.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
+        base44.entities.StudentFeeDiscount.filter({ student_id: selectedStudent.student_id, academic_year: academicYear, status: 'Active' })
+      ]);
+      return { invoices, payments, discounts };
+    },
+    enabled: !!selectedStudent && !!academicYear,
+    staleTime: 5 * 60 * 1000
   });
+
+  const allInvoices = allData.invoices;
+  const payments = allData.payments;
+  const discounts = allData.discounts;
 
   const invoice = allInvoices.find(i => (i.invoice_type || 'ANNUAL') === 'ANNUAL') || null;
   const adhocInvoices = allInvoices.filter(i => i.invoice_type === 'ADHOC' && i.status !== 'Cancelled');
-
-  const { data: payments = [], refetch: refetchPayments } = useQuery({
-    queryKey: ['fee-payments-student', selectedStudent?.student_id, academicYear],
-    queryFn: () => base44.entities.FeePayment.filter({ student_id: selectedStudent.student_id, academic_year: academicYear }),
-    enabled: !!selectedStudent && !!academicYear
-  });
 
   // Payments keyed by invoice_id for adhoc
   const paymentsByInvoice = payments.reduce((acc, p) => {
@@ -74,14 +81,6 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
     acc[p.invoice_id].push(p);
     return acc;
   }, {});
-
-  const { data: discounts = [] } = useQuery({
-    queryKey: ['fee-discounts-student', selectedStudent?.student_id, academicYear],
-    queryFn: () => base44.entities.StudentFeeDiscount.filter({ student_id: selectedStudent.student_id, academic_year: academicYear, status: 'Active' }),
-    enabled: !!selectedStudent && !!academicYear,
-    staleTime: 10 * 60 * 1000, // Cache for 10 mins — discount changes are rare
-    gcTime: 30 * 60 * 1000 // Keep in memory for 30 mins
-  });
 
   // Compute ledger figures from source of truth
   const gross = invoice?.gross_total ?? invoice?.total_amount ?? 0;
@@ -375,8 +374,7 @@ export default function StudentLedger({ academicYear, isArchivedYear }) {
           onClose={() => setPayingInvoice(null)}
           onSuccess={() => {
             setPayingInvoice(null);
-            refetchInvoice();
-            refetchPayments();
+            refetchFeeData();
           }}
         />
       )}
