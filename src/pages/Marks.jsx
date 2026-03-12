@@ -28,6 +28,12 @@ import {
 import { 
   BookOpen, Send, FileText, Plus, Eye, AlertTriangle
 } from 'lucide-react';
+
+const LoadingSpinner = () => (
+  <div className="flex justify-center py-12">
+    <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+  </div>
+);
 import { toast } from "sonner";
 import SuccessPopup from '@/components/marks/SuccessPopup';
 import MarksFilterSection from '@/components/marks/MarksFilterSection';
@@ -179,7 +185,7 @@ export default function Marks() {
 
   // For review mode - fetch marks for the class/section/year directly from DB
    // Filter to only show marks for active, non-deleted students
-   const { data: reviewMarks = [] } = useQuery({
+   const { data: reviewMarks = [], isLoading: isLoadingReviewMarks } = useQuery({
      queryKey: ['reviewMarks', selectedClass, selectedSection, academicYear],
      queryFn: async () => {
        const marks = await base44.entities.Marks.filter({
@@ -673,16 +679,20 @@ export default function Marks() {
         )}
 
         {/* Review Mode */}
-        {viewMode === 'review' && selectedClass && selectedSection ? (
-          <MarksReviewSection
-            reviewGroupedData={reviewGroupedData}
-            reviewSortBy={reviewSortBy}
-            onSortChange={setReviewSortBy}
-            onPublish={(marksIds) => { if (window.confirm('Publish these results? Students will be able to see them.')) { publishMutation.mutate(marksIds); } }}
-            onDownloadExcel={handleDownloadExcel}
-            publishPending={publishMutation.isPending}
-          />
-        ) : viewMode === 'review' ? (
+         {viewMode === 'review' && selectedClass && selectedSection ? (
+           isLoadingReviewMarks ? (
+             <Card className="border-0 shadow-sm dark:bg-gray-800"><CardContent className="py-12"><LoadingSpinner /></CardContent></Card>
+           ) : (
+             <MarksReviewSection
+               reviewGroupedData={reviewGroupedData}
+               reviewSortBy={reviewSortBy}
+               onSortChange={setReviewSortBy}
+               onPublish={(marksIds) => { if (window.confirm('Publish these results? Students will be able to see them.')) { publishMutation.mutate(marksIds); } }}
+               onDownloadExcel={handleDownloadExcel}
+               publishPending={publishMutation.isPending}
+             />
+           )
+         ) : viewMode === 'review' ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="py-16 text-center">
               <Eye className="h-12 w-12 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
