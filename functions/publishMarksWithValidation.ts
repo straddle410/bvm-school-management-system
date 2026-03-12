@@ -118,9 +118,7 @@ Deno.serve(async (req) => {
     console.log('[publishMarksWithValidation] All validations passed. Publishing now...');
     const updateResults = await Promise.all(marksIds.map(id =>
       base44.asServiceRole.entities.Marks.update(id, {
-        status: 'Published',
-        verified_by: user.email,
-        approved_by: user.email
+        status: 'Published'
       })
     ));
     console.log('[publishMarksWithValidation] Update completed for', updateResults.length, 'marks');
