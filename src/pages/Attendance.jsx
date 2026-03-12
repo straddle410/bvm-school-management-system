@@ -122,13 +122,6 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
 
 
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays', workingDate, academicYear],
-    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear, date: workingDate }),
-    enabled: !!academicYear && !!workingDate,
-    staleTime: 10 * 60 * 1000
-  });
-
   const { data: overrides = [] } = useQuery({
     queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
