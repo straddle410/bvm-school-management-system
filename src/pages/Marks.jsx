@@ -34,6 +34,17 @@ const LoadingSpinner = () => (
     <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
   </div>
 );
+
+// Lazy load heavy marks entry component
+const MarksEntrySectionLazy = lazy(() => import('@/components/marks/MarksEntrySection'));
+
+const TabLoadingSpinner = () => (
+  <Card className="border-0 shadow-sm dark:bg-gray-800">
+    <CardContent className="py-12 flex justify-center">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+    </CardContent>
+  </Card>
+);
 import { toast } from "sonner";
 import SuccessPopup from '@/components/marks/SuccessPopup';
 import MarksFilterSection from '@/components/marks/MarksFilterSection';
