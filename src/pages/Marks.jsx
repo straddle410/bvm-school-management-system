@@ -703,10 +703,38 @@ export default function Marks() {
             {filteredStudents.length > 0 && canSave && (
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => { setSaveMode('draft'); saveMutation.mutate(); }} disabled={saveMutation.isPending || !canEdit} className="gap-2">
-                  <FileText className="h-4 w-4" /> {saveMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                  {saveMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4" /> Save as Draft
+                    </>
+                  )}
                 </Button>
-                <Button onClick={() => { if (!canEdit) { toast.error('Cannot submit. Marks are locked.'); return; } setShowSubmitConfirm(true); }} disabled={saveMutation.isPending || !canEdit} className="gap-2">
-                  <Send className="h-4 w-4" /> {saveMutation.isPending ? 'Submitting...' : 'Submit Marks'}
+                <Button 
+                  onClick={() => { 
+                    if (!canEdit) { 
+                      toast.error('Cannot submit. Marks are locked.'); 
+                      return; 
+                    } 
+                    setShowSubmitConfirm(true); 
+                  }} 
+                  disabled={saveMutation.isPending || !canEdit} 
+                  className="gap-2"
+                >
+                  {saveMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-slate-600 rounded-full animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" /> Submit Marks
+                    </>
+                  )}
                 </Button>
               </div>
             )}
