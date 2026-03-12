@@ -285,22 +285,22 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
               <p className="text-center text-slate-500 py-4">No exam types created yet</p>
             ) : (
               examTypes.map(type => (
-                <div key={type.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                <div key={type.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg border dark:border-gray-600">
                   <div className="flex-1">
-                    <p className="font-semibold">{type.name}</p>
-                    <p className="text-sm text-slate-500">{type.category} Assessment</p>
-                    <div className="flex gap-4 mt-2 text-xs text-slate-600">
-                      <span>Max Marks: <span className="font-semibold text-slate-900">{type.max_marks}</span></span>
-                      <span>Pass: <span className="font-semibold text-slate-900">{type.min_marks_to_pass}</span></span>
+                    <p className="font-semibold text-slate-900 dark:text-gray-200">{type.name}</p>
+                    <p className="text-sm text-slate-500 dark:text-gray-400">{type.category} Assessment</p>
+                    <div className="flex gap-4 mt-2 text-xs text-slate-600 dark:text-gray-400">
+                      <span>Max Marks: <span className="font-semibold text-slate-900 dark:text-gray-200">{type.max_marks}</span></span>
+                      <span>Pass: <span className="font-semibold text-slate-900 dark:text-gray-200">{type.min_marks_to_pass}</span></span>
                     </div>
-                    {type.description && <p className="text-xs text-slate-400 mt-1">{type.description}</p>}
+                    {type.description && <p className="text-xs text-slate-400 dark:text-gray-500 mt-1">{type.description}</p>}
                     {type.attendance_range_start && type.attendance_range_end && (() => {
                       const bounds = getAcademicYearBounds(academicYear);
                       const start = new Date(type.attendance_range_start);
                       const end = new Date(type.attendance_range_end);
                       const outOfBounds = bounds && (start < bounds.start || end > bounds.end);
                       return (
-                        <p className={`text-xs mt-1 ${outOfBounds ? 'text-amber-600 font-medium' : 'text-blue-600'}`}>
+                        <p className={`text-xs mt-1 ${outOfBounds ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-blue-600 dark:text-blue-400'}`}>
                           {outOfBounds ? '⚠️ ' : ''}Attendance Range: {type.attendance_range_start} to {type.attendance_range_end}
                           {outOfBounds && <span className="block text-amber-700">Range exceeds academic year {academicYear}</span>}
                         </p>
@@ -309,22 +309,22 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
                   </div>
                   {hasPermission && (
                     <div className="flex gap-2 ml-4">
-                      <Button size="icon" variant="ghost" onClick={() => {
-                        setEditingId(type.id);
-                        setFormData({ 
-                          name: type.name, 
-                          description: type.description, 
-                          category: type.category,
-                          max_marks: type.max_marks,
-                          min_marks_to_pass: type.min_marks_to_pass,
-                          attendance_range_start: type.attendance_range_start || '',
-                          attendance_range_end: type.attendance_range_end || ''
-                        });
-                        setShowForm(true);
-                      }}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="text-red-600" onClick={() => deleteMutation.mutate(type.id)}>
+                      <Button size="icon" variant="ghost" className="text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200" onClick={() => {
+                         setEditingId(type.id);
+                         setFormData({ 
+                           name: type.name, 
+                           description: type.description, 
+                           category: type.category,
+                           max_marks: type.max_marks,
+                           min_marks_to_pass: type.min_marks_to_pass,
+                           attendance_range_start: type.attendance_range_start || '',
+                           attendance_range_end: type.attendance_range_end || ''
+                         });
+                         setShowForm(true);
+                       }}>
+                         <Edit2 className="w-4 h-4" />
+                       </Button>
+                      <Button size="icon" variant="ghost" className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300" onClick={() => deleteMutation.mutate(type.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
