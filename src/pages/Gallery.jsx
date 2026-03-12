@@ -166,12 +166,12 @@ export default function Gallery() {
     const pendingCount = allPhotos.filter(p => ['Draft', 'PendingApproval'].includes(p.status)).length;
 
     return (
-      <div className="bg-white min-h-screen">
+      <div className="bg-white dark:bg-gray-900 min-h-screen">
         {/* Album header */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{selectedAlbum.name}</h2>
-            <p className="text-sm text-gray-400 mt-0.5">{visiblePhotos.length} Photos</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{selectedAlbum.name}</h2>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">{visiblePhotos.length} Photos</p>
           </div>
           {canUpload && (
             <button
@@ -184,15 +184,15 @@ export default function Gallery() {
         </div>
 
         {isAdmin && pendingCount > 0 && (
-          <div className="mx-4 mb-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-700 font-medium">
+          <div className="mx-4 mb-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2 text-xs text-amber-700 dark:text-amber-300 font-medium">
             {pendingCount} photo{pendingCount > 1 ? 's' : ''} pending approval
           </div>
         )}
 
         {visiblePhotos.length === 0 ? (
-          <div className="py-32 flex flex-col items-center text-gray-300 gap-3">
+          <div className="py-32 flex flex-col items-center text-gray-300 dark:text-gray-600 gap-3">
             <Image className="h-14 w-14" />
-            <p className="text-sm text-gray-400">No photos yet</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">No photos yet</p>
           </div>
         ) : (
           <>
@@ -309,8 +309,8 @@ export default function Gallery() {
 
         // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
         return (
-        <div className="bg-white min-h-screen">
-      {/* Header */}
+        <div className="bg-white dark:bg-gray-900 min-h-screen">
+        {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-end justify-between">
         <div className="flex items-center gap-2">
           {isStudent && (
@@ -318,7 +318,7 @@ export default function Gallery() {
               <ArrowLeft className="h-5 w-5 text-gray-700" />
             </Link>
           )}
-          <h1 className="text-2xl font-bold text-gray-900">Albums</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Albums</h1>
         </div>
         {canCreateAlbum && (
           <button
@@ -330,13 +330,13 @@ export default function Gallery() {
         )}
       </div>
 
-      <div className="h-px bg-gray-100 mx-4" />
+      <div className="h-px bg-gray-100 dark:bg-gray-700 mx-4" />
 
       {albums.length === 0 ? (
         <div className="py-32 flex flex-col items-center gap-3">
-          <Image className="h-14 w-14 text-gray-200" />
-          <p className="text-sm text-gray-400">No albums yet</p>
-          {canCreateAlbum && <p className="text-xs text-gray-300">Tap "New" to create your first album</p>}
+          <Image className="h-14 w-14 text-gray-200 dark:text-gray-600" />
+          <p className="text-sm text-gray-400 dark:text-gray-500">No albums yet</p>
+          {canCreateAlbum && <p className="text-xs text-gray-300 dark:text-gray-600">Tap "New" to create your first album</p>}
         </div>
       ) : (
         <div className="px-4 pt-4 pb-8 grid grid-cols-2 gap-x-4 gap-y-6">
@@ -348,7 +348,7 @@ export default function Gallery() {
             return (
               <button key={album.id} className="text-left" onClick={() => setSelectedAlbum(album)}>
                 {/* Square cover */}
-                <div className="aspect-square w-full rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
+                <div className="aspect-square w-full rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-sm">
                   {coverUrl ? (
                     <GalleryImage src={coverUrl} alt={album.name} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
@@ -359,8 +359,8 @@ export default function Gallery() {
                 </div>
                 {/* Title below — iOS style */}
                 <div className="mt-2 px-0.5">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{album.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{photoCount > 0 ? `${photoCount} items` : album.event_date || ''}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{album.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{photoCount > 0 ? `${photoCount} items` : album.event_date || ''}</p>
                 </div>
               </button>
             );
@@ -383,7 +383,7 @@ export default function Gallery() {
             </div>
             <div>
               <Label>Visibility</Label>
-              <div className="mt-1 space-y-2 border border-gray-200 rounded-lg p-3">
+              <div className="mt-1 space-y-2 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
                 {['Public', 'Staff Only', 'Students & Parents'].map(opt => (
                   <label key={opt} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -396,7 +396,7 @@ export default function Gallery() {
                       }}
                       className="rounded"
                     />
-                    <span className="text-sm text-gray-700">{opt}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{opt}</span>
                   </label>
                 ))}
               </div>

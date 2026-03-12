@@ -225,7 +225,7 @@ export default function Notices() {
 
   return (
      <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Notices">
-     <div className="min-h-screen bg-gray-50 pb-6 w-full overflow-x-hidden">
+     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-6 w-full overflow-x-hidden">
       {/* Header */}
       <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-6">
         <div className="flex items-center justify-between gap-3">
@@ -278,9 +278,9 @@ export default function Notices() {
               key={type}
               onClick={() => setFilterType(type)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                filterType === type
-                  ? 'bg-[#1a237e] text-white'
-                  : 'bg-white text-gray-600 border border-gray-200'
+               filterType === type
+                 ? 'bg-[#1a237e] text-white'
+                 : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}
             >
               {type === 'all' ? 'All' : type}
@@ -291,7 +291,7 @@ export default function Notices() {
         {/* Pinned Notices */}
         {pinned.length > 0 && (
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+            <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
               <Pin className="h-3 w-3" /> Pinned
             </p>
             <div className="space-y-3">
@@ -312,9 +312,9 @@ export default function Notices() {
         </div>
 
         {visibleNotices.length === 0 && !isLoading && (
-          <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-            <Megaphone className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">No notices available</p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-10 text-center shadow-sm">
+            <Megaphone className="h-10 w-10 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm">No notices available</p>
           </div>
         )}
       </div>
@@ -406,7 +406,7 @@ export default function Notices() {
             {form.target_audience === 'Students' && (
               <div>
                 <Label>Target Classes <span className="text-gray-400 font-normal">(leave empty for all classes)</span></Label>
-                <div className="mt-1.5 border rounded-xl p-3 bg-gray-50 grid grid-cols-4 sm:grid-cols-5 gap-2">
+                <div className="mt-1.5 border dark:border-gray-700 rounded-xl p-3 bg-gray-50 dark:bg-gray-800 grid grid-cols-4 sm:grid-cols-5 gap-2">
                   {['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10'].map(cls => {
                     const selected = form.target_classes?.includes(cls);
                     return (
@@ -423,9 +423,9 @@ export default function Notices() {
                           });
                         }}
                         className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                          selected
-                            ? 'bg-[#1a237e] text-white border-[#1a237e]'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-[#1a237e]'
+                         selected
+                           ? 'bg-[#1a237e] text-white border-[#1a237e]'
+                           : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-[#1a237e]'
                         }`}
                       >
                         {selected && <Check className="h-3 w-3" />}
@@ -491,7 +491,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden ${notice.is_pinned ? 'border-l-4 border-yellow-400' : ''} ${isUnread ? 'border-l-4 border-blue-500' : ''}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden ${notice.is_pinned ? 'border-l-4 border-yellow-400' : ''} ${isUnread ? 'border-l-4 border-blue-500' : ''}`}>
       <div className="p-4">
         <div className="flex items-start gap-3">
           {isUnread && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />}
@@ -514,7 +514,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
                 {expanded ? 'Show less' : 'Read more'}
               </button>
             )}
-            <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+            <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
                {notice.created_by_name && <span>By {notice.created_by_name}</span>}
                {notice.publish_date && (
                  <span className="flex items-center gap-1">
@@ -533,7 +533,7 @@ function NoticeCard({ notice, isAdmin, user, onPublish, onDelete, onEdit, isUnre
                )}
              </div>
              {notice.status === 'Rejected' && notice.rejection_reason && (
-               <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+               <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-700 dark:text-red-400">
                  <p className="font-semibold">Rejected: {notice.rejection_reason}</p>
                  {notice.rejected_at && <p className="text-[10px] text-red-600">at {format(new Date(notice.rejected_at), 'MMM d, HH:mm')}</p>}
                </div>

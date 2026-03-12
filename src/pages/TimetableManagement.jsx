@@ -163,7 +163,7 @@ export default function TimetableManagement() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Timetable Management">
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
       <PageHeader
         title="Timetable Management"
         subtitle="Create and manage class timetables"
@@ -181,8 +181,8 @@ export default function TimetableManagement() {
          )}
          
          {viewOnly && (
-           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-             <p className="text-sm text-blue-800">
+           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+             <p className="text-sm text-blue-800 dark:text-blue-300">
                📖 <strong>View Only:</strong> Teachers can view timetables but cannot edit. Contact admin to make changes.
              </p>
            </div>
@@ -206,11 +206,11 @@ export default function TimetableManagement() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Class</label>
+                <label className="block text-sm font-medium dark:text-gray-300 mb-2">Class</label>
                 <select
                   value={filters.class}
                   onChange={(e) => setFilters({ ...filters, class: e.target.value, section: '' })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                 >
                   <option value="">All Classes</option>
                   {availableClasses.map(cls => (
@@ -219,11 +219,11 @@ export default function TimetableManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Section</label>
+                <label className="block text-sm font-medium dark:text-gray-300 mb-2">Section</label>
                 <select
                   value={filters.section}
                   onChange={(e) => setFilters({ ...filters, section: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                   disabled={!filters.class}
                 >
                   <option value="">All Sections</option>
@@ -233,11 +233,11 @@ export default function TimetableManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Teacher</label>
+                <label className="block text-sm font-medium dark:text-gray-300 mb-2">Teacher</label>
                 <select
                   value={filters.teacher}
                   onChange={(e) => setFilters({ ...filters, teacher: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                 >
                   <option value="">All Teachers</option>
                   {uniqueTeachers.map(teacher => (
@@ -260,9 +260,9 @@ export default function TimetableManagement() {
 
         {/* Main Content */}
         {isLoading ? (
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardContent className="py-8">
-              <p className="text-gray-500 text-center">Loading timetables...</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center">Loading timetables...</p>
             </CardContent>
           </Card>
         ) : (
@@ -290,13 +290,13 @@ export default function TimetableManagement() {
                   title={`Class ${filters.class} - ${filters.section} Timetable`}
                 />
               ) : (
-                <Card>
+                <Card className="dark:bg-gray-800">
                   <CardContent className="py-8">
                     <div className="flex gap-3 items-start">
                       <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
                       <div>
-                        <p className="font-medium text-gray-900">Select Class and Section</p>
-                        <p className="text-sm text-gray-600">Choose a class and section to view the grid timetable</p>
+                        <p className="font-medium text-gray-900 dark:text-white">Select Class and Section</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Choose a class and section to view the grid timetable</p>
                       </div>
                     </div>
                   </CardContent>

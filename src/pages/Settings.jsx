@@ -378,9 +378,9 @@ export default function Settings() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal']} pageName="Settings">
-      <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex flex-col md:flex-row">
         {/* Desktop Sidebar */}
-        <div className="hidden md:flex md:w-64 lg:w-72 flex-col md:h-screen md:border-r md:border-slate-200">
+        <div className="hidden md:flex md:w-64 lg:w-72 flex-col md:h-screen md:border-r md:border-slate-200 dark:border-gray-700 dark:bg-gray-800">
           <SettingsSidebar
             activeItem={activeItem}
             onItemSelect={handleItemSelect}
@@ -390,7 +390,7 @@ export default function Settings() {
 
         {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <div className="sticky top-0 z-50 bg-white border-b border-slate-200 flex items-center gap-3 px-4 py-3">
+          <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 flex items-center gap-3 px-4 py-3">
             <Button
               size="sm"
               variant="outline"
@@ -428,7 +428,7 @@ export default function Settings() {
           <div className="p-4 lg:p-8">
             {/* School Profile */}
             {activeItem === 'school-profile' && (
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader>
                 <CardTitle>School Profile</CardTitle>
                 <CardDescription>
@@ -462,7 +462,7 @@ export default function Settings() {
                   </div>
                   <div>
                     <h3 className="font-medium">School Logo</h3>
-                    <p className="text-sm text-slate-500">Upload your school's logo (recommended: 200x200px)</p>
+                    <p className="text-sm text-slate-500 dark:text-gray-400">Upload your school's logo (recommended: 200x200px)</p>
                   </div>
                 </div>
 
@@ -545,10 +545,10 @@ export default function Settings() {
                 </div>
 
                 {/* Test School Flag */}
-                <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-orange-800">Test School Mode</p>
-                    <p className="text-xs text-orange-600 mt-0.5">Enable only for test/demo environments. Unlocks the Data Reset tool.</p>
+                    <p className="text-sm font-medium text-orange-800 dark:text-orange-300">Test School Mode</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">Enable only for test/demo environments. Unlocks the Data Reset tool.</p>
                   </div>
                   <Switch
                     checked={!!schoolForm.is_test_school}
@@ -571,7 +571,7 @@ export default function Settings() {
 
             {/* Academic Years */}
             {activeItem === 'academic-years' && (
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>Academic Years</CardTitle>
@@ -590,7 +590,7 @@ export default function Settings() {
                     const hasDuplicateRecords = Object.values(yearCounts).some(c => c > 1);
                     const hasDuplicateCurrent = activeYears.filter(y => y.is_current).length > 1;
                     return (hasDuplicateRecords || hasDuplicateCurrent) && (
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-red-50 border border-red-200 rounded-lg p-3 gap-3">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 gap-3">
                         <div>
                           <p className="text-sm text-red-800 font-semibold">⚠️ Duplicate academic year records detected</p>
                           {hasDuplicateRecords && <p className="text-xs text-red-700 mt-0.5">Same year appears multiple times in the database. Run cleanup to keep one per year.</p>}
@@ -615,8 +615,8 @@ export default function Settings() {
                       <div
                         key={year.id}
                         className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-3 ${
-                          isArchived ? 'bg-slate-100 opacity-60' :
-                          year.is_current ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-50'
+                         isArchived ? 'bg-slate-100 dark:bg-gray-700 opacity-60' :
+                         year.is_current ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-gray-700'
                         }`}
                       >
                         <div className="flex items-center gap-4 flex-1">
@@ -624,8 +624,8 @@ export default function Settings() {
                             <Calendar className="h-6 w-6 text-blue-600" />
                           </div>
                           <div className="flex-1">
-                            <p className="font-semibold">{year.year}</p>
-                            <p className="text-sm text-slate-500">{year.start_date} to {year.end_date}</p>
+                            <p className="font-semibold dark:text-white">{year.year}</p>
+                            <p className="text-sm text-slate-500 dark:text-gray-400">{year.start_date} to {year.end_date}</p>
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
@@ -644,8 +644,8 @@ export default function Settings() {
                               >
                                 Edit Dates
                               </Button>
-                              <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border">
-                                <span className="text-xs font-medium text-slate-600">Admissions Open</span>
+                              <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600">
+                                <span className="text-xs font-medium text-slate-600 dark:text-gray-300">Admissions Open</span>
                                 <Switch
                                   checked={!!year.admission_open}
                                   onCheckedChange={(v) => toggleAdmissionMutation.mutate({ id: year.id, admission_open: v })}
@@ -695,16 +695,16 @@ export default function Settings() {
 
             {/* Subjects — managed in dedicated SubjectManagement page */}
             {activeItem === 'subjects' && (
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader>
                 <CardTitle>Subjects</CardTitle>
                 <CardDescription>Subject records are managed in the dedicated Subject Management page</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-blue-900">Subject Management</p>
-                    <p className="text-sm text-blue-700 mt-1">
+                    <p className="font-semibold text-blue-900 dark:text-blue-300">Subject Management</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
                       Create, edit, reorder, and manage all subjects with class assignments and optional/mandatory flags.
                     </p>
                     <p className="text-xs text-blue-500 mt-1">{subjects.length} subject{subjects.length !== 1 ? 's' : ''} currently configured</p>
@@ -722,15 +722,15 @@ export default function Settings() {
 
             {/* Banners */}
             {activeItem === 'banners' && (
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
               <CardHeader>
                 <CardTitle>Homepage Banner Slides</CardTitle>
                 <CardDescription>Manage the rotating images shown on the home screen</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add new banner */}
-                <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-                  <p className="text-sm font-medium text-slate-700">Add New Slide</p>
+                <div className="bg-slate-50 dark:bg-gray-700 rounded-xl p-4 space-y-3">
+                  <p className="text-sm font-medium text-slate-700 dark:text-gray-300">Add New Slide</p>
                   <div>
                     <Label>Image</Label>
                     <label className="mt-1 flex items-center gap-3 cursor-pointer">
@@ -757,11 +757,11 @@ export default function Settings() {
                 {/* Existing banners */}
                 <div className="space-y-2">
                   {bannerSlides.map((slide, idx) => (
-                    <div key={slide.id} className="flex items-center gap-3 bg-white border rounded-xl p-3">
+                    <div key={slide.id} className="flex items-center gap-3 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-xl p-3">
                       <img src={slide.image_url} alt="" className="h-14 w-20 object-cover rounded-lg flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">{slide.caption || 'No caption'}</p>
-                        <p className="text-xs text-slate-400">Slide {idx + 1}</p>
+                        <p className="text-sm font-medium text-slate-800 dark:text-white truncate">{slide.caption || 'No caption'}</p>
+                        <p className="text-xs text-slate-400 dark:text-gray-400">Slide {idx + 1}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
@@ -780,7 +780,7 @@ export default function Settings() {
                     </div>
                   ))}
                   {bannerSlides.length === 0 && (
-                    <p className="text-center text-slate-400 py-6 text-sm">No custom banners yet — default images are shown</p>
+                    <p className="text-center text-slate-400 dark:text-gray-500 py-6 text-sm">No custom banners yet — default images are shown</p>
                   )}
                 </div>
               </CardContent>
@@ -841,9 +841,9 @@ export default function Settings() {
             <>
             <NotificationSettingsSection />
 
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Notification Cleanup</CardTitle>
+            <Card className="border-0 shadow-sm dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle>Notification Cleanup</CardTitle>
                 <CardDescription>Manually trigger cleanup of old read notifications</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -862,11 +862,11 @@ export default function Settings() {
                 </Button>
 
                 {cleanupResult && (
-                  <div className={`rounded-lg p-4 ${cleanupResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                    <p className={`font-medium ${cleanupResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                  <div className={`rounded-lg p-4 ${cleanupResult.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                    <p className={`font-medium ${cleanupResult.success ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
                       {cleanupResult.success ? '✓ Cleanup Success' : '⚠ Cleanup Aborted'}
                     </p>
-                    <ul className={`text-sm mt-2 space-y-1 ${cleanupResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                    <ul className={`text-sm mt-2 space-y-1 ${cleanupResult.success ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'}`}>
                       <li><strong>Deleted:</strong> {cleanupResult.deleted} notifications</li>
                       <li><strong>Candidates:</strong> {cleanupResult.candidateCount}</li>
                       {cleanupResult.threshold && <li><strong>Safety Threshold:</strong> {cleanupResult.threshold}</li>}
