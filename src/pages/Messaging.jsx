@@ -101,7 +101,7 @@ export default function Messaging() {
 
   if (selectedThread) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50 w-full overflow-x-hidden">
+      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 w-full overflow-x-hidden">
         <MessageThread
           messages={selectedThread}
           currentUserId={user?.email}
@@ -126,7 +126,7 @@ export default function Messaging() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Messaging">
-    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full overflow-x-hidden">
       <div className="bg-[#1a237e] text-white px-3 sm:px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md gap-2">
         <h1 className="font-bold text-lg sm:text-xl truncate">Messages</h1>
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -140,12 +140,12 @@ export default function Messaging() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 bg-white sticky top-[60px] z-30">
+      <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-[60px] z-30">
       <button
-        onClick={() => setTab('inbox')}
-        className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-          tab === 'inbox' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500'
-        }`}
+       onClick={() => setTab('inbox')}
+       className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+         tab === 'inbox' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500 dark:text-gray-400'
+       }`}
       >
         <Inbox className="h-4 w-4" /> Inbox
         {unreadCount > 0 && (
@@ -155,7 +155,7 @@ export default function Messaging() {
       {tab === 'inbox' && unreadCount > 0 && (
         <button
           onClick={markAllInboxRead}
-          className="px-3 py-2 text-xs text-[#1a237e] font-semibold flex items-center gap-1 hover:bg-blue-50 transition-colors"
+          className="px-3 py-2 text-xs text-[#1a237e] font-semibold flex items-center gap-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
         >
           <CheckCheck className="h-3.5 w-3.5" /> All Read
         </button>
@@ -163,14 +163,14 @@ export default function Messaging() {
         <button
           onClick={() => setTab('sent')}
           className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-            tab === 'sent' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500'
+            tab === 'sent' ? 'text-[#1a237e] border-b-2 border-[#1a237e]' : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           <Send className="h-4 w-4" /> Sent
         </button>
       </div>
 
-      <div className="bg-white min-h-[calc(100vh-120px)]">
+      <div className="bg-white dark:bg-gray-800 min-h-[calc(100vh-120px)]">
         {tab === 'inbox' ? (
           loadingInbox ? (
             <div className="text-center py-12 text-gray-400 text-sm">Loading...</div>

@@ -158,7 +158,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#1a237e] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -168,9 +168,9 @@ export default function Profile() {
     const isTokenMissing = errorCode === 'TOKEN_MISSING';
     const isStaffNotFound = errorCode === 'STAFF_NOT_FOUND';
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-2xl mx-auto">
-          <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-[#1a237e] hover:opacity-70">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+       <div className="max-w-2xl mx-auto">
+         <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-[#1a237e] hover:opacity-70">
             <ArrowLeft className="h-5 w-5" /> Back
           </button>
           <Card className={isTokenMissing || isStaffNotFound ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}>
@@ -178,10 +178,10 @@ export default function Profile() {
               <div className="flex items-start gap-3">
                 <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${isTokenMissing || isStaffNotFound ? 'text-red-600' : 'text-amber-600'}`} />
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {isTokenMissing ? 'Session expired' : isStaffNotFound ? 'Staff record missing' : 'Profile not found'}
-                  </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                        {isTokenMissing ? 'Session expired' : isStaffNotFound ? 'Staff record missing' : 'Profile not found'}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                     {isTokenMissing
                       ? 'Please log out and log in again.'
                       : isStaffNotFound 
@@ -209,9 +209,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-2xl mx-auto">
-        <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 text-[#1a237e] hover:opacity-70 font-medium">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+     <div className="max-w-2xl mx-auto">
+       <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 text-[#1a237e] hover:opacity-70 font-medium">
           <ArrowLeft className="h-5 w-5" /> Back
         </button>
 
@@ -229,16 +229,16 @@ export default function Profile() {
                     </div>
                   )}
                   {isEditing && (
-                    <label className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow cursor-pointer hover:bg-gray-100">
+                    <label className="absolute bottom-0 right-0 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                       <Upload className="h-4 w-4 text-[#1a237e]" />
                       <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                     </label>
                   )}
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900">{staffAccount.name}</h1>
-                  <p className="text-sm text-gray-600">{staffAccount.designation || staffAccount.role}</p>
-                  <p className="text-xs text-gray-500 mt-1">{staffAccount.email}</p>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{staffAccount.name}</h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{staffAccount.designation || staffAccount.role}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{staffAccount.email}</p>
                 </div>
               </div>
               {!isEditing && (
@@ -259,67 +259,67 @@ export default function Profile() {
           <CardContent className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Phone</label>
-                {isEditing ? (
-                  <Input name="mobile" value={formData.mobile} onChange={handleInputChange} placeholder="10+ digits" className="mt-1" />
-                ) : (
-                  <p className="mt-1 text-gray-900">{formData.mobile || '—'}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Gender</label>
-                <p className="mt-1 text-gray-900">{staffAccount.gender || '—'}</p>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+                 {isEditing ? (
+                   <Input name="mobile" value={formData.mobile} onChange={handleInputChange} placeholder="10+ digits" className="mt-1" />
+                 ) : (
+                   <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.mobile || '—'}</p>
+                 )}
+                </div>
+                <div>
+                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                 <p className="mt-1 text-gray-900 dark:text-gray-100">{staffAccount.gender || '—'}</p>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Address Line 1</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address Line 1</label>
               {isEditing ? (
                 <Input name="address_line1" value={formData.address_line1} onChange={handleInputChange} className="mt-1" />
               ) : (
-                <p className="mt-1 text-gray-900">{formData.address_line1 || '—'}</p>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.address_line1 || '—'}</p>
               )}
-            </div>
+              </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700">Address Line 2</label>
+              <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address Line 2</label>
               {isEditing ? (
                 <Input name="address_line2" value={formData.address_line2} onChange={handleInputChange} className="mt-1" />
               ) : (
-                <p className="mt-1 text-gray-900">{formData.address_line2 || '—'}</p>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.address_line2 || '—'}</p>
               )}
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">City</label>
-                {isEditing ? <Input name="city" value={formData.city} onChange={handleInputChange} className="mt-1" /> : <p className="mt-1 text-gray-900">{formData.city || '—'}</p>}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">State</label>
-                {isEditing ? <Input name="state" value={formData.state} onChange={handleInputChange} className="mt-1" /> : <p className="mt-1 text-gray-900">{formData.state || '—'}</p>}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Pincode</label>
-                {isEditing ? <Input name="pincode" value={formData.pincode} onChange={handleInputChange} className="mt-1" /> : <p className="mt-1 text-gray-900">{formData.pincode || '—'}</p>}
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">City</label>
+                {isEditing ? <Input name="city" value={formData.city} onChange={handleInputChange} className="mt-1" /> : <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.city || '—'}</p>}
+                </div>
+                <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">State</label>
+                {isEditing ? <Input name="state" value={formData.state} onChange={handleInputChange} className="mt-1" /> : <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.state || '—'}</p>}
+                </div>
+                <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Pincode</label>
+                {isEditing ? <Input name="pincode" value={formData.pincode} onChange={handleInputChange} className="mt-1" /> : <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.pincode || '—'}</p>}
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t">
+            <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t dark:border-gray-700">
               <div>
-                <label className="text-sm font-medium text-gray-700">Emergency Contact Name</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Emergency Contact Name</label>
                 {isEditing ? (
                   <Input name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleInputChange} className="mt-1" />
                 ) : (
-                  <p className="mt-1 text-gray-900">{formData.emergency_contact_name || '—'}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.emergency_contact_name || '—'}</p>
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Emergency Contact Phone</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Emergency Contact Phone</label>
                 {isEditing ? (
                   <Input name="emergency_contact_phone" value={formData.emergency_contact_phone} onChange={handleInputChange} placeholder="10+ digits" className="mt-1" />
                 ) : (
-                  <p className="mt-1 text-gray-900">{formData.emergency_contact_phone || '—'}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.emergency_contact_phone || '—'}</p>
                 )}
               </div>
             </div>
@@ -334,31 +334,31 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Qualification</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Qualification</label>
               {isEditing ? (
                 <Input name="qualification" value={formData.qualification} onChange={handleInputChange} placeholder="e.g., B.A., M.Sc., B.Ed" className="mt-1" />
               ) : (
-                <p className="mt-1 text-gray-900">{formData.qualification || '—'}</p>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.qualification || '—'}</p>
               )}
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Experience (years)</label>
-                <p className="mt-1 text-gray-900">{staffAccount.experience_years || '—'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Joining Date</label>
-                <p className="mt-1 text-gray-900">{staffAccount.joining_date || '—'}</p>
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Staff Code</label>
-                <p className="mt-1 text-gray-900">{staffAccount.staff_code || '—'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Date of Birth</label>
-                <p className="mt-1 text-gray-900">{staffAccount.dob || '—'}</p>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Experience (years)</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{staffAccount.experience_years || '—'}</p>
+                </div>
+                <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Joining Date</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{staffAccount.joining_date || '—'}</p>
+                </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Staff Code</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{staffAccount.staff_code || '—'}</p>
+                </div>
+                <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{staffAccount.dob || '—'}</p>
               </div>
             </div>
           </CardContent>
@@ -371,9 +371,9 @@ export default function Profile() {
             <CardDescription>Read-only information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between"><span className="text-gray-600">Role:</span><span className="font-medium capitalize">{staffAccount.role}</span></div>
-            <div className="flex justify-between"><span className="text-gray-600">Status:</span><span className="font-medium">{staffAccount.is_active ? 'Active' : 'Inactive'}</span></div>
-            <div className="flex justify-between"><span className="text-gray-600">Classes Assigned:</span><span className="font-medium">{staffAccount.classes?.join(', ') || '—'}</span></div>
+            <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Role:</span><span className="font-medium capitalize dark:text-gray-200">{staffAccount.role}</span></div>
+            <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Status:</span><span className="font-medium dark:text-gray-200">{staffAccount.is_active ? 'Active' : 'Inactive'}</span></div>
+            <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Classes Assigned:</span><span className="font-medium dark:text-gray-200">{staffAccount.classes?.join(', ') || '—'}</span></div>
           </CardContent>
         </Card>
 

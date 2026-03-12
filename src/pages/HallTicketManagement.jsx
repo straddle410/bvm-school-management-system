@@ -16,7 +16,7 @@ export default function HallTicketManagement() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'exam_staff']} pageName="Hall Ticket Management">
-    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-6">
       <PageHeader
         title="Exam Hall Ticket Management"
         subtitle={`Academic Year: ${academicYear}`}
@@ -36,11 +36,11 @@ export default function HallTicketManagement() {
 
           <TabsContent value="exam-types" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold">Exams & Marks</h2>
-                    <p className="text-slate-600 text-sm mt-1">Manage exam types and enter marks</p>
+                    <h2 className="text-2xl font-bold dark:text-white">Exams & Marks</h2>
+                    <p className="text-slate-600 dark:text-gray-400 text-sm mt-1">Manage exam types and enter marks</p>
                   </div>
                 </div>
               </div>

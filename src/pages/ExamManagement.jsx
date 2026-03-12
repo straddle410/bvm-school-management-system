@@ -12,7 +12,7 @@ export default function ExamManagement() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'exam_staff']} pageName="Exam Management">
-    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-6">
       <PageHeader
         title="Exam Management"
         subtitle={`Academic Year: ${academicYear}`}

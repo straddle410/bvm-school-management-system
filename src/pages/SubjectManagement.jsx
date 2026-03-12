@@ -158,7 +158,7 @@ function SubjectManagementContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
       <PageHeader
         title="Subject Management"
         subtitle="Create and manage subjects — source of truth for all subject records"
@@ -181,31 +181,31 @@ function SubjectManagementContent() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Subject Name *</label>
+                    <label className="block text-sm font-medium dark:text-gray-300 mb-2">Subject Name *</label>
                     <input
                       type="text"
                       placeholder="e.g., Mathematics"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg"
+                      className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Subject Code</label>
+                    <label className="block text-sm font-medium dark:text-gray-300 mb-2">Subject Code</label>
                     <input
                       type="text"
                       placeholder="e.g., MATH-101"
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg"
+                      className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                     />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium">Applicable Classes</label>
+                    <label className="block text-sm font-medium dark:text-gray-300">Applicable Classes</label>
                     <Button
                       type="button"
                       variant="outline"
@@ -228,7 +228,7 @@ function SubjectManagementContent() {
                           onChange={() => toggleClass(cls)}
                           className="rounded"
                         />
-                        <span className="text-sm">{cls}</span>
+                        <span className="text-sm dark:text-gray-300">{cls}</span>
                       </label>
                     ))}
                   </div>
@@ -241,7 +241,7 @@ function SubjectManagementContent() {
                     onChange={(e) => setFormData({ ...formData, is_optional: e.target.checked })}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium">Optional Subject</span>
+                  <span className="text-sm font-medium dark:text-gray-300">Optional Subject</span>
                 </label>
 
                 <div className="flex gap-2 justify-end">
@@ -262,9 +262,9 @@ function SubjectManagementContent() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-gray-500 text-center py-8">Loading subjects...</p>
-            ) : subjects.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No subjects found</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">Loading subjects...</p>
+              ) : subjects.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">No subjects found</p>
             ) : (
               <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="subjects">
@@ -272,7 +272,7 @@ function SubjectManagementContent() {
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className={`space-y-2 ${snapshot.isDraggingOver ? 'bg-blue-50 rounded p-2' : ''}`}
+                      className={`space-y-2 ${snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/20 rounded p-2' : ''}`}
                     >
                       {subjects.map((subject, index) => (
                         <Draggable key={subject.id} draggableId={subject.id} index={index}>
@@ -280,14 +280,14 @@ function SubjectManagementContent() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`flex items-center gap-3 p-3 bg-white border rounded-lg ${snapshot.isDragging ? 'shadow-lg bg-blue-50' : 'hover:bg-gray-50'}`}
+                              className={`flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg ${snapshot.isDragging ? 'shadow-lg bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                             >
                               <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                <GripVertical className="h-5 w-5 text-gray-400" />
+                                <GripVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium">{subject.name}</div>
-                                <div className="text-sm text-gray-600">{subject.code ? `Code: ${subject.code}` : 'No code'}</div>
+                                <div className="font-medium dark:text-white">{subject.name}</div>
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">{subject.code ? `Code: ${subject.code}` : 'No code'}</div>
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 {subject.classes?.map(cls => (

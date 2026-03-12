@@ -61,7 +61,7 @@ export default function ResetStudentPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6">
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
@@ -75,7 +75,7 @@ export default function ResetStudentPassword() {
             {/* Search Form */}
             <form onSubmit={handleSearch} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Student ID or Name
                 </label>
                 <div className="flex gap-2">
@@ -96,17 +96,17 @@ export default function ResetStudentPassword() {
             {/* Search Results */}
             {students.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">Found {students.length} student(s)</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Found {students.length} student(s)</p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {students.map((student) => (
                     <div
                       key={student.id}
-                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer flex justify-between items-center"
+                      className="p-3 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center"
                       onClick={() => setSelectedStudent(student)}
                     >
                       <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="font-medium dark:text-white">{student.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {student.student_id} • Class {student.class_name} {student.section}
                         </p>
                       </div>
@@ -128,11 +128,11 @@ export default function ResetStudentPassword() {
 
             {/* Temp Password Display */}
             {tempPassword && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-green-900 mb-3">✓ Password Reset Successfully</p>
-                <div className="bg-white border rounded p-3 flex items-center justify-between">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <p className="text-sm font-medium text-green-900 dark:text-green-300 mb-3">✓ Password Reset Successfully</p>
+                <div className="bg-white dark:bg-gray-700 border dark:border-gray-600 rounded p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-600">Temporary Password</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Temporary Password</p>
                     <p className="font-mono text-lg font-bold text-green-600">{tempPassword}</p>
                   </div>
                   <Button
@@ -145,7 +145,7 @@ export default function ResetStudentPassword() {
                     {copied ? 'Copied' : 'Copy'}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-600 mt-3 p-2 bg-yellow-50 rounded">
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                   ⚠️ Share this password with {selectedStudent?.name}. They must change it on first login.
                 </p>
                 <Button
