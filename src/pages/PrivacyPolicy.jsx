@@ -5,25 +5,25 @@ import { useNavigate } from 'react-router-dom';
 
 const Section = ({ title, children }) => (
   <div className="mb-8">
-    <h2 className="text-lg font-bold text-slate-800 mb-3 border-b border-slate-200 pb-2">{title}</h2>
-    <div className="text-slate-600 text-sm leading-relaxed space-y-3">{children}</div>
+    <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-3 border-b border-slate-200 dark:border-gray-700 pb-2">{title}</h2>
+    <div className="text-slate-600 dark:text-gray-300 text-sm leading-relaxed space-y-3">{children}</div>
   </div>
 );
 
 const DataTable = ({ rows }) => (
-  <div className="overflow-x-auto rounded-lg border border-slate-200 mt-2">
+  <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-gray-700 mt-2">
     <table className="w-full text-sm">
       <thead>
-        <tr className="bg-slate-50 border-b border-slate-200">
-          <th className="text-left px-4 py-2.5 font-semibold text-slate-700 w-1/2">Data Category</th>
-          <th className="text-left px-4 py-2.5 font-semibold text-slate-700 w-1/2">Examples</th>
+        <tr className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-600">
+          <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-gray-200 w-1/2">Data Category</th>
+          <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-gray-200 w-1/2">Examples</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-100">
+      <tbody className="divide-y divide-slate-100 dark:divide-gray-700">
         {rows.map(([cat, ex], i) => (
-          <tr key={i} className="hover:bg-slate-50/50">
-            <td className="px-4 py-2.5 font-medium text-slate-700">{cat}</td>
-            <td className="px-4 py-2.5 text-slate-500">{ex}</td>
+          <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-gray-700/50">
+            <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-gray-300">{cat}</td>
+            <td className="px-4 py-2.5 text-slate-500 dark:text-gray-400">{ex}</td>
           </tr>
         ))}
       </tbody>
@@ -47,25 +47,25 @@ export default function PrivacyPolicy() {
   const address = school?.address || '';
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
-          <ArrowLeft className="h-5 w-5 text-slate-600" />
-        </button>
-        <Shield className="h-5 w-5 text-indigo-600" />
-        <h1 className="text-base font-bold text-slate-800">Privacy Policy</h1>
-      </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
+     {/* Header */}
+     <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 shadow-sm">
+       <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition">
+         <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-gray-300" />
+       </button>
+       <Shield className="h-5 w-5 text-indigo-600" />
+       <h1 className="text-base font-bold text-slate-800 dark:text-white">Privacy Policy</h1>
+     </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-10">
+     <div className="max-w-3xl mx-auto px-4 py-8">
+       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6 md:p-10">
 
           {/* Title Block */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">{schoolName}</h1>
-            <p className="text-sm text-slate-500">Privacy Policy &mdash; Effective Date: March 2026</p>
-            <div className="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
-              <p className="text-sm text-indigo-800">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{schoolName}</h1>
+            <p className="text-sm text-slate-500 dark:text-gray-400">Privacy Policy &mdash; Effective Date: March 2026</p>
+            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg">
+             <p className="text-sm text-indigo-800 dark:text-indigo-300">
                 <strong>{schoolName}</strong> ("we", "our", or "the School") is committed to protecting the privacy of our students, parents, staff, and all users of our School Management Application. This Privacy Policy explains what information we collect, how we use it, and the rights you have regarding your data.
               </p>
             </div>
@@ -102,7 +102,7 @@ export default function PrivacyPolicy() {
               <li>Ensuring the security and integrity of the application</li>
               <li>Complying with legal and regulatory requirements</li>
             </ul>
-            <p className="mt-2 text-xs text-slate-500 italic">We do not use your data for marketing, advertising, or any purpose unrelated to school operations.</p>
+            <p className="mt-2 text-xs text-slate-500 dark:text-gray-500 italic">We do not use your data for marketing, advertising, or any purpose unrelated to school operations.</p>
           </Section>
 
           {/* 3. Who Has Access to Your Data */}
@@ -121,9 +121,9 @@ export default function PrivacyPolicy() {
 
           {/* 4. Children's Privacy */}
           <Section title="4. Children's Privacy">
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="font-semibold text-yellow-800 mb-2">Special Protection for Minors</p>
-              <p className="text-yellow-700 text-sm">Our application serves students who may be under 13 years of age. We treat all student data with the highest level of care in accordance with applicable child privacy laws.</p>
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+             <p className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">Special Protection for Minors</p>
+             <p className="text-yellow-700 dark:text-yellow-400 text-sm">Our application serves students who may be under 13 years of age. We treat all student data with the highest level of care in accordance with applicable child privacy laws.</p>
             </div>
             <ul className="list-disc list-inside space-y-1.5 pl-2 mt-3">
               <li>Student accounts are created and managed by school administrators — students do not self-register</li>
@@ -187,14 +187,14 @@ export default function PrivacyPolicy() {
           {/* 9. Contact Information */}
           <Section title="9. Contact Us">
             <p>For any questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact the school administration:</p>
-            <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
-              <p className="font-semibold text-slate-800">{schoolName}</p>
-              {address && <p className="text-slate-600 text-sm">{address}</p>}
-              {contactPhone && <p className="text-slate-600 text-sm">Phone: {contactPhone}</p>}
-              {contactEmail && <p className="text-slate-600 text-sm">Email: {contactEmail}</p>}
-              {!address && !contactPhone && !contactEmail && (
-                <p className="text-slate-500 text-xs italic">Please contact the school office for current contact details.</p>
-              )}
+            <div className="mt-3 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600 space-y-1">
+             <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
+             {address && <p className="text-slate-600 dark:text-gray-300 text-sm">{address}</p>}
+             {contactPhone && <p className="text-slate-600 dark:text-gray-300 text-sm">Phone: {contactPhone}</p>}
+             {contactEmail && <p className="text-slate-600 dark:text-gray-300 text-sm">Email: {contactEmail}</p>}
+             {!address && !contactPhone && !contactEmail && (
+               <p className="text-slate-500 dark:text-gray-400 text-xs italic">Please contact the school office for current contact details.</p>
+             )}
             </div>
           </Section>
 
@@ -204,7 +204,7 @@ export default function PrivacyPolicy() {
             <p>Continued use of the App after changes are posted constitutes acceptance of the revised policy.</p>
           </Section>
 
-          <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-100 mt-4">
+          <p className="text-xs text-slate-400 dark:text-gray-500 text-center pt-4 border-t border-slate-100 dark:border-gray-700 mt-4">
             © {new Date().getFullYear()} {schoolName}. All rights reserved.
           </p>
         </div>

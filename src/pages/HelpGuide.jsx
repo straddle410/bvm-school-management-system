@@ -353,8 +353,8 @@ const GUIDES = [
 const StepList = ({ steps }) => (
   <ol className="space-y-2 mt-2">
     {steps.map((step, i) => (
-      <li key={i} className="flex gap-3 text-sm text-slate-600">
-        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+      <li key={i} className="flex gap-3 text-sm text-slate-600 dark:text-gray-300">
+        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 dark:bg-gray-600 text-slate-700 dark:text-gray-200 text-xs font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
         <span>{step}</span>
       </li>
     ))}
@@ -364,16 +364,16 @@ const StepList = ({ steps }) => (
 const SubSection = ({ section }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-slate-100 rounded-lg overflow-hidden">
+    <div className="border border-slate-100 dark:border-gray-700 rounded-lg overflow-hidden">
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 transition-colors text-left"
       >
-        <span className="text-sm font-semibold text-slate-700">{section.title}</span>
+        <span className="text-sm font-semibold text-slate-700 dark:text-gray-200">{section.title}</span>
         {open ? <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 pt-2 bg-white">
+        <div className="px-4 pb-4 pt-2 bg-white dark:bg-gray-800">
           <StepList steps={section.steps} />
         </div>
       )}
@@ -385,24 +385,24 @@ const GuideCard = ({ guide, defaultOpen }) => {
   const [open, setOpen] = useState(defaultOpen || false);
   const Icon = guide.icon;
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 overflow-hidden">
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
       >
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: guide.bg }}>
           <Icon className="h-5 w-5" style={{ color: guide.color }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-slate-800">{guide.title}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{guide.description}</p>
+          <p className="font-bold text-slate-800 dark:text-white">{guide.title}</p>
+          <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">{guide.description}</p>
         </div>
         {open
           ? <ChevronDown className="h-5 w-5 text-slate-400 flex-shrink-0" />
           : <ChevronRight className="h-5 w-5 text-slate-400 flex-shrink-0" />}
       </button>
       {open && (
-        <div className="px-5 pb-5 space-y-2 border-t border-slate-100 pt-4">
+        <div className="px-5 pb-5 space-y-2 border-t border-slate-100 dark:border-gray-700 pt-4">
           {guide.sections.map(section => (
             <SubSection key={section.title} section={section} />
           ))}
@@ -457,30 +457,30 @@ export default function HelpGuide() {
   const hasSearch = query.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition flex-shrink-0">
-          <ArrowLeft className="h-5 w-5 text-slate-600" />
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 shadow-sm">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition flex-shrink-0">
+          <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-gray-300" />
         </button>
         <HelpCircle className="h-5 w-5 text-indigo-600 flex-shrink-0" />
-        <h1 className="text-base font-bold text-slate-800">Help &amp; User Guide</h1>
+        <h1 className="text-base font-bold text-slate-800 dark:text-white">Help &amp; User Guide</h1>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
 
         {/* Intro */}
-        <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-4">
-          <p className="text-sm text-indigo-800 font-medium">Welcome to the Help Centre</p>
-          <p className="text-xs text-indigo-600 mt-1">Find step-by-step instructions for every feature. Select your role below to get started.</p>
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl px-5 py-4">
+          <p className="text-sm text-indigo-800 dark:text-indigo-300 font-medium">Welcome to the Help Centre</p>
+          <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Find step-by-step instructions for every feature. Select your role below to get started.</p>
         </div>
 
         {/* Notice Banner */}
-        <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl px-5 py-4 flex gap-3">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 rounded-xl px-5 py-4 flex gap-3">
           <span className="text-xl flex-shrink-0 mt-0.5">📌</span>
           <div>
-            <p className="text-sm font-semibold text-amber-800">Please Note</p>
-            <p className="text-sm text-amber-700 mt-1 leading-relaxed">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Please Note</p>
+            <p className="text-sm text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
               Some features mentioned in this guide may not be available in the current version of the app. These features are planned and will be included in future updates. We are constantly improving the app to serve you better. Thank you for your patience!
             </p>
           </div>
@@ -494,7 +494,7 @@ export default function HelpGuide() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search help topics… (e.g. attendance, fees, login)"
-            className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-sm"
+            className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-sm"
           />
           {query && (
             <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -505,7 +505,7 @@ export default function HelpGuide() {
 
         {/* Search result count */}
         {hasSearch && (
-          <p className="text-xs text-slate-500 px-1">
+          <p className="text-xs text-slate-500 dark:text-gray-400 px-1">
             {filteredGuides.length === 0
               ? 'No results found. Try different keywords.'
               : `Found results in ${filteredGuides.length} guide${filteredGuides.length > 1 ? 's' : ''}.`}
@@ -518,7 +518,7 @@ export default function HelpGuide() {
               <GuideCard key={guide.id} guide={guide} defaultOpen={hasSearch} />
             ))
           : hasSearch && (
-            <div className="text-center py-12 text-slate-400">
+            <div className="text-center py-12 text-slate-400 dark:text-gray-500">
               <HelpCircle className="h-10 w-10 mx-auto mb-3 opacity-40" />
               <p className="text-sm">No help topics matched your search.</p>
               <button onClick={() => setQuery('')} className="mt-2 text-indigo-500 text-sm underline">Clear search</button>
@@ -527,10 +527,10 @@ export default function HelpGuide() {
 
         {/* Recent Updates & Coming Soon */}
         {(updates.recent.length > 0 || updates.comingSoon.length > 0) && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-gray-700 flex items-center gap-2">
               <span className="text-lg">🚀</span>
-              <p className="font-bold text-slate-800">Recent Updates &amp; Coming Soon</p>
+              <p className="font-bold text-slate-800 dark:text-white">Recent Updates &amp; Coming Soon</p>
             </div>
 
             {/* Recently Added */}
@@ -542,11 +542,11 @@ export default function HelpGuide() {
                 </div>
                 <ul className="space-y-2">
                   {updates.recent.map(item => (
-                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-600">
+                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-600 dark:text-gray-300">
                       <span className="text-green-400 mt-0.5 flex-shrink-0">•</span>
                       <span>
                         {item.title}
-                        {item.description && <span className="text-slate-400 ml-1">— {item.description}</span>}
+                        {item.description && <span className="text-slate-400 dark:text-gray-500 ml-1">— {item.description}</span>}
                       </span>
                     </li>
                   ))}
@@ -556,23 +556,23 @@ export default function HelpGuide() {
 
             {/* Coming Soon */}
             {updates.comingSoon.length > 0 && (
-              <div className={`px-5 pt-3 pb-5 mt-1 ${updates.recent.length > 0 ? 'border-t border-slate-100' : ''}`}>
+              <div className={`px-5 pt-3 pb-5 mt-1 ${updates.recent.length > 0 ? 'border-t border-slate-100 dark:border-gray-700' : ''}`}>
                 <div className="flex items-center gap-2 mb-3">
                   <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
                   <p className="text-sm font-semibold text-blue-700">🔜 Coming Soon</p>
                 </div>
                 <ul className="space-y-2">
                   {updates.comingSoon.map(item => (
-                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-500">
+                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-500 dark:text-gray-400">
                       <span className="text-blue-300 mt-0.5 flex-shrink-0">•</span>
                       <span>
                         {item.title}
-                        {item.description && <span className="text-slate-400 ml-1">— {item.description}</span>}
+                        {item.description && <span className="text-slate-400 dark:text-gray-500 ml-1">— {item.description}</span>}
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className="text-xs text-slate-400 italic mt-4">
+                <p className="text-xs text-slate-400 dark:text-gray-500 italic mt-4">
                   This list is updated regularly. Check back for the latest improvements!
                 </p>
               </div>
@@ -581,16 +581,16 @@ export default function HelpGuide() {
         )}
 
         {/* Contact Support */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mt-2">
-          <p className="font-bold text-slate-800 mb-1 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-5 mt-2">
+          <p className="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
             <Phone className="h-4 w-4 text-indigo-500" />
             Still need help?
           </p>
-          <p className="text-xs text-slate-500 mb-4">Contact the school administration for further assistance.</p>
+          <p className="text-xs text-slate-500 dark:text-gray-400 mb-4">Contact the school administration for further assistance.</p>
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-800">{school?.school_name || 'School Administration'}</p>
+            <p className="text-sm font-semibold text-slate-800 dark:text-white">{school?.school_name || 'School Administration'}</p>
             {school?.address && (
-              <p className="text-sm text-slate-600 flex items-start gap-2">
+              <p className="text-sm text-slate-600 dark:text-gray-300 flex items-start gap-2">
                 <span className="text-slate-400 mt-0.5">📍</span>{school.address}
               </p>
             )}
@@ -610,12 +610,12 @@ export default function HelpGuide() {
               </a>
             )}
             {!school?.phone && !school?.email && (
-              <p className="text-xs text-slate-400 italic">Contact details will appear here once the school profile is set up.</p>
+              <p className="text-xs text-slate-400 dark:text-gray-500 italic">Contact details will appear here once the school profile is set up.</p>
             )}
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-400 pb-4">
+        <p className="text-center text-xs text-slate-400 dark:text-gray-500 pb-4">
           {school?.school_name || 'School'} · Help &amp; User Guide · v2.0
         </p>
       </div>

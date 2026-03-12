@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 
 const Section = ({ title, children }) => (
   <div className="mb-8">
-    <h2 className="text-lg font-bold text-slate-800 mb-3 border-b border-slate-200 pb-2">{title}</h2>
-    <div className="text-slate-600 text-sm leading-relaxed space-y-2">{children}</div>
+    <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-3 border-b border-slate-200 dark:border-gray-700 pb-2">{title}</h2>
+    <div className="text-slate-600 dark:text-gray-300 text-sm leading-relaxed space-y-2">{children}</div>
   </div>
 );
 
@@ -21,18 +21,18 @@ export default function TermsAndConditions() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
-          <ArrowLeft className="h-5 w-5 text-slate-600" />
-        </button>
-        <h1 className="text-base font-bold text-slate-800">Terms &amp; Conditions</h1>
-      </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
+     <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 shadow-sm">
+       <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition">
+         <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-gray-300" />
+       </button>
+       <h1 className="text-base font-bold text-slate-800 dark:text-white">Terms &amp; Conditions</h1>
+     </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-10">
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">{schoolName}</h1>
-          <p className="text-sm text-slate-500 mb-8">Terms and Conditions &mdash; Last updated: March 2026</p>
+     <div className="max-w-3xl mx-auto px-4 py-8">
+       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6 md:p-10">
+         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{schoolName}</h1>
+         <p className="text-sm text-slate-500 dark:text-gray-400 mb-8">Terms and Conditions &mdash; Last updated: March 2026</p>
 
           <Section title="1. Acceptance of Terms">
             <p>By accessing or using the {schoolName} School Management Application ("the App"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you may not use the App.</p>
@@ -80,13 +80,13 @@ export default function TermsAndConditions() {
 
           <Section title="8. Contact Information">
             <p>For questions, concerns, or requests related to these Terms and Conditions or your data, please contact the school administration:</p>
-            <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-              <p className="font-semibold text-slate-800">{schoolName}</p>
-              <p className="text-slate-500 text-xs mt-1">Please reach out to the school office for the most current contact details.</p>
+            <div className="mt-3 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600">
+             <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
+             <p className="text-slate-500 dark:text-gray-400 text-xs mt-1">Please reach out to the school office for the most current contact details.</p>
             </div>
           </Section>
 
-          <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-100 mt-4">
+          <p className="text-xs text-slate-400 dark:text-gray-500 text-center pt-4 border-t border-slate-100 dark:border-gray-700 mt-4">
             © {new Date().getFullYear()} {schoolName}. All rights reserved.
           </p>
         </div>
