@@ -10,7 +10,7 @@
  * 
  * Ensures Outstanding and Ledger reports always reflect current discounts.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 function aggregateAllDiscounts(feeItems, grossTotal, allDiscountsForStudent) {
   if (!allDiscountsForStudent || allDiscountsForStudent.length === 0) {

@@ -10,7 +10,7 @@
  * 
  * Admin-only. Run after adding new individual discounts or fixing discount records.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // Reuse discount logic
 function applyDiscount(feeItems, grossTotal, discount) {
