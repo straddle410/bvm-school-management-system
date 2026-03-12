@@ -224,14 +224,24 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
       if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
       const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
       const holidaysToCreate = [];
-      for (let i = 0; i < days.length; i++) {
-        const dateStr = format(days[i], 'yyyy-MM-dd');
-        const existing = await base44.entities.Holiday.filter({ date: dateStr, academic_year: academicYear });
-        if (existing.length === 0) {
-          holidaysToCreate.push({ date: dateStr, title: rangeReason || 'Holiday', reason: rangeReason || 'Holiday', marked_by: user?.email, academic_year: academicYear, status: 'Active' });
+      
+      // Check all holidays in parallel
+      const results = await Promise.all(
+        days.map(day => {
+          const dateStr = format(day, 'yyyy-MM-dd');
+          return base44.entities.Holiday.filter({ date: dateStr, academic_year: academicYear })
+            .then(existing => ({ dateStr, existing }));
+        })
+      );
+      
+      // Collect holidays to create from results
+      results.forEach((result, index) => {
+        if (result.existing.length === 0) {
+          holidaysToCreate.push({ date: result.dateStr, title: rangeReason || 'Holiday', reason: rangeReason || 'Holiday', marked_by: user?.email, academic_year: academicYear, status: 'Active' });
         }
-        setRangeProgress(Math.round(((i + 1) / days.length) * 100));
-      }
+        setRangeProgress(Math.round(((index + 1) / days.length) * 100));
+      });
+      
       if (holidaysToCreate.length > 0) await base44.entities.Holiday.bulkCreate(holidaysToCreate);
     },
     onSuccess: () => {
