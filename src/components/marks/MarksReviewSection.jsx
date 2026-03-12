@@ -139,7 +139,7 @@ export default function MarksReviewSection({
                         disabled={publishPending || !isPublishable}
                         className="bg-green-600 hover:bg-green-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         size="sm"
-                        title={!isPublishable ? 'Marks must be submitted, verified, or approved before publishing' : ''}
+                        title={!isPublishable ? 'Marks must be submitted before publishing' : ''}
                      >
                        <Check className="h-4 w-4" />
                        {publishPending ? 'Publishing...' : 'Publish Results'}
