@@ -416,10 +416,20 @@ export default function HelpGuide() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [school, setSchool] = useState(null);
+  const [updates, setUpdates] = useState({ recent: [], comingSoon: [] });
 
   useEffect(() => {
     base44.entities.SchoolProfile.list()
       .then(p => { if (p?.[0]) setSchool(p[0]); })
+      .catch(() => {});
+
+    base44.entities.AppUpdates.filter({ is_active: true }, '-created_date')
+      .then(items => {
+        setUpdates({
+          recent: items.filter(i => i.type === 'recent'),
+          comingSoon: items.filter(i => i.type === 'coming_soon'),
+        });
+      })
       .catch(() => {});
   }, []);
 
