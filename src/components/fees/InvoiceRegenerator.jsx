@@ -14,13 +14,14 @@ const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8'
 
 export default function InvoiceRegenerator({ academicYear }) {
   const queryClient = useQueryClient();
+  const staffInfo = getStaffSession();
   const [selectedClass, setSelectedClass] = useState('');
   const [showDiagnostic, setShowDiagnostic] = useState(false);
 
   // Diagnostic data
   const { data: diagnostic, isFetching: diagLoading } = useQuery({
     queryKey: ['diagnostic-invoices', selectedClass, academicYear],
-    queryFn: () => base44.functions.invoke('diagnosticFeeInvoices', { className: selectedClass, academicYear }).then(r => r.data),
+    queryFn: () => base44.functions.invoke('diagnosticFeeInvoices', { className: selectedClass, academicYear, staffInfo }).then(r => r.data),
     enabled: !!selectedClass && !!academicYear && showDiagnostic
   });
 
