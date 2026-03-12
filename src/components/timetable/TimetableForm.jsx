@@ -236,9 +236,10 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
                 required
               >
                 <option value="">Select Subject</option>
-                {subjects.map(sub => (
-                  <option key={sub} value={sub}>{sub}</option>
-                ))}
+                {subjects.map(sub => {
+                  const subName = typeof sub === 'string' ? sub : sub.name;
+                  return <option key={subName} value={subName}>{subName}</option>;
+                })}
               </select>
             </div>
             <div>
