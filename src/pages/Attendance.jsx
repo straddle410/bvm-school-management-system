@@ -152,9 +152,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin }) {
     }
   }, [existingAttendance, isSunday, isMarkedHoliday, holidays, hasOverride, effectiveHoliday]);
 
-  const filteredStudents = students.filter(s =>
-    s.class_name === selectedClass && s.section === selectedSection
-  ).sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
+  const filteredStudents = [...students].sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
