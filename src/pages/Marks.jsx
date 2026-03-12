@@ -674,6 +674,7 @@ export default function Marks() {
                  selectedExamType={selectedExamType}
                  selectedClass={selectedClass}
                  selectedSection={selectedSection}
+                 existingMarksCount={existingMarks.length}
                />
              </Suspense>
 
