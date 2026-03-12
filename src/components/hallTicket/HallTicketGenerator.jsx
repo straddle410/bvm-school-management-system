@@ -112,15 +112,13 @@ export default function HallTicketGenerator() {
     }
 
     setGenerating(true);
-    for (const className of filters.classes) {
-      generateMutation.mutate({
-        examTypeId: filters.exam_type,
-        classname: className,
-        section: filters.section,
-        academicYear,
-        assignmentType: filters.assignment_type
-      });
-    }
+    generateMutation.mutate({
+      examTypeId: filters.exam_type,
+      classes: filters.classes,
+      section: filters.section,
+      academicYear,
+      assignmentType: filters.assignment_type
+    });
   };
 
   return (

@@ -13,9 +13,12 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
-    const { examTypeId, classname, section, academicYear, assignmentType, staffSession } = payload;
+    const { examTypeId, classes, classname, section, academicYear, assignmentType, staffSession } = payload;
 
-    if (!examTypeId || !classname || !academicYear) {
+    // Support both new (classes array) and old (classname) parameter for backward compatibility
+    const classesToProcess = classes || (classname ? [classname] : []);
+
+    if (!examTypeId || classesToProcess.length === 0 || !academicYear) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -102,108 +105,119 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch students — global filter: status=Published, is_deleted=false, current AY only
-    const query = {
-      class_name: classname,
-      academic_year: academicYear,
-      status: 'Published',
-      is_deleted: false
-    };
-    if (section) query.section = section;
+    // Fetch students for all classes — global filter: status=Published, is_deleted=false, current AY only
+    const allHallTickets = [];
+    let totalGenerated = 0;
 
-    const students = await base44.asServiceRole.entities.Student.filter(query, '-roll_no');
-
-    if (students.length === 0) {
-      return Response.json({ error: 'No students found', count: 0 }, { status: 200 });
-    }
-
-    // Check for duplicate roll numbers
-    const rollNumbers = students.map(s => s.roll_no).filter(Boolean);
-    const uniqueRollNumbers = new Set(rollNumbers);
-    const hasDuplicates = rollNumbers.length !== uniqueRollNumbers.size;
-
-    if (hasDuplicates) {
-      const duplicates = rollNumbers.filter((rn, idx) => rollNumbers.indexOf(rn) !== idx);
-      return Response.json({
-        error: `Duplicate roll numbers found in Class ${classname}-${section}: ${[...new Set(duplicates)].join(', ')}. Please fix roll numbers before generating hall tickets.`,
-        hasDuplicateRollNumbers: true,
-        duplicateRollNumbers: [...new Set(duplicates)]
-      }, { status: 400 });
-    }
-
-    // Generate hall ticket numbers
-    const currentYear = new Date().getFullYear();
-    const yy = String(currentYear).slice(-2);
-    const cc = String(classname).padStart(2, '0');
-    
-    const hallTickets = [];
-
-    let randomSequence = [];
-    if (assignmentType === 'random') {
-      randomSequence = Array.from({ length: students.length }, (_, i) => i + 1);
-      for (let i = randomSequence.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [randomSequence[i], randomSequence[j]] = [randomSequence[j], randomSequence[i]];
-      }
-    }
-
-    // Already filtered: status=Published, is_deleted=false in query above
-    const activeStudents = students; // all are already Published & not deleted
-    if (activeStudents.length === 0) {
-      return Response.json({ error: 'No active (non-deleted) students found', count: 0 }, { status: 200 });
-    }
-
-    // Re-check for duplicate roll numbers after filtering
-    const activeRollNumbers = activeStudents.map(s => s.roll_no).filter(Boolean);
-    const activeUniqueRolls = new Set(activeRollNumbers);
-    if (activeRollNumbers.length !== activeUniqueRolls.size) {
-      const duplicates = activeRollNumbers.filter((rn, idx) => activeRollNumbers.indexOf(rn) !== idx);
-      return Response.json({
-        error: `Duplicate roll numbers found in active students: ${[...new Set(duplicates)].join(', ')}.`,
-        hasDuplicateRollNumbers: true
-      }, { status: 400 });
-    }
-
-    activeStudents.forEach((student, idx) => {
-      let xx;
-      if (assignmentType === 'sequential') {
-        xx = String(student.roll_no || idx + 1).padStart(2, '0');
-      } else {
-        xx = String(randomSequence[idx]).padStart(2, '0');
-      }
-
-      const hallTicketNumber = `${yy}${cc}${xx}`;
-
-      hallTickets.push({
-        hall_ticket_number: hallTicketNumber,
-        exam_type: examTypeId,
-        student_id: student.id,
-        student_name: student.name,
-        roll_number: student.roll_no,
+    for (const classname of classesToProcess) {
+      const query = {
         class_name: classname,
-        section: section,
-        student_photo_url: student.photo_url || '',
         academic_year: academicYear,
-        status: 'Generated',
-        generated_by: user.email || user.full_name
+        status: 'Published',
+        is_deleted: false
+      };
+      if (section) query.section = section;
+
+      const students = await base44.asServiceRole.entities.Student.filter(query, '-roll_no');
+
+      if (students.length === 0) {
+        continue; // Skip if no students in this class
+      }
+
+      // Check for duplicate roll numbers
+      const rollNumbers = students.map(s => s.roll_no).filter(Boolean);
+      const uniqueRollNumbers = new Set(rollNumbers);
+      const hasDuplicates = rollNumbers.length !== uniqueRollNumbers.size;
+
+      if (hasDuplicates) {
+        const duplicates = rollNumbers.filter((rn, idx) => rollNumbers.indexOf(rn) !== idx);
+        return Response.json({
+          error: `Duplicate roll numbers found in Class ${classname}-${section}: ${[...new Set(duplicates)].join(', ')}. Please fix roll numbers before generating hall tickets.`,
+          hasDuplicateRollNumbers: true,
+          duplicateRollNumbers: [...new Set(duplicates)]
+        }, { status: 400 });
+      }
+
+      // Generate hall ticket numbers
+      const currentYear = new Date().getFullYear();
+      const yy = String(currentYear).slice(-2);
+      const cc = String(classname).padStart(2, '0');
+
+      const hallTickets = [];
+
+      let randomSequence = [];
+      if (assignmentType === 'random') {
+        randomSequence = Array.from({ length: students.length }, (_, i) => i + 1);
+        for (let i = randomSequence.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [randomSequence[i], randomSequence[j]] = [randomSequence[j], randomSequence[i]];
+        }
+      }
+
+      // Already filtered: status=Published, is_deleted=false in query above
+      const activeStudents = students; // all are already Published & not deleted
+      if (activeStudents.length === 0) {
+        continue; // Skip if no active students
+      }
+
+      // Re-check for duplicate roll numbers after filtering
+      const activeRollNumbers = activeStudents.map(s => s.roll_no).filter(Boolean);
+      const activeUniqueRolls = new Set(activeRollNumbers);
+      if (activeRollNumbers.length !== activeUniqueRolls.size) {
+        const duplicates = activeRollNumbers.filter((rn, idx) => activeRollNumbers.indexOf(rn) !== idx);
+        return Response.json({
+          error: `Duplicate roll numbers found in active students of Class ${classname}: ${[...new Set(duplicates)].join(', ')}.`,
+          hasDuplicateRollNumbers: true
+        }, { status: 400 });
+      }
+
+      activeStudents.forEach((student, idx) => {
+        let xx;
+        if (assignmentType === 'sequential') {
+          xx = String(student.roll_no || idx + 1).padStart(2, '0');
+        } else {
+          xx = String(randomSequence[idx]).padStart(2, '0');
+        }
+
+        const hallTicketNumber = `${yy}${cc}${xx}`;
+
+        hallTickets.push({
+          hall_ticket_number: hallTicketNumber,
+          exam_type: examTypeId,
+          student_id: student.id,
+          student_name: student.name,
+          roll_number: student.roll_no,
+          class_name: classname,
+          section: section,
+          student_photo_url: student.photo_url || '',
+          academic_year: academicYear,
+          status: 'Generated',
+          generated_by: user.email || user.full_name
+        });
       });
-    });
 
-    await base44.asServiceRole.entities.HallTicket.bulkCreate(hallTickets);
+      allHallTickets.push(...hallTickets);
+      totalGenerated += hallTickets.length;
+    }
 
+    if (totalGenerated === 0) {
+      return Response.json({ error: 'No students found in selected classes', count: 0 }, { status: 200 });
+    }
+
+    await base44.asServiceRole.entities.HallTicket.bulkCreate(allHallTickets);
 
     await base44.asServiceRole.entities.HallTicketLog.create({
       action: 'generated',
       hall_ticket_id: 'bulk',
       student_id: 'multiple',
       performed_by: user.email || user.full_name,
-      details: `Generated ${hallTickets.length} hall tickets for Class ${classname}`
+      details: `Generated ${totalGenerated} hall tickets for ${classesToProcess.length} class(es)`
     });
 
     return Response.json({
       success: true,
-      count: hallTickets.length,
-      message: `Generated ${hallTickets.length} hall tickets successfully`
+      count: totalGenerated,
+      message: `Generated ${totalGenerated} hall tickets successfully for ${classesToProcess.length} class(es)`
     });
   } catch (error) {
     console.error('Error:', error);
