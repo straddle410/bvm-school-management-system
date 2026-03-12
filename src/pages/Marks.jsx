@@ -107,10 +107,12 @@ export default function Marks() {
     queryKey: ['exam-types', academicYear],
     queryFn: async () => {
       const types = await base44.entities.ExamType.filter({ academic_year: academicYear });
-      // Fetch timetable to get exam order
-      const timetable = await base44.entities.ExamTimetable.filter({ academic_year: academicYear });
+      // Limit timetable fetch to active exam types only
+      if (types.length === 0) return types;
+      const examIds = types.map(t => t.id);
+      const timetable = await base44.entities.ExamTimetable.filter({ academic_year: academicYear })
+        .then(all => all.filter(t => examIds.includes(t.exam_type)).slice(0, 500)); // Limit timetable entries
       if (timetable.length === 0) return types;
-      // Create a map of exam_type to min date for ordering
       const examDates = {};
       timetable.forEach(t => {
         const key = t.exam_type;
@@ -118,7 +120,6 @@ export default function Marks() {
           examDates[key] = t.exam_date;
         }
       });
-      // Sort exam types by their schedule date
       return types.sort((a, b) => {
         const dateA = examDates[a.id] || examDates[a.name] || '9999-12-31';
         const dateB = examDates[b.id] || examDates[b.name] || '9999-12-31';
@@ -152,7 +153,7 @@ export default function Marks() {
         class_name: selectedClass,
         exam_type: selectedExamObj?.id || selectedExam,
         academic_year: academicYear
-      });
+      }).then(all => all.slice(0, 100)); // Limit timetable entries per class/exam to 100
     },
     enabled: !!(selectedClass && selectedExam && academicYear)
   });
