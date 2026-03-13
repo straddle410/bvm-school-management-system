@@ -115,7 +115,7 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
       date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
     }),
     enabled: !!selectedClass && !!selectedSection && !!workingDate,
-    staleTime: 1 * 60 * 1000
+    staleTime: 0 // Always refetch to ensure lock status is current
   });
 
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
