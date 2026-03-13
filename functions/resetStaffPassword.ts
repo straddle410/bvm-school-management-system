@@ -33,16 +33,38 @@ Deno.serve(async (req) => {
     }
 
     const staff = staffRecords[0];
-    const password_hash = await bcrypt.hash(temp_password, 10);
+    
+    // Hash the temporary password with bcrypt
+    let password_hash;
+    try {
+      password_hash = await bcrypt.hash(temp_password, 10);
+    } catch (hashErr) {
+      console.error('Password hashing error:', hashErr);
+      return Response.json(
+        { success: false, error: 'Failed to process password' },
+        { status: 500 }
+      );
+    }
 
-    // Reset password and force change on next login
-    await base44.asServiceRole.entities.StaffAccount.update(staff.id, {
-      password_hash,
-      force_password_change: true,
-      password_updated_at: new Date().toISOString()
+    // Update staff record: reset password to temp_password hash and set force_password_change = true
+    try {
+      await base44.asServiceRole.entities.StaffAccount.update(staff.id, {
+        password_hash,
+        force_password_change: true,
+        password_updated_at: new Date().toISOString()
+      });
+    } catch (updateErr) {
+      console.error('Staff update error:', updateErr);
+      return Response.json(
+        { success: false, error: 'Failed to reset password' },
+        { status: 500 }
+      );
+    }
+
+    return Response.json({ 
+      success: true, 
+      message: 'Password reset successfully. Staff must change on next login.' 
     });
-
-    return Response.json({ success: true, message: 'Password reset successfully' });
   } catch (error) {
     console.error('Reset password error:', error);
     return Response.json(
