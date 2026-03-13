@@ -124,11 +124,24 @@ export default function Approvals() {
     try {
       setStaffActionLoading(record.id);
       
+      // Generate unique staff code
+      const allStaff = await base44.entities.StaffAccount.list();
+      const staffCodes = allStaff
+        .map(s => s.staff_code)
+        .filter(code => code && /^S\d+$/.test(code))
+        .map(code => parseInt(code.substring(1)))
+        .sort((a, b) => b - a);
+      
+      const nextNumber = (staffCodes[0] || 0) + 1;
+      const staffCode = `S${nextNumber}`;
+      
       await base44.entities.StaffAccount.update(record.id, {
         status: 'active',
+        staff_code: staffCode,
+        force_password_change: true
       });
       
-      toast.success(`Staff approved!`);
+      toast.success(`Staff approved! Staff ID: ${staffCode}`);
       queryClient.invalidateQueries(['pending-staff']);
     } catch (error) {
       console.error('Staff approval failed:', error);
