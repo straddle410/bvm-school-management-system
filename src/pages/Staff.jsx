@@ -389,6 +389,7 @@ export default function Staff() {
   };
 
   const handleSave = async () => {
+    console.log('handleSave called, editingStaff:', editingStaff);
     if (!form.name) {
       toast.error('Name is required');
       return;
