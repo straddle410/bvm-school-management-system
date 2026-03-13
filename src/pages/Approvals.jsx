@@ -137,8 +137,9 @@ export default function Approvals() {
       const staffCode = codeResponse.data.staff_code;
       
       await base44.entities.StaffAccount.update(record.id, {
-        status: 'active',
+        status: 'Active',
         staff_code: staffCode,
+        username: staffCode,
         force_password_change: false
       });
       
