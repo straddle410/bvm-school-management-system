@@ -81,6 +81,8 @@ export default function Profile() {
       setStaffAccount(profile);
       setFormData({
         mobile: profile.mobile || '',
+        alternative_phone: profile.alternative_phone || '',
+        email: profile.email || '',
         qualification: profile.qualification || '',
         address_line1: profile.address_line1 || '',
         address_line2: profile.address_line2 || '',
@@ -238,7 +240,6 @@ export default function Profile() {
                 <div className="flex-1">
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{staffAccount.name}</h1>
                   <p className="text-sm text-gray-600 dark:text-gray-300">{staffAccount.designation || staffAccount.role}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{staffAccount.email}</p>
                 </div>
               </div>
               {!isEditing && (
@@ -264,6 +265,25 @@ export default function Profile() {
                    <Input name="mobile" value={formData.mobile} onChange={handleInputChange} placeholder="10+ digits" className="mt-1" />
                  ) : (
                    <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.mobile || '—'}</p>
+                 )}
+                </div>
+                <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Alternative Phone Number</label>
+                 {isEditing ? (
+                   <Input name="alternative_phone" value={formData.alternative_phone} onChange={handleInputChange} placeholder="10+ digits" className="mt-1" />
+                 ) : (
+                   <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.alternative_phone || '—'}</p>
+                 )}
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+                 {isEditing ? (
+                   <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="email@example.com" className="mt-1" />
+                 ) : (
+                   <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.email || '—'}</p>
                  )}
                 </div>
                 <div>
