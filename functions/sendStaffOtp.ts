@@ -1,77 +1,61 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_code, mobile } = await req.json();
-    
-    if (!staff_code || !mobile) {
-      return Response.json({ success: false, error: 'Staff code and mobile required' }, { status: 400 });
-    }
+    const { email, staffName } = await req.json();
 
-    // Find staff by staff_code
-    const staffRecords = await base44.asServiceRole.entities.StaffAccount.filter({
-      staff_code: staff_code.trim()
-    });
-
-    if (!staffRecords || staffRecords.length === 0) {
-      return Response.json({ success: false, error: 'Staff not found' }, { status: 404 });
-    }
-
-    const staff = staffRecords[0];
-
-    // Validate mobile number matches
-    if (staff.mobile !== mobile.trim()) {
-      return Response.json({ success: false, error: 'Mobile number does not match' }, { status: 400 });
+    if (!email) {
+      return Response.json({ error: 'Email is required' }, { status: 400 });
     }
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Generated OTP:', otp);
-    console.log('Sending to:', mobile);
+    const generatedAt = new Date().toISOString();
 
-    // Set expiry to 10 minutes from now
-    const expiryTime = new Date();
-    expiryTime.setMinutes(expiryTime.getMinutes() + 10);
-
-    // Update staff record with OTP and expiry
-    await base44.asServiceRole.entities.StaffAccount.update(staff.id, {
-      reset_otp: otp,
-      reset_otp_expiry: expiryTime.toISOString()
-    });
+    // Update StaffAccount with OTP and timestamp
+    const allStaff = await base44.entities.StaffAccount.list();
+    const staff = allStaff.find(s => s.email === email);
     
-    const apiKey = Deno.env.get('FAST2SMS_API_KEY');
-    if (!apiKey) {
-      return Response.json({ success: false, error: 'API key not found' }, { status: 500 });
+    if (staff) {
+      await base44.entities.StaffAccount.update(staff.id, {
+        otp_code: otp,
+        otp_generated_at: generatedAt
+      });
     }
+
+    // Send via Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    let emailSent = false;
     
-    const url = `https://www.fast2sms.com/dev/bulkV2?route=otp&variables_value=${otp}&numbers=${mobile}&flash=0&authorization=${apiKey}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'cache-control': 'no-cache'
+    if (resendApiKey) {
+      try {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'onboarding@resend.dev',
+            to: email,
+            subject: 'Your BVM School Admin Login OTP',
+            html: `<p>Dear ${staffName || 'Admin'},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p><p>Do not share this OTP with anyone.</p><p>Best regards,<br>BVM School of Excellence</p>`
+          })
+        });
+
+        if (response.ok) {
+          emailSent = true;
+        }
+      } catch (emailError) {
+        console.warn('Email delivery failed, but OTP saved:', emailError.message);
       }
-    });
-    
-    const text = await response.text();
-    console.log('Fast2SMS response:', text);
-    
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch(e) {
-      throw new Error('Parse error: ' + text);
     }
-    
-    if(!result.return) {
-      throw new Error('Fast2SMS error: ' + JSON.stringify(result));
-    }
-    
-    return Response.json({ success: true, message: 'OTP sent successfully' });
-    
-  } catch(e) {
-    console.log('Error:', e.message);
-    return Response.json({ success: false, error: e.message }, { status: 500 });
+
+    // Return success even if email fails - OTP is saved in database
+    return Response.json({ success: true, emailSent });
+  } catch (error) {
+    console.error('OTP Error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });

@@ -59,18 +59,6 @@ export default function ChangeStaffPassword() {
       return;
     }
 
-    // Prevent using the default password as new password
-    if (newPassword === 'Bvm@1234') {
-      setError('You cannot use the default password. Please set a different password.');
-      return;
-    }
-
-    // Prevent using the current password (if it was the default) as new password
-    if (currentPassword === 'Bvm@1234' && newPassword === currentPassword) {
-      setError('You must set a different password from your current one.');
-      return;
-    }
-
     const { valid, message } = validatePasswordPolicy(newPassword);
     if (!valid) {
       setError(message);

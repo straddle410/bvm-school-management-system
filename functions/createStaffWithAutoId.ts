@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
     const counter = counters[0];
     const newValue = (counter.current_value || 0) + 1;
-    const generatedId = `${prefix}${String(newValue).padStart(3, '0')}`;
+    const generatedId = `${prefix}${newValue}`;
 
     // Update counter
     await base44.asServiceRole.entities.Counter.update(counter.id, {
@@ -39,41 +39,27 @@ Deno.serve(async (req) => {
 
     console.log(`Generated Staff ID: ${generatedId} for ${staffData.name}`);
 
-    // Generate email in format: staffcode@bvmschool.com
-    const generatedEmail = `${generatedId.toLowerCase()}@bvmschool.com`;
-    console.log(`Generated Email: ${generatedEmail}`);
-
     // Hash password
-    const password_hash = password ? await bcrypt.hash(password, 10) : await bcrypt.hash('password123', 10);
+    const password_hash = await bcrypt.hash(password || 'password123', 10);
 
-    // Register user in Base44 auth system with the generated email
-    try {
-      await base44.asServiceRole.users.inviteUser(generatedEmail, 'user');
-      console.log(`✓ Invited user to Base44: ${generatedEmail}`);
-    } catch (inviteError) {
-      console.log(`Warning: Could not invite user (may already exist): ${inviteError.message}`);
-    }
-
-    // Create staff account with auto-generated ID and email
+    // Create staff account with auto-generated ID
     const newStaff = await base44.asServiceRole.entities.StaffAccount.create({
       ...staffData,
       staff_code: generatedId,
       username: generatedId,
-      email: generatedEmail,
       password_hash,
-      force_password_change: staffData.force_password_change !== false,
-      is_active: staffData.is_active !== false,
+      force_password_change: true,
+      is_active: true,
       failed_login_attempts: 0
     });
 
-    console.log(`✓ Created staff: ${newStaff.name} (${generatedId}) with email ${generatedEmail}`);
+    console.log(`✓ Created staff: ${newStaff.name} (${generatedId})`);
 
     return Response.json({
       success: true,
       staff: newStaff,
       generated_id: generatedId,
-      generated_email: generatedEmail,
-      message: `Staff account created with ID: ${generatedId} and email: ${generatedEmail}`
+      message: `Staff account created with ID: ${generatedId}`
     });
 
   } catch (error) {

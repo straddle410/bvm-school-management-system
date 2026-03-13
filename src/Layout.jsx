@@ -99,7 +99,8 @@ export default function Layout({ children, currentPageName }) {
       return;
     }
 
-    // Check for staff session first - if it exists, use ONLY that data
+    // Staff session in localStorage is the AUTHORITATIVE source for role/nav.
+    // base44.auth.me() may return a different role — do NOT overwrite staff role.
     let staffRoleFromSession = '';
     try {
       const staffRaw = localStorage.getItem('staff_session');
@@ -112,14 +113,12 @@ export default function Layout({ children, currentPageName }) {
       }
     } catch {}
 
-    // Load school profile (safe for all user types)
     try {
       const profiles = await base44.entities.SchoolProfile.list();
       if (profiles.length > 0) setSchoolProfile(profiles[0]);
     } catch {}
 
-    // ONLY call auth.me() if there's NO staff session
-    // Staff sessions use custom authentication and will fail with base44.auth.me()
+    // Only use auth.me() role if no staff session exists
     if (!staffRoleFromSession) {
       try {
         const currentUser = await base44.auth.me().catch(() => null);

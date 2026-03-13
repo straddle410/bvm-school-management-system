@@ -5,6 +5,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
 
+    // Check if authenticated user is admin
     if (!user || (user.role !== 'admin' && user.role !== 'principal')) {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
@@ -19,10 +20,10 @@ Deno.serve(async (req) => {
     const counterKey = `staff_code_${prefix}`;
 
     // Get or create counter
-    const counters = await base44.asServiceRole.entities.Counter.filter({ key: counterKey });
-    let counter = counters.length > 0 ? counters[0] : null;
+    let counter = await base44.asServiceRole.entities.Counter.filter({ key: counterKey }).then(r => r[0]);
     
     if (!counter) {
+      // Create new counter starting at 0
       counter = await base44.asServiceRole.entities.Counter.create({
         key: counterKey,
         current_value: 0

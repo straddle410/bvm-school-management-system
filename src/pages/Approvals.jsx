@@ -9,19 +9,11 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle 
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
-import { 
-  AlertDialog, AlertDialogAction, AlertDialogCancel, 
-  AlertDialogContent, AlertDialogDescription, AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
 
 const STATUS_COLORS = {
   PendingApproval: 'bg-amber-100 text-amber-800',
@@ -35,10 +27,6 @@ export default function Approvals() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingItem, setRejectingItem] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [staffRejectDialog, setStaffRejectDialog] = useState(null);
-  const [staffActionLoading, setStaffActionLoading] = useState(null);
-  const [editingStaff, setEditingStaff] = useState(null);
-  const [editFormData, setEditFormData] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -66,11 +54,6 @@ export default function Approvals() {
     queryKey: ['pending-photos', academicYear],
     queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'PendingApproval', academic_year: academicYear }, '-created_date'),
     enabled: !!academicYear
-  });
-
-  const { data: pendingStaff = [] } = useQuery({
-    queryKey: ['pending-staff'],
-    queryFn: () => base44.entities.StaffAccount.filter({ status: 'pending' }, '-created_date')
   });
 
   const approveMutation = useMutation({
@@ -120,87 +103,6 @@ export default function Approvals() {
     setShowRejectModal(true);
   };
 
-  const handleStaffApprove = async (record) => {
-    try {
-      setStaffActionLoading(record.id);
-      
-      // Generate staff code using the official function
-      const codeResponse = await base44.functions.invoke('generateStaffCode', {
-        role: record.role
-      });
-      
-      if (!codeResponse.data?.success || !codeResponse.data?.staff_code) {
-        toast.error('Failed to generate Staff ID');
-        return;
-      }
-      
-      const staffCode = codeResponse.data.staff_code;
-      
-      await base44.entities.StaffAccount.update(record.id, {
-        status: 'Active',
-        staff_code: staffCode,
-        username: staffCode,
-        force_password_change: false
-      });
-      
-      toast.success(`Staff approved! Staff ID: ${staffCode}`);
-      queryClient.invalidateQueries(['pending-staff']);
-    } catch (error) {
-      console.error('Staff approval failed:', error);
-      toast.error('Failed to approve staff');
-    } finally {
-      setStaffActionLoading(null);
-    }
-  };
-
-  const handleStaffReject = async () => {
-    if (!staffRejectDialog) return;
-    
-    try {
-      setStaffActionLoading(staffRejectDialog.id);
-      await base44.entities.StaffAccount.update(staffRejectDialog.id, {
-        status: 'rejected',
-      });
-      toast.success('Staff application rejected');
-      setStaffRejectDialog(null);
-      queryClient.invalidateQueries(['pending-staff']);
-    } catch (error) {
-      console.error('Staff rejection failed:', error);
-      toast.error('Failed to reject application');
-    } finally {
-      setStaffActionLoading(null);
-    }
-  };
-
-  const openEditDialog = (record) => {
-    setEditingStaff(record);
-    setEditFormData({
-      name: record.name,
-      mobile: record.mobile,
-      role: record.role,
-      designation: record.designation,
-      qualification: record.qualification,
-      email: record.email || ''
-    });
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingStaff) return;
-    
-    try {
-      setStaffActionLoading(editingStaff.id);
-      await base44.entities.StaffAccount.update(editingStaff.id, editFormData);
-      toast.success('Staff details updated');
-      queryClient.invalidateQueries(['pending-staff']);
-      setEditingStaff(null);
-    } catch (error) {
-      console.error('Update failed:', error);
-      toast.error('Failed to update staff details');
-    } finally {
-      setStaffActionLoading(null);
-    }
-  };
-
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -219,11 +121,10 @@ export default function Approvals() {
           </div>
 
           <Tabs defaultValue="notices" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="notices">Notices <Badge className="ml-2">{pendingNotices.length}</Badge></TabsTrigger>
               <TabsTrigger value="quizzes">Quizzes <Badge className="ml-2">{pendingQuizzes.length}</Badge></TabsTrigger>
               <TabsTrigger value="photos">Gallery <Badge className="ml-2">{pendingPhotos.length}</Badge></TabsTrigger>
-              <TabsTrigger value="staff">Staff Approvals <Badge className="ml-2">{pendingStaff.length}</Badge></TabsTrigger>
             </TabsList>
 
             {/* NOTICES TAB */}
@@ -412,89 +313,6 @@ export default function Approvals() {
                 )}
               </div>
             </TabsContent>
-
-            {/* STAFF APPROVALS TAB */}
-            <TabsContent value="staff">
-              <div className="space-y-4">
-                {pendingStaff.length === 0 ? (
-                  <Card className="border-0 shadow-sm dark:bg-gray-800">
-                    <CardContent className="py-12 text-center">
-                      <p className="text-gray-500 dark:text-gray-400">No pending staff applications</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="border-0 shadow-sm dark:bg-gray-800">
-                    <CardContent className="p-4">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b dark:border-gray-700">
-                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</th>
-                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Role</th>
-                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Department</th>
-                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Phone</th>
-                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Applied Date</th>
-                              <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {pendingStaff.map((record) => (
-                              <tr key={record.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <td className="py-3 px-2 text-sm text-gray-900 dark:text-white">{record.name}</td>
-                                <td className="py-3 px-2 text-sm">
-                                  <Badge variant="outline">{record.role || 'N/A'}</Badge>
-                                </td>
-                                <td className="py-3 px-2 text-sm text-gray-600 dark:text-gray-400">{record.designation || '-'}</td>
-                                <td className="py-3 px-2 text-sm text-gray-600 dark:text-gray-400">{record.mobile || '-'}</td>
-                                <td className="py-3 px-2 text-sm text-gray-500 dark:text-gray-400">
-                                  {format(new Date(record.created_date), 'MMM d, yyyy')}
-                                </td>
-                                <td className="py-3 px-2 text-right">
-                                  <div className="flex gap-2 justify-end">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => openEditDialog(record)}
-                                      disabled={staffActionLoading === record.id}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      className="bg-green-600 hover:bg-green-700"
-                                      onClick={() => handleStaffApprove(record)}
-                                      disabled={staffActionLoading === record.id}
-                                    >
-                                      {staffActionLoading === record.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <>
-                                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                                          Approve
-                                        </>
-                                      )}
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => setStaffRejectDialog(record)}
-                                      disabled={staffActionLoading === record.id}
-                                    >
-                                      <XCircle className="h-4 w-4 mr-1" />
-                                      Reject
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </TabsContent>
           </Tabs>
         </div>
 
@@ -526,115 +344,6 @@ export default function Approvals() {
             </div>
           </DialogContent>
         </Dialog>
-
-        {/* STAFF EDIT DIALOG */}
-        <Dialog open={!!editingStaff} onOpenChange={() => setEditingStaff(null)}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Staff Details</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Full Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editFormData.name || ''}
-                  onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-mobile">Phone Number</Label>
-                <Input
-                  id="edit-mobile"
-                  value={editFormData.mobile || ''}
-                  onChange={(e) => setEditFormData({...editFormData, mobile: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-email">Email</Label>
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={editFormData.email || ''}
-                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-role">Role</Label>
-                <Select value={editFormData.role || ''} onValueChange={(value) => setEditFormData({...editFormData, role: value})}>
-                  <SelectTrigger id="edit-role">
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="exam_staff">Exam Staff</SelectItem>
-                    <SelectItem value="librarian">Librarian</SelectItem>
-                    <SelectItem value="staff">Support Staff</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-designation">Department</Label>
-                <Input
-                  id="edit-designation"
-                  value={editFormData.designation || ''}
-                  onChange={(e) => setEditFormData({...editFormData, designation: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-qualification">Qualification</Label>
-                <Input
-                  id="edit-qualification"
-                  value={editFormData.qualification || ''}
-                  onChange={(e) => setEditFormData({...editFormData, qualification: e.target.value})}
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4">
-                <Button variant="outline" onClick={() => setEditingStaff(null)}>
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={handleSaveEdit}
-                  disabled={staffActionLoading}
-                >
-                  {staffActionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* STAFF REJECT CONFIRMATION */}
-        <AlertDialog open={!!staffRejectDialog} onOpenChange={() => setStaffRejectDialog(null)}>
-          <AlertDialogContent>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <XCircle className="h-5 w-5" />
-              Reject Staff Application
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to reject the application from <strong>{staffRejectDialog?.name}</strong>?
-              This action cannot be undone.
-            </AlertDialogDescription>
-            <div className="flex justify-end gap-2 mt-4">
-              <AlertDialogCancel onClick={() => setStaffRejectDialog(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleStaffReject}
-                className="bg-red-600 hover:bg-red-700"
-                disabled={staffActionLoading}
-              >
-                {staffActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reject'}
-              </AlertDialogAction>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </LoginRequired>
   );
