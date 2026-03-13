@@ -78,7 +78,7 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
     queryFn: () => {
       const filter = { academic_year: academicYear };
       if (classFilter !== 'All') filter.class_name = classFilter;
-      return base44.entities.FeePayment.filter(filter, '-payment_date', 500);
+      return base44.entities.FeePayment.filter(filter, '-created_date', 500);
     },
     enabled: !!academicYear && !!fromDate && !!toDate
   });
