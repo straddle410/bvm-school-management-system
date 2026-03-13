@@ -18,20 +18,16 @@ export default function MessageNotificationListener() {
         // Additional safety: Check URL path — if /student*, skip
         if (typeof window !== 'undefined' && window.location.pathname.startsWith('/student')) return;
 
-        // Resolve current user: check staff_session first (teachers), then base44 auth (admin)
+        // CRITICAL: Staff use custom authentication, NOT Base44 auth
+        // If staff session exists, skip this listener entirely
+        const staffSession = localStorage.getItem('staff_session');
+        if (staffSession) return; // Staff don't use Base44 message notifications
+
+        // Resolve current user: ONLY use base44 auth for regular authenticated users
         let currentEmail = null;
         let currentName = null;
-        try {
-          const ss = localStorage.getItem('staff_session');
-          if (ss) {
-            const staff = JSON.parse(ss);
-            if (staff?.email) { currentEmail = staff.email; currentName = staff.full_name; }
-          }
-        } catch {}
-        if (!currentEmail) {
-          const user = await base44.auth.me().catch(() => null);
-          if (user?.email) { currentEmail = user.email; currentName = user.full_name; }
-        }
+        const user = await base44.auth.me().catch(() => null);
+        if (user?.email) { currentEmail = user.email; currentName = user.full_name; }
         if (!currentEmail) return;
 
         const currentUser = { email: currentEmail, full_name: currentName };
