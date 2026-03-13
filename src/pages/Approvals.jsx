@@ -177,6 +177,35 @@ export default function Approvals() {
     }
   };
 
+  const openEditDialog = (record) => {
+    setEditingStaff(record);
+    setEditFormData({
+      name: record.name,
+      mobile: record.mobile,
+      role: record.role,
+      designation: record.designation,
+      qualification: record.qualification,
+      email: record.email || ''
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingStaff) return;
+    
+    try {
+      setStaffActionLoading(editingStaff.id);
+      await base44.entities.StaffAccount.update(editingStaff.id, editFormData);
+      toast.success('Staff details updated');
+      queryClient.invalidateQueries(['pending-staff']);
+      setEditingStaff(null);
+    } catch (error) {
+      console.error('Update failed:', error);
+      toast.error('Failed to update staff details');
+    } finally {
+      setStaffActionLoading(null);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
