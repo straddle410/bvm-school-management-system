@@ -376,6 +376,7 @@ function MarkAttendanceTab({
     onSuccess: (action) => {
       // Invalidate all holiday-override queries to refresh immediately
       queryClient.invalidateQueries({ queryKey: ['holiday-override'] });
+      setIsEditingOverride(false); // ✅ Close lazy load after action
       const performedBy = user?.email || user?.username || user?.name || 'system';
       if (performedBy && performedBy !== 'system') {
         base44.entities.AuditLog.create({
