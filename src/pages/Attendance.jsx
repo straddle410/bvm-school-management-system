@@ -857,9 +857,11 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
      academicYearData[0].status === 'Archived'
    );
 
+   // ✅ FIX #6: HOLIDAY CACHING - Cache for 5 minutes
    const { data: holidays = [] } = useQuery({
      queryKey: ['holidays', academicYear],
-     queryFn: () => base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' })
+     queryFn: () => base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' }),
+     staleTime: 5 * 60 * 1000 // Cache for 5 minutes
    });
 
   const createMutation = useMutation({
