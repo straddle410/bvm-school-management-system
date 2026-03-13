@@ -50,8 +50,8 @@ Deno.serve(async (req) => {
 
     // Send SMS via Fast2SMS
     const apiKey = Deno.env.get('FAST2SMS_API_KEY');
-    console.log('API Key exists:', !!apiKey);
-    console.log('API Key length:', apiKey?.length || 0);
+    console.log('API Key length:', apiKey ? apiKey.length : 'NOT FOUND');
+    console.log('Mobile number:', mobile);
     
     if (!apiKey) {
       console.error('FAST2SMS_API_KEY not found in environment');
@@ -61,26 +61,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    const message = `Your BVM School OTP is ${otp}. Valid for 10 minutes.`;
-
-    const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-      method: 'POST',
-      headers: {
-        'authorization': apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        route: 'v3',
-        message: message,
-        language: 'english',
-        flash: 0,
-        numbers: mobile.toString()
-      })
+    const params = new URLSearchParams({
+      route: 'v3',
+      message: `Your BVM School OTP is ${otp}. Valid for 10 minutes.`,
+      language: 'english',
+      flash: '0',
+      numbers: mobile.toString()
     });
 
+    const response = await fetch(`https://www.fast2sms.com/dev/bulkV2?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'authorization': apiKey,
+        'cache-control': 'no-cache'
+      }
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', JSON.stringify([...response.headers]));
     const responseText = await response.text();
-    console.log('Fast2SMS raw response:', responseText);
-    console.log('Fast2SMS status:', response.status);
+    console.log('Raw response:', responseText);
 
     let result;
     try {
