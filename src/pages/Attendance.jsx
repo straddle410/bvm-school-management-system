@@ -997,6 +997,7 @@ export default function Attendance() {
   const { academicYear } = useAcademicYear();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('mark');
+  const [selectedClass, setSelectedClass] = useState(''); // ✅ Parent state for class
 
   useEffect(() => {
     setUser(getStaffSession());
@@ -1010,7 +1011,22 @@ export default function Attendance() {
     return 'system';
   };
 
-  // Single holidays query shared by both tabs
+  // ✅ FIX #1: SHARED PARENT QUERIES - Load once and pass to all tabs
+  const { data: classSectionData } = useQuery({
+    queryKey: ['classes-for-year', academicYear],
+    queryFn: () => getClassesForYear(academicYear),
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: sectionData } = useQuery({
+    queryKey: ['sections-for-class', academicYear, selectedClass],
+    queryFn: () => getSectionsForClass(academicYear, selectedClass),
+    enabled: !!academicYear && !!selectedClass,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Single holidays query shared by all tabs (with proper caching)
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', academicYear],
     queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear }),
@@ -1031,6 +1047,7 @@ export default function Attendance() {
   };
 
   const tabCount = isAdmin ? 4 : canViewReports ? 3 : 1;
+  const queryClient = useQueryClient();
 
   const handleRefresh = async () => {
     queryClient.invalidateQueries({ queryKey: ['holidays'] });
