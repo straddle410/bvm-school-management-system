@@ -60,7 +60,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const message = `Your BVM School password reset OTP is ${otp}. Valid for 10 minutes. Do not share with anyone.`;
+    const message = `Your BVM School OTP is ${otp}. Valid for 10 minutes.`;
+
     const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
       method: 'POST',
       headers: {
@@ -72,12 +73,26 @@ Deno.serve(async (req) => {
         message: message,
         language: 'english',
         flash: 0,
-        numbers: mobile.trim()
+        numbers: mobile.toString()
       })
     });
 
-    const result = await response.json();
-    console.log('Fast2SMS response:', JSON.stringify(result));
+    const responseText = await response.text();
+    console.log('Fast2SMS raw response:', responseText);
+    console.log('Fast2SMS status:', response.status);
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch(e) {
+      console.log('JSON parse error:', e.message);
+      return Response.json(
+        { success: false, error: 'Fast2SMS response: ' + responseText },
+        { status: 500 }
+      );
+    }
+
+    console.log('Fast2SMS parsed result:', JSON.stringify(result));
 
     if (!result.return) {
       console.error('Fast2SMS error:', JSON.stringify(result));
