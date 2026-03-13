@@ -194,24 +194,9 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.Attendance.update(attendanceId, data);
 
-    // ── AUTO-LOCK AFTER SAVE (ADMIN UNLOCK & EDIT) ──
-    // If admin is editing an unlocked record, lock it again after save
-    if (isAdmin) {
-      try {
-        await base44.asServiceRole.entities.Attendance.update(attendanceId, {
-          is_locked: true,
-          locked_at: new Date().toISOString()
-        });
-      } catch (lockError) {
-        console.warn('Auto-lock after save failed but proceeding:', lockError);
-        // Don't fail the entire operation if lock fails
-      }
-    }
-
     return Response.json({
       message: 'Attendance updated successfully',
-      success: true,
-      locked: isAdmin // Indicate to frontend that record was locked
+      success: true
     });
   } catch (error) {
     console.error('Update attendance error:', error);
