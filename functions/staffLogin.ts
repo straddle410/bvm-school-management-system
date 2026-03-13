@@ -13,10 +13,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search for staff by staff_code
-    const staffRecords = await base44.asServiceRole.entities.StaffAccount.filter({
-      staff_code: staff_code
-    });
+    // Search for staff by staff_code using service role (no user authentication required)
+    let staffRecords = [];
+    try {
+      staffRecords = await base44.asServiceRole.entities.StaffAccount.filter({
+        staff_code: staff_code.trim()
+      });
+    } catch (filterError) {
+      console.error('Filter error:', filterError);
+      return Response.json(
+        { error: 'Failed to retrieve staff information' },
+        { status: 500 }
+      );
+    }
 
     if (!staffRecords || staffRecords.length === 0) {
       return Response.json(
