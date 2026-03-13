@@ -73,6 +73,12 @@ function MarkAttendanceTab({
       setSelectedSection(availableSections[0]);
     }
   }, [availableSections, selectedSection]);
+
+  // ✅ Notify parent when class changes
+  const handleClassChange = (newClass) => {
+    setSelectedSection('');
+    onClassChange(newClass);
+  };
   const [attendanceData, setAttendanceData] = useState({});
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayReason, setHolidayReason] = useState('');
