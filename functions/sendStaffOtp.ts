@@ -1,16 +1,12 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20'; 
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { staff_code, mobile } = await req.json();
-    console.log('sendStaffOtp invoked for staff_code:', staff_code);
-
+    
     if (!staff_code || !mobile) {
-      return Response.json(
-        { success: false, error: 'Staff code and mobile are required' },
-        { status: 400 }
-      );
+      return Response.json({ success: false, error: 'Staff code and mobile required' }, { status: 400 });
     }
 
     // Find staff by staff_code
@@ -19,24 +15,20 @@ Deno.serve(async (req) => {
     });
 
     if (!staffRecords || staffRecords.length === 0) {
-      return Response.json(
-        { success: false, error: 'Staff not found' },
-        { status: 404 }
-      );
+      return Response.json({ success: false, error: 'Staff not found' }, { status: 404 });
     }
 
     const staff = staffRecords[0];
 
     // Validate mobile number matches
     if (staff.mobile !== mobile.trim()) {
-      return Response.json(
-        { success: false, error: 'Mobile number does not match' },
-        { status: 400 }
-      );
+      return Response.json({ success: false, error: 'Mobile number does not match' }, { status: 400 });
     }
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('Generated OTP:', otp);
+    console.log('Sending to:', mobile);
 
     // Set expiry to 10 minutes from now
     const expiryTime = new Date();
@@ -47,68 +39,29 @@ Deno.serve(async (req) => {
       reset_otp: otp,
       reset_otp_expiry: expiryTime.toISOString()
     });
-
-    // Send SMS via Fast2SMS
-    const apiKey = Deno.env.get('FAST2SMS_API_KEY');
-    console.log('API Key length:', apiKey ? apiKey.length : 'NOT FOUND');
-    console.log('Mobile number:', mobile);
     
+    const apiKey = Deno.env.get('FAST2SMS_API_KEY');
     if (!apiKey) {
-      console.error('FAST2SMS_API_KEY not found in environment');
-      return Response.json(
-        { success: false, error: 'SMS service not configured - API key missing' },
-        { status: 500 }
-      );
+      return Response.json({ success: false, error: 'API key not found' }, { status: 500 });
     }
-
-    const params = new URLSearchParams({
-      route: 'v3',
-      message: `Your BVM School OTP is ${otp}. Valid for 10 minutes.`,
-      language: 'english',
-      flash: '0',
-      numbers: mobile.toString()
-    });
-
-    const response = await fetch(`https://www.fast2sms.com/dev/bulkV2?${params.toString()}`, {
+    
+    const url = `https://www.fast2sms.com/dev/bulkV2?route=v3&message=Your BVM School OTP is ${otp}. Valid 10 mins.&language=english&flash=0&numbers=${mobile}`;
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'authorization': apiKey,
         'cache-control': 'no-cache'
       }
     });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', JSON.stringify([...response.headers]));
-    const responseText = await response.text();
-    console.log('Raw response:', responseText);
-
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch(e) {
-      console.log('JSON parse error:', e.message);
-      return Response.json(
-        { success: false, error: 'Fast2SMS response: ' + responseText },
-        { status: 500 }
-      );
-    }
-
-    console.log('Fast2SMS parsed result:', JSON.stringify(result));
-
-    if (!result.return) {
-      console.error('Fast2SMS error:', JSON.stringify(result));
-      return Response.json(
-        { success: false, error: 'Fast2SMS error: ' + JSON.stringify(result) },
-        { status: 500 }
-      );
-    }
-
+    
+    const text = await response.text();
+    console.log('Fast2SMS response:', text);
+    
     return Response.json({ success: true, message: 'OTP sent successfully' });
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    return Response.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    
+  } catch(e) {
+    console.log('Error:', e.message);
+    return Response.json({ success: false, error: e.message }, { status: 500 });
   }
 });
