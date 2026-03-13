@@ -69,9 +69,17 @@ export default function Fees() {
 
   const isAccountant = role === 'accountant';
 
+  // ✅ FIX #1 & #3: Move FeeHead query to parent + add caching
+  const { data: feeHeads = [] } = useQuery({
+    queryKey: ['fee-heads'],
+    queryFn: () => base44.entities.FeeHead.filter({ is_active: true }),
+    staleTime: 60 * 60 * 1000 // 1 hour cache (rarely changes)
+  });
+
   const { data: schoolProfiles = [] } = useQuery({
     queryKey: ['school-profile'],
-    queryFn: () => base44.entities.SchoolProfile.list()
+    queryFn: () => base44.entities.SchoolProfile.list(),
+    staleTime: 60 * 60 * 1000 // 1 hour cache (rarely changes)
   });
 
   // Accountant tab list (only their relevant tabs)
