@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
 export default function StaffSignup() {
@@ -108,9 +109,9 @@ export default function StaffSignup() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/StaffLogin">
+            <a href={createPageUrl('StaffLogin')}>
               <Button className="w-full">Back to Login</Button>
-            </Link>
+            </a>
           </CardContent>
         </Card>
       </div>
@@ -226,11 +227,11 @@ export default function StaffSignup() {
                 )}
               </Button>
 
-              <Link to="/StaffLogin" className="block">
+              <a href={createPageUrl('StaffLogin')} className="block">
                 <Button type="button" variant="outline" className="w-full" disabled={loading}>
                   Back to Login
                 </Button>
-              </Link>
+              </a>
             </div>
           </form>
         </CardContent>
