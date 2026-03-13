@@ -13,14 +13,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search for staff by staff_code using service role (no user authentication required)
+    // STEP 1: Fetch staff record by staff_code (using service role, no auth required)
     let staffRecords = [];
     try {
       staffRecords = await base44.asServiceRole.entities.StaffAccount.filter({
         staff_code: staff_code.trim()
       });
     } catch (filterError) {
-      console.error('Filter error:', filterError);
+      console.error('Staff lookup error:', filterError.message);
       return Response.json(
         { error: 'Failed to retrieve staff information' },
         { status: 500 }
