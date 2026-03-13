@@ -31,12 +31,13 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
 
   const [form, setForm] = useState({
-    amountPaid: outstanding,
+    amountPaid: 0,
     paymentDate: format(new Date(), 'yyyy-MM-dd'),
     paymentMode: 'Cash',
     referenceNo: '',
     remarks: ''
   });
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const enteredAmount = parseFloat(form?.amountPaid) || 0;
   const isOverpayment = enteredAmount > outstanding;
