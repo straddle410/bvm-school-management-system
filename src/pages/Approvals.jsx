@@ -458,6 +458,14 @@ export default function Approvals() {
                                   <div className="flex gap-2 justify-end">
                                     <Button
                                       size="sm"
+                                      variant="outline"
+                                      onClick={() => openEditDialog(record)}
+                                      disabled={staffActionLoading === record.id}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
                                       className="bg-green-600 hover:bg-green-700"
                                       onClick={() => handleStaffApprove(record)}
                                       disabled={staffActionLoading === record.id}
