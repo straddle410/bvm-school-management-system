@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { CheckCircle, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
