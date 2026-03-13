@@ -532,6 +532,91 @@ export default function Approvals() {
           </DialogContent>
         </Dialog>
 
+        {/* STAFF EDIT DIALOG */}
+        <Dialog open={!!editingStaff} onOpenChange={() => setEditingStaff(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Staff Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editFormData.name || ''}
+                  onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-mobile">Phone Number</Label>
+                <Input
+                  id="edit-mobile"
+                  value={editFormData.mobile || ''}
+                  onChange={(e) => setEditFormData({...editFormData, mobile: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editFormData.email || ''}
+                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-role">Role</Label>
+                <Select value={editFormData.role || ''} onValueChange={(value) => setEditFormData({...editFormData, role: value})}>
+                  <SelectTrigger id="edit-role">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="exam_staff">Exam Staff</SelectItem>
+                    <SelectItem value="librarian">Librarian</SelectItem>
+                    <SelectItem value="staff">Support Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-designation">Department</Label>
+                <Input
+                  id="edit-designation"
+                  value={editFormData.designation || ''}
+                  onChange={(e) => setEditFormData({...editFormData, designation: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-qualification">Qualification</Label>
+                <Input
+                  id="edit-qualification"
+                  value={editFormData.qualification || ''}
+                  onChange={(e) => setEditFormData({...editFormData, qualification: e.target.value})}
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <Button variant="outline" onClick={() => setEditingStaff(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={handleSaveEdit}
+                  disabled={staffActionLoading}
+                >
+                  {staffActionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* STAFF REJECT CONFIRMATION */}
         <AlertDialog open={!!staffRejectDialog} onOpenChange={() => setStaffRejectDialog(null)}>
           <AlertDialogContent>
