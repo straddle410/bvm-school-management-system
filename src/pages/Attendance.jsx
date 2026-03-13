@@ -843,11 +843,13 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
    const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
    const canManage = can(userWithPerms, 'attendance_manage_holidays');
 
+   // ✅ FIX #6: ACADEMIC YEAR CACHING - Cache for 1 hour since it rarely changes
    const { data: academicYearData = [] } = useQuery({
-     queryKey: ['academic-year', academicYear],
-     queryFn: () => base44.entities.AcademicYear.filter({ year: academicYear }),
-     enabled: !!academicYear
-   });
+      queryKey: ['academic-year', academicYear],
+      queryFn: () => base44.entities.AcademicYear.filter({ year: academicYear }),
+      enabled: !!academicYear,
+      staleTime: 60 * 60 * 1000 // Cache for 1 hour
+    });
 
    const yearLocked = academicYearData.length > 0 && (
      academicYearData[0].is_locked === true ||
