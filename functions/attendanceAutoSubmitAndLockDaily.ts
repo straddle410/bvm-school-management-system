@@ -41,12 +41,12 @@ Deno.serve(async (req) => {
     // Get current time in IST
     const istTime = getISTTime();
     const istTimeInMinutes = istTime.hours * 60 + istTime.minutes;
-    const lockTimeInMinutes = 15 * 60; // 3:00 PM = 15:00
+    const lockTimeInMinutes = 15 * 60 + 30; // 3:30 PM = 15:30
 
-    // Only auto-submit/lock if current time >= 3:00 PM IST
+    // Only auto-submit/lock if current time >= 3:30 PM IST
     if (istTimeInMinutes < lockTimeInMinutes) {
       return Response.json({
-        message: `Current IST time: ${istTime.hours.toString().padStart(2, '0')}:${istTime.minutes.toString().padStart(2, '0')}. Auto-submit not triggered (before 3:00 PM IST).`,
+        message: `Current IST time: ${istTime.hours.toString().padStart(2, '0')}:${istTime.minutes.toString().padStart(2, '0')}. Auto-submit not triggered (before 3:30 PM IST).`,
         autoSubmitted: 0,
         locked: 0
       });
@@ -55,11 +55,7 @@ Deno.serve(async (req) => {
     // Get today's date in IST
     const todayIST = istTime.dateString;
 
-    // ── Step 1: Fetch all Attendance records for today
-    const allAttendance = await base44.asServiceRole.entities.Attendance.list();
-    const todayAttendance = allAttendance.filter(a => a.date === todayIST);
-
-    // ── Step 2: Fetch all active academic years to get current one
+    // ── Step 1: Fetch all active academic years to get current one FIRST
     const allYears = await base44.asServiceRole.entities.AcademicYear.list();
     const currentYear = allYears.find(y => y.is_current === true);
     const academicYear = currentYear?.year || '';
@@ -68,6 +64,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No active academic year configured' }, { status: 400 });
     }
 
+    // ── Step 2: Fetch attendance records for today filtered by academicYear
+    const allAttendance = await base44.asServiceRole.entities.Attendance.filter({
+      academic_year: academicYear,
+      date: todayIST
+    });
+    const todayAttendance = allAttendance;
+
     // ── Step 3: Fetch all published students for current year
     const allStudents = await base44.asServiceRole.entities.Student.filter({
       status: 'Published',
@@ -75,7 +78,7 @@ Deno.serve(async (req) => {
       is_deleted: false
     });
 
-    // ── Step 4: Build attendance map by class-section-student
+    // ── Step 4: Build attendance map by class-section-student (already filtered by academicYear)
     const attendanceMap = {};
     todayAttendance.forEach(a => {
       const key = `${a.class_name}-${a.section}-${a.student_id}`;
@@ -165,7 +168,7 @@ Deno.serve(async (req) => {
         module: 'Attendance',
         date: todayIST,
         performed_by: user.email,
-        details: `Auto-submitted ${createdCount} absent records and locked ${lockedCount} existing records at 3:00 PM IST`,
+        details: `Auto-submitted ${createdCount} absent records and locked ${lockedCount} existing records at 3:30 PM IST`,
         academic_year: academicYear
       });
     } catch (auditError) {
@@ -173,7 +176,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      message: `Auto-submitted ${createdCount} records and locked ${lockedCount} records at 3:00 PM IST on ${todayIST}`,
+      message: `Auto-submitted ${createdCount} records and locked ${lockedCount} records at 3:30 PM IST on ${todayIST}`,
       autoSubmitted: createdCount,
       locked: lockedCount,
       lockedAt: new Date().toISOString()
