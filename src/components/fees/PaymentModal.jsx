@@ -138,14 +138,23 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button
               className="bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => { if (!form.amountPaid || parseFloat(form.amountPaid) <= 0) { toast.error('Enter a valid amount'); return; } if (isOverpayment) { toast.error(`Amount exceeds outstanding balance of ₹${outstanding}`); return; } payMutation.mutate(); }}
-              disabled={payMutation.isPending || isOverpayment}
+              onClick={handleRecordClick}
+              disabled={isOverpayment}
             >
-              {payMutation.isPending ? 'Recording...' : 'Record Payment'}
+              Record Payment
             </Button>
           </div>
         </div>
       </DialogContent>
+
+      <PaymentConfirmationModal
+        open={showConfirmation}
+        studentName={invoice.student_name}
+        amount={parseFloat(form.amountPaid) || 0}
+        onConfirm={handleConfirmPayment}
+        onCancel={() => setShowConfirmation(false)}
+        isLoading={payMutation.isPending}
+      />
     </Dialog>
   );
 }
