@@ -704,25 +704,18 @@ function MarkAttendanceTab({
 }
 
 // ─── Attendance Summary Tab ───────────────────────────────────────────────────
-function AttendanceSummaryTab({ academicYear, user, holidays }) {
+function AttendanceSummaryTab({ 
+  academicYear, 
+  user, 
+  holidays,
+  classSectionData,    // ✅ Receive from parent to avoid duplicate query
+  sectionData          // ✅ Receive from parent to avoid duplicate query
+}) {
   const [filters, setFilters] = useState({ class: '', section: '', fromDate: '', toDate: '' });
   const [recordsLimitHit, setRecordsLimitHit] = useState(false);
 
-  const { data: classSectionData } = useQuery({
-    queryKey: ['classes-for-year', academicYear],
-    queryFn: () => getClassesForYear(academicYear),
-    enabled: !!academicYear,
-    staleTime: 5 * 60 * 1000,
-  });
   const availableClasses = classSectionData?.classes || [];
-
-  const { data: sectionData } = useQuery({
-    queryKey: ['sections-for-class', academicYear, filters.class],
-    queryFn: () => getSectionsForClass(academicYear, filters.class),
-    enabled: !!academicYear && !!filters.class,
-    staleTime: 5 * 60 * 1000,
-  });
-  const availableSections = sectionData?.sections || [];
+  const availableSections = (sectionData && filters.class) ? sectionData.sections : [];
   const [hasGenerated, setHasGenerated] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
