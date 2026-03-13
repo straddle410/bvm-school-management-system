@@ -27,7 +27,7 @@ const statusColor = {
   Waived: 'bg-slate-100 text-slate-600'
 };
 
-export default function StudentLedger({ academicYear, isArchivedYear }) {
+export default function StudentLedger({ academicYear, isArchivedYear, feeHeads = [] }) {
   const queryClient = useQueryClient();
   const [selectedClass, setSelectedClass] = useState('');
   const [search, setSearch] = useState('');
