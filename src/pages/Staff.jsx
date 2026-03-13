@@ -135,79 +135,29 @@ export default function Staff() {
     queryFn: () => base44.entities.RoleTemplate.list('name'),
   });
 
-  const [generatedStaffId, setGeneratedStaffId] = useState(null);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-
   const saveMutation = useMutation({
     mutationFn: async ({ _editId, ...data }) => {
       if (_editId) {
         return base44.entities.StaffAccount.update(_editId, data);
       }
-      // Use createStaffWithAutoId backend function for new staff
-      const result = await base44.functions.invoke('createStaffWithAutoId', {
-        name: data.name,
-        designation: data.designation,
-        role: data.role,
-        mobile: data.mobile,
-        email: data.email,
-        password: tempPassword,
-        role_template_id: data.role_template_id,
-        force_password_change: data.force_password_change,
-        is_active: data.is_active,
-        // Profile fields
-        gender: data.gender,
-        dob: data.dob,
-        joining_date: data.joining_date,
-        qualification: data.qualification,
-        experience_years: data.experience_years,
-        address_line1: data.address_line1,
-        address_line2: data.address_line2,
-        city: data.city,
-        state: data.state,
-        pincode: data.pincode,
-        emergency_contact_name: data.emergency_contact_name,
-        emergency_contact_phone: data.emergency_contact_phone,
-        is_teacher: data.is_teacher,
-        subjects: data.subjects,
-        classes: data.classes,
-        sections: data.sections,
-        class_teacher_of: data.class_teacher_of,
-      });
-      return result.data;
+      return base44.entities.StaffAccount.create(data);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] });
-      if (editingStaff) {
-        setShowDialog(false);
-        setEditingStaff(null);
-        setForm({
-          name: '',
-          username: '',
-          password_hash: '',
-          designation: '',
-          mobile: '',
-          email: '',
-          role_template_id: '',
-          force_password_change: true,
-          is_active: true,
-        });
-        toast.success('Staff updated');
-      } else {
-        // For new staff, show success dialog with generated ID
-        setGeneratedStaffId(data?.generated_id || data?.staff?.staff_code);
-        setShowSuccessDialog(true);
-        setForm({
-          name: '',
-          username: '',
-          password_hash: '',
-          designation: '',
-          mobile: '',
-          email: '',
-          role_template_id: '',
-          force_password_change: true,
-          is_active: true,
-        });
-      }
+      setShowDialog(false);
+      setEditingStaff(null);
+      setForm({
+        name: '',
+        username: '',
+        password_hash: '',
+        designation: '',
+        mobile: '',
+        email: '',
+        role_template_id: '',
+        force_password_change: true,
+        is_active: true,
+      });
+      toast.success(editingStaff ? 'Staff updated' : 'Staff account created');
     },
     onError: (error) => {
       toast.error(error?.message || 'Failed to save staff. Please try again.');
@@ -370,20 +320,14 @@ export default function Staff() {
   };
 
   const handleSave = async () => {
-    if (!form.name) {
-      toast.error('Name is required');
-      return;
-    }
-    
-    // For editing, require username
-    if (editingStaff && !form.username) {
-      toast.error('Username is required');
+    if (!form.name || !form.username) {
+      toast.error('Name and username are required');
       return;
     }
 
     // For new staff creation, hash the temp password server-side before saving
     let passwordHash = form.password_hash;
-    if (editingStaff && tempPassword) {
+    if (!editingStaff && tempPassword) {
       try {
         const hashRes = await base44.functions.invoke('hashStaffPassword', { password: tempPassword });
         if (!hashRes.data?.hash) throw new Error('Hash failed');
@@ -394,9 +338,11 @@ export default function Staff() {
       }
     }
 
-    // Check for duplicate username only when editing and username is being changed
+    // Normalize username
+    const normalizedUsername = form.username.trim().toLowerCase();
+
+    // Check for duplicate username only when the username is actually being changed
     if (editingStaff) {
-      const normalizedUsername = form.username.trim().toLowerCase();
       const originalUsername = editingStaff.username?.toLowerCase() || '';
       if (normalizedUsername !== originalUsername) {
         const existingWithUsername = staffList.filter(s =>
@@ -463,7 +409,7 @@ export default function Staff() {
 
     const dataToSave = { 
       ...form,
-      username: editingStaff ? form.username.trim().toLowerCase() : undefined,
+      username: normalizedUsername,
       role: derivedRole,
       experience_years: experienceYears,
       password_hash: passwordHash,
@@ -615,12 +561,21 @@ export default function Staff() {
                     className="space-y-4 max-w-2xl"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="col-span-2">
+                      <div>
                         <Label>Full Name *</Label>
                         <Input
                           value={form.name}
-                          onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
+                          onChange={(e) => handleNameChange(e.target.value)}
                           placeholder="John Doe"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Username *</Label>
+                        <Input
+                          value={form.username}
+                          onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
+                          placeholder="john.doe01"
                           required
                         />
                       </div>
@@ -703,6 +658,10 @@ export default function Staff() {
                         <AccordionContent>
                           <div className="space-y-4 pt-2">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label>Staff Code</Label>
+                                <Input value={form.staff_code} onChange={(e) => setForm(f => ({ ...f, staff_code: e.target.value }))} placeholder="T001" />
+                              </div>
                               <div>
                                 <Label>Gender</Label>
                                 <Select value={form.gender} onValueChange={(v) => setForm(f => ({ ...f, gender: v }))}>
@@ -1206,39 +1165,6 @@ export default function Staff() {
               </p>
               <Button
                 onClick={() => setShowResetSuccessModal(false)}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                Done
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Staff Creation Success Modal */}
-        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-green-600">✓ Staff Account Created</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <p className="text-sm text-slate-700 dark:text-gray-300 mb-2">
-                  Auto-generated Staff ID:
-                </p>
-                <p className="font-mono font-bold text-2xl text-green-700 dark:text-green-400 text-center">
-                  {generatedStaffId}
-                </p>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                <p className="text-xs text-blue-800 dark:text-blue-300">
-                  <span className="font-semibold">Note:</span> The username has been automatically set to <span className="font-mono">{generatedStaffId}</span>
-                </p>
-              </div>
-              <Button
-                onClick={() => {
-                  setShowSuccessDialog(false);
-                  setGeneratedStaffId(null);
-                }}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
                 Done

@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const ALLOWED_FIELDS = [
-  'mobile', 'alternative_phone', 'email', 'qualification', 'address_line1', 'address_line2',
+  'mobile', 'qualification', 'address_line1', 'address_line2',
   'city', 'state', 'pincode', 'emergency_contact_name',
   'emergency_contact_phone', 'photo_url'
 ];

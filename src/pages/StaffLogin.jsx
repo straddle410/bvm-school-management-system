@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 export default function StaffLogin() {
   const navigate = useNavigate();
-  const [staffId, setStaffId] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,18 +23,11 @@ export default function StaffLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    
-    // Clear validation error on new attempt
-    if (!staffId || !password) {
-      setError('Staff ID and password are required');
-      return;
-    }
-    
     setLoading(true);
 
     try {
       const response = await base44.functions.invoke('staffLogin', {
-        staffId,
+        username,
         password,
       });
 
@@ -200,7 +193,7 @@ export default function StaffLogin() {
         </CardHeader>
 
         <CardContent className="pt-8">
-          <form onSubmit={handleLogin} className="space-y-4" noValidate>
+          <form onSubmit={handleLogin} className="space-y-4">
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg">
                 <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
@@ -213,18 +206,16 @@ export default function StaffLogin() {
                 Username
               </Label>
               <Input
-                 id="staffId"
-                 type="text"
-                 value={staffId}
-                 onChange={(e) => {
-                   setStaffId(e.target.value);
-                   setError('');
-                 }}
-                 placeholder="e.g., A101, T101"
-                 className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                 disabled={loading}
-                 autoFocus
-               />
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g., ravi.kumar01"
+                className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                disabled={loading}
+                autoFocus
+                required
+              />
             </div>
 
             <div className="space-y-2">
@@ -236,13 +227,11 @@ export default function StaffLogin() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
+                required
               />
             </div>
 
