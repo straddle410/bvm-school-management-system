@@ -222,7 +222,14 @@ export default function StaffLogin() {
               )}
             </Button>
 
-            <a href={createPageUrl('StaffSignup')} className="block text-center text-sm text-blue-600 hover:underline mt-4">Register as Staff</a>
+            <div className="flex items-center justify-between mt-4">
+              <Link to="/ForgotPassword" className="text-sm text-blue-600 hover:underline">
+                Forgot Password?
+              </Link>
+              <Link to="/StaffSignup" className="text-sm text-blue-600 hover:underline">
+                Register as Staff
+              </Link>
+            </div>
 
             <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
               For account issues, contact your administrator.
