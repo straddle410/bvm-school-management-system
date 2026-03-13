@@ -141,9 +141,13 @@ function MarkAttendanceTab({
 
 
 
+  // ✅ FIX #4: HOLIDAY OVERRIDE - Only fetch when actually editing (lazy load)
+  const [isEditingOverride, setIsEditingOverride] = useState(false);
+  
   const { data: overrides = [] } = useQuery({
     queryKey: ['holiday-override', workingDate, selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.HolidayOverride.filter({ date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear }),
+    enabled: isEditingOverride, // Only fetch when user is actually editing
     staleTime: 5 * 60 * 1000
   });
 
