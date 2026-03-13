@@ -26,35 +26,49 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
+      console.log('[StaffLogin] Invoking staffLogin with staff_code:', staffId.trim());
       const response = await base44.functions.invoke('staffLogin', {
         staff_code: staffId.trim(),
         password,
       });
 
-      if (response.data?.success) {
+      console.log('[StaffLogin] Response received:', { status: response.status, success: response.data?.success, hasStaffData: !!response.data?.staff });
+
+      if (response.data?.success && response.data?.staff) {
         const staffData = response.data.staff;
+        console.log('[StaffLogin] Staff data:', { id: staffData.id, username: staffData.username, role: staffData.role, force_password_change: staffData.force_password_change });
 
         // Clear any existing student session
         sessionStorage.removeItem('student_session');
         localStorage.removeItem('student_session');
 
-        // Store staff session
-        sessionStorage.setItem('staff_session', JSON.stringify(staffData));
-        localStorage.setItem('staff_session', JSON.stringify(staffData));
+        // Store staff session with all data including token
+        const sessionData = JSON.stringify(staffData);
+        console.log('[StaffLogin] Storing staff session to localStorage, size:', sessionData.length);
+        sessionStorage.setItem('staff_session', sessionData);
+        localStorage.setItem('staff_session', sessionData);
 
         // Check if password change is required
         if (staffData.force_password_change) {
+          console.log('[StaffLogin] Force password change is true, redirecting to ChangeStaffPassword');
           toast.success('Login successful. Please change your password.');
-          navigate(createPageUrl('ChangeStaffPassword'));
+          const changePasswordUrl = createPageUrl('ChangeStaffPassword');
+          console.log('[StaffLogin] Navigating to:', changePasswordUrl);
+          navigate(changePasswordUrl);
         } else {
+          console.log('[StaffLogin] Force password change is false, redirecting to Dashboard');
           toast.success('Login successful');
-          navigate(createPageUrl('Dashboard'));
+          const dashboardUrl = createPageUrl('Dashboard');
+          console.log('[StaffLogin] Navigating to:', dashboardUrl);
+          navigate(dashboardUrl);
         }
       } else {
+        console.error('[StaffLogin] Response indicates failure:', response.data);
         setError(response.data?.error || 'Login failed');
       }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('[StaffLogin] Error caught:', err.message);
+      console.error('[StaffLogin] Error details:', { status: err.response?.status, data: err.response?.data });
       
       // Handle specific error status codes
       if (err.response?.status === 404) {
