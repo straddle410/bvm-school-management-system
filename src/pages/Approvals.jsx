@@ -10,10 +10,14 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { 
+  AlertDialog, AlertDialogAction, AlertDialogCancel, 
+  AlertDialogContent, AlertDialogDescription, AlertDialogTitle 
+} from '@/components/ui/alert-dialog';
 
 const STATUS_COLORS = {
   PendingApproval: 'bg-amber-100 text-amber-800',
@@ -27,6 +31,8 @@ export default function Approvals() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingItem, setRejectingItem] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [staffRejectDialog, setStaffRejectDialog] = useState(null);
+  const [staffActionLoading, setStaffActionLoading] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -54,6 +60,11 @@ export default function Approvals() {
     queryKey: ['pending-photos', academicYear],
     queryFn: () => base44.entities.GalleryPhoto.filter({ status: 'PendingApproval', academic_year: academicYear }, '-created_date'),
     enabled: !!academicYear
+  });
+
+  const { data: pendingStaff = [] } = useQuery({
+    queryKey: ['pending-staff'],
+    queryFn: () => base44.entities.StaffAccount.filter({ status: 'pending' }, '-created_date')
   });
 
   const approveMutation = useMutation({
@@ -103,6 +114,63 @@ export default function Approvals() {
     setShowRejectModal(true);
   };
 
+  const handleStaffApprove = async (record) => {
+    try {
+      setStaffActionLoading(record.id);
+      
+      const response = await base44.functions.invoke('createStaffWithAutoId', {
+        staff_data: {
+          name: record.name,
+          role: record.role,
+          designation: record.designation,
+          mobile: record.mobile,
+          email: record.email,
+          qualification: record.qualification,
+          username: record.username,
+          password_hash: record.password_hash,
+          is_active: true,
+          status: 'active',
+        }
+      });
+
+      if (response.data?.success && response.data?.staff_code) {
+        await base44.entities.StaffAccount.update(record.id, {
+          staff_code: response.data.staff_code,
+          status: 'active',
+        });
+        
+        toast.success(`Staff approved! Staff ID: ${response.data.staff_code}`);
+        queryClient.invalidateQueries(['pending-staff']);
+      } else {
+        toast.error('Failed to generate Staff ID');
+      }
+    } catch (error) {
+      console.error('Staff approval failed:', error);
+      toast.error(error.response?.data?.error || 'Failed to approve staff');
+    } finally {
+      setStaffActionLoading(null);
+    }
+  };
+
+  const handleStaffReject = async () => {
+    if (!staffRejectDialog) return;
+    
+    try {
+      setStaffActionLoading(staffRejectDialog.id);
+      await base44.entities.StaffAccount.update(staffRejectDialog.id, {
+        status: 'rejected',
+      });
+      toast.success('Staff application rejected');
+      setStaffRejectDialog(null);
+      queryClient.invalidateQueries(['pending-staff']);
+    } catch (error) {
+      console.error('Staff rejection failed:', error);
+      toast.error('Failed to reject application');
+    } finally {
+      setStaffActionLoading(null);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -121,10 +189,11 @@ export default function Approvals() {
           </div>
 
           <Tabs defaultValue="notices" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="notices">Notices <Badge className="ml-2">{pendingNotices.length}</Badge></TabsTrigger>
               <TabsTrigger value="quizzes">Quizzes <Badge className="ml-2">{pendingQuizzes.length}</Badge></TabsTrigger>
               <TabsTrigger value="photos">Gallery <Badge className="ml-2">{pendingPhotos.length}</Badge></TabsTrigger>
+              <TabsTrigger value="staff">Staff Approvals <Badge className="ml-2">{pendingStaff.length}</Badge></TabsTrigger>
             </TabsList>
 
             {/* NOTICES TAB */}
@@ -313,6 +382,81 @@ export default function Approvals() {
                 )}
               </div>
             </TabsContent>
+
+            {/* STAFF APPROVALS TAB */}
+            <TabsContent value="staff">
+              <div className="space-y-4">
+                {pendingStaff.length === 0 ? (
+                  <Card className="border-0 shadow-sm dark:bg-gray-800">
+                    <CardContent className="py-12 text-center">
+                      <p className="text-gray-500 dark:text-gray-400">No pending staff applications</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="border-0 shadow-sm dark:bg-gray-800">
+                    <CardContent className="p-4">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b dark:border-gray-700">
+                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</th>
+                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Role</th>
+                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Department</th>
+                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Phone</th>
+                              <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Applied Date</th>
+                              <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pendingStaff.map((record) => (
+                              <tr key={record.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td className="py-3 px-2 text-sm text-gray-900 dark:text-white">{record.name}</td>
+                                <td className="py-3 px-2 text-sm">
+                                  <Badge variant="outline">{record.role || 'N/A'}</Badge>
+                                </td>
+                                <td className="py-3 px-2 text-sm text-gray-600 dark:text-gray-400">{record.designation || '-'}</td>
+                                <td className="py-3 px-2 text-sm text-gray-600 dark:text-gray-400">{record.mobile || '-'}</td>
+                                <td className="py-3 px-2 text-sm text-gray-500 dark:text-gray-400">
+                                  {format(new Date(record.created_date), 'MMM d, yyyy')}
+                                </td>
+                                <td className="py-3 px-2 text-right">
+                                  <div className="flex gap-2 justify-end">
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleStaffApprove(record)}
+                                      disabled={staffActionLoading === record.id}
+                                    >
+                                      {staffActionLoading === record.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                                          Approve
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => setStaffRejectDialog(record)}
+                                      disabled={staffActionLoading === record.id}
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
 
@@ -344,6 +488,30 @@ export default function Approvals() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* STAFF REJECT CONFIRMATION */}
+        <AlertDialog open={!!staffRejectDialog} onOpenChange={() => setStaffRejectDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              Reject Staff Application
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reject the application from <strong>{staffRejectDialog?.name}</strong>?
+              This action cannot be undone.
+            </AlertDialogDescription>
+            <div className="flex justify-end gap-2 mt-4">
+              <AlertDialogCancel onClick={() => setStaffRejectDialog(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleStaffReject}
+                className="bg-red-600 hover:bg-red-700"
+                disabled={staffActionLoading}
+              >
+                {staffActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reject'}
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </LoginRequired>
   );
