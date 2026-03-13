@@ -26,71 +26,47 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
-      console.log('[StaffLogin] Calling staffLogin with Staff ID:', staffId.trim());
-
-      // Call staffLogin backend function with staff_code and password
       const response = await base44.functions.invoke('staffLogin', {
         staff_code: staffId.trim(),
         password,
       });
 
-      console.log('[StaffLogin] staffLogin response:', response.data);
+      if (response.data?.success) {
+        const staffData = response.data.staff;
 
-      if (!response.data.success) {
-        const code = response.data.code;
-        const codeMessages = {
-          USER_NOT_FOUND: 'Invalid Staff ID',
-          PASSWORD_MISMATCH: 'Invalid password',
-          ACCOUNT_INACTIVE: 'Your account is inactive. Contact your administrator.',
-          ACCOUNT_LOCKED: 'Account locked due to too many attempts. Try again in 15 minutes.',
-          PASSWORD_NOT_SET: 'Password not set. Ask your administrator to reset your password.',
-        };
-        setError(codeMessages[code] || response.data.error || 'Login failed');
-        setLoading(false);
-        return;
+        // Clear any existing student session
+        sessionStorage.removeItem('student_session');
+        localStorage.removeItem('student_session');
+
+        // Store staff session
+        sessionStorage.setItem('staff_session', JSON.stringify(staffData));
+        localStorage.setItem('staff_session', JSON.stringify(staffData));
+
+        // Check if password change is required
+        if (staffData.force_password_change) {
+          toast.success('Login successful. Please change your password.');
+          navigate(createPageUrl('ChangeStaffPassword'));
+        } else {
+          toast.success('Login successful');
+          navigate(createPageUrl('Dashboard'));
+        }
+      } else {
+        setError(response.data?.error || 'Login failed');
       }
-
-      // Always clear any student session — staff must never fall into student flow
-      const { saveSession, clearSession } = await import('@/components/sessionHelper');
-      clearSession('student_session');
-
-      // Store staff session with long-lived signed token (90 days)
-      const session = {
-        staff_id: response.data.staff_id,
-        username: response.data.username,
-        name: response.data.name,
-        full_name: response.data.full_name,
-        role: response.data.role,
-        designation: response.data.designation,
-        role_template_id: response.data.role_template_id,
-        permissions: response.data.permissions || {},
-        effective_permissions: response.data.effective_permissions || {},
-        permissions_override: response.data.permissions_override || {},
-        logged_in_at: new Date().toISOString(),
-        staff_session_token: response.data.staff_session_token,
-        token_exp: response.data.token_exp,
-      };
-
-      saveSession('staff_session', session);
-
-      console.log('[StaffLogin] Session saved:', {
-        staff_id: response.data.staff_id,
-        username: response.data.username,
-        role: response.data.role
-      });
-
-      // If password change required, redirect to change password
-      if (response.data.force_password_change) {
-        toast.success('Login successful. Please change your password.');
-        navigate(createPageUrl('ChangeStaffPassword'));
-        return;
-      }
-
-      toast.success('Login successful');
-      navigate(createPageUrl('Dashboard'));
     } catch (err) {
-      console.error('[StaffLogin] Login error:', err);
-      setError(err.response?.data?.error || err.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      
+      // Handle specific error status codes
+      if (err.response?.status === 404) {
+        setError('Invalid Staff ID');
+      } else if (err.response?.status === 401) {
+        setError('Invalid password');
+      } else if (err.response?.status === 403) {
+        setError(err.response?.data?.error || 'Account is not active');
+      } else {
+        setError('Login failed. Please try again.');
+      }
+    } finally {
       setLoading(false);
     }
   };
