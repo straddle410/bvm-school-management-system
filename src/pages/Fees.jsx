@@ -94,7 +94,7 @@ export default function Fees() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'accountant']} pageName="Fees">
-      <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
+      <div className="min-h-screen h-full overflow-y-auto bg-slate-50 dark:bg-gray-900">
         <PageHeader
           title="Fees"
           subtitle={`Annual fee management — ${academicYear}`}
