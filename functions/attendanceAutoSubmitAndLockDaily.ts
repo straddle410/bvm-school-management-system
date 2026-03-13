@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
         module: 'Attendance',
         date: todayIST,
         performed_by: user.email,
-        details: `Auto-submitted ${createdCount} absent records and locked ${lockedCount} existing records at 3:30 PM IST`,
+        details: `Auto-submitted ${createdCount} present records and locked ${lockedCount} existing records at 3:30 PM IST`,
         academic_year: academicYear
       });
     } catch (auditError) {
