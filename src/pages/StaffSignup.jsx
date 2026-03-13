@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
-import bcrypt from 'npm:bcryptjs@2.4.3';
+import bcrypt from 'bcryptjs';
 
 export default function StaffSignup() {
   const [formData, setFormData] = useState({
