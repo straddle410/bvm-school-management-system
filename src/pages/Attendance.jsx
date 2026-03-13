@@ -208,17 +208,41 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
       });
       
       // ✅ Bulk operations: 1 bulkCreate + 1 bulk update
-      const results = [];
-      if (toCreate.length > 0) {
-        results.push(await base44.entities.Attendance.bulkCreate(toCreate));
-      }
-      if (toUpdate.length > 0) {
-        const updatePromises = toUpdate.map(({ id, data }) =>
-          base44.entities.Attendance.update(id, data)
-        );
-        results.push(await Promise.all(updatePromises));
-      }
-      return results;
+       const results = [];
+       if (toCreate.length > 0) {
+         results.push(await base44.entities.Attendance.bulkCreate(toCreate));
+       }
+       if (toUpdate.length > 0) {
+         const updatePromises = toUpdate.map(({ id, data }) =>
+           base44.entities.Attendance.update(id, data)
+         );
+         results.push(await Promise.all(updatePromises));
+       }
+
+       // ── AUTO-LOCK RECORDS AFTER SAVE (ADMIN ONLY) ──
+       if (isAdmin && isRecordLocked) {
+         try {
+           const lockPromises = [];
+           if (toCreate.length > 0) {
+             const createdRecords = results[0] || [];
+             createdRecords.forEach(r => {
+               lockPromises.push(base44.entities.Attendance.update(r.id, { is_locked: true, locked_at: new Date().toISOString() }));
+             });
+           }
+           if (toUpdate.length > 0) {
+             toUpdate.forEach(({ id }) => {
+               lockPromises.push(base44.entities.Attendance.update(id, { is_locked: true, locked_at: new Date().toISOString() }));
+             });
+           }
+           if (lockPromises.length > 0) {
+             await Promise.all(lockPromises);
+           }
+         } catch (lockError) {
+           console.warn('Auto-lock after save failed:', lockError);
+         }
+       }
+
+       return results;
     },
     onSuccess: (results) => {
        queryClient.invalidateQueries(['attendance']);
