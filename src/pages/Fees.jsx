@@ -269,7 +269,7 @@ export default function Fees() {
             {(isAdmin || canApplyDiscount) && (
               <TabsContent value="discounts">
                 <Suspense fallback={<TabLoadingSpinner />}>
-                  <DiscountManagerLazy academicYear={academicYear} isArchived={isArchivedYear} />
+                  <DiscountManagerLazy academicYear={academicYear} isArchived={isArchivedYear} feeHeads={feeHeads} />
                 </Suspense>
               </TabsContent>
             )}
@@ -277,7 +277,7 @@ export default function Fees() {
             {(isAdmin || canManageFamilies) && (
               <TabsContent value="families">
                 <Suspense fallback={<TabLoadingSpinner />}>
-                  <FamilyManagerLazy academicYear={academicYear} isArchived={isArchivedYear} />
+                  <FamilyManagerLazy academicYear={academicYear} isArchived={isArchivedYear} feeHeads={feeHeads} />
                 </Suspense>
               </TabsContent>
             )}
