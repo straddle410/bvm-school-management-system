@@ -49,9 +49,13 @@ Deno.serve(async (req) => {
 
     // Send SMS via Fast2SMS
     const apiKey = Deno.env.get('FAST2SMS_API_KEY');
+    console.log('API Key exists:', !!apiKey);
+    console.log('API Key length:', apiKey?.length || 0);
+    
     if (!apiKey) {
+      console.error('FAST2SMS_API_KEY not found in environment');
       return Response.json(
-        { success: false, error: 'SMS service not configured' },
+        { success: false, error: 'SMS service not configured - API key missing' },
         { status: 500 }
       );
     }
