@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    const message = `Your BVM School password reset OTP is ${otp}. Valid for 10 minutes. Do not share with anyone.`;
     const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
       method: 'POST',
       headers: {
@@ -67,8 +68,9 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        route: 'otp',
-        variables_values: otp.toString(),
+        route: 'v3',
+        message: message,
+        language: 'english',
         flash: 0,
         numbers: mobile.trim()
       })
