@@ -6,8 +6,6 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { getEffectivePermissions } from '@/components/permissionHelper';
 import { DASHBOARD_TILES } from '@/components/permissionRegistry';
-import { usePendingStaffCount } from '@/components/staff/usePendingStaffCount';
-import StaffApprovalPanel from '@/components/staff/StaffApprovalPanel';
 import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
@@ -141,7 +139,6 @@ export default function Dashboard() {
   const isExamStaff = staffRole === 'exam_staff';
 
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
-  const pendingStaffCount = usePendingStaffCount();
 
   // Load staff profile only once — role doesn't change mid-session
   useEffect(() => { loadStaffProfile(); }, []);
@@ -374,12 +371,6 @@ export default function Dashboard() {
                   <ClipboardCheck className="h-5 w-5 text-red-400 dark:text-red-500 ml-auto" />
                 </div>
               </Link>
-            </section>
-          )}
-
-          {pendingStaffCount > 0 && (
-            <section className="mb-6">
-              <StaffApprovalPanel />
             </section>
           )}
 
