@@ -22,7 +22,7 @@ const EMPTY_FORM = {
   notes: ''
 };
 
-export default function DiscountManager({ academicYear, isArchived }) {
+export default function DiscountManager({ academicYear, isArchived, feeHeads = [] }) {
   const queryClient = useQueryClient();
   const [filterClass, setFilterClass] = useState('');
   const [search, setSearch] = useState('');
@@ -37,7 +37,7 @@ export default function DiscountManager({ academicYear, isArchived }) {
     queryKey: ['student-fee-discounts-all', academicYear],
     queryFn: () => base44.entities.StudentFeeDiscount.filter({ academic_year: academicYear }),
     enabled: !!academicYear,
-    staleTime: 2 * 60 * 1000
+    staleTime: 5 * 60 * 1000 // ✅ FIX #4: Increased to 5 mins to reduce refetch frequency
   });
 
   // Apply pagination after fetching all (for filtering/search)
@@ -45,11 +45,6 @@ export default function DiscountManager({ academicYear, isArchived }) {
     const start = discountPage * DISCOUNTS_LIMIT;
     return allDiscounts.slice(start, start + DISCOUNTS_LIMIT);
   }, [allDiscounts, discountPage]);
-
-  const { data: feeHeads = [] } = useQuery({
-    queryKey: ['fee-heads'],
-    queryFn: () => base44.entities.FeeHead.filter({ is_active: true })
-  });
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-published', filterClass, academicYear],
