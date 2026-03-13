@@ -41,23 +41,29 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const { username, password } = await req.json();
+    const { username, password, staff_code } = await req.json();
 
-    if (!username || !password) {
-      return Response.json({ error: 'Username and password required' }, { status: 400 });
+    // Accept either username OR staff_code
+    const loginIdentifier = staff_code || username;
+
+    if (!loginIdentifier || !password) {
+      return Response.json({ error: 'Staff ID/Username and password required' }, { status: 400 });
     }
 
-    const normalizedUsername = username.trim().toLowerCase();
+    const normalizedIdentifier = loginIdentifier.trim().toUpperCase();
 
-    // Fetch ALL staff and find by username (case-insensitive) — avoids DB case-sensitivity issues
+    // Fetch ALL staff and find by staff_code OR username (case-insensitive)
     const allStaff = await base44.asServiceRole.entities.StaffAccount.list();
-    const staff = (allStaff || []).filter(s => (s.username || '').trim().toLowerCase() === normalizedUsername);
+    const staff = (allStaff || []).filter(s => 
+      (s.staff_code || '').trim().toUpperCase() === normalizedIdentifier ||
+      (s.username || '').trim().toLowerCase() === normalizedIdentifier.toLowerCase()
+    );
 
-    console.log(`[staffLogin] username="${normalizedUsername}" found=${staff.length} record(s)`);
+    console.log(`[staffLogin] identifier="${normalizedIdentifier}" found=${staff.length} record(s)`);
 
     if (!staff || staff.length === 0) {
-      console.log(`[staffLogin] USER_NOT_FOUND: "${normalizedUsername}"`);
-      return Response.json({ error: 'User not found. Check username and try again.', code: 'USER_NOT_FOUND' }, { status: 401 });
+      console.log(`[staffLogin] USER_NOT_FOUND: "${normalizedIdentifier}"`);
+      return Response.json({ error: 'Invalid Staff ID. Please check and try again.', code: 'USER_NOT_FOUND' }, { status: 401 });
     }
 
     const account = staff[0];
