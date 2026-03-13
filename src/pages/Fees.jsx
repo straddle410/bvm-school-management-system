@@ -237,9 +237,9 @@ export default function Fees() {
               <TabsContent value="ledger">
                 <Suspense fallback={<TabLoadingSpinner />}>
                   {isArchivedYear ? (
-                    <StudentLedgerArchivedYearLazy academicYear={academicYear} isArchived={true} />
+                    <StudentLedgerArchivedYearLazy academicYear={academicYear} isArchived={true} feeHeads={feeHeads} />
                   ) : (
-                    <StudentLedgerLazy academicYear={academicYear} isArchivedYear={isArchivedYear} />
+                    <StudentLedgerLazy academicYear={academicYear} isArchivedYear={isArchivedYear} feeHeads={feeHeads} />
                   )}
                 </Suspense>
               </TabsContent>
