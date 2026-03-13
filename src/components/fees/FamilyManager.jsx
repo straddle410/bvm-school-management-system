@@ -376,11 +376,21 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
                   )}
                 </div>
                 {family.notes && <p className="text-xs text-slate-400">{family.notes}</p>}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                </CardContent>
+                )}
+                </Card>
+                ))}
+                </div>
+                )}
+
+                {/* ✅ FIX #6: Student pagination controls */}
+                {allStudents.length >= STUDENTS_LIMIT && (
+                <div className="flex justify-center gap-2 pt-4">
+                <button onClick={() => setStudentPage(p => Math.max(0, p - 1))} disabled={studentPage === 0} className="px-3 py-1 text-sm border rounded disabled:opacity-50">Prev</button>
+                <span className="px-3 py-1 text-sm text-slate-500">Student Page {studentPage + 1}</span>
+                <button onClick={() => setStudentPage(p => p + 1)} className="px-3 py-1 text-sm border rounded">Next</button>
+                </div>
+                )}
 
       {/* Confirm Apply/Remove Dialog */}
       {applyingFamily && (
