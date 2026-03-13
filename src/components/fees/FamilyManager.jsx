@@ -344,44 +344,44 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
                 </div>
               </button>
               {expandedFamilyId === family.id && (
-              <CardContent className="p-4 space-y-3 border-t">
-                <div className="flex flex-wrap gap-2">
-                  {(family.student_ids || []).map((sid, i) => (
-                    <span key={sid} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
-                      {family.student_names?.[i] || sid}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <p className="text-sm text-emerald-700 font-medium flex items-center gap-1">
-                    {family.sibling_discount_type === 'PERCENT'
-                      ? <Percent className="h-3.5 w-3.5" />
-                      : <Tag className="h-3.5 w-3.5" />}
-                    {discountLabel(family)}
-                  </p>
-                  {!isArchived && (
-                    <div className="flex gap-2">
-                      {family.sibling_discount_applied ? (
-                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
-                          onClick={() => setApplyingFamily({ family, action: 'remove' })}>
-                          <XCircle className="h-3.5 w-3.5 mr-1" /> Remove Discount
-                        </Button>
-                      ) : family.sibling_discount_value ? (
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs"
-                          onClick={() => setApplyingFamily({ family, action: 'apply' })}>
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Apply Discount
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-                {family.notes && <p className="text-xs text-slate-400">{family.notes}</p>}
+                <CardContent className="p-4 space-y-3 border-t">
+                  <div className="flex flex-wrap gap-2">
+                    {(family.student_ids || []).map((sid, i) => (
+                      <span key={sid} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
+                        {family.student_names?.[i] || sid}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-sm text-emerald-700 font-medium flex items-center gap-1">
+                      {family.sibling_discount_type === 'PERCENT'
+                        ? <Percent className="h-3.5 w-3.5" />
+                        : <Tag className="h-3.5 w-3.5" />}
+                      {discountLabel(family)}
+                    </p>
+                    {!isArchived && (
+                      <div className="flex gap-2">
+                        {family.sibling_discount_applied ? (
+                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+                            onClick={() => setApplyingFamily({ family, action: 'remove' })}>
+                            <XCircle className="h-3.5 w-3.5 mr-1" /> Remove Discount
+                          </Button>
+                        ) : family.sibling_discount_value ? (
+                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs"
+                            onClick={() => setApplyingFamily({ family, action: 'apply' })}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Apply Discount
+                          </Button>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                  {family.notes && <p className="text-xs text-slate-400">{family.notes}</p>}
                 </CardContent>
-                )}
-                </Card>
-                ))}
-                </div>
-                )}
+              )}
+              </Card>
+              ))}
+              </div>
+              )}
 
                 {/* ✅ FIX #6: Student pagination controls */}
                 {allStudents.length >= STUDENTS_LIMIT && (
