@@ -1,6 +1,40 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
+function b64urlEncode(str) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function generateSessionToken(staff) {
+  const secret = Deno.env.get('STAFF_SESSION_SECRET');
+  if (!secret) throw new Error('STAFF_SESSION_SECRET is not set');
+  
+  const now = Date.now();
+  const payload = {
+    staff_id: staff.id,
+    username: staff.username,
+    role: staff.role,
+    iat: now,
+    exp: now + (24 * 60 * 60 * 1000), // 24 hours
+  };
+  
+  const payloadStr = JSON.stringify(payload);
+  const payloadB64 = b64urlEncode(payloadStr);
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payloadB64));
+  const sigB64 = b64urlEncode(String.fromCharCode(...new Uint8Array(signature)));
+  
+  return `${payloadB64}.${sigB64}`;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
