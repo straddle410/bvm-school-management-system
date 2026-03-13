@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     await Promise.all(lockPromises);
 
     return Response.json({
-      message: `Locked ${todayAttendance.length} attendance records at 3:00 PM IST on ${todayIST}`,
+      message: `Locked ${todayAttendance.length} attendance records at 3:30 PM IST on ${todayIST}`,
       locked: todayAttendance.length,
       lockedAt: new Date().toISOString()
     });
