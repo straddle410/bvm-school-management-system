@@ -24,7 +24,7 @@ const EMPTY_FORM = {
   notes: ''
 };
 
-export default function FamilyManager({ academicYear, isArchived }) {
+export default function FamilyManager({ academicYear, isArchived, feeHeads = [] }) {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [editingFamily, setEditingFamily] = useState(null);
@@ -33,6 +33,9 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const [selectedClass, setSelectedClass] = useState('');
   const [applyingFamily, setApplyingFamily] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const [studentPage, setStudentPage] = useState(0); // ✅ FIX #6: Pagination
+  const STUDENTS_LIMIT = 100;
+  const [expandedFamilyId, setExpandedFamilyId] = useState(null); // ✅ FIX #5: Lazy load invoices per family
 
   // ─── AUTHORITATIVE SELECTION STATE ───────────────────────────────────────────
   const [selectedIds, setSelectedIds] = useState([]);
@@ -50,35 +53,48 @@ export default function FamilyManager({ academicYear, isArchived }) {
   const clearStudents = () => setSelectedIds([]);
   // ─────────────────────────────────────────────────────────────────────────────
 
-  // Fetch all families for this AY
+  // ✅ FIX #2: Add staleTime to fee-families query
   const { data: families = [] } = useQuery({
     queryKey: ['fee-families', academicYear],
     queryFn: () => base44.entities.FeeFamily.filter({ academic_year: academicYear }),
-    enabled: !!academicYear
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000 // 5 mins — reduces refetch on tab switches
   });
 
-  const { data: feeHeads = [] } = useQuery({
-    queryKey: ['fee-heads'],
-    queryFn: () => base44.entities.FeeHead.filter({ is_active: true })
-  });
-
-  // Fetch all published, non-deleted, active students (global filter: status=Published, is_deleted=false, is_active=true, current AY only)
+  // ✅ FIX #6: Paginate students instead of loading all at once
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['students-all-published', academicYear],
-    queryFn: () => base44.entities.Student.filter({ 
-      academic_year: academicYear, 
-      status: 'Published', 
-      is_deleted: false,
-      is_active: true
-    }),
-    enabled: !!academicYear
+    queryKey: ['students-all-published', academicYear, studentPage],
+    queryFn: async () => {
+      const all = await base44.entities.Student.filter({ 
+        academic_year: academicYear, 
+        status: 'Published', 
+        is_deleted: false,
+        is_active: true
+      });
+      const start = studentPage * STUDENTS_LIMIT;
+      return all.slice(start, start + STUDENTS_LIMIT);
+    },
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000
   });
 
-  // Fetch all fee invoices for outstanding balance calculations
-  const { data: allInvoices = [] } = useQuery({
-    queryKey: ['fee-invoices-all', academicYear],
-    queryFn: () => base44.entities.FeeInvoice.filter({ academic_year: academicYear }),
-    enabled: !!academicYear
+  // ✅ FIX #5: Lazy-load invoices only when a specific family is expanded (not on initial render)
+  const { data: invoicesByStudent = {} } = useQuery({
+    queryKey: ['fee-invoices-lazy', expandedFamilyId, academicYear],
+    queryFn: async () => {
+      if (!expandedFamilyId) return {};
+      const family = families.find(f => f.id === expandedFamilyId);
+      if (!family || !family.student_ids) return {};
+      
+      // Fetch invoices only for the students in this family
+      const invoices = await base44.entities.FeeInvoice.filter({ academic_year: academicYear });
+      const result = {};
+      for (const sid of family.student_ids) {
+        result[sid] = invoices.filter(inv => inv.student_id === sid);
+      }
+      return result;
+    },
+    enabled: !!expandedFamilyId && !!academicYear
   });
 
   // Calculate outstanding balance for a student (invoice net - paid)
