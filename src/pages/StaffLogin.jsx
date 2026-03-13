@@ -246,6 +246,8 @@ export default function StaffLogin() {
               )}
             </Button>
 
+            <a href={createPageUrl('StaffSignup')} className="block text-center text-sm text-blue-600 hover:underline mt-4">Register as Staff</a>
+
             <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
               For account issues, contact your administrator.
             </p>
