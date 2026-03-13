@@ -36,7 +36,33 @@ Deno.serve(async (req) => {
 
     const staff = staffRecords[0];
 
-    // Check account status
+    // STEP 2: Verify password BEFORE checking status
+    // This prevents timing attacks and confirms credentials first
+    let passwordMatch = false;
+    
+    if (staff.password_hash) {
+      try {
+        passwordMatch = await bcrypt.compare(password, staff.password_hash);
+      } catch (hashErr) {
+        console.error('Password hash comparison error:', hashErr.message);
+        return Response.json(
+          { error: 'Login failed. Please try again.' },
+          { status: 500 }
+        );
+      }
+    } else if (staff.password) {
+      // Legacy plain text password (deprecated)
+      passwordMatch = (password === staff.password);
+    }
+
+    if (!passwordMatch) {
+      return Response.json(
+        { error: 'Invalid password' },
+        { status: 401 }
+      );
+    }
+
+    // STEP 3: Check account status AFTER password verification succeeds
     if (staff.status === 'rejected') {
       return Response.json(
         { error: 'Account has been rejected' },
@@ -51,27 +77,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // If status is 'active', empty, or null - allow login
-
-    // Verify password - support both bcrypt hash and plain text (legacy)
-    let passwordMatch = false;
-    
-    if (staff.password_hash) {
-      // New bcrypt hash
-      passwordMatch = await bcrypt.compare(password, staff.password_hash);
-    } else if (staff.password) {
-      // Legacy plain text password
-      passwordMatch = (password === staff.password);
-    }
-
-    if (!passwordMatch) {
-      return Response.json(
-        { error: 'Invalid password' },
-        { status: 401 }
-      );
-    }
-
-    // Return staff details
+    // STEP 4: Return staff details (active status or empty/null is allowed)
     return Response.json({
       success: true,
       staff: {
