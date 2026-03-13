@@ -27,13 +27,22 @@ Deno.serve(async (req) => {
 
     const staff = staffRecords[0];
 
-    // Check if account is active
-    if (staff.status !== 'active') {
+    // Check account status
+    if (staff.status === 'rejected') {
       return Response.json(
-        { error: 'Account is not active. Please contact administrator.' },
+        { error: 'Account has been rejected' },
         { status: 403 }
       );
     }
+
+    if (staff.status === 'pending') {
+      return Response.json(
+        { error: 'Account pending approval' },
+        { status: 403 }
+      );
+    }
+
+    // If status is 'active', empty, or null - allow login
 
     // Verify password - support both bcrypt hash and plain text (legacy)
     let passwordMatch = false;
