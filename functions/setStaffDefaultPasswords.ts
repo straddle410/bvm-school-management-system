@@ -20,12 +20,33 @@ Deno.serve(async (req) => {
 
     const results = [];
 
+    // Get all Base44 users
+    const allUsers = await base44.asServiceRole.entities.User.list();
+    console.log(`Found ${allUsers.length} total users`);
+
     for (const email of staffEmails) {
-      console.log(`Setting password for: ${email}`);
+      console.log(`Processing: ${email}`);
       
       try {
-        // Update password using Base44 service role
-        await base44.asServiceRole.auth.updateUserPassword(email, defaultPassword);
+        // Find user by email
+        const user = allUsers.find(u => u.email === email);
+        
+        if (!user) {
+          console.log(`User not found: ${email}`);
+          results.push({
+            email,
+            status: 'not_found',
+            message: 'User not found in Base44'
+          });
+          continue;
+        }
+
+        console.log(`Found user: ${user.email} (${user.id})`);
+
+        // Update user password directly in User entity
+        await base44.asServiceRole.entities.User.update(user.id, {
+          password: defaultPassword
+        });
         
         results.push({
           email,
