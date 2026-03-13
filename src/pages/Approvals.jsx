@@ -139,7 +139,7 @@ export default function Approvals() {
       await base44.entities.StaffAccount.update(record.id, {
         status: 'active',
         staff_code: staffCode,
-        force_password_change: true
+        force_password_change: false
       });
       
       toast.success(`Staff approved! Staff ID: ${staffCode}`);
