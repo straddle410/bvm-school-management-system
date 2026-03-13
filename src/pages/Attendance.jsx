@@ -47,27 +47,21 @@ const TabLoadingSpinner = () => (
 );
 
 // ─── Mark Attendance Tab ──────────────────────────────────────────────────────
-function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
+function MarkAttendanceTab({ 
+  user, 
+  academicYear, 
+  isAdmin, 
+  holidays, 
+  classSectionData,    // ✅ Receive from parent to avoid duplicate query
+  sectionData,         // ✅ Receive from parent to avoid duplicate query
+  selectedClass,       // ✅ Pass selected class to get correct sections
+  onClassChange        // ✅ Callback to update parent's selectedClass
+}) {
   const todayDate = format(new Date(), 'yyyy-MM-dd');
   const [selectedDate, setSelectedDate] = useState(isAdmin ? '' : todayDate);
-  const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
 
-  // Dynamic class/section from SectionConfig (with fallback)
-  const { data: classSectionData } = useQuery({
-    queryKey: ['classes-for-year', academicYear],
-    queryFn: () => getClassesForYear(academicYear),
-    enabled: !!academicYear,
-    staleTime: 5 * 60 * 1000,
-  });
   const availableClasses = classSectionData?.classes || [];
-
-  const { data: sectionData } = useQuery({
-    queryKey: ['sections-for-class', academicYear, selectedClass],
-    queryFn: () => getSectionsForClass(academicYear, selectedClass),
-    enabled: !!academicYear && !!selectedClass,
-    staleTime: 5 * 60 * 1000,
-  });
   const availableSections = sectionData?.sections || [];
 
   // Reset section if it's no longer valid after class/year change
