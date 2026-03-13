@@ -26,7 +26,7 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
-      // Step 1: Look up staff by staff_code to get their email using service role
+      // Step 1: Look up staff by staff_code to get their username
       console.log('[StaffLogin] Looking up Staff ID:', staffId.trim());
       
       const staffAccounts = await base44.entities.StaffAccount.filter({
@@ -43,29 +43,36 @@ export default function StaffLogin() {
       }
 
       const staffAccount = staffAccounts[0];
-      const email = staffAccount.email;
+      const username = staffAccount.username;
       
       console.log('[StaffLogin] Found StaffAccount:', {
         id: staffAccount.id,
         name: staffAccount.name,
-        email: email,
-        username: staffAccount.username,
+        username: username,
         staff_code: staffAccount.staff_code
       });
 
-      if (!email) {
-        console.log('[StaffLogin] No email found in StaffAccount');
-        setError('Staff account has no email configured. Contact administrator.');
-        setLoading(false);
-        return;
+      console.log('[StaffLogin] Attempting login with username:', username, 'password length:', password.length);
+
+      // Step 2: Login using username (which is the email field in Base44 auth) and password
+      try {
+        const loginResult = await base44.auth.loginViaEmailPassword(username, password);
+        console.log('[StaffLogin] Login successful via username');
+      } catch (authErr) {
+        console.log('[StaffLogin] Direct username login failed, trying User entity lookup:', authErr.message);
+        
+        // Step 3: Fallback - try to find user in User entity where email = username
+        const users = await base44.entities.User.filter({ email: username });
+        console.log('[StaffLogin] User entity lookup result:', users);
+        
+        if (users && users.length > 0) {
+          // Retry login with the user's email
+          await base44.auth.loginViaEmailPassword(users[0].email, password);
+          console.log('[StaffLogin] Login successful via User entity email');
+        } else {
+          throw authErr; // Re-throw original error if User not found
+        }
       }
-
-      console.log('[StaffLogin] Attempting login with email:', email);
-
-      // Step 2: Login using email and password via base44 auth
-      const loginResult = await base44.auth.loginViaEmailPassword(email, password);
-      
-      console.log('[StaffLogin] Login result:', loginResult);
 
       // Always clear any student session — staff must never fall into student flow
       const { saveSession, clearSession } = await import('@/components/sessionHelper');
@@ -109,7 +116,7 @@ export default function StaffLogin() {
       console.error('[StaffLogin] Login error:', err);
       
       // Check if it's an authentication error (wrong password)
-      if (err.message && (err.message.includes('Invalid credentials') || err.message.includes('password'))) {
+      if (err.message && (err.message.includes('Invalid credentials') || err.message.includes('password') || err.message.includes('authentication'))) {
         setError('Invalid password');
       } else {
         setError(err.message || 'Login failed. Please try again.');
