@@ -20,30 +20,35 @@ Deno.serve(async (req) => {
 
     const results = [];
 
-    // Get all Base44 users
-    const allUsers = await base44.asServiceRole.entities.User.list();
-    console.log(`Found ${allUsers.length} total users`);
-
     for (const email of staffEmails) {
       console.log(`Processing: ${email}`);
       
       try {
-        // Find user by email
+        // Try to invite user first (creates user if doesn't exist)
+        try {
+          await base44.asServiceRole.users.inviteUser(email, 'user');
+          console.log(`✓ Invited/ensured user exists: ${email}`);
+        } catch (inviteError) {
+          console.log(`User may already exist: ${email}`);
+        }
+
+        // Get all users to find this one
+        const allUsers = await base44.asServiceRole.entities.User.list();
         const user = allUsers.find(u => u.email === email);
         
         if (!user) {
-          console.log(`User not found: ${email}`);
+          console.log(`User still not found after invite: ${email}`);
           results.push({
             email,
-            status: 'not_found',
-            message: 'User not found in Base44'
+            status: 'error',
+            message: 'Could not create or find user'
           });
           continue;
         }
 
         console.log(`Found user: ${user.email} (${user.id})`);
 
-        // Update user password directly in User entity
+        // Update user password
         await base44.asServiceRole.entities.User.update(user.id, {
           password: defaultPassword
         });
