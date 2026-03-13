@@ -41,12 +41,12 @@ Deno.serve(async (req) => {
     // Get current time in IST (reliable method using Intl API)
     const istTime = getISTTime();
     const istTimeInMinutes = istTime.hours * 60 + istTime.minutes;
-    const lockTimeInMinutes = 15 * 60; // 3:00 PM = 15:00
+    const lockTimeInMinutes = 15 * 60 + 30; // 3:30 PM = 15:30
 
-    // Only lock if current time >= 3:00 PM IST (15:00)
+    // Only lock if current time >= 3:30 PM IST (15:30)
     if (istTimeInMinutes < lockTimeInMinutes) {
       return Response.json({
-        message: `Current IST time: ${istTime.hours.toString().padStart(2, '0')}:${istTime.minutes.toString().padStart(2, '0')}. Lock not triggered (before 3:00 PM IST).`,
+        message: `Current IST time: ${istTime.hours.toString().padStart(2, '0')}:${istTime.minutes.toString().padStart(2, '0')}. Lock not triggered (before 3:30 PM IST).`,
         locked: 0
       });
     }
