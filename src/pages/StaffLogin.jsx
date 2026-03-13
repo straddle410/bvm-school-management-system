@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 export default function StaffLogin() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [staffId, setStaffId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +26,21 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
+      // Step 1: Look up staff by staff_code to get their username
+      const staffAccounts = await base44.entities.StaffAccount.filter({
+        staff_code: staffId.trim()
+      });
+
+      if (!staffAccounts || staffAccounts.length === 0) {
+        setError('Invalid Staff ID');
+        setLoading(false);
+        return;
+      }
+
+      const staffAccount = staffAccounts[0];
+      const username = staffAccount.username;
+
+      // Step 2: Use the username to authenticate
       const response = await base44.functions.invoke('staffLogin', {
         username,
         password,
@@ -41,13 +56,14 @@ export default function StaffLogin() {
         }
         const code = response.data.code;
         const codeMessages = {
-          USER_NOT_FOUND: 'Username not found. Please check and try again.',
-          PASSWORD_MISMATCH: 'Incorrect password. Please try again.',
+          USER_NOT_FOUND: 'Invalid Staff ID',
+          PASSWORD_MISMATCH: 'Invalid password',
           ACCOUNT_INACTIVE: 'Your account is inactive. Contact your administrator.',
           ACCOUNT_LOCKED: 'Account locked due to too many attempts. Try again in 15 minutes.',
           PASSWORD_NOT_SET: 'Password not set. Ask your administrator to reset your password.',
         };
         setError(codeMessages[code] || response.data.error || 'Login failed');
+        setLoading(false);
         return;
       }
 
@@ -201,16 +217,16 @@ export default function StaffLogin() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-slate-700 dark:text-slate-300 font-medium">
+              <Label htmlFor="staffId" className="text-slate-700 dark:text-slate-300 font-medium">
                 <User className="inline h-4 w-4 mr-1" />
-                Username
+                Staff ID
               </Label>
               <Input
-                id="username"
+                id="staffId"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g., ravi.kumar01"
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+                placeholder="Enter Staff ID e.g. A101, T101"
                 className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
                 autoFocus
