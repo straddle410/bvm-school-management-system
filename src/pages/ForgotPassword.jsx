@@ -16,7 +16,7 @@ export default function ForgotPassword() {
   
   // Step 1 - Identity Verification
   const [staffId, setStaffId] = useState('');
-  const [phone, setPhone] = useState('');
+  const [mobile, setMobile] = useState('');
   const [staffRecord, setStaffRecord] = useState(null);
   
   // Step 2 - OTP Verification
@@ -43,14 +43,14 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      // Find staff by staff_code and phone
+      // Find staff by staff_code and mobile
       const staffRecords = await base44.entities.StaffAccount.filter({
         staff_code: staffId.trim(),
-        mobile: phone.trim()
+        mobile: mobile.trim()
       });
 
       if (!staffRecords || staffRecords.length === 0) {
-        toast.error('Staff ID or Phone number not matching');
+        toast.error('Staff ID or Mobile number not matching');
         setLoading(false);
         return;
       }
@@ -61,7 +61,7 @@ export default function ForgotPassword() {
       // Send OTP
       const response = await base44.functions.invoke('sendStaffOtp', {
         staff_code: staffId.trim(),
-        phone: phone.trim()
+        mobile: mobile.trim()
       });
 
       if (response.data.success) {
@@ -85,7 +85,7 @@ export default function ForgotPassword() {
     try {
       const response = await base44.functions.invoke('sendStaffOtp', {
         staff_code: staffId.trim(),
-        phone: phone.trim()
+        mobile: mobile.trim()
       });
 
       if (response.data.success) {
@@ -236,15 +236,15 @@ export default function ForgotPassword() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">
+                <Label htmlFor="mobile">
                   <Phone className="inline h-4 w-4 mr-1" />
-                  Registered Phone Number
+                  Registered Mobile Number
                 </Label>
                 <Input
-                  id="phone"
+                  id="mobile"
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
                   placeholder="Enter registered mobile number"
                   disabled={loading}
                   required

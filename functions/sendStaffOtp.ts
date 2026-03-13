@@ -3,11 +3,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_code, phone } = await req.json();
+    const { staff_code, mobile } = await req.json();
 
-    if (!staff_code || !phone) {
+    if (!staff_code || !mobile) {
       return Response.json(
-        { success: false, error: 'Staff code and phone are required' },
+        { success: false, error: 'Staff code and mobile are required' },
         { status: 400 }
       );
     }
@@ -26,10 +26,10 @@ Deno.serve(async (req) => {
 
     const staff = staffRecords[0];
 
-    // Validate phone number matches
-    if (staff.mobile !== phone.trim()) {
+    // Validate mobile number matches
+    if (staff.mobile !== mobile.trim()) {
       return Response.json(
-        { success: false, error: 'Phone number does not match' },
+        { success: false, error: 'Mobile number does not match' },
         { status: 400 }
       );
     }
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         route: 'otp',
         variables_values: otp,
-        numbers: phone.trim()
+        numbers: mobile.trim()
       })
     });
 
