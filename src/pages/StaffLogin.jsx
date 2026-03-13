@@ -23,6 +23,13 @@ export default function StaffLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    
+    // Clear validation error on new attempt
+    if (!username || !password) {
+      setError('Staff ID and password are required');
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -209,12 +216,14 @@ export default function StaffLogin() {
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setError('');
+                }}
                 placeholder="e.g., ravi.kumar01"
                 className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
                 autoFocus
-                required
               />
             </div>
 
@@ -227,11 +236,13 @@ export default function StaffLogin() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError('');
+                }}
                 placeholder="Enter your password"
                 className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
-                required
               />
             </div>
 
