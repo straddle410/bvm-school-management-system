@@ -124,16 +124,17 @@ export default function Approvals() {
     try {
       setStaffActionLoading(record.id);
       
-      // Generate unique staff code
-      const allStaff = await base44.entities.StaffAccount.list();
-      const staffCodes = allStaff
-        .map(s => s.staff_code)
-        .filter(code => code && /^S\d+$/.test(code))
-        .map(code => parseInt(code.substring(1)))
-        .sort((a, b) => b - a);
+      // Generate staff code using the official function
+      const codeResponse = await base44.functions.invoke('generateStaffCode', {
+        role: record.role
+      });
       
-      const nextNumber = (staffCodes[0] || 0) + 1;
-      const staffCode = `S${nextNumber}`;
+      if (!codeResponse.data?.success || !codeResponse.data?.staff_code) {
+        toast.error('Failed to generate Staff ID');
+        return;
+      }
+      
+      const staffCode = codeResponse.data.staff_code;
       
       await base44.entities.StaffAccount.update(record.id, {
         status: 'active',
