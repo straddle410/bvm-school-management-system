@@ -45,18 +45,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'API key not found' }, { status: 500 });
     }
     
-    const url = `https://www.fast2sms.com/dev/bulkV2?route=v3&message=Your BVM School OTP is ${otp}. Valid 10 mins.&language=english&flash=0&numbers=${mobile}`;
+    const url = `https://www.fast2sms.com/dev/bulkV2?route=q&message=Your BVM School OTP is ${otp}. Valid 10 mins.&language=english&flash=0&numbers=${mobile}&authorization=${apiKey}`;
     
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'authorization': apiKey,
         'cache-control': 'no-cache'
       }
     });
     
     const text = await response.text();
     console.log('Fast2SMS response:', text);
+    
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch(e) {
+      throw new Error('Parse error: ' + text);
+    }
+    
+    if(!result.return) {
+      throw new Error('Fast2SMS error: ' + JSON.stringify(result));
+    }
     
     return Response.json({ success: true, message: 'OTP sent successfully' });
     
