@@ -3,11 +3,33 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_id, phone } = await req.json();
+    const { staff_code, phone } = await req.json();
 
-    if (!staff_id || !phone) {
+    if (!staff_code || !phone) {
       return Response.json(
-        { success: false, error: 'Staff ID and phone are required' },
+        { success: false, error: 'Staff code and phone are required' },
+        { status: 400 }
+      );
+    }
+
+    // Find staff by staff_code
+    const staffRecords = await base44.asServiceRole.entities.StaffAccount.filter({
+      staff_code: staff_code.trim()
+    });
+
+    if (!staffRecords || staffRecords.length === 0) {
+      return Response.json(
+        { success: false, error: 'Staff not found' },
+        { status: 404 }
+      );
+    }
+
+    const staff = staffRecords[0];
+
+    // Validate phone number matches
+    if (staff.mobile !== phone.trim()) {
+      return Response.json(
+        { success: false, error: 'Phone number does not match' },
         { status: 400 }
       );
     }
@@ -20,7 +42,7 @@ Deno.serve(async (req) => {
     expiryTime.setMinutes(expiryTime.getMinutes() + 10);
 
     // Update staff record with OTP and expiry
-    await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
+    await base44.asServiceRole.entities.StaffAccount.update(staff.id, {
       reset_otp: otp,
       reset_otp_expiry: expiryTime.toISOString()
     });
@@ -34,8 +56,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const message = `Your BVM School password reset OTP is: ${otp}. Valid for 10 minutes.`;
-
     const smsResponse = await fetch('https://www.fast2sms.com/dev/bulkV2', {
       method: 'POST',
       headers: {
@@ -43,11 +63,9 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        route: 'q',
-        message: message,
-        language: 'english',
-        flash: 0,
-        numbers: phone
+        route: 'otp',
+        variables_values: otp,
+        numbers: phone.trim()
       })
     });
 

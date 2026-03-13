@@ -4,11 +4,11 @@ import bcrypt from 'npm:bcryptjs@2.4.3';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_id, new_password } = await req.json();
+    const { staff_code, otp, new_password } = await req.json();
 
-    if (!staff_id || !new_password) {
+    if (!staff_code || !otp || !new_password) {
       return Response.json(
-        { success: false, error: 'Staff ID and new password are required' },
+        { success: false, error: 'Staff code, OTP and new password are required' },
         { status: 400 }
       );
     }
@@ -20,11 +20,50 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Find staff by staff_code
+    const staffRecords = await base44.asServiceRole.entities.StaffAccount.filter({
+      staff_code: staff_code.trim()
+    });
+
+    if (!staffRecords || staffRecords.length === 0) {
+      return Response.json(
+        { success: false, error: 'Staff not found' },
+        { status: 404 }
+      );
+    }
+
+    const staff = staffRecords[0];
+
+    // Check if OTP exists
+    if (!staff.reset_otp || !staff.reset_otp_expiry) {
+      return Response.json(
+        { success: false, error: 'No OTP found. Please request a new one.' },
+        { status: 400 }
+      );
+    }
+
+    // Check if OTP is expired
+    const expiryTime = new Date(staff.reset_otp_expiry);
+    if (new Date() > expiryTime) {
+      return Response.json(
+        { success: false, error: 'OTP has expired. Please request a new one.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate OTP
+    if (staff.reset_otp !== otp.trim()) {
+      return Response.json(
+        { success: false, error: 'Invalid OTP' },
+        { status: 400 }
+      );
+    }
+
     // Hash the new password
     const password_hash = await bcrypt.hash(new_password, 10);
 
     // Update staff record with new password and clear OTP fields
-    await base44.asServiceRole.entities.StaffAccount.update(staff_id, {
+    await base44.asServiceRole.entities.StaffAccount.update(staff.id, {
       password_hash,
       reset_otp: null,
       reset_otp_expiry: null,

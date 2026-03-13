@@ -60,7 +60,7 @@ export default function ForgotPassword() {
 
       // Send OTP
       const response = await base44.functions.invoke('sendStaffOtp', {
-        staff_id: staff.id,
+        staff_code: staffId.trim(),
         phone: phone.trim()
       });
 
@@ -84,7 +84,7 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       const response = await base44.functions.invoke('sendStaffOtp', {
-        staff_id: staffRecord.id,
+        staff_code: staffId.trim(),
         phone: phone.trim()
       });
 
@@ -162,7 +162,8 @@ export default function ForgotPassword() {
 
     try {
       const response = await base44.functions.invoke('resetStaffPassword', {
-        staff_id: staffRecord.id,
+        staff_code: staffId,
+        otp: otp,
         new_password: newPassword
       });
 
