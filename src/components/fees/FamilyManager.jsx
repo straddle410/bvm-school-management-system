@@ -97,10 +97,10 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     enabled: !!expandedFamilyId && !!academicYear
   });
 
-  // Calculate outstanding balance for a student (invoice net - paid)
+  // ✅ FIX #5: Use lazy-loaded invoices or fallback to empty (only calc when expanded)
   const getOutstandingBalance = (student_id) => {
-    const studentInvoices = allInvoices.filter(inv => 
-      inv.student_id === student_id && (inv.invoice_type || 'ANNUAL') === 'ANNUAL'
+    const studentInvoices = (invoicesByStudent[student_id] || []).filter(inv => 
+      (inv.invoice_type || 'ANNUAL') === 'ANNUAL'
     );
     return studentInvoices.reduce((sum, inv) => {
       const net = inv.total_amount ?? 0;
