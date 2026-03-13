@@ -4,6 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { staff_code, mobile } = await req.json();
+    console.log('sendStaffOtp invoked for staff_code:', staff_code);
 
     if (!staff_code || !mobile) {
       return Response.json(
