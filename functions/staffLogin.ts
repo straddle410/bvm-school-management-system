@@ -111,7 +111,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // STEP 4: Return staff details (active status or empty/null is allowed)
+    // STEP 4: Generate session token
+    let sessionToken = '';
+    try {
+      sessionToken = await generateSessionToken(staff);
+    } catch (tokenErr) {
+      console.error('Session token generation error:', tokenErr.message);
+      return Response.json(
+        { error: 'Failed to create session. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // STEP 5: Return staff details with session token
     return Response.json({
       success: true,
       staff: {
@@ -124,7 +136,8 @@ Deno.serve(async (req) => {
         username: staff.username,
         email: staff.email,
         mobile: staff.mobile,
-        force_password_change: staff.force_password_change || false
+        force_password_change: staff.force_password_change || false,
+        staff_session_token: sessionToken
       }
     }, { status: 200 });
 
