@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { getStaffSession } from '@/components/useStaffSession';
+import PaymentConfirmationModal from './PaymentConfirmationModal';
 
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
