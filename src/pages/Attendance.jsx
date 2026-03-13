@@ -414,7 +414,7 @@ function MarkAttendanceTab({
              )}
 
              {/* Class Dropdown */}
-             <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedSection(''); }}>
+             <Select value={selectedClass} onValueChange={handleClassChange}>
                <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Class" /></SelectTrigger>
                <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
              </Select>
