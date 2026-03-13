@@ -199,21 +199,11 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
      }
    },
     onSuccess: async (res, { action }) => {
-      const results = res.data?.results || [];
-      // Trigger dynamic invoice recalculation for all affected students
-      try {
-        for (const result of results) {
-          if (result.student_id) {
-            await base44.functions.invoke('recalculateStudentInvoiceTotals', {
-              student_id: result.student_id,
-              academic_year: academicYear
-            });
-          }
-        }
-      } catch (e) {
-        console.error('Invoice recalculation failed for some students:', e.message);
-      }
-      queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
+       const results = res.data?.results || [];
+
+       // ✅ FIX #7: Invalidate queries IMMEDIATELY for optimistic UI update
+       queryClient.invalidateQueries({ queryKey: ['fee-families', academicYear] });
+       queryClient.invalidateQueries({ queryKey: ['student-fee-discounts-all', academicYear] }); // ✅ FIX #4: Also invalidate this
        queryClient.invalidateQueries({ queryKey: ['student-fee-discounts', academicYear] });
        queryClient.invalidateQueries({ queryKey: ['fee-discounts-student'] });
        queryClient.invalidateQueries({ queryKey: ['fee-invoice'] });
@@ -227,7 +217,21 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
          toast.success('Sibling discount removed from family.');
        }
        setApplyingFamily(null);
-     },
+
+       // ✅ FIX #7: Run invoice recalculation in background (don't wait for it)
+       try {
+         for (const result of results) {
+           if (result.student_id) {
+             base44.functions.invoke('recalculateStudentInvoiceTotals', {
+               student_id: result.student_id,
+               academic_year: academicYear
+             }).catch(e => console.warn(`Invoice recalculation for ${result.student_id} failed:`, e.message));
+           }
+         }
+       } catch (e) {
+         console.warn('Background invoice recalculation queue failed:', e.message);
+       }
+      },
     onError: (e) => {
       const msg = e?.message || e?.data?.error || 'Failed to apply discount';
       toast.error(msg);
