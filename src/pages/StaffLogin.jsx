@@ -26,81 +26,78 @@ export default function StaffLogin() {
     setLoading(true);
 
     try {
-      // Step 1: Look up staff by staff_code to get their username
+      // Step 1: Look up staff by staff_code to get their email using service role
+      console.log('[StaffLogin] Looking up Staff ID:', staffId.trim());
+      
       const staffAccounts = await base44.entities.StaffAccount.filter({
         staff_code: staffId.trim()
       });
 
+      console.log('[StaffLogin] StaffAccount lookup result:', staffAccounts);
+
       if (!staffAccounts || staffAccounts.length === 0) {
+        console.log('[StaffLogin] Staff ID not found');
         setError('Invalid Staff ID');
         setLoading(false);
         return;
       }
 
       const staffAccount = staffAccounts[0];
-      const username = staffAccount.username;
-
-      // Step 2: Use the username to authenticate
-      const response = await base44.functions.invoke('staffLogin', {
-        username,
-        password,
+      const email = staffAccount.email;
+      
+      console.log('[StaffLogin] Found StaffAccount:', {
+        id: staffAccount.id,
+        name: staffAccount.name,
+        email: email,
+        username: staffAccount.username,
+        staff_code: staffAccount.staff_code
       });
 
-      if (!response.data.success) {
-        if (response.data.code === 'LINK_CONFLICT') {
-          setLinkConflict(true);
-          return;
-        }
-        if (response.data.locked_until || response.data.code === 'ACCOUNT_LOCKED') {
-          setLockedUntil(response.data.locked_until);
-        }
-        const code = response.data.code;
-        const codeMessages = {
-          USER_NOT_FOUND: 'Invalid Staff ID',
-          PASSWORD_MISMATCH: 'Invalid password',
-          ACCOUNT_INACTIVE: 'Your account is inactive. Contact your administrator.',
-          ACCOUNT_LOCKED: 'Account locked due to too many attempts. Try again in 15 minutes.',
-          PASSWORD_NOT_SET: 'Password not set. Ask your administrator to reset your password.',
-        };
-        setError(codeMessages[code] || response.data.error || 'Login failed');
+      if (!email) {
+        console.log('[StaffLogin] No email found in StaffAccount');
+        setError('Staff account has no email configured. Contact administrator.');
         setLoading(false);
         return;
       }
+
+      console.log('[StaffLogin] Attempting login with email:', email);
+
+      // Step 2: Login using email and password via base44 auth
+      const loginResult = await base44.auth.loginViaEmailPassword(email, password);
+      
+      console.log('[StaffLogin] Login result:', loginResult);
 
       // Always clear any student session — staff must never fall into student flow
       const { saveSession, clearSession } = await import('@/components/sessionHelper');
       clearSession('student_session');
 
-      // Store staff session with long-lived signed token (60 days)
+      // Store staff session with staff-specific data
       const session = {
-        staff_id: response.data.staff_id,
-        username: response.data.username,
-        name: response.data.name,
-        full_name: response.data.full_name,
-        role: response.data.role,
-        designation: response.data.designation,
-        role_template_id: response.data.role_template_id,
-        permissions: response.data.permissions || {},
-        effective_permissions: response.data.effective_permissions || {},
-        permissions_override: response.data.permissions_override || {},
+        staff_id: staffAccount.id,
+        username: staffAccount.username,
+        name: staffAccount.name,
+        full_name: staffAccount.name,
+        role: staffAccount.role,
+        designation: staffAccount.designation,
+        role_template_id: staffAccount.role_template_id,
+        permissions: staffAccount.permissions || {},
+        effective_permissions: staffAccount.effective_permissions || {},
+        permissions_override: staffAccount.permissions_override || {},
         logged_in_at: new Date().toISOString(),
-        // Long-lived signed session token — primary identity proof for all staff API calls
-        staff_session_token: response.data.staff_session_token,
-        token_exp: response.data.token_exp,
+        staff_code: staffAccount.staff_code,
       };
 
       saveSession('staff_session', session);
 
-      // Debug: decode token claims to confirm structure
-      try {
-        const tokenParts = response.data.staff_session_token.split('.');
-        const claims = JSON.parse(atob(tokenParts[0].replace(/-/g, '+').replace(/_/g, '/') + '=='));
-        console.log('[StaffLogin] Token claims:', { staff_id: claims.staff_id, username: claims.username, role: claims.role, iat: claims.iat, exp: claims.exp });
-      } catch {}
-      console.log(`[StaffLogin] Session saved: role=${response.data.role} staff_id=${response.data.staff_id} username=${response.data.username} token_exp=${response.data.token_exp_iso}`);
+      console.log('[StaffLogin] Session saved:', {
+        staff_id: staffAccount.id,
+        username: staffAccount.username,
+        role: staffAccount.role,
+        staff_code: staffAccount.staff_code
+      });
 
       // If password change required, redirect to change password
-      if (response.data.force_password_change) {
+      if (staffAccount.force_password_change) {
         toast.success('Login successful. Please change your password.');
         navigate(createPageUrl('ChangeStaffPassword'));
         return;
@@ -109,8 +106,14 @@ export default function StaffLogin() {
       toast.success('Login successful');
       navigate(createPageUrl('Dashboard'));
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
-    } finally {
+      console.error('[StaffLogin] Login error:', err);
+      
+      // Check if it's an authentication error (wrong password)
+      if (err.message && (err.message.includes('Invalid credentials') || err.message.includes('password'))) {
+        setError('Invalid password');
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
       setLoading(false);
     }
   };
