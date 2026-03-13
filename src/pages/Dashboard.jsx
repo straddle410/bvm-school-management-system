@@ -44,7 +44,7 @@ function normaliseRole(r) {
 const TILE_LEGACY_MAP = {
   attendance_view:              ['attendance', 'attendance_mark', 'attendance_view_module'],
   marks_view:                   ['marks', 'marks_enter', 'marks_view_module'],
-  exams_view:                   ['marks_enter', 'marks_view_module'],
+  exams_view:                   ['marks_view_module'],
   notices_view:                 ['post_notices', 'notices_create', 'notices_view_module'],
   gallery_view:                 ['gallery', 'gallery_upload', 'gallery_view_module'],
   quiz_view:                    ['quiz', 'quiz_create', 'quiz_create_edit', 'quiz_view_module'],
