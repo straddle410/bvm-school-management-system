@@ -21,25 +21,17 @@ export default function MessageNotificationListener() {
         // Resolve current user: check staff_session first (teachers), then base44 auth (admin)
         let currentEmail = null;
         let currentName = null;
-        let isStaffSession = false;
         try {
           const ss = localStorage.getItem('staff_session');
           if (ss) {
             const staff = JSON.parse(ss);
-            if (staff?.email) {
-              currentEmail = staff.email;
-              currentName = staff.full_name;
-              isStaffSession = true;
-            }
+            if (staff?.email) { currentEmail = staff.email; currentName = staff.full_name; }
           }
         } catch {}
-        
-        // Only call auth.me() if NOT a staff session
-        if (!currentEmail && !isStaffSession) {
+        if (!currentEmail) {
           const user = await base44.auth.me().catch(() => null);
           if (user?.email) { currentEmail = user.email; currentName = user.full_name; }
         }
-        
         if (!currentEmail) return;
 
         const currentUser = { email: currentEmail, full_name: currentName };
