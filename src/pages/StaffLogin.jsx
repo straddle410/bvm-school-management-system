@@ -200,7 +200,7 @@ export default function StaffLogin() {
         </CardHeader>
 
         <CardContent className="pt-8">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" noValidate>
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg">
                 <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
