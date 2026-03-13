@@ -285,6 +285,11 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     return `${val} on ${scope}`;
   };
 
+  // ✅ FIX #5: Toggle expanded state to trigger lazy-loading of invoices
+  const toggleFamilyExpanded = (familyId) => {
+    setExpandedFamilyId(expandedFamilyId === familyId ? null : familyId);
+  };
+
   return (
     <div className="space-y-4">
       {isArchived && (
