@@ -1069,7 +1069,16 @@ export default function Attendance() {
             </TabsList>
 
             <TabsContent value="mark">
-              <MarkAttendanceTab user={user} academicYear={academicYear} isAdmin={isAdmin} holidays={holidays} />
+              <MarkAttendanceTab 
+                user={user} 
+                academicYear={academicYear} 
+                isAdmin={isAdmin} 
+                holidays={holidays}
+                classSectionData={classSectionData}
+                sectionData={sectionData}
+                selectedClass={selectedClass}
+                onClassChange={setSelectedClass}
+              />
             </TabsContent>
 
             {canViewReports && (
@@ -1082,7 +1091,13 @@ export default function Attendance() {
 
             {canViewReports && (
               <TabsContent value="summary">
-                <AttendanceSummaryTab academicYear={academicYear} user={user} holidays={holidays} />
+                <AttendanceSummaryTab 
+                  academicYear={academicYear} 
+                  user={user} 
+                  holidays={holidays}
+                  classSectionData={classSectionData}
+                  sectionData={sectionData}
+                />
               </TabsContent>
             )}
 
