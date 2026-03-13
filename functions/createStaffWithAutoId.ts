@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
     const counter = counters[0];
     const newValue = (counter.current_value || 0) + 1;
-    const generatedId = `${prefix}${newValue}`;
+    const generatedId = `${prefix}${String(newValue).padStart(3, '0')}`;
 
     // Update counter
     await base44.asServiceRole.entities.Counter.update(counter.id, {
@@ -40,11 +40,11 @@ Deno.serve(async (req) => {
     console.log(`Generated Staff ID: ${generatedId} for ${staffData.name}`);
 
     // Generate email in format: staffcode@bvmschool.com
-    const generatedEmail = `${generatedId}@bvmschool.com`;
+    const generatedEmail = `${generatedId.toLowerCase()}@bvmschool.com`;
     console.log(`Generated Email: ${generatedEmail}`);
 
     // Hash password
-    const password_hash = await bcrypt.hash(password || 'password123', 10);
+    const password_hash = password ? await bcrypt.hash(password, 10) : await bcrypt.hash('password123', 10);
 
     // Register user in Base44 auth system with the generated email
     try {
@@ -61,8 +61,8 @@ Deno.serve(async (req) => {
       username: generatedId,
       email: generatedEmail,
       password_hash,
-      force_password_change: true,
-      is_active: true,
+      force_password_change: staffData.force_password_change !== false,
+      is_active: staffData.is_active !== false,
       failed_login_attempts: 0
     });
 
