@@ -558,9 +558,10 @@ export default function Staff() {
   };
 
   const handleResetPasswordSubmit = () => {
-   resetPasswordMutation.mutate({
-     staff_id: resetPasswordStaff.id,
-   });
+    resetPasswordMutation.mutate({
+      staff_id: resetPasswordStaff.id,
+      temp_password: 'Bvm@1234',
+    });
   };
 
   const handleSaveRole = () => {
