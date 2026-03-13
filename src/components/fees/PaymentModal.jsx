@@ -60,13 +60,31 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
     },
     onSuccess: (data) => {
       toast.success(`Payment recorded! Receipt: ${data.receipt_no}`);
+      setShowConfirmation(false);
       onSuccess();
     },
     onError: (e) => {
       console.error('[PaymentModal] Error:', e);
       toast.error(e.response?.data?.error || e.message);
+      setShowConfirmation(false);
     }
   });
+
+  const handleRecordClick = () => {
+    if (!form.amountPaid || parseFloat(form.amountPaid) <= 0) {
+      toast.error('Enter a valid amount');
+      return;
+    }
+    if (isOverpayment) {
+      toast.error(`Amount exceeds outstanding balance of ₹${outstanding}`);
+      return;
+    }
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmPayment = () => {
+    payMutation.mutate();
+  };
 
   return (
     <Dialog open onOpenChange={onClose}>
