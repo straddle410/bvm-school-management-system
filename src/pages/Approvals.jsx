@@ -534,11 +534,11 @@ export default function Approvals() {
 
         {/* STAFF EDIT DIALOG */}
         <Dialog open={!!editingStaff} onOpenChange={() => setEditingStaff(null)}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Staff Details</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Full Name</Label>
                 <Input
