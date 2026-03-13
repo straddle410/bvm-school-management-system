@@ -124,35 +124,15 @@ export default function Approvals() {
     try {
       setStaffActionLoading(record.id);
       
-      const response = await base44.functions.invoke('createStaffWithAutoId', {
-        staff_data: {
-          name: record.name,
-          role: record.role,
-          designation: record.designation,
-          mobile: record.mobile,
-          email: record.email,
-          qualification: record.qualification,
-          username: record.username,
-          password_hash: record.password_hash,
-          is_active: true,
-          status: 'active',
-        }
+      await base44.entities.StaffAccount.update(record.id, {
+        status: 'active',
       });
-
-      if (response.data?.success && response.data?.staff_code) {
-        await base44.entities.StaffAccount.update(record.id, {
-          staff_code: response.data.staff_code,
-          status: 'active',
-        });
-        
-        toast.success(`Staff approved! Staff ID: ${response.data.staff_code}`);
-        queryClient.invalidateQueries(['pending-staff']);
-      } else {
-        toast.error('Failed to generate Staff ID');
-      }
+      
+      toast.success(`Staff approved!`);
+      queryClient.invalidateQueries(['pending-staff']);
     } catch (error) {
       console.error('Staff approval failed:', error);
-      toast.error(error.response?.data?.error || 'Failed to approve staff');
+      toast.error('Failed to approve staff');
     } finally {
       setStaffActionLoading(null);
     }
