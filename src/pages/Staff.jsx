@@ -137,6 +137,24 @@ export default function Staff() {
 
   const [generatedStaffId, setGeneratedStaffId] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  
+  // Compute Staff ID preview based on selected role
+  const getStaffIdPreview = () => {
+    if (editingStaff) return ''; // No preview when editing
+    
+    const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
+    if (!selectedTemplate) return '';
+    
+    const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
+    
+    // Admin or Accountant roles get 'A' prefix
+    if (rawRoleName === 'admin' || rawRoleName === 'accountant') {
+      return 'A**';
+    }
+    
+    // All other roles get 'T' prefix
+    return 'T**';
+  };
 
   const saveMutation = useMutation({
     mutationFn: async ({ _editId, ...data }) => {
@@ -293,6 +311,7 @@ export default function Staff() {
 
   const openCreate = () => {
     setEditingStaff(null);
+    setGeneratedStaffId(null);
     const tempPass = generateTempPassword();
     setTempPassword(tempPass);
     setForm({
@@ -623,6 +642,20 @@ export default function Staff() {
                           placeholder="John Doe"
                           required
                         />
+                      </div>
+
+                      <div>
+                        <Label>Staff ID (Auto Generated)</Label>
+                        <Input
+                          value={generatedStaffId || getStaffIdPreview()}
+                          readOnly
+                          disabled
+                          className="bg-slate-100 dark:bg-gray-700 text-slate-500 dark:text-gray-400 cursor-not-allowed"
+                          placeholder="Select role to preview"
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          {generatedStaffId ? 'Generated ID' : 'Will be auto-generated on creation'}
+                        </p>
                       </div>
 
                       <div>
