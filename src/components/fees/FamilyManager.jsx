@@ -317,32 +317,34 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
         <div className="space-y-3">
           {families.map(family => (
             <Card key={family.id} className="border-0 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-indigo-50 flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-indigo-600" />
+              <button className="w-full px-4 py-3 bg-indigo-50 flex items-center justify-between flex-wrap gap-2 hover:bg-indigo-100 transition-colors text-left"
+                onClick={() => toggleFamilyExpanded(family.id)}>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Users className="h-4 w-4 text-indigo-600 flex-shrink-0" />
                   <span className="font-semibold text-slate-800">{family.family_name}</span>
                   {family.parent_phone && <span className="text-xs text-slate-500">📞 {family.parent_phone}</span>}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {family.sibling_discount_applied ? (
                     <Badge className="bg-emerald-100 text-emerald-800 text-xs">✓ Discount Applied</Badge>
                   ) : (
                     <Badge variant="outline" className="text-xs text-slate-500">Not Applied</Badge>
                   )}
                   {!isArchived && (
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(family)}>
+                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEdit(family); }}>
                       <Edit2 className="h-3.5 w-3.5" />
                     </Button>
                   )}
                   {!isArchived && (
                     <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-600"
-                      onClick={() => deleteMutation.mutate(family.id)}>
+                      onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(family.id); }}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   )}
                 </div>
-              </div>
-              <CardContent className="p-4 space-y-3">
+              </button>
+              {expandedFamilyId === family.id && (
+              <CardContent className="p-4 space-y-3 border-t">
                 <div className="flex flex-wrap gap-2">
                   {(family.student_ids || []).map((sid, i) => (
                     <span key={sid} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
