@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 export default function StaffLogin() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [staffId, setStaffId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,7 +25,7 @@ export default function StaffLogin() {
     setError('');
     
     // Clear validation error on new attempt
-    if (!username || !password) {
+    if (!staffId || !password) {
       setError('Staff ID and password are required');
       return;
     }
@@ -34,7 +34,7 @@ export default function StaffLogin() {
 
     try {
       const response = await base44.functions.invoke('staffLogin', {
-        username,
+        staffId,
         password,
       });
 
@@ -213,18 +213,18 @@ export default function StaffLogin() {
                 Username
               </Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setError('');
-                }}
-                placeholder="e.g., ravi.kumar01"
-                className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                disabled={loading}
-                autoFocus
-              />
+                 id="staffId"
+                 type="text"
+                 value={staffId}
+                 onChange={(e) => {
+                   setStaffId(e.target.value);
+                   setError('');
+                 }}
+                 placeholder="e.g., A101, T101"
+                 className="border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                 disabled={loading}
+                 autoFocus
+               />
             </div>
 
             <div className="space-y-2">
