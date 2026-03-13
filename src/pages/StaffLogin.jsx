@@ -52,59 +52,68 @@ export default function StaffLogin() {
         staff_code: staffAccount.staff_code
       });
 
-      console.log('[StaffLogin] Attempting login with username:', username, 'password length:', password.length);
+      console.log('[StaffLogin] Calling staffLogin function with username:', username);
 
-      // Step 2: Login using username (which is the email field in Base44 auth) and password
-      try {
-        const loginResult = await base44.auth.loginViaEmailPassword(username, password);
-        console.log('[StaffLogin] Login successful via username');
-      } catch (authErr) {
-        console.log('[StaffLogin] Direct username login failed, trying User entity lookup:', authErr.message);
-        
-        // Step 3: Fallback - try to find user in User entity where email = username
-        const users = await base44.entities.User.filter({ email: username });
-        console.log('[StaffLogin] User entity lookup result:', users);
-        
-        if (users && users.length > 0) {
-          // Retry login with the user's email
-          await base44.auth.loginViaEmailPassword(users[0].email, password);
-          console.log('[StaffLogin] Login successful via User entity email');
-        } else {
-          throw authErr; // Re-throw original error if User not found
+      // Step 2: Use the staffLogin backend function with the username from StaffAccount
+      const response = await base44.functions.invoke('staffLogin', {
+        username,
+        password,
+      });
+
+      console.log('[StaffLogin] staffLogin response:', response.data);
+
+      if (!response.data.success) {
+        if (response.data.code === 'LINK_CONFLICT') {
+          setLinkConflict(true);
+          return;
         }
+        if (response.data.locked_until || response.data.code === 'ACCOUNT_LOCKED') {
+          setLockedUntil(response.data.locked_until);
+        }
+        const code = response.data.code;
+        const codeMessages = {
+          USER_NOT_FOUND: 'Invalid Staff ID',
+          PASSWORD_MISMATCH: 'Invalid password',
+          ACCOUNT_INACTIVE: 'Your account is inactive. Contact your administrator.',
+          ACCOUNT_LOCKED: 'Account locked due to too many attempts. Try again in 15 minutes.',
+          PASSWORD_NOT_SET: 'Password not set. Ask your administrator to reset your password.',
+        };
+        setError(codeMessages[code] || response.data.error || 'Login failed');
+        setLoading(false);
+        return;
       }
 
       // Always clear any student session — staff must never fall into student flow
       const { saveSession, clearSession } = await import('@/components/sessionHelper');
       clearSession('student_session');
 
-      // Store staff session with staff-specific data
+      // Store staff session with long-lived signed token (60 days)
       const session = {
-        staff_id: staffAccount.id,
-        username: staffAccount.username,
-        name: staffAccount.name,
-        full_name: staffAccount.name,
-        role: staffAccount.role,
-        designation: staffAccount.designation,
-        role_template_id: staffAccount.role_template_id,
-        permissions: staffAccount.permissions || {},
-        effective_permissions: staffAccount.effective_permissions || {},
-        permissions_override: staffAccount.permissions_override || {},
+        staff_id: response.data.staff_id,
+        username: response.data.username,
+        name: response.data.name,
+        full_name: response.data.full_name,
+        role: response.data.role,
+        designation: response.data.designation,
+        role_template_id: response.data.role_template_id,
+        permissions: response.data.permissions || {},
+        effective_permissions: response.data.effective_permissions || {},
+        permissions_override: response.data.permissions_override || {},
         logged_in_at: new Date().toISOString(),
-        staff_code: staffAccount.staff_code,
+        staff_session_token: response.data.staff_session_token,
+        token_exp: response.data.token_exp,
       };
 
       saveSession('staff_session', session);
 
       console.log('[StaffLogin] Session saved:', {
-        staff_id: staffAccount.id,
-        username: staffAccount.username,
-        role: staffAccount.role,
-        staff_code: staffAccount.staff_code
+        staff_id: response.data.staff_id,
+        username: response.data.username,
+        role: response.data.role
       });
 
       // If password change required, redirect to change password
-      if (staffAccount.force_password_change) {
+      if (response.data.force_password_change) {
         toast.success('Login successful. Please change your password.');
         navigate(createPageUrl('ChangeStaffPassword'));
         return;
@@ -114,13 +123,7 @@ export default function StaffLogin() {
       navigate(createPageUrl('Dashboard'));
     } catch (err) {
       console.error('[StaffLogin] Login error:', err);
-      
-      // Check if it's an authentication error (wrong password)
-      if (err.message && (err.message.includes('Invalid credentials') || err.message.includes('password') || err.message.includes('authentication'))) {
-        setError('Invalid password');
-      } else {
-        setError(err.message || 'Login failed. Please try again.');
-      }
+      setError(err.response?.data?.error || err.message || 'Login failed. Please try again.');
       setLoading(false);
     }
   };
