@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const smsResponse = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+    const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
       method: 'POST',
       headers: {
         'authorization': apiKey,
@@ -68,22 +68,24 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         route: 'otp',
-        variables_values: otp,
+        variables_values: otp.toString(),
+        flash: 0,
         numbers: mobile.trim()
       })
     });
 
-    const smsData = await smsResponse.json();
+    const result = await response.json();
+    console.log('Fast2SMS response:', JSON.stringify(result));
 
-    if (smsData.return === true) {
-      return Response.json({ success: true, message: 'OTP sent successfully' });
-    } else {
-      console.error('Fast2SMS error:', smsData);
+    if (!result.return) {
+      console.error('Fast2SMS error:', JSON.stringify(result));
       return Response.json(
-        { success: false, error: 'Failed to send SMS' },
+        { success: false, error: 'Fast2SMS error: ' + JSON.stringify(result) },
         { status: 500 }
       );
     }
+
+    return Response.json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
     console.error('Send OTP error:', error);
     return Response.json(
