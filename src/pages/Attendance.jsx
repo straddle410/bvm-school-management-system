@@ -96,18 +96,35 @@ function MarkAttendanceTab({
   const workingDate = isAdmin ? selectedDate : todayDate;
   const isSunday = getDay(new Date(workingDate + 'T00:00:00')) === 0;
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['students-published', academicYear, selectedClass, selectedSection],
-    queryFn: () => base44.entities.Student.filter({
-      status: 'Published',
-      academic_year: academicYear,
-      class_name: selectedClass,
-      section: selectedSection,
-      is_deleted: false
-    }),
+  // ✅ FIX #3: Pagination - Load 100 students at a time
+  const [studentPage, setStudentPage] = useState(1);
+  const STUDENTS_PER_PAGE = 100;
+  
+  const { data: studentResponse = {} } = useQuery({
+    queryKey: ['students-published-paginated', academicYear, selectedClass, selectedSection, studentPage],
+    queryFn: async () => {
+      const allStudents = await base44.entities.Student.filter({
+        status: 'Published',
+        academic_year: academicYear,
+        class_name: selectedClass,
+        section: selectedSection,
+        is_deleted: false
+      });
+      const total = allStudents.length;
+      const start = (studentPage - 1) * STUDENTS_PER_PAGE;
+      const end = start + STUDENTS_PER_PAGE;
+      return {
+        students: allStudents.slice(start, end),
+        total,
+        currentPage: studentPage,
+        totalPages: Math.ceil(total / STUDENTS_PER_PAGE)
+      };
+    },
     enabled: !!selectedClass && !!selectedSection && !!academicYear,
     staleTime: 5 * 60 * 1000,
   });
+
+  const students = studentResponse.students || [];
 
   const { data: existingAttendance = [] } = useQuery({
     queryKey: ['attendance', workingDate, selectedClass, selectedSection, academicYear],
