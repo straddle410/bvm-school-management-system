@@ -579,63 +579,94 @@ function MarkAttendanceTab({
             </Card>
           </div>
 
-          <Card className="border-0 shadow-sm dark:bg-gray-800">
-           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4">
-               <CardTitle className="text-base">Class {selectedClass}-{selectedSection}</CardTitle>
-               {!effectiveHoliday && <Button variant="outline" size="sm" onClick={markAllPresent}>Mark All Present</Button>}
-             </CardHeader>
-             <CardContent className="p-0">
-               {effectiveHoliday ? (
-                 <div className="py-12 text-center text-amber-500">
-                   <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
-                   <p className="font-medium text-slate-700 dark:text-gray-300">Holiday: {holidayReason || 'Holiday'}</p>
-                   <p className="text-sm text-slate-400 dark:text-gray-500 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
+          <Card className="border-0 shadow-sm dark:bg-gray-800 flex flex-col">
+            {/* ✅ FIXED: Header stays at top, student list scrolls independently */}
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4 flex-shrink-0">
+                <CardTitle className="text-base">Class {selectedClass}-{selectedSection}</CardTitle>
+                {!effectiveHoliday && <Button variant="outline" size="sm" onClick={markAllPresent}>Mark All Present</Button>}
+              </CardHeader>
+              <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+                {effectiveHoliday ? (
+                  <div className="py-12 text-center text-amber-500">
+                    <Palmtree className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                    <p className="font-medium text-slate-700 dark:text-gray-300">Holiday: {holidayReason || 'Holiday'}</p>
+                    <p className="text-sm text-slate-400 dark:text-gray-500 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
+                  </div>
+                ) : filteredStudents.length === 0 ? (
+                 <div className="py-12 text-center text-slate-400 dark:text-gray-500">No published students in this class</div>
+               ) : (
+                 <div className="overflow-y-auto max-h-[600px] divide-y dark:divide-gray-700 flex-1">
+                   {filteredStudents.map((student, index) => {
+                     const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
+                     const attendanceDisabled = effectiveHoliday || isRecordLocked;
+                     const bgColor = attType === 'absent' ? 'bg-red-50 dark:bg-red-900/20' : attType === 'half_day' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-white dark:bg-gray-800';
+                     return (
+                       <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 dark:bg-gray-700 opacity-60' : bgColor}`}>
+                         <span className="text-xs text-slate-400 dark:text-gray-500 w-6 flex-shrink-0">{student.roll_no || index + 1}</span>
+                         <Avatar className="h-8 w-8 flex-shrink-0">
+                           <AvatarImage src={student.photo_url} />
+                           <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">{student.name?.[0]}</AvatarFallback>
+                         </Avatar>
+                         <div className="flex-1 min-w-0">
+                           <p className="font-medium text-slate-900 dark:text-white truncate text-sm">{student.name}</p>
+                           <p className="text-xs text-slate-500 dark:text-gray-400">{student.student_id}</p>
+                         </div>
+                         <div className="flex gap-1 flex-shrink-0">
+                           {[
+                             { type: 'full_day', color: 'green', Icon: CheckCircle2, title: 'Present' },
+                             { type: 'half_day', color: 'yellow', Icon: AlertCircle, title: 'Half Day' },
+                             { type: 'absent', color: 'red', Icon: XCircle, title: 'Absent' }
+                           ].map(({ type, color, Icon, title }) => (
+                             <Button key={type} size="sm"
+                               variant={attType === type ? 'default' : 'outline'}
+                               className={attType === type ? `bg-${color}-600 hover:bg-${color}-700` : ''}
+                               onClick={() => type === 'half_day'
+                                 ? setHalfDayModal({ isOpen: true, studentId: student.student_id || student.id, studentName: student.name })
+                                 : setAttendanceType(student.student_id || student.id, type)}
+                               disabled={attendanceDisabled}
+                               title={title}
+                             >
+                               <Icon className="h-4 w-4" />
+                             </Button>
+                           ))}
+                         </div>
+                       </div>
+                     );
+                   })}
                  </div>
-               ) : filteredStudents.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 dark:text-gray-500">No published students in this class</div>
-              ) : (
-                <div className="divide-y dark:divide-gray-700">
-                  {filteredStudents.map((student, index) => {
-                    const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
-                    const attendanceDisabled = effectiveHoliday || isRecordLocked;
-                    const bgColor = attType === 'absent' ? 'bg-red-50 dark:bg-red-900/20' : attType === 'half_day' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-white dark:bg-gray-800';
-                    return (
-                      <div key={student.id} className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 dark:bg-gray-700 opacity-60' : bgColor}`}>
-                        <span className="text-xs text-slate-400 dark:text-gray-500 w-6 flex-shrink-0">{student.roll_no || index + 1}</span>
-                        <Avatar className="h-8 w-8 flex-shrink-0">
-                          <AvatarImage src={student.photo_url} />
-                          <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">{student.name?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-slate-900 dark:text-white truncate text-sm">{student.name}</p>
-                          <p className="text-xs text-slate-500 dark:text-gray-400">{student.student_id}</p>
-                        </div>
-                        <div className="flex gap-1 flex-shrink-0">
-                          {[
-                            { type: 'full_day', color: 'green', Icon: CheckCircle2, title: 'Present' },
-                            { type: 'half_day', color: 'yellow', Icon: AlertCircle, title: 'Half Day' },
-                            { type: 'absent', color: 'red', Icon: XCircle, title: 'Absent' }
-                          ].map(({ type, color, Icon, title }) => (
-                            <Button key={type} size="sm"
-                              variant={attType === type ? 'default' : 'outline'}
-                              className={attType === type ? `bg-${color}-600 hover:bg-${color}-700` : ''}
-                              onClick={() => type === 'half_day'
-                                ? setHalfDayModal({ isOpen: true, studentId: student.student_id || student.id, studentName: student.name })
-                                : setAttendanceType(student.student_id || student.id, type)}
-                              disabled={attendanceDisabled}
-                              title={title}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+               )}
+             </CardContent>
+           </Card>
+
+           {/* ✅ FIXED: Pagination controls outside scrollable container, at bottom */}
+           {filteredStudents.length > 0 && (
+             <div className="flex items-center justify-between mt-4 px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+               <span className="text-sm text-slate-600 dark:text-gray-400">
+                 Showing {(studentPage - 1) * STUDENTS_PER_PAGE + 1} to {Math.min(studentPage * STUDENTS_PER_PAGE, studentResponse.total)} of {studentResponse.total} students
+               </span>
+               <div className="flex gap-2">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                   disabled={studentPage === 1}
+                 >
+                   Previous
+                 </Button>
+                 <span className="flex items-center px-3 text-sm text-slate-600 dark:text-gray-400">
+                   Page {studentPage} of {studentResponse.totalPages}
+                 </span>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => setStudentPage(p => Math.min(studentResponse.totalPages, p + 1))}
+                   disabled={studentPage === studentResponse.totalPages}
+                 >
+                   Next
+                 </Button>
+               </div>
+             </div>
+           )}
 
           {(filteredStudents.length > 0 || effectiveHoliday) && (
             <div className="flex justify-end">
