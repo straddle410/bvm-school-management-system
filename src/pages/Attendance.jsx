@@ -220,10 +220,12 @@ function MarkAttendanceTab({ user, academicYear, isAdmin, holidays }) {
       }
       return results;
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
        queryClient.invalidateQueries(['attendance']);
        queryClient.invalidateQueries(['attendance', workingDate, selectedClass, selectedSection, academicYear]);
-       toast.success(effectiveHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
+       // Check if records were auto-locked after save
+       const wasLocked = results?.some(r => Array.isArray(r) ? r.some(x => x.locked) : r?.locked);
+       toast.success(effectiveHoliday ? 'Holiday marked successfully' : (wasLocked ? 'Attendance saved and locked' : 'Attendance saved successfully'));
      },
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
