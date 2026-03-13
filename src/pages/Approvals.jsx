@@ -37,6 +37,8 @@ export default function Approvals() {
   const [rejectReason, setRejectReason] = useState('');
   const [staffRejectDialog, setStaffRejectDialog] = useState(null);
   const [staffActionLoading, setStaffActionLoading] = useState(null);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
