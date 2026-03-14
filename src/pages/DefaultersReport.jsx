@@ -18,6 +18,8 @@ export default function DefaultersReportPage() {
   const { academicYear } = useAcademicYear();
   console.log('useAcademicYear returned:', academicYear);
   
+  const [userRole, setUserRole] = useState('');
+  
   const [filters, setFilters] = useState({
     className: '',
     section: '',
@@ -48,6 +50,11 @@ export default function DefaultersReportPage() {
   const [sendingReminders, setSendingReminders] = useState(false);
   const [reminderTitle, setReminderTitle] = useState("Fee Payment Reminder 💰");
   const [reminderMessage, setReminderMessage] = useState("Dear {name}, You have an outstanding fee of ₹{amount}. Please clear your dues at the earliest to avoid any inconvenience. Thank you.");
+
+  useEffect(() => {
+    const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
+    setUserRole((staffSession.role || '').toLowerCase());
+  }, []);
 
   const handleApplyFilters = () => {
     setAppliedFilters({ ...filters });
@@ -196,7 +203,18 @@ export default function DefaultersReportPage() {
       });
       
       const result = res.data;
-      toast.success(`✅ Sent: ${result.success_count} | ❌ Failed: ${result.failed_count}`);
+      
+      // Success toast
+      if (result.success_count > 0) {
+        toast.success(`Reminders sent to ${result.success_count} students`);
+      }
+      
+      // Warning toast for students without push token
+      const noTokenCount = studentsData.length - result.success_count - result.failed_count;
+      if (noTokenCount > 0) {
+        toast.warning(`${noTokenCount} students have no app installed`);
+      }
+      
       setSelectedStudents([]);
     } catch (error) {
       toast.error('Failed to send reminders: ' + error.message);
@@ -476,7 +494,7 @@ export default function DefaultersReportPage() {
         )}
 
         {/* Send Reminder Panel */}
-        {selectedStudents.length > 0 && (
+        {selectedStudents.length > 0 && (userRole === 'admin' || userRole === 'accountant') && (
           <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shadow-lg p-4 z-50">
             <div className="max-w-7xl mx-auto space-y-3">
               <div className="flex items-center justify-between">
@@ -515,11 +533,11 @@ export default function DefaultersReportPage() {
               <div className="flex justify-end">
                 <Button
                   onClick={handleSendReminder}
-                  disabled={sendingReminders}
+                  disabled={sendingReminders || selectedStudents.length === 0}
                   className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
                 >
                   <Send className="h-4 w-4" />
-                  {sendingReminders ? 'Sending...' : 'Send Reminder 🔔'}
+                  {sendingReminders ? 'Sending...' : `Send Reminder (${selectedStudents.length} selected)`}
                 </Button>
               </div>
             </div>
