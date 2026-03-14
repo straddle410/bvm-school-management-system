@@ -51,12 +51,10 @@ Deno.serve(async (req) => {
       return !VOID_STATUSES.has(rawStatus) && !VOID_STATUSES.has(p.status);
     });
 
-    // Build student lookup for enrichment (exclude deleted students)
+    // Build student lookup for enrichment (no filtering - include all students)
     const studentLookup = {};
     allStudents.forEach(s => {
-      if (s.is_deleted !== true) {
-        studentLookup[s.student_id] = s;
-      }
+      studentLookup[s.student_id] = s;
     });
 
     // Build latest follow-ups map (latest per student)
@@ -150,17 +148,12 @@ Deno.serve(async (req) => {
       // Filter by minDue
       if (due < minDue) return;
 
-      // Calculate days since last payment
+      // Calculate days since last payment (for display only - no filter)
       let daysSinceLastPayment = null;
       if (latestPaymentDate) {
         const lastPayDate = new Date(latestPaymentDate);
         const today = new Date();
         daysSinceLastPayment = Math.floor((today - lastPayDate) / (1000 * 60 * 60 * 24));
-      }
-
-      // Filter by daysSinceLastPaymentMin
-      if (daysSinceLastPaymentMin !== null) {
-        if (daysSinceLastPayment === null || daysSinceLastPayment < daysSinceLastPaymentMin) return;
       }
 
       // Build defaulter row
