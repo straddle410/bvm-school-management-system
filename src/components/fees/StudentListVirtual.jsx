@@ -14,7 +14,7 @@ const StudentRow = ({ index, style, data }) => {
             <span className="text-indigo-700 font-bold text-sm">{s.name?.[0]}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-slate-900">{s.name}</p>
+            <p className="text-lg font-semibold text-slate-900">{s.name}</p>
             <p className="text-xs text-slate-500">{s.student_id} · Roll {s.roll_no}</p>
           </div>
           <span className="text-xs text-slate-400">→</span>

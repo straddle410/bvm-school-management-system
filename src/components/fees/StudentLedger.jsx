@@ -263,6 +263,18 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                   ))}
                 </div>
 
+                {/* Record Receipt Button - Top Position */}
+                {!isArchivedYear && balance > 0 && invoice.status !== 'Waived' && (
+                  <Button 
+                    size="lg" 
+                    className="w-full bg-green-600 hover:bg-green-700 text-lg font-bold min-h-[60px] shadow-lg" 
+                    onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}
+                  >
+                    <Receipt className="h-6 w-6 mr-2" />
+                    Record Receipt
+                  </Button>
+                )}
+
                 {/* Total Collected (All receipts) */}
                 <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
                   <p className="text-xs text-slate-500 mb-1">Total Collected (All Receipts)</p>
