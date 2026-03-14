@@ -249,7 +249,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                 )}
 
                 {/* Totals summary */}
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
                     { label: 'Gross', value: gross, color: 'text-slate-900' },
                     { label: 'Discount', value: discount, color: 'text-emerald-700' },
