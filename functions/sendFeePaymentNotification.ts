@@ -35,6 +35,8 @@ Deno.serve(async (req) => {
     });
     const pref = prefs[0];
 
+    console.log('[FCM] Preference:', JSON.stringify(pref));
+    console.log('[FCM] Token:', pref?.browser_push_token);
     console.log('[FCM] Student preference found:', JSON.stringify(pref));
     console.log('[FCM] Token being used:', pref?.browser_push_token || pref?.push_token || pref?.fcm_token || pref?.token);
 
