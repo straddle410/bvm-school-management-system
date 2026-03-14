@@ -82,32 +82,32 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
           </div>
         </div>
 
-        <div ref={receiptRef} className="bg-white p-6" style={{ width: '560px', maxWidth: '100%' }}>
+        <div ref={receiptRef} className="bg-white p-4 sm:p-6 w-full" style={{ maxWidth: '560px' }}>
           {/* Header */}
-          <div className="border-b-2 border-gray-800 pb-3 mb-4">
-            <div className="flex items-center gap-3">
+          <div className="border-b-2 border-gray-800 pb-3 mb-4 w-full">
+            <div className="flex items-center gap-2 sm:gap-3">
               {schoolProfile?.logo_url && (
-                <img src={schoolProfile.logo_url} alt="School Logo" className="h-12 w-12 object-contain" crossOrigin="anonymous" />
+                <img src={schoolProfile.logo_url} alt="School Logo" className="h-10 w-10 sm:h-12 sm:w-12 object-contain flex-shrink-0" crossOrigin="anonymous" />
               )}
-              <div>
-                <h1 className="text-base font-bold text-gray-900">{schoolProfile?.school_name || 'School Name'}</h1>
-                {schoolProfile?.address && <p className="text-[10px] text-gray-600 mt-0.5">{schoolProfile.address}</p>}
-                {schoolProfile?.phone && <p className="text-[10px] text-gray-600">Phone: {schoolProfile.phone}</p>}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-sm sm:text-base font-bold text-gray-900 truncate">{schoolProfile?.school_name || 'School Name'}</h1>
+                {schoolProfile?.address && <p className="text-[9px] sm:text-[10px] text-gray-600 mt-0.5 line-clamp-2">{schoolProfile.address}</p>}
+                {schoolProfile?.phone && <p className="text-[9px] sm:text-[10px] text-gray-600">Phone: {schoolProfile.phone}</p>}
               </div>
             </div>
           </div>
 
           {/* Receipt Title */}
-          <div className="text-center mb-4">
-            <h2 className="text-sm font-bold text-gray-900">FEE RECEIPT - PARENT COPY</h2>
-            <p className="text-[10px] text-gray-600 mt-1">Academic Year: {invoice.academic_year}</p>
+          <div className="text-center mb-4 w-full">
+            <h2 className="text-xs sm:text-sm font-bold text-gray-900">FEE RECEIPT - PARENT COPY</h2>
+            <p className="text-[9px] sm:text-[10px] text-gray-600 mt-1">Academic Year: {invoice.academic_year}</p>
           </div>
 
           {/* Student Details */}
-          <div className="grid grid-cols-2 gap-3 mb-4 bg-gray-50 p-3 rounded">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4 bg-gray-50 p-3 rounded w-full">
             <div>
               <p className="text-[9px] text-gray-500 font-medium">Student Name</p>
-              <p className="text-[10px] font-semibold text-gray-900">{studentSession?.name}</p>
+              <p className="text-[10px] font-semibold text-gray-900 break-words">{studentSession?.name}</p>
             </div>
             <div>
               <p className="text-[9px] text-gray-500 font-medium">Student ID</p>
@@ -119,59 +119,59 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
             </div>
             <div>
               <p className="text-[9px] text-gray-500 font-medium">Receipt Number</p>
-              <p className="text-[10px] font-semibold text-gray-900">{receiptNumber || invoice.id?.slice(-8).toUpperCase() || 'N/A'}</p>
+              <p className="text-[10px] font-semibold text-gray-900 break-all">{receiptNumber || invoice.id?.slice(-8).toUpperCase() || 'N/A'}</p>
             </div>
           </div>
 
           {/* Fee Details */}
-          <div className="mb-4">
-            <h3 className="text-[11px] font-bold text-gray-700 mb-2 border-b pb-1">Fee Details</h3>
-            <div className="space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-[10px] text-gray-600">Fee Type</span>
-                <span className="text-[10px] font-semibold text-gray-900">{invoice.title || invoice.installment_name}</span>
+          <div className="mb-4 w-full">
+            <h3 className="text-[10px] sm:text-[11px] font-bold text-gray-700 mb-2 border-b pb-1">Fee Details</h3>
+            <div className="space-y-1.5 w-full">
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0 mr-2">Fee Type</span>
+                <span className="text-[9px] sm:text-[10px] font-semibold text-gray-900 text-right break-words">{invoice.title || invoice.installment_name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] text-gray-600">Gross Amount</span>
-                <span className="text-[11px] font-semibold text-gray-900">₹{grossAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0">Gross Amount</span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-gray-900">₹{grossAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-[10px] text-gray-600">Discount</span>
-                  <span className="text-[11px] font-semibold text-green-600">-₹{discountAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0">Discount</span>
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-green-600">-₹{discountAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-[10px] text-gray-600">Net Fee</span>
-                <span className="text-[11px] font-semibold text-gray-900">₹{invoice.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0">Net Fee</span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-gray-900">₹{invoice.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-              <div className="flex justify-between pt-1.5 border-t">
-                <span className="text-[10px] text-gray-600">This Payment</span>
-                <span className="text-[11px] font-semibold text-blue-600">₹{thisPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <div className="flex justify-between items-center py-1 pt-1.5 border-t">
+                <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0">This Payment</span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-blue-600">₹{thisPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] text-gray-600">Total Paid Till Date</span>
-                <span className="text-[11px] font-semibold text-green-600">₹{totalPaidTillDate?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0 mr-2">Total Paid Till Date</span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-green-600">₹{totalPaidTillDate?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] text-gray-600">Payment Date</span>
-                <span className="text-[10px] font-semibold text-gray-900">{displayDate}</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[9px] sm:text-[10px] text-gray-600 flex-shrink-0">Payment Date</span>
+                <span className="text-[9px] sm:text-[10px] font-semibold text-gray-900">{displayDate}</span>
               </div>
               {balanceAfterPayment > 0 && (
-                <div className="flex justify-between pt-1.5 border-t">
-                  <span className="text-[10px] font-semibold text-gray-700">Balance Due</span>
-                  <span className="text-[11px] font-bold text-red-600">₹{balanceAfterPayment?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <div className="flex justify-between items-center py-1 pt-1.5 border-t">
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-gray-700 flex-shrink-0">Balance Due</span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-red-600">₹{balanceAfterPayment?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-6 pt-3 border-t border-gray-300">
-            <p className="text-[9px] text-gray-500 text-center italic">
+          <div className="mt-6 pt-3 border-t border-gray-300 w-full">
+            <p className="text-[8px] sm:text-[9px] text-gray-500 text-center italic">
               This is a computer generated receipt. No signature required.
             </p>
-            <p className="text-[9px] text-gray-400 text-center mt-1">
+            <p className="text-[8px] sm:text-[9px] text-gray-400 text-center mt-1">
               Generated on: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
             </p>
           </div>
