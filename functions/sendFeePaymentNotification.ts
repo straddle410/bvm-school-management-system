@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'No push token available' });
     }
     
+    console.log('[sendFeePaymentNotification] Student push token found:', pref.browser_push_token?.substring(0, 50) + '...');
     console.log('[sendFeePaymentNotification] Student has push token, preparing FCM message');
 
     // Construct notification message
