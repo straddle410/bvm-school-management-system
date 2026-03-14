@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     // Fetch data in parallel — global filter: status=Published, is_deleted=false, current AY
     const [invoices, payments, students, followUps] = await Promise.all([
-      base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear, invoice_type: 'ANNUAL' }, '-created_date', 5000),
+      base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000)
