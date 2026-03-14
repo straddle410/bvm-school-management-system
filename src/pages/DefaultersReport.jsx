@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Eye, Phone, MessageCircle } from 'lucide-react';
+import { Download, Eye, Phone, MessageCircle, Send, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import LoginRequired from '@/components/LoginRequired';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
@@ -25,6 +28,10 @@ export default function DefaultersReportPage() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const queryClient = useQueryClient();
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderTitle, setReminderTitle] = useState("Fee Payment Reminder 💰");
+  const [reminderMessage, setReminderMessage] = useState("Dear {name}, You have an outstanding fee of ₹{amount}. Please clear your dues at the earliest to avoid any inconvenience. Thank you.");
 
   // Fetch defaulters
   const { data, isLoading, error } = useQuery({
@@ -91,6 +98,44 @@ export default function DefaultersReportPage() {
   const openWhatsApp = (phone) => {
     if (phone) {
       window.open(`https://wa.me/${phone.replace(/\D/g, '')}`, '_blank');
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedStudents.length === rows.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(rows.map(row => row.student.id));
+    }
+  };
+
+  const handleToggleStudent = (studentId) => {
+    if (selectedStudents.includes(studentId)) {
+      setSelectedStudents(selectedStudents.filter(id => id !== studentId));
+    } else {
+      setSelectedStudents([...selectedStudents, studentId]);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    if (!confirm(`Send fee reminder to ${selectedStudents.length} students?`)) {
+      return;
+    }
+
+    setSendingReminders(true);
+    try {
+      const res = await base44.functions.invoke('sendFeeReminders', {
+        student_ids: selectedStudents,
+        title: reminderTitle,
+        message: reminderMessage
+      });
+      const result = res.data;
+      toast.success(`✅ Sent: ${result.success_count} | ⏭️ Already reminded: ${result.already_reminded_count} | ❌ Failed: ${result.failed_count}`);
+      setSelectedStudents([]);
+    } catch (error) {
+      toast.error('Failed to send reminders: ' + error.message);
+    } finally {
+      setSendingReminders(false);
     }
   };
 
@@ -211,6 +256,12 @@ export default function DefaultersReportPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-100 border-b">
                     <tr>
+                      <th className="px-4 py-3 w-8">
+                        <Checkbox
+                          checked={rows.length > 0 && selectedStudents.length === rows.length}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </th>
                       <th className="px-4 py-3 text-left font-semibold">Student</th>
                       <th className="px-4 py-3 text-left font-semibold">Class</th>
                       <th className="px-4 py-3 text-right font-semibold">Due</th>
@@ -231,6 +282,12 @@ export default function DefaultersReportPage() {
                     ) : (
                       rows.map((row, idx) => (
                         <tr key={idx} className={`border-b hover:bg-gray-50 ${row.daysSinceLastPayment !== null && row.daysSinceLastPayment >= 90 ? 'bg-orange-50' : ''}`}>
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedStudents.includes(row.student.id)}
+                              onCheckedChange={() => handleToggleStudent(row.student.id)}
+                            />
+                          </td>
                           <td className="px-4 py-3 font-medium">{row.student.name}</td>
                           <td className="px-4 py-3">{row.class.name}</td>
                           <td className="px-4 py-3 text-right font-bold text-red-600">₹{(row.due || 0).toLocaleString()}</td>
@@ -321,6 +378,57 @@ export default function DefaultersReportPage() {
               setIsDetailOpen(false);
             }}
           />
+        )}
+
+        {/* Send Reminder Panel */}
+        {selectedStudents.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shadow-lg p-4 z-50">
+            <div className="max-w-7xl mx-auto space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {selectedStudents.length} students selected
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedStudents([])}
+                  className="gap-1"
+                >
+                  <X className="h-4 w-4" />
+                  Clear Selection
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Title</Label>
+                  <Input
+                    className="mt-1"
+                    value={reminderTitle}
+                    onChange={(e) => setReminderTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Message</Label>
+                  <Textarea
+                    className="mt-1"
+                    rows={2}
+                    value={reminderMessage}
+                    onChange={(e) => setReminderMessage(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleSendReminder}
+                  disabled={sendingReminders}
+                  className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+                >
+                  <Send className="h-4 w-4" />
+                  {sendingReminders ? 'Sending...' : 'Send Reminder 🔔'}
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </LoginRequired>
