@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, ArrowLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function StudentMarks() {
   console.log('[ENTRY] StudentMarks:', window.location.pathname);
@@ -14,6 +15,7 @@ export default function StudentMarks() {
   const [session] = useState(() => {
     try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
+  const [selectedExamType, setSelectedExamType] = useState('');
 
   useEffect(() => {
     if (!session) navigate(createPageUrl('StudentLogin'));
@@ -33,7 +35,7 @@ export default function StudentMarks() {
     }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { data: marks = [], isLoading } = useQuery({
+  const { data: allMarks = [], isLoading } = useQuery({
     queryKey: ['student-marks', session?.student_id],
     queryFn: async () => {
       if (!session?.student_id) return [];
@@ -48,16 +50,27 @@ export default function StudentMarks() {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (!session) return null;
+  // Derive distinct exam types from allMarks
+  const distinctExamTypes = useMemo(() => {
+    const types = new Map();
+    allMarks.forEach(mark => {
+      if (!types.has(mark.exam_type)) {
+        types.set(mark.exam_type, {
+          id: mark.exam_type,
+          name: mark.exam_type_name || mark.exam_type
+        });
+      }
+    });
+    return Array.from(types.values());
+  }, [allMarks]);
 
-  // Group by exam_type (ID), but display using exam_type_name (denormalized).
-  // Falls back to exam_type raw value only if exam_type_name is not stored yet.
-  const marksGrouped = marks.reduce((acc, mark) => {
-    const key = mark.exam_type;
-    if (!acc[key]) acc[key] = { displayName: mark.exam_type_name || mark.exam_type, items: [] };
-    acc[key].items.push(mark);
-    return acc;
-  }, {});
+  // Filter marks based on selectedExamType
+  const filteredMarks = useMemo(() => {
+    if (!selectedExamType) return [];
+    return allMarks.filter(mark => mark.exam_type === selectedExamType);
+  }, [allMarks, selectedExamType]);
+
+  if (!session) return null;
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] pb-24">
@@ -75,45 +88,64 @@ export default function StudentMarks() {
       </header>
 
       <div className="px-4 py-6 space-y-4">
+        {/* Exam Type Dropdown */}
+        <Select value={selectedExamType} onValueChange={setSelectedExamType}>
+          <SelectTrigger className="w-full text-base min-h-[48px]">
+            <SelectValue placeholder="Select Exam Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {distinctExamTypes.map(type => (
+              <SelectItem key={type.id} value={type.id} className="text-base py-3">
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {isLoading ? (
           <div className="text-center py-8">
             <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           </div>
-        ) : marks.length === 0 ? (
+        ) : distinctExamTypes.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <Trophy className="h-10 w-10 text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No marks published yet</p>
+            <p className="text-sm text-gray-500">No published results yet</p>
+          </div>
+        ) : !selectedExamType ? (
+          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <Trophy className="h-10 w-10 text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Please select an exam type to view marks</p>
           </div>
         ) : (
-          Object.entries(marksGrouped).map(([examTypeId, { displayName, items }]) => (
-            <div key={examTypeId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                <p className="text-sm font-bold text-gray-700">{displayName}</p>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {items.map((mark) => (
-                  <div key={mark.id} className="px-4 py-3">
-                    <div className="flex items-start justify-between mb-1">
-                      <p className="text-sm font-semibold text-gray-900">{mark.subject}</p>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-indigo-600">
-                          {mark.marks_obtained}/{mark.max_marks}
-                        </p>
-                        {mark.grade && (
-                          <p className="text-xs text-gray-500">Grade: {mark.grade}</p>
-                        )}
-                      </div>
-                    </div>
-                    {mark.remarks && (
-                      <p className="text-xs text-gray-600 mt-1">
-                        <span className="font-semibold">Remarks:</span> {mark.remarks}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <p className="text-sm font-bold text-gray-700">
+                {distinctExamTypes.find(t => t.id === selectedExamType)?.name}
+              </p>
             </div>
-          ))
+            <div className="divide-y divide-gray-100">
+              {filteredMarks.map((mark) => (
+                <div key={mark.id} className="px-4 py-3">
+                  <div className="flex items-start justify-between mb-1">
+                    <p className="text-sm font-semibold text-gray-900">{mark.subject}</p>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-indigo-600">
+                        {mark.marks_obtained}/{mark.max_marks}
+                      </p>
+                      {mark.grade && (
+                        <p className="text-xs text-gray-500">Grade: {mark.grade}</p>
+                      )}
+                    </div>
+                  </div>
+                  {mark.remarks && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      <span className="font-semibold">Remarks:</span> {mark.remarks}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>
