@@ -1,13 +1,14 @@
 Deno.serve((req) => {
   const swCode = `
 self.addEventListener('push', function(event) {
-  console.log('[ServiceWorker] Push event received:', event);
+  console.log('[SW] Push received!');
+  console.log('[SW] Push data:', event.data?.text());
   
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
   } catch(e) {
-    console.log('[ServiceWorker] Failed to parse JSON, trying text');
+    console.log('[SW] Failed to parse JSON, trying text');
     data = { 
       notification: { 
         title: 'New Notification', 
