@@ -13,6 +13,7 @@ Deno.serve(async (req) => {
     const params = new URL(req.url).searchParams;
     const academicYear = params.get('academicYear') || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2);
     const className = params.get('className') || null;
+    console.log('className filter value:', className);
     const section = params.get('section') || null;
     const minDue = parseFloat(params.get('minDue')) || 1;
     const daysSinceLastPaymentMinParam = params.get('daysSinceLastPaymentMin');
@@ -37,6 +38,9 @@ Deno.serve(async (req) => {
     students.forEach(s => {
       studentMap[s.student_id] = s;
     });
+
+    console.log('Total students in map:', Object.keys(studentMap).length);
+    console.log('Sample student class_names:', Object.values(studentMap).slice(0,5).map(s => s.class_name));
 
     // Build payments map (exclude VOID)
     const paymentsByInvoice = {};
@@ -71,6 +75,8 @@ Deno.serve(async (req) => {
     Object.entries(invoicesByStudent).forEach(([studentId, studentInvoices]) => {
       const student = studentMap[studentId];
       if (!student) return;
+
+      console.log('Checking student:', student?.class_name, 'vs filter:', className);
 
       // Apply class/section filter
       if (className && student.class_name !== className) return;
