@@ -146,14 +146,19 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Get Firebase messaging token
+      // Get Firebase messaging token via service worker
       if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        const messaging = getMessaging(app);
-        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        
         try {
-          const token = await getToken(messaging, { vapidKey });
+          const registration = await navigator.serviceWorker.ready;
+          const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          
+          // Request push subscription from service worker
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: vapidKey
+          });
+          
+          const token = subscription.endpoint;
           console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
           
           if (token) {
