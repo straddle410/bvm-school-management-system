@@ -26,7 +26,8 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      const fileName = `Fee_Receipt_${studentSession?.name?.replace(/\s+/g, '_')}_${invoice?.installment_name?.replace(/\s+/g, '_')}.pdf`;
+      const feeTypeName = invoice?.title || invoice?.installment_name || 'Fee';
+      const fileName = `Receipt_${feeTypeName.replace(/\s+/g, '_')}_${studentSession?.name?.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
     } catch (error) {
       console.error('Download failed:', error);
@@ -34,6 +35,9 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
   };
 
   if (!invoice) return null;
+
+  // Filter payments for this specific invoice only
+  const invoicePayments = (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -100,7 +104,7 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Fee Type</span>
-                <span className="text-sm font-semibold text-gray-900">{invoice.installment_name}</span>
+                <span className="text-sm font-semibold text-gray-900">{invoice.title || invoice.installment_name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Total Amount</span>
@@ -119,8 +123,8 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
             </div>
           </div>
 
-          {/* Payment History */}
-          {payments && payments.length > 0 && (
+          {/* Payment History - Show only payments for this specific invoice */}
+          {invoicePayments.length > 0 && (
             <div className="mb-6">
               <h3 className="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Payment History</h3>
               <table className="w-full text-sm">
@@ -128,14 +132,16 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
                   <tr>
                     <th className="text-left py-2 px-3 font-semibold text-gray-700">Date</th>
                     <th className="text-left py-2 px-3 font-semibold text-gray-700">Receipt No.</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Mode</th>
                     <th className="text-right py-2 px-3 font-semibold text-gray-700">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((payment, idx) => (
+                  {invoicePayments.map((payment, idx) => (
                     <tr key={idx} className="border-b">
                       <td className="py-2 px-3 text-gray-600">{payment.payment_date}</td>
                       <td className="py-2 px-3 text-gray-600">{payment.receipt_no || 'N/A'}</td>
+                      <td className="py-2 px-3 text-gray-600">{payment.payment_mode || 'Cash'}</td>
                       <td className="py-2 px-3 text-right font-semibold text-gray-900">₹{payment.amount_paid?.toFixed(2)}</td>
                     </tr>
                   ))}

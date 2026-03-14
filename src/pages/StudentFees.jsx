@@ -43,10 +43,10 @@ export default function StudentFees() {
     enabled: !!session?.student_id && !!currentAcademicYear,
   });
 
-  const { data: payments = [] } = useQuery({
-    queryKey: ['student-payments', selectedInvoice?.id],
-    queryFn: () => base44.entities.FeePayment.filter({ invoice_id: selectedInvoice?.id, status: 'Active' }, '-payment_date', 50),
-    enabled: !!selectedInvoice?.id && receiptModalOpen,
+  const { data: allPayments = [] } = useQuery({
+    queryKey: ['student-all-payments', session?.student_id],
+    queryFn: () => base44.entities.FeePayment.filter({ student_id: session?.student_id, status: 'Active' }, '-payment_date', 100),
+    enabled: !!session?.student_id,
   });
 
   const handleViewReceipt = (invoice) => {
@@ -172,7 +172,7 @@ export default function StudentFees() {
         isOpen={receiptModalOpen}
         onClose={() => setReceiptModalOpen(false)}
         invoice={selectedInvoice}
-        payments={payments}
+        payments={allPayments}
         schoolProfile={schoolProfile}
         studentSession={session}
       />
