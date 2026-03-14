@@ -38,7 +38,11 @@ function playSound(prefs) {
   } catch {}
 }
 
-function sendBrowserPush(title, body, prefs) {
+function sendBrowserPush(title, body, prefs, notifType) {
+  // Only send browser push for critical notifications: marks, hall tickets
+  const criticalTypes = ['marks_published', 'results_posted', 'hall_ticket_published'];
+  if (!criticalTypes.includes(notifType)) return;
+  
   if (!prefs?.browser_push_enabled) return;
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   try { new Notification(title, { body, icon: '/logo.png' }); } catch {}
@@ -89,7 +93,7 @@ export default function StudentNotificationHub({ studentSession }) {
 
           toast.info(n.title || config.label, { description: n.message });
           playSound(prefs);
-          sendBrowserPush(n.title || config.label, n.message, prefs);
+          sendBrowserPush(n.title || config.label, n.message, prefs, n.type);
         })
       );
 
@@ -118,7 +122,7 @@ export default function StudentNotificationHub({ studentSession }) {
             const desc = msg.subject || msg.body?.substring(0, 80);
             toast.info(title, { description: desc });
             playSound(prefs);
-            sendBrowserPush(title, desc, prefs);
+            // Push removed for messages to optimize credit usage
           })
         );
       }
@@ -139,7 +143,7 @@ export default function StudentNotificationHub({ studentSession }) {
             const desc = quiz.subject;
             toast.info(title, { description: desc });
             playSound(prefs);
-            sendBrowserPush(title, desc, prefs);
+            // Push removed for quiz to optimize credit usage
           })
         );
       }
@@ -162,7 +166,7 @@ export default function StudentNotificationHub({ studentSession }) {
             const desc = `${hw.subject} — Due ${hw.due_date || 'TBD'}`;
             toast.info(title, { description: desc });
             playSound(prefs);
-            sendBrowserPush(title, desc, prefs);
+            // Push removed for homework to optimize credit usage
           })
         );
       }

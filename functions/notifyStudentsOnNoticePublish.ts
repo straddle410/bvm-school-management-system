@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
     const results = await Promise.all(notificationPromises);
     notified = results.filter(r => r !== null).length;
 
-    // Send push notifications to students with push tokens
-    if (notified > 0) {
+    // Send push notifications only if explicitly enabled on this notice
+    if (notified > 0 && notice.sendPushNotification === true) {
       try {
         const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
         const prefMap = new Map(prefs.map(p => [p.student_id, p]));
