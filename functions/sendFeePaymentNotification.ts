@@ -33,6 +33,9 @@ Deno.serve(async (req) => {
     });
     const pref = prefs[0];
 
+    console.log('[FCM] Student preference found:', JSON.stringify(pref));
+    console.log('[FCM] Token being used:', pref?.browser_push_token || pref?.push_token || pref?.fcm_token || pref?.token);
+
     // Check if student has push notifications enabled
     if (!pref?.browser_push_enabled || !pref?.browser_push_token) {
       console.log('[sendFeePaymentNotification] Student does not have push notifications enabled or no token available');
