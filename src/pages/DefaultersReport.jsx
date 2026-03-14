@@ -68,6 +68,7 @@ export default function DefaultersReportPage() {
 
       console.log('DefaultersReport sending academicYear:', academicYear);
       console.log('Type:', typeof academicYear);
+      console.log('FULL params being sent:', JSON.stringify(Object.fromEntries(params)));
 
       const res = await base44.functions.invoke('getDefaultersReport', { ...Object.fromEntries(params) });
       return res.data;
