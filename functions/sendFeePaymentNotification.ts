@@ -74,6 +74,9 @@ Deno.serve(async (req) => {
     }
 
     console.log('[sendFeePaymentNotification] Sending FCM message via FCM API...');
+    console.log('[sendFeePaymentNotification] FCM Endpoint:', `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`);
+    console.log('[sendFeePaymentNotification] Message payload:', JSON.stringify({ message }, null, 2));
+    
     const fcmResponse = await fetch(
       `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`,
       {
@@ -86,10 +89,13 @@ Deno.serve(async (req) => {
       }
     );
 
+    console.log('[sendFeePaymentNotification] FCM Response Status:', fcmResponse.status);
+    const responseText = await fcmResponse.text();
+    console.log('[sendFeePaymentNotification] FCM Response Body:', responseText);
+
     if (!fcmResponse.ok) {
-      const errorText = await fcmResponse.text();
-      console.error('[sendFeePaymentNotification] FCM error:', fcmResponse.status, errorText);
-      return Response.json({ success: false, error: 'FCM send failed', details: errorText });
+      console.error('[sendFeePaymentNotification] FCM error:', fcmResponse.status, responseText);
+      return Response.json({ success: false, error: 'FCM send failed', details: responseText });
     }
 
     console.log('[sendFeePaymentNotification] FCM message sent successfully');
