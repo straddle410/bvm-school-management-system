@@ -82,7 +82,8 @@
     "qrcode": "^1.5.3",
     "jszip": "^3.10.1",
     "bcryptjs": "^2.4.3",
-    "react-window": "^1.8.10"
+    "react-window": "^1.8.10",
+    "firebase": "^10.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
