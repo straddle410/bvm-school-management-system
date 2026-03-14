@@ -44,11 +44,12 @@ export default function PushNotificationManager() {
    try {
      console.log('[PushNotificationManager] Initializing push notifications...');
 
-     // Register service worker from public folder
+     // Register service worker from backend function
      if ('serviceWorker' in navigator) {
-       console.log('[ServiceWorker] Registering service worker from /firebase-messaging-sw.js...');
+       console.log('[ServiceWorker] Registering service worker...');
        try {
-         const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+         const swUrl = '/api/functions/firebaseMessagingServiceWorker';
+         const registration = await navigator.serviceWorker.register(swUrl);
          console.log('[ServiceWorker] Registered successfully:', registration);
        } catch (error) {
          console.error('[ServiceWorker] Registration failed:', error);
