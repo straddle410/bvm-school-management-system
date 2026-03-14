@@ -2,24 +2,42 @@ Deno.serve((req) => {
   const swCode = `
 self.addEventListener('push', function(event) {
   console.log('[ServiceWorker] Push event received:', event);
-  const data = event.data ? event.data.json() : {};
-  const title = data.notification?.title || 'New Notification';
+  
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch(e) {
+    console.log('[ServiceWorker] Failed to parse JSON, trying text');
+    data = { 
+      notification: { 
+        title: 'New Notification', 
+        body: event.data ? event.data.text() : '' 
+      }
+    };
+  }
+  
+  const title = data.notification?.title || data.title || 'New Notification';
   const options = {
-    body: data.notification?.body || '',
-    icon: data.notification?.icon || '/favicon.ico',
+    body: data.notification?.body || data.body || '',
+    icon: '/favicon.ico',
     badge: '/favicon.ico',
+    vibrate: [200, 100, 200],
+    requireInteraction: true,
     data: data.data || {}
   };
+  
+  console.log('[ServiceWorker] Showing notification:', title, options.body);
+  
   event.waitUntil(
     self.registration.showNotification(title, options)
   );
 });
 
 self.addEventListener('notificationclick', function(event) {
-  console.log('[ServiceWorker] Notification clicked:', event.notification.tag);
+  console.log('[ServiceWorker] Notification clicked:', event.notification.title);
   event.notification.close();
   event.waitUntil(
-    clients.openWindow(event.notification.data?.url || '/')
+    clients.openWindow(event.notification.data?.click_action || '/')
   );
 });
   `;
