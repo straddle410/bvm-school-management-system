@@ -5,6 +5,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
+    console.log('[FCM] Function called with:', data?.student_id, data?.amount_paid);
     console.log('[sendFeePaymentNotification] Event received:', event.type, 'PaymentID:', data?.id);
 
     // Only process create events
