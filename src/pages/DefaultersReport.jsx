@@ -16,6 +16,8 @@ import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
 
 export default function DefaultersReportPage() {
   const { academicYear } = useAcademicYear();
+  console.log('useAcademicYear returned:', academicYear);
+  
   const [filters, setFilters] = useState({
     className: '',
     section: '',
@@ -63,6 +65,9 @@ export default function DefaultersReportPage() {
         search: filters.search,
         page: page
       });
+
+      console.log('DefaultersReport sending academicYear:', academicYear);
+      console.log('Type:', typeof academicYear);
 
       const res = await base44.functions.invoke('getDefaultersReport', { ...Object.fromEntries(params) });
       return res.data;
