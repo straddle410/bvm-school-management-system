@@ -80,7 +80,7 @@ export default function StudentAttendance() {
 
   if (!session) return null;
 
-  const { total_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
+  const { total_days = 0, present_days = 0, absent_days = 0, half_days = 0, percentage = 0 } = attendanceData;
   const isLowAttendance = percentage < 75;
 
   return (
