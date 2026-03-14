@@ -31,11 +31,24 @@ export default function PushNotificationManager() {
   const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
-    // Get student session if exists
+    console.log('[PushInit] Component mounted');
+    console.log('[PushInit] All localStorage:', JSON.stringify(localStorage));
+    console.log('[PushInit] student_id:', localStorage.getItem('student_id'));
+    console.log('[PushInit] studentId:', localStorage.getItem('studentId'));
+    console.log('[PushInit] student_token:', !!localStorage.getItem('student_token'));
+
+    // Get student session if exists - use exact key from StudentLogin.jsx
     try {
       const session = localStorage.getItem('student_session');
-      if (session) setStudentSession(JSON.parse(session));
-    } catch {}
+      console.log('[PushInit] student_session from localStorage:', session ? 'EXISTS' : 'NOT FOUND');
+      if (session) {
+        const parsed = JSON.parse(session);
+        console.log('[PushInit] Parsed student_session:', JSON.stringify(parsed));
+        setStudentSession(parsed);
+      }
+    } catch (e) {
+      console.error('[PushInit] Failed to parse student_session:', e);
+    }
 
     // Detect iOS PWA and show prompt if needed
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
