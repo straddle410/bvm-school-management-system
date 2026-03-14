@@ -29,6 +29,12 @@ Deno.serve(async (req) => {
     const pageSize = parseInt(body.pageSize) || 50;
     const skipCount = (page - 1) * pageSize;
 
+    // Parse academic year to get start date (April 1st)
+    const ayParts = academicYear.split('-');
+    const startYear = parseInt(ayParts[0]);
+    const ayStartDate = new Date(startYear, 3, 1); // April = month 3 (0-indexed)
+    const today = new Date();
+
     // Fetch data in parallel — same as Outstanding Report
     const [invoices, payments, allStudents, followUps] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
@@ -150,11 +156,14 @@ Deno.serve(async (req) => {
       if (due < minDue) return;
 
       // Calculate days since last payment (for display only - no filter)
-      let daysSinceLastPayment = null;
+      let daysSinceLastPayment;
       if (latestPaymentDate) {
         const lastPayDate = new Date(latestPaymentDate);
-        const today = new Date();
         daysSinceLastPayment = Math.floor((today - lastPayDate) / (1000 * 60 * 60 * 24));
+      } else {
+        // Never paid: calculate days since academic year start
+        const diffTime = today - ayStartDate;
+        daysSinceLastPayment = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       }
 
       // Build defaulter row
