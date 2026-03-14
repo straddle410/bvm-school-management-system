@@ -38,14 +38,24 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
 
   // If specific payment is selected, use only that payment's data
   const invoicePayments = payment ? [payment] : (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
-  const displayAmount = payment ? payment.amount_paid : invoice.paid_amount;
+  const thisPaymentAmount = payment ? payment.amount_paid : invoice.paid_amount;
   const displayDate = payment ? payment.payment_date : (invoicePayments[0]?.payment_date || invoice.due_date);
   const receiptNumber = payment ? payment.receipt_no : invoicePayments[0]?.receipt_no;
   
-  // Calculate balance after this specific payment
-  const balanceAfterPayment = payment 
-    ? invoice.total_amount - payment.amount_paid
-    : invoice.balance;
+  // Calculate total paid till this receipt date (cumulative)
+  const allInvoicePayments = (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
+  const totalPaidTillDate = payment 
+    ? allInvoicePayments
+        .filter(p => new Date(p.payment_date) <= new Date(payment.payment_date))
+        .reduce((sum, p) => sum + (p.amount_paid || 0), 0)
+    : invoice.paid_amount;
+  
+  // Calculate balance after cumulative payments
+  const balanceAfterPayment = invoice.total_amount - totalPaidTillDate;
+  
+  // Get gross and discount amounts
+  const grossAmount = invoice.gross_total || invoice.total_amount;
+  const discountAmount = invoice.discount_total || 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -115,12 +125,26 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
                 <span className="text-sm font-semibold text-gray-900">{invoice.title || invoice.installment_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total Amount</span>
+                <span className="text-sm text-gray-600">Gross Amount</span>
+                <span className="text-sm font-semibold text-gray-900">₹{grossAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Discount</span>
+                  <span className="text-sm font-semibold text-green-600">-₹{discountAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Net Fee</span>
                 <span className="text-sm font-semibold text-gray-900">₹{invoice.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
+              <div className="flex justify-between pt-2 border-t">
+                <span className="text-sm text-gray-600">This Payment</span>
+                <span className="text-sm font-semibold text-blue-600">₹{thisPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Paid Amount</span>
-                <span className="text-sm font-semibold text-green-600">₹{displayAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-sm text-gray-600">Total Paid Till Date</span>
+                <span className="text-sm font-semibold text-green-600">₹{totalPaidTillDate?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Payment Date</span>
@@ -128,7 +152,7 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
               </div>
               {balanceAfterPayment > 0 && (
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-sm font-semibold text-gray-700">Balance</span>
+                  <span className="text-sm font-semibold text-gray-700">Balance Due</span>
                   <span className="text-sm font-bold text-red-600">₹{balanceAfterPayment?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
