@@ -147,16 +147,13 @@ export default function PushNotificationManager() {
       // Get push subscription token via service worker
       if ('serviceWorker' in navigator) {
         try {
-          const registration = await navigator.serviceWorker.ready;
-          const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-          console.log('[VAPID] Key value:', vapidKey?.substring(0, 20));
-          
           if (!vapidKey) {
-            console.error('[VAPID] Key not found in environment');
+            console.error('[VAPID] Key not available');
             toast.error("Push notifications not configured");
             return;
           }
           
+          const registration = await navigator.serviceWorker.ready;
           const applicationServerKey = urlBase64ToUint8Array(vapidKey);
           
           // Request push subscription from service worker
