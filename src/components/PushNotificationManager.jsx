@@ -15,6 +15,22 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+function playNotificationSound() {
+  try {
+    const audio = new Audio();
+    audio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA';
+    audio.volume = 1.0;
+    
+    document.addEventListener('click', function() {
+      audio.play().catch(() => {});
+    }, { once: true });
+    
+    audio.play().catch(() => {});
+  } catch(e) {
+    console.log('Sound error:', e);
+  }
+}
+
 async function getVapidKey() {
   try {
     const response = await fetch('/api/functions/getVapidPublicKey');
@@ -177,6 +193,7 @@ export default function PushNotificationManager() {
            });
            console.log('[PushNotificationManager] Token saved to preference');
            toast.success("Notifications enabled successfully!");
+           playNotificationSound();
          }
        } catch (error) {
          console.error('[PushNotificationManager] Failed to get token:', error);
@@ -254,6 +271,7 @@ export default function PushNotificationManager() {
             });
             console.log('[PushNotificationManager] Student token saved to DB');
             toast.success("Student notifications enabled!");
+            playNotificationSound();
           }
         } catch (error) {
           console.error('[PushNotificationManager] Failed to get student token:', error);
