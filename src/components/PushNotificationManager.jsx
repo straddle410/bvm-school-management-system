@@ -66,6 +66,7 @@ export default function PushNotificationManager() {
   const initPushNotifications = async () => {
    try {
      console.log('[PushNotificationManager] Initializing push notifications...');
+     console.log('[Permission] Status:', Notification.permission);
 
      // Get VAPID key directly
      const vapidKey = await getVapidKey();
