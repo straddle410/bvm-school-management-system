@@ -246,6 +246,7 @@ export default function PushNotificationManager() {
 
   useEffect(() => {
     // Auto-run for non-iOS or if permission already granted
+    console.log('[Permission]:', Notification.permission);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isPWA = window.matchMedia('(display-mode: standalone)').matches;
 
