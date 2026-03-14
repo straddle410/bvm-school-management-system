@@ -13,6 +13,7 @@ export default function StudentFees() {
   const [session, setSession] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
 
   useEffect(() => {
@@ -49,9 +50,14 @@ export default function StudentFees() {
     enabled: !!session?.student_id,
   });
 
-  const handleViewReceipt = (invoice) => {
+  const handleViewReceipt = (invoice, payment = null) => {
     setSelectedInvoice(invoice);
+    setSelectedPayment(payment);
     setReceiptModalOpen(true);
+  };
+
+  const getInvoicePayments = (invoiceId) => {
+    return allPayments.filter(p => p.invoice_id === invoiceId);
   };
 
   if (!session) return null;
@@ -139,17 +145,49 @@ export default function StudentFees() {
                           <span className="text-gray-600">Amount: ₹{invoice.total_amount}</span>
                           <span className="font-semibold text-gray-800">Paid: ₹{invoice.paid_amount}</span>
                         </div>
-                        {(invoice.status === 'Paid' || invoice.status === 'Partial') && (
-                          <Button
-                            onClick={() => handleViewReceipt(invoice)}
-                            variant="outline"
-                            size="sm"
-                            className="mt-2 text-xs h-7"
-                          >
-                            <FileText className="h-3 w-3 mr-1" />
-                            View Receipt
-                          </Button>
-                        )}
+                        {(invoice.status === 'Paid' || invoice.status === 'Partial') && (() => {
+                          const invoicePayments = getInvoicePayments(invoice.id);
+                          if (invoicePayments.length === 0) return null;
+                          if (invoicePayments.length === 1) {
+                            return (
+                              <Button
+                                onClick={() => handleViewReceipt(invoice, invoicePayments[0])}
+                                variant="outline"
+                                size="sm"
+                                className="mt-2 text-xs h-7"
+                              >
+                                <FileText className="h-3 w-3 mr-1" />
+                                View Receipt
+                              </Button>
+                            );
+                          }
+                          return (
+                            <div className="mt-3 space-y-2 bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs font-semibold text-gray-700 mb-2">Payment Receipts:</p>
+                              {invoicePayments.map((payment) => (
+                                <div key={payment.id} className="flex items-center justify-between bg-white rounded p-2 border border-gray-200">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="h-3 w-3 text-gray-500" />
+                                      <span className="text-xs font-medium text-gray-700">#{payment.receipt_no}</span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 mt-0.5">
+                                      {payment.payment_date} • ₹{payment.amount_paid?.toLocaleString('en-IN')}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    onClick={() => handleViewReceipt(invoice, payment)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 text-[10px] px-2"
+                                  >
+                                    Download
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <StatusIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     </div>
@@ -172,6 +210,7 @@ export default function StudentFees() {
         isOpen={receiptModalOpen}
         onClose={() => setReceiptModalOpen(false)}
         invoice={selectedInvoice}
+        payment={selectedPayment}
         payments={allPayments}
         schoolProfile={schoolProfile}
         studentSession={session}
