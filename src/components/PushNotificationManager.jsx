@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 export default function PushNotificationManager() {
   useEffect(() => {
@@ -22,9 +23,32 @@ export default function PushNotificationManager() {
 
         if (!pref?.browser_push_enabled) return;
 
+        // iOS/Safari detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+
+        // iOS limitation check
+        if (isIOS && !isPWA) {
+          toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
+          return;
+        }
+
         // Register service worker
         if ('serviceWorker' in navigator) {
           await navigator.serviceWorker.register('/service-worker.js');
+        }
+
+        // iOS PWA specific message
+        if (isIOS && isPWA && Notification.permission === 'default') {
+          toast.info("Tap Allow to receive fee reminders and school notifications");
+        }
+
+        // Explicitly request permission
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          console.log('Permission denied');
+          return;
         }
 
         // Subscribe to push
