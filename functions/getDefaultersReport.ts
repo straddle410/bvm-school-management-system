@@ -29,19 +29,27 @@ Deno.serve(async (req) => {
     const pageSize = parseInt(body.pageSize) || 50;
     const skipCount = (page - 1) * pageSize;
 
-    // Parse academic year to get start date (April 1st)
-    const ayParts = academicYear.split('-');
-    const startYear = parseInt(ayParts[0]);
-    const ayStartDate = new Date(startYear, 3, 1); // April = month 3 (0-indexed)
-    const today = new Date();
-
     // Fetch data in parallel — same as Outstanding Report
-    const [invoices, payments, allStudents, followUps] = await Promise.all([
+    const [invoices, payments, allStudents, followUps, academicYears] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }, '-created_date', 5000),
-      base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000)
+      base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000),
+      base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear })
     ]);
+
+    // Get academic year start date from database, fallback to April 1st
+    let ayStartDate;
+    const today = new Date();
+    
+    if (academicYears.length > 0 && academicYears[0].start_date) {
+      ayStartDate = new Date(academicYears[0].start_date);
+    } else {
+      // Fallback to April 1st
+      const ayParts = academicYear.split('-');
+      const startYear = parseInt(ayParts[0]);
+      ayStartDate = new Date(startYear, 3, 1); // April = month 3 (0-indexed)
+    }
 
     const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
