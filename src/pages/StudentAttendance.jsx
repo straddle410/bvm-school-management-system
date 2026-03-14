@@ -16,6 +16,7 @@ export default function StudentAttendance() {
     try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [showAbsentDates, setShowAbsentDates] = useState(false);
+  const [showHalfDayDates, setShowHalfDayDates] = useState(false);
 
   useEffect(() => {
     if (!session) navigate(createPageUrl('StudentLogin'));
@@ -58,6 +59,25 @@ export default function StudentAttendance() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: halfDayRecords = [] } = useQuery({
+    queryKey: ['student-halfday-records', session?.student_id],
+    queryFn: async () => {
+      if (!session?.student_id) return [];
+      try {
+        const records = await base44.entities.Attendance.filter({
+          student_id: session.student_id,
+          academic_year: session.academic_year,
+          attendance_type: 'half_day'
+        }, '-date', 100);
+        return records;
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!session?.student_id && showHalfDayDates,
+    staleTime: 5 * 60 * 1000,
+  });
+
   if (!session) return null;
 
   const { total_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
@@ -94,7 +114,7 @@ export default function StudentAttendance() {
                 <p className="text-sm text-gray-600 mt-1">Overall Attendance</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center text-sm">
+              <div className="grid grid-cols-2 gap-4 text-center text-sm mb-4">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="font-bold text-blue-900">{total_days}</p>
                   <p className="text-xs text-gray-600">Total Days</p>
@@ -103,6 +123,8 @@ export default function StudentAttendance() {
                   <p className="font-bold text-green-900">{present_days}</p>
                   <p className="text-xs text-gray-600">Present</p>
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-center text-sm">
                 <button
                   onClick={() => setShowAbsentDates(!showAbsentDates)}
                   className="bg-red-50 rounded-lg p-3 hover:bg-red-100 transition-colors"
@@ -112,6 +134,16 @@ export default function StudentAttendance() {
                     {showAbsentDates ? <ChevronUp className="h-4 w-4 text-red-700" /> : <ChevronDown className="h-4 w-4 text-red-700" />}
                   </div>
                   <p className="text-xs text-gray-600">Absent</p>
+                </button>
+                <button
+                  onClick={() => setShowHalfDayDates(!showHalfDayDates)}
+                  className="bg-orange-50 rounded-lg p-3 hover:bg-orange-100 transition-colors"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="font-bold text-orange-900">{half_days}</p>
+                    {showHalfDayDates ? <ChevronUp className="h-4 w-4 text-orange-700" /> : <ChevronDown className="h-4 w-4 text-orange-700" />}
+                  </div>
+                  <p className="text-xs text-gray-600">Half Day</p>
                 </button>
               </div>
             </div>
@@ -141,6 +173,40 @@ export default function StudentAttendance() {
                           </div>
                           <div className="bg-red-200 rounded-full px-3 py-1">
                             <p className="text-xs font-bold text-red-900">Absent</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Half Day Dates List */}
+            {showHalfDayDates && (
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  Half Day Dates
+                </h3>
+                {halfDayRecords.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No half day records found</p>
+                ) : (
+                  <div className="space-y-2">
+                    {halfDayRecords.map((record) => {
+                      const date = new Date(record.date);
+                      return (
+                        <div key={record.id} className="flex items-center justify-between bg-orange-50 rounded-lg px-4 py-3 border border-orange-100">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {format(date, 'dd MMM yyyy')}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {format(date, 'EEEE')}
+                            </p>
+                          </div>
+                          <div className="bg-orange-200 rounded-full px-3 py-1">
+                            <p className="text-xs font-bold text-orange-900">Half Day</p>
                           </div>
                         </div>
                       );
