@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { app } from '@/components/firebase-config';
 
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
