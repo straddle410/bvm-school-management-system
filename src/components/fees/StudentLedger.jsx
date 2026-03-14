@@ -205,30 +205,32 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
               <CardContent className="p-5 space-y-4">
                 {/* Fee breakdown */}
                 {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).length > 0 && (
-                  <table className="w-full text-base">
-                    <thead>
-                      <tr className="border-b-2 border-slate-300">
-                        <th className="text-left pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Fee Head</th>
-                        <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Gross</th>
-                        {invoice.discount_total > 0 && <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Discount</th>}
-                        <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Net</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).map((fh, i) => (
-                        <tr key={i} className="border-b border-slate-200">
-                          <td className="py-3 text-slate-800 text-base">{fh.fee_head_name}</td>
-                          <td className="py-3 text-right text-slate-700 text-base">₹{(fh.gross_amount || 0).toLocaleString()}</td>
-                          {invoice.discount_total > 0 && (
-                            <td className="py-3 text-right text-emerald-600 font-semibold text-base">
-                              {fh.discount_amount > 0 ? `−₹${fh.discount_amount.toLocaleString()}` : '—'}
-                            </td>
-                          )}
-                          <td className="py-3 text-right font-bold text-base">₹{(fh.net_amount || fh.amount || 0).toLocaleString()}</td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-base">
+                      <thead>
+                        <tr className="border-b-2 border-slate-300">
+                          <th className="text-left pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Fee Head</th>
+                          <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Gross</th>
+                          {invoice.discount_total > 0 && <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Discount</th>}
+                          <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Net</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).map((fh, i) => (
+                          <tr key={i} className="border-b border-slate-200">
+                            <td className="py-3 text-slate-800 text-base">{fh.fee_head_name}</td>
+                            <td className="py-3 text-right text-slate-700 text-base">₹{(fh.gross_amount || 0).toLocaleString()}</td>
+                            {invoice.discount_total > 0 && (
+                              <td className="py-3 text-right text-emerald-600 font-semibold text-base">
+                                {fh.discount_amount > 0 ? `−₹${fh.discount_amount.toLocaleString()}` : '—'}
+                              </td>
+                            )}
+                            <td className="py-3 text-right font-bold text-base">₹{(fh.net_amount || fh.amount || 0).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
 
                 {/* Discount row */}
