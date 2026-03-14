@@ -44,46 +44,187 @@ export default function PushNotificationManager() {
 
   const initPushNotifications = async () => {
     try {
-      // Only run for base44-authenticated users (not student/staff custom sessions)
-      const hasStudentSession = !!localStorage.getItem('student_session');
+      console.log('[PushNotificationManager] Initializing push notifications...');
+
+      // Register inline service worker
+      if ('serviceWorker' in navigator) {
+        console.log('[ServiceWorker] Registering inline service worker...');
+        const swCode = `
+          import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+          import { getMessaging, onBackgroundMessage } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js';
+
+          const firebaseConfig = {
+            apiKey: '${import.meta.env.VITE_FIREBASE_API_KEY || ''}',
+            authDomain: '${import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || ''}',
+            projectId: '${import.meta.env.VITE_FCM_PROJECT_ID || ''}',
+            messagingSenderId: '${import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || ''}',
+            appId: '${import.meta.env.VITE_FIREBASE_APP_ID || ''}',
+          };
+
+          const app = initializeApp(firebaseConfig);
+          const messaging = getMessaging(app);
+
+          onBackgroundMessage(messaging, (payload) => {
+            console.log('[FCM] Background message received:', payload);
+            const notificationTitle = payload.notification?.title || 'Notification';
+            const notificationOptions = {
+              body: payload.notification?.body || '',
+              icon: payload.notification?.icon || '/favicon.ico',
+              badge: payload.notification?.badge || '/favicon.ico',
+              data: payload.data || {},
+            };
+            self.registration.showNotification(notificationTitle, notificationOptions);
+          });
+
+          self.addEventListener('notificationclick', (event) => {
+            console.log('[ServiceWorker] Notification clicked:', event.notification.tag);
+            event.notification.close();
+            const urlToOpen = event.notification.data?.click_action || '/';
+            event.waitUntil(
+              clients.matchAll({ type: 'window' }).then((clientList) => {
+                for (let i = 0; i < clientList.length; i++) {
+                  if (clientList[i].url === urlToOpen && 'focus' in clientList[i]) {
+                    return clientList[i].focus();
+                  }
+                }
+                if (clients.openWindow) {
+                  return clients.openWindow(urlToOpen);
+                }
+              })
+            );
+          });
+
+          self.addEventListener('notificationclose', (event) => {
+            console.log('[ServiceWorker] Notification closed:', event.notification.tag);
+          });
+        `;
+
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        
+        try {
+          const registration = await navigator.serviceWorker.register(swUrl);
+          console.log('[ServiceWorker] Registered successfully:', registration);
+        } catch (error) {
+          console.error('[ServiceWorker] Registration failed:', error);
+          // Fallback: try to register from public folder
+          try {
+            await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            console.log('[ServiceWorker] Registered from public folder');
+          } catch (fallbackError) {
+            console.error('[ServiceWorker] Fallback registration also failed:', fallbackError);
+          }
+        }
+      }
+
+      // Handle student notifications
+      if (studentSession?.student_id) {
+        console.log('[PushNotificationManager] Student session detected, initializing student push...');
+        await initStudentPushNotifications();
+        return;
+      }
+
+      // Handle staff/admin notifications
       const hasStaffSession = !!localStorage.getItem('staff_session');
-      if (hasStudentSession || hasStaffSession) return;
+      if (hasStaffSession) {
+        console.log('[PushNotificationManager] Staff session detected, skipping push init');
+        return;
+      }
 
-      // Check if user is authenticated
+      // Base44 authenticated users
       const user = await base44.auth.me().catch(() => null);
-      if (!user) return;
+      if (!user) {
+        console.log('[PushNotificationManager] No authenticated user');
+        return;
+      }
 
-      // Get user preferences
       const prefs = await base44.entities.NotificationPreference.filter({
         user_email: user.email
       });
       const pref = prefs[0];
 
-      if (!pref?.browser_push_enabled) return;
-
-      // Register service worker
-      if ('serviceWorker' in navigator) {
-        await navigator.serviceWorker.register('/service-worker.js');
+      if (!pref?.browser_push_enabled) {
+        console.log('[PushNotificationManager] Push notifications not enabled in preferences');
+        return;
       }
 
-      // Subscribe to push
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
+      // Get Firebase messaging token
+      if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array('BEu90Ej8bFj1i1EVc5UzpZwIqXBfAl30wfVW7zqHRqaXGvBH1NZSKMJJjFRUBk-25YyJPcW2vJMGm7YzYMZ6q6I'),
-        });
-
-        // Save token
-        const token = JSON.stringify(subscription);
-        await base44.auth.updateMe({
-          browser_push_token: token
-        });
-
-        toast.success("Notifications enabled successfully!");
+        const messaging = getMessaging(app);
+        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        
+        try {
+          const token = await getToken(messaging, { vapidKey });
+          console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
+          
+          if (token) {
+            await base44.auth.updateMe({
+              browser_push_token: token
+            });
+            console.log('[PushNotificationManager] Token saved to user');
+            toast.success("Notifications enabled successfully!");
+          }
+        } catch (error) {
+          console.error('[PushNotificationManager] Failed to get token:', error);
+          toast.error("Failed to enable notifications");
+        }
       }
     } catch (error) {
-      console.error('Push notification setup failed:', error);
+      console.error('[PushNotificationManager] Setup failed:', error);
+      toast.error("Notification setup failed");
+    }
+  };
+
+  const initStudentPushNotifications = async () => {
+    try {
+      console.log('[PushNotificationManager] Setting up student push notifications...');
+      
+      // Get or create student notification preference
+      const prefs = await base44.entities.StudentNotificationPreference.filter({
+        student_id: studentSession.student_id
+      });
+      let pref = prefs[0];
+
+      if (!pref) {
+        console.log('[PushNotificationManager] Creating new student notification preference');
+        pref = await base44.entities.StudentNotificationPreference.create({
+          student_id: studentSession.student_id,
+          notifications_enabled: true,
+          browser_push_enabled: true,
+          sound_enabled: true,
+          sound_volume: 0.7,
+          message_notifications: true,
+          quiz_notifications: true,
+        });
+      }
+
+      if (!pref?.browser_push_enabled) {
+        console.log('[PushNotificationManager] Student push notifications not enabled');
+        return;
+      }
+
+      // Get Firebase messaging token
+      const messaging = getMessaging(app);
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+      try {
+        const token = await getToken(messaging, { vapidKey });
+        console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
+        
+        if (token) {
+          await base44.entities.StudentNotificationPreference.update(pref.id, {
+            browser_push_token: token
+          });
+          console.log('[PushNotificationManager] Student token saved');
+          toast.success("Student notifications enabled!");
+        }
+      } catch (error) {
+        console.error('[PushNotificationManager] Failed to get student token:', error);
+        toast.error("Failed to enable student notifications");
+      }
+    } catch (error) {
+      console.error('[PushNotificationManager] Student setup failed:', error);
     }
   };
 
