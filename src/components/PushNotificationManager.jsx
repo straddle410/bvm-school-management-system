@@ -179,22 +179,10 @@ export default function PushNotificationManager() {
     try {
       console.log('[PushNotificationManager] Setting up student push notifications...');
 
-      // Fetch VAPID key from backend first (ensure it's loaded before proceeding)
-      let localVapidKey = vapidKey;
-      if (!localVapidKey) {
-        console.log('[VAPID] Fetching key from backend...');
-        try {
-          const response = await base44.functions.invoke('getVapidPublicKey', {});
-          localVapidKey = response.data?.vapidKey;
-        } catch (error) {
-          console.error('[VAPID] Failed to fetch key:', error);
-          toast.error("Push notifications not configured");
-          return;
-        }
-      }
-
-      if (!localVapidKey) {
-        console.error('[VAPID] Key not available');
+      // Get VAPID key directly
+      const vapidKey = await getVapidKey();
+      console.log('[VAPID] Key ready:', !!vapidKey);
+      if (!vapidKey) {
         toast.error("Push notifications not configured");
         return;
       }
@@ -227,17 +215,16 @@ export default function PushNotificationManager() {
       if ('serviceWorker' in navigator) {
         try {
           const registration = await navigator.serviceWorker.ready;
-          console.log('[VAPID] Using key:', !!localVapidKey);
-          const applicationServerKey = urlBase64ToUint8Array(localVapidKey);
+          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
 
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey
           });
-          
+
           const token = subscription.endpoint;
           console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
-          
+
           if (token) {
             await base44.entities.StudentNotificationPreference.update(pref.id, {
               browser_push_token: token
