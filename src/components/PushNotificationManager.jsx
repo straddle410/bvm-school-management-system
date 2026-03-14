@@ -73,6 +73,18 @@ export default function PushNotificationManager() {
    try {
      console.log('[PushNotificationManager] Initializing push notifications...');
 
+     // Wait for VAPID key to be loaded before proceeding
+     if (!vapidKey) {
+       console.log('[VAPID] Waiting for key to load...');
+       // Give it a moment to load, then retry once
+       await new Promise(resolve => setTimeout(resolve, 500));
+       if (!vapidKey) {
+         console.error('[VAPID] Key still not available after wait');
+         toast.error("Push notifications not configured");
+         return;
+       }
+     }
+
      // Register service worker from backend function
      if ('serviceWorker' in navigator) {
        console.log('[ServiceWorker] Registering service worker...');
@@ -147,24 +159,19 @@ export default function PushNotificationManager() {
       // Get push subscription token via service worker
       if ('serviceWorker' in navigator) {
         try {
-          if (!vapidKey) {
-            console.error('[VAPID] Key not available');
-            toast.error("Push notifications not configured");
-            return;
-          }
-          
           const registration = await navigator.serviceWorker.ready;
+          console.log('[VAPID] Using key:', !!vapidKey);
           const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-          
+
           // Request push subscription from service worker
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey
           });
-          
+
           const token = subscription.endpoint;
           console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
-          
+
           if (token) {
             // Save token to notification preference
             await base44.entities.NotificationPreference.update(pref.id, {
