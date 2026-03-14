@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Eye, Phone, MessageCircle, Send, X } from 'lucide-react';
+import { Download, Eye, Phone, MessageCircle, Send, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import LoginRequired from '@/components/LoginRequired';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
@@ -48,8 +47,8 @@ export default function DefaultersReportPage() {
   const queryClient = useQueryClient();
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [sendingReminders, setSendingReminders] = useState(false);
-  const [reminderTitle, setReminderTitle] = useState("Fee Payment Reminder 💰");
-  const [reminderMessage, setReminderMessage] = useState("Dear {name}, You have an outstanding fee of ₹{amount}. Please clear your dues at the earliest to avoid any inconvenience. Thank you.");
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState(null);
 
   useEffect(() => {
     const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
@@ -59,6 +58,24 @@ export default function DefaultersReportPage() {
   const handleApplyFilters = () => {
     setAppliedFilters({ ...filters });
     setPage(1);
+  };
+
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer for debounced apply
+    const timer = setTimeout(() => {
+      setAppliedFilters(newFilters);
+      setPage(1);
+    }, 500);
+    
+    setDebounceTimer(timer);
   };
 
   const handleResetFilters = () => {
@@ -175,10 +192,6 @@ export default function DefaultersReportPage() {
   };
 
   const handleSendReminder = async () => {
-    if (!confirm(`Send fee reminder to ${selectedStudents.length} students?`)) {
-      return;
-    }
-
     setSendingReminders(true);
     try {
       // Get staff session for sender info
@@ -190,7 +203,7 @@ export default function DefaultersReportPage() {
         .map(row => ({
           student_id: row.student.id,
           student_name: row.student.name,
-          parent_name: row.student.name, // TODO: Get actual parent name from student entity
+          parent_name: row.student.name,
           due_amount: row.due,
           class_name: row.class.name
         }));
@@ -216,6 +229,7 @@ export default function DefaultersReportPage() {
       }
       
       setSelectedStudents([]);
+      setIsReminderModalOpen(false);
     } catch (error) {
       toast.error('Failed to send reminders: ' + error.message);
     } finally {
@@ -242,9 +256,21 @@ export default function DefaultersReportPage() {
       <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Defaulters Report</h1>
-            <p className="text-gray-600">Track students with outstanding fees for follow-up</p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Defaulters Report</h1>
+              <p className="text-gray-600">Track students with outstanding fees for follow-up</p>
+            </div>
+            {(userRole === 'admin' || userRole === 'accountant') && (
+              <Button
+                onClick={() => setIsReminderModalOpen(true)}
+                disabled={selectedStudents.length === 0}
+                className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+              >
+                <Send className="h-4 w-4" />
+                Send Reminder ({selectedStudents.length} selected)
+              </Button>
+            )}
           </div>
 
           {/* Summary Cards */}
@@ -296,9 +322,9 @@ export default function DefaultersReportPage() {
                 <Input
                   placeholder="Search name/phone"
                   value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
                 />
-                <Select value={filters.className || ""} onValueChange={(v) => setFilters({ ...filters, className: v === "__all__" ? "" : v, section: "" })}>
+                <Select value={filters.className || ""} onValueChange={(v) => handleFilterChange('className', v === "__all__" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Classes" />
                   </SelectTrigger>
@@ -309,7 +335,7 @@ export default function DefaultersReportPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={filters.section || ""} onValueChange={(v) => setFilters({ ...filters, section: v === "__all__" ? "" : v })}>
+                <Select value={filters.section || ""} onValueChange={(v) => handleFilterChange('section', v === "__all__" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
@@ -326,15 +352,15 @@ export default function DefaultersReportPage() {
                   placeholder="Min Due (₹)"
                   type="number"
                   value={filters.minDue}
-                  onChange={(e) => setFilters({ ...filters, minDue: e.target.value })}
+                  onChange={(e) => handleFilterChange('minDue', e.target.value)}
                 />
                 <Input
                   placeholder="Days Since Last Payment"
                   type="number"
                   value={filters.daysSinceLastPaymentMin}
-                  onChange={(e) => setFilters({ ...filters, daysSinceLastPaymentMin: e.target.value })}
+                  onChange={(e) => handleFilterChange('daysSinceLastPaymentMin', e.target.value)}
                 />
-                <Select value={filters.status || ""} onValueChange={(v) => setFilters({ ...filters, status: v === "__all__" ? "" : v })}>
+                <Select value={filters.status || ""} onValueChange={(v) => handleFilterChange('status', v === "__all__" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Follow-up Status" />
                   </SelectTrigger>
@@ -386,9 +412,18 @@ export default function DefaultersReportPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.length === 0 ? (
+                    {isLoading ? (
                       <tr>
-                        <td colSpan="8" className="px-4 py-6 text-center text-gray-500">
+                        <td colSpan="9" className="px-4 py-12 text-center">
+                          <div className="flex items-center justify-center gap-2 text-gray-500">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Loading...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : rows.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="px-4 py-6 text-center text-gray-500">
                           No defaulters found
                         </td>
                       </tr>
@@ -493,56 +528,112 @@ export default function DefaultersReportPage() {
           />
         )}
 
-        {/* Send Reminder Panel */}
-        {selectedStudents.length > 0 && (userRole === 'admin' || userRole === 'accountant') && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shadow-lg p-4 z-50">
-            <div className="max-w-7xl mx-auto space-y-3">
+        {/* Send Reminder Modal */}
+        <Dialog open={isReminderModalOpen} onOpenChange={setIsReminderModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                  {selectedStudents.length} students selected
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedStudents([])}
-                  className="gap-1"
-                >
-                  <X className="h-4 w-4" />
-                  Clear Selection
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Title</Label>
-                  <Input
-                    className="mt-1"
-                    value={reminderTitle}
-                    onChange={(e) => setReminderTitle(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Message</Label>
-                  <Textarea
-                    className="mt-1"
-                    rows={2}
-                    value={reminderMessage}
-                    onChange={(e) => setReminderMessage(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
+                <DialogTitle>Send Fee Reminder</DialogTitle>
                 <Button
                   onClick={handleSendReminder}
-                  disabled={sendingReminders || selectedStudents.length === 0}
+                  disabled={sendingReminders}
                   className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
                 >
-                  <Send className="h-4 w-4" />
-                  {sendingReminders ? 'Sending...' : `Send Reminder (${selectedStudents.length} selected)`}
+                  {sendingReminders ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Send Reminder ({selectedStudents.length} selected)
+                    </>
+                  )}
                 </Button>
               </div>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Selected Students Table */}
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-semibold">Student Name</th>
+                      <th className="px-3 py-2 text-left font-semibold">Class</th>
+                      <th className="px-3 py-2 text-right font-semibold">Due Amount</th>
+                      <th className="px-3 py-2 text-left font-semibold">Parent Name</th>
+                      <th className="px-3 py-2 text-left font-semibold">Phone</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows
+                      .filter(row => selectedStudents.includes(row.student.id))
+                      .map((row, idx) => (
+                        <tr key={idx} className="border-t">
+                          <td className="px-3 py-2">{row.student.name}</td>
+                          <td className="px-3 py-2">{row.class.name}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-red-600">
+                            ₹{row.due.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-2">{row.student.name}</td>
+                          <td className="px-3 py-2">{row.phone1 || '-'}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Message Preview */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h4 className="font-semibold mb-3 text-sm">Message Preview:</h4>
+                <div className="space-y-2">
+                  {rows
+                    .filter(row => selectedStudents.includes(row.student.id))
+                    .slice(0, 2)
+                    .map((row, idx) => (
+                      <div key={idx} className="text-sm text-gray-700 bg-white p-3 rounded border">
+                        Dear {row.student.name}, Fee of ₹{row.due.toLocaleString()} is pending for {row.student.name} ({row.class.name}). Please pay at earliest.
+                      </div>
+                    ))}
+                  {selectedStudents.length > 2 && (
+                    <p className="text-xs text-gray-500 italic">
+                      ...and {selectedStudents.length - 2} more students
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsReminderModalOpen(false)}
+                disabled={sendingReminders}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendReminder}
+                disabled={sendingReminders}
+                className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+              >
+                {sendingReminders ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Confirm & Send
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </LoginRequired>
   );
