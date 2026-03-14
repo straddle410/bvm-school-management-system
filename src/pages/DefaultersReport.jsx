@@ -174,13 +174,29 @@ export default function DefaultersReportPage() {
 
     setSendingReminders(true);
     try {
-      const res = await base44.functions.invoke('sendFeeReminders', {
-        student_ids: selectedStudents,
-        title: reminderTitle,
-        message: reminderMessage
+      // Get staff session for sender info
+      const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      
+      // Prepare student data from selected rows
+      const studentsData = rows
+        .filter(row => selectedStudents.includes(row.student.id))
+        .map(row => ({
+          student_id: row.student.id,
+          student_name: row.student.name,
+          parent_name: row.student.name, // TODO: Get actual parent name from student entity
+          due_amount: row.due,
+          class_name: row.class.name
+        }));
+
+      const res = await base44.functions.invoke('sendFeeReminder', {
+        selectedStudents: studentsData,
+        academic_year: academicYear,
+        sender_id: staffSession.username || 'admin',
+        sender_name: staffSession.name || 'Admin'
       });
+      
       const result = res.data;
-      toast.success(`✅ Sent: ${result.success_count} | ⏭️ Already reminded: ${result.already_reminded_count} | ❌ Failed: ${result.failed_count}`);
+      toast.success(`✅ Sent: ${result.success_count} | ❌ Failed: ${result.failed_count}`);
       setSelectedStudents([]);
     } catch (error) {
       toast.error('Failed to send reminders: ' + error.message);
