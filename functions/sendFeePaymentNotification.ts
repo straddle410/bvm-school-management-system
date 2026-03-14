@@ -35,9 +35,11 @@ Deno.serve(async (req) => {
 
     // Check if student has push notifications enabled
     if (!pref?.browser_push_enabled || !pref?.browser_push_token) {
-      console.log('Student does not have push notifications enabled or no token available');
+      console.log('[sendFeePaymentNotification] Student does not have push notifications enabled or no token available');
       return Response.json({ success: true, message: 'No push token available' });
     }
+    
+    console.log('[sendFeePaymentNotification] Student has push token, preparing FCM message');
 
     // Construct notification message
     const message = {
