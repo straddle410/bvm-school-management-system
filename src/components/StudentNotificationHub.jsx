@@ -18,6 +18,7 @@ const NOTIF_TYPE_MAP = {
   homework_published:   { pref: 'homework_notifications', label: '📝 New Homework' },
   timetable_updated:    { pref: null,                     label: '🗓️ Timetable Updated' },
   class_message:        { pref: 'message_notifications',  label: '💬 New Message' },
+  fee_payment_received: { pref: null,                     label: '💰 Fee Payment Received' },
 };
 
 function playSound(prefs) {
@@ -39,8 +40,8 @@ function playSound(prefs) {
 }
 
 function sendBrowserPush(title, body, prefs, notifType) {
-  // Only send browser push for critical notifications: marks, hall tickets
-  const criticalTypes = ['marks_published', 'results_posted', 'hall_ticket_published'];
+  // Only send browser push for critical notifications: marks, hall tickets, fee payments
+  const criticalTypes = ['marks_published', 'results_posted', 'hall_ticket_published', 'fee_payment_received'];
   if (!criticalTypes.includes(notifType)) return;
   
   if (!prefs?.browser_push_enabled) return;

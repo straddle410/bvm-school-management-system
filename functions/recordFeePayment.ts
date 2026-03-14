@@ -215,6 +215,52 @@ Deno.serve(async (req) => {
       status: newStatus
     });
 
+    // ── Fee Payment Notification ──────────────────────────────────────────
+    try {
+      // Duplicate check: ensure no notification already exists for this receipt
+      const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
+        type: 'fee_payment_received',
+        duplicate_key: `fee_${receiptNo}`,
+      });
+
+      if (existingNotifs.length === 0) {
+        // Create in-app notification (always free)
+        await base44.asServiceRole.entities.Notification.create({
+          recipient_student_id: invoice.student_id,
+          type: 'fee_payment_received',
+          title: 'Fee Payment Received 🧾',
+          message: `₹${amountPaid} received. Receipt No: ${receiptNo}`,
+          related_entity_id: payment.id,
+          action_url: '/StudentFees',
+          is_read: false,
+          duplicate_key: `fee_${receiptNo}`,
+        });
+
+        // Send push notification if enabled (uses integration credits)
+        try {
+          const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
+            student_id: invoice.student_id,
+          });
+          const pref = prefs[0];
+          
+          if (pref && pref.browser_push_enabled && pref.browser_push_token) {
+            await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+              student_ids: [invoice.student_id],
+              title: 'Fee Payment Received 🧾',
+              message: `₹${amountPaid} received for ${invoice.installment_name}. Receipt: ${receiptNo}`,
+              url: '/StudentFees',
+            });
+          }
+        } catch (pushErr) {
+          console.error('[FEE-PUSH-ERROR] Failed to send push notification (non-fatal):', pushErr.message);
+        }
+      }
+    } catch (notifErr) {
+      // Log error but don't fail payment if notification fails
+      console.error('[FEE-NOTIF-ERROR] Failed to create fee payment notification (non-fatal):', notifErr.message);
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     return Response.json({ success: true, receipt_no: receiptNo, payment_id: payment.id, new_status: newStatus, balance: Math.max(0, newBalance) });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
