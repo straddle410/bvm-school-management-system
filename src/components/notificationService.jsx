@@ -180,16 +180,17 @@ export const notificationService = {
     }
   },
 
-  // Play notification sound using Audio element
+  // Play notification sound using data URI
   async playSound(volume = 0.7) {
     try {
-      const audio = new Audio('/notification-sound.mp3');
+      const audio = new Audio();
+      audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj==';
       audio.volume = Math.max(0, Math.min(1, volume));
-      audio.play().catch((error) => {
-        console.warn('Audio play failed (may need user gesture):', error.message);
+      audio.play().catch((e) => {
+        console.log('[Audio] Play blocked:', e.message);
       });
     } catch (error) {
-      console.error('Failed to play sound:', error);
+      console.error('[Audio] Failed to play sound:', error);
     }
   },
 };
