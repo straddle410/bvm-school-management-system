@@ -5,17 +5,22 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
+    console.log('[sendFeePaymentNotification] Event received:', event.type, 'PaymentID:', data?.id);
+
     // Only process create events
     if (event.type !== 'create') {
       return Response.json({ success: true, message: 'Not a create event' });
     }
 
     const payment = data;
+    console.log('[sendFeePaymentNotification] Processing payment:', payment.receipt_no, 'Amount:', payment.amount_paid);
     
     // Get student details
     const student = await base44.asServiceRole.entities.Student.filter({
       id: payment.student_id
     }).then(students => students[0]);
+    
+    console.log('[sendFeePaymentNotification] Student found:', student?.name);
 
     if (!student) {
       console.error('Student not found:', payment.student_id);
