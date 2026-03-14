@@ -5,7 +5,7 @@ import { Download, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, schoolProfile, studentSession }) {
+export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, payments, schoolProfile, studentSession }) {
   const receiptRef = useRef();
 
   const handleDownload = async () => {
@@ -36,8 +36,16 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
 
   if (!invoice) return null;
 
-  // Filter payments for this specific invoice only
-  const invoicePayments = (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
+  // If specific payment is selected, use only that payment's data
+  const invoicePayments = payment ? [payment] : (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
+  const displayAmount = payment ? payment.amount_paid : invoice.paid_amount;
+  const displayDate = payment ? payment.payment_date : (invoicePayments[0]?.payment_date || invoice.due_date);
+  const receiptNumber = payment ? payment.receipt_no : invoicePayments[0]?.receipt_no;
+  
+  // Calculate balance after this specific payment
+  const balanceAfterPayment = payment 
+    ? invoice.total_amount - payment.amount_paid
+    : invoice.balance;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,8 +101,8 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
               <p className="text-sm font-semibold text-gray-900">{studentSession?.class_name}-{studentSession?.section}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Invoice Number</p>
-              <p className="text-sm font-semibold text-gray-900">{invoice.id?.slice(-8).toUpperCase() || 'N/A'}</p>
+              <p className="text-xs text-gray-500 font-medium">Receipt Number</p>
+              <p className="text-sm font-semibold text-gray-900">{receiptNumber || invoice.id?.slice(-8).toUpperCase() || 'N/A'}</p>
             </div>
           </div>
 
@@ -112,18 +120,16 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Paid Amount</span>
-                <span className="text-sm font-semibold text-green-600">₹{invoice.paid_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-sm font-semibold text-green-600">₹{displayAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-              {invoicePayments.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Payment Date</span>
-                  <span className="text-sm font-semibold text-gray-900">{invoicePayments[0].payment_date}</span>
-                </div>
-              )}
-              {invoice.balance > 0 && (
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Payment Date</span>
+                <span className="text-sm font-semibold text-gray-900">{displayDate}</span>
+              </div>
+              {balanceAfterPayment > 0 && (
                 <div className="flex justify-between pt-2 border-t">
                   <span className="text-sm font-semibold text-gray-700">Balance</span>
-                  <span className="text-sm font-bold text-red-600">₹{invoice.balance?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="text-sm font-bold text-red-600">₹{balanceAfterPayment?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
             </div>
