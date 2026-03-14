@@ -15,14 +15,29 @@ Deno.serve(async (req) => {
     }
 
     const payment = data;
+    console.log('[FCM] Payment object:', JSON.stringify(payment));
     console.log('[sendFeePaymentNotification] Processing payment:', payment.receipt_no, 'Amount:', payment.amount_paid);
     
-    // Get student details
-    const student = await base44.asServiceRole.entities.Student.filter({
-      id: payment.student_id
-    }).then(students => students[0]);
+    // Get student details - try both student_id and id fields
+    console.log('[FCM] Looking up student with:', payment.student_id, 'PaymentID:', payment.id);
+    const studentId = payment.student_id;
     
-    console.log('[sendFeePaymentNotification] Student found:', student?.name);
+    let student = null;
+    if (studentId) {
+      const results = await base44.asServiceRole.entities.Student.filter({
+        student_id: studentId
+      });
+      student = results[0];
+    }
+    
+    if (!student) {
+      const results = await base44.asServiceRole.entities.Student.filter({
+        id: studentId
+      });
+      student = results[0];
+    }
+    
+    console.log('[sendFeePaymentNotification] Student found:', student?.name, 'ID:', student?.id, 'student_id:', student?.student_id);
 
     if (!student) {
       console.error('Student not found:', payment.student_id);
