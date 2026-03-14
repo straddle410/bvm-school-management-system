@@ -66,31 +66,53 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Handle staff/admin notifications
+      // Handle staff/admin and base44 authenticated users
       const hasStaffSession = !!localStorage.getItem('staff_session');
+      let user = null;
+
       if (hasStaffSession) {
-        console.log('[PushNotificationManager] Staff session detected, skipping push init');
+        try {
+          const staffRaw = localStorage.getItem('staff_session');
+          user = JSON.parse(staffRaw);
+          console.log('[PushNotificationManager] Staff session detected, initializing push for staff');
+        } catch {}
+      } else {
+        user = await base44.auth.me().catch(() => null);
+        if (!user) {
+          console.log('[PushNotificationManager] No authenticated user');
+          return;
+        }
+      }
+
+      if (!user?.email) {
+        console.log('[PushNotificationManager] No email found for user');
         return;
       }
 
-      // Base44 authenticated users
-      const user = await base44.auth.me().catch(() => null);
-      if (!user) {
-        console.log('[PushNotificationManager] No authenticated user');
-        return;
-      }
-
+      // Get or create notification preferences
       const prefs = await base44.entities.NotificationPreference.filter({
         user_email: user.email
       });
-      const pref = prefs[0];
+      let pref = prefs[0];
+
+      if (!pref) {
+        console.log('[PushNotificationManager] Creating new notification preference for', user.email);
+        pref = await base44.entities.NotificationPreference.create({
+          user_email: user.email,
+          notifications_enabled: true,
+          browser_push_enabled: true,
+          sound_enabled: true,
+          sound_volume: 0.7,
+          message_notifications: true
+        });
+      }
 
       if (!pref?.browser_push_enabled) {
         console.log('[PushNotificationManager] Push notifications not enabled in preferences');
         return;
       }
 
-      // Get Firebase messaging token via service worker
+      // Get push subscription token via service worker
       if ('serviceWorker' in navigator) {
         try {
           const registration = await navigator.serviceWorker.ready;
@@ -106,10 +128,11 @@ export default function PushNotificationManager() {
           console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
           
           if (token) {
-            await base44.auth.updateMe({
+            // Save token to notification preference
+            await base44.entities.NotificationPreference.update(pref.id, {
               browser_push_token: token
             });
-            console.log('[PushNotificationManager] Token saved to user');
+            console.log('[PushNotificationManager] Token saved to preference');
             toast.success("Notifications enabled successfully!");
           }
         } catch (error) {
