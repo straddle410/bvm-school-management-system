@@ -15,6 +15,17 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+async function getVapidKey() {
+  try {
+    const response = await fetch('/api/functions/getVapidPublicKey');
+    const data = await response.json();
+    return data.vapidKey || data.key || data.publicKey;
+  } catch (error) {
+    console.error('[VAPID] Fetch failed:', error);
+    return null;
+  }
+}
+
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
