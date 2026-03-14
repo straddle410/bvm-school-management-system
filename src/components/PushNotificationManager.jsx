@@ -29,23 +29,6 @@ async function getVapidKey() {
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
-  const [vapidKey, setVapidKey] = useState(null);
-
-  useEffect(() => {
-    // Fetch VAPID key from backend
-    const fetchVapidKey = async () => {
-      try {
-        const response = await base44.functions.invoke('getVapidPublicKey', {});
-        if (response.data?.vapidKey) {
-          setVapidKey(response.data.vapidKey);
-          console.log('[VAPID] Key loaded from backend:', !!response.data.vapidKey);
-        }
-      } catch (error) {
-        console.error('[VAPID] Failed to fetch key:', error);
-      }
-    };
-    fetchVapidKey();
-  }, []);
 
   useEffect(() => {
     // Get student session if exists
