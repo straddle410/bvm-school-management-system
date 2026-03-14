@@ -15,6 +15,27 @@ export default function PushNotificationManager() {
         const user = await base44.auth.me().catch(() => null);
         if (!user) return;
 
+        // iOS/Safari detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+
+        // iOS limitation check - must be PWA
+        if (isIOS && !isPWA) {
+          toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
+          return;
+        }
+
+        // iOS PWA - request permission early
+        if (isIOS && isPWA) {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            console.log('Permission denied');
+            return;
+          }
+          toast.info("Tap Allow to receive fee reminders and school notifications");
+        }
+
         // Get user preferences
         const prefs = await base44.entities.NotificationPreference.filter({
           user_email: user.email
@@ -23,28 +44,12 @@ export default function PushNotificationManager() {
 
         if (!pref?.browser_push_enabled) return;
 
-        // iOS/Safari detection
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-
-        // iOS limitation check
-        if (isIOS && !isPWA) {
-          toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
-          return;
-        }
-
         // Register service worker
         if ('serviceWorker' in navigator) {
           await navigator.serviceWorker.register('/service-worker.js');
         }
 
-        // iOS PWA specific message
-        if (isIOS && isPWA && Notification.permission === 'default') {
-          toast.info("Tap Allow to receive fee reminders and school notifications");
-        }
-
-        // Explicitly request permission
+        // Explicitly request permission (non-iOS or already granted on iOS)
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           console.log('Permission denied');
