@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
     console.log('[sendFeePaymentNotification] FCM Response Status:', fcmResponse.status);
     const responseText = await fcmResponse.text();
     console.log('[sendFeePaymentNotification] FCM Response Body:', responseText);
+    console.log('[FCM] FCM API response:', JSON.stringify({ status: fcmResponse.status, body: responseText }));
 
     if (!fcmResponse.ok) {
       console.error('[sendFeePaymentNotification] FCM error:', fcmResponse.status, responseText);
