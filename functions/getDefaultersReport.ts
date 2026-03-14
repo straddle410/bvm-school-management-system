@@ -129,7 +129,8 @@ Deno.serve(async (req) => {
       
       // Enrich with Student entity details (if available and not deleted)
       const student = studentLookup[studentId];
-      if (!student) return; // Skip if student not found or deleted
+      if (!student) return; // Skip if student not found
+      if (student.is_deleted === true) return; // Skip deleted students
 
       // Apply class/section filter
       if (className && student.class_name !== className) return;
