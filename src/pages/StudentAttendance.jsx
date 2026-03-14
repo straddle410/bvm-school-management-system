@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, BarChart3, ArrowLeft } from 'lucide-react';
+import { AlertCircle, BarChart3, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function StudentAttendance() {
   console.log('[ENTRY] StudentAttendance:', window.location.pathname);
@@ -14,6 +15,7 @@ export default function StudentAttendance() {
   const [session] = useState(() => {
     try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
+  const [showAbsentDates, setShowAbsentDates] = useState(false);
 
   useEffect(() => {
     if (!session) navigate(createPageUrl('StudentLogin'));
@@ -34,6 +36,25 @@ export default function StudentAttendance() {
       }
     },
     enabled: !!session?.student_id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: absentRecords = [] } = useQuery({
+    queryKey: ['student-absent-records', session?.student_id],
+    queryFn: async () => {
+      if (!session?.student_id) return [];
+      try {
+        const records = await base44.entities.Attendance.filter({
+          student_id: session.student_id,
+          academic_year: session.academic_year,
+          attendance_type: 'absent'
+        }, '-date', 100);
+        return records;
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!session?.student_id && showAbsentDates,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -82,12 +103,52 @@ export default function StudentAttendance() {
                   <p className="font-bold text-green-900">{present_days}</p>
                   <p className="text-xs text-gray-600">Present</p>
                 </div>
-                <div className="bg-red-50 rounded-lg p-3">
-                  <p className="font-bold text-red-900">{absent_days}</p>
+                <button
+                  onClick={() => setShowAbsentDates(!showAbsentDates)}
+                  className="bg-red-50 rounded-lg p-3 hover:bg-red-100 transition-colors"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="font-bold text-red-900">{absent_days}</p>
+                    {showAbsentDates ? <ChevronUp className="h-4 w-4 text-red-700" /> : <ChevronDown className="h-4 w-4 text-red-700" />}
+                  </div>
                   <p className="text-xs text-gray-600">Absent</p>
-                </div>
+                </button>
               </div>
             </div>
+
+            {/* Absent Dates List */}
+            {showAbsentDates && (
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  Absent Dates
+                </h3>
+                {absentRecords.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No absent days recorded</p>
+                ) : (
+                  <div className="space-y-2">
+                    {absentRecords.map((record) => {
+                      const date = new Date(record.date);
+                      return (
+                        <div key={record.id} className="flex items-center justify-between bg-red-50 rounded-lg px-4 py-3 border border-red-100">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {format(date, 'dd MMM yyyy')}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {format(date, 'EEEE')}
+                            </p>
+                          </div>
+                          <div className="bg-red-200 rounded-full px-3 py-1">
+                            <p className="text-xs font-bold text-red-900">Absent</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Alert */}
             {isLowAttendance && (
