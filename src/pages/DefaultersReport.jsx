@@ -19,10 +19,15 @@ export default function DefaultersReportPage() {
   const [filters, setFilters] = useState({
     className: '',
     section: '',
-    minDue: 1,
+    minDue: '',
     daysSinceLastPaymentMin: '',
     status: '',
     search: ''
+  });
+
+  const { data: classes } = useQuery({
+    queryKey: ['classes'],
+    queryFn: () => base44.entities.Student.list()
   });
   const [page, setPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -41,7 +46,7 @@ export default function DefaultersReportPage() {
         academicYear: academicYear,
         page: page.toString(),
         pageSize: '50',
-        minDue: filters.minDue.toString(),
+        ...(filters.minDue && { minDue: filters.minDue.toString() }),
         ...(filters.className && { className: filters.className }),
         ...(filters.section && { section: filters.section }),
         ...(filters.daysSinceLastPaymentMin !== undefined && filters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: filters.daysSinceLastPaymentMin }),
@@ -208,12 +213,41 @@ export default function DefaultersReportPage() {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+                <Input
+                  placeholder="Search name/phone"
+                  value={filters.search}
+                  onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
+                />
+                <Select value={filters.className || ""} onValueChange={(v) => { setFilters({ ...filters, className: v === "__all__" ? "" : v }); setPage(1); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Classes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">All Classes</SelectItem>
+                    {['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(cls => (
+                      <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filters.section || ""} onValueChange={(v) => { setFilters({ ...filters, section: v === "__all__" ? "" : v }); setPage(1); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Sections" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">All Sections</SelectItem>
+                    {['A', 'B', 'C', 'D', 'E'].map(sec => (
+                      <SelectItem key={sec} value={sec}>Section {sec}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
                 <Input
                   placeholder="Min Due (₹)"
                   type="number"
                   value={filters.minDue}
-                  onChange={(e) => { setFilters({ ...filters, minDue: parseInt(e.target.value) || 0 }); setPage(1); }}
+                  onChange={(e) => { setFilters({ ...filters, minDue: e.target.value }); setPage(1); }}
                 />
                 <Input
                   placeholder="Days Since Last Payment"
@@ -221,12 +255,12 @@ export default function DefaultersReportPage() {
                   value={filters.daysSinceLastPaymentMin}
                   onChange={(e) => { setFilters({ ...filters, daysSinceLastPaymentMin: e.target.value }); setPage(1); }}
                 />
-                <Select value={filters.status} onValueChange={(v) => { setFilters({ ...filters, status: v }); setPage(1); }}>
+                <Select value={filters.status || ""} onValueChange={(v) => { setFilters({ ...filters, status: v === "__all__" ? "" : v }); setPage(1); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Follow-up Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>All</SelectItem>
+                    <SelectItem value="__all__">All</SelectItem>
                     <SelectItem value="NEW">New</SelectItem>
                     <SelectItem value="CALLED">Called</SelectItem>
                     <SelectItem value="FOLLOW_UP">Follow-up</SelectItem>
@@ -234,13 +268,10 @@ export default function DefaultersReportPage() {
                     <SelectItem value="DO_NOT_CALL">Do Not Call</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input
-                  placeholder="Search name/phone"
-                  value={filters.search}
-                  onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
-                />
-                <Button variant="outline" onClick={() => { setFilters({ className: '', section: '', minDue: 1, daysSinceLastPaymentMin: '', status: '', search: '' }); setPage(1); }}>
-                  Reset
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setFilters({ className: '', section: '', minDue: '', daysSinceLastPaymentMin: '', status: '', search: '' }); setSelectedStudents([]); setPage(1); }}>
+                  Clear All Filters
                 </Button>
                 <Button className="bg-green-600 hover:bg-green-700" onClick={handleExport}>
                   <Download className="h-4 w-4 mr-2" /> Export CSV
