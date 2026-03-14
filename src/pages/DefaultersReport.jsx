@@ -15,7 +15,8 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
 
 export default function DefaultersReportPage() {
-  const { academicYear } = useAcademicYear();
+  const { academicYear: contextAcademicYear } = useAcademicYear();
+  const academicYear = contextAcademicYear || '2025-26';
   const [filters, setFilters] = useState({
     className: '',
     section: '',
