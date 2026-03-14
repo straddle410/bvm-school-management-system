@@ -44,11 +44,21 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Student not found' });
     }
 
-    // Get student notification preferences
-    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
+    // Get student notification preferences - try both id and student_id
+    console.log('[FCM] Searching preference for student.id:', student?.id, 'student.student_id:', student?.student_id);
+    
+    let prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
       student_id: student.id
     });
-    const pref = prefs[0];
+    
+    if (!prefs || prefs.length === 0) {
+      console.log('[FCM] No preference found with student.id, trying with student_id field');
+      prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
+        student_id: student.student_id
+      });
+    }
+    
+    const pref = prefs?.[0];
 
     console.log('[FCM] Preference:', JSON.stringify(pref));
     console.log('[FCM] Token:', pref?.browser_push_token);
