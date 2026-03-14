@@ -174,6 +174,13 @@ Deno.serve(async (req) => {
         daysSinceLastPayment = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       }
 
+      // Filter by days since last payment
+      if (daysSinceLastPaymentMin !== null) {
+        if (daysSinceLastPayment < daysSinceLastPaymentMin) {
+          return;
+        }
+      }
+
       // Build defaulter row
       const latestFU = latestFollowUpMap[studentId];
 
