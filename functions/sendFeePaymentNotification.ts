@@ -108,25 +108,6 @@ Deno.serve(async (req) => {
 
     console.log('[sendFeePaymentNotification] FCM message sent successfully');
 
-    // Log the notification in Message entity
-    await base44.asServiceRole.entities.Message.create({
-      sender_id: 'SYSTEM',
-      sender_name: 'System',
-      recipient_id: student.id,
-      recipient_name: student.name,
-      recipient_type: 'STUDENT',
-      subject: 'Fee Payment',
-      body: `Payment of ₹${payment.amount_paid.toLocaleString()} received. Receipt: ${payment.receipt_no}`,
-      status: 'SENT',
-      sent_at: new Date().toISOString(),
-      message_type: 'FEE_PAYMENT_NOTIFICATION',
-      metadata: {
-        payment_id: payment.id,
-        receipt_no: payment.receipt_no,
-        amount_paid: payment.amount_paid,
-      }
-    });
-
     return Response.json({ 
       success: true, 
       message: 'Notification sent successfully',
