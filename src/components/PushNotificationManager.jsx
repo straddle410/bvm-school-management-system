@@ -67,22 +67,10 @@ export default function PushNotificationManager() {
    try {
      console.log('[PushNotificationManager] Initializing push notifications...');
 
-     // Fetch VAPID key from backend first (ensure it's loaded before proceeding)
-     let localVapidKey = vapidKey;
-     if (!localVapidKey) {
-       console.log('[VAPID] Fetching key from backend...');
-       try {
-         const response = await base44.functions.invoke('getVapidPublicKey', {});
-         localVapidKey = response.data?.vapidKey;
-       } catch (error) {
-         console.error('[VAPID] Failed to fetch key:', error);
-         toast.error("Push notifications not configured");
-         return;
-       }
-     }
-
-     if (!localVapidKey) {
-       console.error('[VAPID] Key not available');
+     // Get VAPID key directly
+     const vapidKey = await getVapidKey();
+     console.log('[VAPID] Key ready:', !!vapidKey);
+     if (!vapidKey) {
        toast.error("Push notifications not configured");
        return;
      }
@@ -94,103 +82,97 @@ export default function PushNotificationManager() {
          const swUrl = '/api/functions/firebaseMessagingServiceWorker';
          const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
          console.log('[ServiceWorker] Registered successfully:', registration);
-         console.log('[SW] Registration scope:', registration.scope);
-         console.log('[SW] Controller:', navigator.serviceWorker.controller);
-         console.log('[SW] SW URL:', swUrl);
        } catch (error) {
          console.error('[ServiceWorker] Registration failed:', error);
        }
      }
 
-      // Handle student notifications
-      if (studentSession?.student_id) {
-        console.log('[PushNotificationManager] Student session detected, initializing student push...');
-        await initStudentPushNotifications();
-        return;
-      }
+     // Handle student notifications
+     if (studentSession?.student_id) {
+       console.log('[PushNotificationManager] Student session detected, initializing student push...');
+       await initStudentPushNotifications();
+       return;
+     }
 
-      // Handle staff/admin and base44 authenticated users
-      const hasStaffSession = !!localStorage.getItem('staff_session');
-      let user = null;
-      let identifier = null;
+     // Handle staff/admin and base44 authenticated users
+     const hasStaffSession = !!localStorage.getItem('staff_session');
+     let user = null;
+     let identifier = null;
 
-      if (hasStaffSession) {
-        try {
-          const staffRaw = localStorage.getItem('staff_session');
-          user = JSON.parse(staffRaw);
-          identifier = user.staff_id || user.username;
-          console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
-        } catch {}
-      } else {
-        user = await base44.auth.me().catch(() => null);
-        if (!user) {
-          console.log('[PushNotificationManager] No authenticated user');
-          return;
-        }
-        identifier = user.email;
-      }
+     if (hasStaffSession) {
+       try {
+         const staffRaw = localStorage.getItem('staff_session');
+         user = JSON.parse(staffRaw);
+         identifier = user.staff_id || user.username;
+         console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
+       } catch {}
+     } else {
+       user = await base44.auth.me().catch(() => null);
+       if (!user) {
+         console.log('[PushNotificationManager] No authenticated user');
+         return;
+       }
+       identifier = user.email;
+     }
 
-      if (!identifier) {
-        console.log('[PushNotificationManager] No identifier found for user');
-        return;
-      }
+     if (!identifier) {
+       console.log('[PushNotificationManager] No identifier found for user');
+       return;
+     }
 
-      // Get or create notification preferences
-      const prefs = await base44.entities.NotificationPreference.filter({
-        user_email: identifier
-      });
-      let pref = prefs[0];
+     // Get or create notification preferences
+     const prefs = await base44.entities.NotificationPreference.filter({
+       user_email: identifier
+     });
+     let pref = prefs[0];
 
-      if (!pref) {
-        console.log('[PushNotificationManager] Creating new notification preference for', identifier);
-        pref = await base44.entities.NotificationPreference.create({
-          user_email: identifier,
-          notifications_enabled: true,
-          browser_push_enabled: true,
-          sound_enabled: true,
-          sound_volume: 0.7,
-          message_notifications: true
-        });
-      }
+     if (!pref) {
+       console.log('[PushNotificationManager] Creating new notification preference for', identifier);
+       pref = await base44.entities.NotificationPreference.create({
+         user_email: identifier,
+         notifications_enabled: true,
+         browser_push_enabled: true,
+         sound_enabled: true,
+         sound_volume: 0.7,
+         message_notifications: true
+       });
+     }
 
-      if (!pref?.browser_push_enabled) {
-        console.log('[PushNotificationManager] Push notifications not enabled in preferences');
-        return;
-      }
+     if (!pref?.browser_push_enabled) {
+       console.log('[PushNotificationManager] Push notifications not enabled in preferences');
+       return;
+     }
 
-      // Get push subscription token via service worker
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          console.log('[VAPID] Using key:', !!localVapidKey);
-          const applicationServerKey = urlBase64ToUint8Array(localVapidKey);
+     // Get push subscription token via service worker
+     if ('serviceWorker' in navigator) {
+       try {
+         const registration = await navigator.serviceWorker.ready;
+         const applicationServerKey = urlBase64ToUint8Array(vapidKey);
 
-          // Request push subscription from service worker
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey
-          });
-          
-          const token = subscription.endpoint;
-          console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
-          
-          if (token) {
-            // Save token to notification preference
-            await base44.entities.NotificationPreference.update(pref.id, {
-              browser_push_token: token
-            });
-            console.log('[PushNotificationManager] Token saved to preference');
-            toast.success("Notifications enabled successfully!");
-          }
-        } catch (error) {
-          console.error('[PushNotificationManager] Failed to get token:', error);
-          toast.error("Failed to enable notifications");
-        }
-      }
-    } catch (error) {
-      console.error('[PushNotificationManager] Setup failed:', error);
-      toast.error("Notification setup failed");
-    }
+         const subscription = await registration.pushManager.subscribe({
+           userVisibleOnly: true,
+           applicationServerKey
+         });
+
+         const token = subscription.endpoint;
+         console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
+
+         if (token) {
+           await base44.entities.NotificationPreference.update(pref.id, {
+             browser_push_token: token
+           });
+           console.log('[PushNotificationManager] Token saved to preference');
+           toast.success("Notifications enabled successfully!");
+         }
+       } catch (error) {
+         console.error('[PushNotificationManager] Failed to get token:', error);
+         toast.error("Failed to enable notifications");
+       }
+     }
+   } catch (error) {
+     console.error('[PushNotificationManager] Setup failed:', error);
+     toast.error("Notification setup failed");
+   }
   };
 
   const initStudentPushNotifications = async () => {
