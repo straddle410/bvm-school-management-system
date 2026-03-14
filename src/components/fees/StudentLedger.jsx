@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, User } from 'lucide-react';
+import { Search, User, Receipt } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import StudentListVirtual from './StudentListVirtual';
 import PullToRefresh from '@/components/PullToRefresh';
