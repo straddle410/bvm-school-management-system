@@ -58,9 +58,21 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
       console.log('[PaymentModal] Response:', res.data);
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log('[Payment] Triggering notification for:', data.payment_id);
       toast.success(`Payment recorded! Receipt: ${data.receipt_no}`);
       setShowConfirmation(false);
+      
+      // Trigger notification function
+      try {
+        await base44.functions.invoke('sendFeePaymentNotification', {
+          event: { type: 'create', entity_name: 'FeePayment', entity_id: data.payment_id },
+          data: data
+        });
+      } catch (err) {
+        console.warn('[Payment] Notification call failed:', err.message);
+      }
+      
       onSuccess();
     },
     onError: (e) => {
