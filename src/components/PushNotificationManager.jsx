@@ -207,24 +207,31 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Get Firebase messaging token
-      const messaging = getMessaging(app);
-      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-
-      try {
-        const token = await getToken(messaging, { vapidKey });
-        console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
-        
-        if (token) {
-          await base44.entities.StudentNotificationPreference.update(pref.id, {
-            browser_push_token: token
+      // Get Firebase messaging token via service worker
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: vapidKey
           });
-          console.log('[PushNotificationManager] Student token saved');
-          toast.success("Student notifications enabled!");
+          
+          const token = subscription.endpoint;
+          console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
+          
+          if (token) {
+            await base44.entities.StudentNotificationPreference.update(pref.id, {
+              browser_push_token: token
+            });
+            console.log('[PushNotificationManager] Student token saved');
+            toast.success("Student notifications enabled!");
+          }
+        } catch (error) {
+          console.error('[PushNotificationManager] Failed to get student token:', error);
+          toast.error("Failed to enable student notifications");
         }
-      } catch (error) {
-        console.error('[PushNotificationManager] Failed to get student token:', error);
-        toast.error("Failed to enable student notifications");
       }
     } catch (error) {
       console.error('[PushNotificationManager] Student setup failed:', error);
