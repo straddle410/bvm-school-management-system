@@ -30,12 +30,18 @@ Deno.serve(async (req) => {
     const skipCount = (page - 1) * pageSize;
 
     // Fetch data in parallel — same as Outstanding Report
-    const [invoices, payments, students, followUps] = await Promise.all([
+    const [invoices, payments, allStudents, followUps] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000)
     ]);
+
+    // Filter active students only (exclude deleted students)
+    const students = allStudents.filter(s => s.is_deleted !== true);
+
+    console.log('Total students fetched:', allStudents.length);
+    console.log('Active students (excluding deleted):', students.length);
 
     const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
