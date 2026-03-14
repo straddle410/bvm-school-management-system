@@ -192,6 +192,12 @@ export default function PushNotificationManager() {
   const initStudentPushNotifications = async () => {
     try {
       console.log('[PushNotificationManager] Setting up student push notifications...');
+      console.log('[PushInit] studentSession:', JSON.stringify(studentSession));
+
+      if (!studentSession?.id && !studentSession?.student_id) {
+        console.warn('[PushInit] No student ID found in session');
+        return;
+      }
 
       // Get VAPID key directly
       const vapidKey = await getVapidKey();
