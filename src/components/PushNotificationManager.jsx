@@ -241,14 +241,16 @@ export default function PushNotificationManager() {
 
     // Skip auto-init on iOS PWA if permission not granted yet (wait for button click)
     if (isIOS && isPWA && Notification.permission === 'default') {
+      console.log('[PushNotificationManager] Waiting for iOS permission...');
       return;
     }
 
     // Auto-init for non-iOS or already granted
     if (!isIOS || Notification.permission === 'granted') {
+      console.log('[PushNotificationManager] Auto-initializing...');
       initPushNotifications();
     }
-  }, []);
+  }, [studentSession]);
 
   return (
     <>
