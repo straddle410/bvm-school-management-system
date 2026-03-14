@@ -27,6 +27,15 @@ export default function DefaultersReportPage() {
     search: ''
   });
 
+  const [appliedFilters, setAppliedFilters] = useState({
+    className: '',
+    section: '',
+    minDue: '',
+    daysSinceLastPaymentMin: '',
+    status: '',
+    search: ''
+  });
+
   const { data: classes } = useQuery({
     queryKey: ['classes'],
     queryFn: () => base44.entities.Student.list()
@@ -40,29 +49,49 @@ export default function DefaultersReportPage() {
   const [reminderTitle, setReminderTitle] = useState("Fee Payment Reminder 💰");
   const [reminderMessage, setReminderMessage] = useState("Dear {name}, You have an outstanding fee of ₹{amount}. Please clear your dues at the earliest to avoid any inconvenience. Thank you.");
 
+  const handleApplyFilters = () => {
+    setAppliedFilters({ ...filters });
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    const emptyFilters = {
+      className: '',
+      section: '',
+      minDue: '',
+      daysSinceLastPaymentMin: '',
+      status: '',
+      search: ''
+    };
+    setFilters(emptyFilters);
+    setAppliedFilters(emptyFilters);
+    setSelectedStudents([]);
+    setPage(1);
+  };
+
   // Fetch defaulters
   const { data, isLoading, error } = useQuery({
-    queryKey: ['defaultersReport', academicYear, page, filters.className, filters.section, filters.minDue, filters.status, filters.search, filters.daysSinceLastPaymentMin],
+    queryKey: ['defaultersReport', academicYear, page, appliedFilters.className, appliedFilters.section, appliedFilters.minDue, appliedFilters.status, appliedFilters.search, appliedFilters.daysSinceLastPaymentMin],
     queryFn: async () => {
       const params = new URLSearchParams({
         academicYear: academicYear,
         page: page.toString(),
         pageSize: '50',
-        ...(filters.minDue && { minDue: filters.minDue.toString() }),
-        ...(filters.className && { className: filters.className }),
-        ...(filters.section && { section: filters.section }),
-        ...(filters.daysSinceLastPaymentMin !== undefined && filters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: filters.daysSinceLastPaymentMin }),
-        ...(filters.status && { status: filters.status }),
-        ...(filters.search && { search: filters.search })
+        ...(appliedFilters.minDue && { minDue: appliedFilters.minDue.toString() }),
+        ...(appliedFilters.className && { className: appliedFilters.className }),
+        ...(appliedFilters.section && { section: appliedFilters.section }),
+        ...(appliedFilters.daysSinceLastPaymentMin !== undefined && appliedFilters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: appliedFilters.daysSinceLastPaymentMin }),
+        ...(appliedFilters.status && { status: appliedFilters.status }),
+        ...(appliedFilters.search && { search: appliedFilters.search })
       });
 
       console.log('Filter params being sent:', {
         academicYear: academicYear,
-        className: filters.className,
-        section: filters.section,
-        minDue: filters.minDue,
-        status: filters.status,
-        search: filters.search,
+        className: appliedFilters.className,
+        section: appliedFilters.section,
+        minDue: appliedFilters.minDue,
+        status: appliedFilters.status,
+        search: appliedFilters.search,
         page: page
       });
 
@@ -79,10 +108,10 @@ export default function DefaultersReportPage() {
     try {
       const params = new URLSearchParams({
         academicYear: academicYear,
-        ...(filters.className && { className: filters.className }),
-        ...(filters.section && { section: filters.section }),
-        ...(filters.minDue && { minDue: filters.minDue.toString() }),
-        ...(filters.search && { search: filters.search })
+        ...(appliedFilters.className && { className: appliedFilters.className }),
+        ...(appliedFilters.section && { section: appliedFilters.section }),
+        ...(appliedFilters.minDue && { minDue: appliedFilters.minDue.toString() }),
+        ...(appliedFilters.search && { search: appliedFilters.search })
       });
 
       const res = await base44.functions.invoke('exportDefaultersReport', { ...Object.fromEntries(params) });
@@ -233,9 +262,9 @@ export default function DefaultersReportPage() {
                 <Input
                   placeholder="Search name/phone"
                   value={filters.search}
-                  onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 />
-                <Select value={filters.className || ""} onValueChange={(v) => { setFilters({ ...filters, className: v === "__all__" ? "" : v, section: "" }); setPage(1); }}>
+                <Select value={filters.className || ""} onValueChange={(v) => setFilters({ ...filters, className: v === "__all__" ? "" : v, section: "" })}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Classes" />
                   </SelectTrigger>
@@ -246,7 +275,7 @@ export default function DefaultersReportPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={filters.section || ""} onValueChange={(v) => { setFilters({ ...filters, section: v === "__all__" ? "" : v }); setPage(1); }}>
+                <Select value={filters.section || ""} onValueChange={(v) => setFilters({ ...filters, section: v === "__all__" ? "" : v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
@@ -263,15 +292,15 @@ export default function DefaultersReportPage() {
                   placeholder="Min Due (₹)"
                   type="number"
                   value={filters.minDue}
-                  onChange={(e) => { setFilters({ ...filters, minDue: e.target.value }); setPage(1); }}
+                  onChange={(e) => setFilters({ ...filters, minDue: e.target.value })}
                 />
                 <Input
                   placeholder="Days Since Last Payment"
                   type="number"
                   value={filters.daysSinceLastPaymentMin}
-                  onChange={(e) => { setFilters({ ...filters, daysSinceLastPaymentMin: e.target.value }); setPage(1); }}
+                  onChange={(e) => setFilters({ ...filters, daysSinceLastPaymentMin: e.target.value })}
                 />
-                <Select value={filters.status || ""} onValueChange={(v) => { setFilters({ ...filters, status: v === "__all__" ? "" : v }); setPage(1); }}>
+                <Select value={filters.status || ""} onValueChange={(v) => setFilters({ ...filters, status: v === "__all__" ? "" : v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Follow-up Status" />
                   </SelectTrigger>
@@ -286,8 +315,11 @@ export default function DefaultersReportPage() {
                 </Select>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => { setFilters({ className: '', section: '', minDue: '', daysSinceLastPaymentMin: '', status: '', search: '' }); setSelectedStudents([]); setPage(1); }}>
-                  Clear All Filters
+                <Button variant="outline" onClick={handleResetFilters}>
+                  Reset Filters
+                </Button>
+                <Button className="bg-[#1a237e] hover:bg-[#283593]" onClick={handleApplyFilters}>
+                  Apply Filters
                 </Button>
                 <Button className="bg-green-600 hover:bg-green-700" onClick={handleExport}>
                   <Download className="h-4 w-4 mr-2" /> Export CSV
