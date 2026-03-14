@@ -40,7 +40,7 @@ export default function DefaultersReportPage() {
 
   // Fetch defaulters
   const { data, isLoading, error } = useQuery({
-    queryKey: ['defaulters', academicYear, filters, page],
+    queryKey: ['defaultersReport', academicYear, page, filters.className, filters.section, filters.minDue, filters.status, filters.search, filters.daysSinceLastPaymentMin],
     queryFn: async () => {
       const params = new URLSearchParams({
         academicYear: academicYear,
@@ -52,6 +52,16 @@ export default function DefaultersReportPage() {
         ...(filters.daysSinceLastPaymentMin !== undefined && filters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: filters.daysSinceLastPaymentMin }),
         ...(filters.status && { status: filters.status }),
         ...(filters.search && { search: filters.search })
+      });
+
+      console.log('Filter params being sent:', {
+        academicYear: academicYear,
+        className: filters.className,
+        section: filters.section,
+        minDue: filters.minDue,
+        status: filters.status,
+        search: filters.search,
+        page: page
       });
 
       const res = await base44.functions.invoke('getDefaultersReport', { ...Object.fromEntries(params) });
@@ -219,7 +229,7 @@ export default function DefaultersReportPage() {
                   value={filters.search}
                   onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
                 />
-                <Select value={filters.className || ""} onValueChange={(v) => { setFilters({ ...filters, className: v === "__all__" ? "" : v }); setPage(1); }}>
+                <Select value={filters.className || ""} onValueChange={(v) => { setFilters({ ...filters, className: v === "__all__" ? "" : v, section: "" }); setPage(1); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Classes" />
                   </SelectTrigger>
