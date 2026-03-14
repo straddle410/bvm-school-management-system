@@ -74,13 +74,14 @@ export default function StudentAttendance() {
         return [];
       }
     },
-    enabled: !!session?.student_id && showHalfDayDates,
+    enabled: !!session?.student_id,
     staleTime: 5 * 60 * 1000,
   });
 
   if (!session) return null;
 
-  const { total_days = 0, present_days = 0, absent_days = 0, half_days = 0, percentage = 0 } = attendanceData;
+  const { total_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
+  const half_days = halfDayRecords.length;
   const isLowAttendance = percentage < 75;
 
   return (
