@@ -37,12 +37,6 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000)
     ]);
 
-    // Filter active students only (exclude deleted students)
-    const students = allStudents.filter(s => s.is_deleted !== true);
-
-    console.log('Total students fetched:', allStudents.length);
-    console.log('Active students (excluding deleted):', students.length);
-
     const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
     // Active invoices: not Cancelled/Waived (same as Outstanding Report)
@@ -57,10 +51,12 @@ Deno.serve(async (req) => {
       return !VOID_STATUSES.has(rawStatus) && !VOID_STATUSES.has(p.status);
     });
 
-    // Build student map
-    const studentMap = {};
-    students.forEach(s => {
-      studentMap[s.student_id] = s;
+    // Build student lookup for enrichment (exclude deleted students)
+    const studentLookup = {};
+    allStudents.forEach(s => {
+      if (s.is_deleted !== true) {
+        studentLookup[s.student_id] = s;
+      }
     });
 
     // Build latest follow-ups map (latest per student)
@@ -127,23 +123,26 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Process into defaulters list
+    // Process into defaulters list (build from studentDataMap like Outstanding Report)
     const defaultersList = [];
 
-    students.forEach(student => {
-      const studentId = student.student_id;
-      const studentData = studentDataMap[studentId];
+    Object.values(studentDataMap).forEach(studentData => {
+      const studentId = studentData.studentId;
+      
+      // Enrich with Student entity details (if available and not deleted)
+      const student = studentLookup[studentId];
+      if (!student) return; // Skip if student not found or deleted
 
       // Apply class/section filter
       if (className && student.class_name !== className) return;
       if (section && student.section !== section) return;
 
       // Calculate amounts (same as Outstanding Report)
-      const grossAmount = studentData?.grossAmount || 0;
-      const discountAmount = studentData?.discountAmount || 0;
-      const netInvoiced = studentData?.netInvoiced || 0;
-      const paidAmount = studentData?.paidAmount || 0;
-      const latestPaymentDate = studentData?.lastPaymentDate || null;
+      const grossAmount = studentData.grossAmount || 0;
+      const discountAmount = studentData.discountAmount || 0;
+      const netInvoiced = studentData.netInvoiced || 0;
+      const paidAmount = studentData.paidAmount || 0;
+      const latestPaymentDate = studentData.lastPaymentDate || null;
 
       const rawOutstanding = netInvoiced - paidAmount;
       const due = Math.max(rawOutstanding, 0);
