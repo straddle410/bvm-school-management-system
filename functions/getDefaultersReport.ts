@@ -29,9 +29,13 @@ Deno.serve(async (req) => {
     const [invoices, payments, students, followUps] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear, invoice_type: 'ANNUAL' }),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
-      base44.asServiceRole.entities.Student.filter({ academic_year: academicYear, status: 'Published', is_deleted: false }),
+      base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear })
     ]);
+
+    console.log('Academic year used:', academicYear);
+    console.log('Students fetched:', students.length);
+    console.log('First student sample:', students[0]);
 
     // Build student map
     const studentMap = {};
