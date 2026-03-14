@@ -68,21 +68,22 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-lg font-bold">Fee Receipt</h2>
-          <div className="flex items-center gap-2">
-            <Button onClick={handleDownload} variant="outline" size="sm">
+      <DialogContent className="w-full max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden p-0">
+        <div className="sticky top-0 bg-white border-b px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 z-10">
+          <h2 className="text-base sm:text-lg font-bold">Fee Receipt</h2>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button onClick={handleDownload} variant="outline" size="sm" className="flex-1 sm:flex-initial">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded flex-shrink-0">
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <div ref={receiptRef} className="bg-white p-4 sm:p-6 w-full" style={{ maxWidth: '560px' }}>
+        <div className="px-3 sm:px-6 pb-4">
+        <div ref={receiptRef} className="bg-white p-4 sm:p-6 w-full mx-auto" style={{ maxWidth: '560px' }}>
           {/* Header */}
           <div className="border-b-2 border-gray-800 pb-3 mb-4 w-full">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -175,6 +176,7 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
               Generated on: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
             </p>
           </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>
