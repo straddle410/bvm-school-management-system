@@ -80,8 +80,9 @@ Deno.serve(async (req) => {
       invoicesByStudent[inv.student_id].push(inv);
     });
 
-    Object.entries(invoicesByStudent).forEach(([studentId, studentInvoices]) => {
-      const student = studentMap[studentId];
+    students.forEach(student => {
+      const studentId = student.student_id;
+      const studentInvoices = invoicesByStudent[studentId] || [];
       if (!student) return;
 
       console.log('Checking student:', student?.class_name, 'vs filter:', className);
