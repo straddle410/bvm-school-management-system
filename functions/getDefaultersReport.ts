@@ -29,36 +29,32 @@ Deno.serve(async (req) => {
     const pageSize = parseInt(body.pageSize) || 50;
     const skipCount = (page - 1) * pageSize;
 
-    // Fetch data in parallel — global filter: status=Published, is_deleted=false, current AY
+    // Fetch data in parallel — same as Outstanding Report
     const [invoices, payments, students, followUps] = await Promise.all([
-      base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }, '-created_date', 5000),
-      base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }, '-created_date', 5000),
+      base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
+      base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000)
     ]);
 
-    console.log('Academic year used:', academicYear);
-    console.log('Students fetched:', students.length);
-    console.log('First student sample:', students[0]);
+    const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
+
+    // Active invoices: not Cancelled/Waived (same as Outstanding Report)
+    const activeInvoices = invoices.filter(inv => {
+      const excludedStatuses = new Set(['Cancelled', 'Waived']);
+      return !excludedStatuses.has(inv.status);
+    });
+
+    // Active payments: EXCLUDE VOID (same as Outstanding Report)
+    const activePayments = payments.filter(p => {
+      const rawStatus = (p.status || '').toUpperCase();
+      return !VOID_STATUSES.has(rawStatus) && !VOID_STATUSES.has(p.status);
+    });
 
     // Build student map
     const studentMap = {};
     students.forEach(s => {
       studentMap[s.student_id] = s;
-    });
-
-    console.log('Total students in map:', Object.keys(studentMap).length);
-    console.log('Sample student class_names:', Object.values(studentMap).slice(0,5).map(s => s.class_name));
-
-    // Build payments map (exclude VOID)
-    const paymentsByInvoice = {};
-    payments.forEach(p => {
-      if (p.status !== 'VOID') {
-        if (!paymentsByInvoice[p.invoice_id]) {
-          paymentsByInvoice[p.invoice_id] = [];
-        }
-        paymentsByInvoice[p.invoice_id].push(p);
-      }
     });
 
     // Build latest follow-ups map (latest per student)
@@ -69,47 +65,82 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Process invoices into defaulters list
-    const defaultersList = [];
-    const invoicesByStudent = {};
+    // Build per-student aggregates (same as Outstanding Report)
+    const studentDataMap = {};
 
-    invoices.forEach(inv => {
-      if (!invoicesByStudent[inv.student_id]) {
-        invoicesByStudent[inv.student_id] = [];
+    const ensure = (studentId, studentName, className_) => {
+      if (!studentDataMap[studentId]) {
+        studentDataMap[studentId] = {
+          studentId,
+          studentName: studentName || '',
+          className: className_ || '',
+          grossAmount: 0,
+          discountAmount: 0,
+          netInvoiced: 0,
+          paidAmount: 0,
+          lastPaymentDate: null
+        };
       }
-      invoicesByStudent[inv.student_id].push(inv);
-    });
+      return studentDataMap[studentId];
+    };
+
+    // Aggregate invoices (same as Outstanding Report)
+    for (const inv of activeInvoices) {
+      const row = ensure(inv.student_id, inv.student_name, inv.class_name);
+      const gross = inv.gross_total ?? inv.total_amount ?? 0;
+      const discount = inv.discount_total ?? 0;
+      const net = inv.total_amount ?? 0;
+
+      row.grossAmount += gross;
+      row.discountAmount += discount;
+      row.netInvoiced += net;
+    }
+
+    // Aggregate payments (same as Outstanding Report)
+    for (const p of activePayments) {
+      let contribution = 0;
+
+      if (p.entry_type === 'CREDIT_ADJUSTMENT') {
+        contribution = p.amount_paid || 0;
+      } else {
+        contribution = p.amount_paid || 0;
+        if (contribution < 0) contribution = 0;
+      }
+
+      if (contribution === 0) continue;
+
+      const inv = invoices.find(i => i.id === p.invoice_id);
+      const sid = p.student_id || inv?.student_id;
+      if (!sid) continue;
+
+      const row = ensure(sid, p.student_name || inv?.student_name, p.class_name || inv?.class_name);
+      row.paidAmount += contribution;
+
+      if (p.payment_date && (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate)) {
+        row.lastPaymentDate = p.payment_date;
+      }
+    }
+
+    // Process into defaulters list
+    const defaultersList = [];
 
     students.forEach(student => {
       const studentId = student.student_id;
-      const studentInvoices = invoicesByStudent[studentId] || [];
-      if (!student) return;
-
-      console.log('Checking student:', student?.class_name, 'vs filter:', className);
+      const studentData = studentDataMap[studentId];
 
       // Apply class/section filter
       if (className && student.class_name !== className) return;
       if (section && student.section !== section) return;
 
-      // Aggregate invoices
-      let totalGross = 0, totalDiscount = 0, totalNet = 0, totalPaid = 0;
-      let latestPaymentDate = null;
+      // Calculate amounts (same as Outstanding Report)
+      const grossAmount = studentData?.grossAmount || 0;
+      const discountAmount = studentData?.discountAmount || 0;
+      const netInvoiced = studentData?.netInvoiced || 0;
+      const paidAmount = studentData?.paidAmount || 0;
+      const latestPaymentDate = studentData?.lastPaymentDate || null;
 
-      studentInvoices.forEach(inv => {
-        totalGross += inv.gross_total || 0;
-        totalDiscount += inv.discount_total || 0;
-        totalNet += inv.total_amount || 0;
-
-        const invPayments = paymentsByInvoice[inv.id] || [];
-        invPayments.forEach(p => {
-          totalPaid += p.amount_paid || 0;
-          if (!latestPaymentDate || new Date(p.payment_date) > new Date(latestPaymentDate)) {
-            latestPaymentDate = p.payment_date;
-          }
-        });
-      });
-
-      const due = Math.max(totalNet - totalPaid, 0);
+      const rawOutstanding = netInvoiced - paidAmount;
+      const due = Math.max(rawOutstanding, 0);
 
       // Filter by minDue
       if (due < minDue) return;
@@ -155,10 +186,10 @@ Deno.serve(async (req) => {
           name: student.class_name
         },
         section: student.section,
-        gross: totalGross,
-        discount: totalDiscount,
-        net: totalNet,
-        paid: totalPaid,
+        gross: grossAmount,
+        discount: discountAmount,
+        net: netInvoiced,
+        paid: paidAmount,
         due: due,
         lastPaymentDate: latestPaymentDate,
         daysSinceLastPayment: daysSinceLastPayment,
