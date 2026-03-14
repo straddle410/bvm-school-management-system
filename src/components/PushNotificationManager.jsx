@@ -10,6 +10,12 @@ export default function PushNotificationManager() {
   const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
+    // Get student session if exists
+    try {
+      const session = localStorage.getItem('student_session');
+      if (session) setStudentSession(JSON.parse(session));
+    } catch {}
+
     // Detect iOS PWA and show prompt if needed
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isPWA = window.matchMedia('(display-mode: standalone)').matches;
