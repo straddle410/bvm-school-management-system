@@ -41,79 +41,19 @@ export default function PushNotificationManager() {
   };
 
   const initPushNotifications = async () => {
-    try {
-      console.log('[PushNotificationManager] Initializing push notifications...');
+   try {
+     console.log('[PushNotificationManager] Initializing push notifications...');
 
-      // Register inline service worker
-      if ('serviceWorker' in navigator) {
-        console.log('[ServiceWorker] Registering inline service worker...');
-        const swCode = `
-          import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-          import { getMessaging, onBackgroundMessage } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js';
-
-          const firebaseConfig = {
-            apiKey: '${import.meta.env.VITE_FIREBASE_API_KEY || ''}',
-            authDomain: '${import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || ''}',
-            projectId: '${import.meta.env.VITE_FCM_PROJECT_ID || ''}',
-            messagingSenderId: '${import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || ''}',
-            appId: '${import.meta.env.VITE_FIREBASE_APP_ID || ''}',
-          };
-
-          const app = initializeApp(firebaseConfig);
-          const messaging = getMessaging(app);
-
-          onBackgroundMessage(messaging, (payload) => {
-            console.log('[FCM] Background message received:', payload);
-            const notificationTitle = payload.notification?.title || 'Notification';
-            const notificationOptions = {
-              body: payload.notification?.body || '',
-              icon: payload.notification?.icon || '/favicon.ico',
-              badge: payload.notification?.badge || '/favicon.ico',
-              data: payload.data || {},
-            };
-            self.registration.showNotification(notificationTitle, notificationOptions);
-          });
-
-          self.addEventListener('notificationclick', (event) => {
-            console.log('[ServiceWorker] Notification clicked:', event.notification.tag);
-            event.notification.close();
-            const urlToOpen = event.notification.data?.click_action || '/';
-            event.waitUntil(
-              clients.matchAll({ type: 'window' }).then((clientList) => {
-                for (let i = 0; i < clientList.length; i++) {
-                  if (clientList[i].url === urlToOpen && 'focus' in clientList[i]) {
-                    return clientList[i].focus();
-                  }
-                }
-                if (clients.openWindow) {
-                  return clients.openWindow(urlToOpen);
-                }
-              })
-            );
-          });
-
-          self.addEventListener('notificationclose', (event) => {
-            console.log('[ServiceWorker] Notification closed:', event.notification.tag);
-          });
-        `;
-
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        
-        try {
-          const registration = await navigator.serviceWorker.register(swUrl);
-          console.log('[ServiceWorker] Registered successfully:', registration);
-        } catch (error) {
-          console.error('[ServiceWorker] Registration failed:', error);
-          // Fallback: try to register from public folder
-          try {
-            await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-            console.log('[ServiceWorker] Registered from public folder');
-          } catch (fallbackError) {
-            console.error('[ServiceWorker] Fallback registration also failed:', fallbackError);
-          }
-        }
-      }
+     // Register service worker from public folder
+     if ('serviceWorker' in navigator) {
+       console.log('[ServiceWorker] Registering service worker from /firebase-messaging-sw.js...');
+       try {
+         const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+         console.log('[ServiceWorker] Registered successfully:', registration);
+       } catch (error) {
+         console.error('[ServiceWorker] Registration failed:', error);
+       }
+     }
 
       // Handle student notifications
       if (studentSession?.student_id) {
