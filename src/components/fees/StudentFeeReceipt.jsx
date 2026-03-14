@@ -108,47 +108,26 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payments, 
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Total Amount</span>
-                <span className="text-sm font-semibold text-gray-900">₹{invoice.total_amount?.toFixed(2)}</span>
+                <span className="text-sm font-semibold text-gray-900">₹{invoice.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Paid Amount</span>
-                <span className="text-sm font-semibold text-green-600">₹{invoice.paid_amount?.toFixed(2)}</span>
+                <span className="text-sm font-semibold text-green-600">₹{invoice.paid_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
+              {invoicePayments.length > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Payment Date</span>
+                  <span className="text-sm font-semibold text-gray-900">{invoicePayments[0].payment_date}</span>
+                </div>
+              )}
               {invoice.balance > 0 && (
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-sm font-semibold text-gray-700">Balance Due</span>
-                  <span className="text-sm font-bold text-red-600">₹{invoice.balance?.toFixed(2)}</span>
+                  <span className="text-sm font-semibold text-gray-700">Balance</span>
+                  <span className="text-sm font-bold text-red-600">₹{invoice.balance?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Payment History - Show only payments for this specific invoice */}
-          {invoicePayments.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Payment History</h3>
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Date</th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Receipt No.</th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Mode</th>
-                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoicePayments.map((payment, idx) => (
-                    <tr key={idx} className="border-b">
-                      <td className="py-2 px-3 text-gray-600">{payment.payment_date}</td>
-                      <td className="py-2 px-3 text-gray-600">{payment.receipt_no || 'N/A'}</td>
-                      <td className="py-2 px-3 text-gray-600">{payment.payment_mode || 'Cash'}</td>
-                      <td className="py-2 px-3 text-right font-semibold text-gray-900">₹{payment.amount_paid?.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
 
           {/* Footer */}
           <div className="mt-8 pt-4 border-t border-gray-300">
