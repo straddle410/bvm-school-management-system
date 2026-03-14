@@ -64,11 +64,15 @@ Deno.serve(async (req) => {
     const FCM_SERVER_KEY = Deno.env.get('FCM_SERVER_KEY');
     const FCM_PROJECT_ID = Deno.env.get('FCM_PROJECT_ID');
 
+    console.log('[sendFeePaymentNotification] FCM ProjectID:', FCM_PROJECT_ID ? FCM_PROJECT_ID.substring(0, 20) + '...' : 'MISSING');
+    console.log('[sendFeePaymentNotification] FCM ServerKey:', FCM_SERVER_KEY ? 'SET' : 'MISSING');
+
     if (!FCM_SERVER_KEY || !FCM_PROJECT_ID) {
-      console.error('Missing FCM credentials');
+      console.error('[sendFeePaymentNotification] Missing FCM credentials');
       return Response.json({ success: false, error: 'Missing FCM credentials' });
     }
 
+    console.log('[sendFeePaymentNotification] Sending FCM message via FCM API...');
     const fcmResponse = await fetch(
       `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`,
       {
