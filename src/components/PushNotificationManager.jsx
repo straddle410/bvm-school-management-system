@@ -69,12 +69,14 @@ export default function PushNotificationManager() {
       // Handle staff/admin and base44 authenticated users
       const hasStaffSession = !!localStorage.getItem('staff_session');
       let user = null;
+      let identifier = null;
 
       if (hasStaffSession) {
         try {
           const staffRaw = localStorage.getItem('staff_session');
           user = JSON.parse(staffRaw);
-          console.log('[PushNotificationManager] Staff session detected, initializing push for staff');
+          identifier = user.staff_id || user.username;
+          console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
         } catch {}
       } else {
         user = await base44.auth.me().catch(() => null);
@@ -82,23 +84,24 @@ export default function PushNotificationManager() {
           console.log('[PushNotificationManager] No authenticated user');
           return;
         }
+        identifier = user.email;
       }
 
-      if (!user?.email) {
-        console.log('[PushNotificationManager] No email found for user');
+      if (!identifier) {
+        console.log('[PushNotificationManager] No identifier found for user');
         return;
       }
 
       // Get or create notification preferences
       const prefs = await base44.entities.NotificationPreference.filter({
-        user_email: user.email
+        user_email: identifier
       });
       let pref = prefs[0];
 
       if (!pref) {
-        console.log('[PushNotificationManager] Creating new notification preference for', user.email);
+        console.log('[PushNotificationManager] Creating new notification preference for', identifier);
         pref = await base44.entities.NotificationPreference.create({
-          user_email: user.email,
+          user_email: identifier,
           notifications_enabled: true,
           browser_push_enabled: true,
           sound_enabled: true,
