@@ -180,24 +180,14 @@ export const notificationService = {
     }
   },
 
-  // Play notification sound
+  // Play notification sound using Audio element
   async playSound(volume = 0.7) {
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-
-      oscillator.connect(gain);
-      gain.connect(audioContext.destination);
-
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-
-      gain.gain.setValueAtTime(volume, audioContext.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.5);
+      const audio = new Audio('/notification-sound.mp3');
+      audio.volume = Math.max(0, Math.min(1, volume));
+      audio.play().catch((error) => {
+        console.warn('Audio play failed (may need user gesture):', error.message);
+      });
     } catch (error) {
       console.error('Failed to play sound:', error);
     }
