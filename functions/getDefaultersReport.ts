@@ -9,20 +9,24 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Parse request parameters
-    const params = new URL(req.url).searchParams;
-    const academicYear = params.get('academicYear') || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2);
-    const className = params.get('className') || null;
+    console.log('RAW URL:', req.url);
+    
+    // Parse request body (base44.functions.invoke sends POST body)
+    const body = await req.json();
+    console.log('ALL params:', body);
+    
+    const academicYear = body.academicYear || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2);
+    const className = body.className || null;
     console.log('className filter value:', className);
-    const section = params.get('section') || null;
-    const minDue = parseFloat(params.get('minDue')) || 1;
-    const daysSinceLastPaymentMinParam = params.get('daysSinceLastPaymentMin');
+    const section = body.section || null;
+    const minDue = parseFloat(body.minDue) || 1;
+    const daysSinceLastPaymentMinParam = body.daysSinceLastPaymentMin;
     const daysSinceLastPaymentMin = daysSinceLastPaymentMinParam !== null && daysSinceLastPaymentMinParam !== '' ? parseInt(daysSinceLastPaymentMinParam) : null;
-    const followUpStatus = params.get('status') ? params.get('status').split(',') : null;
-    const search = params.get('search')?.trim().toLowerCase() || null;
-    const sort = params.get('sort') || 'due_desc';
-    const page = parseInt(params.get('page')) || 1;
-    const pageSize = parseInt(params.get('pageSize')) || 50;
+    const followUpStatus = body.status ? body.status.split(',') : null;
+    const search = body.search?.trim().toLowerCase() || null;
+    const sort = body.sort || 'due_desc';
+    const page = parseInt(body.page) || 1;
+    const pageSize = parseInt(body.pageSize) || 50;
     const skipCount = (page - 1) * pageSize;
 
     // Fetch data in parallel — global filter: status=Published, is_deleted=false, current AY
