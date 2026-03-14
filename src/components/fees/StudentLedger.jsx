@@ -128,15 +128,32 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-4">
         <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(null); setSearch(''); setStudentPage(0); }}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Select Class" /></SelectTrigger>
-          <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+          <SelectTrigger className="w-56 text-base min-h-[48px]"><SelectValue placeholder="Select Class" /></SelectTrigger>
+          <SelectContent>
+            {CLASSES.map(c => (
+              <SelectItem key={c} value={c} className="text-base py-3">Class {c}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
         {selectedClass && (
-          <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input placeholder="Search student…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Input 
+              placeholder="Search student…" 
+              className="pl-12 pr-12 text-base min-h-[48px]" 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 font-bold text-lg"
+              >
+                ✕
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -162,12 +179,12 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
 
       {selectedStudent && (
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSelectedStudent(null)} className="text-sm text-indigo-600 hover:underline">← Back</button>
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-slate-400" />
-              <span className="font-semibold text-slate-800">{selectedStudent.name}</span>
-              <span className="text-sm text-slate-500">{selectedStudent.student_id}</span>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSelectedStudent(null)} className="text-base font-bold text-indigo-600 hover:underline min-h-[44px] px-3">← Back</button>
+            <div className="flex items-center gap-3">
+              <User className="h-6 w-6 text-slate-500" />
+              <span className="font-semibold text-xl text-slate-900">{selectedStudent.name}</span>
+              <span className="text-base text-slate-600 font-medium">{selectedStudent.student_id}</span>
             </div>
           </div>
 
@@ -175,39 +192,39 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
             <Card><CardContent className="py-8 text-center text-slate-400">No annual invoice generated for this student yet.</CardContent></Card>
           ) : (
             <Card className="border-0 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
+              <div className="px-5 py-4 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
                 <div>
-                  <span className="font-semibold text-slate-800">Annual Fee</span>
-                  {invoice.due_date && <span className="ml-2 text-xs text-slate-500">Due: {invoice.due_date}</span>}
+                  <span className="font-bold text-lg text-slate-900">Annual Fee</span>
+                  {invoice.due_date && <span className="ml-3 text-base text-slate-600 font-medium">Due: {invoice.due_date}</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[invoice.status] || 'bg-slate-100'}`}>{invoice.status}</span>
+                  <span className={`text-sm px-3 py-1 rounded-full font-bold ${statusColor[invoice.status] || 'bg-slate-100'}`}>{invoice.status}</span>
                 </div>
               </div>
 
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-5 space-y-4">
                 {/* Fee breakdown */}
                 {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).length > 0 && (
-                  <table className="w-full text-sm">
+                  <table className="w-full text-base">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Fee Head</th>
-                        <th className="text-right pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Gross</th>
-                        {invoice.discount_total > 0 && <th className="text-right pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Discount</th>}
-                        <th className="text-right pb-1.5 text-slate-500 dark:text-gray-400 font-medium text-xs">Net</th>
+                      <tr className="border-b-2 border-slate-300">
+                        <th className="text-left pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Fee Head</th>
+                        <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Gross</th>
+                        {invoice.discount_total > 0 && <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Discount</th>}
+                        <th className="text-right pb-3 text-slate-700 dark:text-gray-300 font-bold text-base">Net</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).map((fh, i) => (
-                        <tr key={i} className="border-b border-slate-50">
-                          <td className="py-1.5 text-slate-600">{fh.fee_head_name}</td>
-                          <td className="py-1.5 text-right text-slate-500">₹{(fh.gross_amount || 0).toLocaleString()}</td>
+                        <tr key={i} className="border-b border-slate-200">
+                          <td className="py-3 text-slate-800 text-base">{fh.fee_head_name}</td>
+                          <td className="py-3 text-right text-slate-700 text-base">₹{(fh.gross_amount || 0).toLocaleString()}</td>
                           {invoice.discount_total > 0 && (
-                            <td className="py-1.5 text-right text-emerald-600">
+                            <td className="py-3 text-right text-emerald-600 font-semibold text-base">
                               {fh.discount_amount > 0 ? `−₹${fh.discount_amount.toLocaleString()}` : '—'}
                             </td>
                           )}
-                          <td className="py-1.5 text-right font-medium">₹{(fh.net_amount || fh.amount || 0).toLocaleString()}</td>
+                          <td className="py-3 text-right font-bold text-base">₹{(fh.net_amount || fh.amount || 0).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -230,16 +247,16 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                 )}
 
                 {/* Totals summary */}
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-3">
                   {[
-                    { label: 'Gross', value: gross, color: 'text-slate-800' },
+                    { label: 'Gross', value: gross, color: 'text-slate-900' },
                     { label: 'Discount', value: discount, color: 'text-emerald-700' },
-                    { label: 'Fee Paid', value: paid, color: 'text-blue-700' },
-                    { label: 'Balance', value: balance, color: balance > 0 ? 'text-red-600' : 'text-emerald-700' }
+                    { label: 'Fee Paid', value: paid, color: 'text-green-700' },
+                    { label: 'Balance', value: balance, color: balance > 0 ? 'text-red-600' : 'text-green-700' }
                   ].map(({ label, value, color }) => (
-                    <div key={label} className="bg-slate-50 rounded-lg p-2.5 text-center">
-                      <p className="text-xs text-slate-500">{label}</p>
-                      <p className={`text-sm font-bold ${color}`}>₹{value.toLocaleString()}</p>
+                    <div key={label} className="bg-slate-100 rounded-lg p-4 text-center border-2 border-slate-200">
+                      <p className="text-base text-slate-700 font-semibold">{label}</p>
+                      <p className={`text-2xl font-bold mt-1 ${color}`}>₹{value.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
@@ -296,7 +313,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                 )}
 
                 {!isArchivedYear && balance > 0 && invoice.status !== 'Waived' && (
-                   <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}>
+                   <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg font-bold py-4 min-h-[60px] shadow-lg" onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}>
+                     <Receipt className="h-6 w-6 mr-2" />
                      Record Payment
                    </Button>
                  )}

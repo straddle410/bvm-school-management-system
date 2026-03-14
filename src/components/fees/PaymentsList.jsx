@@ -44,6 +44,7 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
   const [voidingPaymentId, setVoidingPaymentId] = useState(null);
   const [printingPaymentId, setPrintingPaymentId] = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
+  const [recordingNewPayment, setRecordingNewPayment] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: receiptData, isLoading: isLoadingReceipt } = useQuery({
@@ -102,127 +103,158 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
   const voidCount = sorted.length - activePayments.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* RECORD RECEIPT BUTTON - TOP OF PAGE */}
+      <Button
+        size="lg"
+        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-lg font-bold py-4 px-8 min-h-[60px] shadow-lg"
+        onClick={() => setRecordingNewPayment(true)}
+      >
+        <Receipt className="h-6 w-6 mr-2" />
+        Record New Receipt
+      </Button>
+
       {/* Date Range + Presets */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-3 space-y-3">
-          <div className="flex flex-wrap gap-2">
+        <CardContent className="p-4 space-y-4">
+          <div className="flex flex-wrap gap-3">
             {PRESETS.map(preset => (
               <Button
                 key={preset.label}
-                size="sm"
+                size="lg"
                 variant={activePreset === preset.label ? 'default' : 'outline'}
-                className={activePreset === preset.label ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : ''}
+                className={`text-base font-semibold min-h-[48px] px-5 ${activePreset === preset.label ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : ''}`}
                 onClick={() => applyPreset(preset)}
               >
                 {preset.label}
               </Button>
             ))}
           </div>
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-slate-500 font-medium whitespace-nowrap">From</label>
-              <Input type="date" className="w-36 text-sm" value={fromDate} onChange={e => handleFromChange(e.target.value)} />
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-3">
+              <label className="text-base text-slate-600 font-semibold whitespace-nowrap">From</label>
+              <Input type="date" className="w-44 text-base min-h-[48px]" value={fromDate} onChange={e => handleFromChange(e.target.value)} />
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-slate-500 font-medium whitespace-nowrap">To</label>
-              <Input type="date" className="w-36 text-sm" value={toDate} onChange={e => handleToChange(e.target.value)} />
+            <div className="flex items-center gap-3">
+              <label className="text-base text-slate-600 font-semibold whitespace-nowrap">To</label>
+              <Input type="date" className="w-44 text-base min-h-[48px]" value={toDate} onChange={e => handleToChange(e.target.value)} />
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Filters Row */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap gap-4 items-center">
         <Select value={classFilter} onValueChange={setClassFilter}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="All Classes" /></SelectTrigger>
-          <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c === 'All' ? 'All Classes' : `Class ${c}`}</SelectItem>)}</SelectContent>
+          <SelectTrigger className="w-52 text-base min-h-[48px]"><SelectValue placeholder="All Classes" /></SelectTrigger>
+          <SelectContent>
+            {CLASSES.map(c => (
+              <SelectItem key={c} value={c} className="text-base py-3">{c === 'All' ? 'All Classes' : `Class ${c}`}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input placeholder="Search by student, receipt…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Input 
+            placeholder="Search by student, receipt…" 
+            className="pl-12 pr-12 text-base min-h-[48px]" 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 font-bold"
+            >
+              ✕
+            </button>
+          )}
         </div>
-        <div className="text-sm font-semibold text-slate-700 ml-auto whitespace-nowrap text-right">
-          <span className="text-emerald-700">₹{totalCollected.toLocaleString()}</span>
-          <span className="text-slate-400 font-normal ml-2">({activePayments.length} receipt{activePayments.length !== 1 ? 's' : ''})</span>
+        <div className="text-base font-bold text-slate-700 ml-auto whitespace-nowrap text-right">
+          <span className="text-2xl text-emerald-700 font-bold">₹{totalCollected.toLocaleString()}</span>
+          <span className="text-slate-500 font-semibold ml-3 text-base">({activePayments.length} receipt{activePayments.length !== 1 ? 's' : ''})</span>
           {voidCount > 0 && (
-            <span className="text-red-400 font-normal ml-2">· {voidCount} voided</span>
+            <span className="text-red-500 font-semibold ml-3 text-base">· {voidCount} voided</span>
           )}
         </div>
       </div>
 
       {/* List */}
       {isLoading ? (
-        <div className="text-center py-8 text-slate-400">Loading...</div>
+        <div className="text-center py-12 text-xl font-semibold text-slate-500">Loading...</div>
       ) : sorted.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-slate-400">
-          <Receipt className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          <p>No receipts found for this period</p>
+        <Card><CardContent className="py-16 text-center">
+          <Receipt className="h-14 w-14 mx-auto mb-4 opacity-30 text-slate-400" />
+          <p className="text-lg text-slate-500 font-semibold">No receipts found for this period</p>
         </CardContent></Card>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {sorted.map(p => {
             const isVoid = p.status === 'VOID';
+            const highlightStudent = search && p.student_name?.toLowerCase().includes(search.toLowerCase());
+            const highlightReceipt = search && p.receipt_no?.toLowerCase().includes(search.toLowerCase());
             return (
-              <Card key={p.id} className={`border-0 shadow-sm ${isVoid ? 'opacity-60' : ''}`}>
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${isVoid ? 'bg-red-100' : 'bg-emerald-100'}`}>
-                    <Receipt className={`h-4 w-4 ${isVoid ? 'text-red-400' : 'text-emerald-700'}`} />
+              <Card key={p.id} className={`border-2 shadow-md ${isVoid ? 'opacity-60 border-slate-200' : 'border-slate-300'}`}>
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className={`h-14 w-14 rounded-full flex items-center justify-center flex-shrink-0 ${isVoid ? 'bg-red-100' : 'bg-emerald-100'}`}>
+                    <Receipt className={`h-7 w-7 ${isVoid ? 'text-red-500' : 'text-emerald-700'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`font-medium text-sm ${isVoid ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className={`font-semibold text-xl ${isVoid ? 'line-through text-slate-400' : highlightStudent ? 'text-indigo-700 bg-yellow-100 px-2 rounded' : 'text-slate-900'}`}>
                         {p.student_name}
                       </p>
-                      <span className="text-xs text-slate-400">{p.student_id}</span>
+                      <span className="text-base text-slate-500 font-medium">{p.student_id}</span>
                       {isVoid ? (
-                        <Badge variant="destructive" className="text-xs py-0">VOID</Badge>
+                        <Badge variant="destructive" className="text-sm py-1 px-3 font-bold">VOID</Badge>
                       ) : (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${modeColor[p.payment_mode] || 'bg-slate-100'}`}>{p.payment_mode}</span>
+                        <span className={`text-sm px-3 py-1 rounded-full font-bold ${modeColor[p.payment_mode] || 'bg-slate-200'}`}>{p.payment_mode}</span>
                       )}
                     </div>
-                    <p className={`text-xs ${isVoid ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
-                      {p.installment_name} · {p.payment_date} · #{p.receipt_no}
+                    <p className={`text-base mt-1 ${isVoid ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
+                      {p.installment_name} · {p.payment_date} · <span className={highlightReceipt ? 'bg-yellow-100 px-1 rounded font-bold text-indigo-700' : ''}>#{p.receipt_no}</span>
                     </p>
-                    {p.reference_no && <p className="text-xs text-slate-400">Ref: {p.reference_no}</p>}
+                    {p.reference_no && <p className="text-base text-slate-500 mt-1">Ref: {p.reference_no}</p>}
                     {isVoid && p.void_reason && (
-                      <p className="text-xs text-red-500 mt-0.5">↩ {p.void_reason}</p>
+                      <p className="text-base text-red-600 font-semibold mt-1">↩ {p.void_reason}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <p className={`font-bold ${isVoid ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <p className={`font-bold text-2xl ${isVoid ? 'text-slate-400 line-through' : 'text-emerald-700'}`}>
                       ₹{(p.amount_paid || 0).toLocaleString()}
                     </p>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-7 px-2 text-xs gap-1"
-                      onClick={() => setPrintingPaymentId(p.id)}
-                    >
-                      <Printer className="h-3 w-3" />
-                      Print
-                    </Button>
-                    {!isVoid && canVoidReceipt && (
-                       <Button
-                         size="sm"
-                         variant="ghost"
-                         className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 px-2 text-xs gap-1"
-                         disabled={voidingPaymentId === p.id}
-                         onClick={() => setReversingPayment(p)}
-                       >
-                         {voidingPaymentId === p.id ? (
-                           <>
-                             <div className="h-3 w-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-                             Voiding...
-                           </>
-                         ) : (
-                           <>
-                             <RotateCcw className="h-3 w-3" />
-                             Void
-                           </>
-                         )}
-                       </Button>
-                     )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="lg"
+                        variant="ghost"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 min-h-[44px] px-4 text-base font-semibold gap-2"
+                        onClick={() => setPrintingPaymentId(p.id)}
+                      >
+                        <Printer className="h-5 w-5" />
+                        Print
+                      </Button>
+                      {!isVoid && canVoidReceipt && (
+                         <Button
+                           size="lg"
+                           variant="ghost"
+                           className="text-red-600 hover:text-red-800 hover:bg-red-50 min-h-[44px] px-4 text-base font-semibold gap-2"
+                           disabled={voidingPaymentId === p.id}
+                           onClick={() => setReversingPayment(p)}
+                         >
+                           {voidingPaymentId === p.id ? (
+                             <>
+                               <div className="h-5 w-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                               Voiding...
+                             </>
+                           ) : (
+                             <>
+                               <RotateCcw className="h-5 w-5" />
+                               Void
+                             </>
+                           )}
+                         </Button>
+                       )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
