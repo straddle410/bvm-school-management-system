@@ -248,7 +248,7 @@ Deno.serve(async (req) => {
               student_ids: [invoice.student_id],
               title: 'Fee Payment Received 🧾',
               message: `₹${amountPaid} received for ${invoice.installment_name}. Receipt: ${receiptNo}`,
-              url: '/StudentFees',
+              url: '/StudentFees?receiptNo=' + receiptNo,
             });
           }
         } catch (pushErr) {

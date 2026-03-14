@@ -25,6 +25,15 @@ export default function StudentFees() {
     base44.entities.SchoolProfile.list()
       .then(p => p.length && setSchoolProfile(p[0]))
       .catch(() => {});
+
+    // Auto-open receipt if receiptNo parameter is present
+    const urlParams = new URLSearchParams(window.location.search);
+    const receiptNo = urlParams.get('receiptNo');
+    if (receiptNo) {
+      setTimeout(() => {
+        window.open('/print-receipt-a5?receiptNo=' + receiptNo, '_blank');
+      }, 1000);
+    }
   }, []);
 
   const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
