@@ -53,6 +53,7 @@ self.addEventListener('notificationclose', (event) => {
     headers: {
       'Content-Type': 'application/javascript',
       'Cache-Control': 'no-cache',
+      'Service-Worker-Allowed': '/',
     },
   });
 });

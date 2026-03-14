@@ -49,8 +49,11 @@ export default function PushNotificationManager() {
        console.log('[ServiceWorker] Registering service worker...');
        try {
          const swUrl = '/api/functions/firebaseMessagingServiceWorker';
-         const registration = await navigator.serviceWorker.register(swUrl);
+         const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
          console.log('[ServiceWorker] Registered successfully:', registration);
+         console.log('[SW] Registration scope:', registration.scope);
+         console.log('[SW] Controller:', navigator.serviceWorker.controller);
+         console.log('[SW] SW URL:', swUrl);
        } catch (error) {
          console.error('[ServiceWorker] Registration failed:', error);
        }
