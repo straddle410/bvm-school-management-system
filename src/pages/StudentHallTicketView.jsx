@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Printer, FileText, Calendar, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import WatermarkSeal from '@/components/hallTicket/WatermarkSeal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function StudentHallTicketView() {
   const [studentSession, setStudentSession] = useState(null);
+  const [selectedExamType, setSelectedExamType] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,8 +42,28 @@ export default function StudentHallTicketView() {
     enabled: !!studentSession?.id
   });
 
-  const hallTickets = data?.hallTickets || [];
+  const allHallTickets = data?.hallTickets || [];
   const schoolProfile = data?.schoolProfile;
+
+  // Derive distinct exam types from hall tickets
+  const distinctExamTypes = useMemo(() => {
+    const types = new Map();
+    allHallTickets.forEach(ticket => {
+      if (!types.has(ticket.exam_type)) {
+        types.set(ticket.exam_type, {
+          id: ticket.exam_type,
+          name: ticket.exam_type_name || ticket.exam_type
+        });
+      }
+    });
+    return Array.from(types.values());
+  }, [allHallTickets]);
+
+  // Filter hall tickets based on selected exam type
+  const hallTickets = useMemo(() => {
+    if (!selectedExamType) return [];
+    return allHallTickets.filter(ticket => ticket.exam_type === selectedExamType);
+  }, [allHallTickets, selectedExamType]);
 
   const handlePrint = () => window.print();
 
@@ -73,13 +95,34 @@ export default function StudentHallTicketView() {
         )}
       </div>
 
+      {/* Exam Type Dropdown */}
+      <div className="mb-4 print:hidden">
+        <Select value={selectedExamType} onValueChange={setSelectedExamType}>
+          <SelectTrigger className="w-full text-base min-h-[48px]">
+            <SelectValue placeholder="Select Exam" />
+          </SelectTrigger>
+          <SelectContent>
+            {distinctExamTypes.map(type => (
+              <SelectItem key={type.id} value={type.id} className="text-base py-3">
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {isLoading ? (
         <div className="text-center py-12 text-slate-500">Loading hall tickets...</div>
-      ) : hallTickets.length === 0 ? (
+      ) : distinctExamTypes.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <AlertCircle className="w-10 h-10 mx-auto mb-3 text-yellow-500" />
-          <p className="text-slate-600 font-medium">No hall tickets published yet</p>
+          <p className="text-slate-600 font-medium">No hall tickets available</p>
           <p className="text-slate-400 text-sm mt-1">Check back after your exam schedule is published.</p>
+        </div>
+      ) : !selectedExamType ? (
+        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+          <FileText className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+          <p className="text-slate-600 font-medium">Please select an exam to view hall ticket</p>
         </div>
       ) : (
         <>
