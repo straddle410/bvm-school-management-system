@@ -87,9 +87,11 @@ Deno.serve(async (req) => {
 
     if (!fcmResponse.ok) {
       const errorText = await fcmResponse.text();
-      console.error('FCM error:', errorText);
+      console.error('[sendFeePaymentNotification] FCM error:', fcmResponse.status, errorText);
       return Response.json({ success: false, error: 'FCM send failed', details: errorText });
     }
+
+    console.log('[sendFeePaymentNotification] FCM message sent successfully');
 
     // Log the notification in Message entity
     await base44.asServiceRole.entities.Message.create({
