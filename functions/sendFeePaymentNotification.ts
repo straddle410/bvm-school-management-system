@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
+    console.log('[FCM] Function started!');
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
 
