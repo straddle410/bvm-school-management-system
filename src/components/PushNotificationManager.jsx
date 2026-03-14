@@ -218,7 +218,7 @@ export default function PushNotificationManager() {
       if (!pref) {
         console.log('[PushNotificationManager] Creating new student notification preference');
         pref = await base44.entities.StudentNotificationPreference.create({
-          student_id: studentSession.student_id,
+          student_id: studentId,
           notifications_enabled: true,
           browser_push_enabled: true,
           sound_enabled: true,
