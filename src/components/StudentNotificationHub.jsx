@@ -18,7 +18,7 @@ const NOTIF_TYPE_MAP = {
   homework_published:   { pref: 'homework_notifications', label: '📝 New Homework' },
   timetable_updated:    { pref: null,                     label: '🗓️ Timetable Updated' },
   class_message:        { pref: 'message_notifications',  label: '💬 New Message' },
-  fee_payment_received: { pref: null,                     label: '💰 Fee Payment Received' },
+  fee_payment_received: { pref: null,                     label: '💰 Fee Payment Received', color: 'green' },
 };
 
 function playSound(prefs) {
