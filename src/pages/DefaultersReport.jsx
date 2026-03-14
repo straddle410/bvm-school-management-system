@@ -210,7 +210,7 @@ export default function DefaultersReportPage() {
       }
       
       // Warning toast for students without push token
-      const noTokenCount = studentsData.length - result.success_count - result.failed_count;
+      const noTokenCount = studentsData.length - result.success_count;
       if (noTokenCount > 0) {
         toast.warning(`${noTokenCount} students have no app installed`);
       }
