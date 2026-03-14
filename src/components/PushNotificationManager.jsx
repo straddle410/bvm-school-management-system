@@ -208,8 +208,10 @@ export default function PushNotificationManager() {
       }
 
       // Get or create student notification preference
+      const studentId = studentSession.id || studentSession.student_id;
+      console.log('[PushInit] Using student_id:', studentId);
       const prefs = await base44.entities.StudentNotificationPreference.filter({
-        student_id: studentSession.student_id
+        student_id: studentId
       });
       let pref = prefs[0];
 
