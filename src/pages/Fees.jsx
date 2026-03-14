@@ -129,15 +129,15 @@ export default function Fees() {
               <div className="hidden md:block">
                 {isAccountant ? (
                   <div className="overflow-x-auto -mx-3 px-3">
-                    <div className="flex gap-2 min-w-max">
+                    <div className="flex gap-3 min-w-max">
                       {accountantTabs.map(tab => (
                         <button
                           key={tab.value}
                           onClick={() => handleTabChange(tab.value)}
-                          className={`flex-shrink-0 px-5 py-3 rounded-xl text-base font-semibold border transition-all min-h-[52px] ${
+                          className={`flex-shrink-0 px-8 py-4 rounded-xl text-lg font-bold border-2 transition-all min-h-[60px] ${
                             activeTab === tab.value
-                              ? 'bg-[#1a237e] text-white border-[#1a237e] shadow'
-                              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                              ? 'bg-[#1a237e] text-white border-[#1a237e] shadow-lg'
+                              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:border-[#1a237e]'
                           }`}
                         >
                           {tab.label}
@@ -146,16 +146,16 @@ export default function Fees() {
                     </div>
                   </div>
                 ) : (
-                  <TabsList className="flex flex-wrap gap-1 h-auto">
-                    {canViewLedger && <TabsTrigger value="ledger">Student Ledger</TabsTrigger>}
-                    {canViewPayments && <TabsTrigger value="payments">Payments / Receipts</TabsTrigger>}
-                    {isAdmin && <TabsTrigger value="plans">Fee Plans</TabsTrigger>}
-                    {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts">Discounts</TabsTrigger>}
-                    {(isAdmin || canManageFamilies) && <TabsTrigger value="families">Families</TabsTrigger>}
-                    {isAdmin && <TabsTrigger value="fee-heads">Fee Heads</TabsTrigger>}
-                    {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc">Additional Charges</TabsTrigger>}
-                    {isAdmin && <TabsTrigger value="receipt-settings">Receipt Settings</TabsTrigger>}
-                    {isAdmin && <TabsTrigger value="backup">🗄 Backup</TabsTrigger>}
+                  <TabsList className="flex flex-wrap gap-2 h-auto">
+                    {canViewLedger && <TabsTrigger value="ledger" className="text-lg font-bold px-6 py-3 min-h-[60px]">Student Ledger</TabsTrigger>}
+                    {canViewPayments && <TabsTrigger value="payments" className="text-lg font-bold px-6 py-3 min-h-[60px]">Payments / Receipts</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="plans" className="text-lg font-bold px-6 py-3 min-h-[60px]">Fee Plans</TabsTrigger>}
+                    {(isAdmin || canApplyDiscount) && <TabsTrigger value="discounts" className="text-lg font-bold px-6 py-3 min-h-[60px]">Discounts</TabsTrigger>}
+                    {(isAdmin || canManageFamilies) && <TabsTrigger value="families" className="text-lg font-bold px-6 py-3 min-h-[60px]">Families</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="fee-heads" className="text-lg font-bold px-6 py-3 min-h-[60px]">Fee Heads</TabsTrigger>}
+                    {(isAdmin || canApplyCharge) && <TabsTrigger value="adhoc" className="text-lg font-bold px-6 py-3 min-h-[60px]">Additional Charges</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="receipt-settings" className="text-lg font-bold px-6 py-3 min-h-[60px]">Receipt Settings</TabsTrigger>}
+                    {isAdmin && <TabsTrigger value="backup" className="text-lg font-bold px-6 py-3 min-h-[60px]">🗄 Backup</TabsTrigger>}
                   </TabsList>
                 )}
               </div>
