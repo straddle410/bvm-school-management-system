@@ -61,7 +61,8 @@ export default function Notices() {
       publish_date: format(new Date(), 'yyyy-MM-dd'),
       expiry_date: '',
       is_pinned: false,
-      status: 'Draft'
+      status: 'Draft',
+      sendPushNotification: false
    });
    const [showTableBuilder, setShowTableBuilder] = useState(false);
    const [editingNotice, setEditingNotice] = useState(null);
@@ -194,7 +195,8 @@ export default function Notices() {
     setForm({
       title: '', content: '', notice_type: 'General', target_audience: 'All',
       target_classes: [],
-      publish_date: format(new Date(), 'yyyy-MM-dd'), expiry_date: '', is_pinned: false, status: 'Draft'
+      publish_date: format(new Date(), 'yyyy-MM-dd'), expiry_date: '', is_pinned: false, status: 'Draft',
+      sendPushNotification: false
     });
   };
 
@@ -208,7 +210,8 @@ export default function Notices() {
       target_classes: notice.target_classes || [],
       publish_date: notice.publish_date,
       expiry_date: notice.expiry_date || '',
-      is_pinned: notice.is_pinned
+      is_pinned: notice.is_pinned,
+      sendPushNotification: notice.sendPushNotification || false
     });
     setShowDialog(true);
   };
@@ -455,6 +458,28 @@ export default function Notices() {
               <input type="checkbox" id="pinned" checked={form.is_pinned} onChange={e => setForm({...form, is_pinned: e.target.checked})} />
               <Label htmlFor="pinned" className="cursor-pointer">Pin this notice</Label>
             </div>
+            
+            {(isAdmin || user?.role === 'exam_staff') && (
+              <div className="border border-amber-200 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-800 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="sendPush" 
+                    checked={form.sendPushNotification} 
+                    onChange={e => setForm({...form, sendPushNotification: e.target.checked})}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="sendPush" className="cursor-pointer text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      🔔 Send Push Notification
+                    </Label>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                      ⚡ Uses integration credits. Only enable for urgent notices.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => {
                 setShowDialog(false);
