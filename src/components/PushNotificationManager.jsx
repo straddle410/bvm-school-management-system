@@ -120,6 +120,7 @@ export default function PushNotificationManager() {
         try {
           const registration = await navigator.serviceWorker.ready;
           const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          console.log('[VAPID] Key available:', !!vapidKey);
           
           // Request push subscription from service worker
           const subscription = await registration.pushManager.subscribe({
