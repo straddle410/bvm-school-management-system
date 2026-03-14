@@ -73,16 +73,24 @@ export default function PushNotificationManager() {
    try {
      console.log('[PushNotificationManager] Initializing push notifications...');
 
-     // Wait for VAPID key to be loaded before proceeding
-     if (!vapidKey) {
-       console.log('[VAPID] Waiting for key to load...');
-       // Give it a moment to load, then retry once
-       await new Promise(resolve => setTimeout(resolve, 500));
-       if (!vapidKey) {
-         console.error('[VAPID] Key still not available after wait');
+     // Fetch VAPID key from backend first (ensure it's loaded before proceeding)
+     let localVapidKey = vapidKey;
+     if (!localVapidKey) {
+       console.log('[VAPID] Fetching key from backend...');
+       try {
+         const response = await base44.functions.invoke('getVapidPublicKey', {});
+         localVapidKey = response.data?.vapidKey;
+       } catch (error) {
+         console.error('[VAPID] Failed to fetch key:', error);
          toast.error("Push notifications not configured");
          return;
        }
+     }
+
+     if (!localVapidKey) {
+       console.error('[VAPID] Key not available');
+       toast.error("Push notifications not configured");
+       return;
      }
 
      // Register service worker from backend function
@@ -160,18 +168,18 @@ export default function PushNotificationManager() {
       if ('serviceWorker' in navigator) {
         try {
           const registration = await navigator.serviceWorker.ready;
-          console.log('[VAPID] Using key:', !!vapidKey);
-          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+          console.log('[VAPID] Using key:', !!localVapidKey);
+          const applicationServerKey = urlBase64ToUint8Array(localVapidKey);
 
           // Request push subscription from service worker
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey
           });
-
+          
           const token = subscription.endpoint;
           console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
-
+          
           if (token) {
             // Save token to notification preference
             await base44.entities.NotificationPreference.update(pref.id, {
@@ -194,18 +202,7 @@ export default function PushNotificationManager() {
   const initStudentPushNotifications = async () => {
     try {
       console.log('[PushNotificationManager] Setting up student push notifications...');
-
-      // Wait for VAPID key to be loaded before proceeding
-      if (!vapidKey) {
-        console.log('[VAPID] Waiting for key to load...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (!vapidKey) {
-          console.error('[VAPID] Key still not available after wait');
-          toast.error("Push notifications not configured");
-          return;
-        }
-      }
-
+      
       // Get or create student notification preference
       const prefs = await base44.entities.StudentNotificationPreference.filter({
         student_id: studentSession.student_id
@@ -233,18 +230,23 @@ export default function PushNotificationManager() {
       // Get push subscription token via service worker
       if ('serviceWorker' in navigator) {
         try {
+          if (!vapidKey) {
+            console.error('[VAPID] Key not available');
+            toast.error("Push notifications not configured");
+            return;
+          }
+          
           const registration = await navigator.serviceWorker.ready;
-          console.log('[VAPID] Using key:', !!vapidKey);
           const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-
+          
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey
           });
-
+          
           const token = subscription.endpoint;
           console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
-
+          
           if (token) {
             await base44.entities.StudentNotificationPreference.update(pref.id, {
               browser_push_token: token
