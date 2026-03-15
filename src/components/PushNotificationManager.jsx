@@ -159,8 +159,7 @@ export default function PushNotificationManager({ studentId }) {
      if ('serviceWorker' in navigator) {
        console.log('[ServiceWorker] Registering service worker...');
        try {
-         const swUrl = '/api/functions/firebaseMessagingServiceWorker';
-         const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+         const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
          console.log('[ServiceWorker] Registered successfully:', registration);
        } catch (error) {
          console.error('[ServiceWorker] Registration failed:', error);
