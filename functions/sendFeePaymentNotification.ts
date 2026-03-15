@@ -47,6 +47,14 @@ Deno.serve(async (req) => {
     // Get student notification preferences - try both id and student_id
     console.log('[FCM] Searching preference for student.id:', student?.id, 'student.student_id:', student?.student_id);
     
+    const allPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.list();
+    console.log('[FCM] ALL preferences:', 
+      JSON.stringify(allPrefs.map(p => ({
+        id: p.id,
+        student_id: p.student_id,
+        has_token: !!p.browser_push_token
+      }))));
+    
     let prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
       student_id: student.id
     });
