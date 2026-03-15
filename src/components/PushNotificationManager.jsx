@@ -1,21 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-
-function playNotificationSound() {
-  const audio = new Audio();
-  audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EzKz+Aw+LYoF4vJC5XjsLr0oNQKh8pSIC21a6GViwhIj1qlMLutIZcMiAiOGmTv+uziF8zHx0yYI2365mEYi8aGS5biLL';
-  audio.volume = 0.5;
-  const playPromise = audio.play();
-  if (playPromise) {
-    playPromise.catch(() => {
-      document.addEventListener('click', 
-        () => audio.play().catch(() => {}), 
-        { once: true });
-    });
-  }
-}
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -43,6 +29,38 @@ async function getVapidKey() {
 export default function PushNotificationManager({ studentId }) {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
+  const soundUnlocked = useRef(false);
+
+  // Unlock sound on first user click
+  useEffect(() => {
+    const unlockSound = () => {
+      soundUnlocked.current = true;
+      console.log('[Sound] Unlocked by user gesture');
+    };
+    document.addEventListener('click', unlockSound, { once: true });
+    document.addEventListener('touchstart', unlockSound, { once: true });
+    return () => {
+      document.removeEventListener('click', unlockSound);
+    };
+  }, []);
+
+  // Play sound function
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio();
+      audio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA';
+      audio.volume = 1.0;
+      if (soundUnlocked.current) {
+        audio.play().catch(e => console.log('[Sound] Error:', e));
+      } else {
+        document.addEventListener('click', 
+          () => audio.play().catch(() => {}), 
+          { once: true });
+      }
+    } catch(e) {
+      console.log('[Sound] Failed:', e);
+    }
+  };
 
   useEffect(() => {
     console.log('[PushInit] Mounted with:', studentId);
