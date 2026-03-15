@@ -44,13 +44,31 @@ export default function PushNotificationManager({ studentId }) {
 
   // Unlock AudioContext on user gesture
   useEffect(() => {
-    const unlock = async () => {
-      const ctx = getAudioContext();
-      await ctx.resume();
-      console.log('[Sound] AudioContext state:', ctx.state);
-    };
-    document.addEventListener('click', unlock, { once: true });
-    document.addEventListener('touchstart', unlock, { once: true });
+    try {
+      // Check if mobile browser (not PWA)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const isMobileBrowser = isMobile && !window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isMobileBrowser) {
+        console.log('[Push] Mobile browser - skipping AudioContext');
+        return; // skip on mobile browser
+      }
+
+      const unlock = async () => {
+        try {
+          const ctx = getAudioContext();
+          await ctx.resume();
+          console.log('[Sound] AudioContext state:', ctx.state);
+        } catch (e) {
+          console.log('[Sound] Unlock error:', e);
+        }
+      };
+      document.addEventListener('click', unlock, { once: true });
+      document.addEventListener('touchstart', unlock, { once: true });
+    } catch (e) {
+      console.log('[Push] Error:', e);
+      // silently fail, don't crash app
+    }
   }, []);
 
   // Play sound using AudioContext
@@ -71,35 +89,40 @@ export default function PushNotificationManager({ studentId }) {
   };
 
   useEffect(() => {
-    console.log('[PushInit] Mounted with:', studentId);
-    console.log('[PushInit] Component mounted');
-    console.log('[PushInit] All localStorage:', JSON.stringify(localStorage));
-    console.log('[PushInit] student_id:', localStorage.getItem('student_id'));
-    console.log('[PushInit] studentId:', localStorage.getItem('studentId'));
-    console.log('[PushInit] student_token:', !!localStorage.getItem('student_token'));
-
-    // Get student session if exists - use exact key from StudentLogin.jsx
     try {
-      const sessionRaw = localStorage.getItem('student_session');
-      console.log('[PushInit] student_session from localStorage:', sessionRaw ? 'EXISTS' : 'NOT FOUND');
-      if (sessionRaw) {
-        const session = JSON.parse(sessionRaw);
-        console.log('[PushInit] Parsed student_session:', JSON.stringify(session));
-        const studentIdValue = session?.student_id || session?.id;
-        console.log('[PushInit] Fixed studentId:', studentIdValue);
-        setStudentSession(session);
+      console.log('[PushInit] Mounted with:', studentId);
+      console.log('[PushInit] Component mounted');
+      console.log('[PushInit] All localStorage:', JSON.stringify(localStorage));
+      console.log('[PushInit] student_id:', localStorage.getItem('student_id'));
+      console.log('[PushInit] studentId:', localStorage.getItem('studentId'));
+      console.log('[PushInit] student_token:', !!localStorage.getItem('student_token'));
+
+      // Get student session if exists - use exact key from StudentLogin.jsx
+      try {
+        const sessionRaw = localStorage.getItem('student_session');
+        console.log('[PushInit] student_session from localStorage:', sessionRaw ? 'EXISTS' : 'NOT FOUND');
+        if (sessionRaw) {
+          const session = JSON.parse(sessionRaw);
+          console.log('[PushInit] Parsed student_session:', JSON.stringify(session));
+          const studentIdValue = session?.student_id || session?.id;
+          console.log('[PushInit] Fixed studentId:', studentIdValue);
+          setStudentSession(session);
+        }
+      } catch (e) {
+        console.error('[PushInit] Failed to parse student_session:', e);
+      }
+
+      // Detect iOS PWA and show prompt if needed
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isIOS && isPWA && Notification.permission === 'default') {
+        setShowIOSPrompt(true);
+        return; // Don't auto-request on iOS
       }
     } catch (e) {
-      console.error('[PushInit] Failed to parse student_session:', e);
-    }
-
-    // Detect iOS PWA and show prompt if needed
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-
-    if (isIOS && isPWA && Notification.permission === 'default') {
-      setShowIOSPrompt(true);
-      return; // Don't auto-request on iOS
+      console.log('[Push] Error:', e);
+      // silently fail, don't crash app
     }
   }, []);
 
@@ -310,36 +333,41 @@ export default function PushNotificationManager({ studentId }) {
   };
 
   useEffect(() => {
-    // Auto-run for non-iOS or if permission already granted
-    console.log('[Permission]:', Notification.permission);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+    try {
+      // Auto-run for non-iOS or if permission already granted
+      console.log('[Permission]:', Notification.permission);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
 
-    // iOS limitation check - must be PWA
-    if (isIOS && !isPWA) {
-      toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
-      return;
-    }
+      // iOS limitation check - must be PWA
+      if (isIOS && !isPWA) {
+        toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
+        return;
+      }
 
-    // Skip auto-init on iOS PWA if permission not granted yet (wait for button click)
-    if (isIOS && isPWA && Notification.permission === 'default') {
-      console.log('[PushNotificationManager] Waiting for iOS permission...');
-      return;
-    }
+      // Skip auto-init on iOS PWA if permission not granted yet (wait for button click)
+      if (isIOS && isPWA && Notification.permission === 'default') {
+        console.log('[PushNotificationManager] Waiting for iOS permission...');
+        return;
+      }
 
-    // Auto-init for non-iOS or already granted
-    if (!isIOS || Notification.permission === 'granted') {
-      console.log('[PushNotificationManager] Auto-initializing...');
-      initPushNotifications();
-    }
+      // Auto-init for non-iOS or already granted
+      if (!isIOS || Notification.permission === 'granted') {
+        console.log('[PushNotificationManager] Auto-initializing...');
+        initPushNotifications();
+      }
 
-    // Listen for foreground notification messages to play sound
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data?.type === 'PLAY_SOUND') {
-          playSound();
-        }
-      });
+      // Listen for foreground notification messages to play sound
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data?.type === 'PLAY_SOUND') {
+            playSound();
+          }
+        });
+      }
+    } catch (e) {
+      console.log('[Push] Error:', e);
+      // silently fail, don't crash app
     }
   }, [studentSession]);
 
