@@ -306,6 +306,15 @@ export default function PushNotificationManager({ studentId }) {
       console.log('[PushNotificationManager] Auto-initializing...');
       initPushNotifications();
     }
+
+    // Listen for foreground notification messages to play sound
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'PLAY_SOUND') {
+          playNotificationSound();
+        }
+      });
+    }
   }, [studentSession]);
 
   return (

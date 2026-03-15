@@ -22,8 +22,11 @@ self.addEventListener('push', function(event) {
     body: data.notification?.body || data.body || '',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
-    vibrate: [200, 100, 200],
+    tag: 'fee-payment',
     requireInteraction: true,
+    silent: false,
+    vibrate: [200, 100, 200],
+    sound: 'default',
     data: data.data || {}
   };
   
