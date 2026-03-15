@@ -46,12 +46,14 @@ export default function PushNotificationManager({ studentId }) {
 
     // Get student session if exists - use exact key from StudentLogin.jsx
     try {
-      const session = localStorage.getItem('student_session');
-      console.log('[PushInit] student_session from localStorage:', session ? 'EXISTS' : 'NOT FOUND');
-      if (session) {
-        const parsed = JSON.parse(session);
-        console.log('[PushInit] Parsed student_session:', JSON.stringify(parsed));
-        setStudentSession(parsed);
+      const sessionRaw = localStorage.getItem('student_session');
+      console.log('[PushInit] student_session from localStorage:', sessionRaw ? 'EXISTS' : 'NOT FOUND');
+      if (sessionRaw) {
+        const session = JSON.parse(sessionRaw);
+        console.log('[PushInit] Parsed student_session:', JSON.stringify(session));
+        const studentIdValue = session?.student_id || session?.id;
+        console.log('[PushInit] Fixed studentId:', studentIdValue);
+        setStudentSession(session);
       }
     } catch (e) {
       console.error('[PushInit] Failed to parse student_session:', e);
