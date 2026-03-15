@@ -32,11 +32,12 @@ async function getVapidKey() {
   }
 }
 
-export default function PushNotificationManager() {
+export default function PushNotificationManager({ studentId }) {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
 
   useEffect(() => {
+    console.log('[PushInit] Mounted with:', studentId);
     console.log('[PushInit] Component mounted');
     console.log('[PushInit] All localStorage:', JSON.stringify(localStorage));
     console.log('[PushInit] student_id:', localStorage.getItem('student_id'));
@@ -215,17 +216,17 @@ export default function PushNotificationManager() {
 
       // Get or create student notification preference
       // Use student_id field (e.g., "S25007") NOT the UUID id field
-      const studentId = studentSession.student_id;
-      console.log('[PushInit] Using student_id:', studentId);
+      const studentIdValue = studentSession.student_id;
+      console.log('[PushInit] Using student_id:', studentIdValue);
       const prefs = await base44.entities.StudentNotificationPreference.filter({
-        student_id: studentId
+        student_id: studentIdValue
       });
       let pref = prefs[0];
 
       if (!pref) {
         console.log('[PushNotificationManager] Creating new student notification preference');
         pref = await base44.entities.StudentNotificationPreference.create({
-          student_id: studentId,
+          student_id: studentIdValue,
           notifications_enabled: true,
           browser_push_enabled: true,
           sound_enabled: true,
@@ -255,7 +256,7 @@ export default function PushNotificationManager() {
           console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
 
           if (token) {
-            console.log('[Token Save] Saving token for:', studentId, 'token:', token?.substring(0, 20));
+            console.log('[Token Save] Saving token for:', studentIdValue, 'token:', token?.substring(0, 20));
             await base44.entities.StudentNotificationPreference.update(pref.id, {
               browser_push_token: token
             });

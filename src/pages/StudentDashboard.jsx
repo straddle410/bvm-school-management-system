@@ -12,6 +12,7 @@ import {
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
+import PushNotificationManager from '@/components/PushNotificationManager';
 import { clearSession } from '@/components/sessionHelper';
 
 function getStudentSession() {
@@ -174,6 +175,9 @@ export default function StudentDashboard() {
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col relative">
       {/* Unified Notification Hub */}
       <StudentNotificationHub studentSession={student} />
+      
+      {/* Push Notification Manager */}
+      <PushNotificationManager studentId={student?.student_id} />
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-2.5 shadow-lg">
