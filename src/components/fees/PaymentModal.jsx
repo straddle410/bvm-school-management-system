@@ -63,20 +63,11 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
       toast.success(`Payment recorded! Receipt: ${data.receipt_no}`);
       setShowConfirmation(false);
       
-      // Trigger notification function with full payment data
+      // Trigger notification function
       try {
-        const studentId = invoice.student_id;
-        console.log('[Payment] Calling FCM with:', studentId, data.payment_id);
-        
         await base44.functions.invoke('sendFeePaymentNotification', {
           event: { type: 'create', entity_name: 'FeePayment', entity_id: data.payment_id },
-          data: {
-            id: data.payment_id,
-            student_id: studentId,
-            amount_paid: parseFloat(form.amountPaid),
-            receipt_no: data.receipt_no,
-            payment_id: data.payment_id
-          }
+          data: data
         });
       } catch (err) {
         console.warn('[Payment] Notification call failed:', err.message);

@@ -180,19 +180,12 @@ export const notificationService = {
     }
   },
 
-  // Play notification sound
+  // Play notification sound using data URI
   async playSound(volume = 0.7) {
     try {
       const audio = new Audio();
-      audio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA';
+      audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj==';
       audio.volume = Math.max(0, Math.min(1, volume));
-      
-      // Add user interaction fallback
-      document.addEventListener('click', function playOnClick() {
-        audio.play().catch(() => {});
-        document.removeEventListener('click', playOnClick);
-      }, { once: true });
-      
       audio.play().catch((e) => {
         console.log('[Audio] Play blocked:', e.message);
       });
