@@ -5,8 +5,16 @@ import { Button } from '@/components/ui/button';
 
 function playNotificationSound() {
   const audio = new Audio();
-  audio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA';
-  audio.play().catch(() => {});
+  audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EzKz+Aw+LYoF4vJC5XjsLr0oNQKh8pSIC21a6GViwhIj1qlMLutIZcMiAiOGmTv+uziF8zHx0yYI2365mEYi8aGS5biLL';
+  audio.volume = 0.5;
+  const playPromise = audio.play();
+  if (playPromise) {
+    playPromise.catch(() => {
+      document.addEventListener('click', 
+        () => audio.play().catch(() => {}), 
+        { once: true });
+    });
+  }
 }
 
 function urlBase64ToUint8Array(base64String) {
