@@ -2,21 +2,31 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 function playNotificationSound() {
-  const audio = new Audio('/notification.mp3');
+  const audio = new Audio();
+  audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EzKz+Aw+LYoF4vJC5XjsLr0oNQKh8pSIC21a6GViwhIj1qlMLutIZcMiAiOGmTv+uziF8zHx0yYI2365mEYi8aGS5biLL';
   audio.volume = 0.5;
-  
-  document.addEventListener('click', () => {
-    audio.play().catch(() => {});
-  }, { once: true });
-  
-  // Try to play immediately (will work if user already interacted)
-  audio.play().catch(() => {
-    console.log('[Audio] Waiting for user interaction...');
-  });
+  const playPromise = audio.play();
+  if (playPromise) {
+    playPromise.catch(() => {
+      document.addEventListener('click', 
+        () => audio.play().catch(() => {}), 
+        { once: true });
+    });
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 async function getVapidKey() {
@@ -26,38 +36,6 @@ async function getVapidKey() {
     return data.vapidKey || data.key || data.publicKey;
   } catch (error) {
     console.error('[VAPID] Fetch failed:', error);
-    return null;
-  }
-}
-
-// Initialize Firebase
-let firebaseApp = null;
-let messaging = null;
-
-async function initializeFirebase() {
-  if (firebaseApp) return messaging;
-  
-  try {
-    // Fetch Firebase config from backend function that has access to all secrets
-    const response = await fetch('/api/functions/getFirebaseConfig');
-    const firebaseConfig = await response.json();
-    
-    console.log('[Firebase] Initializing with config:', { 
-      ...firebaseConfig, 
-      apiKey: firebaseConfig.apiKey ? '***' : 'MISSING'
-    });
-    
-    if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-      console.error('[Firebase] Missing required config values');
-      return null;
-    }
-    
-    firebaseApp = initializeApp(firebaseConfig);
-    messaging = getMessaging(firebaseApp);
-    console.log('[Firebase] Messaging initialized successfully');
-    return messaging;
-  } catch (error) {
-    console.error('[Firebase] Initialization failed:', error);
     return null;
   }
 }
@@ -120,14 +98,7 @@ export default function PushNotificationManager({ studentId }) {
      console.log('[PushNotificationManager] Initializing push notifications...');
      console.log('[Permission] Status:', Notification.permission);
 
-     // Initialize Firebase Messaging
-     const msg = await initializeFirebase();
-     if (!msg) {
-       toast.error("Firebase initialization failed");
-       return;
-     }
-
-     // Get VAPID key
+     // Get VAPID key directly
      const vapidKey = await getVapidKey();
      console.log('[VAPID] Key ready:', !!vapidKey);
      if (!vapidKey) {
@@ -203,40 +174,31 @@ export default function PushNotificationManager({ studentId }) {
        return;
      }
 
-     // Get FCM token using Firebase SDK
-     try {
-       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-       console.log('[Firebase] Requesting FCM token... iOS:', isIOS);
-       
-       const registration = await navigator.serviceWorker.ready;
-       const token = await getToken(msg, {
-         vapidKey: vapidKey,
-         serviceWorkerRegistration: registration
-       });
+     // Get push subscription token via service worker
+     if ('serviceWorker' in navigator) {
+       try {
+         const registration = await navigator.serviceWorker.ready;
+         const applicationServerKey = urlBase64ToUint8Array(vapidKey);
 
-       console.log('[Firebase] FCM Token obtained:', token?.substring(0, 20) + '...');
+         const subscription = await registration.pushManager.subscribe({
+           userVisibleOnly: true,
+           applicationServerKey
+         });
 
-       if (token) {
-         await base44.entities.NotificationPreference.update(pref.id, {
-           browser_push_token: token
-         });
-         console.log('[PushNotificationManager] Token saved to preference');
-         toast.success("Notifications enabled successfully!");
-         
-         // Setup foreground message handler
-         onMessage(msg, (payload) => {
-           console.log('[Firebase] Foreground message received:', payload);
-           playNotificationSound();
-           if (payload.notification) {
-             toast.info(payload.notification.title || 'New notification', {
-               description: payload.notification.body
-             });
-           }
-         });
+         const token = subscription.endpoint;
+         console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
+
+         if (token) {
+           await base44.entities.NotificationPreference.update(pref.id, {
+             browser_push_token: token
+           });
+           console.log('[PushNotificationManager] Token saved to preference');
+           toast.success("Notifications enabled successfully!");
+         }
+       } catch (error) {
+         console.error('[PushNotificationManager] Failed to get token:', error);
+         toast.error("Failed to enable notifications");
        }
-     } catch (error) {
-       console.error('[Firebase] Failed to get token:', error);
-       toast.error("Failed to enable notifications");
      }
    } catch (error) {
      console.error('[PushNotificationManager] Setup failed:', error);
@@ -254,14 +216,7 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Initialize Firebase Messaging
-      const msg = await initializeFirebase();
-      if (!msg) {
-        toast.error("Firebase initialization failed");
-        return;
-      }
-
-      // Get VAPID key
+      // Get VAPID key directly
       const vapidKey = await getVapidKey();
       console.log('[VAPID] Key ready:', !!vapidKey);
       if (!vapidKey) {
@@ -296,41 +251,32 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Get FCM token using Firebase SDK
-      try {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        console.log('[Firebase] Student requesting FCM token... iOS:', isIOS);
-        
-        const registration = await navigator.serviceWorker.ready;
-        const token = await getToken(msg, {
-          vapidKey: vapidKey,
-          serviceWorkerRegistration: registration
-        });
+      // Get push subscription token via service worker
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
 
-        console.log('[Firebase] Student FCM token obtained:', token?.substring(0, 20) + '...');
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey
+          });
 
-        if (token) {
-          console.log('[Token Save] Saving token for student_id:', studentIdValue, 'token:', token?.substring(0, 20));
-          await base44.entities.StudentNotificationPreference.update(pref.id, {
-            browser_push_token: token
-          });
-          console.log('[PushNotificationManager] Student token saved to DB');
-          toast.success("Student notifications enabled!");
-          
-          // Setup foreground message handler
-          onMessage(msg, (payload) => {
-            console.log('[Firebase] Student foreground message received:', payload);
-            playNotificationSound();
-            if (payload.notification) {
-              toast.info(payload.notification.title || 'New notification', {
-                description: payload.notification.body
-              });
-            }
-          });
+          const token = subscription.endpoint;
+          console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
+
+          if (token) {
+            console.log('[Token Save] Saving token for:', studentIdValue, 'token:', token?.substring(0, 20));
+            await base44.entities.StudentNotificationPreference.update(pref.id, {
+              browser_push_token: token
+            });
+            console.log('[PushNotificationManager] Student token saved to DB');
+            toast.success("Student notifications enabled!");
+          }
+        } catch (error) {
+          console.error('[PushNotificationManager] Failed to get student token:', error);
+          toast.error("Failed to enable student notifications");
         }
-      } catch (error) {
-        console.error('[Firebase] Failed to get student token:', error);
-        toast.error("Failed to enable student notifications");
       }
     } catch (error) {
       console.error('[PushNotificationManager] Student setup failed:', error);
