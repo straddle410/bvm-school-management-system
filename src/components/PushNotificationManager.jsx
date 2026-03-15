@@ -1,7 +1,19 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+
+let audioContext = null;
+
+const getAudioContext = () => {
+  if (!audioContext) {
+    audioContext = new AudioContext();
+  }
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  return audioContext;
+};
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -29,36 +41,32 @@ async function getVapidKey() {
 export default function PushNotificationManager({ studentId }) {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
-  const soundUnlocked = useRef(false);
 
-  // Unlock sound on first user click
+  // Unlock AudioContext on user gesture
   useEffect(() => {
-    const unlockSound = () => {
-      soundUnlocked.current = true;
-      console.log('[Sound] Unlocked by user gesture');
+    const unlock = async () => {
+      const ctx = getAudioContext();
+      await ctx.resume();
+      console.log('[Sound] AudioContext state:', ctx.state);
     };
-    document.addEventListener('click', unlockSound, { once: true });
-    document.addEventListener('touchstart', unlockSound, { once: true });
-    return () => {
-      document.removeEventListener('click', unlockSound);
-    };
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true });
   }, []);
 
-  // Play sound function
-  const playNotificationSound = () => {
+  // Play sound using AudioContext
+  const playSound = async () => {
     try {
-      const audio = new Audio();
-      audio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA';
-      audio.volume = 1.0;
-      if (soundUnlocked.current) {
-        audio.play().catch(e => console.log('[Sound] Error:', e));
-      } else {
-        document.addEventListener('click', 
-          () => audio.play().catch(() => {}), 
-          { once: true });
-      }
+      const ctx = getAudioContext();
+      await ctx.resume();
+      const response = await fetch('/notification.mp3');
+      const buffer = await ctx.decodeAudioData(await response.arrayBuffer());
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+      console.log('[Sound] Playing!');
     } catch(e) {
-      console.log('[Sound] Failed:', e);
+      console.log('[Sound] Error:', e);
     }
   };
 
@@ -329,7 +337,7 @@ export default function PushNotificationManager({ studentId }) {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'PLAY_SOUND') {
-          playNotificationSound();
+          playSound();
         }
       });
     }
