@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 function playNotificationSound() {
   const audio = new Audio();
@@ -17,18 +19,6 @@ function playNotificationSound() {
   }
 }
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
 async function getVapidKey() {
   try {
     const response = await fetch('/api/functions/getVapidPublicKey');
@@ -36,6 +26,33 @@ async function getVapidKey() {
     return data.vapidKey || data.key || data.publicKey;
   } catch (error) {
     console.error('[VAPID] Fetch failed:', error);
+    return null;
+  }
+}
+
+// Initialize Firebase
+let firebaseApp = null;
+let messaging = null;
+
+async function initializeFirebase() {
+  if (firebaseApp) return messaging;
+  
+  try {
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.FCM_PROJECT_ID,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID
+    };
+    
+    console.log('[Firebase] Initializing with config:', { ...firebaseConfig, apiKey: '***' });
+    firebaseApp = initializeApp(firebaseConfig);
+    messaging = getMessaging(firebaseApp);
+    console.log('[Firebase] Messaging initialized successfully');
+    return messaging;
+  } catch (error) {
+    console.error('[Firebase] Initialization failed:', error);
     return null;
   }
 }
@@ -98,7 +115,14 @@ export default function PushNotificationManager({ studentId }) {
      console.log('[PushNotificationManager] Initializing push notifications...');
      console.log('[Permission] Status:', Notification.permission);
 
-     // Get VAPID key directly
+     // Initialize Firebase Messaging
+     const msg = await initializeFirebase();
+     if (!msg) {
+       toast.error("Firebase initialization failed");
+       return;
+     }
+
+     // Get VAPID key
      const vapidKey = await getVapidKey();
      console.log('[VAPID] Key ready:', !!vapidKey);
      if (!vapidKey) {
@@ -174,31 +198,40 @@ export default function PushNotificationManager({ studentId }) {
        return;
      }
 
-     // Get push subscription token via service worker
-     if ('serviceWorker' in navigator) {
-       try {
-         const registration = await navigator.serviceWorker.ready;
-         const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+     // Get FCM token using Firebase SDK
+     try {
+       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+       console.log('[Firebase] Requesting FCM token... iOS:', isIOS);
+       
+       const registration = await navigator.serviceWorker.ready;
+       const token = await getToken(msg, {
+         vapidKey: vapidKey,
+         serviceWorkerRegistration: registration
+       });
 
-         const subscription = await registration.pushManager.subscribe({
-           userVisibleOnly: true,
-           applicationServerKey
+       console.log('[Firebase] FCM Token obtained:', token?.substring(0, 20) + '...');
+
+       if (token) {
+         await base44.entities.NotificationPreference.update(pref.id, {
+           browser_push_token: token
          });
-
-         const token = subscription.endpoint;
-         console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
-
-         if (token) {
-           await base44.entities.NotificationPreference.update(pref.id, {
-             browser_push_token: token
-           });
-           console.log('[PushNotificationManager] Token saved to preference');
-           toast.success("Notifications enabled successfully!");
-         }
-       } catch (error) {
-         console.error('[PushNotificationManager] Failed to get token:', error);
-         toast.error("Failed to enable notifications");
+         console.log('[PushNotificationManager] Token saved to preference');
+         toast.success("Notifications enabled successfully!");
+         
+         // Setup foreground message handler
+         onMessage(msg, (payload) => {
+           console.log('[Firebase] Foreground message received:', payload);
+           playNotificationSound();
+           if (payload.notification) {
+             toast.info(payload.notification.title || 'New notification', {
+               description: payload.notification.body
+             });
+           }
+         });
        }
+     } catch (error) {
+       console.error('[Firebase] Failed to get token:', error);
+       toast.error("Failed to enable notifications");
      }
    } catch (error) {
      console.error('[PushNotificationManager] Setup failed:', error);
@@ -216,7 +249,14 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Get VAPID key directly
+      // Initialize Firebase Messaging
+      const msg = await initializeFirebase();
+      if (!msg) {
+        toast.error("Firebase initialization failed");
+        return;
+      }
+
+      // Get VAPID key
       const vapidKey = await getVapidKey();
       console.log('[VAPID] Key ready:', !!vapidKey);
       if (!vapidKey) {
@@ -251,32 +291,41 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Get push subscription token via service worker
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+      // Get FCM token using Firebase SDK
+      try {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        console.log('[Firebase] Student requesting FCM token... iOS:', isIOS);
+        
+        const registration = await navigator.serviceWorker.ready;
+        const token = await getToken(msg, {
+          vapidKey: vapidKey,
+          serviceWorkerRegistration: registration
+        });
 
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey
+        console.log('[Firebase] Student FCM token obtained:', token?.substring(0, 20) + '...');
+
+        if (token) {
+          console.log('[Token Save] Saving token for student_id:', studentIdValue, 'token:', token?.substring(0, 20));
+          await base44.entities.StudentNotificationPreference.update(pref.id, {
+            browser_push_token: token
           });
-
-          const token = subscription.endpoint;
-          console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
-
-          if (token) {
-            console.log('[Token Save] Saving token for:', studentIdValue, 'token:', token?.substring(0, 20));
-            await base44.entities.StudentNotificationPreference.update(pref.id, {
-              browser_push_token: token
-            });
-            console.log('[PushNotificationManager] Student token saved to DB');
-            toast.success("Student notifications enabled!");
-          }
-        } catch (error) {
-          console.error('[PushNotificationManager] Failed to get student token:', error);
-          toast.error("Failed to enable student notifications");
+          console.log('[PushNotificationManager] Student token saved to DB');
+          toast.success("Student notifications enabled!");
+          
+          // Setup foreground message handler
+          onMessage(msg, (payload) => {
+            console.log('[Firebase] Student foreground message received:', payload);
+            playNotificationSound();
+            if (payload.notification) {
+              toast.info(payload.notification.title || 'New notification', {
+                description: payload.notification.body
+              });
+            }
+          });
         }
+      } catch (error) {
+        console.error('[Firebase] Failed to get student token:', error);
+        toast.error("Failed to enable student notifications");
       }
     } catch (error) {
       console.error('[PushNotificationManager] Student setup failed:', error);
