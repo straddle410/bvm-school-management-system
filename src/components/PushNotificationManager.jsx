@@ -6,17 +6,17 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 function playNotificationSound() {
-  const audio = new Audio();
-  audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EzKz+Aw+LYoF4vJC5XjsLr0oNQKh8pSIC21a6GViwhIj1qlMLutIZcMiAiOGmTv+uziF8zHx0yYI2365mEYi8aGS5biLL';
+  const audio = new Audio('/notification.mp3');
   audio.volume = 0.5;
-  const playPromise = audio.play();
-  if (playPromise) {
-    playPromise.catch(() => {
-      document.addEventListener('click', 
-        () => audio.play().catch(() => {}), 
-        { once: true });
-    });
-  }
+  
+  document.addEventListener('click', () => {
+    audio.play().catch(() => {});
+  }, { once: true });
+  
+  // Try to play immediately (will work if user already interacted)
+  audio.play().catch(() => {
+    console.log('[Audio] Waiting for user interaction...');
+  });
 }
 
 async function getVapidKey() {
@@ -38,15 +38,20 @@ async function initializeFirebase() {
   if (firebaseApp) return messaging;
   
   try {
-    const firebaseConfig = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.FCM_PROJECT_ID,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID
-    };
+    // Fetch Firebase config from backend function that has access to all secrets
+    const response = await fetch('/api/functions/getFirebaseConfig');
+    const firebaseConfig = await response.json();
     
-    console.log('[Firebase] Initializing with config:', { ...firebaseConfig, apiKey: '***' });
+    console.log('[Firebase] Initializing with config:', { 
+      ...firebaseConfig, 
+      apiKey: firebaseConfig.apiKey ? '***' : 'MISSING'
+    });
+    
+    if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+      console.error('[Firebase] Missing required config values');
+      return null;
+    }
+    
     firebaseApp = initializeApp(firebaseConfig);
     messaging = getMessaging(firebaseApp);
     console.log('[Firebase] Messaging initialized successfully');
