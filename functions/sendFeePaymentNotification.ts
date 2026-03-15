@@ -64,21 +64,18 @@ Deno.serve(async (req) => {
     console.log('[sendFeePaymentNotification] Student push token found:', pref.browser_push_token?.substring(0, 50) + '...');
     console.log('[sendFeePaymentNotification] Student has push token, preparing FCM message');
 
-    // Construct notification message
+    // Construct notification message (data-only so Android uses service worker)
     const message = {
-      notification: {
+      data: {
         title: '✅ Fee Payment Received',
         body: `Payment of ₹${payment.amount_paid.toLocaleString()} received. Receipt: ${payment.receipt_no}`,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-      },
-      data: {
         type: 'fee_payment',
-        payment_id: payment.id,
-        receipt_no: payment.receipt_no,
-        student_id: student.id,
-        amount: payment.amount_paid.toString(),
-        click_action: `/StudentFees?receipt=${payment.receipt_no}`, // Deep link to receipt
+        payment_id: String(payment.id || ''),
+        receipt_no: String(payment.receipt_no || ''),
+        student_id: String(student.student_id || ''),
+        amount: String(payment.amount_paid || ''),
+        click_action: `/StudentFees?receipt=${payment.receipt_no}`,
+        timestamp: new Date().toISOString(),
       },
       token: pref.browser_push_token,
     };
