@@ -44,15 +44,15 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Student not found' });
     }
 
-    // Get student notification preferences using student_id field
+    // Get student notification preferences using student_id field (e.g., "S25007")
     console.log('[FCM] Searching preference for student.student_id:', student?.student_id);
     
     const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
       student_id: student.student_id
     });
     
-    const pref = prefs?.[0];
-    console.log('[FCM] Pref search result:', JSON.stringify(pref));
+    const pref = prefs[0];
+    console.log('[FCM] Pref found:', JSON.stringify(pref));
     console.log('[FCM] Token:', pref?.browser_push_token);
 
     // Check if student has push notifications enabled

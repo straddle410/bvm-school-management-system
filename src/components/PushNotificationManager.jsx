@@ -214,7 +214,8 @@ export default function PushNotificationManager() {
       }
 
       // Get or create student notification preference
-      const studentId = studentSession.id || studentSession.student_id;
+      // Use student_id field (e.g., "S25007") NOT the UUID id field
+      const studentId = studentSession.student_id;
       console.log('[PushInit] Using student_id:', studentId);
       const prefs = await base44.entities.StudentNotificationPreference.filter({
         student_id: studentId
@@ -254,7 +255,7 @@ export default function PushNotificationManager() {
           console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
 
           if (token) {
-            console.log('[Student Token] Saved:', token?.substring(0, 50) + '...');
+            console.log('[Token Save] Saving token for:', studentId, 'token:', token?.substring(0, 20));
             await base44.entities.StudentNotificationPreference.update(pref.id, {
               browser_push_token: token
             });
