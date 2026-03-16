@@ -59,13 +59,11 @@ export default function StudentPushNotifications({ studentId }) {
         return;
       }
 
-      // 2. Register Service Worker via blob URL to avoid MIME type issues
-      const response = await base44.functions.invoke('serviceworker');
-      const swCode = response.data;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
-
-      const reg = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+      // 2. Register Service Worker — must use same-origin URL (blob URLs fail in Android PWA)
+      const reg = await navigator.serviceWorker.register(
+        '/api/functions/firebaseMessagingServiceWorker',
+        { scope: '/' }
+      );
       await navigator.serviceWorker.ready;
       setRegistered(true);
 
