@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { student_ids, title, message, url, icon, receipt_no } = await req.json();
     const baseUrl = 'https://bvmse.in';
-    const notificationUrl = receipt_no ? `${baseUrl}/StudentFees?receiptNo=${receipt_no}` : (url ? `${baseUrl}${url}` : `${baseUrl}/StudentDashboard`);
+    const notificationUrl = receipt_no ? `${baseUrl}/StudentDashboard?openFees=1&receiptNo=${receipt_no}` : (url ? `${baseUrl}${url}` : `${baseUrl}/StudentDashboard`);
 
     if (!student_ids || !student_ids.length) {
       return Response.json({ error: 'Missing student_ids' }, { status: 400 });
