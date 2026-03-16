@@ -33,6 +33,20 @@ Deno.serve(async (req) => {
     const title = 'Hall Ticket Published';
     const body = `Your exam hall ticket for ${hallTicket.exam_type || 'Exam'} is now available. Download and print it.`;
 
+    // Send push first, track success
+    let isPushSent = false;
+    try {
+      await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+        student_ids: [student_id],
+        title,
+        message: body,
+        url: '/StudentHallTicketView',
+      });
+      isPushSent = true;
+    } catch (pushErr) {
+      console.warn('[notifyStudentsOnHallTicketPublish] Push failed (non-fatal):', pushErr.message);
+    }
+
     // Create Message entity (dedup record + in-app notification)
     await base44.asServiceRole.entities.Message.create({
       sender_id: 'system',
@@ -47,19 +61,8 @@ Deno.serve(async (req) => {
       academic_year: academicYear,
       context_type: 'hall_ticket_published',
       context_id: contextId,
+      is_push_sent: isPushSent,
     });
-
-    // Send push via centralized function
-    try {
-      await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-        student_ids: [student_id],
-        title,
-        message: body,
-        url: '/StudentHallTicketView',
-      });
-    } catch (pushErr) {
-      console.warn('[notifyStudentsOnHallTicketPublish] Push failed (non-fatal):', pushErr.message);
-    }
 
     return Response.json({ success: true, notified: 1 });
   } catch (error) {

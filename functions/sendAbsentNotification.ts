@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
       console.log(`[AbsentNotif] Created message ${createdMessage.id} for student ${student_id}`);
 
       // Send push notification using existing function
+      let pushSuccess = false;
       try {
         await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
           student_ids: [student_id],
@@ -62,12 +63,19 @@ Deno.serve(async (req) => {
           message: messageBody,
           url: `/StudentMessaging?messageId=${createdMessage.id}`,
         });
+        pushSuccess = true;
         console.log(`[AbsentNotif] Push sent for student ${student_id}`);
         results.push({ student_id, status: 'success', message_id: createdMessage.id });
       } catch (pushErr) {
         console.error(`[AbsentNotif] Push failed for student ${student_id}:`, pushErr.message);
         // Message was still created, so mark as partial success
         results.push({ student_id, status: 'message_created_push_failed', message_id: createdMessage.id, error: pushErr.message });
+      }
+      // Update is_push_sent flag
+      if (pushSuccess) {
+        try {
+          await base44.asServiceRole.entities.Message.update(createdMessage.id, { is_push_sent: true });
+        } catch {}
       }
     }
 

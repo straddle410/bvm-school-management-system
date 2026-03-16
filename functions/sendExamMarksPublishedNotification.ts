@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
       }
 
       // Send push notification
+      let isPushSent = false;
       try {
         await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
           student_ids: [studentId],
@@ -78,9 +79,9 @@ Deno.serve(async (req) => {
           message: msgBody,
           url: notificationUrl,
         });
+        isPushSent = true;
       } catch (pushErr) {
         console.error('[sendExamMarksPublishedNotification] Push failed for student:', studentId, pushErr.message);
-        // Continue — still create the Message entity so badge shows up
       }
 
       // Create Message entity for deduplication and in-app badge/notification
@@ -98,6 +99,7 @@ Deno.serve(async (req) => {
           academic_year: academicYear,
           context_type: 'marks_publish',
           context_id: contextId,
+          is_push_sent: isPushSent,
         });
         sent++;
       } catch (msgErr) {
