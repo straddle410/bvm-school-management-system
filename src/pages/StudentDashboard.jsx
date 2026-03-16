@@ -48,7 +48,69 @@ export default function StudentDashboard() {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
+    autoRegisterPush(session);
   }, []);
+
+  const autoRegisterPush = async (session) => {
+    try {
+      const studentId = session?.student_id;
+      if (!studentId) { console.log('[AutoPush] No student_id in session'); return; }
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) { console.log('[AutoPush] Browser does not support push'); return; }
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+      if (isIOS && !isPWA) { console.log('[AutoPush] iOS browser (not PWA) — skipping auto-register'); return; }
+
+      // Check existing pref/token
+      const prefs = await base44.entities.StudentNotificationPreference.filter({ student_id: studentId });
+      const pref = prefs[0];
+      if (pref?.browser_push_token) { console.log('[AutoPush] Token already exists, skipping'); return; }
+
+      // Request permission (non-blocking — only proceed if granted)
+      let permission = Notification.permission;
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+      if (permission !== 'granted') { console.log('[AutoPush] Permission not granted:', permission); return; }
+
+      // Register service worker
+      const reg = await navigator.serviceWorker.register('/api/functions/firebaseMessagingServiceWorker', { scope: '/' });
+      await navigator.serviceWorker.ready;
+      console.log('[AutoPush] Service worker ready');
+
+      // Get VAPID key
+      const vapidRes = await fetch('/api/functions/getVapidPublicKey');
+      const { vapidKey } = await vapidRes.json();
+      if (!vapidKey) { console.error('[AutoPush] No VAPID key returned'); return; }
+
+      // Convert VAPID key
+      const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
+      const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const applicationServerKey = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) applicationServerKey[i] = rawData.charCodeAt(i);
+
+      // Subscribe
+      let subscription = await reg.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
+      }
+
+      const subJson = subscription.toJSON();
+      console.log('[AutoPush] Subscription endpoint:', subJson.endpoint?.substring(0, 40) + '...');
+      console.log('[AutoPush] Has p256dh:', !!subJson.keys?.p256dh, 'Has auth:', !!subJson.keys?.auth);
+
+      // Save via saveStudentPushToken
+      await base44.functions.invoke('saveStudentPushToken', {
+        student_id: studentId,
+        subscription: subJson,
+      });
+
+      console.log('[AutoPush] ✅ Push subscription saved successfully for', studentId);
+    } catch (err) {
+      console.error('[AutoPush] Failed:', err.message);
+    }
+  };
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
