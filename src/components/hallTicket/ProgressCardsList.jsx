@@ -28,7 +28,7 @@ export default function ProgressCardsList() {
     queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
-  const { data: progressCards = [], isLoading } = useQuery({
+  const { data: progressCards = [], isLoading, refetch } = useQuery({
     queryKey: ['progressCards', academicYear, filters],
     queryFn: async () => {
       const query = { academic_year: academicYear };
