@@ -443,9 +443,9 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      message: `Generated progress cards for ${newCards.length} students (${skippedCount} duplicates skipped)`,
-      cardsGenerated: newCards.length,
-      duplicatesSkipped: skippedCount
+      message: `Generated progress cards for ${progressCards.length} students (${deletedCount} duplicates deleted)`,
+      cardsGenerated: progressCards.length,
+      duplicatesDeleted: deletedCount
     });
   } catch (error) {
     console.error('Progress card generation error:', error);
