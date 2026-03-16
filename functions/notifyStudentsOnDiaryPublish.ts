@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
@@ -11,85 +11,66 @@ Deno.serve(async (req) => {
 
     const diary = data;
     const class_name = diary.class_name;
-    const section = diary.section || 'A';
+    const section = diary.section;
+    const academicYear = diary.academic_year || '2024-25';
 
     if (!class_name) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get current academic year
-    const currentAcademicYear = diary.academic_year || '2024-25';
-
-    // FIX #1a: Add academic year filter to prevent multi-year notifications
-    // Status: 'Published' = actively enrolled students (Previous statuses: Pending, Verified, Approved)
-    const students = await base44.asServiceRole.entities.Student.filter({
-      class_name: class_name,
-      section: section,
-      status: 'Published',
-      academic_year: currentAcademicYear,
-    });
+    // Get all Published students in this class/section
+    const studentFilter = { class_name, status: 'Published', academic_year: academicYear };
+    if (section && section !== 'All') studentFilter.section = section;
+    const students = await base44.asServiceRole.entities.Student.filter(studentFilter);
 
     if (students.length === 0) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // IDEMPOTENCY STRATEGY: Option A - Second verification inside creation
-    // Check for existing notifications to avoid duplicates
-    const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
-      type: 'diary_published',
-      related_entity_id: diary.id,
-    });
-    const alreadyNotified = new Set(existingNotifs.map(n => n.recipient_student_id));
-
+    const title = 'Class Diary Published';
+    const body = diary.title || `Class diary for Class ${class_name}`;
     let notified = 0;
 
-    // Convert to parallel creation with race window closure
-    const notificationPromises = students
-      .filter(s => !alreadyNotified.has(s.student_id))
-      .map(async (student) => {
-        try {
-          // IDEMPOTENCY: Second micro-check right before create
-          const existsNow = await base44.asServiceRole.entities.Notification.filter({
-            type: 'diary_published',
-            related_entity_id: diary.id,
-            recipient_student_id: student.student_id,
-          });
-          
-          if (existsNow.length > 0) {
-            return null;
-          }
+    for (const student of students) {
+      const studentId = student.student_id;
+      if (!studentId) continue;
 
-          const created = await base44.asServiceRole.entities.Notification.create({
-            recipient_student_id: student.student_id,
-            type: 'diary_published',
-            title: 'Class Diary Published',
-            message: diary.title || `Class diary for Class ${class_name}`,
-            related_entity_id: diary.id,
-            action_url: '/Diary',
-            is_read: false,
-            duplicate_key: `diary_${diary.id}_${student.student_id}`,
-          });
-          
-          return created;
-        } catch (err) {
-          if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
-            console.warn(`Duplicate diary notification for ${student.student_id}, ignoring`);
-            return null;
-          }
-          console.error(`Failed to notify ${student.student_id}:`, err.message);
-          return null;
-        }
+      const contextId = `${diary.id}_${studentId}`;
+
+      // Deduplication check via Message entity
+      const existing = await base44.asServiceRole.entities.Message.filter({
+        context_type: 'diary_published',
+        context_id: contextId,
       });
-    
-    const results = await Promise.all(notificationPromises);
-    notified = results.filter(r => r !== null).length;
+      if (existing.length > 0) continue;
 
-    // Push notifications removed for diary to optimize credit usage
-    // In-app notifications (created above) are sufficient for daily diary updates
+      // Create Message entity
+      try {
+        await base44.asServiceRole.entities.Message.create({
+          sender_id: 'system',
+          sender_name: 'School',
+          sender_role: 'admin',
+          recipient_type: 'individual',
+          recipient_id: studentId,
+          recipient_name: student.name,
+          subject: title,
+          body,
+          is_read: false,
+          academic_year: academicYear,
+          context_type: 'diary_published',
+          context_id: contextId,
+        });
+        notified++;
+      } catch (err) {
+        console.error(`[notifyStudentsOnDiaryPublish] Failed for ${studentId}:`, err.message);
+      }
+    }
 
+    // Push not sent for diary (in-app badge via Message entity is sufficient)
+    console.log('[notifyStudentsOnDiaryPublish] Notified:', notified, 'students for diary:', diary.id);
     return Response.json({ success: true, notified });
   } catch (error) {
-    console.error('Error in notifyStudentsOnDiaryPublish:', error);
+    console.error('[notifyStudentsOnDiaryPublish] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

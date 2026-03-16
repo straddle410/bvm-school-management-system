@@ -13,41 +13,58 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'academic_year, sender_id, and sender_name are required' }, { status: 400 });
     }
 
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
     const results = {
       success_count: 0,
       failed_count: 0,
+      skipped_count: 0,
       notified_students: [],
       errors: []
     };
 
     for (const student of selectedStudents) {
       try {
-        const reminderMessage = `Dear ${student.parent_name}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at earliest.`;
+        const contextId = `${student.student_id}_${academic_year}_${today}`;
 
-        // STEP A: Create Message record and capture the created message ID
+        // Deduplication check — skip if already sent today
+        const existing = await base44.asServiceRole.entities.Message.filter({
+          context_type: 'fee_reminder',
+          context_id: contextId,
+        });
+        if (existing.length > 0) {
+          console.log(`[sendFeeReminder] Skipping duplicate for ${student.student_id} on ${today}`);
+          results.skipped_count++;
+          continue;
+        }
+
+        const reminderMessage = `Dear ${student.parent_name || 'Parent'}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at the earliest.`;
+
+        // Create Message entity (dedup record + in-app notification)
         const createdMessage = await base44.asServiceRole.entities.Message.create({
           sender_id: sender_id,
           sender_name: sender_name,
-          sender_role: "admin",
-          recipient_type: "individual",
+          sender_role: 'admin',
+          recipient_type: 'individual',
           recipient_id: student.student_id,
           recipient_name: student.student_name,
-          subject: "Fee Payment Reminder",
+          subject: 'Fee Payment Reminder',
           body: reminderMessage,
           is_read: false,
-          academic_year: academic_year
+          academic_year: academic_year,
+          context_type: 'fee_reminder',
+          context_id: contextId,
         });
 
-        // STEP B: Send push notification deep-linking to this exact message
+        // Send push via centralized function
         try {
-          await base44.functions.invoke('sendStudentPushNotification', {
+          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
             student_ids: [student.student_id],
             title: 'Fee Payment Reminder',
             message: `Fee of ₹${student.due_amount} is pending. Tap to view.`,
             url: `/StudentMessaging?messageId=${createdMessage.id}`,
           });
         } catch (pushError) {
-          // Push failure should not fail the overall reminder send
           console.warn(`[sendFeeReminder] Push failed for ${student.student_id} (non-fatal):`, pushError.message);
         }
 
@@ -61,7 +78,7 @@ Deno.serve(async (req) => {
 
     return Response.json(results);
   } catch (error) {
-    console.error('sendFeeReminder error:', error);
+    console.error('[sendFeeReminder] Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

@@ -39,15 +39,6 @@ function playSound(prefs) {
   } catch {}
 }
 
-function sendBrowserPush(title, body, prefs, notifType) {
-  // Only send browser push for critical notifications: marks, hall tickets, fee payments
-  const criticalTypes = ['marks_published', 'results_posted', 'hall_ticket_published', 'fee_payment_received'];
-  if (!criticalTypes.includes(notifType)) return;
-  
-  if (!prefs?.browser_push_enabled) return;
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  try { new Notification(title, { body, icon: '/logo.png' }); } catch {}
-}
 
 function shouldShow(prefs, prefKey) {
   if (!prefs?.notifications_enabled) return false;
