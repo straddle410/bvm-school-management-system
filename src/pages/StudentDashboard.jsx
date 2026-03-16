@@ -290,12 +290,22 @@ export default function StudentDashboard() {
               <p className="text-blue-200 text-[10px] mt-0.5">Student Portal</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 py-1.5 rounded-full transition-all"
-          >
-            <LogOut className="h-3 w-3" /> Logout
-          </button>
+          <div className="flex items-center gap-2">
+            <Link to={createPageUrl('StudentNotifications')} className="relative p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all">
+              <Bell className="h-5 w-5 text-white" />
+              {totalUnread > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
+                  {totalUnread > 99 ? '99+' : totalUnread}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 py-1.5 rounded-full transition-all"
+            >
+              <LogOut className="h-3 w-3" /> Logout
+            </button>
+          </div>
         </div>
       </header>
 
