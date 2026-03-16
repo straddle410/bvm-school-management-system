@@ -415,29 +415,31 @@ Deno.serve(async (req) => {
       });
     } // end for loop
 
-    // Clear existing cards for this class/section/year to prevent duplicates
+    // Prevent duplicates: check if each card (student + exam type) already exists
     const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
       academic_year: academicYear
     });
 
-    for (const card of existingCards) {
-      const cardClassMatch = !classNameFilter || normalizeClassName(card.class_name) === normalizeClassName(classNameFilter);
-      const cardSectionMatch = !sectionFilter || card.section === sectionFilter;
+    const existingKeys = new Set();
+    existingCards.forEach(card => {
+      const examType = card.exam_performance?.[0]?.exam_type || 'unknown';
+      const key = `${card.student_id}__${examType}`;
+      existingKeys.add(key);
+    });
 
-      if (cardClassMatch && cardSectionMatch) {
-        try {
-          await base44.asServiceRole.entities.ProgressCard.delete(card.id);
-        } catch (deleteError) {
-          // Silently ignore all deletion errors - it's safe to retry if card doesn't exist
-          console.warn(`[CLEANUP] Failed to delete ProgressCard ${card.id}: ${deleteError.message}`);
-        }
-      }
+    // Filter out cards that already exist (to prevent duplicates)
+    const newCards = progressCards.filter(card => {
+      const examType = card.exam_performance?.[0]?.exam_type || 'unknown';
+      const key = `${card.student_id}__${examType}`;
+      return !existingKeys.has(key);
+    });
+
+    // Bulk create only NEW progress cards (skip duplicates)
+    if (newCards.length > 0) {
+      await base44.asServiceRole.entities.ProgressCard.bulkCreate(newCards);
     }
 
-    // Bulk create progress cards
-    if (progressCards.length > 0) {
-      await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
-    }
+    const skippedCount = progressCards.length - newCards.length;
 
     return Response.json({
       message: `Generated progress cards for ${progressCards.length} students`,
