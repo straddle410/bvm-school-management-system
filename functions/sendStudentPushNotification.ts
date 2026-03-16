@@ -43,11 +43,12 @@ Deno.serve(async (req) => {
     let failed = 0;
     const errors = [];
 
-    for (const sid of student_ids) {
+    // Create parallel push tasks for all students
+    const pushTasks = student_ids.map(async (sid) => {
       const pref = prefMap.get(sid);
       if (!pref || !pref.browser_push_enabled || !pref.browser_push_token) {
         console.log('[SendPush] No pref/token for student:', sid);
-        continue;
+        return { status: 'skipped', sid };
       }
 
       let subscription;
@@ -55,9 +56,8 @@ Deno.serve(async (req) => {
         subscription = JSON.parse(pref.browser_push_token);
       } catch {
         console.error('[SendPush] Invalid JSON token for student:', sid);
-        failed++;
         errors.push({ student_id: sid, error: 'Invalid subscription JSON' });
-        continue;
+        return { status: 'failed', sid };
       }
 
       if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
@@ -66,9 +66,8 @@ Deno.serve(async (req) => {
           has_p256dh: !!subscription.keys?.p256dh,
           has_auth: !!subscription.keys?.auth,
         });
-        failed++;
         errors.push({ student_id: sid, error: 'Subscription missing endpoint/keys' });
-        continue;
+        return { status: 'failed', sid };
       }
 
       console.log('[SendPush] Sending to student:', sid, 'endpoint prefix:', subscription.endpoint.substring(0, 50) + '...');
@@ -76,10 +75,9 @@ Deno.serve(async (req) => {
       try {
         const result = await webpush.sendNotification(subscription, payload);
         console.log('[SendPush] ✅ Success for', sid, 'status:', result.statusCode);
-        sent++;
+        return { status: 'success', sid };
       } catch (err) {
         console.error('[SendPush] ❌ Failed for', sid, 'status:', err.statusCode, 'error:', err.message);
-        failed++;
         errors.push({ student_id: sid, error: err.message, statusCode: err.statusCode });
         // Clear invalid/expired subscriptions
         if (err.statusCode === 410 || err.statusCode === 404) {
@@ -91,8 +89,14 @@ Deno.serve(async (req) => {
             console.log('[SendPush] Cleared expired token for student:', sid);
           } catch {}
         }
+        return { status: 'failed', sid };
       }
-    }
+    });
+
+    // Execute all pushes in parallel and collect results
+    const results = await Promise.all(pushTasks);
+    sent = results.filter(r => r.status === 'success').length;
+    failed = results.filter(r => r.status === 'failed').length;
 
     console.log('[SendPush] Done. sent:', sent, 'failed:', failed);
     return Response.json({ success: true, sent, failed, errors });
