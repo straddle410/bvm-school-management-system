@@ -1,15 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import webpush from 'npm:web-push@3.6.7';
 
-const VAPID_PUBLIC_KEY = 'BEu90Ej8bFj1i1EVc5UzpZwIqXBfAl30wfVW7zqHRqaXGvBH1NZSKMJJjFRUBk-25YyJPcW2vJMGm7YzYMZ6q6I';
-
 Deno.serve(async (req) => {
   try {
+    const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
     const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
-    if (!VAPID_PRIVATE_KEY) {
-      return Response.json({ error: 'VAPID_PRIVATE_KEY not configured' }, { status: 500 });
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+      return Response.json({ error: 'VAPID keys not configured' }, { status: 500 });
     }
 
+    console.log('[TestPush] VAPID public key prefix:', VAPID_PUBLIC_KEY.substring(0, 20) + '...');
     webpush.setVapidDetails('mailto:admin@school.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
     const base44 = createClientFromRequest(req);
