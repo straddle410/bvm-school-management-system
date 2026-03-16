@@ -95,12 +95,12 @@ Deno.serve(async (req) => {
       VAPID_PRIVATE_KEY
     );
 
+    const receiptUrl = `/StudentFees?receiptNo=${payment.receipt_no}`;
     const payload = JSON.stringify({
       title: '✅ Fee Payment Received',
       body: `Payment of ₹${payment.amount_paid.toLocaleString()} received. Receipt: ${payment.receipt_no}`,
-      type: 'fee_payment',
-      receipt_no: String(payment.receipt_no || ''),
-      click_action: `/StudentFees?receipt=${payment.receipt_no}`,
+      data: { url: receiptUrl },
+      click_action: receiptUrl,
     });
 
     console.log('[sendFeePaymentNotification] Sending Web Push notification...');
