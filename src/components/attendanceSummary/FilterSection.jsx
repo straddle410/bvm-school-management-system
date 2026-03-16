@@ -132,7 +132,7 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
               onValueChange={(v) => setFilters({ ...filters, section: v })}
               disabled={!filters.class || sections.length === 0}
             >
-              <SelectTrigger>
+              <SelectTrigger className={!filters.class || sections.length === 0 ? "opacity-50 cursor-not-allowed" : ""}>
                 <SelectValue placeholder="Section" />
               </SelectTrigger>
               <SelectContent>
