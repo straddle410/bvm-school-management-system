@@ -10,5 +10,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('https://bvm-school-ff026.web.app/firebase-messaging-sw.js')
+    .then(function(registration) {
+      console.log('Service Worker registered:', registration);
+    })
+    .catch(function(error) {
+      console.log('Service Worker registration failed:', error);
+    });
+}
+</script>
+</body>
 </html>
