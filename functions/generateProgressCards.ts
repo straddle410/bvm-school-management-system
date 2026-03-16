@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
     for (let si = 0; si < filteredStudentList.length; si++) {
       const student = filteredStudentList[si];
       const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
-      if (uniqueStudents.has(studentKey)) return; // Skip duplicate student entries
+      if (uniqueStudents.has(studentKey)) continue; // Skip duplicate student entries
       uniqueStudents.set(studentKey, true);
 
       const examPerformance = [];
