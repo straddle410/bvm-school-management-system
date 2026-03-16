@@ -415,31 +415,32 @@ Deno.serve(async (req) => {
       });
     } // end for loop
 
-    // Prevent duplicates: check if each card (student + exam type) already exists
+    // Delete existing cards for this class/section/exam_type to prevent duplicates
     const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
-      academic_year: academicYear
+      academic_year: academicYear,
+      class_name: classNameFilter,
+      section: sectionFilter
     });
 
-    const existingKeys = new Set();
-    existingCards.forEach(card => {
-      const examType = card.exam_performance?.[0]?.exam_type || 'unknown';
-      const key = `${card.student_id}__${examType}`;
-      existingKeys.add(key);
-    });
-
-    // Filter out cards that already exist (to prevent duplicates)
-    const newCards = progressCards.filter(card => {
-      const examType = card.exam_performance?.[0]?.exam_type || 'unknown';
-      const key = `${card.student_id}__${examType}`;
-      return !existingKeys.has(key);
-    });
-
-    // Bulk create only NEW progress cards (skip duplicates)
-    if (newCards.length > 0) {
-      await base44.asServiceRole.entities.ProgressCard.bulkCreate(newCards);
+    let deletedCount = 0;
+    for (const card of existingCards) {
+      const cardExamType = card.exam_performance?.[0]?.exam_type;
+      // Delete only cards for the selected exam type
+      const selectedExamTypeId = examTypeRecords.find(et => et.id === (examTypeIdOrName || et.id))?.id;
+      if (cardExamType === selectedExamTypeId || cardExamType === examTypeIdOrName) {
+        try {
+          await base44.asServiceRole.entities.ProgressCard.delete(card.id);
+          deletedCount++;
+        } catch (error) {
+          console.warn(`Failed to delete duplicate card ${card.id}: ${error.message}`);
+        }
+      }
     }
 
-    const skippedCount = progressCards.length - newCards.length;
+    // Bulk create progress cards
+    if (progressCards.length > 0) {
+      await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
+    }
 
     return Response.json({
       message: `Generated progress cards for ${newCards.length} students (${skippedCount} duplicates skipped)`,
