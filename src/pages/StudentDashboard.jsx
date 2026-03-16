@@ -61,10 +61,21 @@ export default function StudentDashboard() {
       const isPWA = window.matchMedia('(display-mode: standalone)').matches;
       if (isIOS && !isPWA) { console.log('[AutoPush] iOS browser (not PWA) — skipping auto-register'); return; }
 
-      // Check existing pref/token
+      // Check existing pref/token — also re-register if token is stale (raw URL, no keys)
       const prefs = await base44.entities.StudentNotificationPreference.filter({ student_id: studentId });
       const pref = prefs[0];
-      if (pref?.browser_push_token) { console.log('[AutoPush] Token already exists, skipping'); return; }
+      if (pref?.browser_push_token) {
+        try {
+          const parsed = JSON.parse(pref.browser_push_token);
+          if (parsed.endpoint && parsed.keys?.p256dh && parsed.keys?.auth) {
+            console.log('[AutoPush] Valid token already exists, skipping');
+            return;
+          }
+          console.log('[AutoPush] Existing token is stale/missing keys — re-registering');
+        } catch {
+          console.log('[AutoPush] Existing token is not valid JSON (raw URL) — re-registering');
+        }
+      }
 
       // Request permission (non-blocking — only proceed if granted)
       let permission = Notification.permission;
