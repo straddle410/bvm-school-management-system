@@ -1,89 +1,78 @@
 Deno.serve((req) => {
   const swCode = `
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+// BVM School Push Notification Service Worker
+// Served at /api/functions/firebaseMessagingServiceWorker
+// Registered with scope: / — works in Android PWA and Chrome browser
 
-self.addEventListener('push', function(event) {
-  console.log('[SW] Push received:', event.data?.text());
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
 
-  let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch(e) {
-    data = {
-      title: 'New Notification',
-      body: event.data ? event.data.text() : ''
-    };
-  }
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
 
-  const title = data.title || data.notification?.title || 'Fee Payment';
-  const options = {
-    body: data.body || data.notification?.body || 'New notification',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
-    tag: 'fee-notification-' + Date.now(),
-    requireInteraction: true,
-    silent: false,
-    vibrate: [200, 100, 200],
-    data: data
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push event received');
+
+  let data = {
+    title: 'BVM School',
+    body: 'You have a new notification',
+    icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
+    badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
   };
 
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      data = {
+        title: parsed.title || data.title,
+        body: parsed.body || parsed.message || data.body,
+        icon: parsed.icon || data.icon,
+        badge: parsed.badge || data.badge,
+        data: { action_url: parsed.click_action || parsed.data?.url || '/' },
+        vibrate: parsed.vibrate || [200, 100, 200],
+        requireInteraction: false,
+        tag: parsed.tag || 'bvm-notification',
+      };
+    } catch {
+      data.body = event.data.text();
+    }
+  }
+
+  console.log('[SW] Showing notification:', data.title, data.body);
+
   event.waitUntil(
-    self.registration.showNotification(title, options)
-      .then(() => console.log('[SW] Notification shown!'))
-      .catch(err => console.log('[SW] Show failed:', err))
+    self.registration.showNotification(data.title, data)
   );
 });
 
-self.addEventListener('notificationclick', function(event) {
-  console.log('[SW] Notification clicked:', event.notification.title);
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked');
   event.notification.close();
+
+  const urlToOpen = event.notification.data?.action_url || '/';
+
   event.waitUntil(
-    clients.openWindow(event.notification.data?.click_action || '/')
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.focus();
+          return;
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
-
-// Firebase background message handler
-try {
-  const firebaseConfig = {
-    apiKey: self.VITE_FIREBASE_API_KEY,
-    authDomain: self.VITE_FIREBASE_AUTH_DOMAIN,
-    messagingSenderId: self.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: self.VITE_FIREBASE_APP_ID
-  };
-
-  // Only init if config looks valid
-  if (typeof firebase !== 'undefined') {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const messaging = firebase.messaging();
-    if (messaging) {
-      messaging.onBackgroundMessage(function(payload) {
-        console.log('[SW] Background message:', payload);
-        const title = payload.notification?.title || payload.data?.title || 'Fee Payment';
-        const options = {
-          body: payload.notification?.body || payload.data?.body || 'New notification',
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: 'fee-' + Date.now(),
-          requireInteraction: true,
-          silent: false,
-          vibrate: [200, 100, 200]
-        };
-        return self.registration.showNotification(title, options);
-      });
-    }
-  }
-} catch(e) {
-  console.log('[SW] Firebase init skipped:', e.message);
-}
-  `;
+`;
 
   return new Response(swCode, {
     headers: {
-      'Content-Type': 'application/javascript',
-      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Service-Worker-Allowed': '/',
     },
   });
