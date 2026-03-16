@@ -64,61 +64,48 @@ Deno.serve(async (req) => {
     console.log('[sendFeePaymentNotification] Student push token found:', pref.browser_push_token?.substring(0, 50) + '...');
     console.log('[sendFeePaymentNotification] Student has push token, preparing FCM message');
 
-    // Construct notification message (data-only so Android uses service worker)
-    const message = {
-      data: {
-        title: '✅ Fee Payment Received',
-        body: `Payment of ₹${payment.amount_paid.toLocaleString()} received. Receipt: ${payment.receipt_no}`,
-        type: 'fee_payment',
-        payment_id: String(payment.id || ''),
-        receipt_no: String(payment.receipt_no || ''),
-        student_id: String(student.student_id || ''),
-        amount: String(payment.amount_paid || ''),
-        click_action: `/StudentFees?receipt=${payment.receipt_no}`,
-        timestamp: new Date().toISOString(),
-      },
-      token: pref.browser_push_token,
-    };
+    // Use Web Push (VAPID) to send to the stored endpoint
+    // The token stored is a Web Push subscription endpoint URL
+    const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
+    const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
 
-    // Send FCM push notification
-    const FCM_SERVER_KEY = Deno.env.get('FCM_SERVER_KEY');
-    const FCM_PROJECT_ID = Deno.env.get('FCM_PROJECT_ID');
+    console.log('[sendFeePaymentNotification] VAPID keys present:', !!VAPID_PUBLIC_KEY, !!VAPID_PRIVATE_KEY);
 
-    console.log('[sendFeePaymentNotification] FCM ProjectID:', FCM_PROJECT_ID ? FCM_PROJECT_ID.substring(0, 20) + '...' : 'MISSING');
-    console.log('[sendFeePaymentNotification] FCM ServerKey:', FCM_SERVER_KEY ? 'SET' : 'MISSING');
-
-    if (!FCM_SERVER_KEY || !FCM_PROJECT_ID) {
-      console.error('[sendFeePaymentNotification] Missing FCM credentials');
-      return Response.json({ success: false, error: 'Missing FCM credentials' });
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+      console.error('[sendFeePaymentNotification] Missing VAPID credentials');
+      return Response.json({ success: false, error: 'Missing VAPID credentials' });
     }
 
-    console.log('[sendFeePaymentNotification] Sending FCM message via FCM API...');
-    console.log('[sendFeePaymentNotification] FCM Endpoint:', `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`);
-    console.log('[sendFeePaymentNotification] Message payload:', JSON.stringify({ message }, null, 2));
-    
-    const fcmResponse = await fetch(
-      `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${FCM_SERVER_KEY}`,
-        },
-        body: JSON.stringify({ message }),
-      }
+    // The browser_push_token is a raw Web Push endpoint URL
+    // Parse it into a subscription object
+    let subscription;
+    try {
+      // Try parsing as JSON first (full subscription object)
+      subscription = JSON.parse(pref.browser_push_token);
+    } catch {
+      // It's a raw endpoint URL — can't send without keys, log and skip
+      console.error('[sendFeePaymentNotification] browser_push_token is a raw endpoint URL, not a full subscription object. Re-registration needed.');
+      return Response.json({ success: false, error: 'Subscription token is a raw endpoint, not a full Web Push subscription. Student must re-enable notifications.' });
+    }
+
+    const webpush = await import('npm:web-push@3.6.7');
+    webpush.default.setVapidDetails(
+      'mailto:admin@school.com',
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY
     );
 
-    console.log('[sendFeePaymentNotification] FCM Response Status:', fcmResponse.status);
-    const responseText = await fcmResponse.text();
-    console.log('[sendFeePaymentNotification] FCM Response Body:', responseText);
-    console.log('[FCM] FCM API response:', JSON.stringify({ status: fcmResponse.status, body: responseText }));
+    const payload = JSON.stringify({
+      title: '✅ Fee Payment Received',
+      body: `Payment of ₹${payment.amount_paid.toLocaleString()} received. Receipt: ${payment.receipt_no}`,
+      type: 'fee_payment',
+      receipt_no: String(payment.receipt_no || ''),
+      click_action: `/StudentFees?receipt=${payment.receipt_no}`,
+    });
 
-    if (!fcmResponse.ok) {
-      console.error('[sendFeePaymentNotification] FCM error:', fcmResponse.status, responseText);
-      return Response.json({ success: false, error: 'FCM send failed', details: responseText });
-    }
-
-    console.log('[sendFeePaymentNotification] FCM message sent successfully');
+    console.log('[sendFeePaymentNotification] Sending Web Push notification...');
+    await webpush.default.sendNotification(subscription, payload);
+    console.log('[sendFeePaymentNotification] Web Push sent successfully');
 
     return Response.json({ 
       success: true, 
