@@ -15,6 +15,8 @@ export default function StudentFees() {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+  const [autoOpenDone, setAutoOpenDone] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
@@ -25,15 +27,6 @@ export default function StudentFees() {
     base44.entities.SchoolProfile.list()
       .then(p => p.length && setSchoolProfile(p[0]))
       .catch(() => {});
-
-    // Auto-open receipt if receiptNo parameter is present
-    const urlParams = new URLSearchParams(window.location.search);
-    const receiptNo = urlParams.get('receiptNo');
-    if (receiptNo) {
-      setTimeout(() => {
-        window.open('/print-receipt-a5?receiptNo=' + receiptNo, '_blank');
-      }, 1000);
-    }
   }, []);
 
   const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
