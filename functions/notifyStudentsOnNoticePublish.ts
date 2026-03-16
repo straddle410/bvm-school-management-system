@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
@@ -11,114 +11,91 @@ Deno.serve(async (req) => {
 
     const notice = data;
     const target_audience = notice.target_audience || 'All';
-    const target_classes = notice.target_classes || []; // empty = all classes
+    const target_classes = notice.target_classes || [];
 
     // Only notify students if audience is All or Students
     if (target_audience !== 'Students' && target_audience !== 'All') {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Get current academic year (should be available in notice or config)
     const currentAcademicYear = notice.academic_year || '2024-25';
 
-    // FIX #1a: Add academic year filter to prevent multi-year notifications
-    let students = await base44.asServiceRole.entities.Student.filter({ 
-     status: 'Published',
-     academic_year: currentAcademicYear,
+    let students = await base44.asServiceRole.entities.Student.filter({
+      status: 'Published',
+      academic_year: currentAcademicYear,
     });
 
-    // Filter by target classes if specified
     if (target_audience === 'Students' && target_classes.length > 0) {
-     students = students.filter(s => target_classes.includes(s.class_name));
+      students = students.filter(s => target_classes.includes(s.class_name));
     }
 
     if (students.length === 0) {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // IDEMPOTENCY STRATEGY: Option A - Second verification inside creation
-    // Check for existing notifications to avoid duplicates
-    const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
-      type: 'notice_posted',
-      related_entity_id: notice.id,
-    });
-    const alreadyNotified = new Set(existingNotifs.map(n => n.recipient_student_id));
-
     let notified = 0;
+    const pushStudentIds = [];
 
-    // FIX #1b-safe: Promise.all with per-student race window closure
-    const notificationPromises = students
-      .filter(s => !alreadyNotified.has(s.student_id))
-      .map(async (student) => {
-        try {
-          // IDEMPOTENCY: Second micro-check right before create
-          // Closes race window from "start of loop" to "1ms before create"
-          const existsNow = await base44.asServiceRole.entities.Notification.filter({
-            type: 'notice_posted',
-            related_entity_id: notice.id,
-            recipient_student_id: student.student_id,
-          });
-          
-          if (existsNow.length > 0) {
-            console.log(`Notification already exists for ${student.student_id}, skipping`);
-            return null; // Skip this student
-          }
-
-          const created = await base44.asServiceRole.entities.Notification.create({
-            recipient_student_id: student.student_id,
-            type: 'notice_posted',
-            title: notice.title,
-            message: (notice.content || '').substring(0, 100),
-            related_entity_id: notice.id,
-            action_url: '/Notices',
-            is_read: false,
-            duplicate_key: `notice_${notice.id}_${student.student_id}`,
-          });
-          
-          return created;
-        } catch (err) {
-          // Catch duplicate creation attempts from concurrent calls
-          if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
-            console.warn(`Duplicate notification for ${student.student_id} detected, ignoring`);
-            return null;
-          }
-          console.error(`Failed to notify ${student.student_id}:`, err.message);
-          return null;
-        }
-      });
-    
-    const results = await Promise.all(notificationPromises);
-    notified = results.filter(r => r !== null).length;
-
-    // Send push notifications only if explicitly enabled on this notice
-    if (notified > 0 && notice.sendPushNotification === true) {
+    for (const student of students) {
       try {
-        const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
-        const prefMap = new Map(prefs.map(p => [p.student_id, p]));
+        const contextId = `${notice.id}_${student.student_id}`;
 
-        const pushStudentIds = students
-          .filter(s => {
-            const p = prefMap.get(s.student_id);
-            return p && p.browser_push_enabled && p.browser_push_token;
-          })
-          .map(s => s.student_id);
+        // Deduplication check via Message entity
+        const existing = await base44.asServiceRole.entities.Message.filter({
+          recipient_id: student.student_id,
+          context_type: 'notice_posted',
+          context_id: contextId,
+        });
 
-        if (pushStudentIds.length > 0) {
-          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-            student_ids: pushStudentIds,
-            title: notice.title,
-            message: (notice.content || '').substring(0, 100),
-            url: '/Notices',
-          });
+        if (existing.length > 0) {
+          console.log(`[notifyStudentsOnNoticePublish] Duplicate skipped for ${student.student_id}`);
+          continue;
         }
-      } catch (pushErr) {
-        console.error('Push send error (non-fatal):', pushErr.message);
+
+        // Create Message entity (in-app notification + dedup record)
+        await base44.asServiceRole.entities.Message.create({
+          sender_id: 'system',
+          sender_name: 'School',
+          sender_role: 'admin',
+          recipient_type: 'individual',
+          recipient_id: student.student_id,
+          recipient_name: student.name,
+          subject: notice.title,
+          body: (notice.content || '').substring(0, 200),
+          is_read: false,
+          academic_year: currentAcademicYear,
+          context_type: 'notice_posted',
+          context_id: contextId,
+        });
+
+        notified++;
+
+        if (notice.sendPushNotification === true) {
+          pushStudentIds.push(student.student_id);
+        }
+      } catch (err) {
+        console.error(`[notifyStudentsOnNoticePublish] Failed for ${student.student_id}:`, err.message);
       }
     }
 
-    return Response.json({ success: true, notified });
+    // Send push only if admin explicitly enabled it
+    if (pushStudentIds.length > 0) {
+      try {
+        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+          student_ids: pushStudentIds,
+          title: notice.title,
+          message: (notice.content || '').substring(0, 100),
+          url: `/StudentNotices`,
+        });
+        console.log(`[notifyStudentsOnNoticePublish] Push sent to ${pushStudentIds.length} students`);
+      } catch (pushErr) {
+        console.error('[notifyStudentsOnNoticePublish] Push failed (non-fatal):', pushErr.message);
+      }
+    }
+
+    return Response.json({ success: true, notified, push_sent: pushStudentIds.length });
   } catch (error) {
-    console.error('Error in notifyStudentsOnNoticePublish:', error);
+    console.error('[notifyStudentsOnNoticePublish] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
