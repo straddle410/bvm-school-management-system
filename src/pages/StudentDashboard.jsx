@@ -43,12 +43,23 @@ export default function StudentDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartY = useRef(0);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
     autoRegisterPush(session);
+
+    // Handle notification deep-link: ?openFees=1&receiptNo=XXX
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('openFees') === '1') {
+      const receiptNo = params.get('receiptNo');
+      const target = receiptNo
+        ? `${createPageUrl('StudentFees')}?receiptNo=${receiptNo}`
+        : createPageUrl('StudentFees');
+      navigate(target, { replace: true });
+    }
   }, []);
 
   const autoRegisterPush = async (session) => {
