@@ -276,28 +276,38 @@ export default function ProgressCardsList() {
                   )}
                 </Button>
                 {selectedCards.size > 0 && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={handlePrintSelected}
-                      className="gap-2 bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Printer className="h-4 w-4" />
-                      Print Selected ({selectedCards.size})
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => generateZipMutation.mutate()}
-                      disabled={generateZipMutation.isPending}
-                      className="gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <Download className="h-4 w-4" />
-                      {generateZipMutation.isPending ? 'Downloading...' : `Download ZIP (${selectedCards.size})`}
-                    </Button>
-                  </>
-                )}
+                   <>
+                     <Button
+                       size="sm"
+                       variant="default"
+                       onClick={handlePrintSelected}
+                       className="gap-2 bg-blue-600 hover:bg-blue-700"
+                     >
+                       <Printer className="h-4 w-4" />
+                       Print Selected ({selectedCards.size})
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="default"
+                       onClick={() => generateZipMutation.mutate()}
+                       disabled={generateZipMutation.isPending}
+                       className="gap-2 bg-green-600 hover:bg-green-700"
+                     >
+                       <Download className="h-4 w-4" />
+                       {generateZipMutation.isPending ? 'Downloading...' : `Download ZIP (${selectedCards.size})`}
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="destructive"
+                       onClick={handleDeleteSelected}
+                       disabled={deleteMutation.isPending}
+                       className="gap-2"
+                     >
+                       <Trash2 className="h-4 w-4" />
+                       {deleteMutation.isPending ? 'Deleting...' : `Delete Selected (${selectedCards.size})`}
+                     </Button>
+                   </>
+                 )}
               </div>
             )}
           </div>
