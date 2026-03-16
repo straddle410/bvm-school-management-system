@@ -476,11 +476,8 @@ Deno.serve(async (req) => {
         try {
           await base44.asServiceRole.entities.ProgressCard.delete(card.id);
         } catch (deleteError) {
-          // Silently ignore 404 or "not found" errors (card already deleted)
-          const isNotFound = deleteError.status === 404 || deleteError.message?.includes('not found');
-          if (!isNotFound) {
-            throw deleteError;
-          }
+          // Silently ignore all deletion errors - it's safe to retry if card doesn't exist
+          console.warn(`[CLEANUP] Failed to delete ProgressCard ${card.id}: ${deleteError.message}`);
         }
       }
     }
