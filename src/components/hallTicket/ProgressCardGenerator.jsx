@@ -100,9 +100,7 @@ export default function ProgressCardGenerator() {
   });
 
   const handleGenerate = () => {
-    if (window.confirm('Generate progress cards for selected criteria?')) {
-      generateMutation.mutate();
-    }
+    generateMutation.mutate();
   };
 
   if (authLoading) return (
