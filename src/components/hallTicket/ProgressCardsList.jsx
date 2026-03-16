@@ -36,16 +36,8 @@ export default function ProgressCardsList() {
       
       const allCards = await base44.entities.ProgressCard.filter(query);
       
-      // Deduplicate by student_id + class + section + academic_year
-      const uniqueCards = new Map();
-      allCards.forEach(card => {
-        const key = `${card.student_id}__${card.class_name}__${card.section}`;
-        if (!uniqueCards.has(key)) {
-          uniqueCards.set(key, card);
-        }
-      });
-      
-      let cards = Array.from(uniqueCards.values());
+      // DO NOT deduplicate — keep all cards (one per exam type per student)
+      let cards = allCards;
       
       // Filter by exam type (check exam_performance array)
       if (filters.exam_type) {
