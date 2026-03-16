@@ -90,7 +90,6 @@ export default function StudentNotificationHub({ studentSession }) {
 
           toast.info(n.title || config.label, { description: n.message });
           playSound(prefs);
-          sendBrowserPush(n.title || config.label, n.message, prefs, n.type);
         })
       );
 
