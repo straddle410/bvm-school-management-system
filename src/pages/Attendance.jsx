@@ -1098,6 +1098,7 @@ export default function Attendance() {
               {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
               {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}
               {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="absent-notif">Absent Notify</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="mark">
