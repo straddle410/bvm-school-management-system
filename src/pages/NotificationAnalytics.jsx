@@ -10,6 +10,7 @@ import { Bell, BarChart3, Calendar } from 'lucide-react';
 import LoginRequired from '@/components/LoginRequired';
 import PushHealthDashboard from '@/components/analytics/PushHealthDashboard';
 import PushAdoptionTracker from '@/components/PushAdoptionTracker';
+import AppInstallationTracker from '@/components/AppInstallationTracker';
 import { format, subDays } from 'date-fns';
 
 const TYPE_LABELS = {
@@ -214,6 +215,11 @@ export default function NotificationAnalytics() {
               <div className="mt-10 pt-8 border-t">
                 <h2 className="text-lg font-semibold mb-6">Push Adoption Tracker</h2>
                 <PushAdoptionTracker />
+              </div>
+
+              <div className="mt-10 pt-8 border-t">
+                <h2 className="text-lg font-semibold mb-6">App Installation Tracker</h2>
+                <AppInstallationTracker />
               </div>
             </div>
           )}
