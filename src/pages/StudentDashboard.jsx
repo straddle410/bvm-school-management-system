@@ -93,6 +93,7 @@ export default function StudentDashboard() {
       const vapidRes = await fetch('/api/functions/getVapidPublicKey');
       const { vapidKey } = await vapidRes.json();
       if (!vapidKey) { console.error('[AutoPush] No VAPID key returned'); return; }
+      console.log('[AutoPush] VAPID key prefix:', vapidKey.substring(0, 20) + '...');
 
       // Convert VAPID key
       const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
@@ -101,11 +102,15 @@ export default function StudentDashboard() {
       const applicationServerKey = new Uint8Array(rawData.length);
       for (let i = 0; i < rawData.length; ++i) applicationServerKey[i] = rawData.charCodeAt(i);
 
-      // Subscribe
-      let subscription = await reg.pushManager.getSubscription();
-      if (!subscription) {
-        subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
+      // Always unsubscribe existing subscription and create a fresh one
+      // This ensures the subscription matches the current VAPID key and SW
+      const existingSub = await reg.pushManager.getSubscription();
+      if (existingSub) {
+        console.log('[AutoPush] Unsubscribing stale subscription...');
+        await existingSub.unsubscribe();
       }
+      const subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
+      console.log('[AutoPush] New subscription endpoint prefix:', subscription.endpoint.substring(0, 50) + '...');
 
       const subJson = subscription.toJSON();
       console.log('[AutoPush] Subscription endpoint:', subJson.endpoint?.substring(0, 40) + '...');
