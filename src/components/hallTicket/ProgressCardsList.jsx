@@ -33,7 +33,6 @@ export default function ProgressCardsList() {
     queryFn: async () => {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
-      if (filters.exam_type) query.exam_type = filters.exam_type;
       
       const allCards = await base44.entities.ProgressCard.filter(query);
       
@@ -47,6 +46,15 @@ export default function ProgressCardsList() {
       });
       
       let cards = Array.from(uniqueCards.values());
+      
+      // Filter by exam type (check exam_performance array)
+      if (filters.exam_type) {
+        cards = cards.filter(c => 
+          c.exam_performance && c.exam_performance.some(ep => 
+            ep.exam_type === filters.exam_type || ep.exam_type_id === filters.exam_type
+          )
+        );
+      }
       
       if (filters.student_name) {
         cards = cards.filter(c => c.student_name.toLowerCase().includes(filters.student_name.toLowerCase()));
