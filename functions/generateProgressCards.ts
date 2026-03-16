@@ -225,22 +225,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch only Published, non-deleted, active students for this year (global filter)
-    const allStudentsInYear = await base44.asServiceRole.entities.Student.filter({
-      academic_year: academicYear,
-      status: 'Published',
-      is_deleted: false,
-      is_active: true
-    });
-    // Build a set of VALID student_ids for fast lookup
-    const validStudentIds = new Set(allStudentsInYear.map(s => s.student_id).filter(Boolean));
-
     // Calculate overall statistics and generate progress cards
     const progressCards = [];
     const uniqueStudents = new Map();
 
-    // Deduplicate — only include Published/non-deleted students (filtered by validStudentIds)
-    const filteredStudentList = Object.values(studentData).filter(function(s) { return validStudentIds.has(s.student_id); });
+    // Use all students with published marks (marks records are authoritative, not Student entity status)
+    const filteredStudentList = Object.values(studentData);
     for (let si = 0; si < filteredStudentList.length; si++) {
       const student = filteredStudentList[si];
       const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
@@ -415,20 +405,20 @@ Deno.serve(async (req) => {
            return attDate >= rangeStart && attDate <= rangeEnd;
          });
 
-         if (studentRecordsInRange.length === 0) {
-           throw new Error(`Student ${student.student_name} (${student.student_id}) has no attendance records in range ${attendanceStartDate} to ${attendanceEndDate}. Cannot generate progress card without attendance data.`);
+         if (studentRecordsInRange.length > 0) {
+           const rangeResult = calcAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
+           attendanceSummary = {
+             range_start: attendanceStartDate,
+             range_end: attendanceEndDate,
+             ...rangeResult
+           };
+           console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
+         } else {
+           console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) has no attendance in range ${attendanceStartDate} to ${attendanceEndDate} - card generated without attendance data`);
          }
-
-         const rangeResult = calcAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
-         attendanceSummary = {
-           range_start: attendanceStartDate,
-           range_end: attendanceEndDate,
-           ...rangeResult
-         };
-         console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
-       } else {
-         throw new Error(`Cannot generate progress card for ${student.student_name}: Missing attendance date range or no attendance records found.`);
-       }
+         } else {
+         console.warn(`[SKIP-ATTENDANCE] Missing attendance range or records for ${student.student_name} - card generated without attendance data`);
+         }
 
       // Calculate overall rank (per class/section)
       const classStudents = Object.values(studentData).filter(s => 
