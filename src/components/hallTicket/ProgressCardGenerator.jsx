@@ -147,7 +147,7 @@ export default function ProgressCardGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium dark:text-gray-300 mb-2">
-                Class (Optional)
+                Class <span className="text-red-600">*</span>
                 {loadingClasses && <span className="text-xs text-gray-400 ml-1">Loading...</span>}
               </label>
               <select
@@ -156,14 +156,14 @@ export default function ProgressCardGenerator() {
                 disabled={loadingClasses}
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
-                <option value="">All Classes</option>
+                <option value="">-- Select Class --</option>
                 {availableClasses.map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium dark:text-gray-300 mb-2">
-                Section (Optional)
+                Section <span className="text-red-600">*</span>
                 {loadingSections && <span className="text-xs text-gray-400 ml-1">Loading...</span>}
               </label>
               <select
@@ -172,33 +172,42 @@ export default function ProgressCardGenerator() {
                 disabled={!filters.class || loadingSections}
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
-                <option value="">All Sections</option>
+                <option value="">-- Select Section --</option>
                 {availableSections.map(s => <option key={s} value={s}>Section {s}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium dark:text-gray-300 mb-2">Exam Type (Optional)</label>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-2">
+                Exam Type <span className="text-red-600">*</span>
+              </label>
               <select
                 value={filters.exam_type}
                 onChange={(e) => setFilters({ ...filters, exam_type: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               >
-                <option value="">All Exam Types</option>
+                <option value="">-- Select Exam Type --</option>
                 {examTypes.map(exam => <option key={exam.id} value={exam.id}>{exam.name}</option>)}
               </select>
             </div>
           </div>
 
-          <div className="bg-amber-50 dark:bg-gray-800 border border-amber-200 dark:border-gray-600 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300">
-            <p className="font-medium dark:text-amber-400 mb-1">Note:</p>
-            <p className="dark:text-gray-400">Progress cards will be generated for all students with published marks matching your filters. This will regenerate cards for the selected scope.</p>
-          </div>
+          {!filters.class || !filters.section || !filters.exam_type ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-800 dark:text-red-300">
+              <p className="font-medium">⚠️ Required Fields Missing</p>
+              <p className="text-xs mt-1">Class, Section, and Exam Type must be selected to generate progress cards.</p>
+            </div>
+          ) : (
+            <div className="bg-amber-50 dark:bg-gray-800 border border-amber-200 dark:border-gray-600 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300">
+              <p className="font-medium dark:text-amber-400 mb-1">Ready to Generate</p>
+              <p className="dark:text-gray-400">Progress cards will be generated only for Class {filters.class}, Section {filters.section}, and Exam Type {examTypes.find(e => e.id === filters.exam_type)?.name}.</p>
+            </div>
+          )}
 
           <Button
             onClick={handleGenerate}
-            disabled={generateMutation.isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
+            disabled={generateMutation.isPending || !filters.class || !filters.section || !filters.exam_type}
+            className="w-full bg-blue-600 hover:bg-blue-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {generateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             {generateMutation.isPending ? 'Generating...' : 'Generate Progress Cards'}
