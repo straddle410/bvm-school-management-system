@@ -98,8 +98,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('[SendPush] Done. sent:', sent, 'failed:', failed);
-    return Response.json({ success: true, sent, failed, errors });
+    console.log('[SendPush] Done. sent:', sent, 'failed:', failed, 'skipped:', student_ids.length - sent - failed);
+    // Return sent > 0 as success only if at least one device received the push
+    return Response.json({ success: sent > 0, sent, failed, errors });
   } catch (error) {
     console.error('[SendPush] Fatal error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
