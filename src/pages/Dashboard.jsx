@@ -9,7 +9,7 @@ import { DASHBOARD_TILES } from '@/components/permissionRegistry';
 import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
-  TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser,
+  TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser, BellRing,
 } from 'lucide-react';
 
 // ── Icon name → lucide component map ─────────────────────────────────────────
