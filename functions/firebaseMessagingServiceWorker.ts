@@ -45,7 +45,7 @@ self.addEventListener('push', (event) => {
     tag: 'bvm-school-notification',
     renotify: true,
     requireInteraction: false,
-    data: { action_url: actionUrl },
+    data: { url: actionUrl, action_url: actionUrl },
   };
 
   console.log('[SW] Displaying notification:', title, body);
@@ -61,19 +61,17 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked');
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.action_url || '/';
+  const urlToOpen = event.notification.data?.url || event.notification.data?.action_url || '/StudentDashboard';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if ('focus' in client) {
-          client.focus();
-          return;
+        if (client.url.includes('bvmse.in') && 'focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
         }
       }
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
+      return clients.openWindow(urlToOpen);
     })
   );
 });

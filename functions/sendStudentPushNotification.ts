@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
     console.log('[SendPush] VAPID configured, key prefix:', VAPID_PUBLIC_KEY.substring(0, 20) + '...');
 
     const base44 = createClientFromRequest(req);
-    const { student_ids, title, message, url, icon } = await req.json();
+    const { student_ids, title, message, url, icon, receipt_no } = await req.json();
+    const notificationUrl = receipt_no ? `/StudentFees?receiptNo=${receipt_no}` : (url || '/');
 
     if (!student_ids || !student_ids.length) {
       return Response.json({ error: 'Missing student_ids' }, { status: 400 });
@@ -26,8 +27,8 @@ Deno.serve(async (req) => {
       body: message || '',
       icon: icon || 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
       badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
-      click_action: url || '/',
-      data: { url: url || '/' },
+      click_action: notificationUrl,
+      data: { url: notificationUrl },
       vibrate: [200, 100, 200],
     });
 
