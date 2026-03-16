@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { Bell, BarChart3, Calendar } from 'lucide-react';
 import LoginRequired from '@/components/LoginRequired';
 import PushHealthDashboard from '@/components/analytics/PushHealthDashboard';
+import PushAdoptionTracker from '@/components/PushAdoptionTracker';
 import { format, subDays } from 'date-fns';
 
 const TYPE_LABELS = {
@@ -207,7 +208,14 @@ export default function NotificationAnalytics() {
           )}
 
           {tab === 'health' && (
-            <PushHealthDashboard startDate={startDate} endDate={endDate} />
+            <div className="space-y-8">
+              <PushHealthDashboard startDate={startDate} endDate={endDate} />
+
+              <div className="mt-10 pt-8 border-t">
+                <h2 className="text-lg font-semibold mb-6">Push Adoption Tracker</h2>
+                <PushAdoptionTracker />
+              </div>
+            </div>
           )}
         </div>
       </div>
