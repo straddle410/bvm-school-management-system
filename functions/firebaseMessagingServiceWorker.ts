@@ -59,21 +59,13 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked');
+  console.log('[SW] Notification data:', JSON.stringify(event.notification.data));
   event.notification.close();
 
   const urlToOpen = event.notification.data?.url || event.notification.data?.action_url || 'https://bvmse.in/StudentDashboard';
+  console.log('[SW] Opening URL:', urlToOpen);
 
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes('bvmse.in') && 'focus' in client) {
-          client.navigate(urlToOpen);
-          return client.focus();
-        }
-      }
-      return clients.openWindow(urlToOpen);
-    })
-  );
+  event.waitUntil(clients.openWindow(urlToOpen));
 });
 `;
 
