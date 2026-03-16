@@ -381,6 +381,21 @@ export default function Dashboard() {
             </section>
           ))}
 
+          {/* Notification Analytics shortcut — admin only */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Analytics</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <Link to="/NotificationAnalytics" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl text-white">
+                    <BellRing className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Notification Analytics</span>
+                </div>
+              </Link>
+            </div>
+          </section>
+
           {latestDiaries.length > 0 && (
             <section>
               <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Latest Diary Entries</h2>
