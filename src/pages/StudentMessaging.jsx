@@ -68,6 +68,16 @@ export default function StudentMessaging() {
 
   const unreadCount = inbox.filter(m => !m.is_read).length;
 
+  // Auto-open message when deep-linked from push notification
+  useEffect(() => {
+    if (!pendingMessageId || inbox.length === 0) return;
+    const target = inbox.find(m => m.id === pendingMessageId);
+    if (target) {
+      setPendingMessageId(null);
+      handleSelectMessage(target);
+    }
+  }, [pendingMessageId, inbox]);
+
   const markAllInboxRead = async () => {
     const unreadMsgs = inbox.filter(m => !m.is_read && m.recipient_id === student?.student_id);
     
