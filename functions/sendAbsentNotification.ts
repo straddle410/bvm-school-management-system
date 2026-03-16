@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
       const messageBody = `Dear student/parent, ${student_name} was marked absent today (Class ${class_name}-${section}). If this is incorrect, please contact the school.`;
 
-      // Create Message entity with is_push_sent: false (updated after confirmed delivery)
+      // Create Message entity
       const createdMessage = await base44.asServiceRole.entities.Message.create({
         sender_id: user.email || 'admin',
         sender_name: user.full_name || 'School Admin',
@@ -50,7 +50,6 @@ Deno.serve(async (req) => {
         academic_year: academic_year,
         context_type: 'absent_notification',
         context_id: attendance_id,
-        is_push_sent: false,
       });
 
       console.log(`[AbsentNotif] Created message ${createdMessage.id} for student ${student_id}`);

@@ -45,12 +45,8 @@ Deno.serve(async (req) => {
 
     for (const sid of student_ids) {
       const pref = prefMap.get(sid);
-      if (!pref || !pref.browser_push_token) {
-        console.warn('[SendPush] Push skipped: student has no registered device token', sid);
-        continue;
-      }
-      if (!pref.browser_push_enabled) {
-        console.warn('[SendPush] Push skipped: student has push disabled', sid);
+      if (!pref || !pref.browser_push_enabled || !pref.browser_push_token) {
+        console.log('[SendPush] No pref/token for student:', sid);
         continue;
       }
 
@@ -98,9 +94,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('[SendPush] Done. sent:', sent, 'failed:', failed, 'skipped:', student_ids.length - sent - failed);
-    // Return sent > 0 as success only if at least one device received the push
-    return Response.json({ success: sent > 0, sent, failed, errors });
+    console.log('[SendPush] Done. sent:', sent, 'failed:', failed);
+    return Response.json({ success: true, sent, failed, errors });
   } catch (error) {
     console.error('[SendPush] Fatal error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

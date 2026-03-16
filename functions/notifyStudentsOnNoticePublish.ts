@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     }
 
     let notified = 0;
-    let pushSent = 0;
+    const pushStudentIds = [];
 
     for (const student of students) {
       try {
@@ -52,8 +52,10 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Step 1: Create Message entity with is_push_sent: false (actual delivery not yet confirmed)
-        const createdMessage = await base44.asServiceRole.entities.Message.create({
+        const willSendPush = notice.sendPushNotification === true;
+
+        // Create Message entity (in-app notification + dedup record)
+        await base44.asServiceRole.entities.Message.create({
           sender_id: 'system',
           sender_name: 'School',
           sender_role: 'admin',
@@ -66,43 +68,35 @@ Deno.serve(async (req) => {
           academic_year: currentAcademicYear,
           context_type: 'notice_posted',
           context_id: contextId,
-          is_push_sent: false,
+          is_push_sent: willSendPush,
         });
 
         notified++;
 
-        // Step 2: Attempt push only if admin enabled it
-        if (notice.sendPushNotification === true) {
-          let pushSuccess = false;
-          try {
-            await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-              student_ids: [student.student_id],
-              title: notice.title,
-              message: (notice.content || '').substring(0, 100),
-              url: `/StudentNotices`,
-            });
-            pushSuccess = true;
-            console.log(`[notifyStudentsOnNoticePublish] Push sent for student: ${student.student_id}`);
-          } catch (pushErr) {
-            console.error(`[notifyStudentsOnNoticePublish] Push failed for ${student.student_id}:`, pushErr.message);
-          }
-
-          // Step 3: Update is_push_sent only after confirmed delivery
-          if (pushSuccess) {
-            try {
-              await base44.asServiceRole.entities.Message.update(createdMessage.id, { is_push_sent: true });
-              pushSent++;
-            } catch (updateErr) {
-              console.error(`[notifyStudentsOnNoticePublish] Failed to update is_push_sent for message ${createdMessage.id}:`, updateErr.message);
-            }
-          }
+        if (willSendPush) {
+          pushStudentIds.push(student.student_id);
         }
       } catch (err) {
         console.error(`[notifyStudentsOnNoticePublish] Failed for ${student.student_id}:`, err.message);
       }
     }
 
-    return Response.json({ success: true, notified, push_sent: pushSent });
+    // Send push only if admin explicitly enabled it
+    if (pushStudentIds.length > 0) {
+      try {
+        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+          student_ids: pushStudentIds,
+          title: notice.title,
+          message: (notice.content || '').substring(0, 100),
+          url: `/StudentNotices`,
+        });
+        console.log(`[notifyStudentsOnNoticePublish] Push sent to ${pushStudentIds.length} students`);
+      } catch (pushErr) {
+        console.error('[notifyStudentsOnNoticePublish] Push failed (non-fatal):', pushErr.message);
+      }
+    }
+
+    return Response.json({ success: true, notified, push_sent: pushStudentIds.length });
   } catch (error) {
     console.error('[notifyStudentsOnNoticePublish] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
