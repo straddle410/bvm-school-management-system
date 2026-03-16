@@ -3,7 +3,28 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { examTypeId, examTypeName, academicYear, applicableClasses } = await req.json();
+    const body = await req.json();
+
+    // Support both direct invocation and entity automation payload
+    let examTypeId, examTypeName, academicYear, applicableClasses;
+    if (body.event && body.data) {
+      // Called from entity automation — extract from ExamType record
+      const examType = body.data;
+      // Only proceed if results_published just became true
+      if (!examType.results_published) {
+        return Response.json({ skipped: true, reason: 'results_published is not true' });
+      }
+      examTypeId = examType.id;
+      examTypeName = examType.name;
+      academicYear = examType.academic_year;
+      applicableClasses = examType.applicable_classes || [];
+    } else {
+      // Direct invocation
+      examTypeId = body.examTypeId;
+      examTypeName = body.examTypeName;
+      academicYear = body.academicYear;
+      applicableClasses = body.applicableClasses;
+    }
 
     if (!examTypeId || !examTypeName || !academicYear) {
       return Response.json({ error: 'Missing required fields: examTypeId, examTypeName, academicYear' }, { status: 400 });
