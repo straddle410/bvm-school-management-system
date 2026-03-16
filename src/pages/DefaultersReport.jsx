@@ -544,25 +544,73 @@ export default function DefaultersReportPage() {
             <DialogHeader>
               <div className="flex items-center justify-between">
                 <DialogTitle>Send Fee Reminder</DialogTitle>
-                <Button
-                  onClick={handleSendReminder}
-                  disabled={sendingReminders}
-                  className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
-                >
-                  {sendingReminders ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      Send Reminder ({selectedStudents.length} selected)
-                    </>
-                  )}
-                </Button>
+                {!reminderResult && (
+                  <Button
+                    onClick={() => handleSendReminder(false)}
+                    disabled={sendingReminders}
+                    className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+                  >
+                    {sendingReminders ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Send Reminder ({selectedStudents.length} selected)
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </DialogHeader>
+
+            {/* Duplicate Warning Section */}
+            {reminderResult && reminderResult.skipped_count > 0 && !lastSendAllowDuplicate && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-4">
+                <div>
+                  <h4 className="font-semibold text-yellow-900 mb-2">Reminder Already Sent Today</h4>
+                  <p className="text-sm text-yellow-800">
+                    Reminder was already sent today to <strong>{reminderResult.skipped_count}</strong> student{reminderResult.skipped_count > 1 ? 's' : ''}.
+                  </p>
+                  {reminderResult.success_count > 0 && (
+                    <p className="text-sm text-yellow-800 mt-2">
+                      <strong>{reminderResult.success_count}</strong> student{reminderResult.success_count > 1 ? 's' : ''} received the reminder successfully.
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleSendReminder(true)}
+                    disabled={sendingReminders}
+                    className="gap-2 bg-orange-600 hover:bg-orange-700"
+                  >
+                    {sendingReminders ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Send Again
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsReminderModalOpen(false);
+                      setReminderResult(null);
+                    }}
+                    disabled={sendingReminders}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4 py-4">
               {/* Selected Students Table */}
@@ -616,32 +664,34 @@ export default function DefaultersReportPage() {
               </div>
             </div>
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsReminderModalOpen(false)}
-                disabled={sendingReminders}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSendReminder}
-                disabled={sendingReminders}
-                className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
-              >
-                {sendingReminders ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4" />
-                    Confirm & Send
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
+            {!reminderResult && (
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsReminderModalOpen(false)}
+                  disabled={sendingReminders}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => handleSendReminder(false)}
+                  disabled={sendingReminders}
+                  className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+                >
+                  {sendingReminders ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Confirm & Send
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       </div>
