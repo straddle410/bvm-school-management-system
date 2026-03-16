@@ -24,20 +24,19 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
           const yearData = data[0];
           setAcademicYearData(yearData);
           
-          // RESET to academic year boundaries when AY changes, but toDate defaults to today
-          setFilters({
-            class: filters.class || '',
-            section: filters.section || '',
+          // Only reset dates to academic year boundaries, preserve class/section
+          setFilters(prev => ({
+            ...prev,
             fromDate: yearData.start_date,
             toDate: today
-          });
+          }));
         }
       } catch (err) {
         console.error('Failed to fetch academic year:', err);
       }
     };
     if (academicYear) fetchAcademicYear();
-  }, [academicYear, setFilters]);
+  }, [academicYear]);
 
   const handleDateChange = (field, value) => {
     const newErrors = [];
