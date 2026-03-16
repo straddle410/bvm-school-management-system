@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
       VAPID_PRIVATE_KEY
     );
 
-    const receiptUrl = `/StudentFees?receiptNo=${payment.receipt_no}`;
+    const receiptUrl = `https://bvmse.in/StudentFees?receiptNo=${payment.receipt_no}`;
     const payload = JSON.stringify({
       title: '✅ Fee Payment Received',
       body: `Payment of ₹${payment.amount_paid.toLocaleString()} received. Receipt: ${payment.receipt_no}`,

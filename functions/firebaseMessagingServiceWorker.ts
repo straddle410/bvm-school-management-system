@@ -61,7 +61,7 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked');
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || event.notification.data?.action_url || '/StudentDashboard';
+  const urlToOpen = event.notification.data?.url || event.notification.data?.action_url || 'https://bvmse.in/StudentDashboard';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
