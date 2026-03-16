@@ -3,16 +3,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const staffRaw = req.headers.get('x-staff-session');
-    let staffRole = '';
-    if (staffRaw) {
-      try { staffRole = JSON.parse(staffRaw).role || ''; } catch {}
-    }
-
-    if (!['admin', 'principal'].includes(staffRole.toLowerCase())) {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
     const { page = 1, limit = 50 } = await req.json();
     const offset = (page - 1) * limit;
 
