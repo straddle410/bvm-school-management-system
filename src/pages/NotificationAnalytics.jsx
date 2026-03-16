@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Bell, BarChart3, Calendar } from 'lucide-react';
 import LoginRequired from '@/components/LoginRequired';
+import PushHealthDashboard from '@/components/analytics/PushHealthDashboard';
 import { format, subDays } from 'date-fns';
 
 const TYPE_LABELS = {
@@ -33,6 +34,7 @@ const TYPE_COLORS = {
 };
 
 export default function NotificationAnalytics() {
+  const [tab, setTab] = useState('analytics');
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 29), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [queryDates, setQueryDates] = useState({ startDate: format(subDays(new Date(), 29), 'yyyy-MM-dd'), endDate: format(new Date(), 'yyyy-MM-dd') });
@@ -71,6 +73,30 @@ export default function NotificationAnalytics() {
         </div>
 
         <div className="px-4 py-5 space-y-5 max-w-4xl mx-auto">
+          {/* Tab Navigation */}
+          <div className="flex gap-2 border-b border-gray-200">
+            <button
+              onClick={() => setTab('analytics')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                tab === 'analytics'
+                  ? 'text-[#1a237e] border-b-2 border-[#1a237e]'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Push Analytics
+            </button>
+            <button
+              onClick={() => setTab('health')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                tab === 'health'
+                  ? 'text-[#1a237e] border-b-2 border-[#1a237e]'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Push Health
+            </button>
+          </div>
+
           {/* Date Range Picker */}
           <Card>
             <CardContent className="p-4">
@@ -94,87 +120,95 @@ export default function NotificationAnalytics() {
             </CardContent>
           </Card>
 
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-            </div>
-          ) : data ? (
+          {tab === 'analytics' && (
             <>
-              {/* Total Push Sent */}
-              <Card className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white">
-                <CardContent className="p-5 flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <Bell className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-blue-200 text-sm">Total Push Notifications Sent</p>
-                    <p className="text-4xl font-bold">{data.totalPushSent.toLocaleString()}</p>
-                    <p className="text-blue-200 text-xs mt-1">
-                      {queryDates.startDate} → {queryDates.endDate}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Breakdown by Type */}
-              {pushByTypeEntries.length > 0 && (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BarChart3 className="h-4 w-4 text-[#1a237e]" />
-                      <h2 className="text-sm font-bold text-gray-800">Push Notifications by Type</h2>
-                    </div>
-                    <div className="space-y-3">
-                      {pushByTypeEntries.map(([type, count]) => {
-                        const pct = data.totalPushSent > 0 ? Math.round((count / data.totalPushSent) * 100) : 0;
-                        const colorClass = TYPE_COLORS[type] || 'bg-gray-100 text-gray-700';
-                        const label = TYPE_LABELS[type] || type;
-                        return (
-                          <div key={type}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorClass}`}>{label}</span>
-                              <span className="text-sm font-bold text-gray-800">{count.toLocaleString()} <span className="text-gray-400 font-normal text-xs">({pct}%)</span></span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2">
-                              <div className="bg-[#1a237e] h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Daily Push Chart */}
-              {dailyChartData.length > 1 && (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Calendar className="h-4 w-4 text-[#1a237e]" />
-                      <h2 className="text-sm font-bold text-gray-800">Daily Push Trend</h2>
-                    </div>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <BarChart data={dailyChartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => format(new Date(d), 'MMM d')} />
-                        <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
-                        <Tooltip labelFormatter={d => format(new Date(d), 'MMM d, yyyy')} />
-                        <Bar dataKey="count" name="Push Sent" fill="#1a237e" radius={[3, 3, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
-
-              {data.totalPushSent === 0 && (
-                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-                  <Bell className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No push notifications sent in this date range.</p>
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                 </div>
-              )}
+              ) : data ? (
+                <>
+                  {/* Total Push Sent */}
+                  <Card className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white">
+                    <CardContent className="p-5 flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <Bell className="h-7 w-7 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-blue-200 text-sm">Total Push Notifications Sent</p>
+                        <p className="text-4xl font-bold">{data.totalPushSent.toLocaleString()}</p>
+                        <p className="text-blue-200 text-xs mt-1">
+                          {queryDates.startDate} → {queryDates.endDate}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Breakdown by Type */}
+                  {pushByTypeEntries.length > 0 && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <BarChart3 className="h-4 w-4 text-[#1a237e]" />
+                          <h2 className="text-sm font-bold text-gray-800">Push Notifications by Type</h2>
+                        </div>
+                        <div className="space-y-3">
+                          {pushByTypeEntries.map(([type, count]) => {
+                            const pct = data.totalPushSent > 0 ? Math.round((count / data.totalPushSent) * 100) : 0;
+                            const colorClass = TYPE_COLORS[type] || 'bg-gray-100 text-gray-700';
+                            const label = TYPE_LABELS[type] || type;
+                            return (
+                              <div key={type}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorClass}`}>{label}</span>
+                                  <span className="text-sm font-bold text-gray-800">{count.toLocaleString()} <span className="text-gray-400 font-normal text-xs">({pct}%)</span></span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-2">
+                                  <div className="bg-[#1a237e] h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Daily Push Chart */}
+                  {dailyChartData.length > 1 && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Calendar className="h-4 w-4 text-[#1a237e]" />
+                          <h2 className="text-sm font-bold text-gray-800">Daily Push Trend</h2>
+                        </div>
+                        <ResponsiveContainer width="100%" height={200}>
+                          <BarChart data={dailyChartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                            <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => format(new Date(d), 'MMM d')} />
+                            <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                            <Tooltip labelFormatter={d => format(new Date(d), 'MMM d, yyyy')} />
+                            <Bar dataKey="count" name="Push Sent" fill="#1a237e" radius={[3, 3, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {data.totalPushSent === 0 && (
+                    <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+                      <Bell className="h-10 w-10 text-gray-200 mx-auto mb-3" />
+                      <p className="text-gray-500 text-sm">No push notifications sent in this date range.</p>
+                    </div>
+                  )}
+                </>
+              ) : null}
             </>
-          ) : null}
+          )}
+
+          {tab === 'health' && (
+            <PushHealthDashboard startDate={startDate} endDate={endDate} />
+          )}
         </div>
       </div>
     </LoginRequired>
