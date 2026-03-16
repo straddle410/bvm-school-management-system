@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate overall statistics and generate progress cards
+    // Calculate overall statistics and generate progress cards (one card per exam type per student)
     const progressCards = [];
     const uniqueStudents = new Map();
 
@@ -237,59 +237,14 @@ Deno.serve(async (req) => {
       if (uniqueStudents.has(studentKey)) continue; // Skip duplicate student entries
       uniqueStudents.set(studentKey, true);
 
-      const examPerformance = [];
-      let totalMarksObtained = 0;
-      let totalPossibleMarks = 0;
-
-      Object.values(student.exams).forEach(examData => {
-        const examKey = `${examData.exam_type}__${examData.class_name}__${examData.section}`;
-        const rankData = examRanks[examKey]?.find(r => r.student_id === student.student_id);
-        const percentage = examData.max_marks > 0 ? (examData.total_marks / examData.max_marks) * 100 : 0;
-        const grade = calculateGrade(percentage);
-
-        examPerformance.push({
-          exam_type: examData.exam_type,
-          exam_name: examTypeMap[examData.exam_type] || examData.exam_type,
-          total_marks: examData.total_marks,
-          max_marks: examData.max_marks,
-          percentage: Math.round(percentage * 100) / 100,
-          rank: rankData?.rank || 0,
-          grade: grade,
-          subject_details: examData.subjects.map(({ subject, marks_obtained, max_marks, grade, teacher_remarks }) => ({
-            subject, marks_obtained, max_marks, grade, teacher_remarks
-          }))
-        });
-
-        totalMarksObtained += examData.total_marks;
-        totalPossibleMarks += examData.max_marks;
-      });
-
-      const overallPercentage = totalPossibleMarks > 0 ? (totalMarksObtained / totalPossibleMarks) * 100 : 0;
-      const overallGrade = calculateGrade(overallPercentage);
-
-      // Use global attendance range - fall back to student's actual attendance range if needed
-      let attendanceStartDate = globalAttendanceStartDate;
-      let attendanceEndDate = globalAttendanceEndDate;
-
-      // Fetch attendance records for this student
+      // Fetch attendance records for this student (once per student, not per exam)
       const studentAttendance = await base44.asServiceRole.entities.Attendance.filter({
         student_id: student.student_id,
         class_name: student.class_name,
         section: student.section
       });
 
-      // If no exam type range found, determine from student's actual attendance
-      if (!attendanceStartDate || !attendanceEndDate) {
-        if (studentAttendance.length > 0) {
-          const dates = studentAttendance
-            .map(a => new Date(a.date))
-            .sort((a, b) => a - b);
-          attendanceStartDate = dates[0].toISOString().split('T')[0];
-          attendanceEndDate = dates[dates.length - 1].toISOString().split('T')[0];
-        }
-      }
-
-      // ── SHARED ATTENDANCE CALCULATION (Set-based deduplication - identical to attendance summary module) ──
+      // Calculate attendance summary once (shared for all exam types)
       const calcAttendanceForRange = (records, startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -393,63 +348,70 @@ Deno.serve(async (req) => {
 
       // Calculate attendance summary
        let attendanceSummary = null;
-       console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${attendanceStartDate}, endDate: ${attendanceEndDate}, records: ${studentAttendance.length}`);
-       if (attendanceStartDate && attendanceEndDate && studentAttendance.length > 0) {
+       console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, records: ${studentAttendance.length}`);
+       if (globalAttendanceStartDate && globalAttendanceEndDate && studentAttendance.length > 0) {
          const studentRecordsInRange = studentAttendance.filter(a => {
            const attDate = new Date(a.date);
            attDate.setUTCHours(0, 0, 0, 0);
-           const rangeStart = new Date(attendanceStartDate);
-           const rangeEnd = new Date(attendanceEndDate);
+           const rangeStart = new Date(globalAttendanceStartDate);
+           const rangeEnd = new Date(globalAttendanceEndDate);
            rangeStart.setUTCHours(0, 0, 0, 0);
            rangeEnd.setUTCHours(23, 59, 59, 999);
            return attDate >= rangeStart && attDate <= rangeEnd;
          });
 
          if (studentRecordsInRange.length > 0) {
-           const rangeResult = calcAttendanceForRange(studentAttendance, attendanceStartDate, attendanceEndDate);
+           const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
            attendanceSummary = {
-             range_start: attendanceStartDate,
-             range_end: attendanceEndDate,
+             range_start: globalAttendanceStartDate,
+             range_end: globalAttendanceEndDate,
              ...rangeResult
            };
            console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
          } else {
-           console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) has no attendance in range ${attendanceStartDate} to ${attendanceEndDate} - card generated without attendance data`);
+           console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) has no attendance in range ${globalAttendanceStartDate} to ${globalAttendanceEndDate} - card generated without attendance data`);
          }
          } else {
          console.warn(`[SKIP-ATTENDANCE] Missing attendance range or records for ${student.student_name} - card generated without attendance data`);
          }
 
-      // Calculate overall rank (per class/section)
-      const classStudents = Object.values(studentData).filter(s => 
-        s.class_name === student.class_name && s.section === student.section
-      );
-      const classRankings = classStudents.map(s => {
-        let total = 0;
-        Object.values(s.exams).forEach(e => (total += e.total_marks));
-        return { student_id: s.student_id, total };
-      }).sort((a, b) => b.total - a.total);
+      // Generate ONE card per exam type for this student
+      Object.values(student.exams).forEach(examData => {
+        const examKey = `${examData.exam_type}__${examData.class_name}__${examData.section}`;
+        const rankData = examRanks[examKey]?.find(r => r.student_id === student.student_id);
+        const percentage = examData.max_marks > 0 ? (examData.total_marks / examData.max_marks) * 100 : 0;
+        const grade = calculateGrade(percentage);
 
-      const overallRank = classRankings.findIndex(s => s.student_id === student.student_id) + 1;
-
-      progressCards.push({
-        student_id: student.student_id,
-        student_name: student.student_name,
-        class_name: student.class_name,
-        section: student.section,
-        roll_number: student.roll_number,
-        academic_year: academicYear,
-        exam_performance: examPerformance,
-        overall_stats: {
-          total_marks_obtained: Math.round(totalMarksObtained * 100) / 100,
-          total_possible_marks: totalPossibleMarks,
-          overall_percentage: Math.round(overallPercentage * 100) / 100,
-          overall_rank: overallRank,
-          overall_grade: overallGrade
-        },
-        attendance_summary: attendanceSummary && Object.keys(attendanceSummary).length > 0 ? attendanceSummary : null,
-        generated_at: new Date().toISOString(),
-        status: 'Generated'
+        progressCards.push({
+          student_id: student.student_id,
+          student_name: student.student_name,
+          class_name: student.class_name,
+          section: student.section,
+          roll_number: student.roll_number,
+          academic_year: academicYear,
+          exam_performance: [{
+            exam_type: examData.exam_type,
+            exam_name: examTypeMap[examData.exam_type] || examData.exam_type,
+            total_marks: examData.total_marks,
+            max_marks: examData.max_marks,
+            percentage: Math.round(percentage * 100) / 100,
+            rank: rankData?.rank || 0,
+            grade: grade,
+            subject_details: examData.subjects.map(({ subject, marks_obtained, max_marks, grade, teacher_remarks }) => ({
+              subject, marks_obtained, max_marks, grade, teacher_remarks
+            }))
+          }],
+          overall_stats: {
+            total_marks_obtained: Math.round(examData.total_marks * 100) / 100,
+            total_possible_marks: examData.max_marks,
+            overall_percentage: Math.round(percentage * 100) / 100,
+            overall_rank: rankData?.rank || 0,
+            overall_grade: grade
+          },
+          attendance_summary: attendanceSummary && Object.keys(attendanceSummary).length > 0 ? attendanceSummary : null,
+          generated_at: new Date().toISOString(),
+          status: 'Generated'
+        });
       });
     } // end for loop
 
