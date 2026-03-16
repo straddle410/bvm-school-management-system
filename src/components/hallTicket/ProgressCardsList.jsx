@@ -104,6 +104,30 @@ export default function ProgressCardsList() {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const cardsToDelete = progressCards.filter(c => selectedCards.has(c.id));
+      for (const card of cardsToDelete) {
+        await base44.entities.ProgressCard.delete(card.id);
+      }
+      return cardsToDelete.length;
+    },
+    onSuccess: (count) => {
+      refetch();
+      toast.success(`Deleted ${count} progress cards`);
+      setSelectedCards(new Set());
+    },
+    onError: (error) => {
+      toast.error('Failed to delete progress cards');
+    }
+  });
+
+  const handleDeleteSelected = () => {
+    const count = selectedCards.size;
+    if (!window.confirm(`Delete ${count} progress card(s)? This cannot be undone.`)) return;
+    deleteMutation.mutate();
+  };
+
   const handlePrintSelected = () => {
     const cardsToPrint = progressCards.filter(c => selectedCards.has(c.id));
     if (cardsToPrint.length === 0) {
