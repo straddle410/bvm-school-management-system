@@ -308,6 +308,11 @@ export default function ProgressCardsList() {
                         <p className="text-sm text-gray-600">
                           Class {card.class_name} - Section {card.section} | Roll: {card.roll_number}
                         </p>
+                        {card.exam_performance?.[0]?.exam_name && (
+                          <p className="text-xs text-blue-600 font-medium mt-1">
+                            Exam: {card.exam_performance[0].exam_name}
+                          </p>
+                        )}
                         <div className="mt-2 flex gap-4 text-sm">
                           <span className="text-gray-600">
                             Overall: <span className="font-semibold text-blue-600">{card.overall_stats?.overall_percentage?.toFixed(2) || 0}%</span>
