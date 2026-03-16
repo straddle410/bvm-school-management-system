@@ -49,6 +49,8 @@ export default function DefaultersReportPage() {
   const [sendingReminders, setSendingReminders] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState(null);
+  const [reminderResult, setReminderResult] = useState(null);
+  const [lastSendAllowDuplicate, setLastSendAllowDuplicate] = useState(false);
 
   useEffect(() => {
     const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
@@ -191,7 +193,7 @@ export default function DefaultersReportPage() {
     }
   };
 
-  const handleSendReminder = async () => {
+  const handleSendReminder = async (allowDuplicate = false) => {
     setSendingReminders(true);
     try {
       // Get staff session for sender info
@@ -212,24 +214,32 @@ export default function DefaultersReportPage() {
         selectedStudents: studentsData,
         academic_year: academicYear,
         sender_id: staffSession.username || 'admin',
-        sender_name: staffSession.name || 'Admin'
+        sender_name: staffSession.name || 'Admin',
+        allowDuplicate: allowDuplicate
       });
       
       const result = res.data;
+      setReminderResult(result);
+      setLastSendAllowDuplicate(allowDuplicate);
       
-      // Success toast
+      // If there are skipped reminders and this was the first attempt, show the warning
+      if (result.skipped_count > 0 && !allowDuplicate) {
+        // Result will be shown in the modal
+        return;
+      }
+      
+      // Success path
       if (result.success_count > 0) {
         toast.success(`Reminders sent to ${result.success_count} students`);
       }
       
-      // Warning toast for students without push token
-      const noTokenCount = studentsData.length - result.success_count;
-      if (noTokenCount > 0) {
-        toast.warning(`${noTokenCount} students have no app installed`);
+      if (result.failed_count > 0) {
+        toast.warning(`${result.failed_count} reminders failed to send`);
       }
       
       setSelectedStudents([]);
       setIsReminderModalOpen(false);
+      setReminderResult(null);
     } catch (error) {
       toast.error('Failed to send reminders: ' + error.message);
     } finally {
