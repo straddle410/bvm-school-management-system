@@ -52,6 +52,26 @@ export default function StudentFees() {
     enabled: !!session?.student_id,
   });
 
+  // Auto-open receipt from notification deep-link
+  useEffect(() => {
+    if (autoOpenDone || allPayments.length === 0 || invoices.length === 0) return;
+    const params = new URLSearchParams(location.search);
+    const receiptNo = params.get('receiptNo');
+    console.log('[StudentFees] Notification receiptNo:', receiptNo);
+    if (!receiptNo) return;
+
+    const receipt = allPayments.find(p => p.receipt_no === receiptNo);
+    console.log('[StudentFees] Receipt found:', receipt);
+
+    if (receipt) {
+      const invoice = invoices.find(inv => inv.id === receipt.invoice_id);
+      if (invoice) {
+        setAutoOpenDone(true);
+        handleViewReceipt(invoice, receipt);
+      }
+    }
+  }, [allPayments, invoices, location.search, autoOpenDone]);
+
   const handleViewReceipt = (invoice, payment = null) => {
     setSelectedInvoice(invoice);
     setSelectedPayment(payment);
