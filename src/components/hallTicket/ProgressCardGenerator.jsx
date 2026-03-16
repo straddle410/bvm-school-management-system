@@ -79,13 +79,24 @@ export default function ProgressCardGenerator() {
     }
   });
 
+  const cleanupMutation = useMutation({
+    mutationFn: async () => {
+      return await base44.functions.invoke('cleanupProgressCards', {
+        academicYear,
+        classNameFilter: filters.class,
+        sectionFilter: filters.section,
+        examTypeIdOrName: filters.exam_type
+      });
+    }
+  });
+
   const generateMutation = useMutation({
     mutationFn: async () => {
       const response = await base44.functions.invoke('generateProgressCards', {
         academicYear,
-        classNameFilter: filters.class || null,
-        sectionFilter: filters.section || null,
-        examTypeIdOrName: filters.exam_type || null
+        classNameFilter: filters.class,
+        sectionFilter: filters.section,
+        examTypeIdOrName: filters.exam_type
       });
       return response.data;
     },
@@ -99,7 +110,10 @@ export default function ProgressCardGenerator() {
     }
   });
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    // First cleanup all existing cards
+    await cleanupMutation.mutateAsync();
+    // Then generate fresh ones
     generateMutation.mutate();
   };
 
