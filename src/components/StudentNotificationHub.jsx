@@ -77,12 +77,17 @@ export default function StudentNotificationHub({ studentSession }) {
 
       if (!prefs.notifications_enabled) return;
 
-      // ── 1. Notification entity (covers diary, notices, marks, hall tickets, homework, timetable, class_message) ──
+      // ── 1. Notification entity (covers diary, notices, hall tickets, homework, timetable, class_message) ──
+      // NOTE: marks_published notifications are ignored here — exam-level notifications
+      // are now sent via Message entities by sendExamMarksPublishedNotification.
       unsubscribers.push(
         base44.entities.Notification.subscribe((event) => {
           if (event.type !== 'create') return;
           const n = event.data;
           if (!n || n.recipient_student_id !== studentSession.student_id) return;
+
+          // Ignore per-subject marks notifications — handled by exam-level Message notifications
+          if (n.type === 'marks_published') return;
 
           const dedupeKey = `notif-${n.id}`;
           if (seenRef.current.has(dedupeKey)) return;

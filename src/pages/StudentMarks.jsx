@@ -21,6 +21,16 @@ export default function StudentMarks() {
     if (!session) navigate(createPageUrl('StudentLogin'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-select exam type from URL query param (deep link from push notification)
+  useEffect(() => {
+    if (!distinctExamTypes.length) return;
+    const examTypeFromUrl = new URLSearchParams(window.location.search).get('examType');
+    if (!examTypeFromUrl || selectedExamType) return;
+    // Match by name (URL contains exam type name, not ID)
+    const match = distinctExamTypes.find(t => t.name === examTypeFromUrl);
+    if (match) setSelectedExamType(match.id);
+  }, [distinctExamTypes]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Mark marks_published notifications as read on page open
   useEffect(() => {
     if (!session?.student_id) return;

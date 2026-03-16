@@ -121,6 +121,27 @@ Deno.serve(async (req) => {
     ));
     console.log('[publishMarksWithValidation] Update completed for', marksIds.length, 'marks');
 
+    // Check if all marks for this examType are now published → trigger exam-level notification
+    try {
+      const remainingUnpublished = await base44.asServiceRole.entities.Marks.filter({
+        exam_type: examType,
+        class_name: className,
+        academic_year: academicYear,
+        ...(section ? { section } : {})
+      });
+      const stillPending = remainingUnpublished.filter(m => m.status !== 'Published');
+      if (stillPending.length === 0) {
+        console.log('[publishMarksWithValidation] All marks published for examType:', examType, '— updating ExamType.results_published');
+        await base44.asServiceRole.entities.ExamType.update(examType, { results_published: true });
+        console.log('[publishMarksWithValidation] ExamType.results_published set to true for:', examType);
+      } else {
+        console.log('[publishMarksWithValidation] Still', stillPending.length, 'unpublished marks — not setting results_published yet');
+      }
+    } catch (notifErr) {
+      // Non-fatal: don't fail the publish operation if notification trigger fails
+      console.error('[publishMarksWithValidation] Error updating ExamType.results_published:', notifErr.message);
+    }
+
     const response = {
       success: true,
       message: `Published ${marksIds.length} marks for ${className}${section ? ' ' + section : ''} (${examType}, ${academicYear})`,
