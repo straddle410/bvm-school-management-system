@@ -13,6 +13,7 @@ import HolidayStatusDisplay from '@/components/HolidayStatusDisplay';
 import HolidayOverrideToggle from '@/components/HolidayOverrideToggle';
 import HalfDayModal from '@/components/attendance/HalfDayModal';
 import DailySnapshotTab from '@/components/attendance/DailySnapshotTab';
+import AbsentNotificationTab from '@/components/attendance/AbsentNotificationTab';
 import FilterSection from '@/components/attendanceSummary/FilterSection';
 import SummaryCards from '@/components/attendanceSummary/SummaryCards';
 import ReportTable from '@/components/attendanceSummary/ReportTable';
