@@ -415,37 +415,40 @@ Deno.serve(async (req) => {
       });
     } // end for loop
 
-    // Delete existing cards for this class/section/exam_type to prevent duplicates
-    const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
-      academic_year: academicYear,
-      class_name: classNameFilter,
-      section: sectionFilter
+    // DELETE ALL EXISTING CARDS for this class/section/exam_type combination
+    const allExistingCards = await base44.asServiceRole.entities.ProgressCard.filter({
+     academic_year: academicYear,
+     class_name: normalizeClassName(classNameFilter),
+     section: sectionFilter
     });
 
+    // Find the exam type ID for the selected exam
+    const selectedExamTypeRecord = examTypeRecords.find(et => et.id === examTypeIdOrName || et.name === examTypeIdOrName);
+    const selectedExamTypeId = selectedExamTypeRecord?.id;
+
     let deletedCount = 0;
-    for (const card of existingCards) {
-      const cardExamType = card.exam_performance?.[0]?.exam_type;
-      // Delete only cards for the selected exam type
-      const selectedExamTypeId = examTypeRecords.find(et => et.id === (examTypeIdOrName || et.id))?.id;
-      if (cardExamType === selectedExamTypeId || cardExamType === examTypeIdOrName) {
-        try {
-          await base44.asServiceRole.entities.ProgressCard.delete(card.id);
-          deletedCount++;
-        } catch (error) {
-          console.warn(`Failed to delete duplicate card ${card.id}: ${error.message}`);
-        }
-      }
+    for (const card of allExistingCards) {
+     const cardExamType = card.exam_performance?.[0]?.exam_type;
+     // Delete ALL cards matching this exam type (prevents any duplicates)
+     if (cardExamType === selectedExamTypeId || cardExamType === examTypeIdOrName) {
+       try {
+         await base44.asServiceRole.entities.ProgressCard.delete(card.id);
+         deletedCount++;
+       } catch (error) {
+         console.warn(`Failed to delete card ${card.id}: ${error.message}`);
+       }
+     }
     }
 
-    // Bulk create progress cards
+    // Bulk create FRESH progress cards (no duplicates possible now)
     if (progressCards.length > 0) {
-      await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
+     await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
     }
 
     return Response.json({
-      message: `Generated progress cards for ${progressCards.length} students (${deletedCount} duplicates deleted)`,
-      cardsGenerated: progressCards.length,
-      duplicatesDeleted: deletedCount
+     message: `Deleted ${deletedCount} old cards. Generated ${progressCards.length} fresh progress cards for Class ${classNameFilter}, Section ${sectionFilter}, Exam Type ${selectedExamTypeRecord?.name || examTypeIdOrName}`,
+     cardsGenerated: progressCards.length,
+     deletedCount: deletedCount
     });
   } catch (error) {
     console.error('Progress card generation error:', error);
