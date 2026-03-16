@@ -1,61 +1,104 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import webpush from 'npm:web-push@3.6.7';
 
 const VAPID_PUBLIC_KEY = 'BEu90Ej8bFj1i1EVc5UzpZwIqXBfAl30wfVW7zqHRqaXGvBH1NZSKMJJjFRUBk-25YyJPcW2vJMGm7YzYMZ6q6I';
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || '';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin only' }, { status: 403 });
+    const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
+    if (!VAPID_PRIVATE_KEY) {
+      return Response.json({ error: 'VAPID_PRIVATE_KEY not configured' }, { status: 500 });
     }
 
-    // Get preference with token
-    const prefs = await base44.asServiceRole.entities.NotificationPreference.filter({
-      user_email: user.email
-    });
+    webpush.setVapidDetails('mailto:admin@school.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
-    if (!prefs.length || !prefs[0].browser_push_token) {
+    const base44 = createClientFromRequest(req);
+    const { student_id } = await req.json();
+
+    let subscription = null;
+    let targetLabel = '';
+
+    if (student_id) {
+      // Send to a specific student
+      const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ student_id });
+      const pref = prefs[0];
+      console.log('[TestPush] Student pref found:', !!pref, 'token:', !!pref?.browser_push_token, 'enabled:', pref?.browser_push_enabled);
+
+      if (!pref?.browser_push_token) {
+        return Response.json({
+          success: false,
+          error: 'No push token found for student. Student must enable push notifications first.',
+          debug: { student_id, pref_found: !!pref, token_present: false }
+        }, { status: 400 });
+      }
+
+      try {
+        subscription = JSON.parse(pref.browser_push_token);
+        targetLabel = `student:${student_id}`;
+      } catch {
+        return Response.json({ success: false, error: 'Stored token is not valid JSON. Student must re-enable push notifications.' }, { status: 400 });
+      }
+    } else {
+      // Send to the calling admin user
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: 'Not authenticated' }, { status: 401 });
+
+      const prefs = await base44.asServiceRole.entities.NotificationPreference.filter({ user_email: user.email });
+      const pref = prefs[0];
+      console.log('[TestPush] Staff pref found:', !!pref, 'token:', !!pref?.browser_push_token);
+
+      if (!pref?.browser_push_token) {
+        return Response.json({ success: false, error: 'No push token for your account. Enable push notifications first.' }, { status: 400 });
+      }
+
+      try {
+        subscription = JSON.parse(pref.browser_push_token);
+        targetLabel = `staff:${user.email}`;
+      } catch {
+        return Response.json({ success: false, error: 'Stored token is not valid JSON. Re-enable push notifications.' }, { status: 400 });
+      }
+    }
+
+    // Validate subscription has required fields
+    if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
+      console.error('[TestPush] Invalid subscription object:', JSON.stringify(subscription));
       return Response.json({
         success: false,
-        message: 'Push notifications not enabled or token missing',
-        preferenceId: prefs[0]?.id
+        error: 'Subscription missing required fields (endpoint/keys.p256dh/keys.auth). Re-enable push notifications.',
+        debug: {
+          has_endpoint: !!subscription.endpoint,
+          has_p256dh: !!subscription.keys?.p256dh,
+          has_auth: !!subscription.keys?.auth,
+          endpoint_preview: subscription.endpoint?.substring(0, 60)
+        }
       }, { status: 400 });
     }
 
-    const subscription = JSON.parse(prefs[0].browser_push_token);
+    console.log('[TestPush] Sending to:', targetLabel, 'endpoint:', subscription.endpoint.substring(0, 60) + '...');
 
-    // Send push via Web Push API
     const payload = JSON.stringify({
-      title: 'Test Notification',
-      message: 'This is your test push notification!'
+      title: '🔔 Test Notification',
+      body: `Push notifications are working! Sent to ${targetLabel} at ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}`,
+      icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
+      tag: 'test-push',
+      click_action: '/',
     });
 
-    const response = await fetch('https://fcm.googleapis.com/fcm/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `key=${Deno.env.get('FCM_SERVER_KEY') || ''}`
-      },
-      body: JSON.stringify({
-        to: subscription.endpoint,
-        notification: {
-          title: 'Test Notification',
-          body: 'This is your test push notification!',
-          icon: '/icon-192x192.png'
-        }
-      })
+    await webpush.sendNotification(subscription, payload);
+    console.log('[TestPush] ✅ Sent successfully to:', targetLabel);
+
+    return Response.json({
+      success: true,
+      message: `Test push sent to ${targetLabel}`,
+      endpoint_preview: subscription.endpoint.substring(0, 60) + '...',
     });
 
-    if (!response.ok) {
-      throw new Error(`FCM error: ${response.status}`);
-    }
-
-    return Response.json({ success: true, message: 'Push notification sent' });
   } catch (error) {
-    console.error('Push notification error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[TestPush] Error:', error.message, 'statusCode:', error.statusCode);
+    return Response.json({
+      success: false,
+      error: error.message,
+      statusCode: error.statusCode,
+    }, { status: 500 });
   }
 });
