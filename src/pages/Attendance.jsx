@@ -1140,6 +1140,12 @@ export default function Attendance() {
               </TabsContent>
             )}
 
+            {isAdmin && (
+              <TabsContent value="absent-notif">
+                <AbsentNotificationTab academicYear={academicYear} user={user} />
+              </TabsContent>
+            )}
+
             {/* Block roles landing on tabs they cannot access via state or bookmark */}
             {!isAdmin && activeTab === 'holidays' && (
               <TabsContent value="holidays">
