@@ -311,7 +311,7 @@ export default function PushNotificationManager({ studentId }) {
             applicationServerKey
           });
 
-          const token = subscription.endpoint;
+          const token = JSON.stringify(subscription.toJSON());
           console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
 
           if (token) {
