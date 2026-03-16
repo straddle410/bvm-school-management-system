@@ -19,12 +19,19 @@ export default function StudentMessaging() {
   const [showCompose, setShowCompose] = useState(false);
   const [selectedThread, setSelectedThread] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
+  const [pendingMessageId, setPendingMessageId] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
      const session = getStudentSession();
      if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
      setStudent(session);
+
+     // Check for deep-link messageId from push notification
+     const urlParams = new URLSearchParams(window.location.search);
+     const messageId = urlParams.get('messageId');
+     if (messageId) setPendingMessageId(messageId);
+
      // Mark class_message notifications as read on page open
      if (session?.student_id) {
        base44.entities.Notification.filter({
