@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
           student_ids: [studentId],
           title,
-          message: body,
+          message: msgBody,
           url: notificationUrl,
         });
       } catch (pushErr) {
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
           recipient_id: studentId,
           recipient_name: student.name,
           subject: title,
-          body,
+          body: msgBody,
           is_read: false,
           academic_year: academicYear,
           context_type: 'marks_publish',
