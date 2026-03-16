@@ -155,13 +155,15 @@ export default function PushNotificationManager({ studentId }) {
        return;
      }
 
-     // Register service worker from backend function
+     // Register service worker — same-origin URL required for Android PWA
      if ('serviceWorker' in navigator) {
-       console.log('[ServiceWorker] Registering service worker...');
        try {
-         const swUrl = '/api/functions/firebaseMessagingServiceWorker';
-         const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
-         console.log('[ServiceWorker] Registered successfully:', registration);
+         await navigator.serviceWorker.register(
+           '/api/functions/firebaseMessagingServiceWorker',
+           { scope: '/' }
+         );
+         await navigator.serviceWorker.ready;
+         console.log('[ServiceWorker] Registered successfully');
        } catch (error) {
          console.error('[ServiceWorker] Registration failed:', error);
        }
