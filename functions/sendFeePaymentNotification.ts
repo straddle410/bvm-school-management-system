@@ -50,6 +50,21 @@ Deno.serve(async (req) => {
     const receiptUrl = `/StudentDashboard?openFees=1&receiptNo=${receiptNo}`;
     const academicYear = payment.academic_year || student.academic_year || '2024-25';
 
+    // Send push via centralized function first, track success
+    let isPushSent = false;
+    try {
+      await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+        student_ids: [student.student_id],
+        title: subject,
+        message: body,
+        receipt_no: receiptNo,
+      });
+      isPushSent = true;
+      console.log('[sendFeePaymentNotification] Push sent for student:', student.student_id);
+    } catch (pushErr) {
+      console.warn('[sendFeePaymentNotification] Push failed (non-fatal):', pushErr.message);
+    }
+
     // Create Message entity (serves as dedup record + in-app notification)
     await base44.asServiceRole.entities.Message.create({
       sender_id: 'system',
@@ -64,20 +79,8 @@ Deno.serve(async (req) => {
       academic_year: academicYear,
       context_type: 'fee_payment',
       context_id: receiptNo,
+      is_push_sent: isPushSent,
     });
-
-    // Send push via centralized function
-    try {
-      await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-        student_ids: [student.student_id],
-        title: subject,
-        message: body,
-        receipt_no: receiptNo,
-      });
-      console.log('[sendFeePaymentNotification] Push sent for student:', student.student_id);
-    } catch (pushErr) {
-      console.warn('[sendFeePaymentNotification] Push failed (non-fatal):', pushErr.message);
-    }
 
     return Response.json({ success: true, receipt_no: receiptNo, student_id: student.student_id });
   } catch (error) {

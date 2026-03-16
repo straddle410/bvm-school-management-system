@@ -52,6 +52,8 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const willSendPush = notice.sendPushNotification === true;
+
         // Create Message entity (in-app notification + dedup record)
         await base44.asServiceRole.entities.Message.create({
           sender_id: 'system',
@@ -66,11 +68,12 @@ Deno.serve(async (req) => {
           academic_year: currentAcademicYear,
           context_type: 'notice_posted',
           context_id: contextId,
+          is_push_sent: willSendPush,
         });
 
         notified++;
 
-        if (notice.sendPushNotification === true) {
+        if (willSendPush) {
           pushStudentIds.push(student.student_id);
         }
       } catch (err) {

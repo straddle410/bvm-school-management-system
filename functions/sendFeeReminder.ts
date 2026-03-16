@@ -40,8 +40,9 @@ Deno.serve(async (req) => {
 
         const reminderMessage = `Dear ${student.parent_name || 'Parent'}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at the earliest.`;
 
-        // Create Message entity (dedup record + in-app notification)
-        const createdMessage = await base44.asServiceRole.entities.Message.create({
+        // Send push via centralized function first, track success
+        let isPushSent = false;
+        const tempMsg = await base44.asServiceRole.entities.Message.create({
           sender_id: sender_id,
           sender_name: sender_name,
           sender_role: 'admin',
@@ -54,20 +55,23 @@ Deno.serve(async (req) => {
           academic_year: academic_year,
           context_type: 'fee_reminder',
           context_id: contextId,
+          is_push_sent: false,
         });
 
-        // Send push via centralized function
         try {
           await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
             student_ids: [student.student_id],
             title: 'Fee Payment Reminder',
             message: `Fee of ₹${student.due_amount} is pending. Tap to view.`,
-            url: `/StudentMessaging?messageId=${createdMessage.id}`,
+            url: `/StudentMessaging?messageId=${tempMsg.id}`,
           });
+          isPushSent = true;
+          await base44.asServiceRole.entities.Message.update(tempMsg.id, { is_push_sent: true });
         } catch (pushError) {
           console.warn(`[sendFeeReminder] Push failed for ${student.student_id} (non-fatal):`, pushError.message);
         }
 
+        const createdMessage = tempMsg;
         results.success_count++;
         results.notified_students.push(student.student_name);
       } catch (error) {
