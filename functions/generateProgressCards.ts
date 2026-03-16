@@ -473,7 +473,14 @@ Deno.serve(async (req) => {
       const cardSectionMatch = !sectionFilter || card.section === sectionFilter;
 
       if (cardClassMatch && cardSectionMatch) {
-        await base44.asServiceRole.entities.ProgressCard.delete(card.id);
+        try {
+          await base44.asServiceRole.entities.ProgressCard.delete(card.id);
+        } catch (deleteError) {
+          // Silently ignore 404 errors (card already deleted)
+          if (deleteError.status !== 404) {
+            throw deleteError;
+          }
+        }
       }
     }
 
