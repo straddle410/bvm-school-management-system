@@ -245,6 +245,8 @@ export default function StudentDashboard() {
     };
   }, [student?.student_id]);
 
+  const totalUnread = Object.values(unreadCounts).reduce((s, v) => s + v, 0);
+
   const notifMap = {
     Diary: unreadCounts.Diary || 0,
     Quiz: unreadCounts.Quiz || 0,
