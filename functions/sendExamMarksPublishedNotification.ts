@@ -3,13 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
+    const payload = await req.json();
 
     // Support both direct invocation and entity automation payload
     let examTypeId, examTypeName, academicYear, applicableClasses;
-    if (body.event && body.data) {
+    if (payload.event && payload.data) {
       // Called from entity automation — extract from ExamType record
-      const examType = body.data;
+      const examType = payload.data;
       // Only proceed if results_published just became true
       if (!examType.results_published) {
         return Response.json({ skipped: true, reason: 'results_published is not true' });
@@ -20,10 +20,10 @@ Deno.serve(async (req) => {
       applicableClasses = examType.applicable_classes || [];
     } else {
       // Direct invocation
-      examTypeId = body.examTypeId;
-      examTypeName = body.examTypeName;
-      academicYear = body.academicYear;
-      applicableClasses = body.applicableClasses;
+      examTypeId = payload.examTypeId;
+      examTypeName = payload.examTypeName;
+      academicYear = payload.academicYear;
+      applicableClasses = payload.applicableClasses;
     }
 
     if (!examTypeId || !examTypeName || !academicYear) {
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     const notificationUrl = `/StudentMarks?examType=${encodeURIComponent(examTypeName)}`;
     const title = `${examTypeName} Marks Published`;
-    const body = `Your ${examTypeName} exam marks are published.`;
+    const msgBody = `Your ${examTypeName} exam marks are published.`;
 
     let sent = 0, skipped = 0, failed = 0;
 
