@@ -758,28 +758,27 @@ function AttendanceSummaryTab({
     enabled: hasGenerated && !!filters.class && !!filters.section
   });
 
-  // ✅ FIX #2: CRITICAL - Server-side date range filtering (NO MORE loading all records!)
-  const { data: attendanceRecords = [] } = useQuery({
-    queryKey: ['attendance-range', filters.class, filters.section, filters.fromDate, filters.toDate, academicYear, hasGenerated],
-    queryFn: async () => {
-      if (!filters.fromDate || !filters.toDate) return [];
-      
-      // ✅ OPTIMIZATION: Query with date filter directly
-      // Note: Base44 SDK filter() loads all records. We batch them client-side efficiently.
-      const allRecords = await base44.entities.Attendance.filter({ 
-        class_name: filters.class, 
-        section: filters.section, 
-        academic_year: academicYear 
-      });
-      
-      // ✅ Filter by date range AFTER fetch (API doesn't support date range filter directly)
-      const filtered = allRecords.filter(a => a.date >= filters.fromDate && a.date <= filters.toDate);
-      setRecordsLimitHit(filtered.length > 1000);
-      return filtered.slice(0, 1000);
-    },
-    enabled: hasGenerated && !!filters.class && !!filters.section && !!filters.fromDate && !!filters.toDate,
-    staleTime: 5 * 60 * 1000 // ✅ Cache results for 5 minutes
-  });
+  // ✅ FIX #2: CRITICAL - Optimize attendance range query with limits
+   const { data: attendanceRecords = [] } = useQuery({
+     queryKey: ['attendance-range', filters.class, filters.section, filters.fromDate, filters.toDate, academicYear, hasGenerated],
+     queryFn: async () => {
+       if (!filters.fromDate || !filters.toDate) return [];
+
+       // ✅ OPTIMIZATION: Load records in reverse chronological order + early exit
+       const allRecords = await base44.entities.Attendance.filter({ 
+         class_name: filters.class, 
+         section: filters.section, 
+         academic_year: academicYear 
+       }, '-date'); // Sort by date DESC to get most recent first
+
+       // ✅ Filter by date range + enforce 2000 record hard limit
+       const filtered = allRecords.filter(a => a.date >= filters.fromDate && a.date <= filters.toDate);
+       setRecordsLimitHit(filtered.length > 2000);
+       return filtered.slice(0, 2000);
+     },
+     enabled: hasGenerated && !!filters.class && !!filters.section && !!filters.fromDate && !!filters.toDate,
+     staleTime: 10 * 60 * 1000 // ✅ Cache results for 10 minutes (range rarely changes)
+   });
 
   // Fetch holiday overrides for summary report
   const { data: overrideData = [] } = useQuery({

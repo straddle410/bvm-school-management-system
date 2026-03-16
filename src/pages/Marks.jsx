@@ -114,8 +114,18 @@ export default function Marks() {
   }, [availableSections, selectedSection]);
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['students-published', academicYear],
-    queryFn: () => base44.entities.Student.filter({ status: 'Published', academic_year: academicYear, is_deleted: false }),
+    queryKey: ['students-published', academicYear, selectedClass],
+    queryFn: async () => {
+      // Only fetch students for selected class to reduce payload
+      if (!selectedClass) return [];
+      return base44.entities.Student.filter({ 
+        status: 'Published', 
+        academic_year: academicYear, 
+        class_name: selectedClass,
+        is_deleted: false 
+      });
+    },
+    enabled: !!academicYear && !!selectedClass,
     staleTime: 5 * 60 * 1000
   });
 
