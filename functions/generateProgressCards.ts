@@ -34,10 +34,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden', userRole: role, allowedRoles, email: user.email }, { status: 403 });
     }
 
-    const { academicYear, classNameFilter, sectionFilter } = await req.json();
+    const { academicYear, classNameFilter, sectionFilter, examTypeIdOrName } = await req.json();
 
-    if (!academicYear) {
-      return Response.json({ error: 'Academic year is required' }, { status: 400 });
+    if (!academicYear || !classNameFilter || !sectionFilter || !examTypeIdOrName) {
+      return Response.json({ error: 'Academic year, class, section, and exam type are required' }, { status: 400 });
     }
 
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
