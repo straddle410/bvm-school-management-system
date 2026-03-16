@@ -100,10 +100,6 @@ export default function ProgressCardGenerator() {
   });
 
   const handleGenerate = () => {
-    if (publishedMarkStats.students === 0) {
-      toast.error('No approved or published marks found. Please approve/publish marks first.');
-      return;
-    }
     if (window.confirm('Generate progress cards for selected criteria?')) {
       generateMutation.mutate();
     }
@@ -203,7 +199,7 @@ export default function ProgressCardGenerator() {
 
           <Button
             onClick={handleGenerate}
-            disabled={generateMutation.isPending || publishedMarkStats.students === 0}
+            disabled={generateMutation.isPending}
             className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
           >
             {generateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
