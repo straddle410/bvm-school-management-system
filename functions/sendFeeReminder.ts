@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
@@ -16,19 +16,18 @@ Deno.serve(async (req) => {
     const results = {
       success_count: 0,
       failed_count: 0,
-      notified_students: [] as string[],
-      errors: [] as string[]
+      notified_students: [],
+      errors: []
     };
+
+    // Collect student_ids for push notification batch
+    const studentIdsForPush = [];
 
     for (const student of selectedStudents) {
       try {
-        // STEP A: Fetch push token
-        const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ 
-          student_id: student.student_id 
-        });
-        const pushToken = prefs[0]?.browser_push_token;
+        const reminderMessage = `Dear ${student.parent_name}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at earliest.`;
 
-        // STEP B: Create Message record
+        // STEP A: Create Message record (existing behavior — unchanged)
         await base44.asServiceRole.entities.Message.create({
           sender_id: sender_id,
           sender_name: sender_name,
@@ -37,55 +36,33 @@ Deno.serve(async (req) => {
           recipient_id: student.student_id,
           recipient_name: student.student_name,
           subject: "Fee Payment Reminder",
-          body: `Dear ${student.parent_name}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at earliest.`,
+          body: reminderMessage,
           is_read: false,
           academic_year: academic_year
         });
 
-        // STEP C: Send FCM notification
-        if (pushToken) {
-          try {
-            const pushTokenObj = JSON.parse(pushToken);
-            
-            const fcmPayload = {
-              message: {
-                token: pushTokenObj.keys?.auth || pushToken,
-                notification: {
-                  title: "Fee Payment Reminder",
-                  body: `Fee pending for ${student.student_name}. Tap to view.`
-                },
-                data: {
-                  url: "/StudentMessaging",
-                  type: "fee_reminder"
-                }
-              }
-            };
-
-            const fcmResponse = await fetch(
-              `https://fcm.googleapis.com/v1/projects/${Deno.env.get('FCM_PROJECT_ID')}/messages:send`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${Deno.env.get('FCM_SERVER_KEY')}`
-                },
-                body: JSON.stringify(fcmPayload)
-              }
-            );
-
-            if (!fcmResponse.ok) {
-              console.warn(`FCM push failed for ${student.student_id}:`, await fcmResponse.text());
-            }
-          } catch (pushError) {
-            console.warn(`Push notification error for ${student.student_id}:`, pushError.message);
-          }
-        }
-
+        studentIdsForPush.push(student.student_id);
         results.success_count++;
         results.notified_students.push(student.student_name);
       } catch (error) {
         results.failed_count++;
         results.errors.push(`${student.student_name}: ${error.message}`);
+      }
+    }
+
+    // STEP B: Send push notifications via the existing working function
+    if (studentIdsForPush.length > 0) {
+      try {
+        await base44.functions.invoke('sendStudentPushNotification', {
+          student_ids: studentIdsForPush,
+          title: 'Fee Payment Reminder',
+          message: `You have a pending fee reminder. Please check the Fees section.`,
+          url: '/StudentFees',
+        });
+        console.log(`[sendFeeReminder] Push sent to ${studentIdsForPush.length} students`);
+      } catch (pushError) {
+        // Push failure should not fail the overall reminder send
+        console.warn('[sendFeeReminder] Push notification failed (non-fatal):', pushError.message);
       }
     }
 
