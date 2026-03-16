@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Eye, Download, Printer, CheckSquare2, Square } from 'lucide-react';
+import { Eye, Download, Printer, CheckSquare2, Square, Trash2 } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { toast } from 'sonner';
 import ProgressCardModal from './ProgressCardModal';
