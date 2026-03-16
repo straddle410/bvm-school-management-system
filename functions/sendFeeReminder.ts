@@ -20,15 +20,12 @@ Deno.serve(async (req) => {
       errors: []
     };
 
-    // Collect student_ids for push notification batch
-    const studentIdsForPush = [];
-
     for (const student of selectedStudents) {
       try {
         const reminderMessage = `Dear ${student.parent_name}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at earliest.`;
 
-        // STEP A: Create Message record (existing behavior — unchanged)
-        await base44.asServiceRole.entities.Message.create({
+        // STEP A: Create Message record and capture the created message ID
+        const createdMessage = await base44.asServiceRole.entities.Message.create({
           sender_id: sender_id,
           sender_name: sender_name,
           sender_role: "admin",
@@ -41,28 +38,25 @@ Deno.serve(async (req) => {
           academic_year: academic_year
         });
 
-        studentIdsForPush.push(student.student_id);
+        // STEP B: Send push notification with deep link to the exact message
+        const messageUrl = `/StudentMessaging?messageId=${createdMessage.id}`;
+        try {
+          await base44.functions.invoke('sendStudentPushNotification', {
+            student_ids: [student.student_id],
+            title: 'Fee Payment Reminder',
+            message: `Fee of ₹${student.due_amount} is pending. Tap to view.`,
+            url: messageUrl,
+          });
+        } catch (pushError) {
+          // Push failure is non-fatal — message was already created
+          console.warn(`[sendFeeReminder] Push failed for ${student.student_id} (non-fatal):`, pushError.message);
+        }
+
         results.success_count++;
         results.notified_students.push(student.student_name);
       } catch (error) {
         results.failed_count++;
         results.errors.push(`${student.student_name}: ${error.message}`);
-      }
-    }
-
-    // STEP B: Send push notifications via the existing working function
-    if (studentIdsForPush.length > 0) {
-      try {
-        await base44.functions.invoke('sendStudentPushNotification', {
-          student_ids: studentIdsForPush,
-          title: 'Fee Payment Reminder',
-          message: `You have a pending fee reminder. Please check the Fees section.`,
-          url: '/StudentFees',
-        });
-        console.log(`[sendFeeReminder] Push sent to ${studentIdsForPush.length} students`);
-      } catch (pushError) {
-        // Push failure should not fail the overall reminder send
-        console.warn('[sendFeeReminder] Push notification failed (non-fatal):', pushError.message);
       }
     }
 
