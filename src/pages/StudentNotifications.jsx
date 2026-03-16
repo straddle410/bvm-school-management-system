@@ -75,7 +75,7 @@ export default function StudentNotifications() {
   }, [student?.student_id]);
 
   // Merge notifications + messages into one unified feed
-  const feed = React.useMemo(() => {
+  const feed = useMemo(() => {
     const notifItems = notifications.map(n => ({
       id: `notif-${n.id}`,
       rawId: n.id,
