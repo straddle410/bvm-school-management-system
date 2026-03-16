@@ -45,8 +45,12 @@ Deno.serve(async (req) => {
 
     for (const sid of student_ids) {
       const pref = prefMap.get(sid);
-      if (!pref || !pref.browser_push_enabled || !pref.browser_push_token) {
-        console.log('[SendPush] No pref/token for student:', sid);
+      if (!pref || !pref.browser_push_token) {
+        console.warn('[SendPush] Push skipped: student has no registered device token', sid);
+        continue;
+      }
+      if (!pref.browser_push_enabled) {
+        console.warn('[SendPush] Push skipped: student has push disabled', sid);
         continue;
       }
 
