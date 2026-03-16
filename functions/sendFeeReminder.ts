@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { selectedStudents, academic_year, sender_id, sender_name } = await req.json();
+    const { selectedStudents, academic_year, sender_id, sender_name, allowDuplicate = false } = await req.json();
 
     if (!selectedStudents || !Array.isArray(selectedStudents) || selectedStudents.length === 0) {
       return Response.json({ error: 'selectedStudents array is required' }, { status: 400 });
@@ -27,13 +27,13 @@ Deno.serve(async (req) => {
       try {
         const contextId = `${student.student_id}_${academic_year}_${today}`;
 
-        // Deduplication check — skip if already sent today
+        // Deduplication check — skip if already sent today (unless allowDuplicate is true)
         const existing = await base44.asServiceRole.entities.Message.filter({
           context_type: 'fee_reminder',
           context_id: contextId,
         });
-        if (existing.length > 0) {
-          console.log(`[sendFeeReminder] Skipping duplicate for ${student.student_id} on ${today}`);
+        if (!allowDuplicate && existing.length > 0) {
+          console.log(`[sendFeeReminder] Skipping duplicate reminder for ${student.student_id}`);
           results.skipped_count++;
           continue;
         }
