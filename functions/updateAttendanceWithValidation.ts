@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
 
     // ── FORCE SUBMISSION FIELDS ──
     const now = new Date().toISOString();
-    console.log("FINAL SAVE DATA:", { marked_by: markedByFinal, user });
+    console.log("FINAL SAVE DATA:", { marked_by: markedByFinal });
     // Always derive marked_by from token — NEVER trust marked_by from frontend
     const { marked_by: _ignored, ...dataWithoutMarkedBy } = data;
     const savePayload = {
