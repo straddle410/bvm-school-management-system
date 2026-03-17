@@ -39,6 +39,7 @@ import { createPageUrl } from '@/utils';
 import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
+import ClassSubjectVerifier from '@/components/settings/ClassSubjectVerifier';
 import ClassSectionConfigTab from '@/components/settings/ClassSectionConfigTab';
 import DataResetTab from '@/components/settings/DataResetTab';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
@@ -794,7 +795,10 @@ export default function Settings() {
 
           {/* Class Subjects */}
           {activeItem === 'class-subjects' && (
-            <ClassSubjectConfigTab />
+            <div className="space-y-6">
+              <ClassSubjectVerifier />
+              <ClassSubjectConfigTab />
+            </div>
           )}
 
           {/* Class Sections */}
