@@ -391,8 +391,9 @@ export default function DailySnapshotTab() {
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{overallPct}%</span>
                       </td>
                       <td className="p-3"></td>
-                    </tr>
-                  </tbody>
+                      <td className="p-3"></td>
+                      </tr>
+                      </tbody>
                 </table>
               </div>
             </CardContent>
