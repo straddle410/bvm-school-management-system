@@ -195,20 +195,12 @@ function MarkAttendanceTab({
       if (!workingDate) throw new Error('Date is required');
       if (isPastAcademicYear(academicYear)) throw new Error('PAST_YEAR_WARNING');
       const session = getStaffSession();
-      
-      // ✅ OPTIMIZATION: Fetch ALL existing attendance records for this date/class/section in ONE call
-      const existingRecords = await base44.entities.Attendance.filter({
-        date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
-      });
-      const existingMap = Object.fromEntries(existingRecords.map(r => [r.student_id, r]));
-      
-      // ✅ Separate new vs existing in memory (no API calls for this)
-      const toCreate = [];
-      const toUpdate = [];
-      
-      filteredStudents.forEach(student => {
+      const staffToken = session?.staff_session_token || null;
+
+      // Call UPSERT function for each student — handles create/update + forces status=Submitted
+      const savePromises = filteredStudents.map(student => {
         const sid = student.student_id || student.id;
-        const existing = attendanceData[sid] || existingMap[sid];
+        const existing = attendanceData[sid];
         const attType = existing?.attendance_type || 'full_day';
         const data = {
           date: workingDate, class_name: selectedClass, section: selectedSection,
@@ -217,54 +209,18 @@ function MarkAttendanceTab({
           half_day_period: existing?.half_day_period || null,
           half_day_reason: existing?.half_day_reason || '',
           is_present: effectiveHoliday ? false : (attType !== 'absent'),
-          is_holiday: effectiveHoliday, holiday_reason: effectiveHoliday ? (holidayReason || 'Holiday') : '',
-          marked_by: user?.email, academic_year: academicYear,
-          status: effectiveHoliday ? 'Holiday' : 'Taken'
+          is_holiday: effectiveHoliday,
+          holiday_reason: effectiveHoliday ? (holidayReason || 'Holiday') : '',
+          academic_year: academicYear,
+          status: effectiveHoliday ? 'Holiday' : 'Submitted'
         };
-        
-        if (existingMap[sid]) {
-          toUpdate.push({ id: existingMap[sid].id, data });
-        } else {
-          toCreate.push(data);
-        }
+        return base44.functions.invoke('updateAttendanceWithValidation', {
+          data,
+          staff_session_token: staffToken
+        });
       });
-      
-      // ✅ Bulk operations: 1 bulkCreate + 1 bulk update
-       const results = [];
-       if (toCreate.length > 0) {
-         results.push(await base44.entities.Attendance.bulkCreate(toCreate));
-       }
-       if (toUpdate.length > 0) {
-         const updatePromises = toUpdate.map(({ id, data }) =>
-           base44.entities.Attendance.update(id, data)
-         );
-         results.push(await Promise.all(updatePromises));
-       }
 
-       // ── AUTO-LOCK RECORDS AFTER SAVE (ADMIN ONLY) ──
-       if (isAdmin && isRecordLocked) {
-         try {
-           const lockPromises = [];
-           if (toCreate.length > 0) {
-             const createdRecords = results[0] || [];
-             createdRecords.forEach(r => {
-               lockPromises.push(base44.entities.Attendance.update(r.id, { is_locked: true, locked_at: new Date().toISOString() }));
-             });
-           }
-           if (toUpdate.length > 0) {
-             toUpdate.forEach(({ id }) => {
-               lockPromises.push(base44.entities.Attendance.update(id, { is_locked: true, locked_at: new Date().toISOString() }));
-             });
-           }
-           if (lockPromises.length > 0) {
-             await Promise.all(lockPromises);
-           }
-         } catch (lockError) {
-           console.warn('Auto-lock after save failed:', lockError);
-         }
-       }
-
-       return results;
+      return await Promise.all(savePromises);
     },
     onSuccess: () => {
        queryClient.invalidateQueries(['attendance']);
