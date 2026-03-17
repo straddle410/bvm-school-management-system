@@ -105,6 +105,11 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     }, 0);
   };
 
+  // ✅ Filter students to show ONLY those with FeeInvoice records
+  const studentsWithInvoices = allStudents.filter(s =>
+    invoicesByStudent[s.student_id] && invoicesByStudent[s.student_id].length > 0
+  );
+
   // Calculate total outstanding for selected students
   const totalOutstanding = selectedIds.reduce((sum, sid) => sum + getOutstandingBalance(sid), 0);
 
