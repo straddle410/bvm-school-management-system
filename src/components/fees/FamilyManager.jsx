@@ -144,7 +144,7 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
         }
       }
 
-      const studentNames = allStudents
+      const studentNames = studentsWithInvoices
         .filter(s => selectedIds.includes(s.student_id))
         .map(s => s.name);
 
