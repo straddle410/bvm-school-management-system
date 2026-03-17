@@ -60,17 +60,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — valid staff_session_token required' }, { status: 401 });
     }
 
-    const staffName = user.name;
-    const staffCode = user.staff_code; // ONLY human-readable code, never DB id
-
-    let markedByFinal;
-    if (staffName && staffCode) {
-      markedByFinal = `${staffName} (${staffCode})`;
-    } else if (staffName) {
-      markedByFinal = staffName;
-    } else {
-      markedByFinal = "UNKNOWN";
+    if (!user.name) {
+      return Response.json({ error: 'Session expired. Please login again.' }, { status: 401 });
     }
+
+    const staffCode = user.staff_code;
+    const markedByFinal = staffCode ? `${user.name} (${staffCode})` : user.name;
 
     console.log("FINAL MARKED BY:", markedByFinal);
 
