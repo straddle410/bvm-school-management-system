@@ -37,7 +37,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { academicYear, examTypeId } = await req.json();
+    const body = await req.json();
+    const { academicYear, examTypeId, _staffToken } = body;
     console.log(`[generateProgressCardsForExamType] academicYear=${academicYear}, examTypeId=${examTypeId}`);
 
     if (!academicYear || !examTypeId) {
