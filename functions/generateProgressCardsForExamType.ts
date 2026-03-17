@@ -465,9 +465,10 @@ Deno.serve(async (req) => {
       attendanceRange: { start: attendanceRangeStart, end: attendanceRangeEnd }
     });
   } catch (error) {
-    console.error('Progress card generation error:', error);
+    console.error('[ERROR] Progress card generation failed:', error.message);
+    console.error('[STACK]', error.stack);
     return Response.json(
-      { error: error.message || 'Failed to generate progress cards' },
+      { error: error.message || 'Failed to generate progress cards', stack: error.stack },
       { status: 500 }
     );
   }
