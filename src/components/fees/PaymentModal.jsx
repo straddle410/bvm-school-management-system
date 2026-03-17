@@ -66,21 +66,15 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
        toast.success(message);
        setShowConfirmation(false);
 
-       // Trigger notification function
-       try {
-         await base44.functions.invoke('sendFeePaymentNotification', {
-           event: { type: 'create', entity_name: 'FeePayment', entity_id: data.payment_id },
-           data: data
-         });
-       } catch (err) {
-         console.warn('[Payment] Notification call failed:', err.message);
-       }
+       // Trigger notification async (fire-and-forget, don't await)
+       base44.functions.invoke('sendFeePaymentNotification', {
+         event: { type: 'create', entity_name: 'FeePayment', entity_id: data.payment_id },
+         data: data
+       }).catch(err => console.warn('[Payment] Notification call failed:', err.message));
 
        onClose();
-       // Navigate to print page with payment ID
-       setTimeout(() => {
-         navigate(`/PrintReceiptA5?paymentId=${data.payment_id}`);
-       }, 500);
+       // Navigate to print page immediately
+       navigate(`/PrintReceiptA5?paymentId=${data.payment_id}`);
     },
     onError: (e) => {
       console.error('[PaymentModal] Error:', e);
