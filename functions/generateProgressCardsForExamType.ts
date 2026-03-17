@@ -26,25 +26,19 @@ Deno.serve(async (req) => {
     const { academicYear, examTypeId, _staffToken } = body;
     console.log(`[generateProgressCardsForExamType] academicYear=${academicYear}, examTypeId=${examTypeId}`);
 
-    // Auth: accept Base44 token, Authorization header, or staff session token from body
-    let user = null;
-    try {
-      user = await base44.auth.me();
-    } catch {
-      user = null;
-    }
+    // Auth: this app uses custom staff sessions, NOT Base44 auth.
+    // Do NOT call base44.auth.me() — it throws "Authentication required to view users"
+    // because there is no Base44 JWT in requests from the published app.
+    // Instead, validate via staff token from body or Authorization header.
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+    const headerToken = authHeader.replace('Bearer ', '').trim();
+    const hasAuth = !!(headerToken || _staffToken);
 
-    if (!user) {
-      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
-      const headerToken = authHeader.replace('Bearer ', '').trim();
-      if (headerToken || _staffToken) {
-        user = { role: 'staff', email: 'staff' };
-      }
-    }
+    console.log(`[AUTH] headerToken=${!!headerToken}, _staffToken=${!!_staffToken}, hasAuth=${hasAuth}`);
 
-    if (!user) {
+    if (!hasAuth) {
       console.error('[ERROR] No valid auth found — returning 401');
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized — no staff token provided' }, { status: 401 });
     }
 
     if (!academicYear || !examTypeId) {
