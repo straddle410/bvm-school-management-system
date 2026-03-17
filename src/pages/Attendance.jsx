@@ -230,9 +230,9 @@ function MarkAttendanceTab({
       return results;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      refetchAttendance();
       toast.success('✅ ' + (effectiveHoliday ? 'Holiday marked successfully!' : 'Attendance saved successfully!'));
+      queryClient.invalidateQueries({ queryKey: ['attendance'] }).catch(() => {});
+      refetchAttendance().catch(() => {});
     },
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
