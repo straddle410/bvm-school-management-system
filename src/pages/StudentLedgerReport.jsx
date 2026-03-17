@@ -45,7 +45,7 @@ function StudentLedgerContent() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
-  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   // Student typeahead
@@ -366,7 +366,7 @@ function StudentLedgerContent() {
                              size="sm"
                              variant="ghost"
                              className="h-6 px-2 text-xs text-emerald-600 hover:bg-emerald-50"
-                             onClick={() => { setSelectedInvoice(row); setRecordPaymentOpen(true); }}
+                             onClick={() => { setSelectedInvoice(row); setShowPaymentModal(true); }}
                              title="Record payment for this invoice"
                            >
                              <CreditCard className="h-3.5 w-3.5 mr-1" />
@@ -402,12 +402,13 @@ function StudentLedgerContent() {
       />
 
       {/* Record Payment Modal */}
-      <RecordPaymentModal
-        isOpen={recordPaymentOpen}
-        onClose={() => setRecordPaymentOpen(false)}
-        selectedStudent={selectedStudent}
-        selectedInvoice={selectedInvoice}
-      />
+      {showPaymentModal && selectedInvoice && (
+        <RecordPaymentModal
+          selectedStudent={selectedStudent}
+          selectedInvoice={selectedInvoice}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </div>
   );
 }
