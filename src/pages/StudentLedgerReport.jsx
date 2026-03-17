@@ -97,13 +97,15 @@ function StudentLedgerContent() {
           staffInfo
         });
         return res.data;
-      } catch (err) {
-        if (err.response?.status === 403) return null;
-        throw err;
-      }
-    },
-    enabled: !!selectedStudent
-  });
+        } catch (err) {
+          if (err.response?.status === 403) return null;
+          throw err;
+        }
+        },
+        enabled: !!selectedStudent,
+        staleTime: 0,
+        gcTime: 0
+        });
 
   // Fetch invoices for drawer line items (via protected getStudentLedger, not direct entity)
   useEffect(() => {
