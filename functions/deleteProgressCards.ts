@@ -23,13 +23,31 @@ Deno.serve(async (req) => {
     let deletedCount = 0;
     const errors = [];
 
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     for (const id of cardIds) {
       try {
         await base44.asServiceRole.entities.ProgressCard.delete(id);
         deletedCount++;
+        await sleep(150); // avoid rate limiting
       } catch (error) {
-        errors.push({ id, error: error.message });
-        console.error(`Failed to delete card ${id}: ${error.message}`);
+        if (error.message?.includes('Rate limit')) {
+          // Wait longer and retry once
+          await sleep(1000);
+          try {
+            await base44.asServiceRole.entities.ProgressCard.delete(id);
+            deletedCount++;
+          } catch (retryError) {
+            errors.push({ id, error: retryError.message });
+            console.error(`Failed to delete card ${id} after retry: ${retryError.message}`);
+          }
+        } else if (error.message?.includes('not found')) {
+          // Already deleted — count as success
+          deletedCount++;
+        } else {
+          errors.push({ id, error: error.message });
+          console.error(`Failed to delete card ${id}: ${error.message}`);
+        }
       }
     }
 
