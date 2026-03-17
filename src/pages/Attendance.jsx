@@ -230,10 +230,9 @@ function MarkAttendanceTab({
       return results;
     },
     onSuccess: (data) => {
-      console.log('[saveMutation] onSuccess fired:', data);
-      toast.success('✅ ' + (effectiveHoliday ? 'Holiday marked successfully!' : 'Attendance saved successfully!'));
+      const message = '✅ ' + (effectiveHoliday ? 'Holiday marked successfully!' : 'Attendance saved successfully!');
+      toast.success(message);
       setTimeout(() => {
-        console.log('[saveMutation] Invalidating queries');
         queryClient.invalidateQueries({ queryKey: ['attendance'] });
         refetchAttendance();
       }, 500);
