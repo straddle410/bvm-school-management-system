@@ -11,7 +11,6 @@ import { createPageUrl } from '@/utils';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import VoidModal from './ReversalModal';
 import ReceiptPreviewModal from './ReceiptPreviewModal';
-import RecordPaymentModal from './RecordPaymentModal';
 
 const CLASSES = ['All', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
@@ -289,12 +288,6 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
         }}
         receiptData={receiptPreview}
         isLoading={isLoadingReceipt}
-      />
-
-      <RecordPaymentModal
-        isOpen={recordingNewPayment}
-        onClose={() => setRecordingNewPayment(false)}
-        academicYear={academicYear}
       />
     </div>
   );
