@@ -55,7 +55,13 @@ export default function ExamTypeProgressCardGenerator() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['progressCards'] });
-      toast.success(data.message || 'Progress cards generated successfully');
+      const generated = data.cardsGenerated ?? 0;
+      const skipped = data.skippedCount ?? 0;
+      const total = generated + skipped;
+      toast.success(
+        `${generated} cards generated, ${skipped} already existed, 0 duplicates created`,
+        { description: `Total students processed: ${total}`, duration: 6000 }
+      );
       setSelectedExamTypeId('');
     },
     onError: (error) => {
