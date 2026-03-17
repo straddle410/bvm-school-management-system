@@ -212,7 +212,7 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 page-transition" role="main">
+      <main className={`flex-1 overflow-y-auto pb-20 page-transition ${['Fees', 'Marks', 'Attendance', 'Approvals'].includes(currentPageName) ? 'no-pull-refresh' : ''}`} role="main">
         <StaffAuthGuard currentPageName={currentPageName}>
           <div className="animate-fade-in">
             {children}
