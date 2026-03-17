@@ -61,9 +61,18 @@ Deno.serve(async (req) => {
        subjectSortMap[s.name] = s.sort_order || 0;
      });
 
-     // Fetch published or approved marks with filters
+     // Resolve the selected exam type ID (could be passed as ID or name)
+     const allExamTypesForFilter = await base44.asServiceRole.entities.ExamType.filter({ academic_year: academicYear });
+     const selectedExamTypeRecord = allExamTypesForFilter.find(et => et.id === examTypeIdOrName || et.name === examTypeIdOrName);
+     if (!selectedExamTypeRecord) {
+       return Response.json({ error: `Exam type "${examTypeIdOrName}" not found for academic year ${academicYear}.` }, { status: 400 });
+     }
+     const selectedExamTypeId = selectedExamTypeRecord.id;
+
+     // Fetch published or approved marks with filters — strictly for the selected exam type
      const marksFilter = {
-       academic_year: academicYear
+       academic_year: academicYear,
+       exam_type: selectedExamTypeId
      };
      if (classNameFilter) marksFilter.class_name = normalizeClassName(classNameFilter);
      if (sectionFilter) marksFilter.section = sectionFilter;
