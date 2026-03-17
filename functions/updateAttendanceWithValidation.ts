@@ -55,7 +55,9 @@ Deno.serve(async (req) => {
     }
 
     const staff_email = user.email;
-    const staffName = user.email || user.name || user.username || user.staff_id || 'STAFF';
+    const staffName = user.name;
+    const staffCode = user.staff_code || user.staff_id;
+    const markedByLabel = staffCode ? `${staffName} (${staffCode})` : staffName;
 
     if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
