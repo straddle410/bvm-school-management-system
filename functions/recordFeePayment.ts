@@ -76,11 +76,33 @@ Deno.serve(async (req) => {
     }
     // ─────────────────────────────────────────────────────────────────────
 
-    // ── Fast Receipt Generation (no retry loop) ────────────────────
-    // Use timestamp-based receipt number for speed
-    const timestamp = Date.now();
-    const receiptNo = `RCP${String(timestamp).slice(-10)}`;
-    // Example: RCP1234567890
+    // ── Receipt Generation using FeeReceiptConfig ────────────────────
+    // Fetch config for this academic year
+    const configs = await base44.asServiceRole.entities.FeeReceiptConfig.filter({ academic_year: academicYear });
+    let config = configs?.[0];
+    
+    // Use defaults if no config exists
+    const prefix = config?.prefix || 'RCPT';
+    const padding = config?.padding || 4;
+    const nextNumber = config?.next_number || 1;
+    
+    const seq = String(nextNumber).padStart(padding, '0');
+    const receiptNo = `${prefix}/${academicYear}/${seq}`;
+    
+    // Increment next_number for next receipt
+    if (config) {
+      await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
+        next_number: nextNumber + 1
+      });
+    } else {
+      // Create config with next_number = 2 for next time
+      await base44.asServiceRole.entities.FeeReceiptConfig.create({
+        academic_year: academicYear,
+        prefix: prefix,
+        padding: padding,
+        next_number: 2
+      });
+    }
 
     // Determine entry type (default to CASH_PAYMENT)
     const finalEntryType = entryType || 'CASH_PAYMENT';
