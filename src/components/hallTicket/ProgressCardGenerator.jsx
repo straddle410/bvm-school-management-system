@@ -212,11 +212,11 @@ export default function ProgressCardGenerator() {
 
           <Button
             onClick={handleGenerate}
-            disabled={generateMutation.isPending || cleanupMutation.isPending || !filters.class || !filters.section || !filters.exam_type}
+            disabled={generateMutation.isPending || !filters.class || !filters.section || !filters.exam_type}
             className="w-full bg-blue-600 hover:bg-blue-700 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {(generateMutation.isPending || cleanupMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
-            {cleanupMutation.isPending ? 'Cleaning up old cards...' : generateMutation.isPending ? 'Generating fresh cards...' : 'Delete & Generate Progress Cards'}
+            {generateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {generateMutation.isPending ? 'Generating cards...' : 'Generate Progress Cards'}
           </Button>
         </CardContent>
       </Card>
