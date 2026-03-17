@@ -39,11 +39,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { attendanceId, data, staff_session_token } = body;
+    const { data, staff_session_token } = body;
 
-    // Auth: staff session token OR base44.auth.me()
+    // Auth: ONLY via staff session token
     let user = null;
-
     if (staff_session_token) {
       const payload = await verifyStaffToken(staff_session_token);
       if (payload) {
@@ -52,152 +51,115 @@ Deno.serve(async (req) => {
     }
 
     if (!user) {
-      const baseUser = await base44.auth.me().catch(() => null);
-      if (baseUser) {
-        user = baseUser;
-      }
+      return Response.json({ error: 'Unauthorized — valid staff_session_token required' }, { status: 401 });
     }
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!attendanceId || !data) {
+    if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
-        { error: 'attendanceId and data are required' },
+        { error: 'data with date, class_name, section, student_id, and academic_year are required' },
         { status: 400 }
       );
     }
 
-    // Fetch existing record using service role (read-only)
-    const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
-      id: attendanceId
-    });
-
-    if (existingRecords.length === 0) {
-      return Response.json({ error: 'Attendance record not found' }, { status: 404 });
-    }
-
-    const existingRecord = existingRecords[0];
-
-    // ── TODAY-ONLY ATTENDANCE (CHECK FIRST - BEFORE LOCK CHECK) ──
-    // Non-admin/principal users can ONLY mark attendance for TODAY
     const userRole = (user.role || '').toLowerCase();
     const isAdmin = userRole === 'admin' || userRole === 'principal';
-    const attendanceDate = data.date || existingRecord.date;
+    const { date, class_name, section, student_id, academic_year } = data;
+
+    // ── TODAY-ONLY ATTENDANCE ──
+    // Non-admin/principal users can ONLY mark attendance for TODAY
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    const attDate = new Date(attendanceDate);
+    const attDate = new Date(date);
     attDate.setUTCHours(0, 0, 0, 0);
 
     if (!isAdmin && attDate.getTime() !== today.getTime()) {
       return Response.json(
-        { error: `Teachers can only mark attendance for today. Attempted date: ${attendanceDate}` },
+        { error: `Teachers can only mark attendance for today. Attempted date: ${date}` },
         { status: 400 }
       );
     }
 
-    // ── LOCK ENFORCEMENT (CHECK AFTER TODAY-ONLY) ──
-    // Non-admin/principal users cannot edit locked records
-    if (existingRecord.is_locked) {
+    // ── ACADEMIC YEAR BOUNDARY CHECK ──
+    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year });
+    if (yearConfigs.length > 0) {
+      const yearConfig = yearConfigs[0];
+      if (!validateAcademicYearBoundary(date, yearConfig.start_date, yearConfig.end_date)) {
+        return Response.json({
+          error: `Action not allowed outside selected Academic Year. Date "${date}" is outside the ${academic_year} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
+        }, { status: 400 });
+      }
+    }
+
+    // ── STUDENT EXISTENCE & SOFT-DELETE GUARD ──
+    const studentsForId = await base44.asServiceRole.entities.Student.filter({ student_id, academic_year });
+    const studentForCheck = studentsForId[0];
+    if (!studentForCheck) {
+      return Response.json({ error: `Student '${student_id}' does not exist in database` }, { status: 404 });
+    }
+    if (studentForCheck.is_deleted === true) {
+      return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
+    }
+
+    // ── STUDENT ACADEMIC YEAR MISMATCH GUARD ──
+    if (studentForCheck.academic_year && studentForCheck.academic_year !== academic_year) {
+      return Response.json({
+        error: `Academic year mismatch: student "${student_id}" belongs to year "${studentForCheck.academic_year}" but attendance is for "${academic_year}".`
+      }, { status: 400 });
+    }
+
+    // ── UPSERT: Find existing record by composite key ──
+    const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
+      date,
+      class_name,
+      section,
+      student_id,
+      academic_year
+    });
+
+    const existingRecord = existingRecords[0] || null;
+
+    // ── LOCK ENFORCEMENT ──
+    if (existingRecord && existingRecord.is_locked) {
       if (!isAdmin) {
         return Response.json(
-          { error: 'Attendance is locked. Only admin can unlock and edit.' },
+          { error: 'Attendance locked after 15:30 IST. Only admin can unlock and edit.' },
           { status: 403 }
         );
       }
-
-      // Admin audit log for unlock/edit action
-      const auditData = {
-        action: 'unlock_and_edit',
-        module: 'Attendance',
-        date: existingRecord.date,
-        performed_by: user.email,
-        details: `Unlocked and edited attendance for student ${existingRecord.student_id} on ${existingRecord.date}. Changes: ${JSON.stringify(data)}`,
-        academic_year: existingRecord.academic_year
-      };
-
+      // Admin audit log for unlock/edit
       try {
-        await base44.asServiceRole.entities.AuditLog.create(auditData);
+        await base44.asServiceRole.entities.AuditLog.create({
+          action: 'unlock_and_edit',
+          module: 'Attendance',
+          date: existingRecord.date,
+          performed_by: user.email,
+          details: `Unlocked and edited attendance for student ${student_id} on ${date}. Changes: ${JSON.stringify(data)}`,
+          academic_year
+        });
       } catch (auditError) {
         console.warn('Audit log failed but proceeding with unlock:', auditError);
       }
     }
 
-    // ── STUDENT EXISTENCE & SOFT-DELETE GUARD ──
-    const studentId = data.student_id || existingRecord.student_id;
-    const ayForCheck = data.academic_year || existingRecord.academic_year;
-    if (studentId && ayForCheck) {
-      const studentsForId = await base44.asServiceRole.entities.Student.filter({ student_id: studentId, academic_year: ayForCheck });
-      const studentForCheck = studentsForId[0];
+    // ── FORCE SUBMISSION FIELDS ──
+    const now = new Date().toISOString();
+    const savePayload = {
+      ...data,
+      status: 'Submitted',
+      marked_by: user.email,
+      submitted_at: now
+    };
 
-      // Check if student exists
-      if (!studentForCheck) {
-        return Response.json({
-          error: `Student '${studentId}' does not exist in database`,
-          status: 404
-        });
-      }
-
-      // Check if student is deleted
-      if (studentForCheck.is_deleted === true) {
-        return Response.json({ error: 'Operation not allowed for deleted student.' }, { status: 422 });
-      }
+    if (existingRecord) {
+      // UPDATE
+      await base44.asServiceRole.entities.Attendance.update(existingRecord.id, savePayload);
+      return Response.json({ message: 'Attendance updated successfully', success: true, action: 'updated' });
+    } else {
+      // CREATE
+      await base44.asServiceRole.entities.Attendance.create(savePayload);
+      return Response.json({ message: 'Attendance created successfully', success: true, action: 'created' });
     }
 
-    // ── ACADEMIC YEAR BOUNDARY CHECK ──
-    const attendanceAcademicYear = data.academic_year || existingRecord.academic_year;
-    if (attendanceDate && attendanceAcademicYear) {
-      const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: attendanceAcademicYear });
-      if (yearConfigs.length > 0) {
-        const yearConfig = yearConfigs[0];
-        if (!validateAcademicYearBoundary(attendanceDate, yearConfig.start_date, yearConfig.end_date)) {
-          return Response.json({
-            error: `Action not allowed outside selected Academic Year. Date "${attendanceDate}" is outside the ${attendanceAcademicYear} range (${yearConfig.start_date} to ${yearConfig.end_date}).`
-          }, { status: 400 });
-        }
-      }
-    }
-
-    // ── STUDENT ACADEMIC YEAR MISMATCH GUARD ──
-    const attStudentId = data.student_id || existingRecord.student_id;
-    const attAcademicYear = data.academic_year || existingRecord.academic_year;
-    if (attStudentId && attAcademicYear) {
-      const matchingStudents = await base44.asServiceRole.entities.Student.filter({ student_id: attStudentId });
-      if (matchingStudents.length > 0) {
-        const student = matchingStudents[0];
-        if (student.academic_year && student.academic_year !== attAcademicYear) {
-          return Response.json({
-            error: `Academic year mismatch: student "${attStudentId}" belongs to year "${student.academic_year}" but attendance is for "${attAcademicYear}".`
-          }, { status: 400 });
-        }
-      }
-    }
-
-    // Deduplication check
-    if (data.student_id && data.student_id !== existingRecord.student_id) {
-      const duplicates = await base44.asServiceRole.entities.Attendance.filter({
-        student_id: data.student_id,
-        date: data.date || existingRecord.date,
-        class_name: data.class_name || existingRecord.class_name,
-        section: data.section || existingRecord.section,
-        academic_year: data.academic_year || existingRecord.academic_year
-      });
-
-      if (duplicates.length > 0) {
-        return Response.json(
-          { error: 'Duplicate attendance record would be created. One record per student per date allowed.' },
-          { status: 409 }
-        );
-      }
-    }
-
-    await base44.asServiceRole.entities.Attendance.update(attendanceId, data);
-
-    return Response.json({
-      message: 'Attendance updated successfully',
-      success: true
-    });
   } catch (error) {
     console.error('Update attendance error:', error);
     return Response.json(
