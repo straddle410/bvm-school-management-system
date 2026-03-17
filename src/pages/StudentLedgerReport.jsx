@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, Search, FileText } from 'lucide-react';
+import { Download, Search, FileText, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAcademicYear } from '@/components/AcademicYearContext';
@@ -312,15 +312,16 @@ function StudentLedgerContent() {
                 <TableHeader>
                   <TableRow className="bg-slate-50 dark:bg-gray-700">
                    <TableHead className="text-xs font-semibold">Date</TableHead>
-                    <TableHead className="text-xs font-semibold">Type</TableHead>
-                    <TableHead className="text-xs font-semibold">Ref</TableHead>
-                    <TableHead className="text-xs font-semibold">Description</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Debit</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Credit</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Balance</TableHead>
-                    <TableHead className="text-xs font-semibold">Mode</TableHead>
-                    <TableHead className="text-xs font-semibold">Status</TableHead>
-                  </TableRow>
+                     <TableHead className="text-xs font-semibold">Type</TableHead>
+                     <TableHead className="text-xs font-semibold">Ref</TableHead>
+                     <TableHead className="text-xs font-semibold">Description</TableHead>
+                     <TableHead className="text-xs font-semibold text-right">Debit</TableHead>
+                     <TableHead className="text-xs font-semibold text-right">Credit</TableHead>
+                     <TableHead className="text-xs font-semibold text-right">Balance</TableHead>
+                     <TableHead className="text-xs font-semibold">Mode</TableHead>
+                     <TableHead className="text-xs font-semibold">Status</TableHead>
+                     <TableHead className="text-xs font-semibold text-center">Action</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rows.map((row, idx) => (
@@ -351,17 +352,31 @@ function StudentLedgerContent() {
                       </TableCell>
                       <TableCell className="text-slate-500 dark:text-gray-400">{row.mode || '—'}</TableCell>
                       <TableCell>
-                        {row.status === 'VOID' ? (
-                          <Badge className="text-[10px] bg-slate-200 text-slate-500 line-through">VOID</Badge>
-                        ) : row.type === 'REVERSAL' ? (
-                          <Badge className="text-[10px] bg-red-100 text-red-700">Reversal</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] text-slate-500">Posted</Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {/* Closing balance row */}
+                         {row.status === 'VOID' ? (
+                           <Badge className="text-[10px] bg-slate-200 text-slate-500 line-through">VOID</Badge>
+                         ) : row.type === 'REVERSAL' ? (
+                           <Badge className="text-[10px] bg-red-100 text-red-700">Reversal</Badge>
+                         ) : (
+                           <Badge variant="outline" className="text-[10px] text-slate-500">Posted</Badge>
+                         )}
+                       </TableCell>
+                       <TableCell className="text-center">
+                         {row.type === 'INVOICE' && row.balance > 0 && (
+                           <Button
+                             size="sm"
+                             variant="ghost"
+                             className="h-6 px-2 text-xs text-emerald-600 hover:bg-emerald-50"
+                             onClick={() => { setSelectedInvoice(row); setRecordPaymentOpen(true); }}
+                             title="Record payment for this invoice"
+                           >
+                             <CreditCard className="h-3.5 w-3.5 mr-1" />
+                             Pay
+                           </Button>
+                         )}
+                       </TableCell>
+                      </TableRow>
+                      ))}
+                      {/* Closing balance row */}
                   <TableRow className="bg-slate-50 dark:bg-gray-700 font-semibold text-xs">
                    <TableCell colSpan={6} className="text-right text-slate-600 dark:text-gray-400">Closing Balance</TableCell>
                    <TableCell className="text-right font-bold text-slate-900 dark:text-white">₹{fmt(data?.closingBalance)}</TableCell>
