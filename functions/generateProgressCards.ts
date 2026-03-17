@@ -431,9 +431,7 @@ Deno.serve(async (req) => {
      section: sectionFilter
     });
 
-    // Find the exam type ID for the selected exam
-    const selectedExamTypeRecord = examTypeRecords.find(et => et.id === examTypeIdOrName || et.name === examTypeIdOrName);
-    const selectedExamTypeId = selectedExamTypeRecord?.id;
+    // selectedExamTypeRecord and selectedExamTypeId are already resolved above
 
     let deletedCount = 0;
     for (const card of allExistingCards) {
