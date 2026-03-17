@@ -170,11 +170,15 @@ Deno.serve(async (req) => {
 
     if (existingRecord) {
       // UPDATE
-      await base44.asServiceRole.entities.Attendance.update(existingRecord.id, savePayload);
+      console.log("UPDATING ATTENDANCE:", { id: existingRecord.id, payload: savePayload });
+      const updateResult = await base44.asServiceRole.entities.Attendance.update(existingRecord.id, savePayload);
+      console.log("UPDATE RESULT:", updateResult);
       return Response.json({ message: 'Attendance updated successfully', success: true, action: 'updated' });
     } else {
       // CREATE
-      await base44.asServiceRole.entities.Attendance.create(savePayload);
+      console.log("CREATING ATTENDANCE:", savePayload);
+      const createResult = await base44.asServiceRole.entities.Attendance.create(savePayload);
+      console.log("CREATE RESULT:", createResult);
       return Response.json({ message: 'Attendance created successfully', success: true, action: 'created' });
     }
 
