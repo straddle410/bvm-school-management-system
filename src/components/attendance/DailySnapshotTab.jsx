@@ -162,36 +162,41 @@ export default function DailySnapshotTab() {
     });
 
     // Determine submitted_by and submitted_at per class+section group
-    // Pick the latest submitted_at record in each group
+    // ONLY consider records with status === "Submitted"
     const groupSubmissionMap = {};
+
+    // Group all records by class+section first
+    const recordsByGroup = {};
     dedupedAttendance.forEach(record => {
       const key = `${record.class_name}__${record.section}`;
-      if (!groupSubmissionMap[key]) {
-        groupSubmissionMap[key] = { submitted_by: 'Not Submitted', submitted_at: null };
-      }
-      const entry = groupSubmissionMap[key];
-      // Determine submitted_by label from this record
-      let byLabel = null;
-      if (record.auto_submitted || record.marked_by === 'SYSTEM') {
-        byLabel = 'System Submitted';
-      } else if (record.marked_by) {
-        byLabel = staffNameMap[record.marked_by] || record.marked_by;
-      }
-      if (byLabel && entry.submitted_by === 'Not Submitted') {
-        entry.submitted_by = byLabel;
-      }
-      // Pick latest submitted_at
-      if (record.submitted_at) {
-        if (!entry.submitted_at || new Date(record.submitted_at) > new Date(entry.submitted_at)) {
-          entry.submitted_at = record.submitted_at;
-          // Update submitted_by to match the latest submitter
-          if (record.auto_submitted || record.marked_by === 'SYSTEM') {
-            entry.submitted_by = 'System Submitted';
-          } else if (record.marked_by) {
-            entry.submitted_by = staffNameMap[record.marked_by] || record.marked_by;
-          }
+      if (!recordsByGroup[key]) recordsByGroup[key] = [];
+      recordsByGroup[key].push(record);
+    });
+
+    Object.entries(recordsByGroup).forEach(([key, groupRecords]) => {
+      console.log('Snapshot Debug:', groupRecords);
+
+      // Only look at Submitted records
+      const validRecords = groupRecords.filter(r => r.status === 'Submitted');
+
+      // Pick the latest submitted_at among valid records that have one
+      const latestRecord = validRecords
+        .filter(r => r.submitted_at)
+        .sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at))[0];
+
+      let submittedBy = 'Not Submitted';
+      let submittedAt = null;
+
+      if (latestRecord) {
+        submittedAt = latestRecord.submitted_at;
+        if (latestRecord.auto_submitted || latestRecord.marked_by === 'SYSTEM') {
+          submittedBy = 'System Submitted';
+        } else if (latestRecord.marked_by) {
+          submittedBy = staffNameMap[latestRecord.marked_by] || latestRecord.marked_by;
         }
       }
+
+      groupSubmissionMap[key] = { submitted_by: submittedBy, submitted_at: submittedAt };
     });
 
     // Process each student: determine effectiveHoliday first, then classify
