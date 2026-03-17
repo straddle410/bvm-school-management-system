@@ -70,7 +70,9 @@ export default function ExamTypeProgressCardGenerator() {
       setSelectedExamTypeId('');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.error || error.message || 'Failed to generate progress cards');
+      const msg = error?.response?.data?.error || error?.data?.error || error?.message || 'Failed to generate progress cards';
+      console.error('[GenerateProgressCards] Error:', msg, error);
+      toast.error(msg, { duration: 8000 });
     }
   });
 
