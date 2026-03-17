@@ -195,6 +195,7 @@ export default function Layout({ children, currentPageName }) {
           <button
             onClick={() => setIsDark(v => !v)}
             className="p-1.5 rounded-lg hover:bg-white/20 transition flex-shrink-0"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="h-5 w-5 text-yellow-300" /> : <Moon className="h-5 w-5 text-white/80" />}
