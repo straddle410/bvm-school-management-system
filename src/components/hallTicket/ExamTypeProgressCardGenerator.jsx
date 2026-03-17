@@ -14,33 +14,32 @@ export default function ExamTypeProgressCardGenerator() {
   const [authLoading, setAuthLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  // Check authentication
+  // Check authentication — ONLY via staff_session localStorage, never call base44.auth.*
+  // base44.auth.* requires a Base44 JWT which doesn't exist on the published app
   React.useEffect(() => {
-    const checkAuth = async () => {
-      setAuthLoading(true);
-      try {
-        const session = localStorage.getItem('staff_session');
-        if (session) {
-          const parsed = JSON.parse(session);
-          setIsAuthenticated(true);
-          setAuthLoading(false);
-          return;
-        }
-        const isAuth = await base44.auth.isAuthenticated();
-        setIsAuthenticated(isAuth);
-      } catch (e) {
-        console.error('Auth check failed:', e);
+    try {
+      const session = localStorage.getItem('staff_session');
+      if (session) {
+        JSON.parse(session); // validate it parses
+        setIsAuthenticated(true);
+      } else {
         setIsAuthenticated(false);
-      } finally {
-        setAuthLoading(false);
       }
-    };
-    checkAuth();
+    } catch {
+      setIsAuthenticated(false);
+    } finally {
+      setAuthLoading(false);
+    }
   }, []);
+
+  const staffToken = (() => {
+    try { return JSON.parse(localStorage.getItem('staff_session') || '{}')?.token || null; } catch { return null; }
+  })();
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
-    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
+    enabled: !!academicYear,
+    queryFn: () => base44.asServiceRole.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
   const selectedExam = examTypes.find(e => e.id === selectedExamTypeId);
