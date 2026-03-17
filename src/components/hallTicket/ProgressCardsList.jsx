@@ -106,11 +106,9 @@ export default function ProgressCardsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const cardsToDelete = progressCards.filter(c => selectedCards.has(c.id));
-      for (const card of cardsToDelete) {
-        await base44.entities.ProgressCard.delete(card.id);
-      }
-      return cardsToDelete.length;
+      const cardIds = progressCards.filter(c => selectedCards.has(c.id)).map(c => c.id);
+      const response = await base44.functions.invoke('deleteProgressCards', { cardIds });
+      return response.data.deletedCount;
     },
     onSuccess: (count) => {
       refetch();
