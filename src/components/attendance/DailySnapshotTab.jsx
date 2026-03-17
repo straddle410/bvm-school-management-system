@@ -310,6 +310,7 @@ export default function DailySnapshotTab() {
                       <th className="text-center p-3 font-semibold text-slate-700 w-20">Unmarked</th>
                       <th className="text-center p-3 font-semibold text-slate-700 w-28">Attendance %</th>
                       <th className="text-left p-3 font-semibold text-slate-700 min-w-40">Submitted By</th>
+                      <th className="text-left p-3 font-semibold text-slate-700 min-w-36">Submitted Time</th>
                     </tr>
                   </thead>
                   <tbody>
