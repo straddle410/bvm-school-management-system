@@ -1,80 +1,34 @@
 import { format } from 'date-fns';
-import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
 
 export const exportToExcel = async (data, filename, fromDate, toDate) => {
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('Attendance Report');
-
-  // Set narrow margins
-  sheet.pageSetup = { paperSize: 9, orientation: 'landscape' };
-  sheet.margins = { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5 };
-
-  // Title row
-  sheet.addRow(['Attendance Summary Report']);
-  const titleRow = sheet.getRow(1);
-  titleRow.font = { bold: true, size: 14 };
-  titleRow.alignment = { horizontal: 'left', vertical: 'center' };
-  sheet.getCell('A1').alignment = { horizontal: 'left', vertical: 'center' };
-
-  // Info row
-  sheet.addRow([`Period: ${format(new Date(fromDate), 'dd MMM yyyy')} to ${format(new Date(toDate), 'dd MMM yyyy')}`]);
-  const infoRow = sheet.getRow(2);
-  infoRow.font = { size: 11 };
-
-  // Empty row
-  sheet.addRow([]);
-
-  // Headers
+  // Convert to CSV format for Excel compatibility
   const headers = ['Student Name', 'Roll No', 'Class', 'Working Days', 'Holidays', 'Present', 'Absent', 'Attendance %'];
-  const headerRowNum = 4;
-  sheet.addRow(headers);
   
-  const headerRow = sheet.getRow(headerRowNum);
-  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
-  headerRow.alignment = { horizontal: 'center', vertical: 'center' };
+  const csv = [
+    'Attendance Summary Report',
+    `Period: ${format(new Date(fromDate), 'dd MMM yyyy')} to ${format(new Date(toDate), 'dd MMM yyyy')}`,
+    '',
+    headers.join(','),
+    ...data.map(student => 
+      [
+        student.name,
+        student.rollNo,
+        `${student.class}-${student.section}`,
+        student.totalWorkingDays,
+        student.totalHolidays,
+        student.presentDays,
+        student.absentDays,
+        `${student.attendancePercent}%`
+      ].join(',')
+    )
+  ].join('\n');
 
-  // Data rows
-  data.forEach((student, idx) => {
-    sheet.addRow([
-      student.name,
-      student.rollNo,
-      `${student.class}-${student.section}`,
-      student.totalWorkingDays,
-      student.totalHolidays,
-      student.presentDays,
-      student.absentDays,
-      `${student.attendancePercent}%`
-    ]);
-
-    // Color code low attendance
-    if (student.attendancePercent < 75) {
-      const cell = sheet.getRow(headerRowNum + idx + 1).getCell(8);
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEF5350' } };
-      cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-    }
-  });
-
-  // Adjust column widths for A4
-  sheet.columns = [
-    { width: 18 }, // Student Name
-    { width: 8 },  // Roll No
-    { width: 7 },  // Class
-    { width: 11 }, // Working Days
-    { width: 10 }, // Holidays
-    { width: 8 },  // Present
-    { width: 8 },  // Absent
-    { width: 13 }  // Attendance %
-  ];
-
-  // Generate and download
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const blob = new Blob([csv], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
   document.body.appendChild(a);
   a.click();
   window.URL.revokeObjectURL(url);
