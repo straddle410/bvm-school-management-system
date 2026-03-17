@@ -11,7 +11,8 @@ const TAB_MAP = {
   'Gallery': 'gallery',
   'Approvals': 'approvals',
   'Dashboard': 'dashboard',
-  'More': 'more'
+  'More': 'more',
+  'ArchivedUsers': 'archived'
 };
 
 export function TabHistoryProvider({ children }) {
