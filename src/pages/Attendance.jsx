@@ -231,15 +231,18 @@ function MarkAttendanceTab({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      refetchAttendance(); // Force immediate re-fetch to reflect backend "Submitted" status
-      toast.success(effectiveHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
+      refetchAttendance();
+      toast.success('✅ ' + (effectiveHoliday ? 'Holiday marked successfully!' : 'Attendance saved successfully!'));
     },
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
-      else if (err?.message === 'PARTIAL_FAILURE') toast.error(`Some records failed (${err.failedCount}/${err.total}). Please retry.`);
+      else if (err?.message === 'Session expired') toast.error('❌ Session expired. Please login again.');
+      else if (err?.message === 'PARTIAL_FAILURE') toast.error(`❌ Some records failed (${err.failedCount}/${err.total}). Please retry.`);
+      else if (err?.response?.status === 401) toast.error('❌ Unauthorized. Please login again.');
       else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
+      else if (err?.response?.status === 400) toast.error('❌ Invalid data. ' + (err?.response?.data?.error || 'Please check your entries.'));
       else if (err?.message?.includes('different from today')) toast.error('❌ Can only mark attendance for today');
-      else toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
+      else toast.error('❌ Failed to save: ' + (err?.message || 'Unknown error'));
     }
   });
 
