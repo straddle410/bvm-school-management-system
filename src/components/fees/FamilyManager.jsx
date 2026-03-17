@@ -124,26 +124,10 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
      staleTime: 5 * 60 * 1000
    });
 
-  // ✅ FIX #5: Use lazy-loaded invoices or fallback to empty (only calc when expanded)
-  const getOutstandingBalance = (student_id) => {
-    const allInvoices = invoicesByStudent[student_id] || [];
-
-    // Check if ANNUAL exists
-    const annualInvoices = allInvoices.filter(inv =>
-      (inv.invoice_type || 'ANNUAL') === 'ANNUAL'
-    );
-
-    const studentInvoices = annualInvoices.length > 0
-      ? annualInvoices
-      : allInvoices;
-
-    // Calculate outstanding
-    return studentInvoices.reduce((sum, inv) => {
-      const net = inv.total_amount ?? 0;
-      const paid = inv.paid_amount ?? 0;
-      return sum + Math.max(net - paid, 0);
-    }, 0);
-  };
+  // ✅ Use backend ledger calculation for consistency with Student Ledger report
+   const getOutstandingBalance = (student_id) => {
+     return Math.max(ledgersByStudent[student_id] ?? 0, 0);
+   };
 
   // ✅ Filter students to show ONLY those with FeeInvoice records
   const studentsWithInvoices = allStudents.filter(s =>
