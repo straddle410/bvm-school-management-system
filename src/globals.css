@@ -332,7 +332,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 /* ── Native-Like Touch Targets (44px minimum) ── */
-button, a[role="button"], [role="button"] {
+button, a[role="button"], [role="button"], input[type="checkbox"], input[type="radio"] {
   min-height: 44px;
   min-width: 44px;
   display: inline-flex;
@@ -341,20 +341,43 @@ button, a[role="button"], [role="button"] {
 }
 
 .btn, [class*="Button"], [class*="btn"] {
-  min-height: 44px;
+  min-height: 44px !important;
+  padding: 10px 16px !important;
 }
 
 /* Icon buttons */
-button[size="icon"], button[size="sm"]:has(svg:only-child) {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px !important;
+button[size="icon"], button[size="sm"]:has(svg:only-child), [role="button"][size="icon"] {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 10px !important;
 }
 
 /* Touch target class */
 .touch-target {
-  min-height: 56px;
-  min-width: 56px;
+  min-height: 56px !important;
+  min-width: 56px !important;
+}
+
+/* All interactive elements */
+a, button, input, select, textarea, [role="button"], [role="menuitem"], [role="option"], [role="tab"] {
+  min-height: 44px !important;
+}
+
+/* Ensure inputs have proper sizing */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+  min-height: 44px !important;
+  padding: 10px 12px !important;
+}
+
+/* Dialog buttons */
+[role="dialog"] button, [role="dialog"] [role="button"] {
+  min-height: 48px !important;
+}
+
+/* Dropdowns and select menus */
+[role="combobox"], [role="listbox"], select, [role="option"], [role="menuitem"] {
+  min-height: 48px !important;
+  padding: 12px 14px !important;
 }
 
 /* Optimistic UI feedback */
@@ -366,11 +389,12 @@ button:active, a:active, [role="button"]:active {
 /* Dropdown & Select optimization - COMPLIANCE FIX */
 select, [role="combobox"], [role="listbox"] {
   min-height: 48px !important;
-  min-width: 48px !important;
+  min-width: 100% !important;
   padding: 12px 14px !important;
   cursor: pointer;
   font-size: 16px !important; /* Prevents iOS zoom */
   line-height: 1.5 !important;
+  border-radius: 6px;
 }
 
 select:focus, [role="combobox"]:focus, [role="listbox"]:focus {
@@ -378,19 +402,28 @@ select:focus, [role="combobox"]:focus, [role="listbox"]:focus {
   outline-offset: 2px;
 }
 
-/* Radix Select Trigger - ensure 44px minimum */
+/* Radix Select Trigger - ensure 48px minimum */
 [role="combobox"] {
-  min-height: 44px !important;
-  padding: 10px 12px !important;
+  min-height: 48px !important;
+  padding: 12px 14px !important;
 }
 
-/* Dropdown menu items - ensure 48px touch targets - COMPLIANCE */
+/* Dropdown menu items - ensure 52px touch targets */
 [role="option"], [role="menuitem"] {
-  min-height: 52px;
-  min-width: 48px;
+  min-height: 52px !important;
+  min-width: 100% !important;
   padding: 14px 16px !important;
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 16px !important;
+}
+
+/* All popover and dropdown content */
+[role="dialog"] [role="option"],
+[role="menu"] [role="menuitem"],
+[role="listbox"] [role="option"] {
+  min-height: 52px !important;
+  padding: 14px 16px !important;
 }
 
 /* Mobile-first styling */
@@ -398,17 +431,23 @@ select:focus, [role="combobox"]:focus, [role="listbox"]:focus {
   select, [role="combobox"], [role="listbox"] {
     font-size: 16px !important;
     min-height: 48px !important;
+    width: 100% !important;
   }
   
   [role="option"], [role="menuitem"] {
     min-height: 52px !important;
+    font-size: 16px !important;
+  }
+  
+  button, a, [role="button"] {
+    font-size: 16px !important;
   }
 }
 
 /* Touch-friendly spacing */
 a, button {
-  min-touch-target: 44px;
   margin-bottom: 4px;
+  cursor: pointer;
 }
 
 /* Print-specific styles */

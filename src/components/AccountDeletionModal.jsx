@@ -95,10 +95,10 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
             />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-3">
-              <Button variant="outline" onClick={handleClose} disabled={isLoading} className="min-h-[48px]">
+              <Button variant="outline" onClick={handleClose} disabled={isLoading} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={handlePasswordSubmit} disabled={isLoading} className="min-h-[48px]">
+              <Button onClick={handlePasswordSubmit} disabled={isLoading} className="flex-1">
                 Continue
               </Button>
             </div>
@@ -132,13 +132,13 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
             </label>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading} className="min-h-[48px]">
+              <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading} className="flex-1">
                 Back
               </Button>
               <Button 
                 onClick={() => setStep(3)} 
                 disabled={!isUnderstood || isLoading}
-                className="flex-1 min-h-[48px]"
+                className="flex-1"
               >
                 I Understand, Continue
               </Button>
@@ -162,11 +162,11 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
               variant="destructive" 
               onClick={handleConfirm} 
               disabled={isLoading}
-              className="w-full min-h-[48px]"
+              className="w-full"
             >
               {isLoading ? 'Deleting...' : 'Yes, Delete My Account Permanently'}
             </Button>
-            <Button variant="outline" onClick={() => setStep(2)} disabled={isLoading} className="w-full min-h-[48px]">
+            <Button variant="outline" onClick={() => setStep(2)} disabled={isLoading} className="w-full">
               Cancel & Go Back
             </Button>
           </div>
