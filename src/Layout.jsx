@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp, User, Sun, Moon, Archive } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { useDarkMode } from '@/components/useDarkMode';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
@@ -16,6 +17,7 @@ import StaffAuthGuard from '@/components/StaffAuthGuard';
 import { useTabHistory } from '@/components/TabHistoryContext';
 import { useLoading } from '@/components/LoadingProvider';
 import FullPageSpinner from '@/components/FullPageSpinner';
+import { PageTransition } from '@/components/PageTransition';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
