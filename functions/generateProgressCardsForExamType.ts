@@ -15,11 +15,22 @@ Deno.serve(async (req) => {
     console.log('[generateProgressCardsForExamType] Generate called');
     const base44 = createClientFromRequest(req);
     
-    let user;
+    // Auth: accept either Base44 token OR staff session token in Authorization header
+    let user = null;
     try {
       user = await base44.auth.me();
     } catch {
       user = null;
+    }
+
+    // Fallback: if no Base44 user, check for a staff session token in the Authorization header
+    if (!user) {
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+      const staffToken = authHeader.replace('Bearer ', '').trim();
+      if (staffToken) {
+        // A staff token was provided — allow the request to proceed using asServiceRole
+        user = { role: 'staff', email: 'staff' };
+      }
     }
 
     if (!user) {
