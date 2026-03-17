@@ -95,10 +95,10 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
             />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-3">
-              <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+              <Button variant="outline" onClick={handleClose} disabled={isLoading} className="min-h-[48px]">
                 Cancel
               </Button>
-              <Button onClick={handlePasswordSubmit} disabled={isLoading}>
+              <Button onClick={handlePasswordSubmit} disabled={isLoading} className="min-h-[48px]">
                 Continue
               </Button>
             </div>
@@ -132,13 +132,13 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
             </label>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading}>
+              <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading} className="min-h-[48px]">
                 Back
               </Button>
               <Button 
                 onClick={() => setStep(3)} 
                 disabled={!isUnderstood || isLoading}
-                className="flex-1"
+                className="flex-1 min-h-[48px]"
               >
                 I Understand, Continue
               </Button>
@@ -162,11 +162,11 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
               variant="destructive" 
               onClick={handleConfirm} 
               disabled={isLoading}
-              className="w-full"
+              className="w-full min-h-[48px]"
             >
               {isLoading ? 'Deleting...' : 'Yes, Delete My Account Permanently'}
             </Button>
-            <Button variant="outline" onClick={() => setStep(2)} disabled={isLoading} className="w-full">
+            <Button variant="outline" onClick={() => setStep(2)} disabled={isLoading} className="w-full min-h-[48px]">
               Cancel & Go Back
             </Button>
           </div>
