@@ -210,9 +210,33 @@ main, [role="main"] {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Page transition effect */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Page transition effects */
 .page-transition {
-  animation: slideInUp 0.25s ease-out;
+  animation: slideInUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.page-transition-fade {
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Smooth stack transitions for bottom nav preservation */
+.nav-stack-preserve {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Tab active state animation */
+.tab-active {
+  animation: scaleIn 0.2s ease-out;
 }
 
 /* ── Disable System Gestures & Text Selection ── */
@@ -247,6 +271,37 @@ button[size="icon"], button[size="sm"]:has(svg:only-child) {
   min-height: 44px;
   min-width: 44px;
   padding: 8px !important;
+}
+
+/* Touch target class */
+.touch-target {
+  min-height: 56px;
+  min-width: 56px;
+}
+
+/* Optimistic UI feedback */
+button:active, a:active, [role="button"]:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease-out;
+}
+
+/* Dropdown & Select optimization */
+select, [role="combobox"], [role="listbox"] {
+  min-height: 44px !important;
+  padding: 8px 12px !important;
+  cursor: pointer;
+}
+
+select:focus, [role="combobox"]:focus, [role="listbox"]:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Mobile-first select styling */
+@media (max-width: 768px) {
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
 }
 
 /* Touch-friendly spacing */
