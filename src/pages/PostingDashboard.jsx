@@ -52,7 +52,7 @@ export default function PostingDashboard() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-8">
         <div className="max-w-4xl mx-auto p-4">
-          <Tabs defaultValue={tab} className="w-full">
+          <Tabs value={tab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="diary">Diary</TabsTrigger>
               <TabsTrigger value="homework">Homework</TabsTrigger>
