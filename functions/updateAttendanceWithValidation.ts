@@ -54,6 +54,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — valid staff_session_token required' }, { status: 401 });
     }
 
+    const staff_email = user.email;
+    if (!staff_email) {
+      return Response.json({ error: 'Invalid staff session — email missing from token' }, { status: 401 });
+    }
+
     if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
         { error: 'data with date, class_name, section, student_id, and academic_year are required' },
