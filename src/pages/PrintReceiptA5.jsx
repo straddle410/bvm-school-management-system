@@ -579,7 +579,11 @@ function ReceiptContent({ school, receipt, copyLabel }) {
               <td className="value">₹{receipt.invoice.net.toLocaleString('en-IN')}</td>
             </tr>
             <tr>
-              <td className="label">Total Paid:</td>
+              <td className="label">This Receipt:</td>
+              <td className="value">₹{receipt.payment.amount.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td className="label">Total Paid Till Date:</td>
               <td className="value">₹{receipt.invoice.totalPaidAfterThis.toLocaleString('en-IN')}</td>
             </tr>
             <tr style={{ backgroundColor: '#fff3e0' }}>
