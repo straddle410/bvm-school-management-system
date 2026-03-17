@@ -220,7 +220,12 @@ function MarkAttendanceTab({
         });
       });
 
-      return await Promise.all(savePromises);
+      const results = await Promise.allSettled(savePromises);
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        throw Object.assign(new Error('PARTIAL_FAILURE'), { failedCount: failed.length, total: results.length });
+      }
+      return results;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
@@ -229,6 +234,7 @@ function MarkAttendanceTab({
     },
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
+      else if (err?.message === 'PARTIAL_FAILURE') toast.error(`Some records failed (${err.failedCount}/${err.total}). Please retry.`);
       else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
       else if (err?.message?.includes('different from today')) toast.error('❌ Can only mark attendance for today');
       else toast.error('Failed to save: ' + (err?.message || 'Unknown error'));
