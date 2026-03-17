@@ -196,6 +196,8 @@ function MarkAttendanceTab({
       if (isPastAcademicYear(academicYear)) throw new Error('PAST_YEAR_WARNING');
       const session = getStaffSession();
       const staffToken = session?.staff_session_token || null;
+      
+      if (!staffToken) throw new Error('❌ Session expired. Please login again.');
 
       // Call UPSERT function for each student — handles create/update + forces status=Submitted
       const savePromises = filteredStudents.map(student => {
