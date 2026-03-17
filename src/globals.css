@@ -328,10 +328,11 @@ button:active, a:active, [role="button"]:active {
   transition: transform 100ms ease-out;
 }
 
-/* Dropdown & Select optimization */
+/* Dropdown & Select optimization - COMPLIANCE FIX */
 select, [role="combobox"], [role="listbox"] {
-  min-height: 44px !important;
-  padding: 10px 12px !important;
+  min-height: 48px !important;
+  min-width: 48px !important;
+  padding: 12px 14px !important;
   cursor: pointer;
   font-size: 16px !important; /* Prevents iOS zoom */
   line-height: 1.5 !important;
