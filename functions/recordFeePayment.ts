@@ -160,26 +160,24 @@ Deno.serve(async (req) => {
       collected_by_name: user?.full_name || user?.email || user?.username || 'system'
     });
     
-    // ── Log archived-year collection for audit trail (Fire-and-Forget) ──────
-    if (isArchivedYear && finalEntryType === 'CASH_PAYMENT') {
-      (async () => {
-        try {
-          await base44.asServiceRole.entities.AuditLog.create({
-            action: 'PREVIOUS_YEAR_COLLECTION',
-            module: 'Fees',
-            date: paymentDate,
-            performed_by: user.email,
-            details: `Recorded ${paymentMode || 'Cash'} payment of ₹${amountPaid} for student ${invoice.student_id} in archived year ${academicYear}. Receipt: ${receiptNo}`,
-            academic_year: academicYear,
-            student_id: invoice.student_id,
-            class_name: invoice.class_name,
-            timestamp: new Date().toISOString()
-          });
-        } catch (auditErr) {
-          console.error(`[AUDIT-LOG-ERROR] Failed to log PREVIOUS_YEAR_COLLECTION: ${auditErr.message}`);
-        }
-      })();
-    }
+    // ── Log payment for audit trail (Fire-and-Forget) ──────
+    (async () => {
+      try {
+        await base44.asServiceRole.entities.AuditLog.create({
+          action: 'PREVIOUS_YEAR_COLLECTION',
+          module: 'Fees',
+          date: paymentDate,
+          performed_by: user.email,
+          details: `Recorded ${paymentMode || 'Cash'} payment of ₹${amountPaid} for student ${invoice.student_id}. Receipt: ${receiptNo}`,
+          academic_year: academicYear,
+          student_id: invoice.student_id,
+          class_name: invoice.class_name,
+          timestamp: new Date().toISOString()
+        });
+      } catch (auditErr) {
+        console.error(`[AUDIT-LOG-ERROR] Failed to log payment: ${auditErr.message}`);
+      }
+    })();
     // ──────────────────────────────────────────────────────────────────────
 
     // Update invoice paid_amount and status
