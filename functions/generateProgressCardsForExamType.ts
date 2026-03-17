@@ -12,6 +12,7 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 
 Deno.serve(async (req) => {
   try {
+    console.log('[generateProgressCardsForExamType] Generate called');
     const base44 = createClientFromRequest(req);
     
     let user;
@@ -26,6 +27,7 @@ Deno.serve(async (req) => {
     }
 
     const { academicYear, examTypeId } = await req.json();
+    console.log(`[generateProgressCardsForExamType] academicYear=${academicYear}, examTypeId=${examTypeId}`);
 
     if (!academicYear || !examTypeId) {
       return Response.json({ error: 'Academic year and exam type ID are required' }, { status: 400 });
