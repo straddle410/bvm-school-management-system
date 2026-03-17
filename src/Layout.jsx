@@ -199,9 +199,11 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
+      <main className="flex-1 overflow-y-auto pb-20" role="main">
         <StaffAuthGuard currentPageName={currentPageName}>
-          {children}
+          <div className="animate-fade-in">
+            {children}
+          </div>
         </StaffAuthGuard>
       </main>
 
