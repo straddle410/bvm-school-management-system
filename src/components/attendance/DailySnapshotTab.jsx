@@ -319,8 +319,8 @@ export default function DailySnapshotTab() {
                       const workingStudents = row.total_students - row.holiday;
                       const pct = workingStudents > 0 ? Math.round((presentEquivalent / workingStudents) * 100) : 0;
                       return (
-                        <tr key={row.class_name} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="p-3 font-semibold text-slate-700">Class {row.class_name}</td>
+                        <tr key={`${row.class_name}-${row.section}`} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="p-3 font-semibold text-slate-700">Class {row.class_name}{row.section ? `-${row.section}` : ''}</td>
                           <td className="text-center p-3 text-slate-700">{row.total_students}</td>
                           <td
                             className="text-center p-3 text-green-600 font-medium cursor-pointer hover:bg-green-50 rounded"
