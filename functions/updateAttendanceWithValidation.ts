@@ -123,6 +123,7 @@ Deno.serve(async (req) => {
     }
 
     // ── UPSERT: Find existing record by composite key ──
+    console.log("SEARCHING FOR EXISTING RECORD:", { date, class_name, section, student_id, academic_year });
     const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
       date,
       class_name,
@@ -130,6 +131,7 @@ Deno.serve(async (req) => {
       student_id,
       academic_year
     });
+    console.log("EXISTING RECORDS FOUND:", existingRecords.length);
 
     const existingRecord = existingRecords[0] || null;
 
