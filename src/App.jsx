@@ -10,6 +10,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import PullToRefreshDisabler from '@/components/PullToRefreshDisabler';
 import { TabHistoryProvider } from '@/components/TabHistoryContext';
 import { LoadingProvider } from '@/components/LoadingProvider';
 import { AsyncOperationProvider } from '@/components/AsyncOperationManager';
