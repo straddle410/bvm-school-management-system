@@ -127,14 +127,13 @@ function MarkAttendanceTab({
 
   const students = studentResponse.students || [];
 
-  // ✅ FIX #5: STALE TIME FIX - Set staleTime to 5 minutes instead of 0
-  const { data: existingAttendance = [] } = useQuery({
+  const { data: existingAttendance = [], refetch: refetchAttendance } = useQuery({
     queryKey: ['attendance', workingDate, selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
       date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
     }),
     enabled: !!selectedClass && !!selectedSection && !!workingDate,
-    staleTime: 5 * 60 * 1000 // Cache for 5 minutes to prevent unnecessary refetches
+    staleTime: 0 // Always re-fetch after save to get latest status from backend
   });
 
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
