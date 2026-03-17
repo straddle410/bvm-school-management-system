@@ -76,64 +76,11 @@ Deno.serve(async (req) => {
     }
     // ─────────────────────────────────────────────────────────────────────
 
-    // ── Atomic Receipt Number Generation (CAS Retry Loop) ────────────────────
-    let receiptNo = null;
-    let configId = null;
-    const maxRetries = 5;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      // Load receipt config
-      let configs = await base44.asServiceRole.entities.FeeReceiptConfig.filter({ academic_year: academicYear });
-      let config;
-
-      if (!configs || configs.length === 0) {
-        // Create default config atomically
-        try {
-          config = await base44.asServiceRole.entities.FeeReceiptConfig.create({
-            academic_year: academicYear,
-            prefix: 'RCPT',
-            next_number: 2, // Reserve 1 for this payment
-            padding: 4
-          });
-          receiptNo = `RCPT/${academicYear}/0001`;
-          configId = config.id;
-          break;
-        } catch (e) {
-          // Another request may have created it; retry
-          if (attempt < maxRetries) continue;
-          throw e;
-        }
-      }
-
-      config = configs[0];
-      configId = config.id;
-      const currentNumber = config.next_number || 1;
-
-      // Generate receipt with current number
-      const prefix = config.prefix || 'RCPT';
-      const padding = config.padding || 4;
-      const seq = String(currentNumber).padStart(padding, '0');
-      receiptNo = `${prefix}/${academicYear}/${seq}`;
-
-      // Try atomic compare-and-swap: only update if next_number still equals currentNumber
-      try {
-        // Use asServiceRole to perform conditional update
-        // This update will only succeed if no other process changed next_number
-        await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
-          next_number: currentNumber + 1
-        });
-        // ✅ Success: we reserved this receipt number
-        break;
-      } catch (e) {
-        // Conflict: next_number changed between our read and write
-        if (attempt < maxRetries) {
-          // Retry with new config state
-          continue;
-        }
-        // Max retries exhausted
-        return Response.json({ error: 'Receipt allocation conflict after 5 retries, please retry' }, { status: 409 });
-      }
-    }
+    // ── Fast Receipt Generation (no retry loop) ────────────────────
+    // Use timestamp-based receipt number for speed
+    const timestamp = Date.now();
+    const receiptNo = `RCPT/${academicYear}/${String(timestamp).slice(-8)}`;
+    // Example: RCPT/2024-25/12345678
 
     // Duplicate check moved to async (low-priority validation)
 
