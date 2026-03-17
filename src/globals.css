@@ -289,6 +289,12 @@ button, a, [role="button"], .interactive {
   -webkit-touch-callout: none;
 }
 
+/* ── Disable Pull-to-Refresh on Critical Pages ── */
+.no-pull-refresh {
+  overscroll-behavior: contain;
+  -webkit-overscroll-behavior: contain;
+}
+
 /* Preserve selection for inputs and text areas */
 input, textarea, [contenteditable="true"] {
   user-select: text !important;
