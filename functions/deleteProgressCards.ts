@@ -18,9 +18,19 @@ Deno.serve(async (req) => {
     let { cardIds, deleteAll } = body;
 
     if (deleteAll) {
-      // Fetch all progress card IDs
-      const allCards = await base44.asServiceRole.entities.ProgressCard.list();
+      // Fetch ALL progress card IDs (paginate to get beyond 50 limit)
+      let allCards = [];
+      let skip = 0;
+      const batchSize = 100;
+      while (true) {
+        const batch = await base44.asServiceRole.entities.ProgressCard.list(null, batchSize, skip);
+        if (!batch || batch.length === 0) break;
+        allCards = allCards.concat(batch);
+        if (batch.length < batchSize) break;
+        skip += batchSize;
+      }
       cardIds = allCards.map(c => c.id);
+      console.log(`[deleteAll] Found ${cardIds.length} total progress cards to delete`);
     }
 
     if (!cardIds || !Array.isArray(cardIds) || cardIds.length === 0) {
