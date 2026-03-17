@@ -80,13 +80,15 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <LoadingProvider>
-          <Router>
-            <TabHistoryProvider>
-              <NavigationTracker />
-              <AuthenticatedApp />
-            </TabHistoryProvider>
-          </Router>
-          <Toaster />
+          <AsyncOperationProvider>
+            <Router>
+              <TabHistoryProvider>
+                <NavigationTracker />
+                <AuthenticatedApp />
+              </TabHistoryProvider>
+            </Router>
+            <Toaster />
+          </AsyncOperationProvider>
         </LoadingProvider>
       </QueryClientProvider>
     </AuthProvider>
