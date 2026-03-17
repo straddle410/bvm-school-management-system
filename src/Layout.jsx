@@ -206,7 +206,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
+      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg" role="navigation" aria-label="Main navigation">
         <div className="flex items-center justify-around py-1 overflow-x-auto">
           {getBottomNav(isAdmin, userRole).map((item) => {
               const isActive = currentPageName === item.page;
@@ -215,6 +215,7 @@ export default function Layout({ children, currentPageName }) {
                 <Link
                   key={item.name}
                   to={href}
+                  aria-current={isActive ? "page" : undefined}
                   className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-w-[48px] min-h-[48px] justify-center ${
                   isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
                   <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
