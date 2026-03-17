@@ -173,8 +173,8 @@ export default function PrintReceiptA5() {
           padding: 0 !important;
           background: white;
           font-family: Arial, sans-serif;
-          font-size: 11px;
-          line-height: 1.1;
+          font-size: 10px;
+          line-height: 1;
         }
 
         body {
@@ -184,14 +184,14 @@ export default function PrintReceiptA5() {
 
         .copiesRow {
           display: flex;
-          gap: 4mm;
+          gap: 2mm;
         }
 
         .copy {
           flex: 1;
           border: 1px solid #111;
-          border-radius: 4px;
-          padding: 2.2mm;
+          border-radius: 2px;
+          padding: 1.5mm;
           box-sizing: border-box;
           overflow: hidden;
           background: white;
@@ -215,9 +215,9 @@ export default function PrintReceiptA5() {
 
         .header {
           text-align: center;
-          border-bottom: 2px solid #1a237e;
-          padding-bottom: 0.4mm;
-          margin-bottom: 0.6mm;
+          border-bottom: 1.5px solid #1a237e;
+          padding-bottom: 0.3mm;
+          margin-bottom: 0.3mm;
         }
 
         .header-top {
@@ -229,8 +229,8 @@ export default function PrintReceiptA5() {
         }
 
         .logo {
-          width: 50px;
-          height: 50px;
+          width: 35px;
+          height: 35px;
           border-radius: 50%;
           object-fit: cover;
           flex-shrink: 0;
@@ -238,20 +238,20 @@ export default function PrintReceiptA5() {
         }
 
         .school-name {
-          font-size: 16px;
+          font-size: 12px;
           font-weight: 900;
-          margin: 0 0 0.3mm 0;
+          margin: 0 0 0.2mm 0;
           color: #1a237e;
-          letter-spacing: 0.2px;
-          line-height: 1.1;
+          letter-spacing: 0.1px;
+          line-height: 1;
         }
 
         .school-info {
-          font-size: 11px;
+          font-size: 8px;
           color: #555;
           margin: 0;
           font-weight: 500;
-          line-height: 1.1;
+          line-height: 1;
         }
 
         .receipt-title {
@@ -259,12 +259,12 @@ export default function PrintReceiptA5() {
           justify-content: space-between;
           align-items: center;
           font-weight: 900;
-          font-size: 14px;
-          margin: 0.7mm 0 0.7mm;
-          padding: 0.6mm 0;
-          border-bottom: 2px solid #1a237e;
+          font-size: 11px;
+          margin: 0.3mm 0 0.3mm;
+          padding: 0.3mm 0;
+          border-bottom: 1.5px solid #1a237e;
           color: #1a237e;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.2px;
         }
 
         .copy-badge {
@@ -281,12 +281,12 @@ export default function PrintReceiptA5() {
         .info-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 0.9mm 0.9mm;
-          font-size: 12px;
-          margin-bottom: 0.7mm;
-          padding: 0.6mm 0;
-          border-top: 1px solid #e0e0e0;
-          border-bottom: 1px solid #e0e0e0;
+          gap: 0.5mm 0.5mm;
+          font-size: 9px;
+          margin-bottom: 0.3mm;
+          padding: 0.3mm 0;
+          border-top: 0.5px solid #e0e0e0;
+          border-bottom: 0.5px solid #e0e0e0;
         }
 
         .info-row {
@@ -298,61 +298,61 @@ export default function PrintReceiptA5() {
         .label {
           font-weight: 700;
           color: #1a237e;
-          min-width: 60px;
-          font-size: 12px;
+          min-width: 50px;
+          font-size: 9px;
         }
 
         .box {
-          border: 1px solid #d0d0d0;
-          padding: 2.2mm;
-          margin: 0.9mm 0;
-          font-size: 12px;
+          border: 0.5px solid #d0d0d0;
+          padding: 1.2mm;
+          margin: 0.4mm 0;
+          font-size: 9px;
           background: #fafafa;
-          border-radius: 2px;
+          border-radius: 1px;
         }
 
         .box-title {
           font-weight: 800;
-          font-size: 11px;
-          border-bottom: 2px solid #1a237e;
-          padding-bottom: 0.5mm;
-          margin-bottom: 0.5mm;
+          font-size: 8px;
+          border-bottom: 1px solid #1a237e;
+          padding-bottom: 0.2mm;
+          margin-bottom: 0.2mm;
           color: #1a237e;
           text-transform: uppercase;
-          letter-spacing: 0.1px;
+          letter-spacing: 0.05px;
         }
 
         .box-row {
           display: flex;
           justify-content: space-between;
-          padding: 0.5mm 0;
-          font-size: 12px;
-          gap: 0.9mm;
+          padding: 0.2mm 0;
+          font-size: 9px;
+          gap: 0.5mm;
         }
 
         .amount-box {
           font-weight: 900;
-          font-size: 13px;
+          font-size: 10px;
           color: #1a237e;
           text-align: center;
-          padding: 1.2mm 0.9mm;
-          margin: 0.6mm 0;
-          border: 2px solid #1a237e;
+          padding: 0.6mm 0.6mm;
+          margin: 0.3mm 0;
+          border: 1px solid #1a237e;
           background: #f3f7ff;
-          border-radius: 2px;
+          border-radius: 1px;
         }
 
         .summary {
           width: 100%;
           border-collapse: collapse;
-          font-size: 12px;
-          margin: 0.7mm 0;
-          border: 1px solid #d0d0d0;
+          font-size: 9px;
+          margin: 0.3mm 0;
+          border: 0.5px solid #d0d0d0;
         }
 
         .summary td {
-          border-bottom: 1px solid #e0e0e0;
-          padding: 0.6mm 1.2mm;
+          border-bottom: 0.5px solid #e0e0e0;
+          padding: 0.3mm 0.6mm;
         }
 
         .summary td:first-child {
@@ -372,42 +372,42 @@ export default function PrintReceiptA5() {
         }
 
         .footer {
-          font-size: 8px;
+          font-size: 7px;
           text-align: center;
           color: #888;
-          margin-top: 0.3mm;
-          padding: 0.3mm 0;
-          border-top: 1px solid #e0e0e0;
+          margin-top: 0.2mm;
+          padding: 0.2mm 0;
+          border-top: 0.5px solid #e0e0e0;
           font-style: italic;
         }
 
         .signatures {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1.5mm;
-          font-size: 10px;
-          margin-top: 0.5mm;
+          gap: 1mm;
+          font-size: 8px;
+          margin-top: 0.3mm;
         }
 
         .sig-line {
           text-align: center;
-          height: 16mm;
+          height: 10mm;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
         }
 
         .sig-space {
-          border-top: 1.5px solid #333;
-          height: 8mm;
-          margin-bottom: 0.6mm;
+          border-top: 1px solid #333;
+          height: 5mm;
+          margin-bottom: 0.3mm;
         }
 
         .sig-label {
           font-weight: 700;
           color: #1a237e;
-          letter-spacing: 0.1px;
-          font-size: 11px;
+          letter-spacing: 0.05px;
+          font-size: 8px;
         }
 
         .void-note {
