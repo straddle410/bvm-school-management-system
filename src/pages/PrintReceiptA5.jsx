@@ -31,7 +31,9 @@ export default function PrintReceiptA5() {
       return res.data;
     },
     enabled: !!paymentId,
-    retry: 1
+    retry: 0,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 5
   });
 
   // Don't auto-print — let user choose to print or cancel
