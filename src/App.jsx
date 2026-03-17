@@ -82,6 +82,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <LoadingProvider>
           <AsyncOperationProvider>
+            <PullToRefreshDisabler />
             <Router>
               <TabHistoryProvider>
                 <NavigationTracker />
