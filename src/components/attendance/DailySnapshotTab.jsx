@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Eye, Phone } from 'lucide-react';
+import { format } from 'date-fns';
 
 const LoadingSpinner = () => (
   <div className="flex justify-center py-12">
