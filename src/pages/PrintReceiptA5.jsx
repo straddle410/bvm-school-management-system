@@ -167,7 +167,7 @@ export default function PrintReceiptA5() {
       <style>{`
         @page {
           size: A5 landscape;
-          margin: 2mm 4mm 4mm 4mm;
+          margin: 5mm 5mm 5mm 5mm;
         }
 
         html, body {
@@ -186,17 +186,21 @@ export default function PrintReceiptA5() {
 
         .copiesRow {
           display: flex;
-          gap: 2mm;
+          gap: 3mm;
+          height: 100vh;
+          align-items: stretch;
         }
 
         .copy {
           flex: 1;
           border: 1px solid #111;
-          border-radius: 2px;
-          padding: 0.8mm;
+          border-radius: 1px;
+          padding: 5mm;
           box-sizing: border-box;
           overflow: hidden;
           background: white;
+          display: flex;
+          flex-direction: column;
         }
 
         .copy.void {
