@@ -103,6 +103,12 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
     p.status !== 'CANCELLED'
   );
   const paid = annualPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+  
+  // Debug: log all payments and which ones are included
+  if (selectedStudent?.student_id === 'S25007') {
+    console.log(`[StudentLedger S25007] All payments:`, payments.map(p => ({ receipt: p.receipt_no, amount: p.amount_paid, status: p.status, entry_type: p.entry_type, affects_cash: p.affects_cash, invoice_id: p.invoice_id, included: annualPayments.some(ap => ap.id === p.id) })));
+    console.log(`[StudentLedger S25007] Annual invoice ID:`, invoice?.id, `Paid total: ₹${paid}`);
+  }
 
   // Calculate ADHOC paid (for display below paid total)
   const adhocPaid = payments.reduce((sum, p) => {
