@@ -59,7 +59,7 @@ function MarkAttendanceTab({
   onClassChange        // ✅ Callback to update parent's selectedClass
 }) {
   const todayDate = format(new Date(), 'yyyy-MM-dd');
-  const [selectedDate, setSelectedDate] = useState(isAdmin ? '' : todayDate);
+  const [selectedDate, setSelectedDate] = useState(todayDate);
   const [selectedSection, setSelectedSection] = useState('');
 
   const availableClasses = classSectionData?.classes || [];
