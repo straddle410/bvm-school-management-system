@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     }
 
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
-    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year });
+    const yearConfigs = await base44.entities.AcademicYear.filter({ year: academic_year });
     if (yearConfigs.length > 0) {
       const yearConfig = yearConfigs[0];
       if (!validateAcademicYearBoundary(date, yearConfig.start_date, yearConfig.end_date)) {
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     }
 
     // ── STUDENT EXISTENCE & SOFT-DELETE GUARD ──
-    const studentsForId = await base44.asServiceRole.entities.Student.filter({ student_id, academic_year });
+    const studentsForId = await base44.entities.Student.filter({ student_id, academic_year });
     const studentForCheck = studentsForId[0];
     if (!studentForCheck) {
       return Response.json({ error: `Student '${student_id}' does not exist in database` }, { status: 404 });
@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
 
     // ── UPSERT: Find existing record by composite key ──
     console.log("SEARCHING FOR EXISTING RECORD:", { date, class_name, section, student_id, academic_year });
-    const existingRecords = await base44.asServiceRole.entities.Attendance.filter({
+    const existingRecords = await base44.entities.Attendance.filter({
       date,
       class_name,
       section,
