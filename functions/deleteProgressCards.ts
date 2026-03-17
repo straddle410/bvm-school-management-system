@@ -14,10 +14,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { cardIds } = await req.json();
+    const body = await req.json();
+    let { cardIds, deleteAll } = body;
+
+    if (deleteAll) {
+      // Fetch all progress card IDs
+      const allCards = await base44.asServiceRole.entities.ProgressCard.list();
+      cardIds = allCards.map(c => c.id);
+    }
 
     if (!cardIds || !Array.isArray(cardIds) || cardIds.length === 0) {
-      return Response.json({ error: 'cardIds array is required' }, { status: 400 });
+      return Response.json({ error: 'cardIds array is required', deletedCount: 0 }, { status: 400 });
     }
 
     let deletedCount = 0;
