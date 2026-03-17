@@ -22,6 +22,29 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Forbidden: Can only delete own student account' }, { status: 403 });
       }
 
+      // Check for outstanding fees
+      const invoices = await base44.entities.FeeInvoice.filter({ 
+        student_id: student[0].student_id 
+      });
+      
+      let outstandingAmount = 0;
+      for (const invoice of invoices) {
+        const totalPaid = invoice.amount_paid || 0;
+        const totalDue = invoice.total_amount || 0;
+        const balance = totalDue - totalPaid;
+        if (balance > 0) {
+          outstandingAmount += balance;
+        }
+      }
+
+      if (outstandingAmount > 0) {
+        return Response.json({
+          error: `Cannot delete account with outstanding fees of ₹${outstandingAmount.toFixed(2)}. Please settle all dues before deleting.`,
+          outstanding_amount: outstandingAmount,
+          status_code: 'FEES_OUTSTANDING'
+        }, { status: 400 });
+      }
+
       await base44.entities.Student.update(userId, {
         is_deleted: true,
         deletion_type: 'self_delete',
