@@ -110,14 +110,15 @@ export default function ClassSubjectConfigTab() {
    const [draggedFrom, setDraggedFrom] = useState(null);
    const [selectedSubjectToAdd, setSelectedSubjectToAdd] = useState('');
 
-  const { data: allSubjects = [] } = useQuery({
+  const { data: allSubjects = [], refetch: refetchSubjects } = useQuery({
     queryKey: ['all-subjects-for-year', academicYear],
     queryFn: async () => {
-      const subjects = await getAllSubjectsForYear(academicYear);
-      // Map strings to objects for compatibility with existing UI
-      return subjects.map(name => ({ id: name, name }));
+      const subjects = await base44.entities.Subject.list();
+      // Map to objects and sort by name
+      return subjects.map(s => ({ id: s.id, name: s.name })).sort((a, b) => a.name.localeCompare(b.name));
     },
-    enabled: !!academicYear
+    enabled: !!academicYear,
+    staleTime: 0 // Always fetch fresh data
   });
 
   const { data: config, isLoading, refetch: refetchConfig } = useQuery({
@@ -168,6 +169,7 @@ export default function ClassSubjectConfigTab() {
     }
     setSelected(prev => [...prev, selectedSubjectToAdd]);
     setSelectedSubjectToAdd('');
+    refetchSubjects(); // Refresh dropdown data
     toast.success(`Subject "${selectedSubjectToAdd}" added`);
   };
 
@@ -204,7 +206,8 @@ export default function ClassSubjectConfigTab() {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['class-subject-config', academicYear, selectedClass] });
       queryClient.invalidateQueries({ queryKey: ['class-subjects'] });
-      
+      await refetchSubjects(); // Refresh dropdown with latest subjects
+
       toast.success(`✓ Saved subjects for Class ${selectedClass}`);
       setShowSuccessModal(true);
     } catch (err) {
@@ -318,6 +321,7 @@ export default function ClassSubjectConfigTab() {
                       }}
                       onRemove={() => {
                         setSelected(prev => prev.filter((_, i) => i !== idx));
+                        refetchSubjects(); // Refresh dropdown after removal
                       }}
                     />
                   ))}
