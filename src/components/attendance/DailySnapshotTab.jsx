@@ -174,9 +174,7 @@ export default function DailySnapshotTab() {
     });
 
     Object.entries(recordsByGroup).forEach(([key, groupRecords]) => {
-      console.log('Snapshot Debug:', groupRecords);
-
-      // Only look at Submitted records
+      // Only look at Submitted records (including auto-submitted)
       const validRecords = groupRecords.filter(r => r.status === 'Submitted');
 
       // Pick the latest submitted_at among valid records that have one
