@@ -5,6 +5,7 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Save, Check, Zap, GripVertical, Trash2 } from 'lucide-react';
 
@@ -107,8 +108,7 @@ export default function ClassSubjectConfigTab() {
    const [saving, setSaving] = useState(false);
    const [showSuccessModal, setShowSuccessModal] = useState(false);
    const [draggedFrom, setDraggedFrom] = useState(null);
-
-   const [newSubjectInput, setNewSubjectInput] = useState('');
+   const [selectedSubjectToAdd, setSelectedSubjectToAdd] = useState('');
 
   const { data: allSubjects = [] } = useQuery({
     queryKey: ['all-subjects-for-year', academicYear],
@@ -157,22 +157,18 @@ export default function ClassSubjectConfigTab() {
     );
   };
 
-  const handleAddNewSubject = () => {
-    const trimmed = newSubjectInput.trim();
-    if (!trimmed) {
-      toast.error('Please enter a subject name');
+  const handleAddSubject = () => {
+    if (!selectedSubjectToAdd) {
+      toast.error('Please select a subject');
       return;
     }
-    if (selected.includes(trimmed)) {
+    if (selected.includes(selectedSubjectToAdd)) {
       toast.error('Subject already added to this class');
-      setNewSubjectInput('');
       return;
     }
-    // Add to current class selection
-    setSelected(prev => [...prev, trimmed]);
-    // Clear input
-    setNewSubjectInput('');
-    toast.success(`Subject "${trimmed}" added`);
+    setSelected(prev => [...prev, selectedSubjectToAdd]);
+    setSelectedSubjectToAdd('');
+    toast.success(`Subject "${selectedSubjectToAdd}" added`);
   };
 
   const handleSave = async () => {
@@ -261,27 +257,35 @@ export default function ClassSubjectConfigTab() {
               </div>
             )}
 
-            {/* Add New Subject */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs font-medium text-blue-900 mb-2">Add a new subject to the school</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g., Computer Science, Art"
-                  value={newSubjectInput}
-                  onChange={(e) => setNewSubjectInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddNewSubject()}
-                  className="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <Button
-                  onClick={handleAddNewSubject}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
+            {/* Add Subject from Dropdown */}
+             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+               <p className="text-xs font-medium text-blue-900 mb-2">Select a subject to add</p>
+               <div className="flex gap-2">
+                 <Select value={selectedSubjectToAdd} onValueChange={setSelectedSubjectToAdd}>
+                   <SelectTrigger className="flex-1">
+                     <SelectValue placeholder="Choose a subject..." />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {allSubjects
+                       .filter(s => !selected.includes(s.name))
+                       .map(s => (
+                         <SelectItem key={s.id} value={s.name}>
+                           {s.name}
+                         </SelectItem>
+                       ))
+                     }
+                   </SelectContent>
+                 </Select>
+                 <Button
+                   onClick={handleAddSubject}
+                   size="sm"
+                   className="bg-blue-600 hover:bg-blue-700"
+                   disabled={!selectedSubjectToAdd}
+                 >
+                   Add
+                 </Button>
+               </div>
+             </div>
 
             {/* Ordered Subjects List with Drag & Drop */}
             {selected.length === 0 ? (
