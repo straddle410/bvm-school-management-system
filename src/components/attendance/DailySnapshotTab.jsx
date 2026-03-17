@@ -251,6 +251,15 @@ export default function DailySnapshotTab() {
   const totalHoliday = reportData.reduce((s, r) => s + r.holiday, 0);
   const totalUnmarked = reportData.reduce((s, r) => s + r.unmarked, 0);
 
+  const formatSubmittedTime = (submittedAt) => {
+    if (!submittedAt) return 'Not Submitted';
+    try {
+      return new Date(submittedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch {
+      return 'Not Submitted';
+    }
+  };
+
   const presentEquivalent = totalFullDay + (totalHalfDay * 0.5);
   const workingStudentsTotal = totalStudents - totalHoliday;
   const overallPct = workingStudentsTotal > 0 ? Math.round((presentEquivalent / workingStudentsTotal) * 100) : 0;
