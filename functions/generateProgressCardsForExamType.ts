@@ -15,7 +15,11 @@ Deno.serve(async (req) => {
     console.log('[generateProgressCardsForExamType] Generate called');
     const base44 = createClientFromRequest(req);
     
-    // Auth: accept either Base44 token OR staff session token in Authorization header
+    // Parse body first so we can use _staffToken in auth fallback
+    const body = await req.json();
+    const { academicYear, examTypeId, _staffToken } = body;
+
+    // Auth: accept Base44 token, Authorization header, or staff session token from body
     let user = null;
     try {
       user = await base44.auth.me();
@@ -23,12 +27,10 @@ Deno.serve(async (req) => {
       user = null;
     }
 
-    // Fallback: if no Base44 user, check for staff token in Authorization header or request body
     if (!user) {
       const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
       const headerToken = authHeader.replace('Bearer ', '').trim();
       if (headerToken || _staffToken) {
-        // A staff token was provided — allow the request to proceed using asServiceRole
         user = { role: 'staff', email: 'staff' };
       }
     }
@@ -36,9 +38,6 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const body = await req.json();
-    const { academicYear, examTypeId, _staffToken } = body;
     console.log(`[generateProgressCardsForExamType] academicYear=${academicYear}, examTypeId=${examTypeId}`);
 
     if (!academicYear || !examTypeId) {
