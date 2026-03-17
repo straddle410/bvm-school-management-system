@@ -80,9 +80,19 @@
 
 /* Smooth transitions */
 * {
-  transition-property: background-color, border-color, color, fill, stroke;
+  transition-property: background-color, border-color, color, fill, stroke, opacity, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+/* Faster transitions for interactive elements */
+button, a, [role="button"] {
+  transition-duration: 100ms;
+}
+
+/* Slower transitions for layout changes */
+main, [role="main"], nav {
+  transition-duration: 200ms;
 }
 
 /* Focus styles */
@@ -121,12 +131,30 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spinnerRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.4s ease-out;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-spin-smooth {
+  animation: spinnerRotate 1s linear infinite;
 }
 
 /* Mobile responsive improvements */
