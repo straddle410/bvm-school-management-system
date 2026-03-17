@@ -142,6 +142,8 @@ export default function Layout({ children, currentPageName }) {
 
   // If student is on an allowed page, render with student bottom nav (no staff layout)
   if (studentSession && STUDENT_ALLOWED_PAGES.includes(currentPageName)) {
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("vite-ui-theme", "light");
     return (
       <AcademicYearProvider>
         <div className="min-h-screen bg-gray-100 flex flex-col relative pb-20">
