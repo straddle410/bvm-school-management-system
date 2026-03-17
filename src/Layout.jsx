@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp, User, Sun, Moon } from 'lucide-react';
+import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp, User, Sun, Moon, Archive } from 'lucide-react';
 import { useDarkMode } from '@/components/useDarkMode';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
@@ -44,6 +44,7 @@ const getBottomNav = (isAdmin, userRole) => {
     { name: 'Notices', icon: Bell, page: 'Notices' },
     { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
     ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
+    ...(isAdmin ? [{ name: 'Archived', icon: Archive, page: 'ArchivedUsers' }] : []),
     { name: 'More', icon: MoreHorizontal, page: 'More' },
   ];
 };
