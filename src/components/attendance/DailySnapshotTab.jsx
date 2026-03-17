@@ -122,14 +122,15 @@ export default function DailySnapshotTab() {
       return isSunday || isMarkedHoliday;
     };
 
-    // Build classMap from actual students
-    const classMap = {};
+    // Build groupMap keyed by class_name + section
+    const groupMap = {};
 
     allStudents.forEach(student => {
-      const cls = student.class_name;
-      if (!classMap[cls]) {
-        classMap[cls] = {
-          class_name: cls,
+      const key = `${student.class_name}__${student.section}`;
+      if (!groupMap[key]) {
+        groupMap[key] = {
+          class_name: student.class_name,
+          section: student.section,
           total_students: 0,
           full_day: 0,
           half_day: 0,
@@ -141,81 +142,106 @@ export default function DailySnapshotTab() {
           absent_students: [],
           holiday_students: [],
           unmarked_students: [],
-          submitted_by: 'Not Submitted' // Track submission status for class
+          submitted_by: 'Not Submitted',
+          submitted_at: null
         };
       }
-      classMap[cls].total_students++;
+      groupMap[key].total_students++;
     });
 
     // CANONICAL DEDUPLICATION: deduplicate before building map
     const dedupedAttendance = deduplicateAttendanceRecords(attendanceData);
-    
-    // Build attendance record map for fast lookup
+
+    // Build attendance record map for fast lookup keyed by class+section+student
     const attendanceMap = {};
     dedupedAttendance.forEach(record => {
-      const key = `${record.class_name}-${record.student_id}`;
+      const key = `${record.class_name}__${record.section}__${record.student_id}`;
       if (!attendanceMap[key]) {
         attendanceMap[key] = record;
       }
     });
 
-    // Determine submitted_by status per class (first record determines status)
-    const classSubmittedByMap = {};
+    // Determine submitted_by and submitted_at per class+section group
+    // Pick the latest submitted_at record in each group
+    const groupSubmissionMap = {};
     dedupedAttendance.forEach(record => {
-      const cls = record.class_name;
-      if (!classSubmittedByMap[cls]) {
-        if (record.auto_submitted) {
-          classSubmittedByMap[cls] = 'System Submitted';
-        } else if (record.marked_by && record.marked_by !== 'SYSTEM') {
-          classSubmittedByMap[cls] = staffNameMap[record.marked_by] || record.marked_by;
-        } else {
-          classSubmittedByMap[cls] = 'Not Submitted';
+      const key = `${record.class_name}__${record.section}`;
+      if (!groupSubmissionMap[key]) {
+        groupSubmissionMap[key] = { submitted_by: 'Not Submitted', submitted_at: null };
+      }
+      const entry = groupSubmissionMap[key];
+      // Determine submitted_by label from this record
+      let byLabel = null;
+      if (record.auto_submitted || record.marked_by === 'SYSTEM') {
+        byLabel = 'System Submitted';
+      } else if (record.marked_by) {
+        byLabel = staffNameMap[record.marked_by] || record.marked_by;
+      }
+      if (byLabel && entry.submitted_by === 'Not Submitted') {
+        entry.submitted_by = byLabel;
+      }
+      // Pick latest submitted_at
+      if (record.submitted_at) {
+        if (!entry.submitted_at || new Date(record.submitted_at) > new Date(entry.submitted_at)) {
+          entry.submitted_at = record.submitted_at;
+          // Update submitted_by to match the latest submitter
+          if (record.auto_submitted || record.marked_by === 'SYSTEM') {
+            entry.submitted_by = 'System Submitted';
+          } else if (record.marked_by) {
+            entry.submitted_by = staffNameMap[record.marked_by] || record.marked_by;
+          }
         }
       }
     });
 
     // Process each student: determine effectiveHoliday first, then classify
     allStudents.forEach(student => {
-      const cls = student.class_name;
-      if (!classMap[cls]) return;
+      const key = `${student.class_name}__${student.section}`;
+      if (!groupMap[key]) return;
 
       const studentInfo = { name: student.name, phone: student.parent_phone || 'N/A' };
       const effectiveHoliday = isStudentHoliday(student);
 
       if (effectiveHoliday) {
-        classMap[cls].holiday++;
-        classMap[cls].holiday_students.push(studentInfo);
+        groupMap[key].holiday++;
+        groupMap[key].holiday_students.push(studentInfo);
       } else {
-        // Check for attendance record
-        const recordKey = `${cls}-${student.student_id}`;
+        const recordKey = `${student.class_name}__${student.section}__${student.student_id}`;
         const record = attendanceMap[recordKey];
 
         if (record) {
           const attType = record.attendance_type || 'full_day';
           if (attType === 'full_day') {
-            classMap[cls].full_day++;
-            classMap[cls].full_day_students.push(studentInfo);
+            groupMap[key].full_day++;
+            groupMap[key].full_day_students.push(studentInfo);
           } else if (attType === 'half_day') {
-            classMap[cls].half_day++;
-            classMap[cls].half_day_students.push(studentInfo);
+            groupMap[key].half_day++;
+            groupMap[key].half_day_students.push(studentInfo);
           } else if (attType === 'absent') {
-            classMap[cls].absent++;
-            classMap[cls].absent_students.push(studentInfo);
+            groupMap[key].absent++;
+            groupMap[key].absent_students.push(studentInfo);
           }
         } else {
-          // No attendance record and not a holiday
-          classMap[cls].unmarked++;
-          classMap[cls].unmarked_students.push(studentInfo);
+          groupMap[key].unmarked++;
+          groupMap[key].unmarked_students.push(studentInfo);
         }
       }
     });
 
-    // Apply submitted_by status to each class
-    Object.keys(classMap).forEach(cls => {
-      classMap[cls].submitted_by = classSubmittedByMap[cls] || 'Not Submitted';
+    // Apply submission info to each group
+    Object.keys(groupMap).forEach(key => {
+      const sub = groupSubmissionMap[key];
+      if (sub) {
+        groupMap[key].submitted_by = sub.submitted_by;
+        groupMap[key].submitted_at = sub.submitted_at;
+      }
     });
 
-    return Object.values(classMap);
+    return Object.values(groupMap).sort((a, b) => {
+      if (a.class_name < b.class_name) return -1;
+      if (a.class_name > b.class_name) return 1;
+      return (a.section || '').localeCompare(b.section || '');
+    });
   }, [selectedDate, allStudents, attendanceData, holidays, overrides, staffNameMap]);
 
   const totalStudents = reportData.reduce((s, r) => s + r.total_students, 0);
