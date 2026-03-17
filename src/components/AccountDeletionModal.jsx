@@ -42,7 +42,12 @@ export default function AccountDeletionModal({ isOpen, onClose, userType, userId
       onClose();
       onSuccess?.();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to delete account. Please try again.');
+      const errorData = err.response?.data;
+      if (errorData?.status_code === 'FEES_OUTSTANDING') {
+        setError(`⚠️ ${errorData.error}`);
+      } else {
+        setError(errorData?.error || 'Failed to delete account. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
