@@ -63,11 +63,18 @@ Deno.serve(async (req) => {
     console.log("TOKEN USER:", user);
 
     const staffName = user.name;
-    const staffCode = user.staff_code || user.staff_id;
-    const markedByLabel = staffCode
-      ? `${staffName} (${staffCode})`
-      : staffName;
-    const markedByFinal = markedByLabel || "UNKNOWN";
+    const staffCode = user.staff_code; // ONLY human-readable code, never DB id
+
+    let markedByFinal;
+    if (staffName && staffCode) {
+      markedByFinal = `${staffName} (${staffCode})`;
+    } else if (staffName) {
+      markedByFinal = staffName;
+    } else {
+      markedByFinal = "UNKNOWN";
+    }
+
+    console.log("FINAL MARKED BY:", markedByFinal);
 
     if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
