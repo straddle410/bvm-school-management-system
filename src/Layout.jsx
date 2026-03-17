@@ -175,7 +175,7 @@ export default function Layout({ children, currentPageName }) {
         {currentPageName !== 'Dashboard' && (
           <button 
             onClick={() => navigate(-1)} 
-            className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0"
+            className="hover:bg-white/20 active:bg-white/30 p-2 rounded-lg transition-all duration-150 flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Go back"
             title="Back"
           >
@@ -194,7 +194,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => setIsDark(v => !v)}
-            className="p-1.5 rounded-lg hover:bg-white/20 transition flex-shrink-0"
+            className="p-2 rounded-lg hover:bg-white/20 active:bg-white/30 transition-all duration-150 flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
@@ -205,7 +205,7 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20" role="main">
+      <main className="flex-1 overflow-y-auto pb-20 page-transition" role="main">
         <StaffAuthGuard currentPageName={currentPageName}>
           <div className="animate-fade-in">
             {children}
@@ -215,7 +215,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation */}
       <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg" role="navigation" aria-label="Main navigation">
-        <div className="flex items-center justify-around py-1 overflow-x-auto">
+        <div className="flex items-center justify-around py-2 overflow-x-auto gap-1">
           {getBottomNav(isAdmin, userRole).map((item) => {
               const isActive = currentPageName === item.page;
               const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
@@ -224,13 +224,13 @@ export default function Layout({ children, currentPageName }) {
                   key={item.name}
                   to={href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-w-[48px] min-h-[48px] justify-center ${
-                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
-                  <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  className={`flex flex-col items-center gap-0.5 px-2 py-3 rounded-xl active:scale-95 transition-all duration-200 relative flex-1 min-w-[56px] min-h-[56px] justify-center touch-target ${
+                  isActive ? 'text-[#1a237e] bg-blue-50' : 'text-gray-400 active:bg-gray-100'}`}>
+                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} transition-all ${isActive ? 'text-[#1a237e] drop-shadow-sm' : 'text-gray-400'}`} />
+                  <span className={`text-[11px] font-semibold text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
                     {item.name}
                   </span>
-                  {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
+                  {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#1a237e] mt-0.5 animate-pulse" />}
                 </Link>);
             })}
         </div>
