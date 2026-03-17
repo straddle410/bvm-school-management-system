@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import LedgerRowDrawer from '@/components/fees/LedgerRowDrawer';
+import RecordPaymentModal from '@/components/fees/RecordPaymentModal';
 import moment from 'moment';
 
 function fmt(n) {
@@ -44,6 +45,8 @@ function StudentLedgerContent() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   // Student typeahead
   const { data: studentResults = [], isFetching: searchingStudents } = useQuery({
@@ -381,6 +384,14 @@ function StudentLedgerContent() {
         row={selectedRow}
         invoices={invoicesCache}
         onClose={() => setSelectedRow(null)}
+      />
+
+      {/* Record Payment Modal */}
+      <RecordPaymentModal
+        isOpen={recordPaymentOpen}
+        onClose={() => setRecordPaymentOpen(false)}
+        selectedStudent={selectedStudent}
+        selectedInvoice={selectedInvoice}
       />
     </div>
   );
