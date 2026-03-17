@@ -78,21 +78,50 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     staleTime: 5 * 60 * 1000
   });
 
-  // ✅ FIX #5: Load invoices for all students in the academic year (needed for Add Students modal)
-   const { data: invoicesByStudent = {} } = useQuery({
-     queryKey: ['fee-invoices-all', academicYear],
+  // ✅ Fetch ledger data for all students in the academic year to get accurate outstanding balances
+   const { data: ledgersByStudent = {} } = useQuery({
+     queryKey: ['student-ledgers-all', academicYear],
      queryFn: async () => {
-       const invoices = await base44.entities.FeeInvoice.filter({ academic_year: academicYear });
-       const result = {};
-       for (const inv of invoices) {
-         if (!result[inv.student_id]) {
-           result[inv.student_id] = [];
+       try {
+         const students = await base44.entities.Student.filter({ 
+           academic_year: academicYear, 
+           status: 'Published',
+           is_deleted: false,
+           is_active: true
+         });
+
+         const result = {};
+         const staffInfo = (() => {
+           try {
+             const raw = localStorage.getItem('staff_session');
+             return raw ? JSON.parse(raw) : null;
+           } catch { return null; }
+         })();
+
+         // Batch fetch ledgers
+         for (const student of students) {
+           try {
+             const res = await base44.functions.invoke('getStudentLedger', {
+               studentId: student.student_id,
+               academicYear,
+               staffInfo,
+               pageSize: 1 // We only need the summary
+             });
+             result[student.student_id] = res.data?.closingBalance ?? 0;
+           } catch (e) {
+             console.warn(`Failed to fetch ledger for ${student.student_id}:`, e.message);
+             result[student.student_id] = 0;
+           }
          }
-         result[inv.student_id].push(inv);
+
+         return result;
+       } catch (e) {
+         console.error('Failed to fetch ledgers:', e.message);
+         return {};
        }
-       return result;
      },
-     enabled: !!academicYear
+     enabled: !!academicYear,
+     staleTime: 5 * 60 * 1000
    });
 
   // ✅ FIX #5: Use lazy-loaded invoices or fallback to empty (only calc when expanded)
