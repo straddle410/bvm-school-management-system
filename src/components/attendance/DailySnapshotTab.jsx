@@ -16,7 +16,7 @@ import { deduplicateAttendanceRecords } from '@/components/attendanceCalculation
 
 export default function DailySnapshotTab() {
   const { academicYear } = useAcademicYear();
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedClassData, setSelectedClassData] = useState(null);
   const [viewType, setViewType] = useState('full_day');
   const [academicYearData, setAcademicYearData] = useState(null);
