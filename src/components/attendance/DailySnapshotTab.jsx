@@ -177,10 +177,15 @@ export default function DailySnapshotTab() {
       // Only look at Submitted records (including auto-submitted)
       const validRecords = groupRecords.filter(r => r.status === 'Submitted');
 
-      // Pick the latest submitted_at among valid records that have one
-      const latestRecord = validRecords
+      // Pick the latest record (prefer one with submitted_at, fallback to any Submitted record)
+      let latestRecord = validRecords
         .filter(r => r.submitted_at)
         .sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at))[0];
+
+      // If no record with submitted_at found, use any Submitted record (e.g., auto-submitted)
+      if (!latestRecord && validRecords.length > 0) {
+        latestRecord = validRecords[0];
+      }
 
       let submittedBy = 'Not Submitted';
       let submittedAt = null;
