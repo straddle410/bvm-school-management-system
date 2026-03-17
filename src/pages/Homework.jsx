@@ -90,14 +90,14 @@ export default function Homework() {
   }, [form.class_name, academicYear]);
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects', academicYear, form.class_name],
+    queryKey: ['subjects-for-homework', academicYear, form.class_name],
     queryFn: async () => {
-      console.log('[SUBJECT_CALLSITE] pages/Homework:39');
       if (!form.class_name || !academicYear) return [];
       const result = await getSubjectsForClass(academicYear, form.class_name);
       return result.subjects.map(name => ({ id: name, name }));
     },
     enabled: !!form.class_name && !!academicYear,
+    staleTime: 0, // Always fetch fresh data
   });
 
   const { data: homeworkList = [], isLoading } = useQuery({
