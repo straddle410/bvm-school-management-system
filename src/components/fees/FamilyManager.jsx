@@ -78,51 +78,59 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     staleTime: 5 * 60 * 1000
   });
 
-  // ✅ Fetch ledger data for all students in the academic year to get accurate outstanding balances
-   const { data: ledgersByStudent = {} } = useQuery({
-     queryKey: ['student-ledgers-all', academicYear],
-     queryFn: async () => {
-       try {
-         const students = await base44.entities.Student.filter({ 
-           academic_year: academicYear, 
-           status: 'Published',
-           is_deleted: false,
-           is_active: true
-         });
+  // ✅ Fetch all invoices to identify students with active fee obligations
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['fee-invoices-all', academicYear],
+    queryFn: async () => {
+      return await base44.entities.FeeInvoice.filter({ academic_year: academicYear });
+    },
+    enabled: !!academicYear,
+    staleTime: 5 * 60 * 1000
+  });
 
-         const result = {};
-         const staffInfo = (() => {
-           try {
-             const raw = localStorage.getItem('staff_session');
-             return raw ? JSON.parse(raw) : null;
-           } catch { return null; }
-         })();
+  // ✅ Create Set of student IDs with invoices for efficient filtering
+  const studentIdsWithInvoices = new Set(
+    invoices.map(inv => String(inv.student_id))
+  );
 
-         // Batch fetch ledgers
-         for (const student of students) {
-           try {
-             const res = await base44.functions.invoke('getStudentLedger', {
-               studentId: student.student_id,
-               academicYear,
-               staffInfo,
-               pageSize: 1 // We only need the summary
-             });
-             result[student.student_id] = res.data?.closingBalance ?? 0;
-           } catch (e) {
-             console.warn(`Failed to fetch ledger for ${student.student_id}:`, e.message);
-             result[student.student_id] = 0;
-           }
-         }
+  // ✅ Fetch ledger data for students with invoices to get accurate outstanding balances
+  const { data: ledgersByStudent = {} } = useQuery({
+    queryKey: ['student-ledgers-all', academicYear, Array.from(studentIdsWithInvoices)],
+    queryFn: async () => {
+      try {
+        const result = {};
+        const staffInfo = (() => {
+          try {
+            const raw = localStorage.getItem('staff_session');
+            return raw ? JSON.parse(raw) : null;
+          } catch { return null; }
+        })();
 
-         return result;
-       } catch (e) {
-         console.error('Failed to fetch ledgers:', e.message);
-         return {};
-       }
-     },
-     enabled: !!academicYear,
-     staleTime: 5 * 60 * 1000
-   });
+        // Fetch ledgers only for students with invoices
+        for (const sid of studentIdsWithInvoices) {
+          try {
+            const res = await base44.functions.invoke('getStudentLedger', {
+              studentId: sid,
+              academicYear,
+              staffInfo,
+              pageSize: 1 // We only need the summary
+            });
+            result[sid] = res.data?.closingBalance ?? 0;
+          } catch (e) {
+            console.warn(`Failed to fetch ledger for ${sid}:`, e.message);
+            result[sid] = 0;
+          }
+        }
+
+        return result;
+      } catch (e) {
+        console.error('Failed to fetch ledgers:', e.message);
+        return {};
+      }
+    },
+    enabled: !!academicYear && studentIdsWithInvoices.size > 0,
+    staleTime: 5 * 60 * 1000
+  });
 
   // ✅ Use backend ledger calculation for consistency with Student Ledger report
    const getOutstandingBalance = (student_id) => {
