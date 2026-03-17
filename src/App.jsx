@@ -62,6 +62,7 @@ const AuthenticatedApp = () => {
       ))}
       <Route path="/NotificationAnalytics" element={<LayoutWrapper currentPageName="NotificationAnalytics"><NotificationAnalytics /></LayoutWrapper>} />
       <Route path="/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
+      <Route path="/pages/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
        <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
