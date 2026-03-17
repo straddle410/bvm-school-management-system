@@ -549,7 +549,7 @@ function ReceiptContent({ school, receipt, copyLabel }) {
           )}
           
           {receipt.payment.collectedByName && (
-             <div className="box-row" style={{ marginTop: '0.3mm', paddingTop: '0.3mm', borderTop: '0.5px solid #ddd' }}>
+             <div className="box-row" style={{ marginTop: '0.15mm', paddingTop: '0.15mm', borderTop: '0.5px solid #ddd' }}>
                <span className="label">Received By:</span>
                <span>{receipt.payment.collectedByName}</span>
              </div>
