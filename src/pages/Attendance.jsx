@@ -223,10 +223,10 @@ function MarkAttendanceTab({
       return await Promise.all(savePromises);
     },
     onSuccess: () => {
-       queryClient.invalidateQueries(['attendance']);
-       queryClient.invalidateQueries(['attendance', workingDate, selectedClass, selectedSection, academicYear]);
-       toast.success(effectiveHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
-     },
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      refetchAttendance(); // Force immediate re-fetch to reflect backend "Submitted" status
+      toast.success(effectiveHoliday ? 'Holiday marked successfully' : 'Attendance saved successfully');
+    },
     onError: (err) => {
       if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
       else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
