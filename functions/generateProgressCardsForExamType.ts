@@ -434,6 +434,8 @@ Deno.serve(async (req) => {
       console.log(`[PROGRESS-CARDS] Successfully created ${newCards.length} progress cards`);
     }
 
+    console.log(`[generateProgressCardsForExamType] FINAL COUNTS: cardsGenerated=${newCards.length}, skippedCount=${skippedCount}, totalStudents=${progressCards.length}`);
+
     return Response.json({
       message: `${newCards.length} cards generated, ${skippedCount} already existed, 0 duplicates created`,
       cardsGenerated: newCards.length,
