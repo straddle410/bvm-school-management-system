@@ -421,38 +421,40 @@ Deno.serve(async (req) => {
       });
     } // end for loop
 
-    // DELETE ALL EXISTING CARDS for this class/section/exam_type combination
+    // FETCH existing cards for this class/section/exam_type to determine which students already have cards
     const allExistingCards = await base44.asServiceRole.entities.ProgressCard.filter({
      academic_year: academicYear,
      class_name: normalizeClassName(classNameFilter),
      section: sectionFilter
     });
 
-    // selectedExamTypeRecord and selectedExamTypeId are already resolved above
-
-    let deletedCount = 0;
+    // Build a set of student IDs that already have a card for this exam type
+    const studentsWithExistingCard = new Set();
     for (const card of allExistingCards) {
-     const cardExamType = card.exam_performance?.[0]?.exam_type;
-     // Delete ALL cards matching this exam type (prevents any duplicates)
-     if (cardExamType === selectedExamTypeId || cardExamType === examTypeIdOrName) {
-       try {
-         await base44.asServiceRole.entities.ProgressCard.delete(card.id);
-         deletedCount++;
-       } catch (error) {
-         console.warn(`Failed to delete card ${card.id}: ${error.message}`);
-       }
-     }
+      const cardExamType = card.exam_performance?.[0]?.exam_type;
+      if (cardExamType === selectedExamTypeId || cardExamType === examTypeIdOrName) {
+        studentsWithExistingCard.add(card.student_id);
+      }
     }
 
-    // Bulk create FRESH progress cards (no duplicates possible now)
-    if (progressCards.length > 0) {
-     await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
+    // Only keep progress cards for students who do NOT already have a card
+    const newCards = progressCards.filter(c => !studentsWithExistingCard.has(c.student_id));
+    const skippedCount = progressCards.length - newCards.length;
+
+    console.log(`[SKIP-CHECK] Total candidates: ${progressCards.length}, Already exist: ${skippedCount}, To create: ${newCards.length}`);
+
+    // Create ONLY the missing cards
+    if (newCards.length > 0) {
+      await base44.asServiceRole.entities.ProgressCard.bulkCreate(newCards);
     }
 
+    const totalStudents = progressCards.length + skippedCount;
     return Response.json({
-     message: `Deleted ${deletedCount} old cards. Generated ${progressCards.length} fresh progress cards for Class ${classNameFilter}, Section ${sectionFilter}, Exam Type ${selectedExamTypeRecord?.name || examTypeIdOrName}`,
-     cardsGenerated: progressCards.length,
-     deletedCount: deletedCount
+     message: `${newCards.length} cards generated, ${skippedCount} already existed, 0 duplicates created`,
+     cardsGenerated: newCards.length,
+     skippedCount: skippedCount,
+     totalStudents: progressCards.length,
+     examTypeName: selectedExamTypeRecord?.name || examTypeIdOrName
     });
   } catch (error) {
     console.error('Progress card generation error:', error);
