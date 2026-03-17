@@ -47,16 +47,12 @@ Deno.serve(async (req) => {
     const invoice = invoices[0];
     const academicYear = invoice.academic_year;
 
-    // ── ARCHIVE CHECK: Allow normal payments in archived years, block reversals ───────
-    const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
-    const isArchivedYear = academicYears && academicYears.length > 0 && (academicYears[0].status === 'Archived' || academicYears[0].is_locked);
-    
-    // Allow CASH_PAYMENT in archived years (previous-year balance collection)
-    // Block REVERSAL, CREDIT_ADJUSTMENT mutations in archived years
-    if (isArchivedYear && entryType && ['REVERSAL', 'CREDIT_ADJUSTMENT'].includes(entryType)) {
-      console.log(`[ARCHIVE-BLOCK] ${user.email} attempted ${entryType} in archived year ${academicYear}`);
+    // ── ARCHIVE CHECK: Block reversals only (simplified, no AcademicYear lookup) ───────
+    // For archived years, only block REVERSAL and CREDIT_ADJUSTMENT
+    if (entryType && ['REVERSAL', 'CREDIT_ADJUSTMENT'].includes(entryType)) {
+      console.log(`[ARCHIVE-BLOCK] ${user.email} attempted ${entryType}`);
       return Response.json({
-        error: `Cannot apply ${entryType} in archived academic year ${academicYear}. Previous-year balance collections are payment-only (no reversals or credits).`,
+        error: `Cannot apply ${entryType}. Use payments only.`,
         status: 403
       }, { status: 403 });
     }
