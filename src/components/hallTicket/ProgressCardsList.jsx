@@ -34,9 +34,18 @@ export default function ProgressCardsList() {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
       
-      const allCards = await base44.entities.ProgressCard.filter(query);
+      // Paginate to fetch ALL cards beyond the 50 default limit
+      let allCards = [];
+      let skip = 0;
+      const batchSize = 100;
+      while (true) {
+        const batch = await base44.entities.ProgressCard.filter(query, null, batchSize, skip);
+        if (!batch || batch.length === 0) break;
+        allCards = allCards.concat(batch);
+        if (batch.length < batchSize) break;
+        skip += batchSize;
+      }
       
-      // DO NOT deduplicate — keep all cards (one per exam type per student)
       let cards = allCards;
       
       // Filter by exam type (check exam_performance array)
@@ -53,7 +62,8 @@ export default function ProgressCardsList() {
       }
       
       return cards;
-    }
+    },
+    staleTime: 0
   });
 
   const handleViewDetails = (card) => {
