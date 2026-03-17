@@ -51,6 +51,7 @@ import AdmissionLanding from './pages/AdmissionLanding';
 import Admissions from './pages/Admissions';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import Approvals from './pages/Approvals';
+import ArchivedUsers from './pages/ArchivedUsers';
 import Attendance from './pages/Attendance';
 import Calendar from './pages/Calendar';
 import ChangeStaffPassword from './pages/ChangeStaffPassword';
@@ -77,6 +78,7 @@ import Marks from './pages/Marks';
 import Messaging from './pages/Messaging';
 import More from './pages/More';
 import Notices from './pages/Notices';
+import NotificationAnalytics from './pages/NotificationAnalytics';
 import OutstandingReport from './pages/OutstandingReport';
 import ParentStatement from './pages/ParentStatement';
 import PostingDashboard from './pages/PostingDashboard';
@@ -124,6 +126,7 @@ export const PAGES = {
     "Admissions": Admissions,
     "AnalyticsDashboard": AnalyticsDashboard,
     "Approvals": Approvals,
+    "ArchivedUsers": ArchivedUsers,
     "Attendance": Attendance,
     "Calendar": Calendar,
     "ChangeStaffPassword": ChangeStaffPassword,
@@ -150,6 +153,7 @@ export const PAGES = {
     "Messaging": Messaging,
     "More": More,
     "Notices": Notices,
+    "NotificationAnalytics": NotificationAnalytics,
     "OutstandingReport": OutstandingReport,
     "ParentStatement": ParentStatement,
     "PostingDashboard": PostingDashboard,

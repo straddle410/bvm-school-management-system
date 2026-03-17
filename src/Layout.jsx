@@ -178,7 +178,7 @@ export default function Layout({ children, currentPageName }) {
       paddingRight: 'env(safe-area-inset-right)'
     }}>
       {/* Top Header */}
-      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
+      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between w-full relative min-h-14 py-2 shadow-md">
         {currentPageName !== 'Dashboard' && (
           <button 
             onClick={() => navigate(-1)} 
