@@ -450,6 +450,17 @@ a, button {
   cursor: pointer;
 }
 
+/* Global overscroll prevention — critical for mobile compliance */
+html, body, main, [role="main"] {
+  overscroll-behavior: contain !important;
+  -webkit-overscroll-behavior: contain !important;
+}
+
+/* Prevent pull-to-refresh on all scrollable containers */
+[role="main"]::-webkit-scrollbar {
+  width: 6px;
+}
+
 /* Print-specific styles */
 @media print {
   .no-print,
