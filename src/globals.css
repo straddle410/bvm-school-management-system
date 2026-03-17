@@ -395,6 +395,8 @@ select, [role="combobox"], [role="listbox"] {
   font-size: 16px !important; /* Prevents iOS zoom */
   line-height: 1.5 !important;
   border-radius: 6px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 select:focus, [role="combobox"]:focus, [role="listbox"]:focus {
@@ -405,17 +407,35 @@ select:focus, [role="combobox"]:focus, [role="listbox"]:focus {
 /* Radix Select Trigger - ensure 48px minimum */
 [role="combobox"] {
   min-height: 48px !important;
+  min-width: 100% !important;
   padding: 12px 14px !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
 }
 
 /* Dropdown menu items - ensure 52px touch targets */
 [role="option"], [role="menuitem"] {
   min-height: 52px !important;
   min-width: 100% !important;
-  padding: 14px 16px !important;
+  padding: 16px 18px !important;
   display: flex !important;
   align-items: center !important;
   font-size: 16px !important;
+  cursor: pointer !important;
+  font-weight: 500;
+}
+
+/* Radix Select Items Container */
+[role="option"]:focus, [role="menuitem"]:focus {
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* Explicitly enforce on dropdown content portals */
+[role="listbox"] [role="option"],
+[role="menu"] [role="menuitem"],
+[role="dialog"] [role="option"] {
+  min-height: 52px !important;
+  padding: 16px 18px !important;
 }
 
 /* All popover and dropdown content */
