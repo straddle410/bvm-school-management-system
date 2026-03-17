@@ -59,9 +59,10 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
       return res.data;
     },
     onSuccess: async (data) => {
-      console.log('[Payment] Triggering notification for:', data.payment_id);
-      toast.success(`Payment recorded! Receipt: ${data.receipt_no}`);
-      setShowConfirmation(false);
+       console.log('[Payment] Triggering notification for:', data.payment_id);
+       const message = `✅ Payment recorded! Receipt: ${data.receipt_no}`;
+       toast.success(message);
+       setShowConfirmation(false);
       
       // Trigger notification function
       try {
