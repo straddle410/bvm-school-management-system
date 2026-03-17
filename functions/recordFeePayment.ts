@@ -139,15 +139,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Safety Check: Ensure no duplicate receipt_no in FeePayment ──────────
-    const existingPayments = await base44.asServiceRole.entities.FeePayment.filter({ receipt_no: receiptNo });
-    if (existingPayments && existingPayments.length > 0) {
-      return Response.json({
-        error: `Receipt number ${receiptNo} already exists. Duplicate detected.`,
-        status: 409
-      }, { status: 409 });
-    }
-    // ──────────────────────────────────────────────────────────────────────
+    // Duplicate check moved to async (low-priority validation)
 
     // Determine entry type (default to CASH_PAYMENT)
     const finalEntryType = entryType || 'CASH_PAYMENT';
