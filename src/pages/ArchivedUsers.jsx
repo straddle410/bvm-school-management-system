@@ -112,8 +112,10 @@ export default function ArchivedUsers() {
                 </CardHeader>
                 <CardContent className="text-xs text-gray-500 space-y-1">
                   <p><strong>Parent:</strong> {student.parent_name || 'N/A'}</p>
-                  <p><strong>Deleted At:</strong> {student.deleted_at ? format(new Date(student.deleted_at), 'PPpp') : 'N/A'}</p>
-                  <p><strong>Deleted By:</strong> {student.deleted_by || 'N/A'}</p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                    <p className="text-red-700 font-semibold">🗑️ Deleted by: {student.deleted_by || 'System'}</p>
+                    <p className="text-red-600">{student.deleted_at ? format(new Date(student.deleted_at), 'PPpp') : 'N/A'}</p>
+                  </div>
                 </CardContent>
               </Card>
             ))
@@ -162,8 +164,10 @@ export default function ArchivedUsers() {
                 </CardHeader>
                 <CardContent className="text-xs text-gray-500 space-y-1">
                   <p><strong>Email:</strong> {staff.email || 'N/A'}</p>
-                  <p><strong>Deleted At:</strong> {staff.deleted_at ? format(new Date(staff.deleted_at), 'PPpp') : 'N/A'}</p>
-                  <p><strong>Deleted By:</strong> {staff.deleted_by || 'N/A'}</p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                    <p className="text-red-700 font-semibold">🗑️ Deleted by: {staff.deleted_by || 'System'}</p>
+                    <p className="text-red-600">{staff.deleted_at ? format(new Date(staff.deleted_at), 'PPpp') : 'N/A'}</p>
+                  </div>
                 </CardContent>
               </Card>
             ))
