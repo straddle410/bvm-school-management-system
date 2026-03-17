@@ -408,31 +408,35 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Delete existing progress cards for this exam type
+    // Fetch existing cards to find which students already have one for this exam type
     const existingCards = await base44.asServiceRole.entities.ProgressCard.filter({
       academic_year: academicYear
     });
 
+    const studentsWithExistingCard = new Set();
     for (const card of existingCards) {
-      if (card.exam_performance?.[0]?.exam_type_id === examType.id || 
+      if (card.exam_performance?.[0]?.exam_type_id === examType.id ||
           card.exam_performance?.[0]?.exam_type === examType.name) {
-        await base44.asServiceRole.entities.ProgressCard.delete(card.id);
+        studentsWithExistingCard.add(card.student_id);
       }
     }
 
-    // Bulk create progress cards
-    if (progressCards.length > 0) {
-      console.log(`[PROGRESS-CARDS] Creating ${progressCards.length} progress cards...`);
-      progressCards.forEach(card => {
-        console.log(`[PROGRESS-CARD-DATA] Student: ${card.student_name}, Attendance Summary Exists: ${!!card.attendance_summary}, Range: ${card.attendance_summary?.range_start} to ${card.attendance_summary?.range_end}`);
-      });
-      await base44.asServiceRole.entities.ProgressCard.bulkCreate(progressCards);
-      console.log(`[PROGRESS-CARDS] Successfully created ${progressCards.length} progress cards`);
+    // Only create cards for students who don't already have one
+    const newCards = progressCards.filter(c => !studentsWithExistingCard.has(c.student_id));
+    const skippedCount = progressCards.length - newCards.length;
+
+    console.log(`[PROGRESS-CARDS] Total candidates: ${progressCards.length}, Already exist: ${skippedCount}, To create: ${newCards.length}`);
+
+    if (newCards.length > 0) {
+      await base44.asServiceRole.entities.ProgressCard.bulkCreate(newCards);
+      console.log(`[PROGRESS-CARDS] Successfully created ${newCards.length} progress cards`);
     }
 
     return Response.json({
-      message: `Generated progress cards for ${progressCards.length} students for exam "${examType.name}"`,
-      cardsGenerated: progressCards.length,
+      message: `${newCards.length} cards generated, ${skippedCount} already existed, 0 duplicates created`,
+      cardsGenerated: newCards.length,
+      skippedCount: skippedCount,
+      totalStudents: progressCards.length,
       examType: examType.name,
       attendanceRange: { start: attendanceRangeStart, end: attendanceRangeEnd }
     });
