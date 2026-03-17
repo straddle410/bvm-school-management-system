@@ -10,7 +10,7 @@ import { AlertCircle, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import moment from 'moment';
 
-export default function RecordPaymentModal({ isOpen, onClose, selectedStudent, selectedInvoice }) {
+export default function RecordPaymentModal({ onClose, selectedStudent, selectedInvoice }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     amount: '',
@@ -27,7 +27,7 @@ export default function RecordPaymentModal({ isOpen, onClose, selectedStudent, s
 
   // Autofill amount on invoice change
   useEffect(() => {
-    if (selectedInvoice && isOpen) {
+    if (selectedInvoice) {
       setFormData(prev => ({
         ...prev,
         amount: String(outstanding),
@@ -35,7 +35,7 @@ export default function RecordPaymentModal({ isOpen, onClose, selectedStudent, s
       }));
       setError('');
     }
-  }, [selectedInvoice, isOpen, outstanding]);
+  }, [selectedInvoice, outstanding]);
 
   const recordPaymentMutation = useMutation({
     mutationFn: async () => {
@@ -114,7 +114,7 @@ export default function RecordPaymentModal({ isOpen, onClose, selectedStudent, s
   if (!selectedStudent || !selectedInvoice) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Record Payment</DialogTitle>
