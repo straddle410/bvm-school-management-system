@@ -230,10 +230,11 @@ export default function Layout({ children, currentPageName }) {
                 <button
                   key={item.name}
                   onClick={() => {
-                    const tabName = getTabForPage(item.page);
-                    // Only switch if not already on active page
-                    if (!isActive) {
-                      // Use tab history to restore navigation if available
+                    // Always allow navigation to Dashboard (Home)
+                    if (item.page === 'Dashboard') {
+                      navigate(href);
+                    } else if (!isActive) {
+                      const tabName = getTabForPage(item.page);
                       const stack = getStackForTab(tabName);
                       if (stack.length > 0) {
                         navigate(stack[stack.length - 1]);

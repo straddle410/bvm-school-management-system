@@ -89,11 +89,15 @@ export default function StudentBottomNav({ currentPage }) {
             const isActive = currentPage === item.page;
             const badgeCount = getBadgeCount(item);
             return (
-              <Link
-                key={item.page}
-                to={createPageUrl(item.page)}
-                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 transition-all"
-              >
+              <a
+                 key={item.page}
+                 href={createPageUrl(item.page)}
+                 onClick={(e) => {
+                   e.preventDefault();
+                   window.location.href = createPageUrl(item.page);
+                 }}
+                 className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 transition-all"
+               >
                 {isActive && (
                   <span className="absolute inset-0 bg-indigo-50 rounded-2xl" />
                 )}
@@ -108,7 +112,7 @@ export default function StudentBottomNav({ currentPage }) {
                 <span className={`text-[10px] font-semibold relative z-10 transition-all ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
                   {item.label}
                 </span>
-              </Link>
+              </a>
             );
           })}
         </div>
