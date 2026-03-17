@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
       }
       // Admin audit log for unlock/edit
       try {
-        await base44.asServiceRole.entities.AuditLog.create({
+        await base44.entities.AuditLog.create({
           action: 'unlock_and_edit',
           module: 'Attendance',
           date: existingRecord.date,
@@ -174,13 +174,13 @@ Deno.serve(async (req) => {
     if (existingRecord) {
       // UPDATE
       console.log("UPDATING ATTENDANCE:", { id: existingRecord.id, payload: savePayload });
-      const updateResult = await base44.asServiceRole.entities.Attendance.update(existingRecord.id, savePayload);
+      const updateResult = await base44.entities.Attendance.update(existingRecord.id, savePayload);
       console.log("UPDATE RESULT:", updateResult);
       return Response.json({ message: 'Attendance updated successfully', success: true, action: 'updated' });
     } else {
       // CREATE
       console.log("CREATING ATTENDANCE:", savePayload);
-      const createResult = await base44.asServiceRole.entities.Attendance.create(savePayload);
+      const createResult = await base44.entities.Attendance.create(savePayload);
       console.log("CREATE RESULT:", createResult);
       return Response.json({ message: 'Attendance created successfully', success: true, action: 'created' });
     }
