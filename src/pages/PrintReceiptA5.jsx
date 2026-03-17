@@ -556,9 +556,9 @@ function ReceiptContent({ school, receipt, copyLabel }) {
            )}
           
           {isVoid && receipt.voidInfo && (
-           <div className="void-note" style={{ fontSize: '8px', padding: '0.4mm', marginTop: '0.3mm' }}>
+           <div className="void-note" style={{ fontSize: '7px', padding: '0.2mm', marginTop: '0.2mm' }}>
              VOIDED - {receipt.voidInfo.void_reason || 'No reason'}
-             {receipt.voidInfo.voided_by_name && <div style={{ marginTop: '0.2mm' }}>By: {receipt.voidInfo.voided_by_name}</div>}
+             {receipt.voidInfo.voided_by_name && <div style={{ marginTop: '0.1mm' }}>By: {receipt.voidInfo.voided_by_name}</div>}
            </div>
           )}
         </div>
