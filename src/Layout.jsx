@@ -178,7 +178,7 @@ export default function Layout({ children, currentPageName }) {
       paddingRight: 'env(safe-area-inset-right)'
     }}>
       {/* Top Header */}
-      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between w-full relative min-h-14 py-2 shadow-md">
+      <header className="no-print fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between w-full relative min-h-14 py-2 shadow-md">
         {currentPageName !== 'Dashboard' && (
           <button 
             onClick={() => navigate(-1)} 
@@ -212,7 +212,7 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className={`flex-1 overflow-y-auto pb-20 page-transition ${['Fees', 'Marks', 'Attendance', 'Approvals'].includes(currentPageName) ? 'no-pull-refresh' : ''}`} role="main">
+      <main className="flex-1 overflow-y-auto pb-20 page-transition mt-14" role="main">
         <StaffAuthGuard currentPageName={currentPageName}>
           <div className="animate-fade-in">
             {children}
