@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
     const markedByFinal = staffCode ? `${user.name} (${staffCode})` : user.name;
 
     console.log("FINAL MARKED BY:", markedByFinal);
+    console.log("USER ROLE:", user.role);
 
     if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
