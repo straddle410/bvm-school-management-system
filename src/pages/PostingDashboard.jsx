@@ -63,7 +63,10 @@ export default function PostingDashboard() {
             {/* Diary Tab */}
             <TabsContent value="diary" className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Post Diary</h2>
-              <DiaryForm />
+              <DiaryForm 
+                onSubmit={() => {}} 
+                onCancel={() => {}} 
+              />
             </TabsContent>
 
             {/* Homework Tab */}
