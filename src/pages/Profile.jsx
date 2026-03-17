@@ -5,8 +5,9 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, AlertCircle, LogOut } from 'lucide-react';
+import { ArrowLeft, Upload, AlertCircle, LogOut, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import AccountDeletionModal from '@/components/AccountDeletionModal';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [errorCode, setErrorCode] = useState('');
   const [formData, setFormData] = useState({});
+  const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -388,6 +390,38 @@ export default function Profile() {
             </Button>
           </div>
         )}
+
+        {/* Danger Zone */}
+        <Card className="mt-6 border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-lg text-red-700">Danger Zone</CardTitle>
+            <CardDescription>Irreversible actions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="destructive" 
+              onClick={() => setIsDeletionModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Account
+            </Button>
+            <p className="text-xs text-red-600 mt-2">Once deleted, your account cannot be recovered.</p>
+          </CardContent>
+        </Card>
+
+        <AccountDeletionModal 
+          isOpen={isDeletionModalOpen}
+          onClose={() => setIsDeletionModalOpen(false)}
+          userType="staff"
+          userId={staffAccount?.id}
+          userName={staffAccount?.name}
+          onSuccess={() => {
+            toast.success('Account deleted successfully');
+            localStorage.removeItem('staff_session');
+            navigate(createPageUrl('StaffLogin'));
+          }}
+        />
       </div>
     </div>
   );
