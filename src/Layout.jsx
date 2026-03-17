@@ -212,11 +212,15 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 page-transition mt-14" role="main">
+      <main className="flex-1 overflow-y-auto pb-20 mt-14" role="main">
         <StaffAuthGuard currentPageName={currentPageName}>
-          <div className="animate-fade-in">
-            {children}
-          </div>
+          <AnimatePresence mode="wait">
+            <PageTransition key={currentPageName}>
+              <div>
+                {children}
+              </div>
+            </PageTransition>
+          </AnimatePresence>
         </StaffAuthGuard>
       </main>
 
