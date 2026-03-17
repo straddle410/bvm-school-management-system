@@ -173,7 +173,12 @@ export default function Layout({ children, currentPageName }) {
       {/* Top Header */}
       <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
         {currentPageName !== 'Dashboard' && (
-          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0"
+            aria-label="Go back"
+            title="Back"
+          >
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
