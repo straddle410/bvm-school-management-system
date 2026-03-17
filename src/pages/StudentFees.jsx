@@ -48,8 +48,15 @@ export default function StudentFees() {
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['student-all-payments', session?.student_id],
-    queryFn: () => base44.entities.FeePayment.filter({ student_id: session?.student_id, status: 'Active' }, '-payment_date', 100),
+    queryFn: async () => {
+      // Fetch all payments, not just 'Active' status (some may have different statuses)
+      const payments = await base44.entities.FeePayment.filter({ student_id: session?.student_id }, '-payment_date', 500);
+      console.log(`[StudentFees] Fetched ${payments.length} payments for ${session?.student_id}:`, payments.map(p => ({ id: p.id, amount: p.amount_paid, status: p.status, receipt_no: p.receipt_no })));
+      return payments.filter(p => p.status === 'Active');
+    },
     enabled: !!session?.student_id,
+    staleTime: 0,
+    gcTime: 0
   });
 
   // Auto-open receipt from notification deep-link
