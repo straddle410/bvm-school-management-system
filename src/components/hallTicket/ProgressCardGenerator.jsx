@@ -79,17 +79,6 @@ export default function ProgressCardGenerator() {
     }
   });
 
-  const cleanupMutation = useMutation({
-    mutationFn: async () => {
-      return await base44.functions.invoke('cleanupProgressCards', {
-        academicYear,
-        classNameFilter: filters.class,
-        sectionFilter: filters.section,
-        examTypeIdOrName: filters.exam_type
-      });
-    }
-  });
-
   const generateMutation = useMutation({
     mutationFn: async () => {
       const response = await base44.functions.invoke('generateProgressCards', {
@@ -102,7 +91,13 @@ export default function ProgressCardGenerator() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['progressCards'] });
-      toast.success(data.message || 'Progress cards generated successfully');
+      const generated = data.cardsGenerated ?? 0;
+      const skipped = data.skippedCount ?? 0;
+      const total = generated + skipped;
+      toast.success(
+        `${generated} cards generated, ${skipped} already existed, 0 duplicates created`,
+        { description: `Total students processed: ${total}`, duration: 6000 }
+      );
       setFilters({ class: '', section: '', exam_type: '' });
     },
     onError: (error) => {
@@ -110,10 +105,7 @@ export default function ProgressCardGenerator() {
     }
   });
 
-  const handleGenerate = async () => {
-    // First cleanup all existing cards
-    await cleanupMutation.mutateAsync();
-    // Then generate fresh ones
+  const handleGenerate = () => {
     generateMutation.mutate();
   };
 
