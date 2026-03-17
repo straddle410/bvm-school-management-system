@@ -120,7 +120,7 @@ export default function Fees() {
           </div>
         )}
 
-        <div className={`px-3 sm:px-4 lg:px-8 py-4 ${isAccountant ? 'accountant-fees-view' : ''}`}>
+        <div className={`flex-1 overflow-y-auto px-3 sm:px-4 lg:px-8 py-4 ${isAccountant ? 'accountant-fees-view' : ''}`}>
           <Tabs value={activeTab} onValueChange={(tab) => { handleTabChange(tab); setMobileMenuOpen(false); }}>
 
             {/* ── MOBILE DRAWER + DESKTOP TABS ── */}
