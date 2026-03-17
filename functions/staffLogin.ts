@@ -218,6 +218,8 @@ Deno.serve(async (req) => {
       staff_id: account.id,
       role: normalizedRole,
       username: account.username,
+      name: account.name,
+      staff_code: account.staff_code || null,
       iat,
       exp,
     });

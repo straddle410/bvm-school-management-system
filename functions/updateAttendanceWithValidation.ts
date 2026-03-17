@@ -29,7 +29,13 @@ async function verifyStaffToken(token) {
     let exp = payload.exp;
     if (exp > 1e12) exp = Math.floor(exp / 1000);
     if (exp < Math.floor(Date.now() / 1000)) return null;
-    return payload;
+    return {
+      role: payload.role,
+      name: payload.name,
+      username: payload.username,
+      staff_code: payload.staff_code,
+      staff_id: payload.staff_id,
+    };
   } catch {
     return null;
   }
