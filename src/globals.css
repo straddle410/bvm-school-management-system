@@ -271,10 +271,39 @@ main, [role="main"] {
   animation: scaleIn 0.2s ease-out;
 }
 
-/* Loading state animations */
+/* Loading state animations - OPTIMISTIC UI FEEDBACK */
 .loading-overlay {
   animation: fadeIn 0.2s ease-out;
   backdrop-filter: blur(2px);
+}
+
+.loading-state {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading-button {
+  position: relative;
+  color: transparent;
+}
+
+.loading-button::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Smooth opacity transitions for content swap */
