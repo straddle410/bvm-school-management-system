@@ -54,7 +54,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
     gcTime: 30 * 60 * 1000 // 30 min memory
   });
 
-  // ✅ OPTIMIZATION: Load all fee data in parallel with ONE query per entity type + aggressive caching
+  // ✅ OPTIMIZATION: Load all fee data in parallel with ONE query per entity type (NO caching to ensure fresh balance)
   const { data: allData = { invoices: [], payments: [], discounts: [] }, refetch: refetchFeeData } = useQuery({
     queryKey: ['student-fee-data', selectedStudent?.student_id, academicYear],
     queryFn: async () => {
@@ -66,8 +66,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
       return { invoices, payments, discounts };
     },
     enabled: !!selectedStudent && !!academicYear,
-    staleTime: 10 * 60 * 1000, // 10 min cache (increased)
-    gcTime: 30 * 60 * 1000 // 30 min memory
+    staleTime: 0,  // Always fetch fresh
+    gcTime: 0      // Don't cache
   });
 
   const allInvoices = allData.invoices;
