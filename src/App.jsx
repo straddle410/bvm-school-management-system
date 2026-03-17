@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabHistoryProvider } from '@/components/TabHistoryContext';
 import { LoadingProvider } from '@/components/LoadingProvider';
+import { AsyncOperationProvider } from '@/components/AsyncOperationManager';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
