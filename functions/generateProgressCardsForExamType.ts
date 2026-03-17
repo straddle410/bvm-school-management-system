@@ -23,11 +23,11 @@ Deno.serve(async (req) => {
       user = null;
     }
 
-    // Fallback: if no Base44 user, check for a staff session token in the Authorization header
+    // Fallback: if no Base44 user, check for staff token in Authorization header or request body
     if (!user) {
       const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
-      const staffToken = authHeader.replace('Bearer ', '').trim();
-      if (staffToken) {
+      const headerToken = authHeader.replace('Bearer ', '').trim();
+      if (headerToken || _staffToken) {
         // A staff token was provided — allow the request to proceed using asServiceRole
         user = { role: 'staff', email: 'staff' };
       }
