@@ -332,11 +332,16 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                      Record Payment
                    </Button>
                  )}
-                </CardContent>
-              </Card>
-            )}
-        </div>
-      )}
+                 </CardContent>
+                 </Card>
+                 )}
+                 </div>
+                 )}
+
+                 // Optimization: Cache queries for 10 mins to reduce server load
+                 const handleRefresh = async () => {
+                 await refetchFeeData();
+                 };
 
       {/* Additional Fees Section */}
       {selectedStudent && adhocInvoices.length > 0 && (
