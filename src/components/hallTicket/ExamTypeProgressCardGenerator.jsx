@@ -54,10 +54,12 @@ export default function ExamTypeProgressCardGenerator() {
       return response.data;
     },
     onSuccess: (data) => {
+      console.log('[GenerateProgressCards] Full backend response:', data);
       queryClient.invalidateQueries({ queryKey: ['progressCards'] });
       const generated = data.cardsGenerated ?? 0;
       const skipped = data.skippedCount ?? 0;
       const total = generated + skipped;
+      console.log(`[GenerateProgressCards] cardsGenerated=${generated}, skippedCount=${skipped}, total=${total}`);
       toast.success(
         `${generated} cards generated, ${skipped} already existed, 0 duplicates created`,
         { description: `Total students processed: ${total}`, duration: 6000 }
