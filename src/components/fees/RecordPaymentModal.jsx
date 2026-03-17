@@ -119,47 +119,42 @@ export default function RecordPaymentModal({ isOpen, onClose, academicYear }) {
     }
   };
 
-  // Success screen
-  if (recordedPaymentId) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Payment Recorded Successfully</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 text-center py-6">
-            <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
-              <span className="text-2xl">✓</span>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 mb-2">Receipt saved for</p>
-              <p className="text-lg font-semibold text-slate-900">{selectedStudent.name}</p>
-              <p className="text-sm text-slate-500 mt-1">₹{paymentAmount}</p>
-            </div>
-            <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={handleClose}>Close</Button>
-              <Button onClick={handlePrint} className="gap-2 bg-blue-600 hover:bg-blue-700">
-                <Printer className="h-4 w-4" />
-                Print Receipt
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const successScreen = recordedPaymentId ? (
+    <div className="space-y-4 text-center py-6">
+      <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+        <span className="text-2xl">✓</span>
+      </div>
+      <div>
+        <p className="text-sm text-slate-600 mb-2">Receipt saved for</p>
+        <p className="text-lg font-semibold text-slate-900">{selectedStudent?.name}</p>
+        <p className="text-sm text-slate-500 mt-1">₹{paymentAmount}</p>
+      </div>
+      <div className="flex gap-2 justify-center">
+        <Button variant="outline" onClick={handleClose}>Close</Button>
+        <Button onClick={handlePrint} className="gap-2 bg-blue-600 hover:bg-blue-700">
+          <Printer className="h-4 w-4" />
+          Print Receipt
+        </Button>
+      </div>
+    </div>
+  ) : null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+      <DialogContent className={recordedPaymentId ? 'max-w-sm' : 'max-w-2xl max-h-[90vh] overflow-y-auto'}>
         <DialogHeader>
           <DialogTitle>
-            {step === 1 && 'Select Student'}
-            {step === 2 && 'Select Invoice'}
-            {step === 3 && 'Payment Details'}
+            {recordedPaymentId ? 'Payment Recorded Successfully' : (
+              <>
+                {step === 1 && 'Select Student'}
+                {step === 2 && 'Select Invoice'}
+                {step === 3 && 'Payment Details'}
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
 
+        {successScreen || (
         <div className="space-y-4">
           {/* STEP 1: Student Selection */}
           {step === 1 && (
@@ -331,8 +326,9 @@ export default function RecordPaymentModal({ isOpen, onClose, academicYear }) {
               </div>
             </div>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+          </div>
+          )}
+          </DialogContent>
+          </Dialog>
+          );
+          }
