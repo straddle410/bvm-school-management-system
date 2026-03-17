@@ -381,8 +381,8 @@ Deno.serve(async (req) => {
          console.warn(`[SKIP-ATTENDANCE] Missing attendance range or records for ${student.student_name} - card generated without attendance data`);
          }
 
-      // Generate ONE card per exam type for this student
-      Object.values(student.exams).forEach(examData => {
+      // Generate ONE card ONLY for the selected exam type
+      Object.values(student.exams).filter(ed => ed.exam_type === selectedExamTypeId || ed.exam_type === examTypeIdOrName).forEach(examData => {
         const examKey = `${examData.exam_type}__${examData.class_name}__${examData.section}`;
         const rankData = examRanks[examKey]?.find(r => r.student_id === student.student_id);
         const percentage = examData.max_marks > 0 ? (examData.total_marks / examData.max_marks) * 100 : 0;
