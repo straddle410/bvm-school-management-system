@@ -26,7 +26,7 @@ export default function RecordPaymentModal({ isOpen, onClose, selectedStudent, s
     : 0;
 
   // Autofill amount on invoice change
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedInvoice && isOpen) {
       setFormData(prev => ({
         ...prev,
