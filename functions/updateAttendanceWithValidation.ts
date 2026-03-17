@@ -55,9 +55,7 @@ Deno.serve(async (req) => {
     }
 
     const staff_email = user.email;
-    if (!staff_email) {
-      return Response.json({ error: 'Invalid staff session — email missing from token' }, { status: 401 });
-    }
+    const staffName = user.email || user.name || user.username || user.staff_id || 'STAFF';
 
     if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
