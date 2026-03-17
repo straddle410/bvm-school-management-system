@@ -51,15 +51,11 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
   const thisPaymentAmount = payment ? payment.amount_paid : invoice.paid_amount;
   const displayDate = payment ? payment.payment_date : (invoicePayments[0]?.payment_date || invoice.due_date);
   const receiptNumber = payment ? payment.receipt_no : invoicePayments[0]?.receipt_no;
-  
-  // Calculate total paid till this receipt date (cumulative)
-  const allInvoicePayments = (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
-  const totalPaidTillDate = payment 
-    ? allInvoicePayments
-        .filter(p => new Date(p.payment_date) <= new Date(payment.payment_date))
-        .reduce((sum, p) => sum + (p.amount_paid || 0), 0)
-    : invoice.paid_amount;
-  
+
+  // Total Paid Till Date = invoice.paid_amount (source of truth after payment is recorded)
+  // This matches the student ledger and admin receipt
+  const totalPaidTillDate = invoice.paid_amount;
+
   // Calculate balance after cumulative payments
   const balanceAfterPayment = invoice.total_amount - totalPaidTillDate;
   
