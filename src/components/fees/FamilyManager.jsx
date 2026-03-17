@@ -78,24 +78,22 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     staleTime: 5 * 60 * 1000
   });
 
-  // ✅ FIX #5: Lazy-load invoices only when a specific family is expanded (not on initial render)
-  const { data: invoicesByStudent = {} } = useQuery({
-    queryKey: ['fee-invoices-lazy', expandedFamilyId, academicYear],
-    queryFn: async () => {
-      if (!expandedFamilyId) return {};
-      const family = families.find(f => f.id === expandedFamilyId);
-      if (!family || !family.student_ids) return {};
-      
-      // Fetch invoices only for the students in this family
-      const invoices = await base44.entities.FeeInvoice.filter({ academic_year: academicYear });
-      const result = {};
-      for (const sid of family.student_ids) {
-        result[sid] = invoices.filter(inv => inv.student_id === sid);
-      }
-      return result;
-    },
-    enabled: !!expandedFamilyId && !!academicYear
-  });
+  // ✅ FIX #5: Load invoices for all students in the academic year (needed for Add Students modal)
+   const { data: invoicesByStudent = {} } = useQuery({
+     queryKey: ['fee-invoices-all', academicYear],
+     queryFn: async () => {
+       const invoices = await base44.entities.FeeInvoice.filter({ academic_year: academicYear });
+       const result = {};
+       for (const inv of invoices) {
+         if (!result[inv.student_id]) {
+           result[inv.student_id] = [];
+         }
+         result[inv.student_id].push(inv);
+       }
+       return result;
+     },
+     enabled: !!academicYear
+   });
 
   // ✅ FIX #5: Use lazy-loaded invoices or fallback to empty (only calc when expanded)
   const getOutstandingBalance = (student_id) => {
