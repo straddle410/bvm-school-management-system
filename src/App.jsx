@@ -2,6 +2,7 @@ import { Toaster } from "sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
 import NotificationAnalytics from './pages/NotificationAnalytics'
 import PostingDashboard from './pages/PostingDashboard'
+import ArchivedUsers from './pages/ArchivedUsers'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
       <Route path="/NotificationAnalytics" element={<LayoutWrapper currentPageName="NotificationAnalytics"><NotificationAnalytics /></LayoutWrapper>} />
       <Route path="/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
       <Route path="/pages/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
+      <Route path="/ArchivedUsers" element={<LayoutWrapper currentPageName="ArchivedUsers"><ArchivedUsers /></LayoutWrapper>} />
        <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
