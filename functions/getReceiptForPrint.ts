@@ -36,33 +36,24 @@ Deno.serve(async (req) => {
     const student = students?.[0];
     const school = profiles?.[0];
 
-    // OPTION A: Show CURRENT paid/balance (VOID excluded)
-    // For VOID receipts: display current truth, not "after this payment"
-    // For ACTIVE receipts: display "after this payment" cumulative state
+    // Calculate totals from invoice (source of truth after payment is recorded)
     step = 'calculate_totals';
+
+    // For ACTIVE receipts: use invoice.paid_amount (updated after this payment)
+    // For VOID receipts: recalculate excluding all VOIDs
     let totalPaidAfterThis = 0;
     let balanceDueAfterThis = 0;
 
     if (p.status === 'VOID' || p.status === 'void') {
-      // VOID receipt: sum only Active payments (exclude VOID itself and all other VOIDs)
+      // VOID receipt: sum only Active payments (exclude VOID and all other VOIDs)
       if (allPayments && allPayments.length > 0) {
-        const activePaid = allPayments
+        totalPaidAfterThis = allPayments
           .filter(pmt => pmt.status === 'Active')
           .reduce((sum, pmt) => sum + (pmt.amount_paid || 0), 0);
-        totalPaidAfterThis = activePaid;
       }
     } else {
-      // ACTIVE receipt: show cumulative "after this payment" (all non-VOID before + including this one)
-      if (allPayments && allPayments.length > 0) {
-        let totalBefore = 0;
-        for (const pmt of allPayments) {
-          if (pmt.id === paymentId) break;
-          if (pmt.status !== 'VOID') {
-            totalBefore += pmt.amount_paid || 0;
-          }
-        }
-        totalPaidAfterThis = totalBefore + (p.amount_paid || 0);
-      }
+      // ACTIVE receipt: use invoice.paid_amount as it reflects cumulative total after this payment
+      totalPaidAfterThis = invoice?.paid_amount || 0;
     }
 
     balanceDueAfterThis = Math.max(0, (invoice?.total_amount || 0) - totalPaidAfterThis);
