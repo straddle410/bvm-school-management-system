@@ -1,14 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const TabHistoryContext = createContext(null);
 
+const TAB_MAP = {
+  'Attendance': 'attendance',
+  'Marks': 'marks',
+  'Fees': 'fees',
+  'Notices': 'notices',
+  'Gallery': 'gallery',
+  'Approvals': 'approvals',
+  'Dashboard': 'dashboard',
+  'More': 'more'
+};
+
 export function TabHistoryProvider({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [tabStacks, setTabStacks] = useState({});
 
+  const getTabForPage = (pageName) => TAB_MAP[pageName] || 'dashboard';
+
   useEffect(() => {
-    // Infer current tab from page name
     const pageFromPath = location.pathname.split('/').filter(Boolean)[0] || 'Dashboard';
     const currentTab = getTabForPage(pageFromPath);
 
@@ -24,26 +37,31 @@ export function TabHistoryProvider({ children }) {
     });
   }, [location.pathname]);
 
-  const getTabForPage = (pageName) => {
-    const tabMap = {
-      'Attendance': 'attendance',
-      'Marks': 'marks',
-      'Fees': 'fees',
-      'Notices': 'notices',
-      'Gallery': 'gallery',
-      'Approvals': 'approvals',
-      'Dashboard': 'dashboard',
-      'More': 'more'
-    };
-    return tabMap[pageName] || 'dashboard';
+  const switchTab = (tabName) => {
+    const stack = tabStacks[tabName] || [];
+    if (stack.length > 0) {
+      // Restore last navigation in this tab
+      navigate(stack[stack.length - 1]);
+    } else {
+      // First visit to tab — navigate to default page
+      const defaultPages = {
+        'attendance': '/Attendance',
+        'marks': '/Marks',
+        'fees': '/Fees',
+        'notices': '/Notices',
+        'gallery': '/Gallery',
+        'approvals': '/Approvals',
+        'dashboard': '/Dashboard',
+        'more': '/More'
+      };
+      navigate(defaultPages[tabName] || '/Dashboard');
+    }
   };
 
-  const getStackForTab = (tabName) => {
-    return tabStacks[tabName] || [];
-  };
+  const getStackForTab = (tabName) => tabStacks[tabName] || [];
 
   return (
-    <TabHistoryContext.Provider value={{ tabStacks, getStackForTab, getTabForPage }}>
+    <TabHistoryContext.Provider value={{ tabStacks, getStackForTab, getTabForPage, switchTab }}>
       {children}
     </TabHistoryContext.Provider>
   );
@@ -52,7 +70,7 @@ export function TabHistoryProvider({ children }) {
 export function useTabHistory() {
   const ctx = useContext(TabHistoryContext);
   if (!ctx) {
-    return { tabStacks: {}, getStackForTab: () => [], getTabForPage: () => 'dashboard' };
+    return { tabStacks: {}, getStackForTab: () => [], getTabForPage: () => 'dashboard', switchTab: () => {} };
   }
   return ctx;
 }

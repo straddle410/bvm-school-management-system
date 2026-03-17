@@ -226,10 +226,21 @@ export default function Layout({ children, currentPageName }) {
               const isActive = currentPageName === item.page;
               const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
               return (
-                <Link
+                <button
                   key={item.name}
-                  to={href}
-                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => {
+                    const tabName = getTabForPage(item.page);
+                    // Only switch if not already on active page
+                    if (!isActive) {
+                      // Use tab history to restore navigation if available
+                      const stack = getStackForTab(tabName);
+                      if (stack.length > 0) {
+                        navigate(stack[stack.length - 1]);
+                      } else {
+                        navigate(href);
+                      }
+                    }
+                  }}
                   className={`flex flex-col items-center gap-0.5 px-2 py-3 rounded-xl active:scale-95 transition-all duration-200 relative flex-1 min-w-[56px] min-h-[56px] justify-center touch-target ${
                   isActive ? 'text-[#1a237e] bg-blue-50' : 'text-gray-400 active:bg-gray-100'}`}>
                   <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} transition-all ${isActive ? 'text-[#1a237e] drop-shadow-sm' : 'text-gray-400'}`} />
@@ -237,7 +248,7 @@ export default function Layout({ children, currentPageName }) {
                     {item.name}
                   </span>
                   {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#1a237e] mt-0.5 animate-pulse" />}
-                </Link>);
+                </button>);
             })}
         </div>
         </nav>
