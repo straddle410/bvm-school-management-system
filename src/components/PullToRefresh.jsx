@@ -46,7 +46,7 @@ export default function PullToRefresh({ onRefresh, children }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       className="relative overflow-y-auto"
-      style={{ overscrollBehavior: 'none' }}
+      style={{ overscrollBehavior: 'contain', WebkitOverscrollBehavior: 'contain' }}
     >
       {/* Pull-to-refresh indicator */}
       <div
