@@ -129,9 +129,9 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
      return Math.max(ledgersByStudent[student_id] ?? 0, 0);
    };
 
-  // ✅ Filter students to show ONLY those with FeeInvoice records
+  // ✅ Filter students to show ONLY those with outstanding balance (via ledger)
   const studentsWithInvoices = allStudents.filter(s =>
-    invoicesByStudent[s.student_id] && invoicesByStudent[s.student_id].length > 0
+    ledgersByStudent[s.student_id] !== undefined && ledgersByStudent[s.student_id] > 0
   );
 
   // Calculate total outstanding for selected students
