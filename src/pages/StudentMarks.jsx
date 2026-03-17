@@ -21,30 +21,6 @@ export default function StudentMarks() {
     if (!session) navigate(createPageUrl('StudentLogin'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-select exam type from URL query param (deep link from push notification)
-  useEffect(() => {
-    if (!distinctExamTypes.length) return;
-    const examTypeFromUrl = new URLSearchParams(window.location.search).get('examType');
-    if (!examTypeFromUrl || selectedExamType) return;
-    // Match by name (URL contains exam type name, not ID)
-    const match = distinctExamTypes.find(t => t.name === examTypeFromUrl);
-    if (match) setSelectedExamType(match.id);
-  }, [distinctExamTypes]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Mark marks_published notifications as read on page open
-  useEffect(() => {
-    if (!session?.student_id) return;
-    base44.entities.Notification.filter({
-      recipient_student_id: session.student_id,
-      type: 'marks_published',
-      is_read: false,
-    }).then(notifs => {
-      if (!notifs.length) return;
-      return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
-        .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
-    }).catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const { data: allMarks = [], isLoading } = useQuery({
     queryKey: ['student-marks', session?.student_id],
     queryFn: async () => {
@@ -73,6 +49,30 @@ export default function StudentMarks() {
     });
     return Array.from(types.values());
   }, [allMarks]);
+
+  // Auto-select exam type from URL query param (deep link from push notification)
+  useEffect(() => {
+    if (!distinctExamTypes.length) return;
+    const examTypeFromUrl = new URLSearchParams(window.location.search).get('examType');
+    if (!examTypeFromUrl || selectedExamType) return;
+    // Match by name (URL contains exam type name, not ID)
+    const match = distinctExamTypes.find(t => t.name === examTypeFromUrl);
+    if (match) setSelectedExamType(match.id);
+  }, [distinctExamTypes]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mark marks_published notifications as read on page open
+  useEffect(() => {
+    if (!session?.student_id) return;
+    base44.entities.Notification.filter({
+      recipient_student_id: session.student_id,
+      type: 'marks_published',
+      is_read: false,
+    }).then(notifs => {
+      if (!notifs.length) return;
+      return Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
+        .then(() => window.dispatchEvent(new CustomEvent('student-notifications-read')));
+    }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter marks based on selectedExamType
   const filteredMarks = useMemo(() => {
