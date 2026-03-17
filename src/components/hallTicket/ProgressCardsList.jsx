@@ -29,7 +29,7 @@ export default function ProgressCardsList() {
   });
 
   const { data: progressCards = [], isLoading, refetch } = useQuery({
-    queryKey: ['progressCards', academicYear, filters],
+    queryKey: ['progressCards', academicYear, filters, examTypes],
     queryFn: async () => {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
@@ -48,11 +48,18 @@ export default function ProgressCardsList() {
       
       let cards = allCards;
       
-      // Filter by exam type (check exam_performance array)
+      // Filter by exam type — resolve selected exam ID to both id and name for matching
+      // because different backend functions store exam_type as name or as id
       if (filters.exam_type) {
-        cards = cards.filter(c => 
-          c.exam_performance && c.exam_performance.some(ep => 
-            ep.exam_type === filters.exam_type || ep.exam_type_id === filters.exam_type
+        const selectedExam = examTypes.find(e => e.id === filters.exam_type);
+        const selectedId = filters.exam_type;
+        const selectedName = selectedExam?.name || '';
+        cards = cards.filter(c =>
+          c.exam_performance && c.exam_performance.some(ep =>
+            ep.exam_type_id === selectedId ||
+            ep.exam_type === selectedId ||
+            (selectedName && ep.exam_type === selectedName) ||
+            (selectedName && ep.exam_type_name === selectedName)
           )
         );
       }
@@ -63,7 +70,8 @@ export default function ProgressCardsList() {
       
       return cards;
     },
-    staleTime: 0
+    staleTime: 0,
+    enabled: examTypes.length > 0 || !filters.exam_type
   });
 
   const handleViewDetails = (card) => {
