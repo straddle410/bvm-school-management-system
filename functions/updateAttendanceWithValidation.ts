@@ -1,7 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import { createHmac } from 'node:crypto';
 
-// Validate academic year boundary
+// Validate date is within academic year boundaries
 function isWithinAcademicYear(date, academicYearStart, academicYearEnd) {
   const d = new Date(date);
   d.setUTCHours(0, 0, 0, 0);
@@ -12,25 +11,58 @@ function isWithinAcademicYear(date, academicYearStart, academicYearEnd) {
   return d >= start && d <= end;
 }
 
-// Extract staff email from HMAC-signed session token
-async function extractStaffEmailFromToken(token) {
+// Extract staff_email from a staff session token (multiple formats supported)
+function extractEmailFromToken(token) {
   if (!token) return null;
+
+  // Format 1: plain JSON string
+  try {
+    const parsed = JSON.parse(token);
+    if (parsed?.email) return parsed.email;
+    if (parsed?.username) return parsed.username;
+  } catch {}
+
+  // Format 2: base64-encoded JSON (single segment)
   try {
     const decoded = atob(token);
     const parsed = JSON.parse(decoded);
-    const email = parsed?.email || parsed?.username || null;
-    return email || null;
-  } catch {
-    // Try JWT-style: payload is second segment
-    try {
-      const parts = token.split('.');
-      if (parts.length >= 2) {
-        const payload = JSON.parse(atob(parts[1]));
-        return payload?.email || payload?.username || null;
-      }
-    } catch {}
-    return null;
-  }
+    if (parsed?.email) return parsed.email;
+    if (parsed?.username) return parsed.username;
+  } catch {}
+
+  // Format 3: JWT-style (header.payload.sig) — decode payload (second segment)
+  try {
+    const parts = token.split('.');
+    if (parts.length >= 2) {
+      const decoded = atob(parts[1]);
+      const parsed = JSON.parse(decoded);
+      if (parsed?.email) return parsed.email;
+      if (parsed?.username) return parsed.username;
+    }
+  } catch {}
+
+  // Format 4: HMAC-style (base64payload.hexsig) — decode payload (first segment)
+  try {
+    const lastDot = token.lastIndexOf('.');
+    if (lastDot > 0) {
+      const payloadPart = token.substring(0, lastDot);
+      // Try base64 decode
+      try {
+        const decoded = atob(payloadPart);
+        const parsed = JSON.parse(decoded);
+        if (parsed?.email) return parsed.email;
+        if (parsed?.username) return parsed.username;
+      } catch {}
+      // Try plain JSON
+      try {
+        const parsed = JSON.parse(payloadPart);
+        if (parsed?.email) return parsed.email;
+        if (parsed?.username) return parsed.username;
+      } catch {}
+    }
+  } catch {}
+
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -63,60 +95,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — no staff session token provided' }, { status: 401 });
     }
 
-    // Verify token signature using STAFF_SESSION_SECRET
-    const secret = Deno.env.get('STAFF_SESSION_SECRET') || Deno.env.get('STAFF_TOKEN_SECRET') || '';
-    let staff_email = null;
-
-    try {
-      // Try to verify HMAC token: format is "payload.signature"
-      const lastDot = tokenToUse.lastIndexOf('.');
-      if (lastDot > 0 && secret) {
-        const payload = tokenToUse.substring(0, lastDot);
-        const sig = tokenToUse.substring(lastDot + 1);
-        const expectedSig = createHmac('sha256', secret).update(payload).digest('hex');
-        if (sig === expectedSig) {
-          try {
-            const parsed = JSON.parse(atob(payload));
-            staff_email = parsed?.email || parsed?.username || null;
-          } catch {
-            const parsed = JSON.parse(payload);
-            staff_email = parsed?.email || parsed?.username || null;
-          }
-        }
-      }
-    } catch {}
-
-    // Fallback: decode without signature verification
-    if (!staff_email) {
-      staff_email = await extractStaffEmailFromToken(tokenToUse);
-    }
-
-    // Last resort: try parsing token as JSON directly (some tokens are stringified session objects)
-    if (!staff_email) {
-      try {
-        const parsed = JSON.parse(tokenToUse);
-        staff_email = parsed?.email || parsed?.username || null;
-      } catch {}
-    }
-
-    // Final fallback: try base64 decoding the whole token
-    if (!staff_email) {
-      try {
-        const parsed = JSON.parse(atob(tokenToUse));
-        staff_email = parsed?.email || parsed?.username || null;
-      } catch {}
-    }
+    const staff_email = extractEmailFromToken(tokenToUse);
 
     console.log('AUTH DEBUG:', {
       staff_email,
       token_length: tokenToUse?.length,
-      token_preview: tokenToUse?.substring(0, 20),
-      payload_marked_by: body.records?.[0]?.marked_by ?? body.marked_by ?? null
+      token_format: tokenToUse?.includes('.') ? 'dotted' : 'plain'
     });
 
     if (!staff_email) {
-      return Response.json({ error: 'Invalid staff session — could not extract staff email' }, { status: 401 });
+      return Response.json({ error: 'Invalid staff session — could not extract staff email from token' }, { status: 401 });
     }
+
+    console.log('SAVE DEBUG:', {
+      staff_email,
+      payload_marked_by: body.records?.[0]?.marked_by ?? body.marked_by ?? null
+    });
 
     if (!records || !Array.isArray(records) || records.length === 0) {
       return Response.json({ error: 'No records provided' }, { status: 400 });
@@ -139,7 +133,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // ── FETCH STAFF ACCOUNT FOR ROLE CHECK ──
+    // ── FETCH STAFF ROLE ──
     let staffRole = 'teacher';
     try {
       const staffAccounts = await base44.asServiceRole.entities.StaffAccount.filter({ email: staff_email });
@@ -166,7 +160,6 @@ Deno.serve(async (req) => {
       section
     });
 
-    // Build lookup map: student_id -> existing record
     const existingMap = {};
     existingRecords.forEach(r => {
       if (r.student_id) existingMap[r.student_id] = r;
@@ -217,17 +210,17 @@ Deno.serve(async (req) => {
         attendance_type: attendance_type || 'full_day',
         half_day_period: attendance_type === 'half_day' ? (half_day_period || null) : null,
         half_day_reason: attendance_type === 'half_day' ? (half_day_reason || '') : '',
-        is_present: attendance_type !== 'absent',
+        is_present: attendance_type !== 'absent' && attendance_type !== 'holiday',
         is_holiday: attendance_type === 'holiday',
         holiday_reason: attendance_type === 'holiday' ? (record.holiday_reason || '') : '',
         remarks: remarks || '',
         status: 'Submitted',
-        marked_by: staff_email,        // ← ALWAYS server-side email
-        submitted_at: now,             // ← ALWAYS server-side timestamp
+        marked_by: staff_email,      // ← ALWAYS server-side staff email
+        submitted_at: now,           // ← ALWAYS server-side timestamp
         auto_submitted: false
       };
 
-      console.log('SAVE DEBUG:', { staff_email, student_id, marked_by: savePayload.marked_by, status: savePayload.status });
+      console.log('RECORD SAVE:', { student_id, marked_by: savePayload.marked_by, status: savePayload.status });
 
       try {
         if (existing) {
@@ -251,7 +244,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[updateAttendanceWithValidation] Error:', error.message);
+    console.error('[updateAttendanceWithValidation] Error:', error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
