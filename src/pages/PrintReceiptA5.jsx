@@ -34,17 +34,7 @@ export default function PrintReceiptA5() {
     retry: 1
   });
 
-  // Auto print after data loads
-  useEffect(() => {
-    if (data && !isLoading) {
-      setTimeout(() => {
-        window.print();
-        window.addEventListener('afterprint', () => {
-          window.close();
-        }, { once: true });
-      }, 300);
-    }
-  }, [data, isLoading]);
+  // Don't auto-print — let user choose to print or cancel
 
   if (!paymentId) {
     return (
@@ -147,8 +137,31 @@ export default function PrintReceiptA5() {
   const { school, receipt } = data;
   const isVoid = receipt.payment.status === 'VOID';
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleCancel = () => {
+    navigate('/Fees');
+  };
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
+      {/* Print/Cancel Controls */}
+      <div className="no-print fixed top-0 left-0 right-0 bg-white border-b shadow-sm z-50 p-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-slate-700">Receipt #{data?.receipt?.receiptNo}</h2>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handlePrint}>
+            Print Receipt
+          </Button>
+        </div>
+      </div>
+
+      {/* Add top padding to account for fixed controls */}
+      <div className="pt-20">
       <style>{`
         @page {
           size: A5 landscape;
@@ -434,6 +447,7 @@ export default function PrintReceiptA5() {
         <div className={`copy ${isVoid ? 'void' : ''}`}>
           <ReceiptContent school={school} receipt={receipt} copyLabel="PARENT COPY" />
         </div>
+      </div>
       </div>
     </LoginRequired>
   );
