@@ -82,8 +82,6 @@ Deno.serve(async (req) => {
     const receiptNo = `RCPT/${academicYear}/${String(timestamp).slice(-8)}`;
     // Example: RCPT/2024-25/12345678
 
-    // Duplicate check moved to async (low-priority validation)
-
     // Determine entry type (default to CASH_PAYMENT)
     const finalEntryType = entryType || 'CASH_PAYMENT';
     
