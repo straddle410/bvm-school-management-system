@@ -265,11 +265,11 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
 
                 {/* Record Receipt Button - Top Position */}
                 {!isArchivedYear && balance > 0 && invoice.status !== 'Waived' && (
-                  <Button 
-                    size="lg" 
-                    className="w-full bg-green-600 hover:bg-green-700 text-lg font-bold min-h-[60px] shadow-lg" 
-                    onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}
-                  >
+                   <Button 
+                     size="lg" 
+                     className="w-full bg-green-600 hover:bg-green-700 text-lg font-bold min-h-[60px] shadow-lg" 
+                     onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance, parent_name: selectedStudent.parent_name, class_name: selectedStudent.class_name })}
+                   >
                     <Receipt className="h-6 w-6 mr-2" />
                     Record Receipt
                   </Button>
@@ -395,7 +395,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                   )}
                   {!isArchivedYear && adhocBalance > 0 && adhoc.status !== 'Waived' && (
                     <Button size="sm" className="w-full bg-amber-600 hover:bg-amber-700"
-                      onClick={() => setPayingInvoice({ ...adhoc, balance: adhocBalance })}>
+                      onClick={() => setPayingInvoice({ ...adhoc, balance: adhocBalance, parent_name: selectedStudent.parent_name, class_name: selectedStudent.class_name })}>
                       Record Payment
                     </Button>
                   )}
