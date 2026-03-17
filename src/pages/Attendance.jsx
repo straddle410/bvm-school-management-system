@@ -301,7 +301,7 @@ function MarkAttendanceTab({
     setAttendanceData(data);
   };
 
-  const currentStatus = existingAttendance[0]?.status || 'Not Taken';
+  const currentStatus = existingAttendance[0]?.status || 'Not Submitted';
   const fullDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'full_day').length;
   const halfDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'half_day').length;
   const absentCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'absent').length;
@@ -518,9 +518,9 @@ function MarkAttendanceTab({
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {[{ label: 'Total', value: filteredStudents.length, color: 'blue', Icon: Users },
-              { label: 'Draft Full Day', value: fullDayCount, color: 'green', Icon: CheckCircle2 },
-              { label: 'Draft Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
-              { label: 'Draft Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
+              { label: 'Full Day', value: fullDayCount, color: 'green', Icon: CheckCircle2 },
+              { label: 'Half Day', value: halfDayCount, color: 'yellow', Icon: AlertCircle },
+              { label: 'Absent', value: absentCount, color: 'red', Icon: XCircle }].map(({ label, value, color, Icon }) => (
               <Card key={label} className="border-0 shadow-sm p-4 dark:bg-gray-800">
                 <div className="flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl bg-${color}-50 flex items-center justify-center`}>
