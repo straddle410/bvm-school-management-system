@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, User, Receipt } from 'lucide-react';
 import PaymentModal from './PaymentModal';
+import RecordPaymentModal from './RecordPaymentModal';
 import StudentListVirtual from './StudentListVirtual';
 import PullToRefresh from '@/components/PullToRefresh';
 
@@ -34,6 +35,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [payingInvoice, setPayingInvoice] = useState(null);
   const [studentPage, setStudentPage] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const STUDENTS_LIMIT = 50;
 
   const { data: students = [], isLoading: isLoadingStudents } = useQuery({
@@ -164,7 +167,9 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
             <Card><CardContent className="py-12"><LoadingSpinner /></CardContent></Card>
           ) : (
             <>
-              <StudentListVirtual students={filteredStudents} onSelect={setSelectedStudent} />
+              <StudentListVirtual students={filteredStudents} onSelect={(student) => {
+                setSelectedStudent(student);
+              }} />
               {students.length === STUDENTS_LIMIT && (
                 <div className="flex justify-center gap-2 pt-2">
                   <button onClick={() => setStudentPage(p => Math.max(0, p - 1))} disabled={studentPage === 0} className="px-3 py-1 text-sm border rounded disabled:opacity-50">Prev</button>
@@ -268,7 +273,10 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                   <Button 
                     size="lg" 
                     className="w-full bg-green-600 hover:bg-green-700 text-lg font-bold min-h-[60px] shadow-lg" 
-                    onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}
+                    onClick={() => {
+                      setSelectedInvoice({ ...invoice, total_amount: net, balance });
+                      setShowPaymentModal(true);
+                    }}
                   >
                     <Receipt className="h-6 w-6 mr-2" />
                     Record Receipt
@@ -327,7 +335,10 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                 )}
 
                 {!isArchivedYear && balance > 0 && invoice.status !== 'Waived' && (
-                   <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg font-bold py-4 min-h-[60px] shadow-lg" onClick={() => setPayingInvoice({ ...invoice, total_amount: net, balance })}>
+                   <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg font-bold py-4 min-h-[60px] shadow-lg" onClick={() => {
+                     setSelectedInvoice({ ...invoice, total_amount: net, balance });
+                     setShowPaymentModal(true);
+                   }}>
                      <Receipt className="h-6 w-6 mr-2" />
                      Record Payment
                    </Button>
@@ -394,11 +405,14 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                     </div>
                   )}
                   {!isArchivedYear && adhocBalance > 0 && adhoc.status !== 'Waived' && (
-                    <Button size="sm" className="w-full bg-amber-600 hover:bg-amber-700"
-                      onClick={() => setPayingInvoice({ ...adhoc, balance: adhocBalance })}>
-                      Record Payment
-                    </Button>
-                  )}
+                     <Button size="sm" className="w-full bg-amber-600 hover:bg-amber-700"
+                       onClick={() => {
+                         setSelectedInvoice({ ...adhoc, balance: adhocBalance });
+                         setShowPaymentModal(true);
+                       }}>
+                       Record Payment
+                     </Button>
+                   )}
                 </CardContent>
               </Card>
             );
@@ -406,12 +420,26 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
         </div>
       )}
 
+      {/* Old PaymentModal - kept for backward compatibility */}
       {payingInvoice && (
         <PaymentModal
           invoice={payingInvoice}
           onClose={() => setPayingInvoice(null)}
           onSuccess={() => {
             setPayingInvoice(null);
+            refetchFeeData();
+          }}
+        />
+      )}
+
+      {/* New RecordPaymentModal Flow */}
+      {showPaymentModal && selectedInvoice && selectedStudent && (
+        <RecordPaymentModal
+          selectedStudent={selectedStudent}
+          selectedInvoice={selectedInvoice}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setSelectedInvoice(null);
             refetchFeeData();
           }}
         />
