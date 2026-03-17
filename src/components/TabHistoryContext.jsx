@@ -4,13 +4,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const TabHistoryContext = createContext(null);
 
 const TAB_MAP = {
+  'Dashboard': 'dashboard',
   'Attendance': 'attendance',
   'Marks': 'marks',
   'Fees': 'fees',
   'Notices': 'notices',
   'Gallery': 'gallery',
   'Approvals': 'approvals',
-  'Dashboard': 'dashboard',
   'More': 'more',
   'ArchivedUsers': 'archived'
 };
