@@ -404,9 +404,26 @@ input[type="text"], input[type="email"], input[type="password"], input[type="num
 }
 
 /* Optimistic UI feedback */
-button:active, a:active, [role="button"]:active {
+button:active:not(:disabled), 
+a:active, 
+[role="button"]:active:not([aria-disabled="true"]) {
   transform: scale(0.98);
   transition: transform 100ms ease-out;
+  opacity: 0.9;
+}
+
+/* Disabled state — prevent interaction */
+button:disabled,
+button[disabled],
+input:disabled,
+select:disabled,
+textarea:disabled,
+[role="button"][aria-disabled="true"],
+[role="option"][aria-disabled="true"],
+[role="menuitem"][aria-disabled="true"] {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
 }
 
 /* Dropdown & Select optimization - COMPLIANCE FIX */
