@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
   const d = new Date(date);
@@ -14,10 +14,17 @@ Deno.serve(async (req) => {
   try {
     console.log('[generateProgressCardsForExamType] Generate called');
     const base44 = createClientFromRequest(req);
-    
-    // Parse body first so we can use _staffToken in auth fallback
-    const body = await req.json();
+
+    // Parse body first
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error('[ERROR] Failed to parse request body:', e.message);
+      return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
     const { academicYear, examTypeId, _staffToken } = body;
+    console.log(`[generateProgressCardsForExamType] academicYear=${academicYear}, examTypeId=${examTypeId}`);
 
     // Auth: accept Base44 token, Authorization header, or staff session token from body
     let user = null;
@@ -36,9 +43,9 @@ Deno.serve(async (req) => {
     }
 
     if (!user) {
+      console.error('[ERROR] No valid auth found — returning 401');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.log(`[generateProgressCardsForExamType] academicYear=${academicYear}, examTypeId=${examTypeId}`);
 
     if (!academicYear || !examTypeId) {
       return Response.json({ error: 'Academic year and exam type ID are required' }, { status: 400 });
@@ -46,22 +53,24 @@ Deno.serve(async (req) => {
 
     // ── ACADEMIC YEAR BOUNDARY CHECK ──
     const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
+    console.log(`[ACADEMIC-YEAR] Found ${yearConfigs.length} config(s) for year: ${academicYear}`);
     if (yearConfigs.length === 0) {
       return Response.json({ error: `Academic year "${academicYear}" is not configured in the system.` }, { status: 400 });
     }
     const yearConfig = yearConfigs[0];
 
-    // Fetch the exam type to get attendance range
-    const examTypes = await base44.asServiceRole.entities.ExamType.filter({
-      academic_year: academicYear,
-      id: examTypeId
+    // Fetch the exam type — list all for the year then find by ID (filter by id not supported)
+    const allExamTypesForYear = await base44.asServiceRole.entities.ExamType.filter({
+      academic_year: academicYear
     });
+    console.log(`[EXAM-TYPE] Found ${allExamTypesForYear.length} exam types for year ${academicYear}`);
+    const examType = allExamTypesForYear.find(e => e.id === examTypeId);
 
-    if (examTypes.length === 0) {
-      return Response.json({ error: 'Exam type not found' }, { status: 404 });
+    if (!examType) {
+      console.error(`[ERROR] Exam type ID "${examTypeId}" not found among ${allExamTypesForYear.length} types`);
+      return Response.json({ error: `Exam type not found for ID: ${examTypeId}` }, { status: 404 });
     }
-
-    const examType = examTypes[0];
+    console.log(`[EXAM-TYPE] Resolved: "${examType.name}" (id=${examType.id})`);
     const attendanceRangeStart = examType.attendance_range_start;
     const attendanceRangeEnd = examType.attendance_range_end;
 
