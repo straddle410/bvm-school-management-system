@@ -13,6 +13,9 @@ import PushNotificationManager from '@/components/PushNotificationManager';
 import { getProxiedImageUrl } from '@/components/imageProxy';
 import StudentAuthGuard from '@/components/StudentAuthGuard';
 import StaffAuthGuard from '@/components/StaffAuthGuard';
+import { useTabHistory } from '@/components/TabHistoryContext';
+import { useLoading } from '@/components/LoadingProvider';
+import FullPageSpinner from '@/components/FullPageSpinner';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
@@ -77,6 +80,8 @@ export default function Layout({ children, currentPageName }) {
   const [userRole, setUserRole] = useState('');
   const { academicYear } = useAcademicYear();
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
+  const { getStackForTab, getTabForPage } = useTabHistory();
+  const { isLoading } = useLoading();
 
   useEffect(() => {
     // Root route is handled by pages/Index.js which does session-based restore
@@ -162,6 +167,7 @@ export default function Layout({ children, currentPageName }) {
     <AcademicYearProvider>
       <MessageNotificationListener />
       <PushNotificationManager />
+      {isLoading('page') && <FullPageSpinner message="Loading page..." />}
       <StaffAuthGuard currentPageName={currentPageName}>
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
       fontFamily: "'Segoe UI', sans-serif",
