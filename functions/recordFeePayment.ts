@@ -62,16 +62,7 @@ Deno.serve(async (req) => {
     }
     // ──────────────────────────────────────────────────────────────────────
 
-    // Load student to validate academic_year integrity
-    const students = await base44.asServiceRole.entities.Student.filter({ student_id: invoice.student_id });
-    if (students && students.length > 0) {
-      const student = students[0];
-      if (student.academic_year && student.academic_year !== academicYear) {
-        return Response.json({
-          error: `Academic year mismatch: student is in ${student.academic_year} but invoice belongs to ${academicYear}`
-        }, { status: 422 });
-      }
-    }
+    // Skip student validation - invoice academic_year is authoritative
 
     if (invoice.status === 'Paid' || invoice.status === 'Waived') {
       return Response.json({ error: `Invoice is already ${invoice.status}` }, { status: 409 });
