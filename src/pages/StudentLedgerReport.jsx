@@ -72,9 +72,12 @@ function StudentLedgerContent() {
   }, [studentResults]);
 
   // Ledger data
-  const { data, isLoading, error: fetchError } = useQuery({
-    queryKey: ['student-ledger', selectedStudent?.student_id, academicYear, dateFrom, dateTo, includeReversals, includeCredits, includeVoided],
-    queryFn: async () => {
+   const { data, isLoading, error: fetchError } = useQuery({
+     queryKey: ['student-ledger', selectedStudent?.student_id, academicYear, dateFrom, dateTo, includeReversals, includeCredits, includeVoided],
+     queryFn: async () => {
+       // Force fresh data by never caching
+       const ts = Date.now();
+       const _bust = ts;
       try {
         const staffInfo = (() => {
           try {
