@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
           action: 'unlock_and_edit',
           module: 'Attendance',
           date: existingRecord.date,
-          performed_by: user.email,
+          performed_by: user.username || markedByFinal,
           details: `Unlocked and edited attendance for student ${student_id} on ${date}. Changes: ${JSON.stringify(data)}`,
           academic_year
         });
