@@ -366,7 +366,16 @@ export default function DailySnapshotTab() {
                               {row.submitted_by}
                             </span>
                           </td>
-                        </tr>
+                          <td className="text-left p-3 text-sm text-slate-600">
+                            {row.submitted_at ? (
+                              <span className="text-xs font-medium text-slate-700">
+                                {formatSubmittedTime(row.submitted_at)}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">Not Submitted</span>
+                            )}
+                          </td>
+                          </tr>
                       );
                     })}
                     {/* Totals row */}
