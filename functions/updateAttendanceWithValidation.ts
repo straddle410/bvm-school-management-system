@@ -148,13 +148,13 @@ Deno.serve(async (req) => {
 
     // ── FORCE SUBMISSION FIELDS ──
     const now = new Date().toISOString();
-    console.log("SAVE DEBUG:", { staffName, user });
-    // Always use staffName from token — NEVER trust marked_by from frontend
+    console.log("SAVE DEBUG:", { markedByLabel, user });
+    // Always use markedByLabel from token — NEVER trust marked_by from frontend
     const { marked_by: _ignored, ...dataWithoutMarkedBy } = data;
     const savePayload = {
       ...dataWithoutMarkedBy,
       status: 'Submitted',
-      marked_by: staffName,
+      marked_by: markedByLabel,
       submitted_at: now
     };
 
