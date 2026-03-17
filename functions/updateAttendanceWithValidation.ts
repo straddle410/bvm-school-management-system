@@ -107,8 +107,10 @@ Deno.serve(async (req) => {
       } catch {}
     }
 
-    console.log('SAVE DEBUG:', {
+    console.log('AUTH DEBUG:', {
       staff_email,
+      token_length: tokenToUse?.length,
+      token_preview: tokenToUse?.substring(0, 20),
       payload_marked_by: body.records?.[0]?.marked_by ?? body.marked_by ?? null
     });
 
