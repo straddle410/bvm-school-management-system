@@ -91,10 +91,18 @@ Deno.serve(async (req) => {
       staff_email = await extractStaffEmailFromToken(tokenToUse);
     }
 
-    // Last resort: try parsing token as JSON directly
+    // Last resort: try parsing token as JSON directly (some tokens are stringified session objects)
     if (!staff_email) {
       try {
         const parsed = JSON.parse(tokenToUse);
+        staff_email = parsed?.email || parsed?.username || null;
+      } catch {}
+    }
+
+    // Final fallback: try base64 decoding the whole token
+    if (!staff_email) {
+      try {
+        const parsed = JSON.parse(atob(tokenToUse));
         staff_email = parsed?.email || parsed?.username || null;
       } catch {}
     }
