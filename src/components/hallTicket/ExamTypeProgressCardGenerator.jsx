@@ -47,9 +47,12 @@ export default function ExamTypeProgressCardGenerator() {
 
   const generateMutation = useMutation({
     mutationFn: async () => {
+      const staffSession = localStorage.getItem('staff_session');
+      const staffToken = staffSession ? JSON.parse(staffSession)?.token : null;
       const response = await base44.functions.invoke('generateProgressCardsForExamType', {
         academicYear,
-        examTypeId: selectedExamTypeId
+        examTypeId: selectedExamTypeId,
+        _staffToken: staffToken
       });
       return response.data;
     },
