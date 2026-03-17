@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     if (staff_session_token) {
       const payload = await verifyStaffToken(staff_session_token);
       if (payload) {
-        user = { email: payload.email, role: payload.role };
+        user = payload; // name, staff_code, role, username, staff_id all extracted in verifyStaffToken
       }
     }
 
@@ -60,10 +60,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — valid staff_session_token required' }, { status: 401 });
     }
 
-    const staff_email = user.email;
+    console.log("TOKEN USER:", user);
+
     const staffName = user.name;
     const staffCode = user.staff_code || user.staff_id;
-    const markedByLabel = staffCode ? `${staffName} (${staffCode})` : staffName;
+    const markedByLabel = staffCode
+      ? `${staffName} (${staffCode})`
+      : staffName;
+    const markedByFinal = markedByLabel || "UNKNOWN";
 
     if (!data || !data.date || !data.class_name || !data.section || !data.student_id || !data.academic_year) {
       return Response.json(
