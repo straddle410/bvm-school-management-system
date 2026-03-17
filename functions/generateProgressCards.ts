@@ -125,10 +125,9 @@ Deno.serve(async (req) => {
        examData.subjects.sort((a, b) => a.sort_order - b.sort_order);
      });
 
-    // Get exam type names to display
-    const examTypes = await base44.asServiceRole.entities.ExamType.list();
+    // Build exam type name map from already-fetched records
     const examTypeMap = {};
-    examTypes.forEach(et => {
+    allExamTypesForFilter.forEach(et => {
       examTypeMap[et.id] = et.name;
       examTypeMap[et.name] = et.name;
     });
