@@ -36,17 +36,31 @@ Deno.serve(async (req) => {
       try {
         await base44.asServiceRole.entities.ProgressCard.delete(id);
         deletedCount++;
-        await sleep(150); // avoid rate limiting
+        await sleep(300); // avoid rate limiting
       } catch (error) {
         if (error.message?.includes('Rate limit')) {
-          // Wait longer and retry once
-          await sleep(1000);
-          try {
-            await base44.asServiceRole.entities.ProgressCard.delete(id);
-            deletedCount++;
-          } catch (retryError) {
-            errors.push({ id, error: retryError.message });
-            console.error(`Failed to delete card ${id} after retry: ${retryError.message}`);
+          // Wait longer and retry up to 3 times
+          let retrySuccess = false;
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            await sleep(2000 * attempt);
+            try {
+              await base44.asServiceRole.entities.ProgressCard.delete(id);
+              deletedCount++;
+              retrySuccess = true;
+              break;
+            } catch (retryError) {
+              if (!retryError.message?.includes('Rate limit')) {
+                if (retryError.message?.includes('not found')) {
+                  deletedCount++;
+                  retrySuccess = true;
+                }
+                break;
+              }
+            }
+          }
+          if (!retrySuccess) {
+            errors.push({ id, error: 'Rate limit exceeded after 3 retries' });
+            console.error(`Failed to delete card ${id} after 3 retries`);
           }
         } else if (error.message?.includes('not found')) {
           // Already deleted — count as success
