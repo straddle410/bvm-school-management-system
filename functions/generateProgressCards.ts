@@ -169,10 +169,8 @@ Deno.serve(async (req) => {
       }));
     });
 
-    // Fetch exam type details ONCE for all students (for attendance range)
-    const examTypeRecords = await base44.asServiceRole.entities.ExamType.filter({
-      academic_year: academicYear
-    });
+    // Use already-fetched exam type records
+    const examTypeRecords = allExamTypesForFilter;
 
     // Determine attendance range once - use the exam with the latest END date (most comprehensive range)
     let globalAttendanceStartDate = null;
