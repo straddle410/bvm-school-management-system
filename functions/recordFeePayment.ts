@@ -79,8 +79,8 @@ Deno.serve(async (req) => {
     // ── Fast Receipt Generation (no retry loop) ────────────────────
     // Use timestamp-based receipt number for speed
     const timestamp = Date.now();
-    const receiptNo = `RCPT/${academicYear}/${String(timestamp).slice(-8)}`;
-    // Example: RCPT/2024-25/12345678
+    const receiptNo = `RCP${String(timestamp).slice(-10)}`;
+    // Example: RCP1234567890
 
     // Determine entry type (default to CASH_PAYMENT)
     const finalEntryType = entryType || 'CASH_PAYMENT';
