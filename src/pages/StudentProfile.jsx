@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck, Lock, Eye, EyeOff, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck, Lock, Eye, EyeOff, X, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StudentAuditHistory from '@/components/students/StudentAuditHistory';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import AccountDeletionModal from '@/components/AccountDeletionModal';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -175,11 +176,27 @@ function ProfileContent({ student, attendance, marks }) {
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-}
+
+      {/* Account Deletion Modal */}
+      <AccountDeletionModal 
+      isOpen={isDeletionModalOpen}
+      onClose={() => setIsDeletionModalOpen(false)}
+      userType="student"
+      userId={student?.id}
+      userName={student?.name}
+      onSuccess={() => {
+      toast.success('Account deleted successfully');
+      localStorage.removeItem('student_session');
+      sessionStorage.removeItem('student_session');
+      navigate('/StudentLogin');
+      }}
+      />
+      </div>
+      );
+      }
 
 export default function StudentProfile() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const studentId = searchParams.get('id');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -189,6 +206,7 @@ export default function StudentProfile() {
   const [pwError, setPwError] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
+  const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
@@ -370,14 +388,25 @@ export default function StudentProfile() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">My Profile</h2>
               {sessionStudent && (
-                <Button 
-                  onClick={() => setShowChangePassword(true)}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Lock className="h-4 w-4" />
-                  Change Password
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setShowChangePassword(true)}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    Change Password
+                  </Button>
+                  <Button 
+                    onClick={() => setIsDeletionModalOpen(true)}
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Account
+                  </Button>
+                </div>
               )}
             </div>
             <ProfileContent student={student} attendance={attendance} marks={marks} />
