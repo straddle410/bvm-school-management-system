@@ -89,7 +89,7 @@ export default function Homework() {
     });
   }, [form.class_name, academicYear]);
 
-  const { data: subjects = [] } = useQuery({
+  const { data: subjects = [], refetch: refetchSubjects } = useQuery({
     queryKey: ['subjects-for-homework', academicYear, form.class_name],
     queryFn: async () => {
       if (!form.class_name || !academicYear) return [];
@@ -97,8 +97,17 @@ export default function Homework() {
       return result.subjects.map(name => ({ id: name, name }));
     },
     enabled: !!form.class_name && !!academicYear,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+
+  // Refetch subjects when class/section changes to ensure fresh data
+  useEffect(() => {
+    if (form.class_name && academicYear) {
+      refetchSubjects();
+    }
+  }, [form.class_name, academicYear, refetchSubjects]);
 
   const { data: homeworkList = [], isLoading } = useQuery({
     queryKey: ['homework', academicYear, user?.name],
