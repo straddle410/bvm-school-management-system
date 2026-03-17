@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import ExcelJS from 'exceljs';
 
 export default function MarksImportExport({ 
   students, 
@@ -13,32 +14,51 @@ export default function MarksImportExport({
   const fileInputRef = useRef(null);
   const [isImporting, setIsImporting] = useState(false);
 
-  const handleExportCSV = () => {
+  const handleExportExcel = async () => {
     if (students.length === 0) {
       toast.error('No students to export');
       return;
     }
 
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Marks');
+
     const headers = ['Student ID', 'Roll No', 'Name', ...subjects];
-    const rows = students.map(student => [
-      student.student_id || student.id,
-      student.roll_no || '',
-      student.name,
-      ...subjects.map(subject => 
-        marksData[student.student_id || student.id]?.[subject]?.marks_obtained || ''
-      )
-    ]);
+    worksheet.addRow(headers);
 
-    const csvContent = [
-      headers.map(h => `"${h}"`).join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+    // Style header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
+    headerRow.alignment = { horizontal: 'center', vertical: 'center' };
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    // Add data rows
+    students.forEach(student => {
+      const row = [
+        student.student_id || student.id,
+        student.roll_no || '',
+        student.name,
+        ...subjects.map(subject => 
+          marksData[student.student_id || student.id]?.[subject]?.marks_obtained || ''
+        )
+      ];
+      worksheet.addRow(row);
+    });
+
+    // Set column widths evenly
+    const colWidth = 15;
+    worksheet.columns.forEach(col => {
+      col.width = colWidth;
+      col.alignment = { horizontal: 'center', vertical: 'center' };
+    });
+
+    // Generate buffer and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `marks-${examInfo?.exam || 'export'}-${new Date().toISOString().split('T')[0]}.xlsx`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -140,11 +160,11 @@ export default function MarksImportExport({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleExportCSV()}
+        onClick={() => handleExportExcel()}
         className="gap-2"
       >
         <Download className="h-4 w-4" />
-        Export CSV
+        Export Excel
       </Button>
       <input
         ref={fileInputRef}

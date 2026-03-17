@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp, User, Sun, Moon, Archive } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { Home, Bell, Image as ImageIcon, Calendar, MoreHorizontal, Building2, ArrowLeft, BookOpen, ClipboardCheck, Wallet, BarChart3, TrendingUp, User, Sun, Moon } from 'lucide-react';
 import { useDarkMode } from '@/components/useDarkMode';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
@@ -14,10 +13,6 @@ import PushNotificationManager from '@/components/PushNotificationManager';
 import { getProxiedImageUrl } from '@/components/imageProxy';
 import StudentAuthGuard from '@/components/StudentAuthGuard';
 import StaffAuthGuard from '@/components/StaffAuthGuard';
-import { useTabHistory } from '@/components/TabHistoryContext';
-import { useLoading } from '@/components/LoadingProvider';
-import FullPageSpinner from '@/components/FullPageSpinner';
-import { PageTransition } from '@/components/PageTransition';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
@@ -46,7 +41,6 @@ const getBottomNav = (isAdmin, userRole) => {
     { name: 'Notices', icon: Bell, page: 'Notices' },
     { name: 'Gallery', icon: ImageIcon, page: 'Gallery' },
     ...(isAdmin ? [{ name: 'Approvals', icon: ClipboardCheck, page: 'Approvals' }] : [{ name: 'Calendar', icon: Calendar, page: 'Calendar' }]),
-    ...(isAdmin ? [{ name: 'Archived', icon: Archive, page: 'ArchivedUsers' }] : []),
     { name: 'More', icon: MoreHorizontal, page: 'More' },
   ];
 };
@@ -83,8 +77,6 @@ export default function Layout({ children, currentPageName }) {
   const [userRole, setUserRole] = useState('');
   const { academicYear } = useAcademicYear();
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
-  const { getStackForTab, getTabForPage } = useTabHistory();
-  const { isLoading } = useLoading();
 
   useEffect(() => {
     // Root route is handled by pages/Index.js which does session-based restore
@@ -170,7 +162,6 @@ export default function Layout({ children, currentPageName }) {
     <AcademicYearProvider>
       <MessageNotificationListener />
       <PushNotificationManager />
-      {isLoading('page') && <FullPageSpinner message="Loading page..." />}
       <StaffAuthGuard currentPageName={currentPageName}>
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
       fontFamily: "'Segoe UI', sans-serif",
@@ -180,14 +171,9 @@ export default function Layout({ children, currentPageName }) {
       paddingRight: 'env(safe-area-inset-right)'
     }}>
       {/* Top Header */}
-      <header className="no-print fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between w-full relative min-h-14 py-2 shadow-md">
+      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
         {currentPageName !== 'Dashboard' && (
-          <button 
-            onClick={() => navigate(-1)} 
-            className="hover:bg-white/20 active:bg-white/30 p-2 rounded-lg transition-all duration-150 flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="Go back"
-            title="Back"
-          >
+          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
@@ -203,8 +189,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => setIsDark(v => !v)}
-            className="p-2 rounded-lg hover:bg-white/20 active:bg-white/30 transition-all duration-150 flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="p-1.5 rounded-lg hover:bg-white/20 transition flex-shrink-0"
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="h-5 w-5 text-yellow-300" /> : <Moon className="h-5 w-5 text-white/80" />}
@@ -214,49 +199,30 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 mt-14" role="main">
+      <main className="flex-1 overflow-y-auto pb-20">
         <StaffAuthGuard currentPageName={currentPageName}>
-          <AnimatePresence mode="wait">
-            <PageTransition key={currentPageName}>
-              <div>
-                {children}
-              </div>
-            </PageTransition>
-          </AnimatePresence>
+          {children}
         </StaffAuthGuard>
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg" role="navigation" aria-label="Main navigation">
-        <div className="flex items-center justify-around py-2 overflow-x-auto gap-1">
+      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
+        <div className="flex items-center justify-around py-1 overflow-x-auto">
           {getBottomNav(isAdmin, userRole).map((item) => {
               const isActive = currentPageName === item.page;
               const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
               return (
-                <button
+                <Link
                   key={item.name}
-                  onClick={() => {
-                    // Always allow navigation to Dashboard (Home)
-                    if (item.page === 'Dashboard') {
-                      navigate(href);
-                    } else if (!isActive) {
-                      const tabName = getTabForPage(item.page);
-                      const stack = getStackForTab(tabName);
-                      if (stack.length > 0) {
-                        navigate(stack[stack.length - 1]);
-                      } else {
-                        navigate(href);
-                      }
-                    }
-                  }}
-                  className={`flex flex-col items-center gap-0.5 px-2 py-3 rounded-xl active:scale-95 transition-all duration-200 relative flex-1 min-w-[56px] min-h-[56px] justify-center touch-target ${
-                  isActive ? 'text-[#1a237e] bg-blue-50' : 'text-gray-400 active:bg-gray-100'}`}>
-                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} transition-all ${isActive ? 'text-[#1a237e] drop-shadow-sm' : 'text-gray-400'}`} />
-                  <span className={`text-[11px] font-semibold text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  to={href}
+                  className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-w-[48px] min-h-[48px] justify-center ${
+                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
+                  <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
                     {item.name}
                   </span>
-                  {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#1a237e] mt-0.5 animate-pulse" />}
-                </button>);
+                  {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
+                </Link>);
             })}
         </div>
         </nav>
