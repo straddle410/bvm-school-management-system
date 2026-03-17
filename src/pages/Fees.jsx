@@ -178,7 +178,7 @@ export default function Fees() {
 
               {/* Mobile Drawer Menu */}
               {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)} />
+                <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50 pointer-events-auto" onClick={() => setMobileMenuOpen(false)} />
               )}
               {mobileMenuOpen && (
                 <div className="md:hidden fixed right-0 top-0 bottom-0 w-64 bg-white dark:bg-gray-800 shadow-lg z-50 overflow-y-auto pt-16">
