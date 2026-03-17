@@ -60,8 +60,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — valid staff_session_token required' }, { status: 401 });
     }
 
-    console.log("TOKEN USER:", user);
-
     const staffName = user.name;
     const staffCode = user.staff_code; // ONLY human-readable code, never DB id
 
