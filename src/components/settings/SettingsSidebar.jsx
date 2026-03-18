@@ -9,6 +9,7 @@ const MENU_GROUPS = [
       { id: 'school-profile', label: 'School Profile', requiredRoles: ['admin', 'principal'] },
       { id: 'academic-years', label: 'Academic Years', requiredRoles: ['admin', 'principal'] },
       { id: 'transport', label: 'Transport', requiredRoles: ['admin', 'principal'] },
+      { id: 'hostel', label: 'Hostel', requiredRoles: ['admin', 'principal'] },
     ],
   },
   {

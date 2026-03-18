@@ -75,9 +75,14 @@ Deno.serve(async (req) => {
     if (!plans || plans.length === 0) return Response.json({ error: 'Fee plan not found' }, { status: 404 });
     const plan = plans[0];
 
-    // Load school settings for transport fee
+    // Load school settings for transport and hostel fees
     const schoolProfiles = await base44.asServiceRole.entities.SchoolProfile.list();
     const transportFeeAmount = schoolProfiles[0]?.transport_fee_amount || 0;
+    const hostelFeeConfig = schoolProfiles[0]?.hostel_fee_config || [];
+    const hostelRateByClass = {};
+    for (const entry of hostelFeeConfig) {
+      if (entry.class_name && entry.amount > 0) hostelRateByClass[entry.class_name] = entry.amount;
+    }
 
     if (plan.academic_year !== academicYear) {
       return Response.json({ error: `Plan academic year (${plan.academic_year}) does not match context (${academicYear})` }, { status: 422 });
