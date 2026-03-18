@@ -377,17 +377,17 @@ export default function StudentDashboard() {
 
         {/* Feature Grid */}
         <section>
-          <h2 className="text-base md:text-lg font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4 px-4 md:px-6">Quick Access</h2>
-          <div className="px-4 md:px-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 px-4 md:px-6">My Classes</h2>
+          <div className="px-4 md:px-6 grid grid-cols-2 gap-3 md:gap-4">
             {HOME_TILES.map((tile) => {
                const badge = notifMap[tile.notifKey] || 0;
                return (
                  <Link key={tile.label} to={createPageUrl(tile.page)} className="group relative">
-                  <div className="h-full bg-white dark:bg-slate-800 rounded-xl p-4 md:p-5 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 flex flex-col items-center justify-center text-center gap-3 min-h-[110px] md:min-h-[130px]">
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: tile.color + '20' }}>
-                      <tile.icon className="h-6 w-6 md:h-7 md:w-7" style={{ color: tile.color }} />
+                  <div className="h-full rounded-2xl p-6 shadow-md flex flex-col items-center justify-center text-center gap-4 min-h-[140px] transition-all hover:shadow-lg" style={{ backgroundColor: tile.color }}>
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                      <tile.icon className="h-7 w-7 text-white" />
                     </div>
-                    <p className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight">{tile.label}</p>
+                    <p className="font-bold text-white text-base leading-tight">{tile.label}</p>
                     {badge > 0 && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow-lg">
                         {badge > 99 ? '99+' : badge}
