@@ -43,6 +43,19 @@ Deno.serve(async (req) => {
 
     const allMessages = await base44.asServiceRole.entities.Message.filter(query);
 
+    // Auto-mark inbox messages as delivered (sets delivered_at if not already set)
+    if (folder === 'inbox') {
+      const undelivered = allMessages.filter(m => !m.delivered_at);
+      const now = new Date().toISOString();
+      await Promise.all(
+        undelivered.map(m =>
+          base44.asServiceRole.entities.Message.update(m.id, { delivered_at: now })
+        )
+      );
+      // Update local copies so response includes delivered_at
+      undelivered.forEach(m => { m.delivered_at = now; });
+    }
+
     // Sort descending, apply cursor/limit
     const sorted = allMessages.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
 

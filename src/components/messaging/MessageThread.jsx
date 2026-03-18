@@ -2,6 +2,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { ArrowLeft, Reply } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MessageTick from './MessageTick';
 
 export default function MessageThread({ messages, currentUserId, onBack, onReply }) {
   if (!messages || messages.length === 0) return null;

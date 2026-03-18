@@ -51,6 +51,19 @@ Deno.serve(async (req) => {
       new Date(a.created_date) - new Date(b.created_date)
     );
 
+    // Auto-mark messages as read when recipient opens the thread
+    const now = new Date().toISOString();
+    const toMarkRead = sorted.filter(m =>
+      m.recipient_id === currentUserId && !m.read_at
+    );
+    await Promise.all(
+      toMarkRead.map(m =>
+        base44.asServiceRole.entities.Message.update(m.id, { read_at: now, is_read: true })
+      )
+    );
+    // Update local copies so response reflects read state
+    toMarkRead.forEach(m => { m.read_at = now; m.is_read = true; });
+
     return Response.json({ messages: sorted });
   } catch (error) {
     console.error('Error in getMessageThread:', error);
