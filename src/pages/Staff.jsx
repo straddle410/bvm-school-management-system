@@ -336,8 +336,12 @@ export default function Staff() {
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.username) {
-      toast.error('Name and username are required');
+    if (!form.name) {
+      toast.error('Name is required');
+      return;
+    }
+    if (!editingStaff && !form.username) {
+      toast.error('Please select a Role Template first — the Staff ID will be auto-generated');
       return;
     }
 
