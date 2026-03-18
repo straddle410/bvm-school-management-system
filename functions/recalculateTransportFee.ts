@@ -117,8 +117,8 @@ Deno.serve(async (req) => {
 
       // Check if invoice is locked (has active payments)
       const invoicePayments = (paymentsByInvoice[invoice.id] || []).filter(p => {
-        const s = (p.status || '').toUpperCase();
-        return s !== 'VOID' && s !== 'CANCELLED' && !p.is_reversed && p.entry_type !== 'TRANSPORT_ADJUSTMENT';
+        const s = (p.status || '').toLowerCase();
+        return s === 'active' && p.entry_type !== 'TRANSPORT_ADJUSTMENT' && !p.is_reversed;
       });
       const isLocked = invoicePayments.length > 0;
 
