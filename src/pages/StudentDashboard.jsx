@@ -10,7 +10,7 @@ import {
   Ticket, BarChart3, Sun, Moon, Wallet, User, Key
 } from 'lucide-react';
 import { useDarkMode } from '@/components/useDarkMode';
-import StudentBottomNav from '@/components/StudentBottomNav';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
 import PushNotificationManager from '@/components/PushNotificationManager';
@@ -412,7 +412,7 @@ export default function StudentDashboard() {
 
       </main>
 
-
+      <StudentMinimalFooterNav />
     </div>
   );
 }
