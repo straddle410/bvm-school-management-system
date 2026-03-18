@@ -674,8 +674,8 @@ export default function Students() {
             availableSections={sfAvailableSections}
           />
 
-          {/* Bulk Actions — Admin only */}
-          {isAdmin && selectableStudents.length > 0 && !showArchived && !showDeleted && (
+          {/* Bulk Actions — Admin only, Active tab only */}
+          {isAdmin && selectableStudents.length > 0 && activeTab !== 'alumni' && !showDeleted && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-3 flex flex-wrap items-center gap-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
