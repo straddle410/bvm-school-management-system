@@ -33,13 +33,13 @@ export default function ExamTypeProgressCardGenerator() {
   }, []);
 
   const staffToken = (() => {
-    try { return JSON.parse(localStorage.getItem('staff_session') || '{}')?.token || null; } catch { return null; }
+    try { return JSON.parse(localStorage.getItem('staff_session') || '{}')?.staff_session_token || null; } catch { return null; }
   })();
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
     enabled: !!academicYear,
-    queryFn: () => base44.asServiceRole.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
+    queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
   const selectedExam = examTypes.find(e => e.id === selectedExamTypeId);
