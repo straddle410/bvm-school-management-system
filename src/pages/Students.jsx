@@ -655,8 +655,8 @@ export default function Students() {
               ...(isAdmin ? [{ key: 'alumni', label: 'Alumni / Archive', color: 'text-gray-600', activeBg: 'bg-gray-50 border-b-2 border-gray-500' }] : []),
             ].map(tab => (
               <button
-                key={tab.key}
-                onClick={() => { setActiveTab(tab.key); setPage(1); setSelectedIds(new Set()); setFilterClass('all'); setFilterSection('all'); setFilterTransport('all'); }}
+                 key={tab.key}
+                 onClick={() => { setActiveTab(tab.key); setPage(1); setSelectedIds(new Set()); setFilterClass('all'); setFilterSection('all'); setFilterTransport('all'); setFilterHostel('all'); setFilterDaysColor('all'); }}
                 className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab.key ? `${tab.activeBg} ${tab.color}` : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
               >
                 {tab.label}
