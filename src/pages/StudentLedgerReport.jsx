@@ -73,7 +73,7 @@ function StudentLedgerContent() {
     staleTime: 30000
   });
 
-  const sortedStudents = React.useMemo(() =>
+  const sortedStudents = useMemo(() =>
     [...classStudents].sort((a, b) => (a.roll_no || 999) - (b.roll_no || 999) || a.name.localeCompare(b.name)),
     [classStudents]
   );
