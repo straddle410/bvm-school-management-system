@@ -29,9 +29,12 @@ export default function MessageList({ messages, currentUserId, onSelect, emptyTe
                 <p className={`text-sm truncate ${!msg.is_read && !isMe ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
                   {isMe ? `To: ${msg.recipient_name || (isBroadcast ? `Class ${msg.recipient_class}` : '')}` : msg.sender_name}
                 </p>
-                <span className="text-[10px] text-gray-400 flex-shrink-0">
-                  {format(new Date(msg.created_date), 'dd MMM')}
-                </span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {isMe && <MessageTick message={msg} size={12} />}
+                  <span className="text-[10px] text-gray-400">
+                    {format(new Date(msg.created_date), 'dd MMM')}
+                  </span>
+                </div>
               </div>
               {msg.subject && <p className="text-xs text-gray-600 truncate mt-0.5">{msg.subject}</p>}
               <p className="text-xs text-gray-400 truncate mt-0.5">{msg.body}</p>
