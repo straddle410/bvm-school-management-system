@@ -174,19 +174,19 @@ Deno.serve(async (req) => {
               ? 'Transport enabled after invoice generation'
               : 'Transport disabled after invoice generation';
             await base44.asServiceRole.entities.FeePayment.create({
-              student_id: student.student_id,
-              invoice_id: invoice.id,
-              academic_year: academicYear,
-              amount_paid: adjAmount,
-              payment_date: new Date().toISOString().split('T')[0],
-              payment_mode: 'Adjustment',
-              entry_type: 'TRANSPORT_ADJUSTMENT',
-              affects_cash: false,
-              status: 'POSTED',
-              remarks: reason,
-              receipt_no: `TADJ-${student.student_id}-${academicYear}`,
-              recorded_by: user.email
-            });
+               student_id: student.student_id,
+               invoice_id: invoice.id,
+               academic_year: academicYear,
+               amount_paid: adjAmount,
+               payment_date: new Date().toISOString().split('T')[0],
+               payment_mode: 'Adjustment',
+               entry_type: 'TRANSPORT_ADJUSTMENT',
+               affects_cash: false,
+               status: 'Active',
+               remarks: reason,
+               receipt_no: `TADJ-${student.student_id}-${academicYear}`,
+               collected_by: user.email
+             });
           }
 
           results.push({ ...preview, status: 'DONE', method: 'ADJUSTMENT' });
