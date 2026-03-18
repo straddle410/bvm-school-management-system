@@ -21,10 +21,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { validatePasswordPolicy } from '@/components/utils/passwordPolicy';
 import TeacherAssignmentSection from '@/components/staff/TeacherAssignmentSection';
 
-const generateUsername = (name) => {
-  return name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 99 + 1);
-};
-
 const generateTempPassword = () => {
   // Always policy-compliant: uppercase (BVM), lowercase (implicit via suffix), number, special (@)
   return 'Bvm@' + Math.floor(1000 + Math.random() * 9000);
