@@ -43,9 +43,11 @@ export default function Students() {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('active'); // 'active' | 'pipeline' | 'alumni'
   const [filterClass, setFilterClass] = useState('all');
   const [filterSection, setFilterSection] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterTransport, setFilterTransport] = useState('all'); // 'all' | 'on' | 'off'
   const [showArchived, setShowArchived] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
