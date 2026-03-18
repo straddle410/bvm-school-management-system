@@ -90,13 +90,23 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   }, {});
 
   // Compute ledger figures from source of truth
-  const gross = invoice?.gross_total ?? invoice?.total_amount ?? 0;
-  const discountSum = discounts.reduce((sum, d) => {
-    if (d.discount_type === 'PERCENT') return sum + (gross * d.discount_value / 100);
-    return sum + (d.discount_value || 0);
-  }, 0);
-  const discount = Math.min(discountSum, gross);
-  const net = gross - discount;
+   // Include HOSTEL_ADJUSTMENT entries in gross total
+   const hostelAdjustments = payments.filter(p => 
+     p.invoice_id === invoice?.id && 
+     p.entry_type === 'HOSTEL_ADJUSTMENT' &&
+     p.status !== 'VOID' &&
+     p.status !== 'CANCELLED'
+   ).reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+
+   const baseGross = invoice?.gross_total ?? invoice?.total_amount ?? 0;
+   const gross = baseGross + hostelAdjustments;
+
+   const discountSum = discounts.reduce((sum, d) => {
+     if (d.discount_type === 'PERCENT') return sum + (gross * d.discount_value / 100);
+     return sum + (d.discount_value || 0);
+   }, 0);
+   const discount = Math.min(discountSum, gross);
+   const net = gross - discount;
 
   // Calculate paid: use invoice's own paid_amount as source of truth (not recalculated from payments)
   // This avoids mismatches when payment records are paginated or have varying statuses
@@ -120,7 +130,9 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   }, 0);
 
   // Use invoice.balance as source of truth; fall back to net - paid
-  const balance = invoice?.balance != null ? Math.max(invoice.balance, 0) : Math.max(net - paid, 0);
+  // Ensure balance accounts for hostel adjustments
+  const baseBalance = invoice?.balance != null ? invoice.balance : Math.max(net - paid, 0);
+  const balance = Math.max(baseBalance + hostelAdjustments, 0);
 
   // Auto-select student when returning from receipt page
   useEffect(() => {
