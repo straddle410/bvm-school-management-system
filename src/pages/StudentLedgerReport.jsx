@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import LoginRequired from '@/components/LoginRequired';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
