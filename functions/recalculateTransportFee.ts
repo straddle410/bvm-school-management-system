@@ -75,8 +75,8 @@ Deno.serve(async (req) => {
 
       const transportEnabled = !!student.transport_enabled;
       const feeHeads = invoice.fee_heads || [];
-      const existingTransportLine = feeHeads.find(fh => fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport');
-      const existingTransportAmt = existingTransportLine ? (existingTransportLine.amount || 0) : 0;
+      const existingTransportLine = feeHeads.find(fh => (fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport') && !fh.is_hostel);
+      const existingTransportAmt = existingTransportLine ? (existingTransportLine.gross_amount || existingTransportLine.amount || 0) : 0;
 
       // Determine what the target transport amount should be
       const targetTransportAmt = transportEnabled ? transportFeeAmount : 0;
