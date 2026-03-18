@@ -332,11 +332,7 @@ export default function Staff() {
   };
 
   const handleNameChange = (name) => {
-    setForm(f => ({
-      ...f,
-      name,
-      username: editingStaff ? f.username : generateUsername(name),
-    }));
+    setForm(f => ({ ...f, name }));
   };
 
   const handleSave = async () => {
