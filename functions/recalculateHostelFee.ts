@@ -167,25 +167,24 @@ Deno.serve(async (req) => {
       // ── EXECUTE ────────────────────────────────────────────────────────────
       try {
         if (isLocked) {
-          const existingAdj = hostelAdjMap[invoice.id];
-          const adjAmount = delta;
+           const existingAdj = hostelAdjMap[invoice.id];
+           const adjAmount = targetHostelAmt; // Use target amount, not delta
 
-          if (existingAdj) {
-            const prevAdjAmt = existingAdj.amount_paid || 0;
-            const combinedDelta = prevAdjAmt + adjAmount;
-            if (combinedDelta === 0) {
-              await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                status: 'CANCELLED',
-                remarks: `Hostel adjustment cancelled — hostel_enabled=${hostelEnabled} — by ${user.email}`
-              });
-            } else {
-              await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                amount_paid: combinedDelta,
-                remarks: `Hostel adjustment updated: ₹${combinedDelta} — hostel_enabled=${hostelEnabled} — by ${user.email}`,
-                updated_by: user.email
-              });
-            }
-          } else {
+           if (existingAdj) {
+             // Replace with target amount, not cumulative
+             if (targetHostelAmt === 0) {
+               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
+                 status: 'CANCELLED',
+                 remarks: `Hostel adjustment cancelled — hostel_enabled=${hostelEnabled} — by ${user.email}`
+               });
+             } else {
+               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
+                 amount_paid: targetHostelAmt,
+                 remarks: `Hostel adjustment updated to ₹${targetHostelAmt} — hostel_enabled=${hostelEnabled} — by ${user.email}`,
+                 updated_by: user.email
+               });
+             }
+           } else {
             const reason = delta > 0
               ? 'Hostel enabled after invoice generation'
               : 'Hostel disabled after invoice generation';
