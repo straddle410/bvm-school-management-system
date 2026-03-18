@@ -125,18 +125,11 @@ export default function StudentMessaging() {
     setSelectedThread(threadMessages);
 
     if (!msg.is_read && msg.recipient_id === student?.student_id) {
-      await base44.entities.Message.update(msg.id, { is_read: true });
-      
-      // FIX #3: Also mark linked notification as read
       try {
-        const linkedNotif = await base44.entities.Notification.filter({
-          type: 'class_message',
-          related_entity_id: msg.id,
-          recipient_student_id: student.student_id,
+        await base44.functions.invoke('markStudentNotificationsRead', {
+          notification_ids: [],
+          message_ids: [msg.id],
         });
-        if (linkedNotif.length > 0) {
-          await base44.entities.Notification.update(linkedNotif[0].id, { is_read: true });
-        }
       } catch {}
       
       queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
