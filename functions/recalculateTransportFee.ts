@@ -148,6 +148,10 @@ Deno.serve(async (req) => {
       // ── EXECUTE ────────────────────────────────────────────────────────────
       try {
         if (isLocked) {
+           // Remove transport from fee_heads (adjustment will handle it, not fee_heads)
+           const cleanedFeeHeads = feeHeads.filter(fh => (fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport') || fh.is_hostel);
+           const cleanedGross = cleanedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
+
            // Create or update TRANSPORT_ADJUSTMENT payment entry
            const existingAdj = transportAdjMap[invoice.id];
            const adjAmount = targetTransportAmt; // Use target amount, not delta
@@ -169,7 +173,7 @@ Deno.serve(async (req) => {
                  updated_by: user.email
                });
              }
-           } else {
+           } else if (targetTransportAmt > 0) {
              const reason = delta > 0
                ? 'Transport enabled after invoice generation'
                : 'Transport disabled after invoice generation';
@@ -189,11 +193,14 @@ Deno.serve(async (req) => {
               });
            }
 
-           // Also update invoice totals (adjustment handles the fee, not fee_heads)
-           const adjustedBalance = Math.max(newTotal - (invoice.paid_amount || 0), 0);
+           // Update invoice: remove transport from fee_heads, update totals
+           const discountTotal = invoice.discount_total || 0;
+           const adjustedNet = Math.max(cleanedGross - discountTotal, 0);
+           const adjustedBalance = Math.max(adjustedNet - (invoice.paid_amount || 0), 0);
            await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
-             gross_total: newTotal,
-             total_amount: newTotal,
+             fee_heads: cleanedFeeHeads,
+             gross_total: cleanedGross,
+             total_amount: adjustedNet,
              balance: adjustedBalance
            });
 
