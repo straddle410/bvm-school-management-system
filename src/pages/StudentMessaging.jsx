@@ -104,12 +104,14 @@ export default function StudentMessaging() {
   };
 
   const handleSelectMessage = async (msg) => {
-    const allMessages = [...inbox, ...sent];
     const threadId = msg.thread_id || msg.id;
-    const threadMessages = allMessages
-      .filter(m => m.thread_id === threadId || m.id === threadId)
-      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-    setSelectedThread(threadMessages.length > 0 ? threadMessages : [msg]);
+    // Use server-side thread fetch for correct access control and full thread history
+    const res = await base44.functions.invoke('getMessageThread', {
+      thread_id: threadId,
+      _studentId: student.student_id,
+    });
+    const threadMessages = res.status === 200 ? (res.data.messages || []) : [msg];
+    setSelectedThread(threadMessages);
 
     if (!msg.is_read && msg.recipient_id === student?.student_id) {
       await base44.entities.Message.update(msg.id, { is_read: true });
