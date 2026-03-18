@@ -36,27 +36,41 @@ Deno.serve(async (req) => {
     const student = students?.[0];
     const school = profiles?.[0];
 
-    // Calculate totals from invoice (source of truth after payment is recorded)
+    // Calculate totals from frozen snapshot (NEVER changes after receipt creation)
     step = 'calculate_totals';
 
-    // For ACTIVE receipts: use invoice.paid_amount (updated after this payment)
-    // For VOID receipts: recalculate excluding all VOIDs
+    // Use receipt_snapshot if available (frozen at payment time)
+    // Fallback to invoice state for legacy receipts without snapshot
+    let grossTotal = 0;
+    let discountTotal = 0;
+    let netTotal = 0;
+    let totalPaidBeforeThis = 0;
     let totalPaidAfterThis = 0;
     let balanceDueAfterThis = 0;
 
-    if (p.status === 'VOID' || p.status === 'void') {
-      // VOID receipt: sum only Active payments (exclude VOID and all other VOIDs)
-      if (allPayments && allPayments.length > 0) {
+    if (p.receipt_snapshot) {
+      // Use frozen snapshot — guarantees receipt never changes
+      grossTotal = p.receipt_snapshot.invoice_gross_total || 0;
+      discountTotal = p.receipt_snapshot.invoice_discount_total || 0;
+      netTotal = p.receipt_snapshot.invoice_net_total || 0;
+      totalPaidBeforeThis = p.receipt_snapshot.total_paid_before || 0;
+      balanceDueAfterThis = p.receipt_snapshot.balance_before - p.amount_paid;
+      totalPaidAfterThis = totalPaidBeforeThis + p.amount_paid;
+    } else {
+      // Legacy fallback: use current invoice state
+      grossTotal = invoice?.gross_total || 0;
+      discountTotal = invoice?.discount_total || 0;
+      netTotal = invoice?.total_amount || 0;
+      
+      if (p.status === 'VOID' || p.status === 'void') {
         totalPaidAfterThis = allPayments
           .filter(pmt => pmt.status === 'Active')
           .reduce((sum, pmt) => sum + (pmt.amount_paid || 0), 0);
+      } else {
+        totalPaidAfterThis = invoice?.paid_amount || 0;
       }
-    } else {
-      // ACTIVE receipt: use invoice.paid_amount as it reflects cumulative total after this payment
-      totalPaidAfterThis = invoice?.paid_amount || 0;
+      balanceDueAfterThis = Math.max(0, netTotal - totalPaidAfterThis);
     }
-
-    balanceDueAfterThis = Math.max(0, (invoice?.total_amount || 0) - totalPaidAfterThis);
 
     // Void info (use denormalized names only, no user lookups)
     step = 'void_info';
