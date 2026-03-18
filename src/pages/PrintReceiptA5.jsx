@@ -144,7 +144,7 @@ export default function PrintReceiptA5() {
   };
 
   const handleCancel = () => {
-    navigate('/Fees');
+    navigate(-1);
   };
 
   return (
