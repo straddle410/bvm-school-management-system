@@ -56,7 +56,10 @@ export default function Messaging() {
   const { data: inbox = [], isLoading: loadingInbox } = useQuery({
     queryKey: ['messages-inbox', user?.email],
     queryFn: async () => {
-      const res = await base44.functions.invoke('listMyMessages', { folder: 'inbox', limit: 100 });
+      const res = await base44.functions.invoke('listMyMessages', {
+        folder: 'inbox', limit: 100,
+        _staffUsername: user?.email,  // user.email is aliased to username
+      });
       return res.data.messages || [];
     },
     enabled: !!user,
@@ -66,7 +69,10 @@ export default function Messaging() {
   const { data: sent = [], isLoading: loadingSent } = useQuery({
     queryKey: ['messages-sent', user?.email],
     queryFn: async () => {
-      const res = await base44.functions.invoke('listMyMessages', { folder: 'sent', limit: 100 });
+      const res = await base44.functions.invoke('listMyMessages', {
+        folder: 'sent', limit: 100,
+        _staffUsername: user?.email,
+      });
       return res.data.messages || [];
     },
     enabled: !!user,
