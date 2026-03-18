@@ -95,6 +95,82 @@ function TransportFeeSettings({ schoolProfiles, queryClient }) {
   );
 }
 
+const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+function HostelFeeSettings({ schoolProfiles, queryClient }) {
+  const [config, setConfig] = React.useState([]);
+
+  React.useEffect(() => {
+    if (schoolProfiles.length > 0) {
+      const existing = schoolProfiles[0].hostel_fee_config || [];
+      // Ensure all classes are represented
+      const map = {};
+      for (const e of existing) map[e.class_name] = e.amount;
+      setConfig(CLASSES.map(c => ({ class_name: c, amount: map[c] || 0 })));
+    }
+  }, [schoolProfiles]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const toSave = config.filter(c => c.amount > 0);
+      if (schoolProfiles.length > 0) {
+        return base44.entities.SchoolProfile.update(schoolProfiles[0].id, { hostel_fee_config: toSave });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['school-profile']);
+      toast.success('Hostel fee config saved');
+    }
+  });
+
+  const updateAmount = (className, val) => {
+    setConfig(prev => prev.map(c => c.class_name === className ? { ...c, amount: parseInt(val) || 0 } : c));
+  };
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><BedDouble className="h-5 w-5 text-indigo-600" /> Hostel Fee</CardTitle>
+        <CardDescription>Set class-wise hostel fee amounts. Students with hostel enabled will have this added as a separate line item in their annual invoice.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="border rounded-lg overflow-hidden max-w-md">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase">Class</th>
+                <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase">Hostel Fee (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {config.map(c => (
+                <tr key={c.class_name}>
+                  <td className="px-4 py-2 font-medium text-slate-700">Class {c.class_name}</td>
+                  <td className="px-4 py-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={c.amount || ''}
+                      onChange={e => updateAmount(c.class_name, e.target.value)}
+                      placeholder="0 = not applicable"
+                      className="h-8 w-36"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-slate-500">Leave as 0 for classes where hostel is not applicable.</p>
+        <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+          <Save className="mr-2 h-4 w-4" />
+          {saveMutation.isPending ? 'Saving...' : 'Save Hostel Fee Config'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState('admin');
