@@ -3,48 +3,59 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const payload = await req.json();
-    const { folder = 'inbox', limit = 50, cursor = null } = payload;
+    const { folder = 'inbox', limit = 50, cursor = null, _studentId, _staffUsername } = payload;
 
     if (!['inbox', 'sent'].includes(folder)) {
       return Response.json({ error: 'Invalid folder' }, { status: 400 });
     }
 
-    let query = {};
+    // ── AUTH: Support Base44 JWT (admin via base44 dashboard), student sessions, and staff sessions ──
+    let currentUserId = null;
 
-    if (folder === 'inbox') {
-      // Only messages where I'm the recipient
-      query = {
-        recipient_id: user.email,
-        recipient_type: 'individual',
-      };
-    } else if (folder === 'sent') {
-      // Only messages where I'm the sender
-      query = {
-        sender_id: user.email,
-      };
+    if (_studentId) {
+      // Student custom session
+      const students = await base44.asServiceRole.entities.Student.filter({ student_id: _studentId });
+      if (students.length > 0 && !students[0].is_deleted && students[0].is_active !== false) {
+        currentUserId = _studentId;
+      }
+    } else if (_staffUsername) {
+      // Staff custom session — username is the canonical messaging ID
+      currentUserId = _staffUsername;
+    } else {
+      // Base44 JWT (admin via platform or browser-authenticated)
+      try {
+        const user = await base44.auth.me();
+        if (user) currentUserId = user.email;
+      } catch {}
     }
 
-    // Fetch with service role to bypass RLS, then filter server-side
+    if (!currentUserId) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let query = {};
+    if (folder === 'inbox') {
+      query = { recipient_id: currentUserId, recipient_type: 'individual' };
+    } else {
+      query = { sender_id: currentUserId };
+    }
+
     const allMessages = await base44.asServiceRole.entities.Message.filter(query);
 
-    // Sort by created_date descending, apply cursor/limit
+    // Sort descending, apply cursor/limit
     const sorted = allMessages.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-    
+
     let start = 0;
     if (cursor) {
-      start = sorted.findIndex(m => m.id === cursor);
-      if (start > -1) start += 1;
+      const idx = sorted.findIndex(m => m.id === cursor);
+      if (idx > -1) start = idx + 1;
     }
 
     const messages = sorted.slice(start, start + limit);
-    const nextCursor = messages.length === limit && start + limit < sorted.length ? messages[messages.length - 1].id : null;
+    const nextCursor = messages.length === limit && start + limit < sorted.length
+      ? messages[messages.length - 1].id
+      : null;
 
     return Response.json({ messages, nextCursor });
   } catch (error) {
