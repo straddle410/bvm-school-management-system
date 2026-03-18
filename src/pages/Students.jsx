@@ -641,28 +641,38 @@ export default function Students() {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 py-4 space-y-3">
-          {/* Compact stats strip */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm px-4 py-2 flex items-center gap-4 text-sm">
-            <span className="font-semibold text-green-600">{totalActive} <span className="font-normal text-gray-400 dark:text-gray-500">Active</span></span>
-            <span className="text-gray-200 dark:text-gray-600">|</span>
-            <span className="font-semibold text-yellow-600">{totalPending} <span className="font-normal text-gray-400 dark:text-gray-500">Pending</span></span>
-            <span className="text-gray-200 dark:text-gray-600">|</span>
-            <span className="font-semibold text-gray-500 dark:text-gray-400">{totalArchived} <span className="font-normal text-gray-400 dark:text-gray-500">Archived</span></span>
-            <span className="text-gray-200 dark:text-gray-600 hidden sm:inline">|</span>
-            <span className="hidden sm:inline font-semibold text-[#1a237e]">{totalCount} <span className="font-normal text-gray-400 dark:text-gray-500">Total</span></span>
+
+          {/* Tab Bar */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm flex overflow-hidden">
+            {[
+              { key: 'active', label: 'Active Students', color: 'text-green-700', activeBg: 'bg-green-50 border-b-2 border-green-600' },
+              ...(isAdmin ? [{ key: 'pipeline', label: 'Admission Pipeline', color: 'text-yellow-700', activeBg: 'bg-yellow-50 border-b-2 border-yellow-500' }] : []),
+              ...(isAdmin ? [{ key: 'alumni', label: 'Alumni / Archive', color: 'text-gray-600', activeBg: 'bg-gray-50 border-b-2 border-gray-500' }] : []),
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setPage(1); setSelectedIds(new Set()); setFilterClass('all'); setFilterSection('all'); setFilterTransport('all'); }}
+                className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab.key ? `${tab.activeBg} ${tab.color}` : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+              >
+                {tab.label}
+                {activeTab === tab.key && totalCount > 0 && (
+                  <span className="ml-1.5 text-[10px] font-bold opacity-70">({totalCount})</span>
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Filters */}
-           <StudentFilters
-             search={search} onSearch={handleSearchChange}
-             filterClass={filterClass} onFilterClass={(v) => { setFilterClass(v); setFilterSection('all'); setPage(1); }}
-             filterSection={filterSection} onFilterSection={(v) => { setFilterSection(v); setPage(1); }}
-             filterStatus={filterStatus} onFilterStatus={setFilterStatus}
-             showArchived={showArchived} onToggleArchived={() => { setShowArchived(v => !v); setShowDeleted(false); setPage(1); }}
-             showDeleted={showDeleted} onToggleDeleted={isAdmin ? () => { setShowDeleted(v => !v); setShowArchived(false); setPage(1); } : null}
-             availableClasses={sfAvailableClasses}
-             availableSections={sfAvailableSections}
-           />
+          <StudentFilters
+            search={search} onSearch={handleSearchChange}
+            filterClass={filterClass} onFilterClass={(v) => { setFilterClass(v); setFilterSection('all'); setPage(1); }}
+            filterSection={filterSection} onFilterSection={(v) => { setFilterSection(v); setPage(1); }}
+            filterTransport={activeTab === 'active' ? filterTransport : null}
+            onFilterTransport={activeTab === 'active' ? (v) => { setFilterTransport(v); setPage(1); } : null}
+            showDeleted={showDeleted} onToggleDeleted={isAdmin && activeTab === 'active' ? () => { setShowDeleted(v => !v); setPage(1); } : null}
+            availableClasses={sfAvailableClasses}
+            availableSections={sfAvailableSections}
+          />
 
           {/* Bulk Actions — Admin only */}
           {isAdmin && selectableStudents.length > 0 && !showArchived && !showDeleted && (
