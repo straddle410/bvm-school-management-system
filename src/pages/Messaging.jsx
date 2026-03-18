@@ -9,12 +9,18 @@ import MessageThread from '@/components/messaging/MessageThread';
 import { useStaffNotificationBadges, markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
 
 function getCurrentUser() {
-  // First check staff_session (custom teacher/staff login)
+  // Staff use custom session — username is their canonical ID (not email)
   try {
     const ss = localStorage.getItem('staff_session');
     if (ss) {
       const staff = JSON.parse(ss);
-      if (staff?.email) return { email: staff.email, full_name: staff.full_name, role: staff.role, isStaffSession: true };
+      // Use username as the messaging ID (this is what recipient_id is stored as)
+      if (staff?.username) return {
+        email: staff.username,  // alias: "email" field used as messaging ID
+        full_name: staff.full_name || staff.name,
+        role: staff.role,
+        isStaffSession: true
+      };
     }
   } catch {}
   return null;
