@@ -64,11 +64,12 @@ function StudentLedgerContent() {
   const { data: classStudents = [], isFetching: loadingStudents } = useQuery({
     queryKey: ['class-students', academicYear, selectedClass, selectedSection],
     queryFn: () => base44.entities.Student.filter({
-      academic_year: academicYear,
-      class_name: selectedClass,
-      section: selectedSection,
-      is_deleted: false,
-      is_active: true
+    academic_year: academicYear,
+    class_name: selectedClass,
+    section: selectedSection,
+    status: 'Published',
+    is_deleted: false,
+    is_active: true
     }),
     enabled: !!selectedClass && !!selectedSection,
     staleTime: 30000

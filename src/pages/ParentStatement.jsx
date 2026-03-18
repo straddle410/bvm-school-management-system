@@ -28,7 +28,7 @@ export default function ParentStatement() {
     queryKey: ['student-search-ps', searchInput],
     queryFn: async () => {
       if (!searchInput || searchInput.length < 2) return [];
-      const students = await base44.entities.Student.filter({ is_deleted: false, is_active: true });
+      const students = await base44.entities.Student.filter({ is_deleted: false, is_active: true, status: 'Published' });
       const q = searchInput.toLowerCase();
       return students.filter(s =>
         s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q)
