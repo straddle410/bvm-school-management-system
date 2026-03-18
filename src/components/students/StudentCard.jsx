@@ -76,14 +76,22 @@ export default function StudentCard({ student, onView, onEdit, onArchive, onDele
              </span>
            </div>
            {/* Transport */}
-           <div className="flex-1 flex-shrink-0">
+           <div className="w-20 flex-shrink-0">
              {student.transport_enabled ? (
                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">ON</span>
              ) : (
                <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">OFF</span>
              )}
            </div>
-         </button>
+           {/* Hostel */}
+           <div className="w-20 flex-shrink-0">
+             {student.hostel_enabled ? (
+               <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">ON</span>
+             ) : (
+               <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">OFF</span>
+             )}
+           </div>
+           </button>
 
          {/* Action menu */}
          {isAdmin && (
