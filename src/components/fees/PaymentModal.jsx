@@ -61,17 +61,12 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
       return res.data;
     },
     onSuccess: async (data) => {
-       console.log('[Payment] Triggering notification for:', data.payment_id);
+       console.log('[Payment] Payment recorded:', data.payment_id);
        const message = `✅ Payment recorded! Receipt: ${data.receipt_no}`;
        toast.success(message);
        setShowConfirmation(false);
 
-       // Trigger notification async (fire-and-forget, don't await)
-       base44.functions.invoke('sendFeePaymentNotification', {
-         event: { type: 'create', entity_name: 'FeePayment', entity_id: data.payment_id },
-         data: data
-       }).catch(err => console.warn('[Payment] Notification call failed:', err.message));
-
+       // Note: Notification triggered automatically by FeePayment entity automation
        onClose();
        // Navigate to print page, passing student context for back-navigation
        const studentId = invoice.student_id || '';

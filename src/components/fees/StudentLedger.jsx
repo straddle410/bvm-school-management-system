@@ -150,6 +150,35 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
     }
   }, [pendingStudentId, students]);
 
+  // Real-time subscriptions for instant ledger sync
+  useEffect(() => {
+    if (!selectedStudent || !academicYear) return;
+
+    const unsubDiscounts = base44.entities.StudentFeeDiscount.subscribe((event) => {
+      if (event.data.student_id === selectedStudent.student_id && event.data.academic_year === academicYear) {
+        refetchFeeData();
+      }
+    });
+
+    const unsubPayments = base44.entities.FeePayment.subscribe((event) => {
+      if (event.data.student_id === selectedStudent.student_id && event.data.academic_year === academicYear) {
+        refetchFeeData();
+      }
+    });
+
+    const unsubInvoices = base44.entities.FeeInvoice.subscribe((event) => {
+      if (event.data.student_id === selectedStudent.student_id && event.data.academic_year === academicYear) {
+        refetchFeeData();
+      }
+    });
+
+    return () => {
+      unsubDiscounts();
+      unsubPayments();
+      unsubInvoices();
+    };
+  }, [selectedStudent, academicYear]);
+
   const filteredStudents = useMemo(() => 
     students.filter(s =>
       s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
