@@ -139,10 +139,21 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Already filtered: status=Published, is_deleted=false in query above
-      const activeStudents = students; // all are already Published & not deleted
+      // Fetch existing hall tickets for this class/section/exam to skip students who already have one
+      const existingTicketsForClass = await base44.asServiceRole.entities.HallTicket.filter({
+        class_name: classname,
+        exam_type: examTypeId,
+        academic_year: academicYear,
+        section: section
+      });
+      const studentsWithTicket = new Set(existingTicketsForClass.map(t => t.student_id));
+      console.log(`[DEDUP] Class ${classname}-${section}: ${studentsWithTicket.size} existing tickets, ${students.length} students`);
+
+      // Only process students who do NOT already have a hall ticket for this exam
+      const activeStudents = students.filter(s => !studentsWithTicket.has(s.id));
       if (activeStudents.length === 0) {
-        continue; // Skip if no active students
+        console.log(`[SKIP] All students in Class ${classname}-${section} already have hall tickets`);
+        continue;
       }
 
       // Re-check for duplicate roll numbers after filtering
