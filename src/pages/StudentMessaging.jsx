@@ -168,17 +168,18 @@ export default function StudentMessaging() {
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md sm:max-w-xl mx-auto pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-lg">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-xl border-b border-slate-700">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-white/20 rounded-lg transition mr-1">
+          <div className="flex items-center gap-3">
+            <Link to={createPageUrl('StudentDashboard')} className="p-2 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition min-h-[44px] min-w-[44px] flex items-center justify-center">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <MessageSquare className="h-5 w-5 text-blue-200" />
-            <h1 className="font-bold text-lg">Messages</h1>
-            {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{unreadCount}</span>
-            )}
+            <div>
+              <h1 className="font-bold text-base md:text-lg">Messages</h1>
+              {unreadCount > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 inline-block mt-0.5">{unreadCount}</span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && tab === 'inbox' && (
