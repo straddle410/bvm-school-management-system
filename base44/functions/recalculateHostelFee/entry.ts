@@ -130,23 +130,13 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Check if invoice is locked (has active payments)
-      const invoicePayments = (paymentsByInvoice[invoice.id] || []).filter(p => {
-        const s = (p.status || '').toUpperCase();
-        return s !== 'VOID' && s !== 'CANCELLED' && !p.is_reversed && p.entry_type !== 'HOSTEL_ADJUSTMENT';
-      });
-      const isLocked = invoicePayments.length > 0;
-
-      const action = isLocked
-        ? (delta > 0 ? 'CREATE_DEBIT_ADJUSTMENT' : 'CREATE_CREDIT_ADJUSTMENT')
-        : (delta > 0 ? 'EDIT_INVOICE_ADD_HOSTEL' : 'EDIT_INVOICE_REMOVE_HOSTEL');
+      const action = delta > 0 ? 'ADD_HOSTEL' : 'REMOVE_HOSTEL';
 
       const previewData = {
         student_id: studentId,
         student_name: student.name,
         invoice_id: invoice.id,
         action,
-        is_locked: isLocked,
         hostel_enabled: hostelEnabled,
         existing_hostel_amount: existingHostelAmt,
         target_hostel_amount: targetHostelAmt,
@@ -160,85 +150,43 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // ── EXECUTE ────────────────────────────────────────────────────────────
+      // ── EXECUTE: Always update fee_heads directly (locked or unlocked) ──
       try {
-        if (isLocked) {
-           const existingAdj = hostelAdjMap[invoice.id];
-           const adjAmount = targetHostelAmt; // Use target amount, not delta
-
-           if (existingAdj) {
-             // Always set to target amount, fixing any mismatches from prior runs
-             const currentAmt = existingAdj.amount_paid || 0;
-             if (targetHostelAmt === 0) {
-               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                 status: 'CANCELLED',
-                 remarks: `Hostel adjustment cancelled — hostel_enabled=${hostelEnabled} — by ${user.email}`
-               });
-             } else if (currentAmt !== targetHostelAmt) {
-               // Correct mismatched amount (e.g., from prior buggy cumulative runs)
-               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                 amount_paid: targetHostelAmt,
-                 remarks: `Hostel adjustment corrected from ₹${currentAmt} to ₹${targetHostelAmt} — by ${user.email}`,
-                 updated_by: user.email
-               });
-             }
-           } else {
-            const reason = delta > 0
-              ? 'Hostel enabled after invoice generation'
-              : 'Hostel disabled after invoice generation';
-            await base44.asServiceRole.entities.FeePayment.create({
-              student_id: student.student_id,
-              invoice_id: invoice.id,
-              academic_year: academicYear,
-              amount_paid: adjAmount,
-              payment_date: new Date().toISOString().split('T')[0],
-              payment_mode: 'Adjustment',
-              entry_type: 'HOSTEL_ADJUSTMENT',
-              affects_cash: false,
-              status: 'POSTED',
-              remarks: reason,
-              receipt_no: `HADJ-${student.student_id}-${academicYear}`,
-              recorded_by: user.email
-            });
-          }
-
-          results.push({ ...previewData, status: 'DONE', method: 'ADJUSTMENT' });
-
-        } else {
-          // Edit invoice directly
-          let updatedFeeHeads;
-          if (hostelEnabled) {
-            if (existingHostelLine) {
-              updatedFeeHeads = feeHeads.map(fh =>
-                (fh.fee_head_id === 'hostel' || fh.fee_head_name === 'Hostel')
-                  ? { ...fh, amount: hostelFeeAmount, gross_amount: hostelFeeAmount, net_amount: hostelFeeAmount }
-                  : fh
-              );
-            } else {
-              updatedFeeHeads = [
-                ...feeHeads,
-                { fee_head_name: 'Hostel', fee_head_id: 'hostel', amount: hostelFeeAmount, gross_amount: hostelFeeAmount, net_amount: hostelFeeAmount, discount_amount: 0, is_hostel: true }
-              ];
-            }
+        let updatedFeeHeads;
+        if (hostelEnabled) {
+          if (existingHostelLine) {
+            // Update existing hostel line
+            updatedFeeHeads = feeHeads.map(fh =>
+              (fh.fee_head_id === 'hostel' || fh.fee_head_name === 'Hostel')
+                ? { ...fh, amount: hostelFeeAmount, gross_amount: hostelFeeAmount, net_amount: hostelFeeAmount, discount_amount: 0 }
+                : fh
+            );
           } else {
-            updatedFeeHeads = feeHeads.filter(fh => fh.fee_head_id !== 'hostel' && fh.fee_head_name !== 'Hostel');
+            // Add hostel line
+            updatedFeeHeads = [
+              ...feeHeads,
+              { fee_head_name: 'Hostel', fee_head_id: 'hostel', amount: hostelFeeAmount, gross_amount: hostelFeeAmount, net_amount: hostelFeeAmount, discount_amount: 0, is_hostel: true }
+            ];
           }
-
-          const newGross = updatedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
-          const discountTotal = invoice.discount_total || 0;
-          const newNet = Math.max(newGross - discountTotal, 0);
-          const paidSoFar = invoice.paid_amount || 0;
-          const newBalance = Math.max(newNet - paidSoFar, 0);
-
-          await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
-            fee_heads: updatedFeeHeads,
-            gross_total: newGross,
-            total_amount: newNet,
-            balance: newBalance
-          });
-
-          results.push({ ...previewData, status: 'DONE', method: 'INVOICE_EDITED' });
+        } else {
+          // Remove hostel line
+          updatedFeeHeads = feeHeads.filter(fh => fh.fee_head_id !== 'hostel' && fh.fee_head_name !== 'Hostel');
         }
+
+        const newGross = updatedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
+        const discountTotal = invoice.discount_total || 0;
+        const newNet = Math.max(newGross - discountTotal, 0);
+        const paidSoFar = invoice.paid_amount || 0;
+        const newBalance = Math.max(newNet - paidSoFar, 0);
+
+        await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
+          fee_heads: updatedFeeHeads,
+          gross_total: newGross,
+          total_amount: newNet,
+          balance: newBalance
+        });
+
+        results.push({ ...previewData, status: 'DONE' });
       } catch (execErr) {
         results.push({ ...previewData, status: 'ERROR', error: execErr.message });
       }
