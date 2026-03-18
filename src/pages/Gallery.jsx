@@ -412,7 +412,18 @@ export default function Gallery() {
           </div>
         </DialogContent>
       </Dialog>
-      {isStudent && <StudentMinimalFooterNav />}
       </div>
       );
       }
+
+      // For students viewing gallery, wrap with footer nav
+      return (
+        <>
+          {mainReturn}
+          {isStudent && <StudentMinimalFooterNav />}
+        </>
+      );
+      }
+
+      // Main gallery view
+      const mainReturn = (
