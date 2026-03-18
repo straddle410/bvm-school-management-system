@@ -199,13 +199,13 @@ Deno.serve(async (req) => {
             if (existingTransportLine) {
               updatedFeeHeads = feeHeads.map(fh =>
                 (fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport')
-                  ? { ...fh, amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount }
+                  ? { ...fh, amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
                   : fh
               );
             } else {
               updatedFeeHeads = [
                 ...feeHeads,
-                { fee_head_name: 'Transport', fee_head_id: 'transport', amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0, is_transport: true }
+                { fee_head_name: 'Transport', fee_head_id: 'transport', amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
               ];
             }
           } else {
