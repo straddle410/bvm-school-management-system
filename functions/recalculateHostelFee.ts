@@ -171,16 +171,18 @@ Deno.serve(async (req) => {
            const adjAmount = targetHostelAmt; // Use target amount, not delta
 
            if (existingAdj) {
-             // Replace with target amount, not cumulative
+             // Always set to target amount, fixing any mismatches from prior runs
+             const currentAmt = existingAdj.amount_paid || 0;
              if (targetHostelAmt === 0) {
                await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
                  status: 'CANCELLED',
                  remarks: `Hostel adjustment cancelled — hostel_enabled=${hostelEnabled} — by ${user.email}`
                });
-             } else {
+             } else if (currentAmt !== targetHostelAmt) {
+               // Correct mismatched amount (e.g., from prior buggy cumulative runs)
                await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
                  amount_paid: targetHostelAmt,
-                 remarks: `Hostel adjustment updated to ₹${targetHostelAmt} — hostel_enabled=${hostelEnabled} — by ${user.email}`,
+                 remarks: `Hostel adjustment corrected from ₹${currentAmt} to ₹${targetHostelAmt} — by ${user.email}`,
                  updated_by: user.email
                });
              }
