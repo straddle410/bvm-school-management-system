@@ -90,26 +90,36 @@ Deno.serve(async (req) => {
 
     const ARCHIVED_STATUSES = ['Passed Out', 'Transferred'];
 
-    // Build filter object for indexed fields
+    // Parse status — may be single value or comma-separated list (e.g. "Pending,Verified,Approved")
+    const statusList = (status && status !== 'all')
+      ? status.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+
+    // Build filter object for indexed fields (only single-value status can go to DB filter)
     const filterObj = { academic_year };
     if (class_name && class_name !== 'all') filterObj.class_name = class_name;
     if (section && section !== 'all') filterObj.section = section;
-    if (status && status !== 'all') filterObj.status = status;
+    // Only use DB-level status filter if exactly one status value
+    if (statusList.length === 1) filterObj.status = statusList[0];
 
     // Fetch filtered records (server-side by indexed fields)
     let allFiltered = await base44.asServiceRole.entities.Student.filter(filterObj, '-created_date', 10000);
 
     // ── Soft-delete filtering ──
     if (show_deleted) {
-      // Admin only: show only deleted students
       allFiltered = allFiltered.filter(s => s.is_deleted === true);
     } else {
-      // Default: exclude deleted students always
       allFiltered = allFiltered.filter(s => !s.is_deleted);
     }
 
+    // Multi-status filter (applied in JS when multiple statuses requested)
+    if (statusList.length > 1) {
+      const statusSet = new Set(statusList);
+      allFiltered = allFiltered.filter(s => statusSet.has(s.status));
+    }
+
     // Exclude archived if requested and no specific status filter
-    if (!show_deleted && exclude_archived && !status) {
+    if (!show_deleted && exclude_archived && statusList.length === 0) {
       allFiltered = allFiltered.filter(s => !ARCHIVED_STATUSES.includes(s.status));
     }
 
