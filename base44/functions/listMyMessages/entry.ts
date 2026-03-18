@@ -46,14 +46,20 @@ Deno.serve(async (req) => {
     // Auto-mark inbox messages as delivered (sets delivered_at if not already set)
     if (folder === 'inbox') {
       const undelivered = allMessages.filter(m => !m.delivered_at);
-      const now = new Date().toISOString();
-      await Promise.all(
-        undelivered.map(m =>
-          base44.asServiceRole.entities.Message.update(m.id, { delivered_at: now })
-        )
-      );
-      // Update local copies so response includes delivered_at
-      undelivered.forEach(m => { m.delivered_at = now; });
+      if (undelivered.length > 0) {
+        const now = new Date().toISOString();
+        try {
+          // Batch update all undelivered messages at once
+          await base44.asServiceRole.entities.Message.bulkUpdate(
+            undelivered.map(m => ({ id: m.id, delivered_at: now }))
+          );
+          // Update local copies so response includes delivered_at
+          undelivered.forEach(m => { m.delivered_at = now; });
+        } catch (err) {
+          console.warn('Failed to mark messages as delivered:', err.message);
+          // Continue anyway — just skip the delivery marking
+        }
+      }
     }
 
     // Sort descending, apply cursor/limit
