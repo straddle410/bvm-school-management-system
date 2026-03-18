@@ -35,9 +35,8 @@ function StudentLedgerContent() {
   const { academicYear } = useAcademicYear();
   const navigate = useNavigate();
 
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [studentSuggestions, setStudentSuggestions] = useState([]);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('A');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -48,31 +47,39 @@ function StudentLedgerContent() {
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
 
-  // Student typeahead
-  const { data: studentResults = [], isFetching: searchingStudents } = useQuery({
-    queryKey: ['student-search', searchQuery],
-    queryFn: async () => {
-      if (!searchQuery || searchQuery.length < 2) return [];
-      const students = await base44.entities.Student.filter({ academic_year: academicYear, is_deleted: false });
-      const q = searchQuery.toLowerCase();
-      return students.filter(s =>
-        s.name?.toLowerCase().includes(q) ||
-        s.student_id?.toLowerCase().includes(q)
-      ).slice(0, 10);
-    },
-    enabled: searchQuery.length >= 2,
+  // Fetch sections for selected class from SectionConfig
+  const { data: sectionConfig = [] } = useQuery({
+    queryKey: ['section-config', academicYear],
+    queryFn: () => base44.entities.SectionConfig.filter({ academic_year: academicYear }),
+    staleTime: 60000
+  });
+
+  const availableSections = React.useMemo(() => {
+    if (!selectedClass) return ['A'];
+    const cfg = sectionConfig.find(s => s.class_name === selectedClass);
+    return cfg?.sections?.length ? cfg.sections : ['A'];
+  }, [sectionConfig, selectedClass]);
+
+  // Students for selected class + section
+  const { data: classStudents = [], isFetching: loadingStudents } = useQuery({
+    queryKey: ['class-students', academicYear, selectedClass, selectedSection],
+    queryFn: () => base44.entities.Student.filter({
+      academic_year: academicYear,
+      class_name: selectedClass,
+      section: selectedSection,
+      is_deleted: false
+    }),
+    enabled: !!selectedClass && !!selectedSection,
     staleTime: 30000
   });
 
-  // Debounce search
-  useEffect(() => {
-    const t = setTimeout(() => setSearchQuery(searchInput), 350);
-    return () => clearTimeout(t);
-  }, [searchInput]);
+  const sortedStudents = React.useMemo(() =>
+    [...classStudents].sort((a, b) => (a.roll_no || 999) - (b.roll_no || 999) || a.name.localeCompare(b.name)),
+    [classStudents]
+  );
 
-  useEffect(() => {
-    setStudentSuggestions(studentResults);
-  }, [studentResults]);
+  // Reset student when class/section changes
+  useEffect(() => { setSelectedStudent(null); }, [selectedClass, selectedSection]);
 
   // Ledger data
    const { data, isLoading, error: fetchError } = useQuery({
