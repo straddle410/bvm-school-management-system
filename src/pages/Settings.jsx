@@ -32,7 +32,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   School, Save, Upload, Image as ImageIcon, Calendar, 
-  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen, Bus, AlertTriangle, HardDrive, Menu, ExternalLink
+  Users, Shield, Database, Clock, Plus, Trash2, Layers, Bell, BookOpen, Bus, AlertTriangle, HardDrive, Menu, ExternalLink, BedDouble
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -367,6 +367,7 @@ export default function Settings() {
       'class-subjects': 'Class Subjects',
       'class-sections': 'Class Sections',
       'transport': 'Transport',
+      'hostel': 'Hostel',
       'notifications': 'Notifications',
       'banners': 'Banners',
       'reset-student-password': 'Reset Student Password',
