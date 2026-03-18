@@ -7,7 +7,7 @@ import {
   Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
   ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
   MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
-  Ticket, BarChart3, Sun, Moon
+  Ticket, BarChart3, Sun, Moon, MoreHorizontal
 } from 'lucide-react';
 import { useDarkMode } from '@/components/useDarkMode';
 import StudentBottomNav from '@/components/StudentBottomNav';
@@ -36,6 +36,7 @@ const HOME_TILES = [
   { label: 'Hall Ticket', page: 'StudentHallTicketView', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', notifKey: 'HallTickets' },
   { label: 'Timetable', page: 'StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
   { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, color: '#0288d1', bg: '#e1f5fe', notifKey: 'Messages' },
+  { label: 'More', page: 'StudentMore', icon: MoreHorizontal, color: '#7b1fa2', bg: '#f3e5f5', notifKey: null },
 ];
 
 export default function StudentDashboard() {
@@ -389,7 +390,7 @@ export default function StudentDashboard() {
 
       </main>
 
-      <StudentBottomNav currentPage="StudentDashboard" />
+
     </div>
   );
 }
