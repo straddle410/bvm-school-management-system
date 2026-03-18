@@ -149,6 +149,21 @@ Deno.serve(async (req) => {
         grossTotal += transportFeeAmount;
       }
 
+      // Add hostel fee line if student has hostel enabled (class-wise rate)
+      const hostelFeeAmount = hostelRateByClass[student.class_name] || 0;
+      if (student.hostel_enabled && hostelFeeAmount > 0) {
+        feeItems = [
+          ...feeItems,
+          {
+            fee_head_name: 'Hostel',
+            fee_head_id: 'hostel',
+            amount: hostelFeeAmount,
+            is_hostel: true
+          }
+        ];
+        grossTotal += hostelFeeAmount;
+      }
+
       const discountList = discountMap[student.student_id] || [];
       const discount = discountList.length > 0 ? discountList[0] : null;
       const { items, discountTotal, netTotal } = applyDiscount(feeItems, grossTotal, discount);
