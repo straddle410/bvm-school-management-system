@@ -93,8 +93,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   const discount = Math.min(discountSum, gross);
   const net = gross - discount;
 
-  // Calculate paid: ONLY ANNUAL payments (not ADHOC)
-  // Filters: actual cash payments, linked to ANNUAL invoice, not VOID/CANCELLED
+  // Calculate paid: use invoice's own paid_amount as source of truth (not recalculated from payments)
+  // This avoids mismatches when payment records are paginated or have varying statuses
   const annualPayments = payments.filter(p => 
     p.invoice_id === invoice?.id && 
     p.entry_type === 'CASH_PAYMENT' &&
@@ -102,13 +102,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
     p.status !== 'VOID' &&
     p.status !== 'CANCELLED'
   );
-  const paid = annualPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
-  
-  // Debug: log all payments and which ones are included
-  if (selectedStudent?.student_id === 'S25007') {
-    console.log(`[StudentLedger S25007] All payments:`, payments.map(p => ({ receipt: p.receipt_no, amount: p.amount_paid, status: p.status, entry_type: p.entry_type, affects_cash: p.affects_cash, invoice_id: p.invoice_id, included: annualPayments.some(ap => ap.id === p.id) })));
-    console.log(`[StudentLedger S25007] Annual invoice ID:`, invoice?.id, `Paid total: ₹${paid}`);
-  }
+  // Use invoice.paid_amount as authoritative total; fall back to summing payments only if invoice has no paid_amount
+  const paid = invoice?.paid_amount ?? annualPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
 
   // Calculate ADHOC paid (for display below paid total)
   const adhocPaid = payments.reduce((sum, p) => {
