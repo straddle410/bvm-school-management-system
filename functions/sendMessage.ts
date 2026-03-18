@@ -17,65 +17,46 @@ const RATE_LIMITS = {
 const MAX_BODY_LENGTH = 1000;
 
 function getISTStartOfDay() {
-  // IST is UTC+5:30
   const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in ms
+  const istOffset = 5.5 * 60 * 60 * 1000;
   const istTime = new Date(now.getTime() + istOffset);
-  
   const startOfDay = new Date(istTime);
-  startOfDay.setUTCHours(0 - 5, -30, 0, 0); // Subtract IST offset to get UTC start
-  
+  startOfDay.setUTCHours(0 - 5, -30, 0, 0);
   return startOfDay;
 }
 
 async function checkRateLimits(base44, actorId, actorRole) {
   const limits = RATE_LIMITS[actorRole];
-  if (!limits) {
-    return { allowed: true }; // Unknown role, allow (should not happen)
-  }
+  if (!limits) return { allowed: true };
 
   const now = new Date();
   const shortWindowStart = new Date(now.getTime() - limits.short_window_minutes * 60 * 1000);
   const dayStart = getISTStartOfDay();
 
-  // Count messages in short window
-  const shortWindowMessages = await base44.asServiceRole.entities.Message.filter({
-    sender_id: actorId,
-  }, null, 1000); // Get all, then filter locally by date
+  const allSent = await base44.asServiceRole.entities.Message.filter({ sender_id: actorId }, null, 1000);
 
-  const shortWindowCount = shortWindowMessages.filter(
-    m => new Date(m.created_date) >= shortWindowStart
-  ).length;
+  const shortWindowCount = allSent.filter(m => new Date(m.created_date) >= shortWindowStart).length;
 
   if (shortWindowCount >= limits.short_window_limit) {
-    const oldestInWindow = shortWindowMessages
+    const oldestInWindow = allSent
       .filter(m => new Date(m.created_date) >= shortWindowStart)
       .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))[0];
-    
     const retryAfterMs = new Date(oldestInWindow.created_date).getTime() + (limits.short_window_minutes * 60 * 1000) - now.getTime();
-    const retryAfterSeconds = Math.ceil(Math.max(1, retryAfterMs / 1000));
-
     return {
       allowed: false,
       error: `Rate limit exceeded (${limits.short_window_limit} messages per ${limits.short_window_minutes} minutes)`,
-      retryAfterSeconds,
+      retryAfterSeconds: Math.ceil(Math.max(1, retryAfterMs / 1000)),
     };
   }
 
-  // Count messages since start of day
-  const dayCount = shortWindowMessages.filter(
-    m => new Date(m.created_date) >= dayStart
-  ).length;
-
+  const dayCount = allSent.filter(m => new Date(m.created_date) >= dayStart).length;
   if (dayCount >= limits.day_limit) {
     const dayEndIST = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
     const retryAfterMs = dayEndIST.getTime() - now.getTime();
-    const retryAfterSeconds = Math.ceil(Math.max(1, retryAfterMs / 1000));
-
     return {
       allowed: false,
       error: `Rate limit exceeded (${limits.day_limit} messages per day)`,
-      retryAfterSeconds,
+      retryAfterSeconds: Math.ceil(Math.max(1, retryAfterMs / 1000)),
     };
   }
 
@@ -85,58 +66,66 @@ async function checkRateLimits(base44, actorId, actorRole) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const payload = await req.json();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const {
+      sender_id,
+      sender_name,
+      sender_role,
+      recipient_type,
+      recipient_id,
+      recipient_name,
+      subject,
+      body,
+      thread_id,
+      parent_message_id,
+      academic_year,
+      subject_area,
+      _studentId,  // student custom session identifier
+    } = payload;
+
+    // ── AUTH: Support both Base44 JWT (staff) and student custom sessions ──
+    let isAuthed = false;
+
+    if (sender_role === 'student' && _studentId) {
+      // Student custom session: verify _studentId matches sender_id
+      if (_studentId === sender_id) {
+        // Verify student exists and is active
+        const students = await base44.asServiceRole.entities.Student.filter({ student_id: _studentId });
+        if (students.length > 0 && !students[0].is_deleted && students[0].is_active !== false) {
+          isAuthed = true;
+        }
+      }
+    } else {
+      // Staff: validate via Base44 JWT
+      try {
+        const user = await base44.auth.me();
+        if (user) isAuthed = true;
+      } catch {}
     }
 
-    const payload = await req.json();
-    const { 
-      sender_id, 
-      sender_name, 
-      sender_role, 
-      recipient_type, 
-      recipient_id, 
-      recipient_name, 
-      recipient_class, 
-      recipient_section, 
-      subject, 
-      body, 
-      thread_id, 
-      parent_message_id, 
-      academic_year, 
-      subject_area 
-    } = payload;
+    if (!isAuthed) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Validate body
     if (!body || typeof body !== 'string') {
       return Response.json({ error: 'Message body is required' }, { status: 400 });
     }
-
     const trimmedBody = body.trim();
     if (trimmedBody.length === 0) {
       return Response.json({ error: 'Message cannot be empty' }, { status: 400 });
     }
-
     if (trimmedBody.length > MAX_BODY_LENGTH) {
-      return Response.json(
-        { error: `Message must be ${MAX_BODY_LENGTH} characters or less` },
-        { status: 400 }
-      );
+      return Response.json({ error: `Message must be ${MAX_BODY_LENGTH} characters or less` }, { status: 400 });
     }
 
-    // Determine actor role for rate limiting (student or teacher/staff)
+    // Rate limiting
     const actorRole = sender_role === 'student' ? 'student' : 'teacher';
-
-    // Check rate limits
     const rateLimitCheck = await checkRateLimits(base44, sender_id, actorRole);
     if (!rateLimitCheck.allowed) {
       return Response.json(
-        { 
-          error: rateLimitCheck.error,
-          retryAfterSeconds: rateLimitCheck.retryAfterSeconds,
-        },
+        { error: rateLimitCheck.error, retryAfterSeconds: rateLimitCheck.retryAfterSeconds },
         { status: 429 }
       );
     }
@@ -161,12 +150,26 @@ Deno.serve(async (req) => {
         subject_area: subject_area || null,
       });
 
-      // If sender is staff and recipient is student, send push and create notification
+      // If sender is staff and recipient is student, send push notification
       if (sender_role !== 'student') {
         studentRecipients.push(recipient_id);
       }
+
+      // If sender is student, send push notification to the staff member
+      if (sender_role === 'student') {
+        try {
+          await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
+            recipient_id: recipient_id,
+            title: `Message from ${sender_name}`,
+            message: (subject || trimmedBody).substring(0, 100),
+            url: '/Messaging',
+          });
+        } catch (pushErr) {
+          console.warn('Student→Staff push notification error (non-fatal):', pushErr.message);
+        }
+      }
     } else {
-      // Bulk create for class/section
+      // Bulk create for class/section (staff only)
       const messages = payload.messages || [];
       if (messages.length === 0) {
         return Response.json({ error: 'No recipients specified' }, { status: 400 });
@@ -191,7 +194,6 @@ Deno.serve(async (req) => {
         }))
       );
 
-      // If sender is staff, collect student recipients
       if (sender_role !== 'student') {
         studentRecipients.push(...messages.map(m => m.recipient_id));
       }
