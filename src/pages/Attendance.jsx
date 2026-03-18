@@ -712,10 +712,13 @@ function AttendanceSummaryTab({
   classSectionData,    // ✅ Receive from parent to avoid duplicate query
   sectionData          // ✅ Receive from parent to avoid duplicate query
 }) {
-  const [filters, setFilters] = useState({ class: '', section: '', fromDate: '', toDate: '' });
+  const availableClasses = classSectionData?.classes || [];
+  const defaultClass = availableClasses[0] || '';
+  const defaultSection = sectionData?.sections?.[0] || 'A';
+  
+  const [filters, setFilters] = useState({ class: defaultClass, section: defaultSection, fromDate: '', toDate: '' });
   const [recordsLimitHit, setRecordsLimitHit] = useState(false);
 
-  const availableClasses = classSectionData?.classes || [];
   const availableSections = (sectionData && filters.class) ? sectionData.sections : [];
   const [hasGenerated, setHasGenerated] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
