@@ -48,15 +48,15 @@ function StudentLedgerContent() {
   const [invoicesCache, setInvoicesCache] = useState([]);
   const [showInvoicesList, setShowInvoicesList] = useState(!selectedStudent);
 
-  // Fetch ANNUAL invoices for the selected class
-  const { data: ledgerData = {}, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['class-annual-invoices', selectedClass, selectedSection, academicYear],
+  // Fetch ANNUAL invoices for selected class
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
+    queryKey: ['class-invoices', selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.FeeInvoice.filter({
       class_name: selectedClass,
       section: selectedSection,
       academic_year: academicYear,
       invoice_type: 'ANNUAL'
-    }).then(invoices => ({ invoices })),
+    }),
     enabled: !!selectedClass && !!selectedSection && !!academicYear,
     staleTime: 30000
   });
