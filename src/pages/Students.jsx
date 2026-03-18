@@ -65,6 +65,9 @@ export default function Students() {
   const [transportAction, setTransportAction] = useState('');
   const [showTransportConfirm, setShowTransportConfirm] = useState(false);
   const [transportLoading, setTransportLoading] = useState(false);
+  const [hostelAction, setHostelAction] = useState('');
+  const [showHostelConfirm, setShowHostelConfirm] = useState(false);
+  const [hostelLoading, setHostelLoading] = useState(false);
   const [showPromote, setShowPromote] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
