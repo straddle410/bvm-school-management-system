@@ -107,9 +107,9 @@ Deno.serve(async (req) => {
           collectedByName: p.collected_by_name || '—'
         },
         invoice: {
-          gross: invoice?.gross_total || 0,
-          discount: invoice?.discount_total || 0,
-          net: invoice?.total_amount || 0,
+          gross: grossTotal,
+          discount: discountTotal,
+          net: netTotal,
           totalPaidAfterThis,
           balanceDueAfterThis
         },
