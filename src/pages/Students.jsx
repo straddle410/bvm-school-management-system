@@ -118,11 +118,30 @@ export default function Students() {
     }, 300);
   }, []);
 
+  // Derive status filter from active tab
+  const tabStatusMap = {
+    active: 'Published',
+    pipeline: '', // will use multiStatus
+    alumni: '',   // will use multiStatus
+  };
+
   const { data: studentsData, isLoading } = useQuery({
-    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, filterStatus, showArchived, showDeleted],
+    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, activeTab, showDeleted],
     queryFn: async () => {
-      let effectiveStatus = filterStatus === 'all' ? '' : filterStatus;
-      const restrictToActive = !showArchived && !showDeleted && filterStatus === 'all';
+      let effectiveStatus = '';
+      let exclude_archived = false;
+
+      if (activeTab === 'active') {
+        effectiveStatus = 'Published';
+        exclude_archived = false;
+      } else if (activeTab === 'pipeline') {
+        // Pending, Verified, Approved — pass comma-separated; backend handles it
+        effectiveStatus = 'Pending,Verified,Approved';
+        exclude_archived = false;
+      } else if (activeTab === 'alumni') {
+        effectiveStatus = 'Passed Out,Transferred';
+        exclude_archived = false;
+      }
 
       const session = getStaffSession();
       const res = await base44.functions.invoke('getStudentsPaginated', {
@@ -132,7 +151,7 @@ export default function Students() {
         class_name: filterClass === 'all' ? '' : filterClass,
         section: filterSection === 'all' ? '' : filterSection,
         status: effectiveStatus,
-        exclude_archived: restrictToActive,
+        exclude_archived,
         show_deleted: showDeleted && isAdmin,
         academic_year: academicYear,
         staff_session_token: session?.staff_session_token || null,
