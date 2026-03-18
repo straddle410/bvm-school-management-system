@@ -114,7 +114,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
     return sum;
   }, 0);
 
-  const balance = Math.max(net - paid, 0);
+  // Use invoice.balance as source of truth; fall back to net - paid
+  const balance = invoice?.balance != null ? Math.max(invoice.balance, 0) : Math.max(net - paid, 0);
 
   const filteredStudents = useMemo(() => 
     students.filter(s =>
