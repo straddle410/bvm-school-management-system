@@ -89,20 +89,25 @@ Deno.serve(async (req) => {
     const seq = String(nextNumber).padStart(padding, '0');
     const receiptNo = `${prefix}/${academicYear}/${seq}`;
     
-    // Increment next_number for next receipt
-    if (config) {
-      await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
-        next_number: nextNumber + 1
-      });
-    } else {
-      // Create config with next_number = 2 for next time
-      await base44.asServiceRole.entities.FeeReceiptConfig.create({
-        academic_year: academicYear,
-        prefix: prefix,
-        padding: padding,
-        next_number: 2
-      });
-    }
+    // Defer receipt config update to background (don't await)
+    (async () => {
+      try {
+        if (config) {
+          await base44.asServiceRole.entities.FeeReceiptConfig.update(config.id, {
+            next_number: nextNumber + 1
+          });
+        } else {
+          await base44.asServiceRole.entities.FeeReceiptConfig.create({
+            academic_year: academicYear,
+            prefix: prefix,
+            padding: padding,
+            next_number: 2
+          });
+        }
+      } catch (err) {
+        console.error('[RECEIPT-CONFIG-ERROR] Failed to update receipt config (non-fatal):', err.message);
+      }
+    })();
 
     // Determine entry type (default to CASH_PAYMENT)
     const finalEntryType = entryType || 'CASH_PAYMENT';
