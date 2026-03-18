@@ -55,14 +55,26 @@ export default function StudentMessaging() {
 
   const { data: inbox = [], isLoading: loadingInbox } = useQuery({
     queryKey: ['student-messages-inbox', student?.student_id],
-    queryFn: () => base44.entities.Message.filter({ recipient_id: student.student_id }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('listMyMessages', {
+        folder: 'inbox', limit: 100,
+        _studentId: student.student_id,
+      });
+      return res.data?.messages || [];
+    },
     enabled: !!student,
     refetchInterval: 15000,
   });
 
   const { data: sent = [], isLoading: loadingSent } = useQuery({
     queryKey: ['student-messages-sent', student?.student_id],
-    queryFn: () => base44.entities.Message.filter({ sender_id: student.student_id }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('listMyMessages', {
+        folder: 'sent', limit: 100,
+        _studentId: student.student_id,
+      });
+      return res.data?.messages || [];
+    },
     enabled: !!student,
   });
 
