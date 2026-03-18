@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import LoginRequired from '@/components/LoginRequired';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, FileText, ChevronRight, User, CreditCard } from 'lucide-react';
+import { Download, Search, FileText, ChevronRight, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import LedgerRowDrawer from '@/components/fees/LedgerRowDrawer';
@@ -46,24 +46,6 @@ function StudentLedgerContent() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
-  const [showInvoicesList, setShowInvoicesList] = useState(!selectedStudent);
-
-  // Fetch ANNUAL invoices for selected class
-  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ['class-invoices', selectedClass, selectedSection, academicYear],
-    queryFn: () => base44.entities.FeeInvoice.filter({
-      class_name: selectedClass,
-      section: selectedSection,
-      academic_year: academicYear,
-      invoice_type: 'ANNUAL'
-    }),
-    enabled: !!selectedClass && !!selectedSection && !!academicYear,
-    staleTime: 30000
-  });
-
-  const handlePayClick = (student) => {
-    navigate(`${createPageUrl('Fees')}?tab=ledger&student_id=${student.student_id}&className=${student.class_name}`);
-  };
 
   // Fetch sections for selected class from SectionConfig
   const { data: sectionConfig = [] } = useQuery({
@@ -258,66 +240,31 @@ function StudentLedgerContent() {
         </CardContent>
       </Card>
 
-      {/* Step 2: Student List with Invoice Columns */}
+      {/* Step 2: Student List */}
       {selectedClass && !selectedStudent && (
-        <Card className="border-0 shadow-sm overflow-hidden">
-          <CardContent className="p-0 overflow-x-auto">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 px-4 pt-4">Step 2 — Select Student</p>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-4 pb-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Step 2 — Select Student</p>
             {loadingStudents ? (
               <div className="text-center py-8 text-slate-400">Loading students…</div>
             ) : sortedStudents.length === 0 ? (
               <div className="text-center py-8 text-slate-400">No students found for {selectedClass}-{selectedSection}</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50">
-                    <TableHead className="text-xs font-semibold">Name</TableHead>
-                    <TableHead className="text-xs font-semibold">ID</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Gross</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Discount</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Net</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Paid</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Balance</TableHead>
-                    <TableHead className="text-xs font-semibold">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedStudents.map(s => {
-                    const studentInvoice = invoices.find(inv => inv.student_id === s.student_id);
-                    // GROSS = all fee heads (Tuition + Kit + Hostel + Transport - all applicable)
-                    const grossAmt = studentInvoice?.gross_total || 0;
-                    const discountAmt = studentInvoice?.discount_total || 0;
-                    const netAmt = studentInvoice?.total_amount || 0;
-                    const paidAmt = studentInvoice?.paid_amount || 0;
-                    // BALANCE = Gross - Discount - Paid (for ANNUAL invoice only)
-                    const balanceAmt = Math.max(0, grossAmt - discountAmt - paidAmt);
-                    
-                    return (
-                      <TableRow key={s.id} className="text-xs hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedStudent(s)}>
-                        <TableCell className="text-slate-700 font-medium">{s.name}</TableCell>
-                        <TableCell className="font-mono text-slate-500">{s.student_id || '—'}</TableCell>
-                        <TableCell className="text-right font-mono">₹{fmt(grossAmt)}</TableCell>
-                        <TableCell className="text-right font-mono text-emerald-600">{discountAmt > 0 ? `−₹${fmt(discountAmt)}` : '—'}</TableCell>
-                        <TableCell className="text-right font-mono font-semibold">₹{fmt(netAmt)}</TableCell>
-                        <TableCell className="text-right font-mono text-blue-600 font-semibold">₹{fmt(paidAmt)}</TableCell>
-                        <TableCell className={`text-right font-mono font-bold ${balanceAmt > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₹{fmt(balanceAmt)}</TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          {balanceAmt > 0 && (
-                            <Button
-                              size="sm"
-                              className="gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold min-h-[32px]"
-                              onClick={() => handlePayClick(s)}
-                            >
-                              <CreditCard className="h-3 w-3" />
-                              Pay
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <div className="divide-y divide-slate-100">
+                {sortedStudents.map(s => (
+                  <button key={s.id} onClick={() => setSelectedStudent(s)}
+                    className="w-full flex items-center gap-3 px-2 py-3 hover:bg-blue-50 rounded-lg transition-colors text-left group">
+                    <div className="h-10 w-10 rounded-full bg-[#e8eaf6] flex items-center justify-center flex-shrink-0">
+                      <User className="h-5 w-5 text-[#3949ab]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 text-base truncate">{s.name}</p>
+                      <p className="text-xs text-slate-400">ID: {s.student_id || '—'} {s.roll_no ? `· Roll No: ${s.roll_no}` : ''}</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#3949ab] flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -383,8 +330,6 @@ function StudentLedgerContent() {
           )}
         </div>
       )}
-
-
 
       {/* Summary Cards */}
       {selectedStudent && data && (
