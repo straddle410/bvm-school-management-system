@@ -159,21 +159,25 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
   const runReset = async () => {
     setResetting(true);
     try {
-      // Step 1: Create safety backup before deletion
-      setCreatingBackup(true);
-      const backupRes = await base44.functions.invoke('createFeesBackup', { backupType: 'MANUAL' });
-      if (!backupRes.data || backupRes.data.status !== 'COMPLETED') {
-        toast.error('Safety backup failed. Reset aborted.');
-        setResetting(false);
+      // Skip backup if fees module not being reset
+      let newBackupId = null;
+      if (selectedModules.includes('fees')) {
+        setCreatingBackup(true);
+        try {
+          const backupRes = await base44.functions.invoke('createFeesBackup', { backupType: 'MANUAL' });
+          if (backupRes.data && backupRes.data.status === 'COMPLETED') {
+            newBackupId = backupRes.data.id || backupRes.data.backupId;
+            setBackupId(newBackupId);
+            toast.success(`Safety backup created: ${newBackupId}`);
+          }
+        } catch (backupErr) {
+          console.warn('Backup creation failed, continuing without backup:', backupErr.message);
+          toast.warning('Backup skipped, proceeding with reset');
+        }
         setCreatingBackup(false);
-        return;
       }
-      const newBackupId = backupRes.data.id || backupRes.data.backupId;
-      setBackupId(newBackupId);
-      toast.success(`Safety backup created: ${newBackupId}`);
-      setCreatingBackup(false);
 
-      // Step 2: Run actual reset with backup reference
+      // Run actual reset
       const res = await base44.functions.invoke('adminResetData', {
         modules: selectedModules,
         academicYear: selectedYear || undefined,
@@ -183,7 +187,7 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
         confirmation_phrase: confirmPhrase,
         confirmation_school_name: confirmSchool,
         confirmation_date: confirmDate,
-        pre_reset_backup_id: newBackupId
+        ...(newBackupId && { pre_reset_backup_id: newBackupId })
       });
       setResetResult(res.data);
       setStep(5);
