@@ -57,21 +57,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Section is required to generate hall tickets' }, { status: 400 });
     }
 
-    // Check if hall tickets already exist for this class/exam/year/section
-    const existingTickets = await base44.asServiceRole.entities.HallTicket.filter({
-      class_name: classname,
-      exam_type: examTypeId,
-      academic_year: academicYear,
-      section: section
-    });
-
-    if (existingTickets.length > 0) {
-      return Response.json({
-        error: `Hall tickets already exist for Class ${classname}-${section} in this exam. Delete existing tickets first.`,
-        existingCount: existingTickets.length
-      }, { status: 409 });
-    }
-
     // Validate exam type exists and is active
     const examTypes = await base44.asServiceRole.entities.ExamType.filter({ id: examTypeId });
     if (examTypes.length === 0) {
