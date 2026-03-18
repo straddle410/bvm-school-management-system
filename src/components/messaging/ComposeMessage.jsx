@@ -125,6 +125,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
           subject: subject.trim(),
           body: body.trim(),
           thread_id: threadId,
+          _staffUsername: sender.id,
           messages: students.map(s => ({
             recipient_id: s.student_id,
             recipient_name: s.name,
