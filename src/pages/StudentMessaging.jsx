@@ -110,11 +110,16 @@ export default function StudentMessaging() {
   const handleSelectMessage = async (msg) => {
     const threadId = msg.thread_id || msg.id;
     // Use server-side thread fetch for correct access control and full thread history
-    const res = await base44.functions.invoke('getMessageThread', {
-      thread_id: threadId,
-    });
-    const threadMessages = res.status === 200 ? (res.data.messages || []) : [msg];
-    setSelectedThread(threadMessages);
+    try {
+      const res = await base44.functions.invoke('getMessageThread', {
+        thread_id: threadId,
+      });
+      const threadMessages = res.status === 200 ? (res.data.messages || []) : [msg];
+      setSelectedThread(threadMessages);
+    } catch (err) {
+      // If thread fetch fails, just show the single message
+      setSelectedThread([msg]);
+    }
 
     if (!msg.is_read && msg.recipient_id === student?.student_id) {
       try {
@@ -122,12 +127,11 @@ export default function StudentMessaging() {
           notification_ids: [],
           message_ids: [msg.id],
         });
+        queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
+        queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
       } catch {}
-      
-      queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
-      queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
     }
-  };
+    };
 
   if (!student) return null;
 
