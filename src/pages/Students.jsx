@@ -118,13 +118,6 @@ export default function Students() {
     }, 300);
   }, []);
 
-  // Derive status filter from active tab
-  const tabStatusMap = {
-    active: 'Published',
-    pipeline: '', // will use multiStatus
-    alumni: '',   // will use multiStatus
-  };
-
   const { data: studentsData, isLoading } = useQuery({
     queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, activeTab, showDeleted],
     queryFn: async () => {
