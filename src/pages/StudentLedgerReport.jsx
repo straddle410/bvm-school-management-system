@@ -382,64 +382,7 @@ function StudentLedgerContent() {
         </div>
       )}
 
-      {/* Invoices List (when student selected) */}
-      {selectedStudent && !showInvoicesList === false && (
-        <Card className="border-0 shadow-sm overflow-hidden">
-          <CardContent className="p-0 overflow-x-auto">
-            {invoicesLoading ? (
-              <div className="text-center py-12 text-slate-400 dark:text-gray-500">Loading invoices…</div>
-            ) : invoices.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 dark:text-gray-500">No invoices found for this student.</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50 dark:bg-gray-700">
-                    <TableHead className="text-xs font-semibold">Installment</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Gross</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Discount</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Net</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Paid</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Balance</TableHead>
-                    <TableHead className="text-xs font-semibold">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoices.map((invoice) => {
-                    const grossAmt = invoice.gross_total || invoice.total_amount || 0;
-                    const discountAmt = invoice.discount_total || 0;
-                    const netAmt = invoice.total_amount || grossAmt - discountAmt;
-                    const paidAmt = invoice.paid_amount || 0;
-                    const balanceAmt = invoice.balance || Math.max(netAmt - paidAmt, 0);
-                    
-                    return (
-                      <TableRow key={invoice.id} className="text-xs hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors border-b border-slate-100 dark:border-gray-700">
-                        <TableCell className="text-slate-700 dark:text-gray-300 font-medium">{invoice.installment_name}</TableCell>
-                        <TableCell className="text-right font-mono text-slate-700 dark:text-gray-300">₹{fmt(grossAmt)}</TableCell>
-                        <TableCell className="text-right font-mono text-emerald-600">{discountAmt > 0 ? `−₹${fmt(discountAmt)}` : '—'}</TableCell>
-                        <TableCell className="text-right font-mono font-semibold text-slate-900 dark:text-white">₹{fmt(netAmt)}</TableCell>
-                        <TableCell className="text-right font-mono text-blue-600 font-semibold">₹{fmt(paidAmt)}</TableCell>
-                        <TableCell className={`text-right font-mono font-bold ${balanceAmt > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₹{fmt(balanceAmt)}</TableCell>
-                        <TableCell>
-                          {balanceAmt > 0 && (
-                            <Button
-                              size="sm"
-                              className="gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold min-h-[32px]"
-                              onClick={() => handlePayClick(invoice)}
-                            >
-                              <CreditCard className="h-3 w-3" />
-                              Pay
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Summary Cards */}
       {selectedStudent && data && (
