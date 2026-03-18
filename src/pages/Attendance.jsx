@@ -1064,7 +1064,7 @@ export default function Attendance() {
             <TabsList className="mb-6 flex flex-wrap h-auto gap-1 p-1">
               <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
               {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
-               {canViewReports && <TabsTrigger value="summary" disabled={!canViewReports}>Summary Report</TabsTrigger>}
+               {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}
               {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
               {isAdmin && <TabsTrigger value="absent-notif">Absent Notify</TabsTrigger>}
             </TabsList>
