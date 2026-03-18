@@ -777,7 +777,7 @@ export default function Students() {
               </div>
                {students.map(student => (
                  <div key={student.id} className="flex gap-2 items-start">
-                   {isAdmin && !isLocked(student) && !student.is_deleted && !showArchived && !showDeleted && (
+                   {isAdmin && !isLocked(student) && !student.is_deleted && activeTab !== 'alumni' && !showDeleted && (
                      <input
                        type="checkbox"
                        checked={selectedIds.has(student.id)}
