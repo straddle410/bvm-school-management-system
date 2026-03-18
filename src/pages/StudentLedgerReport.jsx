@@ -196,60 +196,114 @@ function StudentLedgerContent() {
         )}
       </div>
 
-      {/* Student Picker */}
+      {/* Step 1: Class & Section Selector */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="pt-4 pb-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-            {/* Student search */}
-            <div className="relative">
-              <Label className="text-xs">Student (Name / ID)</Label>
-              <div className="relative mt-1">
-                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-                <Input
-                  className="pl-8"
-                  placeholder="Search student…"
-                  value={searchInput}
-                  onChange={e => { setSearchInput(e.target.value); if (!e.target.value) setSelectedStudent(null); }}
-                />
-              </div>
-              {studentSuggestions.length > 0 && !selectedStudent && (
-                <div className="absolute z-20 top-full left-0 right-0 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg mt-1 max-h-52 overflow-y-auto">
-                  {studentSuggestions.map(s => (
-                    <button key={s.id} className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm border-b border-slate-50 dark:border-gray-700 last:border-0"
-                      onClick={() => { setSelectedStudent(s); setSearchInput(s.name); setStudentSuggestions([]); }}>
-                      <div className="font-medium text-slate-800 dark:text-gray-200">{s.name}</div>
-                      <div className="text-xs text-slate-400 dark:text-gray-500">ID: {s.student_id} · Class {s.class_name}-{s.section}</div>
-                    </button>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Step 1 — Select Class &amp; Section</p>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="w-40">
+              <Label className="text-sm font-medium">Class</Label>
+              <Select value={selectedClass} onValueChange={v => { setSelectedClass(v); setSelectedSection('A'); }}>
+                <SelectTrigger className="mt-1 h-11 text-base">
+                  <SelectValue placeholder="Select Class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLASS_OPTIONS.map(c => (
+                    <SelectItem key={c} value={c} className="text-base py-2">{c === 'Nursery' || c === 'LKG' || c === 'UKG' ? c : `Class ${c}`}</SelectItem>
                   ))}
-                </div>
-              )}
+                </SelectContent>
+              </Select>
             </div>
-
-            <div>
-              <Label className="text-xs">Date From</Label>
-              <Input type="date" className="mt-1" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+            <div className="w-32">
+              <Label className="text-sm font-medium">Section</Label>
+              <Select value={selectedSection} onValueChange={setSelectedSection} disabled={!selectedClass}>
+                <SelectTrigger className="mt-1 h-11 text-base">
+                  <SelectValue placeholder="Section" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSections.map(s => (
+                    <SelectItem key={s} value={s} className="text-base py-2">Section {s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <Label className="text-xs">Date To</Label>
-              <Input type="date" className="mt-1" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-            </div>
-            <div className="flex gap-4 items-center pt-5">
-              <div className="flex items-center gap-1.5">
-                <Switch id="rev" checked={includeReversals} onCheckedChange={setIncludeReversals} />
-                <Label htmlFor="rev" className="text-xs cursor-pointer">Reversals</Label>
+            {selectedClass && (
+              <div className="flex items-end pb-0.5">
+                <span className="text-sm text-slate-500 ml-1">
+                  {loadingStudents ? 'Loading…' : `${sortedStudents.length} student${sortedStudents.length !== 1 ? 's' : ''} found`}
+                </span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Switch id="cred" checked={includeCredits} onCheckedChange={setIncludeCredits} />
-                <Label htmlFor="cred" className="text-xs cursor-pointer">Credits</Label>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Switch id="void" checked={includeVoided} onCheckedChange={setIncludeVoided} />
-                <Label htmlFor="void" className="text-xs cursor-pointer">Voided</Label>
-              </div>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Step 2: Student List */}
+      {selectedClass && !selectedStudent && (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-4 pb-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Step 2 — Select Student</p>
+            {loadingStudents ? (
+              <div className="text-center py-8 text-slate-400">Loading students…</div>
+            ) : sortedStudents.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">No students found for {selectedClass}-{selectedSection}</div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {sortedStudents.map(s => (
+                  <button key={s.id} onClick={() => setSelectedStudent(s)}
+                    className="w-full flex items-center gap-3 px-2 py-3 hover:bg-blue-50 rounded-lg transition-colors text-left group">
+                    <div className="h-10 w-10 rounded-full bg-[#e8eaf6] flex items-center justify-center flex-shrink-0">
+                      <User className="h-5 w-5 text-[#3949ab]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 text-base truncate">{s.name}</p>
+                      <p className="text-xs text-slate-400">ID: {s.student_id || '—'} {s.roll_no ? `· Roll No: ${s.roll_no}` : ''}</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#3949ab] flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters (shown only after student selected) */}
+      {selectedStudent && (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-3 pb-3">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div>
+                <Label className="text-xs">Date From</Label>
+                <Input type="date" className="mt-1" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Date To</Label>
+                <Input type="date" className="mt-1" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+              </div>
+              <div className="flex gap-4 items-center pt-5">
+                <div className="flex items-center gap-1.5">
+                  <Switch id="rev" checked={includeReversals} onCheckedChange={setIncludeReversals} />
+                  <Label htmlFor="rev" className="text-xs cursor-pointer">Reversals</Label>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Switch id="cred" checked={includeCredits} onCheckedChange={setIncludeCredits} />
+                  <Label htmlFor="cred" className="text-xs cursor-pointer">Credits</Label>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Switch id="void" checked={includeVoided} onCheckedChange={setIncludeVoided} />
+                  <Label htmlFor="void" className="text-xs cursor-pointer">Voided</Label>
+                </div>
+              </div>
+              <div className="pt-5">
+                <Button variant="outline" size="sm" onClick={() => setSelectedStudent(null)} className="text-slate-500">
+                  ← Change Student
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Student info strip */}
       {selectedStudent && (
