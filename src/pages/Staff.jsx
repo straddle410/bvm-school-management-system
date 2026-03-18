@@ -354,23 +354,8 @@ export default function Staff() {
       }
     }
 
-    // Normalize username
-    const normalizedUsername = form.username.trim().toLowerCase();
-
-    // Check for duplicate username only when the username is actually being changed
-    if (editingStaff) {
-      const originalUsername = editingStaff.username?.toLowerCase() || '';
-      if (normalizedUsername !== originalUsername) {
-        const existingWithUsername = staffList.filter(s =>
-          s.id !== editingStaff.id &&
-          s.username?.toLowerCase() === normalizedUsername
-        );
-        if (existingWithUsername.length > 0) {
-          toast.error('Username already exists');
-          return;
-        }
-      }
-    }
+    // Staff ID is system-assigned and stored as-is (uppercase T001/A001)
+    const normalizedUsername = form.username.trim();
 
     // Derive the `role` field from the selected role template name.
     // Map template name → StaffAccount.role enum value
