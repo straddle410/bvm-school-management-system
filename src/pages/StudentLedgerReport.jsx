@@ -317,12 +317,12 @@ function StudentLedgerContent() {
                 </TableHeader>
                 <TableBody>
                   {sortedStudents.map(s => {
-                    const studentInvoice = invoices.find(inv => inv.student_id === s.student_id);
+                    const studentInvoice = ledgerData.invoices?.find(inv => inv.student_id === s.student_id);
                     const grossAmt = studentInvoice?.gross_total || 0;
                     const discountAmt = studentInvoice?.discount_total || 0;
                     const netAmt = studentInvoice?.total_amount || 0;
                     const paidAmt = studentInvoice?.paid_amount || 0;
-                    const balanceAmt = studentInvoice?.balance || Math.max(netAmt - paidAmt, 0);
+                    const balanceAmt = ledgerData.balanceMap?.[s.student_id] || 0;
                     
                     return (
                       <TableRow key={s.id} className="text-xs hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedStudent(s)}>
