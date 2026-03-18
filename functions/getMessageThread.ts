@@ -4,13 +4,13 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
-    const { thread_id, parent_message_id, _studentId } = payload;
+    const { thread_id, parent_message_id, _studentId, _staffUsername } = payload;
 
     if (!thread_id && !parent_message_id) {
       return Response.json({ error: 'thread_id or parent_message_id required' }, { status: 400 });
     }
 
-    // ── AUTH: Support both Base44 JWT (staff) and student custom sessions ──
+    // ── AUTH: Support Base44 JWT, student custom sessions, and staff custom sessions ──
     let currentUserId = null;
 
     if (_studentId) {
@@ -19,6 +19,9 @@ Deno.serve(async (req) => {
       if (students.length > 0 && !students[0].is_deleted && students[0].is_active !== false) {
         currentUserId = _studentId;
       }
+    } else if (_staffUsername) {
+      // Staff custom session — username is the canonical messaging ID
+      currentUserId = _staffUsername;
     } else {
       try {
         const user = await base44.auth.me();
