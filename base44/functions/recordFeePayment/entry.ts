@@ -159,11 +159,18 @@ Deno.serve(async (req) => {
     if (newBalance <= 0) newStatus = 'Paid';
     else if (newPaid === 0) newStatus = 'Pending';
 
-    await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
-      paid_amount: newPaid,
-      balance: Math.max(0, newBalance),
-      status: newStatus
-    });
+    // Defer invoice update to background (don't await)
+    (async () => {
+      try {
+        await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
+          paid_amount: newPaid,
+          balance: Math.max(0, newBalance),
+          status: newStatus
+        });
+      } catch (err) {
+        console.error('[INVOICE-UPDATE-ERROR] Failed to update invoice (non-fatal):', err.message);
+      }
+    })();
 
     // ── Fee Payment Notification (Fire-and-Forget) ──────────────────────
     // Run notifications async without blocking response
