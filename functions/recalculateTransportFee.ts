@@ -205,7 +205,12 @@ Deno.serve(async (req) => {
             } else {
               updatedFeeHeads = [
                 ...feeHeads,
-                { fee_head_name: 'Transport', fee_head_id: 'transport', amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
+                { 
+                  fee_head_name: 'Transport', 
+                  gross_amount: transportFeeAmount, 
+                  discount_amount: 0, 
+                  net_amount: transportFeeAmount 
+                }
               ];
             }
           } else {
