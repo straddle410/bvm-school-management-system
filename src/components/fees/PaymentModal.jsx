@@ -73,8 +73,10 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
        }).catch(err => console.warn('[Payment] Notification call failed:', err.message));
 
        onClose();
-       // Navigate to print page immediately
-       navigate(`/PrintReceiptA5?paymentId=${data.payment_id}`);
+       // Navigate to print page, passing student context for back-navigation
+       const studentId = invoice.student_id || '';
+       const className = invoice.class_name || '';
+       navigate(`/PrintReceiptA5?paymentId=${data.payment_id}&studentId=${encodeURIComponent(studentId)}&className=${encodeURIComponent(className)}`);
     },
     onError: (e) => {
       console.error('[PaymentModal] Error:', e);
