@@ -836,7 +836,8 @@ export default function Students() {
                 <div className="w-16 flex-shrink-0">Sec</div>
                 <div className="w-16 flex-shrink-0">Roll</div>
                 <div className="w-24 flex-shrink-0">Status</div>
-                <div className="flex-1">Transport</div>
+                <div className="w-20 flex-shrink-0">Transport</div>
+                <div className="w-20 flex-shrink-0">Hostel</div>
                 <div className="w-8 flex-shrink-0" /> {/* action menu spacer */}
               </div>
                {students.map(student => (
