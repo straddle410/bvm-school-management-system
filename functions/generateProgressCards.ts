@@ -415,17 +415,23 @@ Deno.serve(async (req) => {
      section: sectionFilter
     });
 
-    // Build a set of student IDs that already have a card for this exam type
-    const studentsWithExistingCard = new Set();
+    // Build a set of "studentId__examTypeId" keys that already have a card
+    const existingCardKeys = new Set();
     for (const card of allExistingCards) {
-      const cardExamType = card.exam_performance?.[0]?.exam_type;
-      if (cardExamType === selectedExamTypeId || cardExamType === examTypeIdOrName) {
-        studentsWithExistingCard.add(card.student_id);
+      const cardExamTypeId = card.exam_performance?.[0]?.exam_type_id || card.exam_performance?.[0]?.exam_type;
+      if (cardExamTypeId === selectedExamTypeId || cardExamTypeId === examTypeIdOrName || cardExamTypeId === selectedExamTypeRecord?.name) {
+        existingCardKeys.add(`${card.student_id}__${cardExamTypeId}`);
+        // Also key by student_id + selectedExamTypeId for safety
+        existingCardKeys.add(`${card.student_id}__${selectedExamTypeId}`);
       }
     }
 
-    // Only keep progress cards for students who do NOT already have a card
-    const newCards = progressCards.filter(c => !studentsWithExistingCard.has(c.student_id));
+    // Only keep progress cards for students who do NOT already have a card for this exam type
+    const newCards = progressCards.filter(c => {
+      const cardExamTypeId = c.exam_performance?.[0]?.exam_type;
+      return !existingCardKeys.has(`${c.student_id}__${cardExamTypeId}`) &&
+             !existingCardKeys.has(`${c.student_id}__${selectedExamTypeId}`);
+    });
     const skippedCount = progressCards.length - newCards.length;
 
     console.log(`[SKIP-CHECK] Total candidates: ${progressCards.length}, Already exist: ${skippedCount}, To create: ${newCards.length}`);
