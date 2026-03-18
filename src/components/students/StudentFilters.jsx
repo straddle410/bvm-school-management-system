@@ -8,6 +8,8 @@ export default function StudentFilters({
   filterClass, onFilterClass,
   filterSection, onFilterSection,
   filterTransport, onFilterTransport,
+  filterHostel, onFilterHostel,
+  filterDaysColor, onFilterDaysColor,
   showDeleted, onToggleDeleted,
   availableClasses = [],
   availableSections = []
