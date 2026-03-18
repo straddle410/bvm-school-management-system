@@ -48,20 +48,21 @@ function StudentLedgerContent() {
   const [invoicesCache, setInvoicesCache] = useState([]);
   const [showInvoicesList, setShowInvoicesList] = useState(!selectedStudent);
 
-  // Fetch invoices for the selected student
+  // Fetch invoices for the selected class
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ['student-invoices', selectedStudent?.student_id, academicYear],
+    queryKey: ['class-invoices', selectedClass, selectedSection, academicYear],
     queryFn: () => base44.entities.FeeInvoice.filter({
-      student_id: selectedStudent.student_id,
+      class_name: selectedClass,
+      section: selectedSection,
       academic_year: academicYear,
       invoice_type: 'ANNUAL'
     }),
-    enabled: !!selectedStudent && !!academicYear,
+    enabled: !!selectedClass && !!selectedSection && !!academicYear,
     staleTime: 30000
   });
 
-  const handlePayClick = (invoice) => {
-    navigate(`${createPageUrl('Fees')}?tab=ledger&student_id=${selectedStudent.student_id}&className=${selectedStudent.class_name}`);
+  const handlePayClick = (student) => {
+    navigate(`${createPageUrl('Fees')}?tab=ledger&student_id=${student.student_id}&className=${student.class_name}`);
   };
 
   // Fetch sections for selected class from SectionConfig
