@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
     }
 
     if (totalGenerated === 0) {
-      return Response.json({ error: 'No students found in selected classes', count: 0 }, { status: 200 });
+      return Response.json({ message: 'All students already have hall tickets for this exam. No new tickets generated.', count: 0 });
     }
 
     await base44.asServiceRole.entities.HallTicket.bulkCreate(allHallTickets);
@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       count: totalGenerated,
-      message: `Generated ${totalGenerated} hall tickets successfully for ${classesToProcess.length} class(es)`
+      message: `Generated ${totalGenerated} hall tickets successfully. (Skipped students who already had tickets.)`
     });
   } catch (error) {
     console.error('Error:', error);
