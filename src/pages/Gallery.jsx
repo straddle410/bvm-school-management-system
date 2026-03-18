@@ -15,6 +15,7 @@ import { getStaffSession } from '@/components/useStaffSession';
 import LoginRequired from '@/components/LoginRequired';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function Gallery() {
   const { academicYear } = useAcademicYear();
@@ -413,4 +414,14 @@ export default function Gallery() {
       </Dialog>
       </div>
       );
+      }
+
+      // Render footer nav for students only
+      if (isStudent) {
+        return (
+          <>
+            {children}
+            <StudentMinimalFooterNav />
+          </>
+        );
       }

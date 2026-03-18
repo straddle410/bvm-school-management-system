@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import WatermarkSeal from '@/components/hallTicket/WatermarkSeal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentHallTicketView() {
   const [studentSession, setStudentSession] = useState(null);
@@ -496,9 +497,10 @@ export default function StudentHallTicketView() {
            }
          }
        `}</style>
-    </div>
-  );
-}
+       <StudentMinimalFooterNav />
+       </div>
+       );
+       }
 
 function HallTicketCard({ ticket, schoolProfile, isPrint = false }) {
   const [qrCode, setQrCode] = useState(null);

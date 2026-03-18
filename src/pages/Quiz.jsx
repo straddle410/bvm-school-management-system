@@ -32,7 +32,7 @@ import {
  import { Link, useNavigate } from 'react-router-dom';
  import LoginRequired from '@/components/LoginRequired';
 import { createPageUrl } from '@/utils';
-import StudentBottomNav from '@/components/StudentBottomNav';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 import { markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
 import { useAcademicYear } from '@/components/AcademicYearContext';

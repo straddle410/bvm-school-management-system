@@ -15,6 +15,7 @@ import ProgressReport from '../components/ProgressReport';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 const gradeColor = (grade) => {
   const map = {
@@ -265,9 +266,10 @@ export default function Results() {
               <Button className="w-full bg-[#1a237e] hover:bg-[#283593]">Go to Login</Button>
             </Link>
           </div>
-        </div>
-      );
-    }
+          {studentSession && !studentSession.isStaff && <StudentMinimalFooterNav />}
+          </div>
+          );
+          }
   }
 
   return (
