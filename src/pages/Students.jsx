@@ -158,9 +158,13 @@ export default function Students() {
   });
 
   const allStudents = studentsData?.data || [];
-  // Transport filter is UI-only (client-side) on Active tab
-  const students = activeTab === 'active' && filterTransport !== 'all'
-    ? allStudents.filter(s => filterTransport === 'on' ? s.transport_enabled === true : !s.transport_enabled)
+  // Transport + Hostel filters are UI-only (client-side) on Active tab
+  const students = activeTab === 'active'
+    ? allStudents.filter(s => {
+        const transportMatch = filterTransport === 'all' || (filterTransport === 'on' ? s.transport_enabled === true : !s.transport_enabled);
+        const hostelMatch = filterHostel === 'all' || (filterHostel === 'on' ? s.hostel_enabled === true : !s.hostel_enabled);
+        return transportMatch && hostelMatch;
+      })
     : allStudents;
 
   useEffect(() => {
