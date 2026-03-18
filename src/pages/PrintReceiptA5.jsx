@@ -146,7 +146,11 @@ export default function PrintReceiptA5() {
   };
 
   const handleCancel = () => {
-    navigate(-1);
+    if (studentId && className) {
+      navigate(`/Fees?tab=ledger&className=${encodeURIComponent(className)}&studentId=${encodeURIComponent(studentId)}`);
+    } else {
+      navigate('/Fees');
+    }
   };
 
   return (
