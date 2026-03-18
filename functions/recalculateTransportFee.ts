@@ -195,30 +195,23 @@ Deno.serve(async (req) => {
           // Edit invoice directly
           let updatedFeeHeads;
           if (transportEnabled) {
-            // Add transport line if not present, or update amount
             if (existingTransportLine) {
               updatedFeeHeads = feeHeads.map(fh =>
-                (fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport')
+                (fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport') && !fh.is_hostel
                   ? { ...fh, amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
                   : fh
               );
             } else {
               updatedFeeHeads = [
                 ...feeHeads,
-                { 
-                  fee_head_name: 'Transport', 
-                  gross_amount: transportFeeAmount, 
-                  discount_amount: 0, 
-                  net_amount: transportFeeAmount 
-                }
+                { fee_head_name: 'Transport', fee_head_id: 'transport', amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
               ];
             }
           } else {
-            // Remove transport line
-            updatedFeeHeads = feeHeads.filter(fh => fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport');
+            updatedFeeHeads = feeHeads.filter(fh => (fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport') || fh.is_hostel);
           }
 
-          const newGross = updatedFeeHeads.reduce((s, fh) => s + (fh.gross_amount || 0), 0);
+          const newGross = updatedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
           const discountTotal = invoice.discount_total || 0;
           const newNet = Math.max(newGross - discountTotal, 0);
           const paidSoFar = invoice.paid_amount || 0;
