@@ -412,16 +412,7 @@ export default function Gallery() {
           </div>
         </DialogContent>
       </Dialog>
+      {isStudent && <StudentMinimalFooterNav />}
       </div>
       );
-      }
-
-      // Render footer nav for students only
-      if (isStudent) {
-        return (
-          <>
-            {children}
-            <StudentMinimalFooterNav />
-          </>
-        );
       }
