@@ -67,7 +67,8 @@ function StudentLedgerContent() {
       academic_year: academicYear,
       class_name: selectedClass,
       section: selectedSection,
-      is_deleted: false
+      is_deleted: false,
+      is_active: true
     }),
     enabled: !!selectedClass && !!selectedSection,
     staleTime: 30000

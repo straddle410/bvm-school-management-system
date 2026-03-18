@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
       const student = studentLookup[studentId];
       if (!student) return; // Skip if student not found
       if (student.is_deleted === true) return; // Skip deleted students
+      if (student.is_active === false) return; // Skip inactive/archived students
 
       // Apply class/section filter
       if (className && student.class_name !== className) return;
