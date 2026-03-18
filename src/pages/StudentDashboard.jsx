@@ -315,7 +315,7 @@ export default function StudentDashboard() {
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm md:text-base font-medium px-3 md:px-4 py-2.5 md:py-3 rounded-full transition-all min-h-[44px]"
+              className="flex items-center gap-2 bg-red-500/80 hover:bg-red-600 text-white text-sm md:text-base font-medium px-3 md:px-4 py-2.5 md:py-3 rounded-full transition-all min-h-[44px]"
             >
               <LogOut className="h-5 w-5" /> Logout
             </button>
