@@ -43,14 +43,9 @@ Deno.serve(async (req) => {
     });
 
     const paymentsByInvoice = {};
-    const transportAdjMap = {};
     payments.forEach(p => {
       if (!paymentsByInvoice[p.invoice_id]) paymentsByInvoice[p.invoice_id] = [];
       paymentsByInvoice[p.invoice_id].push(p);
-
-      if (p.entry_type === 'TRANSPORT_ADJUSTMENT' && (p.status || '').toUpperCase() !== 'CANCELLED') {
-        transportAdjMap[p.invoice_id] = p;
-      }
     });
 
     const results = [];
