@@ -53,17 +53,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Load all payments to check locked status + existing hostel adjustments
+    // Load all payments to check locked status
     const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear });
     const paymentsByInvoice = {};
-    const hostelAdjMap = {};
     for (const p of allPayments) {
       if (!p.invoice_id) continue;
       if (!paymentsByInvoice[p.invoice_id]) paymentsByInvoice[p.invoice_id] = [];
       paymentsByInvoice[p.invoice_id].push(p);
-      if (p.entry_type === 'HOSTEL_ADJUSTMENT') {
-        hostelAdjMap[p.invoice_id] = p;
-      }
     }
 
     const results = [];
