@@ -300,6 +300,13 @@ export default function StudentDashboard() {
               )}
             </Link>
             <button
+              onClick={() => setIsDark(v => !v)}
+              className="p-2.5 md:p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <Sun className="h-6 w-6 md:h-7 md:w-7 text-yellow-300" /> : <Moon className="h-6 w-6 md:h-7 md:w-7 text-white/80" />}
+            </button>
+            <button
               onClick={handleLogout}
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm md:text-base font-medium px-3 md:px-4 py-2.5 md:py-3 rounded-full transition-all min-h-[44px]"
             >
