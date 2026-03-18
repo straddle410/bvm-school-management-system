@@ -31,7 +31,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const urlClassName = urlParams.get('className') || '';
-  const urlStudentId = urlParams.get('studentId') || '';
+  const urlStudentId = urlParams.get('student_id') || urlParams.get('studentId') || '';  // Support both formats
 
   const [selectedClass, setSelectedClass] = useState(urlClassName);
   const [search, setSearch] = useState('');
