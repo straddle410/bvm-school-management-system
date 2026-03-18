@@ -122,6 +122,22 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   // Use invoice.balance as source of truth; fall back to net - paid
   const balance = invoice?.balance != null ? Math.max(invoice.balance, 0) : Math.max(net - paid, 0);
 
+  // Auto-select student when returning from receipt page
+  useEffect(() => {
+    if (pendingStudentId && students.length > 0) {
+      const match = students.find(s => s.student_id === pendingStudentId);
+      if (match) {
+        setSelectedStudent(match);
+        setPendingStudentId('');
+        // Clean up URL params without re-navigating
+        const url = new URL(window.location.href);
+        url.searchParams.delete('studentId');
+        url.searchParams.delete('className');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [pendingStudentId, students]);
+
   const filteredStudents = useMemo(() => 
     students.filter(s =>
       s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
