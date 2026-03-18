@@ -95,7 +95,10 @@ export default function Messaging() {
   const handleSelectMessage = async (msg) => {
     // Fetch thread from server (enforces privacy)
     const threadId = msg.thread_id || msg.id;
-    const res = await base44.functions.invoke('getMessageThread', { thread_id: threadId });
+    const res = await base44.functions.invoke('getMessageThread', {
+      thread_id: threadId,
+      _staffUsername: user?.email,
+    });
     
     if (res.status !== 200) {
       console.error('Cannot access this thread');
