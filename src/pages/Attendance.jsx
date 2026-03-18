@@ -1034,9 +1034,8 @@ export default function Attendance() {
     staleTime: 10 * 60 * 1000 // Cache for 10 mins
   });
 
-  const userRole = (user?.role || '').toLowerCase();
-  const isAdmin = ['admin', 'principal'].includes(userRole) || user?.effective_permissions?.attendance_manage_holidays;
-  const isExamStaff = userRole === 'exam_staff' || user?.effective_permissions?.attendance;
+  const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
+  const isExamStaff = (user?.role || '').toLowerCase() === 'exam_staff';
   // exam_staff can access snapshot + summary but NOT holidays management
   const canViewReports = isAdmin || isExamStaff;
 
@@ -1065,7 +1064,7 @@ export default function Attendance() {
             <TabsList className="mb-6 flex flex-wrap h-auto gap-1 p-1">
               <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
               {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
-               {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}
+              {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}
               {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
               {isAdmin && <TabsTrigger value="absent-notif">Absent Notify</TabsTrigger>}
             </TabsList>
