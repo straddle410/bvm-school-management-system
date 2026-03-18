@@ -237,6 +237,30 @@ export default function Staff() {
     },
   });
 
+  // Fetch next staff ID when role template changes (create mode only)
+  const handleRoleTemplateChange = async (templateId) => {
+    setForm(f => ({ ...f, role_template_id: templateId }));
+    if (editingStaff) return; // don't auto-generate for edits
+
+    const selectedTemplate = roleTemplates.find(r => r.id === templateId);
+    if (!selectedTemplate) return;
+
+    const ROLE_NAME_MAP = {
+      'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
+      'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
+      'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
+    };
+    const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
+    const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
+
+    try {
+      const res = await base44.functions.invoke('generateStaffId', { action: 'generate', role: derivedRole });
+      if (res.data?.staff_id) {
+        setForm(f => ({ ...f, username: res.data.staff_id }));
+      }
+    } catch {}
+  };
+
   const openCreate = () => {
     setEditingStaff(null);
     const tempPass = generateTempPassword();
