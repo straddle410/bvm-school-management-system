@@ -832,7 +832,7 @@ function AttendanceSummaryTab({
         setFilters={setFilters} 
         onGenerate={() => setHasGenerated(true)} 
         classes={availableClasses} 
-        sections={filters.class ? availableSections : (sectionData?.sections || ['A'])} 
+        sections={availableSections} 
       />
       {hasGenerated && (
         <>
