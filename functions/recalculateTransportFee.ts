@@ -50,10 +50,10 @@ Deno.serve(async (req) => {
     const paymentsByInvoice = {}; // invoice_id -> payments[]
     const transportAdjMap = {}; // invoice_id -> TRANSPORT_ADJUSTMENT payment
     for (const p of allPayments) {
-      if (!p.invoice_id) continue;
+      if (!p.invoice_id || !studentIds.includes(p.student_id)) continue;
       if (!paymentsByInvoice[p.invoice_id]) paymentsByInvoice[p.invoice_id] = [];
       paymentsByInvoice[p.invoice_id].push(p);
-      if (p.entry_type === 'TRANSPORT_ADJUSTMENT') {
+      if (p.entry_type === 'TRANSPORT_ADJUSTMENT' && (p.status || '').toLowerCase() !== 'void') {
         transportAdjMap[p.invoice_id] = p;
       }
     }
