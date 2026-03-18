@@ -167,7 +167,8 @@ export default function Gallery() {
     const pendingCount = allPhotos.filter(p => ['Draft', 'PendingApproval'].includes(p.status)).length;
 
     return (
-      <div className="bg-white dark:bg-gray-900 min-h-screen">
+      <>
+      <div className="bg-white dark:bg-gray-900 min-h-screen pb-24">
         {/* Album header */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
           <div>
@@ -304,14 +305,17 @@ export default function Gallery() {
           needsApproval={needsApproval}
           onUploadSuccess={handleUploadSuccess}
         />
-        </div>
-        );
-        }
+      </div>
+      {isStudent && <StudentMinimalFooterNav />}
+      </>
+    );
+  }
 
-        // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
-        return (
-        <div className="bg-white dark:bg-gray-900 min-h-screen">
-        {/* Header */}
+  // ── Albums List — iOS Photos Albums tab ───────────────────────────────────
+  return (
+    <>
+    <div className="bg-white dark:bg-gray-900 min-h-screen pb-24">
+      {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-end justify-between">
         <div className="flex items-center gap-2">
           {isStudent && (
@@ -412,9 +416,8 @@ export default function Gallery() {
           </div>
         </DialogContent>
       </Dialog>
-      </div>
-      );
-      }
-
-      // Albums List — iOS Photos Albums tab
-      const albumsView = (
+    </div>
+    {isStudent && <StudentMinimalFooterNav />}
+    </>
+  );
+}
