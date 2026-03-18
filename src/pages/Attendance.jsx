@@ -714,12 +714,32 @@ function AttendanceSummaryTab({
 }) {
   const availableClasses = classSectionData?.classes || [];
   const defaultClass = availableClasses[0] || '';
-  const defaultSection = sectionData?.sections?.[0] || 'A';
+  const defaultSection = 'A';
   
   const [filters, setFilters] = useState({ class: defaultClass, section: defaultSection, fromDate: '', toDate: '' });
   const [recordsLimitHit, setRecordsLimitHit] = useState(false);
+  const [localSections, setLocalSections] = useState([]);
 
-  const availableSections = (sectionData && filters.class) ? sectionData.sections : [];
+  // ✅ FIX: Fetch sections directly when filters.class changes
+  useEffect(() => {
+    const fetchSections = async () => {
+      if (!filters.class || !academicYear) return;
+      try {
+        const sections = await getSectionsForClass(academicYear, filters.class);
+        setLocalSections(sections?.sections || ['A']);
+        // Auto-select first section if current section not available
+        if (!sections?.sections?.includes(filters.section)) {
+          setFilters(prev => ({ ...prev, section: sections?.sections?.[0] || 'A' }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch sections:', err);
+        setLocalSections(['A']);
+      }
+    };
+    fetchSections();
+  }, [filters.class, academicYear]);
+
+  const availableSections = localSections.length > 0 ? localSections : ['A'];
   const [hasGenerated, setHasGenerated] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
