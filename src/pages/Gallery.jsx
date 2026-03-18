@@ -416,14 +416,5 @@ export default function Gallery() {
       );
       }
 
-      // For students viewing gallery, wrap with footer nav
-      return (
-        <>
-          {mainReturn}
-          {isStudent && <StudentMinimalFooterNav />}
-        </>
-      );
-      }
-
-      // Main gallery view
-      const mainReturn = (
+      // Albums List — iOS Photos Albums tab
+      const albumsView = (
