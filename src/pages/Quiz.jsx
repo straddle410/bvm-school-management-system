@@ -886,7 +886,8 @@ export default function Quiz() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
-    </LoginRequired>
-  );
-}
+      {studentSession && <StudentMinimalFooterNav />}
+      </div>
+      </LoginRequired>
+      );
+      }
