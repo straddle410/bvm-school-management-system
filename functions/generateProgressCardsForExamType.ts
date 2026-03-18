@@ -15,7 +15,6 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 Deno.serve(async (req) => {
   try {
     console.log('[generateProgressCardsForExamType] Generate called');
-    const base44 = createClientFromRequest(req);
 
     // Parse body first
     let body;
