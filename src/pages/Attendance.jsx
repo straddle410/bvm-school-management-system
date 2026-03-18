@@ -807,7 +807,13 @@ function AttendanceSummaryTab({
 
   return (
     <div className="space-y-6">
-      <FilterSection filters={filters} setFilters={setFilters} onGenerate={() => setHasGenerated(true)} classes={availableClasses} sections={availableSections} />
+      <FilterSection 
+        filters={filters} 
+        setFilters={setFilters} 
+        onGenerate={() => setHasGenerated(true)} 
+        classes={availableClasses} 
+        sections={filters.class ? availableSections : (sectionData?.sections || ['A'])} 
+      />
       {hasGenerated && (
         <>
           {recordsLimitHit && (
