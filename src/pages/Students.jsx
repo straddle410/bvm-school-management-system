@@ -589,6 +589,37 @@ export default function Students() {
     }
   };
 
+  const handleBulkHostel = async () => {
+    if (!isAdmin || selectedIds.size === 0 || hostelAction === '') return;
+    setHostelLoading(true);
+    const hostel_enabled = hostelAction === 'on';
+    const updates = Array.from(selectedIds).map(id => ({
+      hostel_enabled
+    }));
+    try {
+      let processed = 0;
+      for (const id of Array.from(selectedIds)) {
+        const res = await base44.functions.invoke('updateStudentWithAudit', {
+          student_db_id: id,
+          updates: { hostel_enabled },
+          staff_session_token: getStaffSession()?.staff_session_token || null
+        });
+        if (!res.data?.error) processed++;
+      }
+      if (processed > 0) {
+        queryClient.invalidateQueries(['students']);
+        setSelectedIds(new Set());
+        setHostelAction('');
+        toast.success(`Hostel ${hostel_enabled ? 'ON' : 'OFF'} applied to ${processed} student(s)`);
+      } else {
+        toast.error('Failed to update hostel');
+      }
+    } finally {
+      setHostelLoading(false);
+      setShowHostelConfirm(false);
+    }
+  };
+
   // Stats derived from server total count (accurate) per tab
   const totalActive = activeTab === 'active' ? totalCount : allStudents.filter(s => s.status === 'Published').length;
   const totalPending = allStudents.filter(s => s.status === 'Pending').length;
