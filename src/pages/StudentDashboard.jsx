@@ -7,7 +7,7 @@ import {
   Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
   ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
   MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
-  Ticket, BarChart3, Sun, Moon, MoreHorizontal
+  Ticket, BarChart3, Sun, Moon, Wallet, User, Key
 } from 'lucide-react';
 import { useDarkMode } from '@/components/useDarkMode';
 import StudentBottomNav from '@/components/StudentBottomNav';
@@ -36,7 +36,11 @@ const HOME_TILES = [
   { label: 'Hall Ticket', page: 'StudentHallTicketView', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', notifKey: 'HallTickets' },
   { label: 'Timetable', page: 'StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
   { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, color: '#0288d1', bg: '#e1f5fe', notifKey: 'Messages' },
-  { label: 'More', page: 'StudentMore', icon: MoreHorizontal, color: '#7b1fa2', bg: '#f3e5f5', notifKey: null },
+  { label: 'Fees', page: 'StudentFees', icon: Wallet, color: '#d32f2f', bg: '#ffebee', notifKey: null },
+  { label: 'Gallery', page: 'Gallery', icon: Image, color: '#f57f17', bg: '#fff8e1', notifKey: null },
+  { label: 'Quiz', page: 'Quiz', icon: Brain, color: '#7b1fa2', bg: '#f3e5f5', notifKey: null },
+  { label: 'Profile', page: 'StudentProfile', icon: User, color: '#00796b', bg: '#e0f2f1', notifKey: null },
+  { label: 'Change Password', page: 'StudentChangePassword', icon: Key, color: '#1565c0', bg: '#e3f2fd', notifKey: null },
 ];
 
 export default function StudentDashboard() {
