@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import StudentFeeReceipt from '@/components/fees/StudentFeeReceipt';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentFees() {
   const [session, setSession] = useState(null);
@@ -244,6 +245,7 @@ export default function StudentFees() {
         schoolProfile={schoolProfile}
         studentSession={session}
       />
+      <StudentMinimalFooterNav />
     </div>
   );
 }

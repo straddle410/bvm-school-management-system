@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, ArrowLeft } from 'lucide-react';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentNotices() {
   console.log('[ENTRY] StudentNotices:', window.location.pathname);
@@ -111,6 +112,7 @@ export default function StudentNotices() {
           ))
         )}
       </div>
+      <StudentMinimalFooterNav />
     </div>
   );
 }

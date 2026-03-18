@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, AlertCircle, ArrowLeft } from 'lucide-react';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -130,6 +131,7 @@ export default function StudentTimetable() {
           </div>
         )}
       </main>
+      <StudentMinimalFooterNav />
     </div>
   );
 }
