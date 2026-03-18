@@ -794,6 +794,11 @@ export default function Settings() {
             <TransportFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} />
           )}
 
+          {/* Hostel */}
+          {activeItem === 'hostel' && (
+            <HostelFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} />
+          )}
+
           {/* Class Subjects */}
           {activeItem === 'class-subjects' && (
             <div className="space-y-6">
