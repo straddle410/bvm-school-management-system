@@ -410,30 +410,30 @@ Deno.serve(async (req) => {
       });
     } // end for loop
 
-    // FETCH existing cards for this class/section/exam_type to determine which students already have cards
+    // FETCH existing cards for this class/section to find duplicates
     const allExistingCards = await base44.asServiceRole.entities.ProgressCard.filter({
-     academic_year: academicYear,
-     class_name: normalizeClassName(classNameFilter),
-     section: sectionFilter
+      academic_year: academicYear,
+      class_name: normalizeClassName(classNameFilter),
+      section: sectionFilter
     });
 
-    // Build a set of "studentId__examTypeId" keys that already have a card
-    const existingCardKeys = new Set();
+    // Build a set of student_ids that already have a card for this exact exam type
+    const studentsWithCard = new Set();
     for (const card of allExistingCards) {
-      const cardExamTypeId = card.exam_performance?.[0]?.exam_type_id || card.exam_performance?.[0]?.exam_type;
-      if (cardExamTypeId === selectedExamTypeId || cardExamTypeId === examTypeIdOrName || cardExamTypeId === selectedExamTypeRecord?.name) {
-        existingCardKeys.add(`${card.student_id}__${cardExamTypeId}`);
-        // Also key by student_id + selectedExamTypeId for safety
-        existingCardKeys.add(`${card.student_id}__${selectedExamTypeId}`);
-      }
+      const ep = card.exam_performance?.[0] || {};
+      // Match by exam_type_id (UUID) OR exam_type (could be UUID or name) OR exam_type_name
+      const isMatch =
+        ep.exam_type_id === selectedExamTypeId ||
+        ep.exam_type === selectedExamTypeId ||
+        ep.exam_type_name === selectedExamTypeRecord?.name ||
+        ep.exam_type === selectedExamTypeRecord?.name;
+      if (isMatch) studentsWithCard.add(card.student_id);
     }
 
-    // Only keep progress cards for students who do NOT already have a card for this exam type
-    const newCards = progressCards.filter(c => {
-      const cardExamTypeId = c.exam_performance?.[0]?.exam_type;
-      return !existingCardKeys.has(`${c.student_id}__${cardExamTypeId}`) &&
-             !existingCardKeys.has(`${c.student_id}__${selectedExamTypeId}`);
-    });
+    console.log(`[DEDUP] Existing cards for this exam type: ${studentsWithCard.size}, exam type ID: ${selectedExamTypeId}, name: ${selectedExamTypeRecord?.name}`);
+
+    // Only keep progress cards for students who do NOT already have one
+    const newCards = progressCards.filter(c => !studentsWithCard.has(c.student_id));
     const skippedCount = progressCards.length - newCards.length;
 
     console.log(`[SKIP-CHECK] Total candidates: ${progressCards.length}, Already exist: ${skippedCount}, To create: ${newCards.length}`);
