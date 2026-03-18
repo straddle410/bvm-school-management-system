@@ -29,11 +29,16 @@ const statusColor = {
 
 export default function StudentLedger({ academicYear, isArchivedYear, feeHeads = [] }) {
   const queryClient = useQueryClient();
-  const [selectedClass, setSelectedClass] = useState('');
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlClassName = urlParams.get('className') || '';
+  const urlStudentId = urlParams.get('studentId') || '';
+
+  const [selectedClass, setSelectedClass] = useState(urlClassName);
   const [search, setSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [payingInvoice, setPayingInvoice] = useState(null);
   const [studentPage, setStudentPage] = useState(0);
+  const [pendingStudentId, setPendingStudentId] = useState(urlStudentId);
   const STUDENTS_LIMIT = 50;
 
   const { data: students = [], isLoading: isLoadingStudents } = useQuery({
