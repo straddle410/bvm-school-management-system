@@ -83,8 +83,8 @@ export default function StudentBottomNav({ currentPage }) {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50">
-      <div className="mx-3 mb-3 bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-white/60">
-        <div className="flex items-center justify-around px-2 py-2">
+      <div className="mx-3 md:mx-4 mb-3 md:mb-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/60 dark:border-gray-700/60">
+        <div className="flex items-center justify-around px-2 md:px-3 py-3 md:py-4">
           {navItems.map((item) => {
             const isActive = currentPage === item.page;
             const badgeCount = getBadgeCount(item);
@@ -92,20 +92,20 @@ export default function StudentBottomNav({ currentPage }) {
               <Link
                 key={item.page}
                 to={createPageUrl(item.page)}
-                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 transition-all"
+                className="relative flex flex-col items-center gap-1 md:gap-1.5 px-4 py-2 transition-all min-h-[60px] md:min-h-[70px] justify-center"
               >
                 {isActive && (
-                  <span className="absolute inset-0 bg-indigo-50 rounded-2xl" />
+                  <span className="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl" />
                 )}
-                <div className={`relative z-10 p-1.5 rounded-xl transition-all ${isActive ? 'bg-gradient-to-br from-[#1a237e] to-[#3949ab] shadow-md' : ''}`}>
-                  <item.icon className={`h-5 w-5 transition-all ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                <div className={`relative z-10 p-2.5 md:p-3 rounded-xl transition-all ${isActive ? 'bg-gradient-to-br from-[#1a237e] to-[#3949ab] shadow-md' : ''}`}>
+                  <item.icon className={`h-6 w-6 md:h-7 md:w-7 transition-all ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                   {badgeCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 shadow-sm">
+                    <span className="absolute -top-1 -right-1 bg-red-500 dark:bg-red-600 text-white text-xs md:text-sm font-bold rounded-full min-w-[20px] h-5 md:min-w-[22px] md:h-6 flex items-center justify-center px-0.5 shadow-md">
                       {badgeCount > 9 ? '9+' : badgeCount}
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-semibold relative z-10 transition-all ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                <span className={`text-sm md:text-base font-bold relative z-10 transition-all text-center leading-tight ${isActive ? 'text-[#1a237e] dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400'}`}>
                   {item.label}
                 </span>
               </Link>

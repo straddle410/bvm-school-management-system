@@ -263,81 +263,81 @@ export default function StudentDashboard() {
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col relative">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col relative">
       {/* Unified Notification Hub */}
       <StudentNotificationHub studentSession={student} />
-      
+
       {/* Push Notification Manager */}
       <PushNotificationManager studentId={student?.student_id} />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-2.5 shadow-lg">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 md:px-6 py-4 shadow-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3 md:gap-4">
             {schoolProfile?.logo_url ? (
               <img
                 src={schoolProfile.logo_url}
                 alt="School Logo"
-                className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow"
+                className="h-12 w-12 md:h-14 md:w-14 object-contain rounded-full bg-white p-1 flex-shrink-0 shadow"
               />
             ) : (
-              <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Home className="h-5 w-5 text-white" />
+              <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Home className="h-7 w-7 md:h-8 md:w-8 text-white" />
               </div>
             )}
             <div className="leading-tight">
-              <p className="font-bold text-sm leading-none">{schoolProfile?.school_name || 'BVM School'}</p>
-              <p className="text-blue-200 text-[10px] mt-0.5">Student Portal</p>
+              <p className="font-bold text-lg md:text-xl leading-tight">{schoolProfile?.school_name || 'BVM School'}</p>
+              <p className="text-blue-100 text-sm md:text-base mt-0.5">Student Portal</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link to={createPageUrl('StudentNotifications')} className="relative p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all">
-              <Bell className="h-5 w-5 text-white" />
+          <div className="flex items-center gap-2 md:gap-3">
+            <Link to={createPageUrl('StudentNotifications')} className="relative p-2.5 md:p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Bell className="h-6 w-6 md:h-7 md:w-7 text-white" />
               {totalUnread > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs md:text-sm font-bold rounded-full min-w-[20px] h-5 md:h-6 flex items-center justify-center px-0.5">
                   {totalUnread > 99 ? '99+' : totalUnread}
                 </span>
               )}
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 py-1.5 rounded-full transition-all"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm md:text-base font-medium px-3 md:px-4 py-2.5 md:py-3 rounded-full transition-all min-h-[44px]"
             >
-              <LogOut className="h-3 w-3" /> Logout
+              <LogOut className="h-5 w-5" /> Logout
             </button>
           </div>
         </div>
       </header>
 
       {/* Header Card */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="bg-white rounded-2xl shadow-sm p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">{student?.name}</h2>
-              <p className="text-xs text-gray-500 mt-1">Class {student?.class_name}-{student?.section} | ID: {student?.student_id}</p>
+      <div className="px-4 md:px-6 pt-5 pb-3 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-5 md:p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="min-w-0">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{student?.name}</h2>
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Class {student?.class_name}-{student?.section} | ID: {student?.student_id}</p>
             </div>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">
-              <strong>{currentYear || 'Academic year not set'}</strong>
+          <div className="flex items-center justify-between text-base md:text-lg mb-4">
+            <span className="text-gray-700 dark:text-gray-300 font-semibold">
+              {currentYear || 'Academic year not set'}
             </span>
-            <span className={`font-bold text-base ${attendancePct >= 75 ? 'text-emerald-600' : 'text-red-500'}`}>
+            <span className={`font-bold text-xl md:text-2xl ${attendancePct >= 75 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
               {attendancePct}%
             </span>
           </div>
-          <div className="mt-2 bg-gray-100 rounded-full h-2">
+          <div className="mt-3 bg-gray-200 dark:bg-gray-700 rounded-full h-3 md:h-4">
             <div
-              className={`h-2 rounded-full transition-all ${attendancePct >= 75 ? 'bg-emerald-500' : 'bg-red-500'}`}
+              className={`h-3 md:h-4 rounded-full transition-all ${attendancePct >= 75 ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-red-500 dark:bg-red-400'}`}
               style={{ width: `${Math.min(attendancePct, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-gray-400 mt-2">Attendance</p>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-3 font-medium">Attendance</p>
         </div>
       </div>
 
       <main
-        className="flex-1 overflow-y-auto pb-24 px-4 space-y-4"
+        className="flex-1 overflow-y-auto pb-24 px-4 md:px-6 space-y-5 dark:bg-gray-950 pt-3"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -347,40 +347,36 @@ export default function StudentDashboard() {
           className="flex items-center justify-center overflow-hidden transition-all duration-200"
           style={{ height: pullY > 0 ? pullY : (isRefreshing ? 48 : 0) }}
         >
-          <div className={`flex items-center gap-2 text-indigo-600 text-sm font-medium ${isRefreshing ? 'animate-pulse' : ''}`}>
-            <div className={`w-5 h-5 border-2 border-indigo-400 border-t-indigo-700 rounded-full ${isRefreshing ? 'animate-spin' : ''}`} />
+          <div className={`flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-base md:text-lg font-semibold ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className={`w-6 h-6 border-2 border-indigo-400 dark:border-indigo-500 border-t-indigo-700 dark:border-t-indigo-300 rounded-full ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : pullY >= 60 ? 'Release to refresh' : 'Pull to refresh'}
           </div>
         </div>
 
-
-
-        {/* Home Tiles (2-column) */}
+        {/* Home Tiles (3-column responsive) */}
         <section>
-          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">My Classes</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="text-base md:text-lg font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-4 md:mb-5">My Classes</h2>
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {HOME_TILES.map((tile) => {
                const badge = notifMap[tile.notifKey] || 0;
                return (
-                 <Link key={tile.label} to={createPageUrl(tile.page)} className="relative">
-                  <div className="rounded-2xl p-4 text-white transition-transform hover:scale-105" style={{ backgroundColor: tile.color }}>
-                    <div className="flex items-start justify-between mb-2">
-                      <tile.icon className="h-5 w-5 opacity-90" />
+                 <Link key={tile.label} to={createPageUrl(tile.page)} className="relative min-h-[120px] md:min-h-[140px]">
+                  <div className="h-full rounded-2xl p-4 md:p-5 text-white transition-transform hover:scale-105 active:scale-95 flex flex-col justify-between shadow-md hover:shadow-lg" style={{ backgroundColor: tile.color }}>
+                    <div className="flex items-start justify-between">
+                      <tile.icon className="h-7 w-7 md:h-8 md:w-8 opacity-90" />
                       {badge > 0 && (
-                        <span className="bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-0.5">
+                        <span className="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full min-w-[22px] h-[22px] md:min-w-[24px] md:h-[24px] flex items-center justify-center px-0.5 shadow-md">
                           {badge > 99 ? '99+' : badge}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-semibold">{tile.label}</p>
+                    <p className="text-base md:text-lg font-bold leading-snug">{tile.label}</p>
                   </div>
                 </Link>
-              );
-            })}
+               );
+             })}
           </div>
         </section>
-
-
 
       </main>
 
