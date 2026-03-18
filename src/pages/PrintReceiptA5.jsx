@@ -10,6 +10,8 @@ export default function PrintReceiptA5() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const paymentId = searchParams.get('paymentId');
+  const studentId = searchParams.get('studentId') || '';
+  const className = searchParams.get('className') || '';
 
   // Store current URL in sessionStorage for post-login redirect
   useEffect(() => {
