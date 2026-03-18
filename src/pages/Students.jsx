@@ -162,7 +162,11 @@ export default function Students() {
     keepPreviousData: true
   });
 
-  const students = studentsData?.data || [];
+  const allStudents = studentsData?.data || [];
+  // Transport filter is UI-only (client-side) on Active tab
+  const students = activeTab === 'active' && filterTransport !== 'all'
+    ? allStudents.filter(s => filterTransport === 'on' ? s.transport_enabled === true : !s.transport_enabled)
+    : allStudents;
 
   useEffect(() => {
     if (studentsData) {
