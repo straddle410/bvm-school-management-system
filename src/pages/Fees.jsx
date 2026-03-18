@@ -6,7 +6,7 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { can, getEffectivePermissions } from '@/components/permissionHelper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lock, AlertCircle, Bus, Menu, X } from 'lucide-react';
+import { Lock, AlertCircle, Bus, BedDouble, Menu, X } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import FeeHeadsManager from '@/components/fees/FeeHeadsManager';
 import AnnualFeePlanTab from '@/components/fees/AnnualFeePlanTab';
@@ -18,6 +18,7 @@ import DiscountManager from '@/components/fees/DiscountManager';
 import AdditionalChargesTab from '@/components/fees/AdditionalChargesTab';
 import FamilyManager from '@/components/fees/FamilyManager';
 import RecalculateTransportModal from '@/components/fees/RecalculateTransportModal';
+import RecalculateHostelModal from '@/components/fees/RecalculateHostelModal';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import { useQuery } from '@tanstack/react-query';
 
@@ -43,6 +44,7 @@ export default function Fees() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('ledger');
   const [showTransportModal, setShowTransportModal] = useState(false);
+  const [showHostelModal, setShowHostelModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => { setUser(getStaffSession()); }, []);
@@ -99,13 +101,22 @@ export default function Fees() {
           title="Fees"
           subtitle={`Annual fee management — ${academicYear}`}
           actions={isAdmin ? (
-            <button
-            onClick={() => setShowTransportModal(true)}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
-            >
-              <Bus className="h-4 w-4" />
-              Recalculate Transport
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowTransportModal(true)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
+              >
+                <Bus className="h-4 w-4" />
+                Recalculate Transport
+              </button>
+              <button
+                onClick={() => setShowHostelModal(true)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition"
+              >
+                <BedDouble className="h-4 w-4" />
+                Recalculate Hostel
+              </button>
+            </div>
           ) : null}
         />
 
@@ -315,6 +326,14 @@ export default function Fees() {
           <RecalculateTransportModal
             open={showTransportModal}
             onClose={() => setShowTransportModal(false)}
+            academicYear={academicYear}
+            academicYears={academicYears}
+          />
+        )}
+        {isAdmin && (
+          <RecalculateHostelModal
+            open={showHostelModal}
+            onClose={() => setShowHostelModal(false)}
             academicYear={academicYear}
             academicYears={academicYears}
           />
