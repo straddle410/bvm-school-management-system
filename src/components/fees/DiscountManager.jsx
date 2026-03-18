@@ -262,7 +262,7 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
                   <Button size="sm" variant="outline" onClick={() => openEdit(d)}>
                     <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
                   </Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:text-red-500" onClick={() => archiveMutation.mutate(d.id)}>
+                  <Button size="sm" variant="ghost" className="text-slate-400 hover:text-red-500" onClick={() => archiveMutation.mutate(d.id)} disabled={archiveMutation.isPending}>
                     <Archive className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -479,14 +479,19 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
             )}
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending || isSettled}
-              >
-                {saveMutation.isPending ? 'Saving…' : editingDiscount ? 'Update Discount' : 'Save Discount'}
-              </Button>
-            </div>
+               <Button variant="outline" onClick={closeDialog} disabled={saveMutation.isPending}>Cancel</Button>
+               <Button
+                 onClick={() => saveMutation.mutate()}
+                 disabled={saveMutation.isPending || isSettled}
+               >
+                 {saveMutation.isPending ? (
+                   <>
+                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                     Saving…
+                   </>
+                 ) : editingDiscount ? 'Update Discount' : 'Save Discount'}
+               </Button>
+             </div>
           </div>
         </DialogContent>
       </Dialog>

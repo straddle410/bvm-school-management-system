@@ -46,11 +46,19 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
 
   if (!invoice) return null;
 
-  // If specific payment is selected, use only that payment's data
-  const invoicePayments = payment ? [payment] : (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
-  const thisPaymentAmount = payment ? payment.amount_paid : invoice.paid_amount;
-  const displayDate = payment ? payment.payment_date : (invoicePayments[0]?.payment_date || invoice.due_date);
-  const receiptNumber = payment ? payment.receipt_no : invoicePayments[0]?.receipt_no;
+   // If specific payment is selected, use only that payment's data
+   const invoicePayments = payment ? [payment] : (payments || []).filter(p => p.invoice_id === invoice.id && p.status === 'Active');
+   const thisPaymentAmount = payment ? payment.amount_paid : invoice.paid_amount;
+   const displayDate = payment ? payment.payment_date : (invoicePayments[0]?.payment_date || invoice.due_date);
+   const receiptNumber = payment ? payment.receipt_no : invoicePayments[0]?.receipt_no;
+
+   // Use receipt snapshot if available (frozen at payment time), else fall back to live invoice data
+   const snapshot = payment?.receipt_snapshot;
+   const displayGrossAmount = snapshot?.invoice_gross_total ?? (invoice.gross_total || invoice.total_amount);
+   const displayDiscountAmount = snapshot?.invoice_discount_total ?? (invoice.discount_total || 0);
+   const displayNetAmount = snapshot?.invoice_net_total ?? invoice.total_amount;
+   const displayBalanceBefore = snapshot?.balance_before;
+   const isSnapshotReceipt = !!snapshot;
 
   // Total Paid Till Date = invoice.paid_amount (source of truth after payment is recorded)
   // This matches the student ledger and admin receipt
@@ -59,9 +67,7 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
   // Calculate balance after cumulative payments
   const balanceAfterPayment = invoice.total_amount - totalPaidTillDate;
   
-  // Get gross and discount amounts
-  const grossAmount = invoice.gross_total || invoice.total_amount;
-  const discountAmount = invoice.discount_total || 0;
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -124,6 +130,12 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
           {/* Fee Details */}
           <div className="mb-5 w-full">
             <h3 className="text-base font-bold text-gray-700 mb-3 border-b pb-2">Fee Details</h3>
+            {isSnapshotReceipt && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-3 text-xs text-blue-700 flex items-start gap-2">
+                <span className="font-semibold flex-shrink-0">📋 Frozen Receipt:</span>
+                <span>Amounts locked at payment time. Future discount changes do not affect this receipt.</span>
+              </div>
+            )}
             <div className="space-y-2 w-full">
               <div className="flex justify-between items-center py-1">
                 <span className="text-base text-gray-600 flex-shrink-0 mr-2">Fee Type</span>
@@ -131,17 +143,17 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
               </div>
               <div className="flex justify-between items-center py-1">
                 <span className="text-base text-gray-600 flex-shrink-0">Gross Amount</span>
-                <span className="text-base font-semibold text-gray-900">₹{grossAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-base font-semibold text-gray-900">₹{displayGrossAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-              {discountAmount > 0 && (
+              {displayDiscountAmount > 0 && (
                 <div className="flex justify-between items-center py-1">
                   <span className="text-base text-gray-600 flex-shrink-0">Discount</span>
-                  <span className="text-base font-semibold text-green-600">-₹{discountAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="text-base font-semibold text-green-600">-₹{displayDiscountAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
               <div className="flex justify-between items-center py-1">
                 <span className="text-base text-gray-600 flex-shrink-0">Net Fee</span>
-                <span className="text-base font-semibold text-gray-900">₹{invoice.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-base font-semibold text-gray-900">₹{displayNetAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center py-1 pt-2 border-t">
                 <span className="text-base text-gray-600 flex-shrink-0">This Payment</span>
