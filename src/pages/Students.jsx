@@ -48,6 +48,8 @@ export default function Students() {
   const [filterSection, setFilterSection] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTransport, setFilterTransport] = useState('all'); // 'all' | 'on' | 'off'
+  const [filterHostel, setFilterHostel] = useState('all'); // 'all' | 'on' | 'off'
+  const [filterDaysColor, setFilterDaysColor] = useState('all'); // 'all' | 'weekend' | 'color-coded'
   const [showArchived, setShowArchived] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
