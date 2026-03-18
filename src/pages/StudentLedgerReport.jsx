@@ -48,51 +48,17 @@ function StudentLedgerContent() {
   const [invoicesCache, setInvoicesCache] = useState([]);
   const [showInvoicesList, setShowInvoicesList] = useState(!selectedStudent);
 
-  // Fetch ledger balances for all students in selected class
+  // Fetch ANNUAL invoices for the selected class
   const { data: ledgerData = {}, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['class-ledger-balances', selectedClass, selectedSection, academicYear],
-    queryFn: async () => {
-      try {
-        const staffInfo = (() => {
-          try {
-            const raw = localStorage.getItem('staff_session');
-            return raw ? JSON.parse(raw) : null;
-          } catch { return null; }
-        })();
-        
-        // Fetch all invoices for the class to get student list
-        const invoices = await base44.entities.FeeInvoice.filter({
-          class_name: selectedClass,
-          section: selectedSection,
-          academic_year: academicYear,
-          invoice_type: 'ANNUAL'
-        });
-        
-        // Fetch ledger for each student to get closing balance
-        const balanceMap = {};
-        for (const invoice of invoices) {
-          if (!balanceMap[invoice.student_id]) {
-            try {
-              const res = await base44.functions.invoke('getStudentLedger', {
-                studentId: invoice.student_id,
-                academicYear: academicYear || undefined,
-                pageSize: 1,
-                staffInfo
-              });
-              balanceMap[invoice.student_id] = res.data?.closingBalance || 0;
-            } catch {
-              balanceMap[invoice.student_id] = 0;
-            }
-          }
-        }
-        return { invoices, balanceMap };
-      } catch (err) {
-        return { invoices: [], balanceMap: {} };
-      }
-    },
+    queryKey: ['class-annual-invoices', selectedClass, selectedSection, academicYear],
+    queryFn: () => base44.entities.FeeInvoice.filter({
+      class_name: selectedClass,
+      section: selectedSection,
+      academic_year: academicYear,
+      invoice_type: 'ANNUAL'
+    }).then(invoices => ({ invoices })),
     enabled: !!selectedClass && !!selectedSection && !!academicYear,
-    staleTime: 0,
-    gcTime: 0
+    staleTime: 30000
   });
 
   const handlePayClick = (student) => {
