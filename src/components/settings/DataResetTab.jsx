@@ -268,12 +268,12 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
       {isTestSchool && (
         <div className="flex items-center gap-1 flex-wrap text-xs text-slate-500">
           {['Modules', 'Preview', 'OTP', 'Confirm', 'Done'].map((s, i) => (
-            <React.Fragment key={s}>
+            <div key={s} className="flex items-center gap-1">
               <span className={`px-2 py-1 rounded ${step === i + 1 ? 'bg-red-600 text-white font-semibold' : step > i + 1 ? 'bg-green-100 text-green-700' : 'bg-slate-100'}`}>
                 Step {i + 1}: {s}
               </span>
               {i < 4 && <ChevronRight className="h-3 w-3" />}
-            </React.Fragment>
+            </div>
           ))}
         </div>
       )}
