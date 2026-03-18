@@ -171,8 +171,8 @@ export default function Students() {
     }
   }, [studentsData]);
 
-  // Reset page when filters change
-  useEffect(() => { setPage(1); }, [filterClass, filterSection, filterStatus, academicYear]);
+  // Reset page when filters/tab change
+  useEffect(() => { setPage(1); }, [filterClass, filterSection, activeTab, academicYear]);
 
 
 
