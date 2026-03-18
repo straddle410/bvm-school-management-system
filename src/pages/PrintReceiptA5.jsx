@@ -141,10 +141,6 @@ export default function PrintReceiptA5() {
   const { school, receipt } = data;
   const isVoid = receipt.payment.status === 'VOID';
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleCancel = () => {
     if (studentId && className) {
       navigate(`/Fees?tab=ledger&className=${encodeURIComponent(className)}&studentId=${encodeURIComponent(studentId)}`);
@@ -153,471 +149,162 @@ export default function PrintReceiptA5() {
     }
   };
 
+  const getReceiptHTML = () => {
+    const feeType = receipt.invoice.type === 'ANNUAL'
+      ? 'TUITION FEE'
+      : receipt.invoice.type === 'ADDITIONAL'
+      ? (receipt.invoice.chargeName || 'ADDITIONAL FEE')
+      : 'TUITION FEE';
+    const amountInWords = numberToWords(receipt.payment.amount);
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    @page { size: A5 landscape; margin: 2.2mm; }
+    html, body { margin: 0; padding: 0; background: white; font-family: Arial, sans-serif; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .copiesRow { display: flex; gap: 4mm; }
+    .copy { flex: 1; border: 1px solid #111; border-radius: 4px; padding: 2.2mm; box-sizing: border-box; background: white; }
+    .copy.void { background: rgba(255, 0, 0, 0.03); }
+    .void-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 48px; font-weight: bold; color: rgba(255, 0, 0, 0.1); pointer-events: none; }
+    .header { text-align: center; border-bottom: 2px solid #1a237e; padding-bottom: 0.4mm; margin-bottom: 0.6mm; }
+    .header-top { display: flex; align-items: center; justify-content: center; gap: 2.5mm; margin-bottom: 0; }
+    .logo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .school-name { font-size: 16px; font-weight: 900; margin: 0; color: #1a237e; letter-spacing: 0.2px; line-height: 1.1; }
+    .school-info { font-size: 11px; color: #555; margin: 0; font-weight: 500; line-height: 1.1; }
+    .receipt-title { display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 14px; margin: 0.7mm 0; padding: 0.6mm 0; border-bottom: 2px solid #1a237e; color: #1a237e; }
+    .copy-badge { font-size: 9px; font-weight: bold; background: #1a237e; color: white; padding: 2px 5px; border-radius: 2px; text-transform: uppercase; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9mm; font-size: 12px; margin-bottom: 0.7mm; padding: 0.6mm 0; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; }
+    .info-row { display: flex; justify-content: space-between; gap: 1mm; }
+    .label { font-weight: 700; color: #1a237e; min-width: 60px; font-size: 12px; }
+    .box { border: 1px solid #d0d0d0; padding: 2.2mm; margin: 0.9mm 0; font-size: 12px; background: #fafafa; border-radius: 2px; }
+    .box-title { font-weight: 800; font-size: 11px; border-bottom: 2px solid #1a237e; padding-bottom: 0.5mm; margin-bottom: 0.5mm; color: #1a237e; text-transform: uppercase; }
+    .box-row { display: flex; justify-content: space-between; padding: 0.5mm 0; font-size: 12px; gap: 0.9mm; }
+    .amount-box { font-weight: 900; font-size: 13px; color: #1a237e; text-align: center; padding: 1.2mm 0.9mm; margin: 0.6mm 0; border: 2px solid #1a237e; background: #f3f7ff; border-radius: 2px; }
+    .summary { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0.7mm 0; border: 1px solid #d0d0d0; }
+    .summary td { border-bottom: 1px solid #e0e0e0; padding: 0.6mm 1.2mm; }
+    .summary .label { text-align: left; font-weight: 700; color: #1a237e; }
+    .summary .value { text-align: right; font-weight: 700; color: #000; }
+    .footer { font-size: 8px; text-align: center; color: #888; margin-top: 0.3mm; padding: 0.3mm 0; border-top: 1px solid #e0e0e0; font-style: italic; }
+    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm; font-size: 10px; margin-top: 0.5mm; }
+    .sig-line { text-align: center; height: 16mm; display: flex; flex-direction: column; justify-content: flex-end; }
+    .sig-space { border-top: 1.5px solid #333; height: 8mm; margin-bottom: 0.6mm; }
+    .sig-label { font-weight: 700; color: #1a237e; letter-spacing: 0.1px; font-size: 11px; }
+    .void-note { font-size: 10px; color: #d32f2f; font-weight: bold; margin-top: 0.6mm; padding: 0.8mm; background: #ffebee; }
+  </style>
+</head>
+<body>
+  <div class="copiesRow">
+    <div class="copy ${isVoid ? 'void' : ''}">${getReceiptContent(school, receipt, feeType, amountInWords, 'SCHOOL COPY')}</div>
+    <div class="copy ${isVoid ? 'void' : ''}">${getReceiptContent(school, receipt, feeType, amountInWords, 'PARENT COPY')}</div>
+  </div>
+</body>
+</html>`;
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (printWindow) {
+      printWindow.document.write(getReceiptHTML());
+      printWindow.document.close();
+      setTimeout(() => { printWindow.print(); }, 500);
+    }
+  };
+
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'accountant']} pageName="Print Receipt">
-      {/* Print/Cancel Controls */}
-      <div className="no-print fixed top-0 left-0 right-0 bg-white border-b shadow-sm z-50 p-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-700">Receipt #{data?.receipt?.receiptNo}</h2>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handlePrint}>
-            Print Receipt
-          </Button>
-        </div>
-      </div>
-
-      {/* Add top padding to account for fixed controls */}
-      <div className="pt-20">
-      <style>{`
-        @page {
-          size: A5 landscape;
-          margin: 5mm 5mm 5mm 5mm;
-        }
-
-        html, body {
-          margin: 0 !important;
-          padding: 0 !important;
-          background: white;
-          font-family: Arial, sans-serif;
-          font-size: 10px;
-          line-height: 1;
-        }
-
-        body {
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-
-        .copiesRow {
-          display: flex;
-          gap: 3mm;
-          height: 100vh;
-          align-items: stretch;
-        }
-
-        .copy {
-          flex: 1;
-          border: 1px solid #111;
-          border-radius: 1px;
-          padding: 4mm 3mm;
-          box-sizing: border-box;
-          overflow: hidden;
-          background: white;
-          display: flex;
-          flex-direction: column;
-          font-size: 9px;
-        }
-
-        .copy.void {
-          background: rgba(255, 0, 0, 0.03);
-        }
-
-        .void-watermark {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) rotate(-45deg);
-          font-size: 48px;
-          font-weight: bold;
-          color: rgba(255, 0, 0, 0.1);
-          pointer-events: none;
-          z-index: 0;
-        }
-
-        .header {
-          text-align: center;
-          border-bottom: 1px solid #1a237e;
-          padding-bottom: 0.6mm;
-          margin-bottom: 0.6mm;
-        }
-
-        .header-top {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1.5mm;
-          margin-bottom: 0;
-        }
-
-        .logo {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          object-fit: cover;
-          flex-shrink: 0;
-        }
-
-        .school-name {
-          font-size: 10px;
-          font-weight: 900;
-          margin: 0;
-          color: #1a237e;
-          line-height: 1;
-        }
-
-        .school-info {
-          font-size: 6.5px;
-          color: #555;
-          margin: 0;
-          font-weight: 500;
-          line-height: 1;
-        }
-
-        .receipt-title {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          font-weight: 800;
-          font-size: 9px;
-          margin: 0.4mm 0;
-          padding: 0.3mm 0;
-          border-bottom: 1px solid #1a237e;
-          color: #1a237e;
-        }
-
-        .copy-badge {
-          font-size: 7px;
-          font-weight: bold;
-          background: #1a237e;
-          color: white;
-          padding: 0.5px 3px;
-          border-radius: 1px;
-          text-transform: uppercase;
-        }
-
-        .info-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.3mm;
-          font-size: 7.5px;
-          margin: 0.4mm 0;
-          padding: 0.3mm 0;
-          border-top: 0.5px solid #e0e0e0;
-          border-bottom: 0.5px solid #e0e0e0;
-        }
-
-        .info-row {
-          display: flex;
-          justify-content: space-between;
-          gap: 0.3mm;
-          line-height: 1.1;
-        }
-
-        .label {
-          font-weight: 700;
-          color: #1a237e;
-          font-size: 7.5px;
-        }
-
-        .box {
-          border: 0.5px solid #d0d0d0;
-          padding: 0.4mm;
-          margin: 0.3mm 0;
-          font-size: 7.5px;
-          background: #fafafa;
-        }
-
-        .box-title {
-          font-weight: 800;
-          font-size: 6.5px;
-          border-bottom: 0.5px solid #1a237e;
-          padding-bottom: 0.2mm;
-          margin-bottom: 0.2mm;
-          color: #1a237e;
-          text-transform: uppercase;
-        }
-
-        .box-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 0.15mm 0;
-          font-size: 7.5px;
-          gap: 0.3mm;
-          line-height: 1;
-        }
-
-        .amount-box {
-          font-weight: 900;
-          font-size: 8.5px;
-          color: #1a237e;
-          text-align: center;
-          padding: 0.3mm;
-          margin: 0.3mm 0;
-          border: 0.5px solid #1a237e;
-          background: #f3f7ff;
-        }
-
-        .summary {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 7.5px;
-          margin: 0.3mm 0;
-          border: 0.5px solid #d0d0d0;
-        }
-
-        .summary td {
-          border-bottom: 0.5px solid #e0e0e0;
-          padding: 0.15mm 0.3mm;
-          line-height: 1.1;
-        }
-
-        .summary td:first-child {
-          text-align: left;
-        }
-
-        .summary .label {
-          text-align: left;
-          font-weight: 700;
-          color: #1a237e;
-        }
-
-        .summary .value {
-          text-align: right;
-          font-weight: 700;
-          color: #000;
-        }
-
-        .footer {
-          font-size: 5.5px;
-          text-align: center;
-          color: #888;
-          margin-top: 0.3mm;
-          padding: 0.1mm 0;
-          border-top: 0.5px solid #e0e0e0;
-          font-style: italic;
-        }
-
-        .signatures {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.3mm;
-          font-size: 6.5px;
-          margin-top: 0.3mm;
-        }
-
-        .sig-line {
-          text-align: center;
-          height: 4mm;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-          line-height: 1;
-        }
-
-        .sig-space {
-          border-top: 0.5px solid #333;
-          height: 2.5mm;
-          margin-bottom: 0.15mm;
-        }
-
-        .sig-label {
-          font-weight: 700;
-          color: #1a237e;
-          font-size: 6.5px;
-        }
-
-        .void-note {
-          font-size: 10px;
-          color: #d32f2f;
-          font-weight: bold;
-          margin-top: 0.6mm;
-          padding: 0.8mm;
-          background: #ffebee;
-        }
-
-        @media print {
-          .no-print, nav, header, footer {
-            display: none !important;
-          }
-
-          body {
-            margin: 0;
-            padding: 0;
-            max-height: 100%;
-            overflow: hidden;
-          }
-
-          * {
-            box-shadow: none !important;
-          }
-        }
-      `}</style>
-
-      <div className="copiesRow">
-        {/* School Copy */}
-        <div className={`copy ${isVoid ? 'void' : ''}`}>
-          <ReceiptContent school={school} receipt={receipt} copyLabel="SCHOOL COPY" />
+      {/* Controls */}
+      <div className="no-print min-h-screen bg-gray-100 flex flex-col">
+        <div className="bg-white border-b shadow-sm p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-700">Receipt #{receipt?.receiptNo}</h2>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handlePrint}>
+              Print Receipt
+            </Button>
+          </div>
         </div>
 
-        {/* Parent Copy */}
-        <div className={`copy ${isVoid ? 'void' : ''}`}>
-          <ReceiptContent school={school} receipt={receipt} copyLabel="PARENT COPY" />
+        {/* Preview */}
+        <div className="flex-1 p-6 flex flex-col items-center">
+          <div className="text-xs text-gray-500 mb-3">A5 Landscape Preview (School Copy + Parent Copy)</div>
+          <div style={{
+            background: 'white',
+            width: '100%',
+            maxWidth: '760px',
+            aspectRatio: '297/210',
+            border: '1px solid #ccc',
+            boxSizing: 'border-box',
+            overflow: 'hidden'
+          }}>
+            <iframe
+              srcDoc={getReceiptHTML()}
+              className="w-full h-full border-none"
+              title="Receipt Preview"
+            />
+          </div>
         </div>
-      </div>
       </div>
     </LoginRequired>
   );
 }
 
-function ReceiptContent({ school, receipt, copyLabel }) {
+function getReceiptContent(school, receipt, feeType, amountInWords, copyLabel) {
   const isVoid = receipt.payment.status === 'VOID';
-  const amountInWords = numberToWords(receipt.payment.amount);
-
-  // Determine Fee Type
-  const feeType = receipt.invoice.type === 'ANNUAL' 
-    ? 'TUITION FEE'
-    : receipt.invoice.type === 'ADDITIONAL'
-    ? (receipt.invoice.chargeName || 'ADDITIONAL FEE')
-    : 'TUITION FEE';
-
-  return (
-    <div style={{ position: 'relative' }}>
-      {isVoid && <div className="void-watermark">VOID</div>}
-      
-      <div style={{ position: 'relative', zIndex: 1 }}>
-         {/* Header */}
-         <div className="header">
-            <div className="header-top">
-              {school.logoUrl && <img src={school.logoUrl} alt="Logo" className="logo" />}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                <div className="school-name">{school.name}</div>
-                {school.addressLine1 && <div className="school-info">{school.addressLine1}</div>}
-                {school.phone && <div className="school-info">Ph: {school.phone}</div>}
-              </div>
+  return `
+    <div style="position: relative;">
+      ${isVoid ? '<div class="void-watermark">VOID</div>' : ''}
+      <div style="position: relative; z-index: 1; transform: scale(0.98); transform-origin: top left;">
+        <div class="header">
+          <div class="header-top">
+            ${school.logoUrl ? `<img src="${school.logoUrl}" alt="Logo" class="logo" />` : ''}
+            <div style="display: flex; flex-direction: column; gap: 0;">
+              <div class="school-name">${school.name}</div>
+              ${school.addressLine1 ? `<div class="school-info">${school.addressLine1}</div>` : ''}
+              ${school.phone ? `<div class="school-info">Ph: ${school.phone}</div>` : ''}
             </div>
-         </div>
-
-        {/* Title Row */}
-        <div className="receipt-title">
+          </div>
+        </div>
+        <div class="receipt-title">
           <span>FEE RECEIPT</span>
-          <span className="copy-badge">{copyLabel}</span>
+          <span class="copy-badge">${copyLabel}</span>
         </div>
-
-        {/* Receipt Info Grid */}
-        <div className="info-grid">
-          <div className="info-row">
-            <span className="label">Receipt #:</span>
-            <span style={{ fontWeight: 'bold', color: '#1a237e', fontSize: '12px' }}>{receipt.receiptNo}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">Date:</span>
-            <span>{formatDate(receipt.dateTime)}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">Year:</span>
-            <span>{receipt.academicYear}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">Fee Type:</span>
-            <span style={{ fontWeight: 'bold' }}>{feeType}</span>
-          </div>
+        <div class="info-grid">
+          <div class="info-row"><span class="label">Receipt #:</span><span style="font-weight: bold; color: #1a237e; font-size: 12px;">${receipt.receiptNo}</span></div>
+          <div class="info-row"><span class="label">Date:</span><span>${formatDate(receipt.dateTime)}</span></div>
+          <div class="info-row"><span class="label">Year:</span><span>${receipt.academicYear}</span></div>
+          <div class="info-row"><span class="label">Fee Type:</span><span style="font-weight: bold;">${feeType}</span></div>
         </div>
-
-        {/* Student Details Box */}
-        <div className="box">
-          <div className="box-title">STUDENT DETAILS</div>
-          <div className="box-row">
-            <span className="label">Name:</span>
-            <span>{receipt.student.name}</span>
-          </div>
-          <div className="box-row">
-            <span className="label">ID:</span>
-            <span>{receipt.student.admissionNo}</span>
-          </div>
-          <div className="box-row">
-            <span className="label">Class:</span>
-            <span>{receipt.student.className}-{receipt.student.sectionName}</span>
-          </div>
+        <div class="box">
+          <div class="box-title">STUDENT DETAILS</div>
+          <div class="box-row"><span class="label">Name:</span><span>${receipt.student.name}</span></div>
+          <div class="box-row"><span class="label">ID:</span><span>${receipt.student.admissionNo}</span></div>
+          <div class="box-row"><span class="label">Class:</span><span>${receipt.student.className}-${receipt.student.sectionName}</span></div>
         </div>
-
-        {/* Payment Details Box */}
-        <div className="box">
-          <div className="box-title">PAYMENT DETAILS</div>
-          <div className="box-row">
-            <span className="label">Payment Mode:</span>
-            <span>{receipt.payment.mode}</span>
-          </div>
-          {receipt.payment.referenceNo && (
-            <div className="box-row">
-              <span className="label">Ref No:</span>
-              <span>{receipt.payment.referenceNo}</span>
-            </div>
-          )}
-          <div className="amount-box">
-            Amount Paid: ₹{receipt.payment.amount.toLocaleString('en-IN')}
-          </div>
-          {amountInWords && (
-           <div style={{ textAlign: 'center', fontSize: '7px', marginTop: '0.1mm', lineHeight: '1' }}>
-             ({amountInWords})
-           </div>
-          )}
-          
-          {receipt.payment.collectedByName && (
-             <div className="box-row" style={{ marginTop: '0.15mm', paddingTop: '0.15mm', borderTop: '0.5px solid #ddd' }}>
-               <span className="label">Received By:</span>
-               <span>{receipt.payment.collectedByName}</span>
-             </div>
-           )}
-          
-          {isVoid && receipt.voidInfo && (
-           <div className="void-note" style={{ fontSize: '7px', padding: '0.2mm', marginTop: '0.2mm' }}>
-             VOIDED - {receipt.voidInfo.void_reason || 'No reason'}
-             {receipt.voidInfo.voided_by_name && <div style={{ marginTop: '0.1mm' }}>By: {receipt.voidInfo.voided_by_name}</div>}
-           </div>
-          )}
+        <div class="box">
+          <div class="box-title">PAYMENT DETAILS</div>
+          <div class="box-row"><span class="label">Payment Mode:</span><span>${receipt.payment.mode}</span></div>
+          ${receipt.payment.referenceNo ? `<div class="box-row"><span class="label">Ref No:</span><span>${receipt.payment.referenceNo}</span></div>` : ''}
+          <div class="amount-box">Amount Paid: ₹${receipt.payment.amount.toLocaleString('en-IN')}</div>
+          ${amountInWords ? `<div style="text-align: center; font-size: 10px; margin-top: 0.5mm;">(${amountInWords})</div>` : ''}
+          ${receipt.payment.collectedByName ? `<div class="box-row" style="margin-top: 0.6mm; padding-top: 0.6mm; border-top: 1px solid #ddd;"><span class="label">Received By:</span><span>${receipt.payment.collectedByName}</span></div>` : ''}
+          ${isVoid && receipt.voidInfo ? `<div class="void-note">VOIDED - ${receipt.voidInfo.void_reason || 'No reason'}${receipt.voidInfo.voided_by_name ? `<div style="margin-top: 1mm;">By: ${receipt.voidInfo.voided_by_name}</div>` : ''}</div>` : ''}
         </div>
-
-        {/* Fee Summary */}
-        <table className="summary">
-          <tbody>
-            <tr>
-              <td className="label">Gross Amount:</td>
-              <td className="value">₹{receipt.invoice.gross.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <td className="label">Discount:</td>
-              <td className="value">-₹{receipt.invoice.discount.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-              <td className="label">Net Fee:</td>
-              <td className="value">₹{receipt.invoice.net.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <td className="label">This Receipt:</td>
-              <td className="value">₹{receipt.payment.amount.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <td className="label">Total Paid Till Date:</td>
-              <td className="value">₹{receipt.invoice.totalPaidAfterThis.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr style={{ backgroundColor: '#fff3e0' }}>
-              <td className="label">Balance Due:</td>
-              <td className="value">₹{receipt.invoice.balanceDueAfterThis.toLocaleString('en-IN')}</td>
-            </tr>
-          </tbody>
+        <table class="summary">
+          <tr><td class="label">Gross Amount:</td><td class="value">₹${receipt.invoice.gross.toLocaleString('en-IN')}</td></tr>
+          <tr><td class="label">Discount:</td><td class="value">-₹${receipt.invoice.discount.toLocaleString('en-IN')}</td></tr>
+          <tr style="font-weight: bold; background-color: #f0f0f0;"><td class="label">Net Fee:</td><td class="value">₹${receipt.invoice.net.toLocaleString('en-IN')}</td></tr>
+          <tr><td class="label">Total Paid:</td><td class="value">₹${receipt.invoice.totalPaidAfterThis.toLocaleString('en-IN')}</td></tr>
+          <tr style="background-color: #fff3e0;"><td class="label">Balance Due:</td><td class="value">₹${receipt.invoice.balanceDueAfterThis.toLocaleString('en-IN')}</td></tr>
         </table>
-
-        {/* Footer */}
-        <div className="footer">
-          This is a computer generated receipt
+        <div class="footer">This is a computer generated receipt</div>
+        <div class="signatures">
+          <div class="sig-line"><div class="sig-space"></div><div class="sig-label">Accountant</div></div>
+          <div class="sig-line"><div class="sig-space"></div><div class="sig-label">Authorized By</div></div>
         </div>
-
-        {/* Signature Section */}
-         <div className="signatures">
-           <div className="sig-line">
-             <div className="sig-space"></div>
-             <div className="sig-label">Accountant</div>
-           </div>
-           <div className="sig-line">
-             <div className="sig-space"></div>
-             <div className="sig-label">Authorized By</div>
-           </div>
-         </div>
       </div>
     </div>
-  );
+  `;
 }
 
 function formatDate(dateStr) {
@@ -631,7 +318,6 @@ function numberToWords(num) {
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
   const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
   if (num < 10) return ones[num];
   if (num < 20) return teens[num - 10];
   if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 ? ' ' + ones[num % 10] : '');
