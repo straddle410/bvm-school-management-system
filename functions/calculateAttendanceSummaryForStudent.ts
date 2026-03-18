@@ -60,16 +60,13 @@ Deno.serve(async (req) => {
 
     const fullDayDates = new Set();
     const halfDayDates = new Set();
-    const absentDates = new Set();
     
     recordsInRange.forEach(a => {
-      if (!a.is_holiday && a.attendance_type !== 'holiday') {
+      if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
         if (a.attendance_type === 'full_day') {
           fullDayDates.add(a.date);
         } else if (a.attendance_type === 'half_day') {
           halfDayDates.add(a.date);
-        } else if (a.attendance_type === 'absent') {
-          absentDates.add(a.date);
         }
       }
     });
@@ -77,7 +74,7 @@ Deno.serve(async (req) => {
     const fullDays = fullDayDates.size;
     const halfDays = halfDayDates.size;
     const totalPresent = fullDays + (halfDays * 0.5);
-    const absentDays = absentDates.size;
+    const absentDays = workingDays - fullDays - halfDays;
     // Use consistent rounding: Math.round for all percentage calculations
     const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
@@ -109,16 +106,13 @@ Deno.serve(async (req) => {
 
       const monthFullDayDates = new Set();
       const monthHalfDayDates = new Set();
-      const monthAbsentDates = new Set();
-
+      
       monthRecords.forEach(a => {
-        if (!a.is_holiday && a.attendance_type !== 'holiday') {
+        if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
           if (a.attendance_type === 'full_day') {
             monthFullDayDates.add(a.date);
           } else if (a.attendance_type === 'half_day') {
             monthHalfDayDates.add(a.date);
-          } else if (a.attendance_type === 'absent') {
-            monthAbsentDates.add(a.date);
           }
         }
       });
@@ -126,7 +120,7 @@ Deno.serve(async (req) => {
       const monthFullDays = monthFullDayDates.size;
       const monthHalfDays = monthHalfDayDates.size;
       const monthTotalPresent = monthFullDays + (monthHalfDays * 0.5);
-      const monthAbsent = monthAbsentDates.size;
+      const monthAbsent = monthWorkingDays - monthFullDays - monthHalfDays;
       const monthPercentage = monthWorkingDays > 0 ? Math.round((monthTotalPresent / monthWorkingDays) * 100) : 0;
 
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

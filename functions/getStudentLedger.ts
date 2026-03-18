@@ -127,52 +127,82 @@ Deno.serve(async (req) => {
 
       // Classify payment type
        const isVoid = VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status);
-       const isCredit = !isVoid && p.entry_type === 'CREDIT_ADJUSTMENT';
+       const isTransportAdj = !isVoid && p.entry_type === 'TRANSPORT_ADJUSTMENT';
+       const isHostelAdj = !isVoid && p.entry_type === 'HOSTEL_ADJUSTMENT';
+       const isCredit = !isVoid && !isTransportAdj && !isHostelAdj && p.entry_type === 'CREDIT_ADJUSTMENT';
 
-       // Apply filters
-       if (isVoid && !includeVoided) continue;
-       if (isCredit && !includeCredits) continue;
+      // Apply filters
+      if (isVoid && !includeVoided) continue;
+      if (isCredit && !includeCredits) continue;
 
-       let type, debit, credit, status, description;
+      let type, debit, credit, status, description;
 
-       if (isVoid) {
-         // VOID: shown for audit only, zero financial effect
-         type = 'PAYMENT';
-         status = 'VOID';
-         debit = 0;
-         credit = 0;
-         description = `Payment ${p.receipt_no || ''} (Voided${p.void_reason || p.reversal_reason ? ': ' + (p.void_reason || p.reversal_reason) : ''})`;
-       } else if (isCredit) {
-         type = 'CREDIT';
-         status = 'POSTED';
-         debit = 0;
-         credit = Math.abs(amount);
-         description = `Credit Adjustment${p.remarks ? ': ' + p.remarks : ''} (${p.receipt_no || ''})`;
-       } else {
-         // Standard cash/UPI/bank payment (CASH_PAYMENT entry type)
-         type = 'PAYMENT';
-         status = 'POSTED';
-         debit = 0;
-         credit = Math.abs(amount);
-         description = `${p.payment_mode || 'Payment'} received (${p.receipt_no || ''})`;
-       }
+      if (isVoid) {
+        // VOID: shown for audit only, zero financial effect
+        type = 'PAYMENT';
+        status = 'VOID';
+        debit = 0;
+        credit = 0;
+        description = `Payment ${p.receipt_no || ''} (Voided${p.void_reason || p.reversal_reason ? ': ' + (p.void_reason || p.reversal_reason) : ''})`;
+      } else if (isTransportAdj) {
+        // TRANSPORT_ADJUSTMENT: affects balance but NOT cash collection
+        // Positive amount_paid = DEBIT (owed more) | Negative = CREDIT (owed less)
+        type = 'TRANSPORT_ADJUSTMENT';
+        status = 'POSTED';
+        if (amount > 0) {
+          debit = Math.abs(amount);
+          credit = 0;
+          description = `Transport adjustment: +₹${Math.abs(amount).toLocaleString()} (${p.remarks || ''})`;
+        } else {
+          debit = 0;
+          credit = Math.abs(amount);
+          description = `Transport adjustment: -₹${Math.abs(amount).toLocaleString()} (${p.remarks || ''})`;
+        }
+      } else if (isHostelAdj) {
+        // HOSTEL_ADJUSTMENT: affects balance but NOT cash collection
+        // Positive amount_paid = DEBIT (owed more) | Negative = CREDIT (owed less)
+        type = 'HOSTEL_ADJUSTMENT';
+        status = 'POSTED';
+        if (amount > 0) {
+          debit = Math.abs(amount);
+          credit = 0;
+          description = `Hostel adjustment: +₹${Math.abs(amount).toLocaleString()} (${p.remarks || ''})`;
+        } else {
+          debit = 0;
+          credit = Math.abs(amount);
+          description = `Hostel adjustment: -₹${Math.abs(amount).toLocaleString()} (${p.remarks || ''})`;
+        }
+      } else if (isCredit) {
+        type = 'CREDIT';
+        status = 'POSTED';
+        debit = 0;
+        credit = Math.abs(amount);
+        description = `Credit Adjustment${p.remarks ? ': ' + p.remarks : ''} (${p.receipt_no || ''})`;
+      } else {
+        // Standard cash/UPI/bank payment
+        type = 'PAYMENT';
+        status = 'POSTED';
+        debit = 0;
+        credit = Math.abs(amount);
+        description = `${p.payment_mode || 'Payment'} received (${p.receipt_no || ''})`;
+      }
 
-       rows.push({
-         _sortDate: pDate || '0000-00-00',
-         _sortType: isVoid ? 3 : (isCredit ? 2 : 1),
-         _id: p.id,
-         date: pDate,
-         type,
-         refNo: p.receipt_no || null,
-         description,
-         debit,
-         credit,
-         mode: p.payment_mode || null,
-         invoiceId: p.invoice_id || null,
-         paymentId: p.id,
-         status,
-         affects_cash: true,
-       });
+      rows.push({
+        _sortDate: pDate || '0000-00-00',
+        _sortType: isVoid ? 3 : (isTransportAdj || isHostelAdj ? 2 : isCredit ? 2 : 1),
+        _id: p.id,
+        date: pDate,
+        type,
+        refNo: p.receipt_no || null,
+        description,
+        debit,
+        credit,
+        mode: (isTransportAdj || isHostelAdj) ? 'Adjustment' : (p.payment_mode || null),
+        invoiceId: p.invoice_id || null,
+        paymentId: p.id,
+        status,
+        affects_cash: (isTransportAdj || isHostelAdj) ? false : true,
+      });
     }
 
     // Sort: date asc → type order (INVOICE=0, PAYMENT=1, CREDIT=2, VOID=3) → id
@@ -210,9 +240,10 @@ Deno.serve(async (req) => {
     // Summary: only POSTED rows count
     const postedRows = withBalance.filter(r => r.status === 'POSTED');
     const totalInvoiced = postedRows.filter(r => r.type === 'INVOICE').reduce((s, r) => s + r.debit, 0);
-
-    // Paid total: SUM of real payments + credit adjustments
-    const totalPaid = postedRows.filter(r => ['PAYMENT', 'CREDIT'].includes(r.type)).reduce((s, r) => s + r.credit, 0);
+    
+    // Paid total: SUM of real payments + credit adjustments (excludes TRANSPORT_ADJUSTMENT and HOSTEL_ADJUSTMENT)
+    // TRANSPORT_ADJUSTMENT and HOSTEL_ADJUSTMENT entries affect balance but NOT cash collection totals
+    const totalPaid     = postedRows.filter(r => ['PAYMENT', 'CREDIT'].includes(r.type)).reduce((s, r) => s + r.credit, 0);
     
     const voidCount     = withBalance.filter(r => r.status === 'VOID').length;
 
