@@ -112,7 +112,16 @@ Deno.serve(async (req) => {
     // Determine entry type (default to CASH_PAYMENT)
     const finalEntryType = entryType || 'CASH_PAYMENT';
     
-    // Create payment record
+    // Freeze receipt snapshot BEFORE payment (captures state at that moment)
+    const receiptSnapshot = {
+      invoice_gross_total: invoice.gross_total || 0,
+      invoice_discount_total: invoice.discount_total || 0,
+      invoice_net_total: invoice.total_amount || 0,
+      total_paid_before: invoice.paid_amount || 0,
+      balance_before: (invoice.total_amount || 0) - (invoice.paid_amount || 0)
+    };
+
+    // Create payment record with frozen snapshot
     const payment = await base44.asServiceRole.entities.FeePayment.create({
       academic_year: academicYear,
       invoice_id: invoice.id,
@@ -129,7 +138,8 @@ Deno.serve(async (req) => {
       affects_cash: finalEntryType === 'CASH_PAYMENT',
       remarks: remarks || '',
       collected_by: user?.email || user?.username || 'system',
-      collected_by_name: user?.full_name || user?.email || user?.username || 'system'
+      collected_by_name: user?.full_name || user?.email || user?.username || 'system',
+      receipt_snapshot: receiptSnapshot
     });
     
     // ── Log payment for audit trail (Fire-and-Forget) ──────
