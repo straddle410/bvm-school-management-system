@@ -12,6 +12,7 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
     const body = await req.json();
     const { academicYear, classNameFilter, sectionFilter, examTypeIdOrName, _staffToken } = body;
 
