@@ -35,9 +35,12 @@ export default function MessageThread({ messages, currentUserId, onBack, onReply
                     {msg.subject_area}
                   </span>
                 )}
-                <p className={`text-[10px] mt-1.5 ${isMe ? 'text-blue-300' : 'text-gray-400'}`}>
-                  {format(new Date(msg.created_date), 'dd MMM, hh:mm a')}
-                </p>
+                <div className={`flex items-center justify-end gap-1 mt-1.5`}>
+                  <span className={`text-[10px] ${isMe ? 'text-blue-300' : 'text-gray-400'}`}>
+                    {format(new Date(msg.created_date), 'dd MMM, hh:mm a')}
+                  </span>
+                  {isMe && <MessageTick message={msg} size={13} />}
+                </div>
               </div>
             </div>
           );

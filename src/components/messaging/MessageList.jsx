@@ -1,6 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { Users, User, ChevronRight } from 'lucide-react';
+import MessageTick from './MessageTick';
 
 export default function MessageList({ messages, currentUserId, onSelect, emptyText = 'No messages' }) {
   if (messages.length === 0) {
