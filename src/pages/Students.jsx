@@ -605,7 +605,9 @@ export default function Students() {
               </Link>
               <div className="min-w-0">
                 <h1 className="text-base font-bold text-slate-900 dark:text-white truncate leading-tight">Students <span className="text-[#1a237e]">— {academicYear}</span></h1>
-                <p className="text-xs text-slate-400 dark:text-gray-500 leading-tight">{totalCount} students</p>
+                <p className="text-xs text-slate-400 dark:text-gray-500 leading-tight">
+                  {totalCount} {activeTab === 'active' ? 'active' : activeTab === 'pipeline' ? 'in pipeline' : 'alumni'} students
+                </p>
               </div>
             </div>
 
