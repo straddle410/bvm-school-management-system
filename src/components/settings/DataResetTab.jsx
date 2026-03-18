@@ -440,6 +440,10 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
               <CheckCircle2 className="h-4 w-4" /> OTP verified successfully
             </div>
 
+            <div className="text-xs bg-slate-50 p-2 rounded border border-slate-200 text-slate-600">
+              <p><strong>Checking:</strong> Phrase={confirmPhrase === 'RESET SCHOOL DATA' ? '✓' : '✗'} School={confirmSchool === (profile?.school_name || '') ? '✓' : '✗'} Date={confirmDate === today ? '✓' : '✗'}</p>
+            </div>
+
             <div>
               <Label>Type exactly: <code className="bg-slate-100 px-2 py-0.5 rounded text-red-700">RESET SCHOOL DATA</code></Label>
               <Input value={confirmPhrase} onChange={e => setConfirmPhrase(e.target.value)} className="mt-1 font-mono" placeholder="RESET SCHOOL DATA" />
@@ -447,15 +451,15 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
             </div>
 
             <div>
-              <Label>Type your school name exactly: <code className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">{profile?.school_name}</code></Label>
+              <Label>Type your school name exactly: <code className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">{profile?.school_name || 'N/A'}</code></Label>
               <Input value={confirmSchool} onChange={e => setConfirmSchool(e.target.value)} className="mt-1" placeholder={profile?.school_name} />
-              {confirmSchool && confirmSchool !== (profile?.school_name || '') && <p className="text-xs text-red-500 mt-1">Does not match</p>}
+              {confirmSchool && confirmSchool !== (profile?.school_name || '') && <p className="text-xs text-red-500 mt-1">Does not match (you entered "{confirmSchool}", expected "{profile?.school_name}")</p>}
             </div>
 
             <div>
               <Label>Type today's date: <code className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">{today}</code></Label>
               <Input value={confirmDate} onChange={e => setConfirmDate(e.target.value)} className="mt-1 font-mono" placeholder={today} />
-              {confirmDate && confirmDate !== today && <p className="text-xs text-red-500 mt-1">Does not match</p>}
+              {confirmDate && confirmDate !== today && <p className="text-xs text-red-500 mt-1">Does not match (you entered "{confirmDate}", expected "{today}")</p>}
             </div>
 
             {selectedYear && (
