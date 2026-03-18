@@ -440,8 +440,8 @@ function StudentLedgerContent() {
         </Card>
       ) : (
         <div className="text-center py-16 text-slate-400 dark:text-gray-500">
-         <Search className="h-10 w-10 mx-auto mb-3 opacity-30" />
-         <p className="text-sm">Search for a student above to view their ledger</p>
+          <User className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          <p className="text-base">Select a class and student above to view their ledger</p>
         </div>
       )}
 
