@@ -963,6 +963,29 @@ export default function Students() {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Hostel Bulk Confirm */}
+        <AlertDialog open={showHostelConfirm} onOpenChange={setShowHostelConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Apply Hostel {hostelAction === 'on' ? 'ON' : 'OFF'}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will set Hostel <strong>{hostelAction === 'on' ? 'ON' : 'OFF'}</strong> for{' '}
+                <strong>{selectedIds.size}</strong> student(s). This action can be reversed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={hostelLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={hostelLoading}
+                className="bg-green-600 hover:bg-green-700"
+                onClick={handleBulkHostel}
+              >
+                {hostelLoading ? 'Updating…' : 'Confirm'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Promote — rendered hidden, triggered via triggerOpen state */}
         <PromoteStudents
           academicYear={academicYear}
