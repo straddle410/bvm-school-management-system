@@ -54,7 +54,7 @@ function StudentLedgerContent() {
     staleTime: 60000
   });
 
-  const availableSections = React.useMemo(() => {
+  const availableSections = useMemo(() => {
     if (!selectedClass) return ['A'];
     const cfg = sectionConfig.find(s => s.class_name === selectedClass);
     return cfg?.sections?.length ? cfg.sections : ['A'];
