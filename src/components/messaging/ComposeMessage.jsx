@@ -96,7 +96,7 @@ export default function ComposeMessage({ sender, onClose, onSent, replyTo = null
           parent_message_id: replyTo?.id || null,
           academic_year: academicYear,
           subject_area: subjectArea || null,
-          ...(sender.role === 'student' ? { _studentId: sender.id } : {}),
+          ...(sender.role === 'student' ? { _studentId: sender.id } : { _staffUsername: sender.id }),
         });
         if (res.status !== 200) {
           const errorMsg = res.data?.error || 'Failed to send message';
