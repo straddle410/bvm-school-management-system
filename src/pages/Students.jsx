@@ -674,6 +674,10 @@ export default function Students() {
             filterSection={filterSection} onFilterSection={(v) => { setFilterSection(v); setPage(1); }}
             filterTransport={activeTab === 'active' ? filterTransport : null}
             onFilterTransport={activeTab === 'active' ? (v) => { setFilterTransport(v); setPage(1); } : null}
+            filterHostel={activeTab === 'active' ? filterHostel : null}
+            onFilterHostel={activeTab === 'active' ? (v) => { setFilterHostel(v); setPage(1); } : null}
+            filterDaysColor={activeTab === 'active' ? filterDaysColor : null}
+            onFilterDaysColor={activeTab === 'active' ? (v) => { setFilterDaysColor(v); setPage(1); } : null}
             showDeleted={showDeleted} onToggleDeleted={isAdmin && activeTab === 'active' ? () => { setShowDeleted(v => !v); setPage(1); } : null}
             availableClasses={sfAvailableClasses}
             availableSections={sfAvailableSections}
