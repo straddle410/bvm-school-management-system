@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
             updatedFeeHeads = feeHeads.filter(fh => fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport');
           }
 
-          const newGross = updatedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
+          const newGross = updatedFeeHeads.reduce((s, fh) => s + (fh.gross_amount || 0), 0);
           const discountTotal = invoice.discount_total || 0;
           const newNet = Math.max(newGross - discountTotal, 0);
           const paidSoFar = invoice.paid_amount || 0;
