@@ -318,12 +318,13 @@ function StudentLedgerContent() {
                 <TableBody>
                   {sortedStudents.map(s => {
                     const studentInvoice = ledgerData.invoices?.find(inv => inv.student_id === s.student_id);
-                    // GROSS = sum of all fee heads (Annual + Transport + Hostel)
-                    const grossAmt = studentInvoice?.fee_heads?.reduce((sum, fh) => sum + (fh.gross_amount || 0), 0) || studentInvoice?.gross_total || 0;
+                    // GROSS = sum of all fee heads (Tuition + Kit + Hostel + Transport - all applicable)
+                    const grossAmt = studentInvoice?.gross_total || 0;
                     const discountAmt = studentInvoice?.discount_total || 0;
                     const netAmt = studentInvoice?.total_amount || 0;
                     const paidAmt = studentInvoice?.paid_amount || 0;
-                    const balanceAmt = ledgerData.balanceMap?.[s.student_id] || 0;
+                    // BALANCE = Gross - Discount - Paid (for ANNUAL invoice only)
+                    const balanceAmt = Math.max(0, grossAmt - discountAmt - paidAmt);
                     
                     return (
                       <TableRow key={s.id} className="text-xs hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedStudent(s)}>
