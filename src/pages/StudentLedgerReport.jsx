@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, FileText, ChevronRight, User } from 'lucide-react';
+import { Download, Search, FileText, ChevronRight, User, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAcademicYear } from '@/components/AcademicYearContext';
@@ -46,6 +46,23 @@ function StudentLedgerContent() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
+  const [showInvoicesList, setShowInvoicesList] = useState(!selectedStudent);
+
+  // Fetch invoices for the selected student
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
+    queryKey: ['student-invoices', selectedStudent?.student_id, academicYear],
+    queryFn: () => base44.entities.FeeInvoice.filter({
+      student_id: selectedStudent.student_id,
+      academic_year: academicYear,
+      invoice_type: 'ANNUAL'
+    }),
+    enabled: !!selectedStudent && !!academicYear,
+    staleTime: 30000
+  });
+
+  const handlePayClick = (invoice) => {
+    navigate(`${createPageUrl('Fees')}?tab=ledger&student_id=${selectedStudent.student_id}&className=${selectedStudent.class_name}`);
+  };
 
   // Fetch sections for selected class from SectionConfig
   const { data: sectionConfig = [] } = useQuery({
