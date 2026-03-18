@@ -759,30 +759,51 @@ export default function Students() {
                     <div className="h-5 w-px bg-gray-200" />
 
                     {/* Transport bulk action */}
-                    <Select value={transportAction} onValueChange={setTransportAction}>
-                      <SelectTrigger className="h-8 text-xs w-40 rounded-xl">
-                        <SelectValue placeholder="Transport…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="on">Transport ON</SelectItem>
-                        <SelectItem value="off">Transport OFF</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="sm"
-                      className="h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs"
-                      disabled={!transportAction}
-                      onClick={() => setShowTransportConfirm(true)}
-                    >
-                      <Bus className="h-3.5 w-3.5 mr-1" /> Apply
-                    </Button>
+                     <Select value={transportAction} onValueChange={setTransportAction}>
+                       <SelectTrigger className="h-8 text-xs w-40 rounded-xl">
+                         <SelectValue placeholder="Transport…" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="on">Transport ON</SelectItem>
+                         <SelectItem value="off">Transport OFF</SelectItem>
+                       </SelectContent>
+                     </Select>
+                     <Button
+                       size="sm"
+                       className="h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs"
+                       disabled={!transportAction}
+                       onClick={() => setShowTransportConfirm(true)}
+                     >
+                       <Bus className="h-3.5 w-3.5 mr-1" /> Apply
+                     </Button>
 
-                    <button
-                      onClick={() => { setSelectedIds(new Set()); setBulkAction(''); setTransportAction(''); }}
-                      className="text-xs text-gray-400 hover:text-gray-600 underline"
-                    >
-                      Clear
-                    </button>
+                     <div className="h-5 w-px bg-gray-200" />
+
+                     {/* Hostel bulk action */}
+                     <Select value={hostelAction} onValueChange={setHostelAction}>
+                       <SelectTrigger className="h-8 text-xs w-40 rounded-xl">
+                         <SelectValue placeholder="Hostel…" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="on">Hostel ON</SelectItem>
+                         <SelectItem value="off">Hostel OFF</SelectItem>
+                       </SelectContent>
+                     </Select>
+                     <Button
+                       size="sm"
+                       className="h-8 rounded-xl bg-green-600 hover:bg-green-700 text-xs"
+                       disabled={!hostelAction}
+                       onClick={() => setShowHostelConfirm(true)}
+                     >
+                       🏠 Apply
+                     </Button>
+
+                     <button
+                       onClick={() => { setSelectedIds(new Set()); setBulkAction(''); setTransportAction(''); setHostelAction(''); }}
+                       className="text-xs text-gray-400 hover:text-gray-600 underline"
+                     >
+                       Clear
+                     </button>
                   </div>
                 </>
               )}
