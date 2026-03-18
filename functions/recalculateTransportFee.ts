@@ -148,28 +148,28 @@ Deno.serve(async (req) => {
       // ── EXECUTE ────────────────────────────────────────────────────────────
       try {
         if (isLocked) {
-          // Create or update TRANSPORT_ADJUSTMENT payment entry
-          const existingAdj = transportAdjMap[invoice.id];
-          const adjAmount = delta; // positive = debit (owed more), negative = credit (owed less)
+           // Create or update TRANSPORT_ADJUSTMENT payment entry
+           const existingAdj = transportAdjMap[invoice.id];
+           const adjAmount = targetTransportAmt; // Use target amount, not delta
 
-          if (existingAdj) {
-            // Update existing adjustment
-            const prevAdjAmt = existingAdj.amount_paid || 0;
-            const combinedDelta = prevAdjAmt + adjAmount;
-            if (combinedDelta === 0) {
-              // Cancel it out — delete the adjustment
-              await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                status: 'CANCELLED',
-                remarks: `Transport adjustment cancelled — transport_enabled=${transportEnabled} — by ${user.email}`
-              });
-            } else {
-              await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                amount_paid: combinedDelta,
-                remarks: `Transport adjustment updated: ₹${combinedDelta} — transport_enabled=${transportEnabled} — by ${user.email}`,
-                updated_by: user.email
-              });
-            }
-          } else {
+           if (existingAdj) {
+             // Always set to target amount, fixing any mismatches from prior runs
+             const currentAmt = existingAdj.amount_paid || 0;
+             if (targetTransportAmt === 0) {
+               // Cancel it out — delete the adjustment
+               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
+                 status: 'CANCELLED',
+                 remarks: `Transport adjustment cancelled — transport_enabled=${transportEnabled} — by ${user.email}`
+               });
+             } else if (currentAmt !== targetTransportAmt) {
+               // Correct mismatched amount (e.g., from prior buggy cumulative runs)
+               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
+                 amount_paid: targetTransportAmt,
+                 remarks: `Transport adjustment corrected from ₹${currentAmt} to ₹${targetTransportAmt} — by ${user.email}`,
+                 updated_by: user.email
+               });
+             }
+           } else {
             const reason = delta > 0
               ? 'Transport enabled after invoice generation'
               : 'Transport disabled after invoice generation';
