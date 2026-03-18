@@ -7,8 +7,9 @@ import {
   Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
   ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
   MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
-  Ticket, BarChart3
+  Ticket, BarChart3, Sun, Moon
 } from 'lucide-react';
+import { useDarkMode } from '@/components/useDarkMode';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
@@ -42,6 +43,7 @@ export default function StudentDashboard() {
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartY = useRef(0);
+  const [isDark, setIsDark] = useDarkMode();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
