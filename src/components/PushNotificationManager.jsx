@@ -320,12 +320,15 @@ export default function PushNotificationManager({ studentId }) {
           console.log('[PushNotificationManager] Student token obtained:', token?.substring(0, 20) + '...');
 
           if (token) {
+            const alreadyHadToken = !!pref.browser_push_token;
             console.log('[Token Save] Saving token for:', studentIdValue, 'token:', token?.substring(0, 20));
             await base44.entities.StudentNotificationPreference.update(pref.id, {
               browser_push_token: token
             });
             console.log('[PushNotificationManager] Student token saved to DB');
-            toast.success("Student notifications enabled!");
+            if (!alreadyHadToken) {
+              toast.success("Student notifications enabled!");
+            }
           }
         } catch (error) {
           console.error('[PushNotificationManager] Failed to get student token:', error);
