@@ -24,6 +24,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — no staff token provided' }, { status: 401 });
     }
 
+    const { academicYear, classNameFilter, sectionFilter, examTypeIdOrName } = body; // already destructured above
     if (!academicYear || !classNameFilter || !sectionFilter || !examTypeIdOrName) {
       return Response.json({ error: 'Academic year, class, section, and exam type are required' }, { status: 400 });
     }
