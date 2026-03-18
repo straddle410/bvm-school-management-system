@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, Calendar, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentDiary() {
   console.log('[ENTRY] StudentDiary:', window.location.pathname);
@@ -134,7 +135,8 @@ export default function StudentDiary() {
             </div>
           ))
         )}
-      </div>
-    </div>
-  );
-}
+        </div>
+        <StudentMinimalFooterNav />
+        </div>
+        );
+        }

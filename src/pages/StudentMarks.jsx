@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentMarks() {
   console.log('[ENTRY] StudentMarks:', window.location.pathname);
@@ -160,6 +161,7 @@ export default function StudentMarks() {
           </div>
         )}
       </div>
+      <StudentMinimalFooterNav />
     </div>
   );
 }

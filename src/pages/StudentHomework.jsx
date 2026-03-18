@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { BookOpen, Clock, CheckCircle, AlertCircle, ChevronRight, X, Calendar, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import StudentBottomNav from '@/components/StudentBottomNav';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 import HomeworkTakeModal from '@/components/homework/HomeworkTakeModal.jsx';
 import { createPageUrl } from '@/utils';
 import { getEffectiveDueDate } from '@/components/utils/homeworkStatusHelper';
@@ -323,7 +323,7 @@ export default function StudentHomework() {
         />
       )}
 
-      <StudentBottomNav currentPage="StudentHomework" />
+      <StudentMinimalFooterNav />
     </div>
   );
 }
