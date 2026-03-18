@@ -47,7 +47,7 @@ export default function Messaging() {
   }, []);
 
   const sender = user ? {
-    id: user.email,
+    id: user.email,  // user.email is set to username from staff_session
     name: user.full_name,
     role: (user.role === 'admin' || user.role === 'Admin') ? 'admin' : 'teacher',
     academic_year: user?.academic_year || '2024-25'
