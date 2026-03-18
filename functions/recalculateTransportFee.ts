@@ -1,103 +1,89 @@
-/**
- * Recalculate Transport Fee for selected students.
- *
- * SAFE RULES:
- *  - Invoice with NO payments → edit lines directly, recompute totals.
- *  - Invoice WITH payments    → create/update a TRANSPORT_ADJUSTMENT FeePayment entry
- *                               (entry_type="TRANSPORT_ADJUSTMENT", affects_cash=false).
- * Idempotent: running twice for the same student/year is safe (detects existing adjustments).
- * Admin-only.
- */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || (user.role || '').toLowerCase() !== 'admin') {
-      return Response.json({ error: 'Admin only' }, { status: 403 });
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { studentIds, academicYear, previewOnly = false } = await req.json();
+    const body = await req.json();
+    const {
+      studentIds = [],
+      academicYear = '2025-26',
+      previewOnly = false,
+      voidAdjustments = false
+    } = body;
 
-    if (!studentIds?.length || !academicYear) {
-      return Response.json({ error: 'studentIds and academicYear are required' }, { status: 400 });
+    if (!studentIds.length) {
+      return Response.json({ error: 'studentIds required' }, { status: 400 });
     }
 
-    // Load school profile for transport fee amount
-    const profiles = await base44.asServiceRole.entities.SchoolProfile.list();
-    const transportFeeAmount = profiles[0]?.transport_fee_amount || 0;
+    // Get config
+    const [schoolProfile] = await Promise.all([
+      base44.asServiceRole.entities.SchoolProfile.list().then(r => r[0] || {})
+    ]);
 
-    // Load students
-    const allStudents = await base44.asServiceRole.entities.Student.filter({ academic_year: academicYear });
-    const studentMap = {};
-    for (const s of allStudents) {
-      if (studentIds.includes(s.student_id)) studentMap[s.student_id] = s;
-    }
+    const transportFeeAmount = schoolProfile.transport_fee_amount || 0;
 
-    // Load annual invoices for these students in this year
-    const allInvoices = await base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear });
-    const invoiceMap = {}; // student_id -> annual invoice
-    for (const inv of allInvoices) {
-      if (!studentIds.includes(inv.student_id)) continue;
-      if ((inv.invoice_type || 'ANNUAL') === 'ANNUAL' && inv.status !== 'Cancelled') {
-        invoiceMap[inv.student_id] = inv;
-      }
-    }
+    // Fetch all related data
+    const [students, invoices, payments] = await Promise.all([
+      base44.asServiceRole.entities.Student.filter({ student_id: { $in: studentIds }, academic_year: academicYear }),
+      base44.asServiceRole.entities.FeeInvoice.filter({ student_id: { $in: studentIds }, academic_year: academicYear, invoice_type: 'ANNUAL' }),
+      base44.asServiceRole.entities.FeePayment.filter({ student_id: { $in: studentIds }, academic_year: academicYear })
+    ]);
 
-    // Load all payments for these students (to check locked status)
-    const allPayments = await base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear });
-    const paymentsByInvoice = {}; // invoice_id -> payments[]
-    const transportAdjMap = {}; // invoice_id -> TRANSPORT_ADJUSTMENT payment
-    for (const p of allPayments) {
-      if (!p.invoice_id || !studentIds.includes(p.student_id)) continue;
+    const studentMap = Object.fromEntries(students.map(s => [s.student_id, s]));
+    const invoicesByStudent = {};
+    invoices.forEach(inv => {
+      if (!invoicesByStudent[inv.student_id]) invoicesByStudent[inv.student_id] = [];
+      invoicesByStudent[inv.student_id].push(inv);
+    });
+
+    const paymentsByInvoice = {};
+    const transportAdjMap = {};
+    payments.forEach(p => {
       if (!paymentsByInvoice[p.invoice_id]) paymentsByInvoice[p.invoice_id] = [];
       paymentsByInvoice[p.invoice_id].push(p);
-      if (p.entry_type === 'TRANSPORT_ADJUSTMENT' && (p.status || '').toLowerCase() !== 'void') {
+
+      if (p.entry_type === 'TRANSPORT_ADJUSTMENT' && (p.status || '').toUpperCase() !== 'CANCELLED') {
         transportAdjMap[p.invoice_id] = p;
       }
-    }
+    });
 
     const results = [];
 
     for (const studentId of studentIds) {
       const student = studentMap[studentId];
       if (!student) {
-        results.push({ student_id: studentId, status: 'SKIP', reason: 'Student not found in academic year' });
+        results.push({ student_id: studentId, status: 'SKIP', reason: 'Student not found' });
         continue;
       }
 
-      const invoice = invoiceMap[studentId];
-      if (!invoice) {
-        results.push({ student_id: studentId, student_name: student.name, status: 'SKIP', reason: 'No annual invoice found' });
+      const invoiceList = invoicesByStudent[studentId] || [];
+      if (!invoiceList.length) {
+        results.push({ student_id: studentId, status: 'SKIP', reason: 'No invoices found' });
         continue;
       }
 
-      const transportEnabled = !!student.transport_enabled;
+      const invoice = invoiceList[0];
       const feeHeads = invoice.fee_heads || [];
-      const existingTransportLine = feeHeads.find(fh => (fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport') && !fh.is_hostel);
-      const existingTransportAmt = existingTransportLine ? (existingTransportLine.gross_amount || existingTransportLine.amount || 0) : 0;
-
-      // Determine what the target transport amount should be
+      const transportEnabled = student.transport_enabled || false;
       const targetTransportAmt = transportEnabled ? transportFeeAmount : 0;
-      const delta = targetTransportAmt - existingTransportAmt; // positive = add, negative = remove, 0 = no change
 
-      const oldTotal = invoice.total_amount || 0;
-      const newTotal = oldTotal + delta;
+      // Calculate existing transport from fee_heads
+      const existingTransportLine = feeHeads.find(fh => fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport');
+      const existingTransportAmt = existingTransportLine ? (existingTransportLine.amount || 0) : 0;
 
-      // Guard: no negative totals
-      if (newTotal < 0) {
-        results.push({
-          student_id: studentId,
-          student_name: student.name,
-          status: 'SKIP',
-          reason: `Would result in negative total (₹${newTotal}). Skipped.`
-        });
-        continue;
-      }
+      // Calculate deltas
+      const delta = targetTransportAmt - existingTransportAmt;
+      const oldTotal = invoice.gross_total || 0;
+      const newTotal = Math.max(oldTotal + delta, 0);
 
-      // No change needed
-      if (delta === 0) {
+      // Check if already correct
+      if (delta === 0 && !voidAdjustments) {
         results.push({
           student_id: studentId,
           student_name: student.name,
@@ -148,66 +134,66 @@ Deno.serve(async (req) => {
       // ── EXECUTE ────────────────────────────────────────────────────────────
       try {
         if (isLocked) {
-           // Remove transport from fee_heads (adjustment will handle it, not fee_heads)
-           const cleanedFeeHeads = feeHeads.filter(fh => (fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport') || fh.is_hostel);
-           const cleanedGross = cleanedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
+          // Remove transport from fee_heads (adjustment will handle it, not fee_heads)
+          const cleanedFeeHeads = feeHeads.filter(fh => (fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport') || fh.is_hostel);
+          const cleanedGross = cleanedFeeHeads.reduce((s, fh) => s + (fh.amount || 0), 0);
 
-           // Create or update TRANSPORT_ADJUSTMENT payment entry
-           const existingAdj = transportAdjMap[invoice.id];
-           const adjAmount = targetTransportAmt; // Use target amount, not delta
+          // Create or update TRANSPORT_ADJUSTMENT payment entry
+          const existingAdj = transportAdjMap[invoice.id];
+          const adjAmount = targetTransportAmt; // Use target amount, not delta
 
-           if (existingAdj) {
-             // Always set to target amount, fixing any mismatches from prior runs
-             const currentAmt = existingAdj.amount_paid || 0;
-             if (targetTransportAmt === 0) {
-               // Cancel it out — delete the adjustment
-               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                 status: 'CANCELLED',
-                 remarks: `Transport adjustment cancelled — transport_enabled=${transportEnabled} — by ${user.email}`
-               });
-             } else if (currentAmt !== targetTransportAmt) {
-               // Correct mismatched amount (e.g., from prior buggy cumulative runs)
-               await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
-                 amount_paid: targetTransportAmt,
-                 remarks: `Transport adjustment corrected from ₹${currentAmt} to ₹${targetTransportAmt} — by ${user.email}`,
-                 updated_by: user.email
-               });
-             }
-           } else if (targetTransportAmt > 0) {
-             const reason = delta > 0
-               ? 'Transport enabled after invoice generation'
-               : 'Transport disabled after invoice generation';
-             await base44.asServiceRole.entities.FeePayment.create({
-                student_id: student.student_id,
-                invoice_id: invoice.id,
-                academic_year: academicYear,
-                amount_paid: adjAmount,
-                payment_date: new Date().toISOString().split('T')[0],
-                payment_mode: 'Adjustment',
-                entry_type: 'TRANSPORT_ADJUSTMENT',
-                affects_cash: false,
-                status: 'Active',
-                remarks: reason,
-                receipt_no: `TADJ-${student.student_id}-${academicYear}`,
-                collected_by: user.email
+          if (existingAdj) {
+            // Always set to target amount, fixing any mismatches from prior runs
+            const currentAmt = existingAdj.amount_paid || 0;
+            if (targetTransportAmt === 0) {
+              // Cancel it out — mark as cancelled
+              await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
+                status: 'CANCELLED',
+                remarks: `Transport adjustment cancelled — transport_enabled=${transportEnabled} — by ${user.email}`
               });
-           }
+            } else if (currentAmt !== targetTransportAmt) {
+              // Correct mismatched amount (e.g., from prior buggy cumulative runs)
+              await base44.asServiceRole.entities.FeePayment.update(existingAdj.id, {
+                amount_paid: targetTransportAmt,
+                remarks: `Transport adjustment corrected from ₹${currentAmt} to ₹${targetTransportAmt} — by ${user.email}`,
+                updated_by: user.email
+              });
+            }
+          } else if (targetTransportAmt > 0) {
+            const reason = delta > 0
+              ? 'Transport enabled after invoice generation'
+              : 'Transport disabled after invoice generation';
+            await base44.asServiceRole.entities.FeePayment.create({
+              student_id: student.student_id,
+              invoice_id: invoice.id,
+              academic_year: academicYear,
+              amount_paid: adjAmount,
+              payment_date: new Date().toISOString().split('T')[0],
+              payment_mode: 'Adjustment',
+              entry_type: 'TRANSPORT_ADJUSTMENT',
+              affects_cash: false,
+              status: 'Active',
+              remarks: reason,
+              receipt_no: `TADJ-${student.student_id}-${academicYear}`,
+              collected_by: user.email
+            });
+          }
 
-           // Update invoice: remove transport from fee_heads, update totals
-           const discountTotal = invoice.discount_total || 0;
-           const adjustedNet = Math.max(cleanedGross - discountTotal, 0);
-           const adjustedBalance = Math.max(adjustedNet - (invoice.paid_amount || 0), 0);
-           await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
-             fee_heads: cleanedFeeHeads,
-             gross_total: cleanedGross,
-             total_amount: adjustedNet,
-             balance: adjustedBalance
-           });
+          // Update invoice: remove transport from fee_heads, update totals
+          const discountTotal = invoice.discount_total || 0;
+          const adjustedNet = Math.max(cleanedGross - discountTotal, 0);
+          const adjustedBalance = Math.max(adjustedNet - (invoice.paid_amount || 0), 0);
+          await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
+            fee_heads: cleanedFeeHeads,
+            gross_total: cleanedGross,
+            total_amount: adjustedNet,
+            balance: adjustedBalance
+          });
 
-           results.push({ ...preview, status: 'DONE', method: 'ADJUSTMENT' });
+          results.push({ ...preview, status: 'DONE', method: 'ADJUSTMENT' });
 
         } else {
-          // Edit invoice directly
+          // Edit invoice directly — add/remove transport from fee_heads
           let updatedFeeHeads;
           if (transportEnabled) {
             if (existingTransportLine) {
