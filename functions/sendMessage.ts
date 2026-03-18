@@ -81,23 +81,26 @@ Deno.serve(async (req) => {
       parent_message_id,
       academic_year,
       subject_area,
-      _studentId,  // student custom session identifier
+      _studentId,     // student custom session identifier
+      _staffUsername, // staff custom session identifier
     } = payload;
 
-    // ── AUTH: Support both Base44 JWT (staff) and student custom sessions ──
+    // ── AUTH: Support Base44 JWT, student sessions, and staff custom sessions ──
     let isAuthed = false;
 
     if (sender_role === 'student' && _studentId) {
-      // Student custom session: verify _studentId matches sender_id
+      // Student custom session: verify _studentId matches sender_id and student is active
       if (_studentId === sender_id) {
-        // Verify student exists and is active
         const students = await base44.asServiceRole.entities.Student.filter({ student_id: _studentId });
         if (students.length > 0 && !students[0].is_deleted && students[0].is_active !== false) {
           isAuthed = true;
         }
       }
+    } else if (_staffUsername && _staffUsername === sender_id) {
+      // Staff custom session: username must match sender_id
+      isAuthed = true;
     } else {
-      // Staff: validate via Base44 JWT
+      // Base44 JWT (admin via platform)
       try {
         const user = await base44.auth.me();
         if (user) isAuthed = true;
