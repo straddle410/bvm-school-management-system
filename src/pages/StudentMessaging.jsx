@@ -120,7 +120,6 @@ export default function StudentMessaging() {
     // Use server-side thread fetch for correct access control and full thread history
     const res = await base44.functions.invoke('getMessageThread', {
       thread_id: threadId,
-      _studentId: student.student_id,
     });
     const threadMessages = res.status === 200 ? (res.data.messages || []) : [msg];
     setSelectedThread(threadMessages);
