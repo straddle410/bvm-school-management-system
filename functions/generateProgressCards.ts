@@ -384,6 +384,8 @@ Deno.serve(async (req) => {
           academic_year: academicYear,
           exam_performance: [{
             exam_type: examData.exam_type,
+            exam_type_id: selectedExamTypeId,
+            exam_type_name: examTypeMap[examData.exam_type] || examData.exam_type,
             exam_name: examTypeMap[examData.exam_type] || examData.exam_type,
             total_marks: examData.total_marks,
             max_marks: examData.max_marks,
