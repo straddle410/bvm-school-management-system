@@ -65,8 +65,37 @@ export default function StudentFilters({
               </SelectContent>
             </Select>
           )}
-        </div>
-      </div>
+
+          {/* Hostel filter — only shown on Active tab */}
+          {onFilterHostel && (
+            <Select value={filterHostel} onValueChange={onFilterHostel}>
+              <SelectTrigger className="w-full sm:w-32 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                <span className="mr-1 text-green-500">🏠</span>
+                <SelectValue placeholder="Hostel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Hostel</SelectItem>
+                <SelectItem value="on">Hostel ON</SelectItem>
+                <SelectItem value="off">Hostel OFF</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Days/Color filter — only shown on Active tab */}
+          {onFilterDaysColor && (
+            <Select value={filterDaysColor} onValueChange={onFilterDaysColor}>
+              <SelectTrigger className="w-full sm:w-40 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                <SelectValue placeholder="Days Color" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Days</SelectItem>
+                <SelectItem value="weekend">Weekend Only</SelectItem>
+                <SelectItem value="color-coded">Color-Coded Days</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          </div>
+          </div>
 
       {/* Show Deleted — admin only, active tab only */}
       {onToggleDeleted && (
