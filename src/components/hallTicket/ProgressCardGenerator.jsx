@@ -79,13 +79,18 @@ export default function ProgressCardGenerator() {
     }
   });
 
+  const staffToken = (() => {
+    try { return JSON.parse(localStorage.getItem('staff_session') || '{}')?.staff_session_token || null; } catch { return null; }
+  })();
+
   const generateMutation = useMutation({
     mutationFn: async () => {
       const response = await base44.functions.invoke('generateProgressCards', {
         academicYear,
         classNameFilter: filters.class,
         sectionFilter: filters.section,
-        examTypeIdOrName: filters.exam_type
+        examTypeIdOrName: filters.exam_type,
+        _staffToken: staffToken
       });
       return response.data;
     },
