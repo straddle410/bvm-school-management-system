@@ -189,20 +189,9 @@ Deno.serve(async (req) => {
               });
            }
 
-           // Also update invoice totals and add fee head
+           // Also update invoice totals (adjustment handles the fee, not fee_heads)
            const adjustedBalance = Math.max(newTotal - (invoice.paid_amount || 0), 0);
-           let updatedFeeHeads = feeHeads;
-           if (transportEnabled && !existingTransportLine) {
-             updatedFeeHeads = [
-               ...feeHeads,
-               { fee_head_name: 'Transport', fee_head_id: 'transport', amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
-             ];
-           } else if (!transportEnabled && existingTransportLine) {
-             updatedFeeHeads = feeHeads.filter(fh => (fh.fee_head_id !== 'transport' && fh.fee_head_name !== 'Transport') || fh.is_hostel);
-           }
-
            await base44.asServiceRole.entities.FeeInvoice.update(invoice.id, {
-             fee_heads: updatedFeeHeads,
              gross_total: newTotal,
              total_amount: newTotal,
              balance: adjustedBalance
