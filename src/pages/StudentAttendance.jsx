@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, BarChart3, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
+import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentAttendance() {
   console.log('[ENTRY] StudentAttendance:', window.location.pathname);
@@ -236,6 +237,7 @@ export default function StudentAttendance() {
           </>
         )}
       </div>
+      <StudentMinimalFooterNav />
     </div>
   );
 }
