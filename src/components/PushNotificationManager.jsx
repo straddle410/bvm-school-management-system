@@ -343,7 +343,11 @@ export default function PushNotificationManager({ studentId }) {
 
       // iOS limitation check - must be PWA
       if (isIOS && !isPWA) {
-        toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
+        // Only show this toast once per session
+        if (!sessionStorage.getItem('ios_push_hint_shown')) {
+          sessionStorage.setItem('ios_push_hint_shown', '1');
+          toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
+        }
         return;
       }
 
@@ -353,9 +357,16 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
+      // Already initialized this session — skip to avoid repeated toasts
+      if (sessionStorage.getItem('push_initialized')) {
+        console.log('[PushNotificationManager] Already initialized this session, skipping.');
+        return;
+      }
+
       // Auto-init for non-iOS or already granted
       if (!isIOS || Notification.permission === 'granted') {
         console.log('[PushNotificationManager] Auto-initializing...');
+        sessionStorage.setItem('push_initialized', '1');
         initPushNotifications();
       }
 
