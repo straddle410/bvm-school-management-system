@@ -587,10 +587,10 @@ export default function Students() {
     }
   };
 
-  // Stats from current page (server already filtered)
-  const totalActive = students.filter(s => s.status === 'Published').length;
-  const totalPending = students.filter(s => s.status === 'Pending').length;
-  const totalArchived = students.filter(s => s.status === 'Passed Out' || s.status === 'Transferred').length;
+  // Stats derived from server total count (accurate) per tab
+  const totalActive = activeTab === 'active' ? totalCount : allStudents.filter(s => s.status === 'Published').length;
+  const totalPending = allStudents.filter(s => s.status === 'Pending').length;
+  const totalArchived = allStudents.filter(s => s.status === 'Passed Out' || s.status === 'Transferred').length;
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Students">
