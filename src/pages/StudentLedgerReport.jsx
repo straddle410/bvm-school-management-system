@@ -318,7 +318,8 @@ function StudentLedgerContent() {
                 <TableBody>
                   {sortedStudents.map(s => {
                     const studentInvoice = ledgerData.invoices?.find(inv => inv.student_id === s.student_id);
-                    const grossAmt = studentInvoice?.gross_total || 0;
+                    // GROSS = sum of all fee heads (Annual + Transport + Hostel)
+                    const grossAmt = studentInvoice?.fee_heads?.reduce((sum, fh) => sum + (fh.gross_amount || 0), 0) || studentInvoice?.gross_total || 0;
                     const discountAmt = studentInvoice?.discount_total || 0;
                     const netAmt = studentInvoice?.total_amount || 0;
                     const paidAmt = studentInvoice?.paid_amount || 0;
