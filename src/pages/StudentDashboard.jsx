@@ -286,7 +286,7 @@ export default function StudentDashboard() {
               />
             ) : (
               <div className="h-12 w-12 md:h-14 md:w-14 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-                <Home className="h-6 w-6 md:h-7 md:w-7 text-white" />
+                <Bell className="h-6 w-6 md:h-7 md:w-7 text-white" />
               </div>
             )}
             <div className="leading-tight">
