@@ -4,12 +4,14 @@ import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  LogOut, BookOpen, ClipboardList, Bell,
-  Image, Calendar, Brain,
-  Book, MessageSquare,
-  Ticket, BarChart3, Wallet, User, Key
+  Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
+  ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
+  MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
+  Ticket, BarChart3, Sun, Moon, Wallet, User, Key
 } from 'lucide-react';
+import { useDarkMode } from '@/components/useDarkMode';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import { clearSession } from '@/components/sessionHelper';
@@ -46,6 +48,7 @@ export default function StudentDashboard() {
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartY = useRef(0);
+  const [isDark, setIsDark] = useDarkMode();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -286,7 +289,7 @@ export default function StudentDashboard() {
               />
             ) : (
               <div className="h-12 w-12 md:h-14 md:w-14 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-                <Bell className="h-6 w-6 md:h-7 md:w-7 text-white" />
+                <Home className="h-6 w-6 md:h-7 md:w-7 text-white" />
               </div>
             )}
             <div className="leading-tight">
@@ -303,6 +306,12 @@ export default function StudentDashboard() {
                 </span>
               )}
             </Link>
+            <button
+              onClick={() => setIsDark(v => !v)}
+              className="p-2 md:p-2.5 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              {isDark ? <Sun className="h-5 w-5 md:h-6 md:w-6 text-yellow-400" /> : <Moon className="h-5 w-5 md:h-6 md:w-6 text-slate-300" />}
+            </button>
             <button
               onClick={handleLogout}
               className="hidden md:flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-all min-h-[44px]"
