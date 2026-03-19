@@ -21,15 +21,15 @@ export default function StaffLogin() {
   const [linkConflict, setLinkConflict] = useState(false);
   const [logoUrl, setLogoUrl] = useState(null);
 
-  useEffect(() => {
-    // Defer logo loading to after initial render
-    const timer = setTimeout(() => {
-      base44.entities.SchoolProfile.list().then(profiles => {
-        if (profiles?.[0]?.logo_url) setLogoUrl(profiles[0].logo_url);
-      }).catch(() => {});
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  // Logo loading removed for performance testing
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     base44.entities.SchoolProfile.list().then(profiles => {
+  //       if (profiles?.[0]?.logo_url) setLogoUrl(profiles[0].logo_url);
+  //     }).catch(() => {});
+  //   }, 100);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
