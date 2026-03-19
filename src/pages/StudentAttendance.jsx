@@ -122,7 +122,7 @@ export default function StudentAttendance() {
               <div className="grid grid-cols-2 gap-4 text-center text-sm mb-4">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="font-bold text-blue-900">{total_days}</p>
-                  <p className="text-xs text-gray-600">Total Days</p>
+                  <p className="text-xs text-gray-600">Working Days</p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-3">
                   <p className="font-bold text-green-900">{present_days}</p>
