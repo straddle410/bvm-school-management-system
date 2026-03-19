@@ -931,17 +931,17 @@ export default function Staff() {
                   />
                 </div>
                 <div>
-                   <Label>Staff ID</Label>
-                   <div className="relative">
-                     <Input
-                       value={form.username || ''}
-                       readOnly
-                       className="bg-slate-100 dark:bg-gray-700 pr-8 cursor-not-allowed"
-                     />
-                     <Lock className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                   </div>
-                   <p className="text-xs text-slate-400 mt-1">Auto-generated — cannot be changed</p>
+                  <Label>Staff ID / Username</Label>
+                  <div className="relative">
+                    <Input
+                      value={form.username || ''}
+                      readOnly
+                      className="bg-slate-100 dark:bg-gray-700 pr-8 cursor-not-allowed text-sm font-mono"
+                    />
+                    <Lock className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   </div>
+                  <p className="text-xs text-slate-400 mt-1">Auto-generated — cannot be changed</p>
+                </div>
 
                 <div>
                   <Label>Designation</Label>
