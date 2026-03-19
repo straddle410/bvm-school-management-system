@@ -71,8 +71,8 @@ Deno.serve(async (req) => {
         created_staff_id: staff.id,
         created_staff_name: createdStaff.name,
         created_staff_username: createdStaff.username,
-        next_teacher_id: nextId,
-        verification: `✓ Confirmed: Staff created with ID ${teacherId}, next would be ${nextId}`,
+        next_teacher_id: nextTeacherId,
+        verification: `✓ Confirmed: Staff created with ID ${teacherId}, next would be ${nextTeacherId}`,
       },
     });
   } catch (error) {
