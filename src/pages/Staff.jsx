@@ -600,13 +600,13 @@ export default function Staff() {
                       <div>
                         <Label>Role Template *</Label>
                         <Select
-                          value={form.role_template_id}
-                          onValueChange={handleRoleTemplateChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
+                           value={form.role_template_id}
+                           onValueChange={handleRoleTemplateChange}
+                         >
+                           <SelectTrigger>
+                             <SelectValue placeholder="Select role" />
+                           </SelectTrigger>
+                           <SelectContent position="popper">
                             {roleTemplates.map(r => (
                               <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                             ))}
@@ -677,7 +677,7 @@ export default function Staff() {
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent position="popper">
                                     <SelectItem value="Male">Male</SelectItem>
                                     <SelectItem value="Female">Female</SelectItem>
                                     <SelectItem value="Other">Other</SelectItem>
@@ -978,7 +978,7 @@ export default function Staff() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {roleTemplates.map(r => (
                         <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                       ))}

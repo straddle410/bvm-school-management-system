@@ -387,14 +387,14 @@ function MarkAttendanceTab({
              {/* Class Dropdown */}
              <Select value={selectedClass} onValueChange={handleClassChange}>
                <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Class" /></SelectTrigger>
-               <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+               <SelectContent position="popper">{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
              </Select>
 
              {/* Section Dropdown (only show after class is selected) */}
              {selectedClass && (
                <Select value={selectedSection} onValueChange={setSelectedSection}>
                  <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select Section" /></SelectTrigger>
-                 <SelectContent>{availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
+                 <SelectContent position="popper">{availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}</SelectContent>
                </Select>
              )}
            </div>
