@@ -34,7 +34,7 @@ export default function StudentFilters({
             <SelectTrigger className="w-full sm:w-32 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
               <SelectValue placeholder="All Classes" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="all">All Classes</SelectItem>
               {availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
             </SelectContent>
@@ -45,7 +45,7 @@ export default function StudentFilters({
             <SelectTrigger className="w-full sm:w-28 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
               <SelectValue placeholder="Section" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="all">All Sections</SelectItem>
               {availableSections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
             </SelectContent>
@@ -58,7 +58,7 @@ export default function StudentFilters({
                 <Bus className="h-3.5 w-3.5 mr-1 text-blue-500 flex-shrink-0" />
                 <SelectValue placeholder="Transport" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="all">All Transport</SelectItem>
                 <SelectItem value="on">Transport ON</SelectItem>
                 <SelectItem value="off">Transport OFF</SelectItem>
@@ -73,7 +73,7 @@ export default function StudentFilters({
                 <span className="mr-1 text-green-500">🏠</span>
                 <SelectValue placeholder="Hostel" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="all">All Hostel</SelectItem>
                 <SelectItem value="on">Hostel ON</SelectItem>
                 <SelectItem value="off">Hostel OFF</SelectItem>
@@ -87,7 +87,7 @@ export default function StudentFilters({
               <SelectTrigger className="w-full sm:w-40 h-8 text-sm rounded-lg border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
                 <SelectValue placeholder="Days Color" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="all">All Days</SelectItem>
                 <SelectItem value="weekend">Weekend Only</SelectItem>
                 <SelectItem value="color-coded">Color-Coded Days</SelectItem>

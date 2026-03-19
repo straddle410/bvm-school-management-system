@@ -578,7 +578,7 @@ export default function Settings() {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper">
                           {/* Only non-archived, deduplicated */}
                         {[...new Map(activeYears.map(y => [y.year, y])).values()].map(y => (
                           <SelectItem key={y.year} value={y.year}>{y.year}</SelectItem>
@@ -745,7 +745,7 @@ export default function Settings() {
                             <SelectTrigger className="w-32 h-8 text-xs">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper">
                               <SelectItem value="Active">Active</SelectItem>
                               <SelectItem value="Closed">Closed</SelectItem>
                               <SelectItem value="Archived">Archived</SelectItem>
