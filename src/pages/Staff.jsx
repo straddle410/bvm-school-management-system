@@ -357,6 +357,15 @@ export default function Staff() {
       return;
     }
 
+    // Check for duplicate staff ID (create mode only)
+    if (!editingStaff) {
+      const isDuplicate = staffList.some(s => s.username === form.username.trim());
+      if (isDuplicate) {
+        toast.error(`Staff ID ${form.username} already exists. Cannot create duplicate.`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
