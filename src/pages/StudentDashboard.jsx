@@ -360,9 +360,9 @@ export default function StudentDashboard() {
                const badge = notifMap[tile.notifKey] || 0;
                return (
                  <Link key={tile.label} to={createPageUrl(tile.page)} className="relative">
-                  <div className="rounded-2xl px-4 py-5 shadow-sm flex flex-col items-start justify-end gap-3 min-h-[110px] active:scale-95 transition-transform" style={{ backgroundColor: tile.color }}>
-                    <tile.icon className="h-7 w-7 text-white" strokeWidth={1.8} />
-                    <p className="font-bold text-white text-base leading-tight">{tile.label}</p>
+                  <div className="rounded-2xl px-3 py-3 shadow-sm flex flex-col items-start justify-end gap-2 min-h-[85px] active:scale-95 transition-transform" style={{ backgroundColor: tile.color }}>
+                    <tile.icon className="h-5 w-5 text-white" strokeWidth={1.8} />
+                    <p className="font-bold text-white text-sm leading-tight">{tile.label}</p>
                     {badge > 0 && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 shadow">
                         {badge > 99 ? '99+' : badge}
