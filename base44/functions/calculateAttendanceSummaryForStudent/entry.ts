@@ -87,11 +87,11 @@ Deno.serve(async (req) => {
     const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
     const months = [];
-    let current = new Date(start);
+    let monthIter = new Date(start);
     
-    while (current <= end) {
-      const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-      const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+    while (monthIter <= end) {
+      const monthStart = new Date(monthIter.getFullYear(), monthIter.getMonth(), 1);
+      const monthEnd = new Date(monthIter.getFullYear(), monthIter.getMonth() + 1, 0);
       monthStart.setUTCHours(0, 0, 0, 0);
       monthEnd.setUTCHours(23, 59, 59, 999);
 
@@ -104,19 +104,20 @@ Deno.serve(async (req) => {
         return attDate >= periodStart && attDate <= periodEnd;
       });
 
-      const uniqueMonthWorkingDates = new Set();
-      monthRecords.forEach(a => {
-        if (!a.is_holiday && a.attendance_type !== 'holiday') {
-          uniqueMonthWorkingDates.add(a.date);
-        }
-      });
-      const monthWorkingDays = uniqueMonthWorkingDates.size;
+      const monthDaysBetween = [];
+      let monthCurrent = new Date(periodStart);
+      while (monthCurrent <= periodEnd) {
+        monthDaysBetween.push(monthCurrent.toISOString().split('T')[0]);
+        monthCurrent.setDate(monthCurrent.getDate() + 1);
+      }
+      
+      const monthWorkingDays = monthDaysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
 
       const monthFullDayDates = new Set();
       const monthHalfDayDates = new Set();
       
       monthRecords.forEach(a => {
-        if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+        if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
           if (a.attendance_type === 'full_day') {
             monthFullDayDates.add(a.date);
           } else if (a.attendance_type === 'half_day') {
@@ -128,11 +129,11 @@ Deno.serve(async (req) => {
       const monthFullDays = monthFullDayDates.size;
       const monthHalfDays = monthHalfDayDates.size;
       const monthTotalPresent = monthFullDays + (monthHalfDays * 0.5);
-      const monthAbsent = monthWorkingDays - monthFullDays - monthHalfDays;
+      const monthAbsent = Math.max(0, monthWorkingDays - monthFullDays - monthHalfDays);
       const monthPercentage = monthWorkingDays > 0 ? Math.round((monthTotalPresent / monthWorkingDays) * 100) : 0;
 
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const monthName = monthNames[current.getMonth()];
+      const monthName = monthNames[monthIter.getMonth()];
       let displayText = monthName;
 
       if (periodStart.getMonth() === periodEnd.getMonth()) {
@@ -143,7 +144,7 @@ Deno.serve(async (req) => {
 
       months.push({
         month: monthName,
-        year: current.getFullYear(),
+        year: monthIter.getFullYear(),
         month_display: displayText,
         period_start: periodStart.toISOString().split('T')[0],
         period_end: periodEnd.toISOString().split('T')[0],
@@ -155,7 +156,7 @@ Deno.serve(async (req) => {
         attendance_percentage: monthPercentage
       });
 
-      current.setMonth(current.getMonth() + 1);
+      monthIter.setMonth(monthIter.getMonth() + 1);
     }
 
     return Response.json({
