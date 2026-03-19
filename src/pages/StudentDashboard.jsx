@@ -373,6 +373,17 @@ export default function StudentDashboard() {
              })}
           </div>
         </section>
+
+        {/* Logout */}
+        <div className="mt-6 mb-2">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-red-200 text-red-600 font-bold text-sm bg-white dark:bg-slate-800 dark:border-red-800 dark:text-red-400 active:scale-95 transition-transform"
+          >
+            <LogOut className="h-5 w-5" />
+            Logout
+          </button>
+        </div>
       </main>
     </div>
   );
