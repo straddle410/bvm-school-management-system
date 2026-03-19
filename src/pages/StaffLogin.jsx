@@ -19,6 +19,13 @@ export default function StaffLogin() {
   const [error, setError] = useState('');
   const [lockedUntil, setLockedUntil] = useState(null);
   const [linkConflict, setLinkConflict] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  useEffect(() => {
+    base44.entities.SchoolProfile.list().then(profiles => {
+      if (profiles?.[0]?.logo_url) setLogoUrl(profiles[0].logo_url);
+    }).catch(() => {});
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();

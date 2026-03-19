@@ -10,6 +10,13 @@ export default function StudentLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  useEffect(() => {
+    base44.entities.SchoolProfile.list().then(profiles => {
+      if (profiles?.[0]?.logo_url) setLogoUrl(profiles[0].logo_url);
+    }).catch(() => {});
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
