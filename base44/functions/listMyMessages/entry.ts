@@ -38,7 +38,9 @@ Deno.serve(async (req) => {
       query = { sender_id: currentUserId };
     }
 
-    const allMessages = await base44.asServiceRole.entities.Message.filter(query);
+    const INBOX_CAP = 50;
+    const fetchLimit = folder === 'inbox' ? INBOX_CAP : 200;
+    const allMessages = await base44.asServiceRole.entities.Message.filter(query, '-created_date', fetchLimit);
 
     // Auto-mark inbox messages as delivered (sets delivered_at if not already set)
     if (folder === 'inbox') {
