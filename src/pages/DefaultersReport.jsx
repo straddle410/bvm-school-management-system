@@ -453,9 +453,13 @@ export default function DefaultersReportPage() {
                           </td>
                           <td className="px-4 py-3 text-sm">
                             {row.latestFollowUp ? (
-                              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                              <button
+                                onClick={() => handleOpenDetail(row)}
+                                className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium hover:bg-blue-200 cursor-pointer"
+                                title="Click to view follow-up details"
+                              >
                                 {row.latestFollowUp.status}
-                              </span>
+                              </button>
                             ) : (
                               <span className="text-gray-400 text-xs">No follow-up</span>
                             )}
@@ -478,13 +482,6 @@ export default function DefaultersReportPage() {
                                   <MessageCircle className="h-4 w-4" />
                                 </button>
                               )}
-                              <button
-                                onClick={() => handleOpenDetail(row)}
-                                className="text-blue-600 hover:bg-blue-50 p-2 rounded text-xs font-medium"
-                                title="Open detail drawer for full follow-up management"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
                             </div>
                           </td>
                         </tr>
