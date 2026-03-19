@@ -225,6 +225,38 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
 
           {/* Follow-ups Tab */}
           <TabsContent value="followups" className="space-y-4">
+            {/* Existing Follow-ups List */}
+            {followUps.length > 0 && (
+              <div className="space-y-3 mb-6">
+                <h3 className="text-sm font-semibold text-gray-700">Follow-up History</h3>
+                {followUps.map((fu, idx) => (
+                  <Card key={idx} className={`border-l-4 cursor-pointer hover:shadow-md transition ${editingFollowUp?.id === fu.id ? 'border-l-green-500 bg-green-50' : 'border-l-blue-500'}`} onClick={() => setEditingFollowUp(fu)}>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                            {fu.status}
+                          </span>
+                          {fu.priority && (
+                            <span className="ml-2 inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
+                              {fu.priority}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500">{fu.createdAt?.split('T')[0]}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-2">{fu.note}</p>
+                      {fu.nextFollowUpDate && (
+                        <p className="text-xs text-gray-600">Next: {fu.nextFollowUpDate}</p>
+                      )}
+                      <p className="text-xs text-blue-600 mt-2">Click to edit</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Edit Follow-up Form */}
             {editingFollowUp ? (
               <Card className="bg-blue-50 border-2 border-blue-200 mb-6">
                 <CardHeader>
@@ -311,38 +343,8 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
               </Card>
             ) : null}
 
-            <div className="space-y-3 mb-6">
-              {followUps.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-6">No follow-ups yet</p>
-              ) : (
-                followUps.map((fu, idx) => (
-                  <Card key={idx} className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md transition" onClick={() => setEditingFollowUp(fu)}>
-                    <CardContent className="pt-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                            {fu.status}
-                          </span>
-                          {fu.priority && (
-                            <span className="ml-2 inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
-                              {fu.priority}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">{fu.createdAt?.split('T')[0]}</span>
-                      </div>
-                      <p className="text-sm text-gray-700 mb-2">{fu.note}</p>
-                      {fu.nextFollowUpDate && (
-                        <p className="text-xs text-gray-600">Next: {fu.nextFollowUpDate}</p>
-                      )}
-                      <p className="text-xs text-blue-600 mt-2">Click to edit</p>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-
-            {/* Add Follow-up Form */}
+            {/* Add Follow-up Form - Hidden when editing */}
+            {!editingFollowUp && (
             <Card className="bg-gray-50 border-2 border-dashed">
               <CardHeader>
                 <CardTitle className="text-sm">Add Follow-up</CardTitle>
