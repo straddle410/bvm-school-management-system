@@ -499,32 +499,13 @@ export default function DefaultersReportPage() {
                                   <MessageCircle className="h-4 w-4" />
                                 </button>
                               )}
-                              <div className="flex gap-1 items-center">
-                                <select
-                                  value={row.latestFollowUp?.status || ''}
-                                  onChange={(e) => setFollowUpStatus(prev => ({ ...prev, [row.student.id]: e.target.value }))}
-                                  className="text-xs px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 cursor-pointer min-w-[90px]"
-                                  title="Select follow-up status"
-                                >
-                                  <option value="">-- Status --</option>
-                                  <option value="CALLED">CALLED</option>
-                                  <option value="NOT_PICKED">Not Picked</option>
-                                  <option value="VISITED">Visited</option>
-                                  <option value="PROMISED">Promised</option>
-                                  <option value="PAID">Paid</option>
-                                </select>
-                                <input type="date" className="text-xs px-2 py-1 rounded border border-gray-300 bg-white w-32" 
-                                  onChange={(e) => setFollowUpDates(prev => ({ ...prev, [row.student.id]: e.target.value }))}
-                                  value={followUpDates[row.student.id] || ''}
-                                  title="Set next follow-up date (e.g. 3 days from today)" />
-                                <button
-                                  onClick={() => handleUpdateFollowUp(row.student.id, followUpStatus[row.student.id] || row.latestFollowUp?.status)}
-                                  className="text-xs px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 min-w-[50px]"
-                                  title="Save follow-up with reminder date"
-                                >
-                                  Save
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => handleOpenDetail(row)}
+                                className="text-blue-600 hover:bg-blue-50 p-2 rounded text-xs font-medium"
+                                title="Open detail drawer for full follow-up management"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
                             </div>
                           </td>
                         </tr>
