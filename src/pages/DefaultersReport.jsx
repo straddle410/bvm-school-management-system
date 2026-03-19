@@ -185,7 +185,7 @@ export default function DefaultersReportPage() {
       await base44.functions.invoke('createFollowUp', {
         student_id: studentId,
         status: status,
-        notes: `Quick update from defaulters report - ${new Date().toLocaleDateString()}`,
+        note: `Quick update from defaulters report - ${new Date().toLocaleDateString()}`,
         academic_year: academicYear
       });
       queryClient.invalidateQueries({ queryKey: ['defaultersReport'] });
