@@ -170,41 +170,44 @@ export default function StudentMessaging() {
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md sm:max-w-xl mx-auto pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-md">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 sticky top-0 z-40 shadow-md">
+        {/* Row 1: Back + Title */}
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-white/20 rounded-lg transition flex items-center justify-center">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="font-bold text-base md:text-lg">Messages</h1>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 inline-block mt-0.5">{unreadCount}</span>
-              )}
+              <h1 className="text-lg font-bold">Messages</h1>
+              <p className="text-sm text-blue-100">{student.name}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && tab === 'inbox' && (
-              <button
-                onClick={markAllInboxRead}
-                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all"
-              >
-                <CheckCheck className="h-3.5 w-3.5" /> All Read
-              </button>
-            )}
+          {unreadCount > 0 && (
+            <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{unreadCount} unread</span>
+          )}
+        </div>
+        {/* Row 2: Action buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCompose(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-white text-[#1a237e] hover:bg-blue-50 px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-all"
+          >
+            <PenSquare className="h-3.5 w-3.5" /> New Message
+          </button>
+          {unreadCount > 0 && tab === 'inbox' && (
             <button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] })}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all"
+              onClick={markAllInboxRead}
+              className="flex-1 flex items-center justify-center gap-1 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl text-xs font-bold transition-all"
             >
-              <RefreshCw className="h-4 w-4" />
+              <CheckCheck className="h-3.5 w-3.5" /> Mark All Read
             </button>
-            <button
-              onClick={() => setShowCompose(true)}
-              className="flex items-center gap-1.5 bg-white text-[#1a237e] hover:bg-blue-50 px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-all"
-            >
-              <PenSquare className="h-3.5 w-3.5" /> New Message
-            </button>
-          </div>
+          )}
+          <button
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] })}
+            className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
