@@ -60,6 +60,30 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
     }
   });
 
+  // Update follow-up mutation
+  const updateFollowUpMutation = useMutation({
+    mutationFn: async () => {
+      const res = await base44.functions.invoke('updateFollowUp', {
+        followup_id: editingFollowUp.id,
+        status: editingFollowUp.status,
+        priority: editingFollowUp.priority || null,
+        note: editingFollowUp.note.trim(),
+        next_followup_date: editingFollowUp.next_followup_date || null
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Follow-up updated');
+      setEditingFollowUp(null);
+      queryClient.invalidateQueries({ queryKey: ['defaulter-detail', row.student.id, academicYear] });
+      onFollowUpAdded?.();
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to update follow-up';
+      toast.error(msg);
+    }
+  });
+
   if (isLoading) {
     return (
       <Sheet open onOpenChange={onClose}>
