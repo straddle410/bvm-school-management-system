@@ -50,19 +50,27 @@ Deno.serve(async (req) => {
       return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
-    const uniqueWorkingDates = new Set();
-    recordsInRange.forEach(a => {
-      if (!a.is_holiday && a.attendance_type !== 'holiday') {
-        uniqueWorkingDates.add(a.date);
-      }
-    });
-    const workingDays = uniqueWorkingDates.size;
+    // Fetch holidays to properly calculate working days (excluding holidays & Sundays)
+    const holidays = await base44.asServiceRole.entities.Holiday.filter({ academic_year: academic_year, status: 'Active' }).catch(() => []);
+    const holidaySet = new Set(holidays.map(h => h.date));
+
+    // Calculate working dates (excluding holidays, Sundays, and holiday-marked records)
+    const daysBetween = [];
+    let current = new Date(start);
+    while (current <= end) {
+      daysBetween.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+    
+    const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0));
+    const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
 
     const fullDayDates = new Set();
     const halfDayDates = new Set();
     
     recordsInRange.forEach(a => {
-      if (!a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+      // Exclude holidays, Sundays, and holiday-marked records from present count
+      if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
         if (a.attendance_type === 'full_day') {
           fullDayDates.add(a.date);
         } else if (a.attendance_type === 'half_day') {
