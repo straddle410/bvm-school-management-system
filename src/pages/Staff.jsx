@@ -353,6 +353,15 @@ export default function Staff() {
       return;
     }
 
+    // Check for duplicate username (only on create)
+    if (!editingStaff && form.username) {
+      const isDuplicate = staffList.some(s => s.username === form.username);
+      if (isDuplicate) {
+        toast.error(`Staff ID ${form.username} already exists. Cannot create duplicate.`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     // For new staff creation, hash the temp password server-side before saving
