@@ -91,8 +91,8 @@ Deno.serve(async (req) => {
       if (num !== null) used.add(num);
     }
 
-    // Find next available
-    let next = 1;
+    // Find next available (starting from 101)
+    let next = 101;
     while (used.has(next)) next++;
 
     const newId = `${prefix}${String(next).padStart(3, '0')}`;
