@@ -82,8 +82,11 @@ export default function StudentLogin() {
 
         {/* Logo / Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#1a237e] to-[#3949ab] rounded-3xl flex items-center justify-center shadow-xl mb-4">
-            <GraduationCap className="h-10 w-10 text-white" />
+          <div className="w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl mb-4 bg-white p-1">
+            {logoUrl
+              ? <img src={logoUrl} alt="School Logo" className="h-full w-full rounded-2xl object-contain" onError={() => setLogoUrl(null)} />
+              : <div className="w-full h-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] rounded-2xl flex items-center justify-center"><GraduationCap className="h-10 w-10 text-white" /></div>
+            }
           </div>
           <h1 className="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight">BVM School</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Student Portal — Sign In</p>

@@ -191,7 +191,10 @@ export default function StaffLogin() {
       <Card className="w-full max-w-md shadow-2xl border-0 dark:bg-gray-800">
         <CardHeader className="bg-gradient-to-r from-[#1a237e] to-[#283593] text-white rounded-t-lg">
           <div className="flex items-center justify-center mb-3">
-            <Building2 className="h-10 w-10" />
+            {logoUrl
+              ? <img src={logoUrl} alt="School Logo" className="h-16 w-16 rounded-full object-contain bg-white p-1 shadow" onError={() => setLogoUrl(null)} />
+              : <Building2 className="h-10 w-10" />
+            }
           </div>
           <CardTitle className="text-center text-2xl">Staff Login</CardTitle>
           <CardDescription className="text-center text-blue-100 mt-1">
