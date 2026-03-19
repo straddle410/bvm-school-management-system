@@ -146,13 +146,12 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem("vite-ui-theme", "light");
     return (
       <AcademicYearProvider>
-        <div className="min-h-screen bg-gray-100 flex flex-col relative pb-20">
+        <div className="min-h-screen bg-gray-100 flex flex-col relative">
           <main className="flex-1 overflow-y-auto">
             <StudentAuthGuard currentPageName={currentPageName}>
               {children}
             </StudentAuthGuard>
           </main>
-          <StudentBottomNav currentPage={currentPageName} />
         </div>
       </AcademicYearProvider>);
 
