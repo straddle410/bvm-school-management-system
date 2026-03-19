@@ -18,6 +18,7 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
     note: '',
     next_followup_date: ''
   });
+  const [editingFollowUp, setEditingFollowUp] = useState(null);
   const [showVoided, setShowVoided] = useState(false);
   const queryClient = useQueryClient();
 
