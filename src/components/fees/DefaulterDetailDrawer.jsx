@@ -225,12 +225,98 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
 
           {/* Follow-ups Tab */}
           <TabsContent value="followups" className="space-y-4">
+            {editingFollowUp ? (
+              <Card className="bg-blue-50 border-2 border-blue-200 mb-6">
+                <CardHeader>
+                  <CardTitle className="text-sm">Edit Follow-up</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">Status *</label>
+                    <Select value={editingFollowUp.status} onValueChange={(v) => setEditingFollowUp({ ...editingFollowUp, status: v })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NEW">New</SelectItem>
+                        <SelectItem value="CALLED">Called</SelectItem>
+                        <SelectItem value="FOLLOW_UP">Follow-up</SelectItem>
+                        <SelectItem value="PROMISED">Promised</SelectItem>
+                        <SelectItem value="PAID_PARTIAL">Paid Partial</SelectItem>
+                        <SelectItem value="PAID_FULL">Paid Full</SelectItem>
+                        <SelectItem value="DO_NOT_CALL">Do Not Call</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
+                    <Select value={editingFollowUp.priority || ''} onValueChange={(v) => setEditingFollowUp({ ...editingFollowUp, priority: v || null })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>None</SelectItem>
+                        <SelectItem value="LOW">Low</SelectItem>
+                        <SelectItem value="MEDIUM">Medium</SelectItem>
+                        <SelectItem value="HIGH">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">Next Follow-up Date</label>
+                    <Input
+                      type="date"
+                      value={editingFollowUp.next_followup_date || ''}
+                      onChange={(e) => setEditingFollowUp({ ...editingFollowUp, next_followup_date: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">Note *</label>
+                    <Textarea
+                      placeholder="e.g. Called, promised payment by end of week..."
+                      value={editingFollowUp.note}
+                      onChange={(e) => setEditingFollowUp({ ...editingFollowUp, note: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      disabled={!editingFollowUp.note.trim() || updateFollowUpMutation.isPending}
+                      onClick={() => updateFollowUpMutation.mutate()}
+                    >
+                      {updateFollowUpMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setEditingFollowUp(null)}
+                      disabled={updateFollowUpMutation.isPending}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
             <div className="space-y-3 mb-6">
               {followUps.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-6">No follow-ups yet</p>
               ) : (
                 followUps.map((fu, idx) => (
-                  <Card key={idx} className="border-l-4 border-l-blue-500">
+                  <Card key={idx} className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md transition" onClick={() => setEditingFollowUp(fu)}>
                     <CardContent className="pt-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -249,6 +335,7 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
                       {fu.nextFollowUpDate && (
                         <p className="text-xs text-gray-600">Next: {fu.nextFollowUpDate}</p>
                       )}
+                      <p className="text-xs text-blue-600 mt-2">Click to edit</p>
                     </CardContent>
                   </Card>
                 ))
