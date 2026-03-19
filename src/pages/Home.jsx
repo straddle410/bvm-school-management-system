@@ -58,15 +58,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f0f4ff] to-[#f5f7ff] dark:from-gray-900 dark:to-gray-900 dark:bg-gray-900 flex flex-col">
       {/* Header / Navigation */}
-      <nav className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-lg sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to={createPageUrl('Home')} className="flex items-center gap-3 hover:opacity-90 transition">
-            <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
-              <Building2 className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold">{schoolName.toUpperCase()}</h1>
-            </div>
+      <nav className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-3 py-3 shadow-lg sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+          <Link to={createPageUrl('Home')} className="flex items-center gap-2 hover:opacity-90 transition min-w-0">
+            {schoolProfile?.logo_url
+              ? <img src={schoolProfile.logo_url} alt="Logo" className="h-9 w-9 rounded-full object-contain bg-white p-0.5 flex-shrink-0 shadow" />
+              : <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0"><Building2 className="h-5 w-5" /></div>
+            }
+            <h1 className="text-sm sm:text-lg font-bold leading-tight truncate">{schoolName}</h1>
           </Link>
           <div className="flex gap-2 items-center">
             <button
