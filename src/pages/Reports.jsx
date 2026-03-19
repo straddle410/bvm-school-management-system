@@ -55,7 +55,7 @@ export default function Reports() {
     queryKey: ['attendance-records', academicYear],
     // Status Convention: Read attendance records with status 'Taken' (normal) or 'Holiday' (holiday marked)
     // Do NOT filter by status to ensure all marked records are included in reports
-    queryFn: () => base44.entities.Attendance.filter({ academic_year: academicYear }),
+    queryFn: () => base44.entities.Attendance.filter({ academic_year: academicYear }, '-created_date', 5000),
     enabled: !!academicYear
   });
 
@@ -128,11 +128,6 @@ export default function Reports() {
       <PageHeader 
         title="Reports"
         subtitle="Analytics and insights"
-        actions={
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" /> Export PDF
-          </Button>
-        }
       />
 
       <div className="p-4 lg:p-8">

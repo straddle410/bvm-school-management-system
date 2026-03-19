@@ -70,8 +70,10 @@ export default function Gallery() {
     queryKey: ['photos', selectedAlbum?.id, photoLimit, academicYear],
     queryFn: () => base44.entities.GalleryPhoto.filter({ album_id: selectedAlbum.id, academic_year: academicYear }, '-created_date', photoLimit),
     enabled: !!selectedAlbum && !!academicYear,
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
   });
+
+
 
   const visiblePhotos = isAdmin
     ? allPhotos

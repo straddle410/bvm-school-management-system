@@ -593,19 +593,17 @@ export default function Students() {
     if (!isAdmin || selectedIds.size === 0 || hostelAction === '') return;
     setHostelLoading(true);
     const hostel_enabled = hostelAction === 'on';
-    const updates = Array.from(selectedIds).map(id => ({
-      hostel_enabled
-    }));
     try {
-      let processed = 0;
-      for (const id of Array.from(selectedIds)) {
-        const res = await base44.functions.invoke('updateStudentWithAudit', {
-          student_db_id: id,
-          updates: { hostel_enabled },
-          staff_session_token: getStaffSession()?.staff_session_token || null
-        });
-        if (!res.data?.error) processed++;
-      }
+      const results = await Promise.allSettled(
+        Array.from(selectedIds).map(id =>
+          base44.functions.invoke('updateStudentWithAudit', {
+            student_db_id: id,
+            updates: { hostel_enabled },
+            staff_session_token: getStaffSession()?.staff_session_token || null
+          })
+        )
+      );
+      const processed = results.filter(r => r.status === 'fulfilled' && !r.value.data?.error).length;
       if (processed > 0) {
         queryClient.invalidateQueries(['students']);
         setSelectedIds(new Set());

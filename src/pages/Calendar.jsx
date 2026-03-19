@@ -55,18 +55,19 @@ export default function Calendar() {
 
   useEffect(() => {
     const loadUser = async () => {
+      // Check staff session first to avoid unnecessary auth.me() call
+      const staffSession = localStorage.getItem('staff_session');
+      if (staffSession) {
+        const staff = JSON.parse(staffSession);
+        setUser({ role: staff.role, full_name: staff.full_name, email: staff.email });
+        return;
+      }
+      
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (e) {
-        // Check if staff is logged in via staff login
-        const staffSession = localStorage.getItem('staff_session');
-        if (staffSession) {
-          const staff = JSON.parse(staffSession);
-          setUser({ role: staff.role, full_name: staff.full_name, email: staff.email });
-        } else {
-          setUser(null);
-        }
+        setUser(null);
       }
     };
     loadUser();
@@ -77,10 +78,11 @@ export default function Calendar() {
     queryFn: () => base44.entities.CalendarEvent.list()
   });
 
-  // Fetch marked holidays from Holiday entity
+  // Fetch marked holidays from Holiday entity for current academic year
   const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.filter({ status: 'Active' }),
+    queryKey: ['holidays', academicYear],
+    queryFn: () => base44.entities.Holiday.filter({ status: 'Active', academic_year: academicYear }),
+    enabled: !!academicYear
   });
 
   // Build a set of holiday date strings
