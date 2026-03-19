@@ -149,53 +149,18 @@ export default function Dashboard() {
   const loadStaffProfile = async () => {
     try {
       const session = getStaffSession();
-      let resolvedRole = '';
-
+      
+      // Use session data directly — avoid expensive getMyStaffProfile call
       if (session) {
-        const token = session.staff_session_token;
-        if (token) {
-          try {
-            const res = await base44.functions.invoke('getMyStaffProfile', {
-              staff_session_token: token,
-            });
-            if (res.data?.role) {
-              resolvedRole = normaliseRole(res.data.role);
-              setStaffRole(resolvedRole);
-              setStaffName(res.data.name || session.name || '');
-              const resolvedPerms = res.data.effective_permissions ?? res.data.permissions ?? {};
-              setEffectivePermissions(resolvedPerms);
-              setPermissionsCount(Object.values(resolvedPerms).filter(Boolean).length);
-              setRoleSource('staff_session_token (verified)');
-
-              if (normaliseRole(session.role) !== resolvedRole) {
-                const updated = { ...session, role: resolvedRole };
-                localStorage.setItem('staff_session', JSON.stringify(updated));
-              }
-            } else {
-              resolvedRole = normaliseRole(session.role);
-              setStaffRole(resolvedRole);
-              setStaffName(session.name || '');
-              setPermissionsCount(0);
-              setRoleSource('staff_session (localStorage fallback)');
-            }
-          } catch {
-            resolvedRole = normaliseRole(session.role);
-            setStaffRole(resolvedRole);
-            setStaffName(session.name || '');
-            setPermissionsCount(0);
-            setRoleSource('staff_session (fallback — server unreachable)');
-          }
-        } else {
-          resolvedRole = normaliseRole(session.role);
-          setStaffRole(resolvedRole);
-          setStaffName(session.name || '');
-          setPermissionsCount(0);
-          setRoleSource('staff_session (no token — localStorage only)');
-        }
+        const resolvedRole = normaliseRole(session.role);
+        setStaffRole(resolvedRole);
+        setStaffName(session.name || session.full_name || '');
+        // Permissions already initialized from state default
+        setRoleSource('staff_session (localStorage — optimized)');
       } else {
         const currentUser = await base44.auth.me().catch(() => null);
         if (currentUser) {
-          resolvedRole = normaliseRole(currentUser.role);
+          const resolvedRole = normaliseRole(currentUser.role);
           setStaffRole(resolvedRole);
           setStaffName(currentUser.full_name || currentUser.email || '');
           setRoleSource('platform auth.me()');
