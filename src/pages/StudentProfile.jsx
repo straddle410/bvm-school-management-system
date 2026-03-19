@@ -139,10 +139,13 @@ function ProfileContent({ student, attendance, marks }) {
                 <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                   <span className="text-sm text-gray-600">{format(new Date(record.date), 'dd MMM yyyy')}</span>
                   <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                    record.is_holiday ? 'bg-gray-100 text-gray-600' :
-                    record.is_present ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    record.attendance_type === 'holiday' ? 'bg-gray-100 text-gray-600' :
+                    record.attendance_type === 'full_day' ? 'bg-green-100 text-green-700' :
+                    record.attendance_type === 'half_day' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                   }`}>
-                    {record.is_holiday ? 'Holiday' : record.is_present ? 'Present' : 'Absent'}
+                    {record.attendance_type === 'holiday' ? 'Holiday' : 
+                     record.attendance_type === 'full_day' ? 'Present' :
+                     record.attendance_type === 'half_day' ? 'Half Day' : 'Absent'}
                   </span>
                 </div>
               ))}
