@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
     const fullDays = fullDayDates.size;
     const halfDays = halfDayDates.size;
     const totalPresent = fullDays + (halfDays * 0.5);
-    const absentDays = workingDays - fullDays - halfDays;
+    const absentDays = Math.max(0, workingDays - fullDays - halfDays);
     // Use consistent rounding: Math.round for all percentage calculations
     const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
