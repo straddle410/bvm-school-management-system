@@ -241,7 +241,7 @@ export default function Staff() {
   });
 
   // Auto-generate staff ID when role template changes (create mode only)
-  const handleRoleTemplateChange = async (templateId) => {
+  const handleRoleTemplateChange = (templateId) => {
     setForm(f => ({ ...f, role_template_id: templateId }));
     if (editingStaff) return; // don't auto-generate for edits
 
@@ -256,19 +256,16 @@ export default function Staff() {
     const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
     const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
 
-    try {
-      const res = await base44.functions.invoke('generateStaffId', { action: 'generate', role: derivedRole });
-      if (res.data?.staff_id) {
-        // Both username and staff_id are the same and auto-generated
-        setForm(f => ({ ...f, username: res.data.staff_id, staff_code: res.data.staff_id }));
-      } else {
-        console.error('No staff_id returned:', res.data);
-        toast.error('Failed to generate staff ID. Please try again.');
-      }
-    } catch (err) {
-      console.error('Error generating staff ID:', err);
-      toast.error('Error generating staff ID: ' + (err.message || 'Unknown error'));
-    }
+    // Generate ID client-side instantly: get next counter and format
+    const prefix = derivedRole === 'teacher' ? 'T' : derivedRole === 'admin' || derivedRole === 'principal' ? 'A' : 'S';
+    const existingIds = staffList
+      .filter(s => s.username && s.username.startsWith(prefix))
+      .map(s => parseInt(s.username.slice(1), 10))
+      .filter(n => !isNaN(n));
+    const nextNum = (Math.max(...existingIds, 100)) + 1;
+    const generatedId = prefix + nextNum;
+
+    setForm(f => ({ ...f, username: generatedId, staff_code: generatedId }));
   };
 
   const openCreate = () => {
