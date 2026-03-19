@@ -346,114 +346,57 @@ export default function Staff() {
   };
 
   const handleSave = async () => {
-    // Prevent duplicate submissions
-    if (isSubmitting) {
-      toast.error('Submission in progress. Please wait.');
-      return;
-    }
-
+    if (isSubmitting) return;
     if (!form.name) {
       toast.error('Name is required');
       return;
     }
     if (!editingStaff && !form.role_template_id) {
-      toast.error('Please select a Role Template first');
+      toast.error('Please select a Role Template');
       return;
     }
-
-    // Check for empty username (only on create)
     if (!editingStaff && !form.username) {
-      toast.error('Staff ID was not generated. Please select a role and try again.');
+      toast.error('Staff ID not generated. Select role first.');
       return;
-    }
-
-    // Check for duplicate username (only on create)
-    if (!editingStaff && form.username) {
-      const isDuplicate = staffList.some(s => s.username === form.username);
-      if (isDuplicate) {
-        toast.error(`Staff ID ${form.username} already exists. Cannot create duplicate.`);
-        return;
-      }
     }
 
     setIsSubmitting(true);
 
-    // For new staff creation, hash the temp password server-side before saving
-    let passwordHash = form.password_hash;
-    if (!editingStaff && tempPassword) {
-      try {
+    try {
+      const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
+      const ROLE_NAME_MAP = {
+        'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
+        'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
+        'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
+      };
+      const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
+      const derivedRole = selectedTemplate ? (ROLE_NAME_MAP[rawRoleName] || rawRoleName) : (editingStaff?.role || '');
+
+      let passwordHash = form.password_hash;
+      if (!editingStaff && tempPassword) {
         const hashRes = await base44.functions.invoke('hashStaffPassword', { password: tempPassword });
-        if (!hashRes.data?.hash) throw new Error('Hash failed');
+        if (!hashRes.data?.hash) throw new Error('Failed to hash password');
         passwordHash = hashRes.data.hash;
-      } catch (err) {
-        toast.error('Failed to hash password. Try again.');
-        return;
       }
-    }
 
-    // Staff ID is system-assigned and stored as-is (uppercase T001/A001)
-    const normalizedUsername = form.username.trim();
-
-    // Derive the `role` field from the selected role template name.
-    // Map template name → StaffAccount.role enum value
-    const selectedTemplate = roleTemplates.find(r => r.id === form.role_template_id);
-    const ROLE_NAME_MAP = {
-      'admin': 'admin',
-      'principal': 'principal',
-      'teacher': 'teacher',
-      'accountant': 'accountant',
-      'staff': 'staff',
-      'librarian': 'librarian',
-      'exam staff': 'exam_staff',
-      'exam_staff': 'exam_staff',
-    };
-    // Strip trailing " 2" / " 3" etc. so renamed canonical templates still map correctly
-    const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
-    // If no template is selected (role_template_id is empty/null), preserve the staff member's existing role
-    const derivedRole = selectedTemplate
-      ? (ROLE_NAME_MAP[rawRoleName] || rawRoleName)
-      : (editingStaff?.role || '');
-
-    // Coerce experience_years: empty string → null, otherwise parse as number
-    let experienceYears = null;
-    if (form.experience_years !== '' && form.experience_years !== null && form.experience_years !== undefined) {
-      const parsed = Number(form.experience_years);
-      if (isNaN(parsed)) {
-        toast.error('Experience years must be a valid number');
-        return;
+      let experienceYears = null;
+      if (form.experience_years && !isNaN(Number(form.experience_years))) {
+        experienceYears = Number(form.experience_years);
       }
-      experienceYears = parsed;
+
+      const dataToSave = { 
+        ...form,
+        username: form.username.trim(),
+        role: derivedRole,
+        experience_years: experienceYears,
+        password_hash: passwordHash,
+      };
+
+      saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
+    } catch (err) {
+      setIsSubmitting(false);
+      toast.error(err.message || 'Error preparing staff data');
     }
-
-    // Validate teacher class/section assignments against SectionConfig
-    if (form.is_teacher && form.classes && form.classes.length > 0) {
-      for (const className of form.classes) {
-        const validSections = getSectionsForClass(className);
-        if (validSections.length === 0) {
-          toast.error(`Class "${className}" does not exist in the current academic year's configuration`);
-          return;
-        }
-        // If sections are selected, validate they exist for this class
-        if (form.sections && form.sections.length > 0) {
-          for (const section of form.sections) {
-            if (!validSections.includes(section)) {
-              toast.error(`Section "${section}" does not exist for class "${className}" in the current academic year`);
-              return;
-            }
-          }
-        }
-      }
-    }
-
-    const dataToSave = { 
-      ...form,
-      username: normalizedUsername,
-      role: derivedRole,
-      experience_years: experienceYears,
-      password_hash: passwordHash,
-    };
-
-    saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
   };
 
   const filtered = staffList.filter(s => {
