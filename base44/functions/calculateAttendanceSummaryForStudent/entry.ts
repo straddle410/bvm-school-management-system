@@ -76,10 +76,17 @@ Deno.serve(async (req) => {
     const holidays = await base44.asServiceRole.entities.Holiday.filter({ academic_year: academic_year, status: 'Active' }).catch(() => []);
     const holidaySet = new Set(holidays.map(h => h.date));
 
-    // Calculate working dates (excluding holidays, Sundays, and holiday-marked records)
+    // Calculate working dates ONLY for the range covered by actual attendance records
+    // (first attendance date to last attendance date) - SAME AS SUMMARY REPORT
+    const attendanceDates = dedupedAttendance.map(a => a.date).sort();
+    const rangeStart = new Date(attendanceDates[0]);
+    const rangeEnd = new Date(attendanceDates[attendanceDates.length - 1]);
+    rangeStart.setUTCHours(0, 0, 0, 0);
+    rangeEnd.setUTCHours(23, 59, 59, 999);
+
     const daysBetween = [];
-    let current = new Date(start);
-    while (current <= end) {
+    let current = new Date(rangeStart);
+    while (current <= rangeEnd) {
       daysBetween.push(current.toISOString().split('T')[0]);
       current.setDate(current.getDate() + 1);
     }
