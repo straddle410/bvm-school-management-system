@@ -272,6 +272,17 @@ export default function DefaultersReportPage() {
             )}
           </div>
 
+          {/* Due Follow-ups Alert */}
+          <DueFollowupsAlert 
+            academicYear={academicYear}
+            onSelectStudent={(studentId) => {
+              const student = rows.find(r => r.student.id === studentId);
+              if (student) {
+                handleOpenDetail(student);
+              }
+            }}
+          />
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card>
