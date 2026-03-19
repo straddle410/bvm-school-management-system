@@ -336,6 +336,12 @@ export default function Staff() {
   };
 
   const handleSave = async () => {
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      toast.error('Submission in progress. Please wait.');
+      return;
+    }
+
     if (!form.name) {
       toast.error('Name is required');
       return;
@@ -344,6 +350,8 @@ export default function Staff() {
       toast.error('Please select a Role Template first');
       return;
     }
+
+    setIsSubmitting(true);
 
     // For new staff creation, hash the temp password server-side before saving
     let passwordHash = form.password_hash;
@@ -420,7 +428,11 @@ export default function Staff() {
       password_hash: passwordHash,
     };
 
-    saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
+    try {
+      saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filtered = staffList.filter(s => {
@@ -751,12 +763,12 @@ export default function Staff() {
                          Cancel
                        </Button>
                        <Button
-                         type="submit"
-                         disabled={saveMutation.isPending || (!editingStaff && !validatePasswordPolicy(tempPassword).valid)}
-                         className="bg-[#1a237e] hover:bg-[#283593]"
-                       >
-                         {saveMutation.isPending ? 'Creating...' : 'Create Staff Account'}
-                       </Button>
+                          type="submit"
+                          disabled={saveMutation.isPending || isSubmitting || (!editingStaff && !validatePasswordPolicy(tempPassword).valid)}
+                          className="bg-[#1a237e] hover:bg-[#283593]"
+                        >
+                          {saveMutation.isPending || isSubmitting ? 'Creating...' : 'Create Staff Account'}
+                        </Button>
                      </div>
                   </form>
                 </CardContent>
@@ -1112,10 +1124,10 @@ export default function Staff() {
                 </Button>
                 <Button
                   onClick={handleSave}
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || isSubmitting}
                   className="bg-[#1a237e] hover:bg-[#283593]"
                 >
-                  {saveMutation.isPending ? 'Updating...' : 'Update Staff'}
+                  {saveMutation.isPending || isSubmitting ? 'Updating...' : 'Update Staff'}
                 </Button>
               </div>
             </div>
