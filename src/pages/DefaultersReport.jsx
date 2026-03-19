@@ -179,6 +179,7 @@ export default function DefaultersReportPage() {
     }
   };
 
+  const [followUpStatus, setFollowUpStatus] = useState({}); // Track status per student
   const [followUpDates, setFollowUpDates] = useState({}); // Track dates per student
 
   const handleUpdateFollowUp = async (studentId, status) => {
