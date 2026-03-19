@@ -5,7 +5,7 @@ const RATE_LIMITS = {
   student: {
     short_window_minutes: 5,
     short_window_limit: 10,
-    day_limit: 50,
+    day_limit: 20,
   },
   teacher: {
     short_window_minutes: 10,
