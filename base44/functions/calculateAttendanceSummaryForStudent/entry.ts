@@ -32,18 +32,22 @@ function deduplicateAttendanceRecords(records) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { student_id, academic_year } = await req.json();
+    const { student_id, academic_year, start_date, end_date } = await req.json();
 
     if (!student_id || !academic_year) {
       return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
-    // Fetch current academic year dates
-    const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year }).catch(() => []);
-    const yearConfig = yearConfigs?.[0];
+    // Use passed dates, fallback to academic year dates if not provided
+    let startDate = start_date;
+    let endDate = end_date;
     
-    const startDate = yearConfig?.start_date || new Date().toISOString().split('T')[0];
-    const endDate = yearConfig?.end_date || new Date().toISOString().split('T')[0];
+    if (!startDate || !endDate) {
+      const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year }).catch(() => []);
+      const yearConfig = yearConfigs?.[0];
+      startDate = start_date || yearConfig?.start_date || new Date().toISOString().split('T')[0];
+      endDate = end_date || yearConfig?.end_date || new Date().toISOString().split('T')[0];
+    }
 
     const allAttendance = await base44.asServiceRole.entities.Attendance.filter({
       student_id: student_id,
