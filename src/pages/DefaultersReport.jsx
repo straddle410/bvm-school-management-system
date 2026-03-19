@@ -26,6 +26,8 @@ export default function DefaultersReportPage() {
     minDue: '',
     daysSinceLastPaymentMin: '',
     status: '',
+    followUpDateFrom: '',
+    followUpDateTo: '',
     search: ''
   });
 
@@ -35,6 +37,8 @@ export default function DefaultersReportPage() {
     minDue: '',
     daysSinceLastPaymentMin: '',
     status: '',
+    followUpDateFrom: '',
+    followUpDateTo: '',
     search: ''
   });
 
