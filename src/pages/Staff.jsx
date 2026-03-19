@@ -153,9 +153,11 @@ export default function Staff() {
         force_password_change: true,
         is_active: true,
       });
+      setIsSubmitting(false);
       toast.success(editingStaff ? 'Staff updated' : 'Staff account created');
     },
     onError: (error) => {
+      setIsSubmitting(false);
       toast.error(error?.message || 'Failed to save staff. Please try again.');
     },
   });
@@ -428,11 +430,7 @@ export default function Staff() {
       password_hash: passwordHash,
     };
 
-    try {
-      saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
-    } finally {
-      setIsSubmitting(false);
-    }
+    saveMutation.mutate({ _editId: editingStaff?.id || null, ...dataToSave });
   };
 
   const filtered = staffList.filter(s => {
