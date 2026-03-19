@@ -24,11 +24,14 @@ export default function StudentFees() {
     try {
       if (raw) setSession(JSON.parse(raw));
     } catch {}
+  }, []);
 
+  useEffect(() => {
+    if (!session) return;
     base44.entities.SchoolProfile.list()
       .then(p => p.length && setSchoolProfile(p[0]))
       .catch(() => {});
-  }, []);
+  }, [session?.student_id]);
 
   // Use academic year from session — already available, no extra API call needed
   const currentAcademicYear = session?.academic_year || null;
