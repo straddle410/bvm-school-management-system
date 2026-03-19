@@ -45,6 +45,7 @@ import DataResetTab from '@/components/settings/DataResetTab';
 import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import FullBackupTab from '@/components/settings/FullBackupTab';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
+import MessageTemplatesTab from '@/components/settings/MessageTemplatesTab';
 
 function TransportFeeSettings({ schoolProfiles, queryClient }) {
   const [amount, setAmount] = useState('');
@@ -446,6 +447,7 @@ export default function Settings() {
       'hostel': 'Hostel',
       'notifications': 'Notifications',
       'banners': 'Banners',
+      'message-templates': 'Message Templates',
       'reset-student-password': 'Reset Student Password',
       'fees-backup': 'Fees Backup',
       'full-backup': 'Full School Backup',
@@ -920,6 +922,11 @@ export default function Settings() {
           {/* Data Reset */}
           {activeItem === 'data-reset' && (
             <DataResetTab schoolProfiles={schoolProfiles} academicYears={academicYears} />
+          )}
+
+          {/* Message Templates */}
+          {activeItem === 'message-templates' && (
+            <MessageTemplatesTab />
           )}
 
           {/* Notifications */}
