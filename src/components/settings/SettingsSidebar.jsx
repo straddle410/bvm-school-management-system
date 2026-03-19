@@ -25,6 +25,7 @@ const MENU_GROUPS = [
     items: [
       { id: 'notifications', label: 'Notifications', requiredRoles: ['admin', 'principal'] },
       { id: 'banners', label: 'Banners', requiredRoles: ['admin', 'principal'] },
+      { id: 'message-templates', label: 'Message Templates', requiredRoles: ['admin', 'principal'] },
     ],
   },
   {

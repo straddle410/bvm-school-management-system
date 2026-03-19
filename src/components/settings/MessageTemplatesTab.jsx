@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,7 +29,7 @@ const DEFAULT_ABSENT_MESSAGE = `Dear student/parent, {student_name} was marked a
 const DEFAULT_FEE_MESSAGE = `Dear {parent_name}, fee of ₹{amount_due} is pending for {student_name} ({class}). Please pay at the earliest.`;
 
 function TemplateEditor({ title, description, value, onChange, placeholders, defaultMessage, onSave, isSaving }) {
-  const textareaRef = React.useRef(null);
+  const textareaRef = useRef(null);
 
   const insertPlaceholder = (placeholder) => {
     const el = textareaRef.current;
