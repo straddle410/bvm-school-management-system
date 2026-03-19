@@ -67,7 +67,7 @@ export default function Home() {
             }
             <h1 className="text-sm sm:text-lg font-bold leading-tight truncate">{schoolName}</h1>
           </Link>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-1.5 items-center flex-shrink-0">
             <button
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
