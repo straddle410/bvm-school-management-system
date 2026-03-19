@@ -313,8 +313,8 @@ export default function DefaultersReportPage() {
             <CardHeader>
               <CardTitle>Filters</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Input
                   placeholder="Search name/phone"
                   value={filters.search}
@@ -343,7 +343,7 @@ export default function DefaultersReportPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Input
                   placeholder="Min Due (₹)"
                   type="number"
@@ -370,7 +370,7 @@ export default function DefaultersReportPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-wrap gap-2 justify-end">
                 <Button variant="outline" onClick={handleResetFilters}>
                   Reset Filters
                 </Button>
