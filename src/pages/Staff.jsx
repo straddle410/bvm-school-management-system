@@ -340,8 +340,8 @@ export default function Staff() {
       toast.error('Name is required');
       return;
     }
-    if (!editingStaff && !form.username) {
-      toast.error('Please select a Role Template first — the Staff ID will be auto-generated');
+    if (!editingStaff && !form.role_template_id) {
+      toast.error('Please select a Role Template first');
       return;
     }
 
