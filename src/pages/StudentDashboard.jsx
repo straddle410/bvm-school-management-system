@@ -55,7 +55,6 @@ export default function StudentDashboard() {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
     setStudent(session);
-    autoRegisterPush(session);
 
     // Handle notification deep-link: ?openFees=1&receiptNo=XXX
     const params = new URLSearchParams(window.location.search);
@@ -66,6 +65,10 @@ export default function StudentDashboard() {
         : createPageUrl('StudentFees');
       navigate(target, { replace: true });
     }
+
+    // Delay push registration so it doesn't block dashboard render
+    const timer = setTimeout(() => autoRegisterPush(session), 3000);
+    return () => clearTimeout(timer);
   }, []);
 
   const autoRegisterPush = async (session) => {
