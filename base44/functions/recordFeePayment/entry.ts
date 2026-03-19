@@ -182,51 +182,9 @@ Deno.serve(async (req) => {
       }
     })();
 
-    // ── Fee Payment Notification (Fire-and-Forget) ──────────────────────
-    // Run notifications async without blocking response
-    (async () => {
-      try {
-        const existingNotifs = await base44.asServiceRole.entities.Notification.filter({
-          type: 'fee_payment_received',
-          duplicate_key: `fee_${receiptNo}`,
-        });
-
-        if (existingNotifs.length === 0) {
-          // Create in-app notification (always free)
-          await base44.asServiceRole.entities.Notification.create({
-            recipient_student_id: invoice.student_id,
-            type: 'fee_payment_received',
-            title: 'Fee Payment Received 🧾',
-            message: `₹${amountPaid} received. Receipt No: ${receiptNo}`,
-            related_entity_id: payment.id,
-            action_url: '/StudentFees',
-            is_read: false,
-            duplicate_key: `fee_${receiptNo}`,
-          });
-
-          // Send push notification async (non-blocking)
-          try {
-            const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
-              student_id: invoice.student_id,
-            });
-            const pref = prefs[0];
-            
-            if (pref && pref.browser_push_enabled && pref.browser_push_token) {
-              await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-                student_ids: [invoice.student_id],
-                title: 'Fee Payment Received 🧾',
-                message: `₹${amountPaid} received for ${invoice.installment_name}. Receipt: ${receiptNo}`,
-                url: '/StudentFees?receiptNo=' + receiptNo,
-              });
-            }
-          } catch (pushErr) {
-            console.error('[FEE-PUSH-ERROR] Failed to send push notification (non-fatal):', pushErr.message);
-          }
-        }
-      } catch (notifErr) {
-        console.error('[FEE-NOTIF-ERROR] Failed to create fee payment notification (non-fatal):', notifErr.message);
-      }
-    })();
+    // ── Fee Payment Notification ──────────────────────────────────────────
+    // Notifications are triggered by FeePayment entity automation (sendFeePaymentNotification)
+    // This avoids context loss in async fire-and-forget patterns
     // ──────────────────────────────────────────────────────────────────────
 
     return Response.json({ success: true, receipt_no: receiptNo, payment_id: payment.id, new_status: newStatus, balance: Math.max(0, newBalance) });
