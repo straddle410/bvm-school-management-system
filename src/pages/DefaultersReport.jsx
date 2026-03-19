@@ -459,23 +459,36 @@ export default function DefaultersReportPage() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <div className="flex gap-2 justify-center">
+                            <div className="flex gap-2 justify-center flex-wrap">
                               <button
                                 onClick={() => handleOpenDetail(row)}
-                                className="text-blue-600 hover:bg-blue-50 p-1 rounded"
-                                title="View details"
+                                className="text-blue-600 hover:bg-blue-50 p-2 rounded text-xs font-medium"
+                                title="View details & manage follow-up"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
                               {row.phone1 && (
                                 <button
                                   onClick={() => openWhatsApp(row.phone1)}
-                                  className="text-green-600 hover:bg-green-50 p-1 rounded"
+                                  className="text-green-600 hover:bg-green-50 p-2 rounded text-xs font-medium"
                                   title="WhatsApp"
                                 >
                                   <MessageCircle className="h-4 w-4" />
                                 </button>
                               )}
+                              <select
+                                value={row.latestFollowUp?.status || ''}
+                                onChange={(e) => handleUpdateFollowUp(row.student.id, e.target.value)}
+                                className="text-xs px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 cursor-pointer min-w-[100px]"
+                                title="Quick update follow-up status"
+                              >
+                                <option value="">-- Follow-up --</option>
+                                <option value="NEW">NEW</option>
+                                <option value="CALLED">CALLED</option>
+                                <option value="FOLLOW_UP">FOLLOW-UP</option>
+                                <option value="PROMISED">PROMISED</option>
+                                <option value="DO_NOT_CALL">DO NOT CALL</option>
+                              </select>
                             </div>
                           </td>
                         </tr>
