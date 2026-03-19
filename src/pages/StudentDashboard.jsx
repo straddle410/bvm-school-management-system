@@ -46,7 +46,6 @@ export default function StudentDashboard() {
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartY = useRef(0);
-  const [isDark, setIsDark] = useDarkMode();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
