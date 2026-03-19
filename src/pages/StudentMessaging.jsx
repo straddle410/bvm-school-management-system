@@ -173,7 +173,7 @@ export default function StudentMessaging() {
       <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to={createPageUrl('StudentDashboard')} className="p-2 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-white/20 rounded-lg transition flex items-center justify-center">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
