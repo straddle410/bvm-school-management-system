@@ -4,14 +4,12 @@ import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
-  ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
-  MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
-  Ticket, BarChart3, Sun, Moon, Wallet, User, Key
+  LogOut, BookOpen, ClipboardList, Bell,
+  Image, Calendar, Brain,
+  Book, MessageSquare,
+  Ticket, BarChart3, Wallet, User, Key
 } from 'lucide-react';
-import { useDarkMode } from '@/components/useDarkMode';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import { clearSession } from '@/components/sessionHelper';
