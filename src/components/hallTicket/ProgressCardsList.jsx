@@ -130,7 +130,11 @@ export default function ProgressCardsList() {
     },
     onSuccess: (count) => {
       refetch();
-      toast.success(`Deleted ${count} progress cards`);
+      if (count > 0) {
+        toast.success(`Deleted ${count} progress cards`);
+      } else {
+        toast.error('Failed to delete: Access denied or cards are locked');
+      }
       setSelectedCards(new Set());
     },
     onError: (error) => {
