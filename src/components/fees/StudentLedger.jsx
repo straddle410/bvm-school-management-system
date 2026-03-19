@@ -41,6 +41,13 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   const [pendingStudentId, setPendingStudentId] = useState(urlStudentId);
   const STUDENTS_LIMIT = 50;
 
+  // Defer student loading to avoid blocking student ledger tab
+  const [enableStudentQuery, setEnableStudentQuery] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setEnableStudentQuery(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: students = [], isLoading: isLoadingStudents } = useQuery({
     queryKey: ['students-published', selectedClass, academicYear, studentPage],
     queryFn: async () => {
@@ -54,8 +61,8 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
       const start = studentPage * STUDENTS_LIMIT;
       return all.slice(start, start + STUDENTS_LIMIT);
     },
-    enabled: !!selectedClass && !!academicYear,
-    staleTime: 10 * 60 * 1000, // 10 min cache (increased for speed)
+    enabled: enableStudentQuery && !!selectedClass && !!academicYear,
+    staleTime: 10 * 60 * 1000, // 10 min cache
     gcTime: 30 * 60 * 1000 // 30 min memory
   });
 
