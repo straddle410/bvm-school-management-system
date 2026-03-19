@@ -171,28 +171,48 @@ export default function StudentDashboard() {
     setPullY(0);
   };
 
-  // Attendance % — cached 5 min, only fetches when student is ready
+  // Attendance % — defer to 2s after render to not block initial page load
+  const [enableAttendance, setEnableAttendance] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setEnableAttendance(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: attendData } = useQuery({
     queryKey: ['student-attendance-pct', student?.student_id],
     queryFn: () => base44.functions.invoke('calculateAttendanceSummaryForStudent', {
       student_id: student.student_id,
       academic_year: student.academic_year
     }).then(r => r.data || {}),
-    enabled: !!student?.student_id,
+    enabled: enableAttendance && !!student?.student_id,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Current academic year — cached 10 min
+  // Current academic year — defer to 1s after render
+  const [enableAcademicYear, setEnableAcademicYear] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setEnableAcademicYear(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: currentYearData } = useQuery({
     queryKey: ['current-academic-year'],
     queryFn: () => base44.entities.AcademicYear.filter({ is_current: true }).then(d => d[0] || null),
+    enabled: enableAcademicYear,
     staleTime: 10 * 60 * 1000,
   });
 
-  // School profile — cached 30 min
+  // School profile — defer to 1.5s after render
+  const [enableSchoolProfile, setEnableSchoolProfile] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setEnableSchoolProfile(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: schoolProfile } = useQuery({
     queryKey: ['school-profile'],
     queryFn: () => base44.entities.SchoolProfile.list().then(d => d[0] || null),
+    enabled: enableSchoolProfile,
     staleTime: 30 * 60 * 1000,
   });
 
