@@ -239,15 +239,24 @@ export default function StudentProfile() {
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['student-attendance', studentId],
-    queryFn: () => base44.entities.Attendance.filter({ student_id: student?.student_id }, '-date', 10),
+    queryKey: ['student-attendance', student?.student_id, student?.academic_year],
+    queryFn: () => base44.entities.Attendance.filter({ 
+      student_id: student?.student_id, 
+      academic_year: student?.academic_year 
+    }, '-date', 100),
     enabled: !!student?.student_id,
+    staleTime: 0,
   });
 
   const { data: marks = [] } = useQuery({
-    queryKey: ['student-marks', studentId],
-    queryFn: () => base44.entities.Marks.filter({ student_id: student?.student_id }, '-academic_year', 100),
+    queryKey: ['student-marks', student?.student_id, student?.academic_year],
+    queryFn: () => base44.entities.Marks.filter({ 
+      student_id: student?.student_id,
+      academic_year: student?.academic_year,
+      status: 'Published'
+    }, '-updated_date', 100),
     enabled: !!student?.student_id,
+    staleTime: 0,
   });
 
   if (!studentId && !sessionStudent?.id) {
