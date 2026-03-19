@@ -370,19 +370,33 @@ export default function DefaultersReportPage() {
                   onChange={(e) => handleFilterChange('daysSinceLastPaymentMin', e.target.value)}
                 />
                 <Select value={filters.status || ""} onValueChange={(v) => handleFilterChange('status', v === "__all__" ? "" : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Follow-up Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">All</SelectItem>
-                    <SelectItem value="NEW">New</SelectItem>
-                    <SelectItem value="CALLED">Called</SelectItem>
-                    <SelectItem value="FOLLOW_UP">Follow-up</SelectItem>
-                    <SelectItem value="PROMISED">Promised</SelectItem>
-                    <SelectItem value="DO_NOT_CALL">Do Not Call</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Follow-up Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">All</SelectItem>
+                      <SelectItem value="NEW">New</SelectItem>
+                      <SelectItem value="CALLED">Called</SelectItem>
+                      <SelectItem value="FOLLOW_UP">Follow-up</SelectItem>
+                      <SelectItem value="PROMISED">Promised</SelectItem>
+                      <SelectItem value="DO_NOT_CALL">Do Not Call</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Follow-up Date From"
+                    type="date"
+                    value={filters.followUpDateFrom}
+                    onChange={(e) => handleFilterChange('followUpDateFrom', e.target.value)}
+                  />
+                  <Input
+                    placeholder="Follow-up Date To"
+                    type="date"
+                    value={filters.followUpDateTo}
+                    onChange={(e) => handleFilterChange('followUpDateTo', e.target.value)}
+                  />
+                </div>
               <div className="flex flex-wrap gap-2 justify-end">
                 <Button variant="outline" onClick={handleResetFilters}>
                   Reset Filters
