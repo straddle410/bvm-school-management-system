@@ -8,9 +8,6 @@ import { format } from 'date-fns';
 import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentDiary() {
-  console.log('[ENTRY] StudentDiary:', window.location.pathname);
-  console.log('[SESSION] localStorage:', localStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
-  console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
   const [session] = useState(() => {

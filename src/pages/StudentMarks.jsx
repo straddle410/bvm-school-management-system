@@ -8,9 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentMarks() {
-  console.log('[ENTRY] StudentMarks:', window.location.pathname);
-  console.log('[SESSION] localStorage:', localStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
-  console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
   const [session] = useState(() => {

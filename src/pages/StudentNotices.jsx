@@ -7,9 +7,6 @@ import { Bell, ArrowLeft } from 'lucide-react';
 import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentNotices() {
-  console.log('[ENTRY] StudentNotices:', window.location.pathname);
-  console.log('[SESSION] localStorage:', localStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
-  console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();

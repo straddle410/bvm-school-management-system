@@ -9,9 +9,6 @@ import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function StudentTimetable() {
-  console.log('[ENTRY] StudentTimetable:', window.location.pathname);
-  console.log('[SESSION] localStorage:', localStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
-  console.log('[SESSION] sessionStorage:', sessionStorage.getItem('student_session') ? 'EXISTS' : 'MISSING');
 
   const navigate = useNavigate();
   const [session] = useState(() => {
