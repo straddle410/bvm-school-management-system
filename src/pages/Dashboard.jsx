@@ -142,8 +142,8 @@ export default function Dashboard() {
   // Load staff profile only once — role doesn't change mid-session
   useEffect(() => { loadStaffProfile(); }, []);
 
-  // Load notices/diaries only on first mount, not on academicYear change
-  useEffect(() => { loadContentData(); }, []);
+  // Load notices lazily after dashboard renders (async, non-blocking)
+  useEffect(() => { loadNotices(); }, []);
 
   const loadStaffProfile = async () => {
     try {
