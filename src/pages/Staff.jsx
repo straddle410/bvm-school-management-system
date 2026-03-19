@@ -88,6 +88,7 @@ export default function Staff() {
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
     queryFn: () => base44.entities.Subject.list('name'),
+    enabled: activeTab === 'add' || activeTab === 'manage', // Only load when needed
   });
 
   // Query SectionConfig: only query when academicYear is available
@@ -99,7 +100,7 @@ export default function Staff() {
          { academic_year: academicYear }
        );
      },
-     enabled: !!academicYear,  // CRITICAL: Only run query when academicYear is available
+     enabled: !!academicYear && (activeTab === 'add' || activeTab === 'manage'), // Only load when needed
    });
 
   // Derive unique classes from SectionConfig, sorted by display order
