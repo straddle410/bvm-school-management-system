@@ -119,6 +119,7 @@ export default function Staff() {
     description: '',
     permissions: {},
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: staffList = [] } = useQuery({
