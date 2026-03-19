@@ -216,6 +216,29 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── INBOX CAP: Keep max 50 messages per student inbox, delete oldest permanently ──
+    const inboxCapStudents = new Set(studentRecipients);
+    // Also apply cap when student sends (the other party might be student-to-staff only, skip)
+    // Apply cap to all students who received a message this call
+    if (inboxCapStudents.size > 0) {
+      for (const recipientStudentId of inboxCapStudents) {
+        try {
+          const inboxMsgs = await base44.asServiceRole.entities.Message.filter(
+            { recipient_id: recipientStudentId, recipient_type: 'individual' },
+            '-created_date',
+            200
+          );
+          if (inboxMsgs.length > 50) {
+            // Delete the oldest ones beyond the 50 cap
+            const toDelete = inboxMsgs.slice(50);
+            await Promise.all(toDelete.map(m => base44.asServiceRole.entities.Message.delete(m.id)));
+          }
+        } catch (capErr) {
+          console.warn('Inbox cap cleanup error (non-fatal):', capErr.message);
+        }
+      }
+    }
+
     return Response.json({ success: true, message: 'Message sent' });
   } catch (error) {
     console.error('Error in sendMessage:', error);
