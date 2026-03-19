@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import LoginRequired from '@/components/LoginRequired';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
+import DueFollowupsAlert from '@/components/fees/DueFollowupsAlert';
 
 export default function DefaultersReportPage() {
   const { academicYear } = useAcademicYear();
