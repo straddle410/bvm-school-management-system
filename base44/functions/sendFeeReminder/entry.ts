@@ -45,7 +45,12 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const reminderMessage = `Dear ${student.parent_name || 'Parent'}, fee of ₹${student.due_amount} is pending for ${student.student_name} (${student.class_name}). Please pay at the earliest.`;
+        const reminderMessage = templateStr
+          .replace(/{parent_name}/g, student.parent_name || 'Parent')
+          .replace(/{amount_due}/g, student.due_amount)
+          .replace(/{student_name}/g, student.student_name)
+          .replace(/{class}/g, student.class_name)
+          .replace(/{school_name}/g, schoolName);
 
         // Send push via centralized function first, track success
         let isPushSent = false;
