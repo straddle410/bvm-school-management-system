@@ -304,12 +304,6 @@ export default function StudentDashboard() {
               )}
             </Link>
             <button
-              onClick={() => setIsDark(v => !v)}
-              className="p-2 md:p-2.5 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              {isDark ? <Sun className="h-5 w-5 md:h-6 md:w-6 text-yellow-400" /> : <Moon className="h-5 w-5 md:h-6 md:w-6 text-slate-300" />}
-            </button>
-            <button
               onClick={handleLogout}
               className="hidden md:flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-all min-h-[44px]"
             >
