@@ -172,24 +172,11 @@ export default function Dashboard() {
     }
   };
 
-  const loadContentData = async () => {
+  const loadNotices = async () => {
     try {
-      const session = getStaffSession();
-      const resolvedRole = normaliseRole(session?.role || '');
-      
-      if (resolvedRole !== 'accountant') {
-        try {
-          const diaries = await base44.entities.Diary.list('-created_date', 3);
-          setLatestDiaries(diaries || []);
-        } catch {}
-        try {
-          const notices = await base44.entities.Notice.list('-publish_date', 5);
-          setRecentNotices(notices || []);
-        } catch {}
-      }
-    } catch (e) {
-      console.error('Dashboard content load error:', e);
-    }
+      const notices = await base44.entities.Notice.list('-publish_date', 5);
+      setRecentNotices(notices || []);
+    } catch {}
   };
 
   // ── Shared sub-components ──────────────────────────────────────────────────
