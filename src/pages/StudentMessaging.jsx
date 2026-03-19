@@ -170,7 +170,7 @@ export default function StudentMessaging() {
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col max-w-md sm:max-w-xl mx-auto pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-xl border-b border-slate-700">
+      <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 pt-4 pb-6 sticky top-0 z-40 shadow-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('StudentDashboard')} className="p-2 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition min-h-[44px] min-w-[44px] flex items-center justify-center">

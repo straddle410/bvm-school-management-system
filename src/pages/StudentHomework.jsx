@@ -164,14 +164,14 @@ export default function StudentHomework() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col max-w-md sm:max-w-2xl mx-auto pb-20" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
-      <header className="bg-[#1a237e] text-white px-4 py-3 sticky top-0 z-40 shadow-md">
+      <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-3">
           <Link to={createPageUrl('StudentDashboard')} className="p-1 hover:bg-white/20 rounded-lg transition">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="font-bold text-lg">My Homework</h1>
-            <p className="text-blue-200 text-xs">Class {student.class_name} • {student.name}</p>
+            <h1 className="text-lg font-bold">My Homework</h1>
+            <p className="text-sm text-blue-100">{student.class_name}-{student.section}</p>
           </div>
         </div>
       </header>
