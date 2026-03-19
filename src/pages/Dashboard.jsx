@@ -347,20 +347,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {latestDiaries.length > 0 && (
-            <section>
-              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Latest Diary Entries</h2>
-              <div className="space-y-3">
-                {latestDiaries.map(diary => (
-                  <div key={diary.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border-l-4 border-pink-500">
-                    <p className="font-semibold text-gray-900 dark:text-white">{diary.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Class {diary.class_name} • {diary.subject}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{diary.description}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+
         </div>
       </div>
     );
