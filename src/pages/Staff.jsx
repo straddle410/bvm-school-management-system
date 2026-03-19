@@ -260,8 +260,14 @@ export default function Staff() {
       const res = await base44.functions.invoke('generateStaffId', { action: 'generate', role: derivedRole });
       if (res.data?.staff_id) {
         setForm(f => ({ ...f, username: res.data.staff_id }));
+      } else {
+        console.error('No staff_id returned:', res.data);
+        toast.error('Failed to generate staff ID. Please try again.');
       }
-    } catch {}
+    } catch (err) {
+      console.error('Error generating staff ID:', err);
+      toast.error('Error generating staff ID: ' + (err.message || 'Unknown error'));
+    }
   };
 
   const openCreate = () => {
@@ -351,6 +357,12 @@ export default function Staff() {
     }
     if (!editingStaff && !form.role_template_id) {
       toast.error('Please select a Role Template first');
+      return;
+    }
+
+    // Check for empty username (only on create)
+    if (!editingStaff && !form.username) {
+      toast.error('Staff ID was not generated. Please select a role and try again.');
       return;
     }
 
