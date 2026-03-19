@@ -416,11 +416,12 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
                     'Save Follow-up'
                   )}
                 </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </SheetContent>
-    </Sheet>
-  );
-}
+                </CardContent>
+                </Card>
+                )}
+                </TabsContent>
+                </Tabs>
+                </SheetContent>
+                </Sheet>
+                );
+                }
