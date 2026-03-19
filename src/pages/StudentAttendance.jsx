@@ -24,7 +24,7 @@ export default function StudentAttendance() {
   const { data: attendanceData = {}, isLoading } = useQuery({
     queryKey: ['student-attendance', session?.student_id],
     queryFn: async () => {
-      if (!session?.student_id) return { total_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
+      if (!session?.student_id) return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
       try {
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
@@ -32,12 +32,12 @@ export default function StudentAttendance() {
         });
         const data = res.data || {};
         // Use shared calculation helper for percentage consistency
-        if (data.total_days > 0) {
-          data.percentage = getAttendancePercentage(data.present_days, data.total_days);
+        if (data.working_days > 0) {
+          data.percentage = getAttendancePercentage(data.present_days, data.working_days);
         }
         return data;
       } catch {
-        return { total_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
+        return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
       }
     },
     enabled: !!session?.student_id,
@@ -84,7 +84,7 @@ export default function StudentAttendance() {
 
   if (!session) return null;
 
-  const { total_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
+  const { working_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
   const half_days = halfDayRecords.length;
   const isLowAttendance = percentage < 75;
 
@@ -121,7 +121,7 @@ export default function StudentAttendance() {
 
               <div className="grid grid-cols-2 gap-4 text-center text-sm mb-4">
                 <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="font-bold text-blue-900">{total_days}</p>
+                  <p className="font-bold text-blue-900">{working_days}</p>
                   <p className="text-xs text-gray-600">Working Days</p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-3">
