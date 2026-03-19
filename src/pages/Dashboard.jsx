@@ -130,7 +130,6 @@ export default function Dashboard() {
     return {};
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [latestDiaries, setLatestDiaries] = useState([]);
   const [recentNotices, setRecentNotices] = useState([]);
 
   const isAdmin = staffRole === 'admin' || staffRole === 'principal';
