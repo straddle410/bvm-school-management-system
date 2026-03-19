@@ -40,7 +40,6 @@ const HOME_TILES = [
   { label: 'Gallery', page: 'Gallery', icon: Image, color: '#f57f17', bg: '#fff8e1', notifKey: null },
   { label: 'Quiz', page: 'StudentQuiz', icon: Brain, color: '#7b1fa2', bg: '#f3e5f5', notifKey: 'Quiz' },
   { label: 'Profile', page: 'StudentProfile', icon: User, color: '#00796b', bg: '#e0f2f1', notifKey: null },
-  { label: 'Change Password', page: 'StudentChangePassword', icon: Key, color: '#1565c0', bg: '#e3f2fd', notifKey: null },
 ];
 
 export default function StudentDashboard() {
