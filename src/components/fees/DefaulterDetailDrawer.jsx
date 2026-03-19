@@ -50,7 +50,7 @@ export default function DefaulterDetailDrawer({ row, academicYear, onClose, onFo
     onSuccess: () => {
       toast.success('Follow-up added');
       setNewFollowUp({ status: 'NEW', priority: '', note: '', next_followup_date: '' });
-      queryClient.invalidateQueries({ queryKey: ['defaulter-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['defaulter-detail', row.student.id, academicYear] });
       onFollowUpAdded?.();
     },
     onError: (err) => {
