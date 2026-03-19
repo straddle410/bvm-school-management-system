@@ -311,10 +311,10 @@ export default function Diary() {
                   <div>
                     <Label>Class *</Label>
                     <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v })} required>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
+                     <SelectTrigger>
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent position="popper">
                         {classes.map((cls) => (
                           <SelectItem key={cls} value={cls}>
                             Class {cls}
@@ -329,10 +329,11 @@ export default function Diary() {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper">
                         <SelectItem value="A">A</SelectItem>
                         <SelectItem value="B">B</SelectItem>
                         <SelectItem value="C">C</SelectItem>
+                        <SelectItem value="D">D</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -359,7 +360,7 @@ export default function Diary() {
                       <SelectTrigger className={formErrors.subject ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Select a subject" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper">
                         {subjects.map((subj) => (
                           <SelectItem key={subj.id} value={subj.id}>
                             {subj.name}

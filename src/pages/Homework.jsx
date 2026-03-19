@@ -815,7 +815,7 @@ export default function Homework() {
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="popper">
                           {availableClasses.map((cls) => (
                             <SelectItem key={cls} value={cls}>
                               Class {cls}
@@ -830,7 +830,7 @@ export default function Homework() {
                         <SelectTrigger>
                           <SelectValue placeholder={form.class_name ? 'Select section' : 'Select class first'} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="popper">
                           {availableSections.map((sec) => (
                             <SelectItem key={sec} value={sec}>{sec}</SelectItem>
                           ))}
@@ -858,9 +858,9 @@ export default function Homework() {
                         }}
                       >
                         <SelectTrigger className={formErrors.subject ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Select a subject" />
+                         <SelectValue placeholder="Select a subject" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="popper">
                           {subjects.map((subj) => (
                             <SelectItem key={subj.id} value={subj.id}>
                               {subj.name}
@@ -902,7 +902,7 @@ export default function Homework() {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper">
                         <SelectItem value="VIEW_ONLY">View Only</SelectItem>
                         <SelectItem value="SUBMISSION_REQUIRED">Students Must Submit</SelectItem>
                       </SelectContent>

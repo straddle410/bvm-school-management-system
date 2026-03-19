@@ -389,8 +389,8 @@ export default function Notices() {
                <div>
                  <Label>Type</Label>
                 <Select value={form.notice_type} onValueChange={v => setForm({...form, notice_type: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                 <SelectTrigger><SelectValue /></SelectTrigger>
+                 <SelectContent position="popper">
                     {Object.keys(TYPE_COLORS).map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -399,7 +399,7 @@ export default function Notices() {
                 <Label>Audience</Label>
                 <Select value={form.target_audience} onValueChange={v => setForm({...form, target_audience: v, target_classes: []})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {['All', 'Students', 'Parents', 'Staff', 'Teachers'].map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                   </SelectContent>
                 </Select>
