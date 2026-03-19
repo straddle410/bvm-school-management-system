@@ -26,15 +26,18 @@ export default function StudentAttendance() {
     queryFn: async () => {
       if (!session?.student_id) return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
       try {
+        // Get academic year start date from database
+        const years = await base44.entities.AcademicYear.filter({ year: session.academic_year });
+        const startDate = years.length > 0 ? years[0].start_date : new Date().toISOString().split('T')[0];
+        const endDate = new Date().toISOString().split('T')[0]; // Today
+        
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
-          academic_year: session.academic_year
+          academic_year: session.academic_year,
+          start_date: startDate,
+          end_date: endDate
         });
         const data = res.data || {};
-        // Use shared calculation helper for percentage consistency
-        if (data.working_days > 0) {
-          data.percentage = getAttendancePercentage(data.present_days, data.working_days);
-        }
         return data;
       } catch {
         return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
