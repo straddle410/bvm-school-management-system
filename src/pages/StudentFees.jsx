@@ -30,21 +30,14 @@ export default function StudentFees() {
       .catch(() => {});
   }, []);
 
-  const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
-
-  useEffect(() => {
-    // Fetch current active academic year
-    base44.entities.AcademicYear.filter({ status: 'Active' })
-      .then(years => {
-        if (years.length > 0) setCurrentAcademicYear(years[0].year);
-      })
-      .catch(() => {});
-  }, []);
+  // Use academic year from session — already available, no extra API call needed
+  const currentAcademicYear = session?.academic_year || null;
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['student-fees', session?.student_id, currentAcademicYear],
     queryFn: () => base44.entities.FeeInvoice.filter({ student_id: session?.student_id, academic_year: currentAcademicYear }),
     enabled: !!session?.student_id && !!currentAcademicYear,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: allPayments = [] } = useQuery({
@@ -56,8 +49,7 @@ export default function StudentFees() {
       return payments.filter(p => p.status === 'Active');
     },
     enabled: !!session?.student_id,
-    staleTime: 0,
-    gcTime: 0
+    staleTime: 2 * 60 * 1000,
   });
 
   // Auto-open receipt from notification deep-link

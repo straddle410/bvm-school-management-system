@@ -63,7 +63,7 @@ export default function StudentMessaging() {
       return res.data?.messages || [];
     },
     enabled: !!student,
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   const { data: sent = [], isLoading: loadingSent } = useQuery({

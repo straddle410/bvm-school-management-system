@@ -62,12 +62,8 @@ export default function StudentDiary() {
   today.setHours(0, 0, 0, 0);
   const todayDateString = format(today, 'yyyy-MM-dd');
 
-  // Filter entries by selected date (or today)
-  const filteredEntries = diaryEntries.filter(entry => {
-    const filterDate = selectedDate || todayDateString;
-    const entryDate = entry.diary_date ? format(new Date(entry.diary_date), 'yyyy-MM-dd') : format(new Date(entry.created_date), 'yyyy-MM-dd');
-    return entryDate === filterDate;
-  });
+  // Data already filtered by date at API level
+  const filteredEntries = diaryEntries;
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] pb-24">

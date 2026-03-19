@@ -55,7 +55,7 @@ export default function StudentHomework() {
           status: 'Published' 
         },
         '-due_date',
-        200
+        60
       );
 
       const filtered = allHomework.filter(hw => {
@@ -74,7 +74,7 @@ export default function StudentHomework() {
   const { data: submissions = [] } = useQuery({
     queryKey: ['student-submissions', student?.student_id],
     enabled: !!student,
-    queryFn: () => base44.entities.HomeworkSubmission.filter({ student_id: student.student_id }, '-created_date', 200),
+    queryFn: () => base44.entities.HomeworkSubmission.filter({ student_id: student.student_id }, '-created_date', 60),
   });
 
 

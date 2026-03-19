@@ -27,9 +27,12 @@ export default function StudentMore() {
     }
     setSession(parsedSession);
 
+    // Load school profile from cache if available
     base44.entities.SchoolProfile.list()
       .then(p => p.length && setSchoolProfile(p[0]))
       .catch(() => {});
+    // Also update Quiz link to use StudentQuiz
+
   }, [navigate]);
 
   const handleLogout = () => {
@@ -70,7 +73,7 @@ export default function StudentMore() {
     { label: 'Fees', sub: 'View and pay fees', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', page: 'StudentFees' },
     { label: 'Progress Card', sub: 'View progress reports', icon: FileText, color: '#e91e63', bg: '#fce4ec', page: 'Results' },
     { label: 'Diary', sub: 'Class diary entries', icon: FileText, color: '#e91e63', bg: '#fce4ec', page: 'StudentDiary' },
-    { label: 'Quiz', sub: 'Take quizzes', icon: HelpCircle, color: '#f57c00', bg: '#fff3e0', page: 'Quiz' },
+    { label: 'Quiz', sub: 'Take quizzes', icon: HelpCircle, color: '#f57c00', bg: '#fff3e0', page: 'StudentQuiz' },
     { label: 'Gallery', sub: 'School photos', icon: Image, color: '#00796b', bg: '#e0f2f1', page: 'Gallery' },
     { label: 'Profile', sub: 'View your profile', icon: User, color: '#5c6bc0', bg: '#e8eaf6', page: 'StudentProfile' },
   ];
