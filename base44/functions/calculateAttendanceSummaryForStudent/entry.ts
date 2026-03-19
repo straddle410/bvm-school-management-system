@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const { student_id, academic_year } = await req.json();
 
     if (!student_id || !academic_year) {
-      return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
+      return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
     // Fetch current academic year dates
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     }).catch(() => []);
 
     if (!allAttendance || allAttendance.length === 0) {
-      return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
+      return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
     const start = new Date(startDate);
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     });
 
     if (!recordsInRange || recordsInRange.length === 0) {
-      return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
+      return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
     // CANONICAL DEDUPLICATION - Same as Summary Report
@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      total_days: workingDays,
+      working_days: workingDays,
       present_days: Math.round(totalPresent * 100) / 100,
       absent_days: absentDays,
       percentage: workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0
