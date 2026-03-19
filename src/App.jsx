@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import NotificationAnalytics from './pages/NotificationAnalytics'
 import PostingDashboard from './pages/PostingDashboard'
 import StudentQuiz from './pages/StudentQuiz'
+import StudentChangePassword from './pages/StudentChangePassword'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
       <Route path="/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
       <Route path="/pages/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
       <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><StudentQuiz /></LayoutWrapper>} />
+      <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><StudentChangePassword /></LayoutWrapper>} />
        <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
