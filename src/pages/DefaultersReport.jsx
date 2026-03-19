@@ -63,21 +63,7 @@ export default function DefaultersReportPage() {
   };
 
   const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    
-    // Clear existing timer
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-    
-    // Set new timer for debounced apply
-    const timer = setTimeout(() => {
-      setAppliedFilters(newFilters);
-      setPage(1);
-    }, 500);
-    
-    setDebounceTimer(timer);
+    setFilters({ ...filters, [key]: value });
   };
 
   const handleResetFilters = () => {
