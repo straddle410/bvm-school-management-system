@@ -95,45 +95,59 @@ export default function StudentMessaging() {
     const unreadMsgs = inbox.filter(m => !m.is_read && m.recipient_id === student?.student_id);
     if (unreadMsgs.length === 0) return;
 
-    // Optimistically update UI immediately
-    queryClient.setQueryData(['student-messages-inbox', student?.student_id], 
+    // Optimistically update UI immediately — persist so re-fetch doesn't flicker back
+    queryClient.setQueryData(['student-messages-inbox', student?.student_id],
       inbox.map(m => ({ ...m, is_read: true }))
     );
-
-    try {
-      await base44.entities.Message.bulkUpdate(
-        unreadMsgs.map(m => ({ id: m.id, is_read: true }))
-      );
-    } catch {}
-
-    queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
-    queryClient.invalidateQueries({ queryKey: ['unread-counts'] });
+    // Immediately clear dashboard badge optimistically
+    queryClient.setQueryData(['unread-counts', student?.student_id],
+      (old = {}) => ({ ...old, Messages: 0 })
+    );
     window.dispatchEvent(new CustomEvent('student-notifications-read'));
+
+    // Fire-and-forget backend updates
+    Promise.all([
+      base44.entities.Message.bulkUpdate(unreadMsgs.map(m => ({ id: m.id, is_read: true }))),
+      // Also mark Notification records as read so dashboard badge updates
+      base44.entities.Notification.filter({
+        recipient_student_id: student.student_id,
+        type: 'class_message',
+        is_read: false,
+      }).then(notifs => notifs.length
+        ? Promise.all(notifs.map(n => base44.entities.Notification.update(n.id, { is_read: true })))
+        : null
+      ),
+    ]).catch(() => {});
   };
 
   const handleSelectMessage = async (msg) => {
-    const threadId = msg.thread_id || msg.id;
-    // Use server-side thread fetch for correct access control and full thread history
-    try {
-      const res = await base44.functions.invoke('getMessageThread', {
-        thread_id: threadId,
-      });
-      const threadMessages = res.status === 200 ? (res.data.messages || []) : [msg];
-      setSelectedThread(threadMessages);
-    } catch (err) {
-      // If thread fetch fails, just show the single message
-      setSelectedThread([msg]);
+    // Show message immediately (optimistic) — don't wait for thread fetch
+    setSelectedThread([msg]);
+
+    // Mark as read optimistically
+    if (!msg.is_read && msg.recipient_id === student?.student_id) {
+      queryClient.setQueryData(['student-messages-inbox', student?.student_id],
+        (old = []) => old.map(m => m.id === msg.id ? { ...m, is_read: true } : m)
+      );
+      base44.entities.Message.update(msg.id, { is_read: true })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['unread-counts'] });
+          window.dispatchEvent(new CustomEvent('student-notifications-read'));
+        })
+        .catch(() => {});
     }
 
-    if (!msg.is_read && msg.recipient_id === student?.student_id) {
-      try {
-        await base44.entities.Message.update(msg.id, { is_read: true });
-        queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
-        queryClient.invalidateQueries({ queryKey: ['unread-counts'] });
-        window.dispatchEvent(new CustomEvent('student-notifications-read'));
-      } catch {}
-    }
-    };
+    // Fetch full thread in background — update if we get more messages
+    const threadId = msg.thread_id || msg.id;
+    base44.functions.invoke('getMessageThread', { thread_id: threadId })
+      .then(res => {
+        const threadMessages = res.status === 200 ? (res.data.messages || []) : null;
+        if (threadMessages && threadMessages.length > 1) {
+          setSelectedThread(threadMessages);
+        }
+      })
+      .catch(() => {});
+  };
 
   if (!student) return null;
 
