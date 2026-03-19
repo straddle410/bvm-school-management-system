@@ -43,22 +43,13 @@ export default function StudentNotices() {
         const allNotices = await base44.entities.Notice.filter({
           academic_year: session.academic_year,
           status: 'Published'
-        }, '-created_date', 500);
+        }, '-created_date', 50);
         
-        // Filter notices that target this student's class or all
-        console.log('[NOTICES] Found:', allNotices.length, 'Session class:', session.class_name);
         return (allNotices || []).filter(notice => {
-          // Include if targeting all audiences or students
           const isForStudent = notice.target_audience === 'All' || notice.target_audience === 'Students';
           if (!isForStudent) return false;
-          
-          // If no specific classes targeted, show to all
           if (!notice.target_classes || notice.target_classes.length === 0) return true;
-          
-          // Otherwise, check if student's class is in target_classes
-          const isInClass = notice.target_classes.includes(session.class_name);
-          console.log('[NOTICE] Title:', notice.title, 'Classes:', notice.target_classes, 'Match:', isInClass);
-          return isInClass;
+          return notice.target_classes.includes(session.class_name);
         });
       } catch {
         return [];

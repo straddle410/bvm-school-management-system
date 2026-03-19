@@ -72,7 +72,7 @@ export default function StudentAttendance() {
         return [];
       }
     },
-    enabled: !!session?.student_id,
+    enabled: !!session?.student_id && showHalfDayDates,
     staleTime: 5 * 60 * 1000,
   });
 

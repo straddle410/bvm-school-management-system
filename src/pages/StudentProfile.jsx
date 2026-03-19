@@ -240,7 +240,7 @@ export default function StudentProfile() {
 
   const { data: attendance = [] } = useQuery({
     queryKey: ['student-attendance', studentId],
-    queryFn: () => base44.entities.Attendance.filter({ student_id: student?.student_id }, '-date', 100),
+    queryFn: () => base44.entities.Attendance.filter({ student_id: student?.student_id }, '-date', 10),
     enabled: !!student?.student_id,
   });
 

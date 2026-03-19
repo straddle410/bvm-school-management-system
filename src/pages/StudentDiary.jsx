@@ -34,16 +34,18 @@ export default function StudentDiary() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: diaryEntries = [], isLoading } = useQuery({
-    queryKey: ['student-diary', session?.student_id],
+    queryKey: ['student-diary', session?.student_id, selectedDate],
     queryFn: async () => {
       if (!session?.student_id) return [];
       try {
+        const filterDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
         const entries = await base44.entities.Diary.filter({
           class_name: session.class_name,
           section: session.section,
           academic_year: session.academic_year,
-          status: 'Published'
-        }, '-created_date', 500);
+          status: 'Published',
+          diary_date: filterDate,
+        }, '-created_date', 50);
         return entries || [];
       } catch {
         return [];

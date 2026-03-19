@@ -40,7 +40,8 @@ export default function StudentHallTicketView() {
       });
       return response.data;
     },
-    enabled: !!studentSession?.id
+    enabled: !!studentSession?.id,
+    staleTime: 10 * 60 * 1000,
   });
 
   const allHallTickets = data?.hallTickets || [];
