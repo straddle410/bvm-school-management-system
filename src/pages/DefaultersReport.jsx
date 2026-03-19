@@ -78,6 +78,8 @@ export default function DefaultersReportPage() {
       minDue: '',
       daysSinceLastPaymentMin: '',
       status: '',
+      followUpDateFrom: '',
+      followUpDateTo: '',
       search: ''
     };
     setFilters(emptyFilters);
