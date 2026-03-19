@@ -7,7 +7,7 @@ import {
   Home, LogOut, BookOpen, ClipboardList, Bell, Trophy,
   ChevronRight, Lock, Image, Calendar, Brain, FileText, Book,
   MessageSquare, TrendingUp, CheckCircle, AlertCircle, Clock,
-  Ticket, BarChart3, Sun, Moon, Wallet, User, Key
+  Ticket, BarChart3, Sun, Moon, Wallet, User
 } from 'lucide-react';
 import { useDarkMode } from '@/components/useDarkMode';
 
