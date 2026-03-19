@@ -31,8 +31,8 @@ const STATUS_COLORS = {
 };
 
 function ProfileContent({ student, attendance, marks }) {
-  const presentDays = attendance.filter(a => a.is_present && !a.is_holiday).length;
-  const totalDays = attendance.filter(a => !a.is_holiday).length;
+  const presentDays = attendance.filter(a => a.attendance_type === 'full_day' || a.attendance_type === 'half_day').length;
+  const totalDays = attendance.filter(a => a.attendance_type !== 'holiday').length;
   const attendancePercentage = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
   const avgMarks = marks.length > 0
     ? (marks.reduce((sum, m) => sum + (m.marks_obtained || 0), 0) / marks.length).toFixed(1)
