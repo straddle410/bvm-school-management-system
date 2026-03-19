@@ -179,17 +179,22 @@ export default function DefaultersReportPage() {
     }
   };
 
+  const [followUpDates, setFollowUpDates] = useState({}); // Track dates per student
+
   const handleUpdateFollowUp = async (studentId, status) => {
     if (!status) return;
     try {
+      const nextDate = followUpDates[studentId] || null;
       await base44.functions.invoke('createFollowUp', {
         student_id: studentId,
         status: status,
         note: `Quick update from defaulters report - ${new Date().toLocaleDateString()}`,
+        next_followup_date: nextDate,
         academic_year: academicYear
       });
       queryClient.invalidateQueries({ queryKey: ['defaultersReport'] });
-      toast.success(`Follow-up status updated to ${status}`);
+      setFollowUpDates(prev => ({ ...prev, [studentId]: null }));
+      toast.success(`Follow-up set for ${nextDate ? new Date(nextDate).toLocaleDateString() : 'today'}`);
     } catch (err) {
       toast.error('Failed to update follow-up');
       console.error(err);
