@@ -28,18 +28,18 @@ function getStudentSession() {
 // Do NOT use lowercase routes like '/studentattendance'.
 // Base44 routes are case-sensitive and generated from filenames.
 const HOME_TILES = [
-  { label: 'Attendance', page: 'StudentAttendance', icon: ClipboardList, color: '#26a69a', bg: '#e0f2f1', notifKey: null },
-  { label: 'Marks', page: 'StudentMarks', icon: BarChart3, color: '#1976d2', bg: '#e3f2fd', notifKey: 'Marks' },
-  { label: 'Diary', page: 'StudentDiary', icon: Book, color: '#e91e63', bg: '#fce4ec', notifKey: 'Diary' },
-  { label: 'Homework', page: 'StudentHomework', icon: BookOpen, color: '#f57c00', bg: '#fff3e0', notifKey: 'Homework' },
-  { label: 'Notices', page: 'StudentNotices', icon: Bell, color: '#1a237e', bg: '#e8eaf6', notifKey: 'Notices' },
-  { label: 'Hall Ticket', page: 'StudentHallTicketView', icon: Ticket, color: '#388e3c', bg: '#e8f5e9', notifKey: 'HallTickets' },
+  { label: 'Attendance', page: 'StudentAttendance', icon: ClipboardList, color: '#2e7d32', bg: '#e8f5e9', notifKey: null },
+  { label: 'Diary', page: 'StudentDiary', icon: Book, color: '#c2185b', bg: '#fce4ec', notifKey: 'Diary' },
+  { label: 'Notices', page: 'StudentNotices', icon: Bell, color: '#283593', bg: '#e8eaf6', notifKey: 'Notices' },
+  { label: 'Homework', page: 'StudentHomework', icon: BookOpen, color: '#e65100', bg: '#fff3e0', notifKey: 'Homework' },
   { label: 'Timetable', page: 'StudentTimetable', icon: Calendar, color: '#6a1b9a', bg: '#f3e5f5', notifKey: null },
-  { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, color: '#0288d1', bg: '#e1f5fe', notifKey: 'Messages' },
-  { label: 'Fees', page: 'StudentFees', icon: Wallet, color: '#d32f2f', bg: '#ffebee', notifKey: null },
+  { label: 'Messages', page: 'StudentMessaging', icon: MessageSquare, color: '#0277bd', bg: '#e1f5fe', notifKey: 'Messages' },
+  { label: 'Fees', page: 'StudentFees', icon: Wallet, color: '#c62828', bg: '#ffebee', notifKey: null },
   { label: 'Gallery', page: 'Gallery', icon: Image, color: '#f57f17', bg: '#fff8e1', notifKey: null },
-  { label: 'Quiz', page: 'StudentQuiz', icon: Brain, color: '#7b1fa2', bg: '#f3e5f5', notifKey: 'Quiz' },
-  { label: 'Profile', page: 'StudentProfile', icon: User, color: '#00796b', bg: '#e0f2f1', notifKey: null },
+  { label: 'Hall Ticket', page: 'StudentHallTicketView', icon: Ticket, color: '#00695c', bg: '#e0f2f1', notifKey: 'HallTickets' },
+  { label: 'Marks', page: 'StudentMarks', icon: BarChart3, color: '#1565c0', bg: '#e3f2fd', notifKey: 'Marks' },
+  { label: 'Quiz', page: 'StudentQuiz', icon: Brain, color: '#4527a0', bg: '#ede7f6', notifKey: 'Quiz' },
+  { label: 'Profile', page: 'StudentProfile', icon: User, color: '#37474f', bg: '#eceff1', notifKey: null },
 ];
 
 export default function StudentDashboard() {
