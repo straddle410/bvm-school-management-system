@@ -93,18 +93,22 @@ export default function StudentMessaging() {
 
   const markAllInboxRead = async () => {
     const unreadMsgs = inbox.filter(m => !m.is_read && m.recipient_id === student?.student_id);
-
     if (unreadMsgs.length === 0) return;
 
+    // Optimistically update UI immediately
+    queryClient.setQueryData(['student-messages-inbox', student?.student_id], 
+      inbox.map(m => ({ ...m, is_read: true }))
+    );
+
     try {
-      await base44.functions.invoke('markStudentNotificationsRead', {
-        notification_ids: [],
-        message_ids: unreadMsgs.map(m => m.id),
-      });
+      await base44.entities.Message.bulkUpdate(
+        unreadMsgs.map(m => ({ id: m.id, is_read: true }))
+      );
     } catch {}
 
     queryClient.invalidateQueries({ queryKey: ['student-messages-inbox'] });
-    queryClient.invalidateQueries({ queryKey: ['unread-message-count'] });
+    queryClient.invalidateQueries({ queryKey: ['unread-counts'] });
+    window.dispatchEvent(new CustomEvent('student-notifications-read'));
   };
 
   const handleSelectMessage = async (msg) => {

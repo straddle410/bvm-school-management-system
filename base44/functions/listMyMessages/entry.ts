@@ -14,11 +14,8 @@ Deno.serve(async (req) => {
     let currentUserId = null;
 
     if (_studentId) {
-      // Student custom session
-      const students = await base44.asServiceRole.entities.Student.filter({ student_id: _studentId });
-      if (students.length > 0 && !students[0].is_deleted && students[0].is_active !== false) {
-        currentUserId = _studentId;
-      }
+      // Student custom session — trust the session, no DB lookup needed
+      currentUserId = _studentId;
     } else if (_staffUsername) {
       // Staff custom session — username is the canonical messaging ID
       currentUserId = _staffUsername;
