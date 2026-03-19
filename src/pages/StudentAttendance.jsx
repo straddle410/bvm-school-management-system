@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'; // useState kept for session init
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { getAttendancePercentage } from '@/components/attendanceCalculations';
 import { AlertCircle, BarChart3, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
@@ -23,15 +24,20 @@ export default function StudentAttendance() {
   const { data: attendanceData = {}, isLoading } = useQuery({
     queryKey: ['student-attendance', session?.student_id],
     queryFn: async () => {
-      if (!session?.student_id) return {};
+      if (!session?.student_id) return { total_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
       try {
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
           academic_year: session.academic_year
         });
-        return res.data || {};
+        const data = res.data || {};
+        // Use shared calculation helper for percentage consistency
+        if (data.total_days > 0) {
+          data.percentage = getAttendancePercentage(data.present_days, data.total_days);
+        }
+        return data;
       } catch {
-        return {};
+        return { total_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
       }
     },
     enabled: !!session?.student_id,
