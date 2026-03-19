@@ -90,7 +90,7 @@ export default function DefaultersReportPage() {
 
   // Fetch defaulters
   const { data, isLoading, error } = useQuery({
-    queryKey: ['defaultersReport', academicYear, page, appliedFilters.className, appliedFilters.section, appliedFilters.minDue, appliedFilters.status, appliedFilters.search, appliedFilters.daysSinceLastPaymentMin],
+    queryKey: ['defaultersReport', academicYear, page, appliedFilters.className, appliedFilters.section, appliedFilters.minDue, appliedFilters.status, appliedFilters.search, appliedFilters.daysSinceLastPaymentMin, appliedFilters.followUpDateFrom, appliedFilters.followUpDateTo],
     queryFn: async () => {
       const params = new URLSearchParams({
         academicYear: academicYear,
@@ -101,6 +101,8 @@ export default function DefaultersReportPage() {
         ...(appliedFilters.section && { section: appliedFilters.section }),
         ...(appliedFilters.daysSinceLastPaymentMin !== undefined && appliedFilters.daysSinceLastPaymentMin !== '' && { daysSinceLastPaymentMin: appliedFilters.daysSinceLastPaymentMin }),
         ...(appliedFilters.status && { status: appliedFilters.status }),
+        ...(appliedFilters.followUpDateFrom && { followUpDateFrom: appliedFilters.followUpDateFrom }),
+        ...(appliedFilters.followUpDateTo && { followUpDateTo: appliedFilters.followUpDateTo }),
         ...(appliedFilters.search && { search: appliedFilters.search })
       });
 
