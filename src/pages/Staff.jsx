@@ -1031,7 +1031,7 @@ export default function Staff() {
                             <SelectTrigger>
                               <SelectValue placeholder="Select" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper">
                               <SelectItem value="Male">Male</SelectItem>
                               <SelectItem value="Female">Female</SelectItem>
                               <SelectItem value="Other">Other</SelectItem>

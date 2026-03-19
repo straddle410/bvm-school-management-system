@@ -62,7 +62,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {academicYears.map((year) => (
                 <SelectItem key={year} value={year}>{year}</SelectItem>
               ))}
@@ -76,7 +76,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="All" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={null}>All Classes</SelectItem>
               {classes.map((cls) => (
                 <SelectItem key={cls} value={cls}>{cls}</SelectItem>
@@ -91,7 +91,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="All" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={null}>All Sections</SelectItem>
               {sections.map((sec) => (
                 <SelectItem key={sec} value={sec}>{sec}</SelectItem>
@@ -106,7 +106,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="All" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={null}>All Subjects</SelectItem>
               {subjects.map((subj) => (
                 <SelectItem key={subj} value={subj}>{subj}</SelectItem>
@@ -124,7 +124,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {homeworkStatusOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
@@ -138,7 +138,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {submissionProgressOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
@@ -152,7 +152,7 @@ export default function HomeworkFiltersBar({
             <SelectTrigger className="h-9">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {sortOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
