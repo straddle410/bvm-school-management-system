@@ -249,6 +249,8 @@ export default function StudentProfile() {
     }, '-date', 100),
     enabled: !!student?.student_id,
     staleTime: 0,
+    refetchOnMount: 'stale',
+    refetchOnWindowFocus: true,
   });
 
   const { data: marks = [] } = useQuery({
@@ -260,7 +262,30 @@ export default function StudentProfile() {
     }, '-updated_date', 100),
     enabled: !!student?.student_id,
     staleTime: 0,
+    refetchOnMount: 'stale',
+    refetchOnWindowFocus: true,
   });
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    if (!student?.student_id) return;
+    const unsubAttendance = base44.entities.Attendance.subscribe(({ type }) => {
+      if (type === 'update' || type === 'create' || type === 'delete') {
+        queryClient.invalidateQueries({ queryKey: ['student-attendance'] });
+      }
+    });
+    return unsubAttendance;
+  }, [student?.student_id, queryClient]);
+
+  useEffect(() => {
+    if (!student?.student_id) return;
+    const unsubMarks = base44.entities.Marks.subscribe(({ type }) => {
+      if (type === 'update' || type === 'create' || type === 'delete') {
+        queryClient.invalidateQueries({ queryKey: ['student-marks'] });
+      }
+    });
+    return unsubMarks;
+  }, [student?.student_id, queryClient]);
 
   if (!studentId && !sessionStudent?.id) {
     return <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center"><p className="text-gray-400">Student not found</p></div>;
