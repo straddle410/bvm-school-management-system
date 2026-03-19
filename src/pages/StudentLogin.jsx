@@ -12,11 +12,12 @@ export default function StudentLogin() {
   const [error, setError] = useState('');
   const [logoUrl, setLogoUrl] = useState(null);
 
-  useEffect(() => {
-    base44.entities.SchoolProfile.list().then(profiles => {
-      if (profiles?.[0]?.logo_url) setLogoUrl(profiles[0].logo_url);
-    }).catch(() => {});
-  }, []);
+  // Logo loading removed for performance testing
+  // useEffect(() => {
+  //   base44.entities.SchoolProfile.list().then(profiles => {
+  //     if (profiles?.[0]?.logo_url) setLogoUrl(profiles[0].logo_url);
+  //   }).catch(() => {});
+  // }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
