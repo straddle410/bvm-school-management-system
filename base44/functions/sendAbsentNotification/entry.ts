@@ -15,6 +15,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No attendance records provided' }, { status: 400 });
     }
 
+    // Load custom template from SchoolProfile (if any)
+    const profiles = await base44.asServiceRole.entities.SchoolProfile.list();
+    const profile = profiles[0] || {};
+    const schoolName = profile.school_name || 'School';
+    const templateStr = profile.absent_message_template ||
+      `Dear student/parent, {student_name} was marked absent today (Class {class}-{section}). If this is incorrect, please contact the school.`;
+
     const results = [];
 
     for (const record of attendanceRecords) {
@@ -32,7 +39,13 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const messageBody = `Dear student/parent, ${student_name} was marked absent today (Class ${class_name}-${section}). If this is incorrect, please contact the school.`;
+      const today = new Date().toLocaleDateString('en-IN');
+      const messageBody = templateStr
+        .replace(/{student_name}/g, student_name)
+        .replace(/{class}/g, class_name)
+        .replace(/{section}/g, section)
+        .replace(/{date}/g, today)
+        .replace(/{school_name}/g, schoolName);
 
       // Create Message entity
       const createdMessage = await base44.asServiceRole.entities.Message.create({

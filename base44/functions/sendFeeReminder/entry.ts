@@ -15,6 +15,13 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
+    // Load custom template from SchoolProfile (if any)
+    const profiles = await base44.asServiceRole.entities.SchoolProfile.list();
+    const profile = profiles[0] || {};
+    const schoolName = profile.school_name || 'School';
+    const templateStr = profile.fee_reminder_template ||
+      `Dear {parent_name}, fee of ₹{amount_due} is pending for {student_name} ({class}). Please pay at the earliest.`;
+
     const results = {
       success_count: 0,
       failed_count: 0,
