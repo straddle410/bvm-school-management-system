@@ -10,6 +10,25 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
   return d >= start && d <= end;
 }
 
+// CANONICAL DEDUPLICATION - Same logic as Summary Report
+function deduplicateAttendanceRecords(records) {
+  if (!records || records.length === 0) return [];
+  const dateMap = {};
+  records.forEach(r => {
+    if (!dateMap[r.date]) {
+      dateMap[r.date] = r;
+    } else {
+      // Precedence: full_day > half_day > absent > holiday
+      const existing = dateMap[r.date];
+      const priority = { full_day: 4, half_day: 3, absent: 2, holiday: 1 };
+      if ((priority[r.attendance_type] || 0) > (priority[existing.attendance_type] || 0)) {
+        dateMap[r.date] = r;
+      }
+    }
+  });
+  return Object.values(dateMap);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -50,6 +69,9 @@ Deno.serve(async (req) => {
       return Response.json({ total_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
+    // CANONICAL DEDUPLICATION - Same as Summary Report
+    const dedupedAttendance = deduplicateAttendanceRecords(recordsInRange);
+
     // Fetch holidays to properly calculate working days (excluding holidays & Sundays)
     const holidays = await base44.asServiceRole.entities.Holiday.filter({ academic_year: academic_year, status: 'Active' }).catch(() => []);
     const holidaySet = new Set(holidays.map(h => h.date));
@@ -68,7 +90,7 @@ Deno.serve(async (req) => {
     const fullDayDates = new Set();
     const halfDayDates = new Set();
     
-    recordsInRange.forEach(a => {
+    dedupedAttendance.forEach(a => {
       // Exclude holidays, Sundays, and holiday-marked records from present count
       if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
         if (a.attendance_type === 'full_day') {
@@ -98,7 +120,7 @@ Deno.serve(async (req) => {
       const periodStart = monthStart < start ? start : monthStart;
       const periodEnd = monthEnd > end ? end : monthEnd;
 
-      const monthRecords = recordsInRange.filter(a => {
+      const monthRecords = dedupedAttendance.filter(a => {
         const attDate = new Date(a.date);
         attDate.setUTCHours(0, 0, 0, 0);
         return attDate >= periodStart && attDate <= periodEnd;
