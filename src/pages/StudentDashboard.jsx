@@ -270,7 +270,7 @@ export default function StudentDashboard() {
   const initials = student.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col relative">
+    <div className="min-h-screen bg-[#f0f4ff] dark:bg-gray-950 flex flex-col relative">
       {/* Unified Notification Hub */}
       <StudentNotificationHub studentSession={student} />
 
@@ -278,88 +278,65 @@ export default function StudentDashboard() {
       <PushNotificationManager studentId={student?.student_id} />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-4 md:px-6 py-4 shadow-xl border-b border-slate-700">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-3 shadow-md">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
             {schoolProfile?.logo_url ? (
               <img
                 src={schoolProfile.logo_url}
                 alt="School Logo"
-                className="h-12 w-12 md:h-14 md:w-14 object-contain rounded-lg bg-white/10 p-1.5 flex-shrink-0 shadow-lg"
+                className="h-10 w-10 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow"
               />
             ) : (
-              <div className="h-12 w-12 md:h-14 md:w-14 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-                <Home className="h-6 w-6 md:h-7 md:w-7 text-white" />
+              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Home className="h-5 w-5 text-white" />
               </div>
             )}
-            <div className="leading-tight">
-              <p className="font-bold text-base md:text-lg leading-tight">{schoolProfile?.school_name || 'BVM School'}</p>
-              <p className="text-slate-400 text-xs md:text-sm mt-0.5 font-medium">Student Portal</p>
+            <div className="leading-tight min-w-0">
+              <p className="font-bold text-sm leading-tight truncate">{schoolProfile?.school_name || 'BVM School'}</p>
+              <p className="text-blue-200 text-xs">Student Portal</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 md:gap-2">
-            <Link to={createPageUrl('StudentNotifications')} className="relative p-2 md:p-2.5 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center">
-              <Bell className="h-5 w-5 md:h-6 md:w-6 text-white" />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link to={createPageUrl('StudentNotifications')} className="relative p-1.5 hover:bg-white/20 rounded-lg transition-all">
+              <Bell className="h-5 w-5 text-white" />
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-0.5">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-0.5">
                   {totalUnread > 99 ? '99+' : totalUnread}
                 </span>
               )}
             </Link>
             <button
               onClick={() => setIsDark(v => !v)}
-              className="p-2 md:p-2.5 bg-slate-700/50 hover:bg-slate-600 rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-all"
             >
-              {isDark ? <Sun className="h-5 w-5 md:h-6 md:w-6 text-yellow-400" /> : <Moon className="h-5 w-5 md:h-6 md:w-6 text-slate-300" />}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="hidden md:flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-all min-h-[44px]"
-            >
-              <LogOut className="h-4 w-4" /> Logout
+              {isDark ? <Sun className="h-5 w-5 text-yellow-300" /> : <Moon className="h-5 w-5 text-white/80" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Welcome Card */}
-      <div className="px-4 md:px-6 pt-4 pb-2 dark:bg-slate-950">
-        <div className="relative bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg p-6 md:p-8 text-white overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full -mr-16 -mt-16"></div>
-          <div className="relative z-10">
-            <p className="text-blue-100 text-sm md:text-base font-medium">Welcome back,</p>
-            <h2 className="text-2xl md:text-3xl font-bold mt-1">{student?.name}</h2>
-            <p className="text-blue-100 text-sm md:text-base mt-2">Class {student?.class_name}-{student?.section} • {student?.student_id}</p>
+      {/* Student Info Card */}
+      <div className="px-4 pt-4 pb-2">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 border border-gray-100 dark:border-slate-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{student?.name}</h2>
+          <p className="text-gray-500 dark:text-slate-400 text-sm mt-0.5">Class {student?.class_name}-{student?.section} | ID: {student?.student_id}</p>
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-sm font-bold text-gray-800 dark:text-slate-200">{currentYear || student?.academic_year || '—'}</span>
+            <span className={`text-sm font-bold ${attendancePct >= 75 ? 'text-green-600' : 'text-red-500'}`}>{attendancePct}%</span>
           </div>
-        </div>
-      </div>
-
-      {/* Attendance Card */}
-      <div className="px-4 md:px-6 pt-3 pb-3 dark:bg-slate-950">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 border border-slate-200 dark:border-slate-700">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-slate-600 dark:text-slate-300 font-semibold text-sm md:text-base">Attendance</span>
-              <span className={`text-2xl md:text-3xl font-bold ${attendancePct >= 75 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                {attendancePct}%
-              </span>
-            </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
-              <div
-                className={`h-2.5 rounded-full transition-all ${attendancePct >= 75 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-red-600'}`}
-                style={{ width: `${Math.min(attendancePct, 100)}%` }}
-              />
-            </div>
+          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2 mt-1.5">
+            <div
+              className={`h-2 rounded-full transition-all ${attendancePct >= 75 ? 'bg-green-500' : 'bg-red-500'}`}
+              style={{ width: `${Math.min(attendancePct, 100)}%` }}
+            />
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 border border-slate-200 dark:border-slate-700">
-            <p className="text-slate-600 dark:text-slate-300 font-semibold text-sm md:text-base mb-2">Academic Year</p>
-            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{currentYear || 'Not set'}</p>
-          </div>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Attendance</p>
         </div>
       </div>
 
       <main
-        className="flex-1 overflow-y-auto pb-24 px-4 md:px-6 space-y-5 dark:bg-gray-950 pt-3"
+        className="flex-1 overflow-y-auto pb-24 px-4 pt-3"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -369,27 +346,25 @@ export default function StudentDashboard() {
           className="flex items-center justify-center overflow-hidden transition-all duration-200"
           style={{ height: pullY > 0 ? pullY : (isRefreshing ? 48 : 0) }}
         >
-          <div className={`flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-base md:text-lg font-semibold ${isRefreshing ? 'animate-pulse' : ''}`}>
-            <div className={`w-6 h-6 border-2 border-indigo-400 dark:border-indigo-500 border-t-indigo-700 dark:border-t-indigo-300 rounded-full ${isRefreshing ? 'animate-spin' : ''}`} />
+          <div className={`flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-sm font-semibold ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className={`w-5 h-5 border-2 border-indigo-400 border-t-indigo-700 rounded-full ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : pullY >= 60 ? 'Release to refresh' : 'Pull to refresh'}
           </div>
         </div>
 
-        {/* Feature Grid */}
+        {/* MY CLASSES section */}
         <section>
-          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 px-4 md:px-6">My Classes</h2>
-          <div className="px-4 md:px-6 grid grid-cols-2 gap-3 md:gap-4">
+          <h2 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-3">My Classes</h2>
+          <div className="grid grid-cols-2 gap-3">
             {HOME_TILES.map((tile) => {
                const badge = notifMap[tile.notifKey] || 0;
                return (
-                 <Link key={tile.label} to={createPageUrl(tile.page)} className="group relative">
-                  <div className="h-full rounded-2xl p-6 shadow-md flex flex-col items-center justify-center text-center gap-4 min-h-[140px] transition-all hover:shadow-lg" style={{ backgroundColor: tile.color }}>
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                      <tile.icon className="h-7 w-7 text-white" />
-                    </div>
+                 <Link key={tile.label} to={createPageUrl(tile.page)} className="relative">
+                  <div className="rounded-2xl px-4 py-5 shadow-sm flex flex-col items-start justify-end gap-3 min-h-[110px] active:scale-95 transition-transform" style={{ backgroundColor: tile.color }}>
+                    <tile.icon className="h-7 w-7 text-white" strokeWidth={1.8} />
                     <p className="font-bold text-white text-base leading-tight">{tile.label}</p>
                     {badge > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow-lg">
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 shadow">
                         {badge > 99 ? '99+' : badge}
                       </span>
                     )}
@@ -399,17 +374,6 @@ export default function StudentDashboard() {
              })}
           </div>
         </section>
-
-        {/* Logout Mobile Button */}
-        <div className="md:hidden px-4">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition-all min-h-[48px]"
-          >
-            <LogOut className="h-5 w-5" /> Logout
-          </button>
-        </div>
-
       </main>
     </div>
   );
