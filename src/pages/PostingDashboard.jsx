@@ -115,6 +115,16 @@ export default function PostingDashboard() {
       <main className="flex-1 overflow-y-auto pb-8">
         <div className="max-w-2xl mx-auto p-4">
           <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="font-bold text-gray-900 text-lg">Post Diary Entry</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowAIAssist(true)}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> AI Assist
+                </button>
+              </div>
             <form onSubmit={handleSubmit} className="space-y-4">
 
               {/* Class & Section */}
