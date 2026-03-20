@@ -1,94 +1,260 @@
-import React, { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft } from 'lucide-react';
-import DiaryForm from '@/components/diary/DiaryForm';
-import HomeworkForm from '@/components/homework/HomeworkForm';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { getStaffSession } from '@/components/useStaffSession';
+import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getSubjectsForClass } from '@/components/subjectHelper';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 import { Button } from '@/components/ui/button';
-
-// Placeholder components for Notice and Quiz
-function NoticeFormPlaceholder() {
-  return (
-    <div className="p-6">
-      <p className="text-gray-600">Use the Notices page to create and post notices.</p>
-      <a href="/pages/Notices" className="text-indigo-600 font-semibold mt-2 inline-block">
-        Go to Notices
-      </a>
-    </div>
-  );
-}
-
-function QuizFormPlaceholder() {
-  return (
-    <div className="p-6">
-      <p className="text-gray-600">Use the Quiz page to create and manage quizzes.</p>
-      <a href="/pages/Quiz" className="text-indigo-600 font-semibold mt-2 inline-block">
-        Go to Quiz
-      </a>
-    </div>
-  );
-}
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Notebook, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import AIAssistDrawer from '@/components/AIAssistDrawer';
 
 export default function PostingDashboard() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const tab = searchParams.get('tab') || 'diary';
+  const { academicYear } = useAcademicYear();
+  const [user, setUser] = useState(null);
+  const [showAIAssist, setShowAIAssist] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    class_name: '',
+    section: '',
+    subject: '',
+    diary_date: format(new Date(), 'yyyy-MM-dd'),
+  });
+
+  useEffect(() => {
+    const staffData = getStaffSession();
+    setUser(staffData);
+  }, []);
+
+  // Load dynamic classes
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then((result) => {
+      setAvailableClasses(Array.isArray(result) ? result : (result?.classes ?? []));
+    });
+  }, [academicYear]);
+
+  // Load sections when class changes
+  useEffect(() => {
+    if (!form.class_name || !academicYear) { setAvailableSections([]); return; }
+    getSectionsForClass(academicYear, form.class_name).then((result) => {
+      const secs = Array.isArray(result) ? result : (result?.sections ?? []);
+      setAvailableSections(secs);
+      if (secs.length === 1) setForm(f => ({ ...f, section: secs[0] }));
+      else if (form.section && !secs.includes(form.section)) setForm(f => ({ ...f, section: '' }));
+    });
+  }, [form.class_name, academicYear]);
+
+  // Load subjects when class changes
+  useEffect(() => {
+    if (!form.class_name || !academicYear) { setSubjects([]); return; }
+    getSubjectsForClass(academicYear, form.class_name).then((result) => {
+      setSubjects(result.subjects || []);
+      if (form.subject && !(result.subjects || []).includes(form.subject)) {
+        setForm(f => ({ ...f, subject: '' }));
+      }
+    });
+  }, [form.class_name, academicYear]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.title.trim()) { toast.error('Title is required'); return; }
+    if (!form.description.trim()) { toast.error('Description is required'); return; }
+    if (!form.class_name) { toast.error('Class is required'); return; }
+    if (!form.diary_date) { toast.error('Date is required'); return; }
+
+    setSaving(true);
+    try {
+      await base44.entities.Diary.create({
+        title: form.title,
+        description: form.description,
+        class_name: form.class_name,
+        section: form.section,
+        subject: form.subject,
+        diary_date: form.diary_date,
+        academic_year: academicYear,
+        status: 'Published',
+        posted_by: user?.email,
+        posted_by_name: user?.name,
+      });
+      toast.success('Diary entry posted successfully!');
+      // Reset form
+      setForm({
+        title: '',
+        description: '',
+        class_name: '',
+        section: '',
+        subject: '',
+        diary_date: format(new Date(), 'yyyy-MM-dd'),
+      });
+    } catch (err) {
+      toast.error('Failed to post diary entry');
+      console.error('[PostingDashboard] Diary save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="hover:bg-white/20 p-2 rounded-lg transition"
-          >
+          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-2 rounded-lg transition">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">Post</h1>
+          <Notebook className="h-5 w-5" />
+          <h1 className="text-xl font-bold">Post Diary</h1>
+          <button
+            type="button"
+            onClick={() => setShowAIAssist(true)}
+            className="ml-auto flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> AI Assist
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Form */}
       <main className="flex-1 overflow-y-auto pb-8">
-        <div className="max-w-4xl mx-auto p-4">
-          <Tabs value={tab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
-              <TabsTrigger value="diary">Diary</TabsTrigger>
-              <TabsTrigger value="homework">Homework</TabsTrigger>
-              <TabsTrigger value="notice">Notice</TabsTrigger>
-              <TabsTrigger value="quiz">Quiz</TabsTrigger>
-            </TabsList>
+        <div className="max-w-2xl mx-auto p-4">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Diary Tab */}
-            <TabsContent value="diary" className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Post Diary</h2>
-              <DiaryForm 
-                onSubmit={() => {}} 
-                onCancel={() => {}} 
-              />
-            </TabsContent>
+              {/* Class & Section */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Class *</Label>
+                  <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v, section: '', subject: '' })}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableClasses.map((cls) => (
+                        <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Section</Label>
+                  <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })} disabled={availableSections.length === 0}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={form.class_name ? 'Select section' : 'Select class first'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSections.map((sec) => (
+                        <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            {/* Homework Tab */}
-            <TabsContent value="homework" className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Post Homework</h2>
-              <HomeworkForm />
-            </TabsContent>
+              {/* Subject */}
+              <div>
+                <Label>Subject</Label>
+                {!form.class_name ? (
+                  <div className="mt-1 text-xs text-gray-500 py-2 px-3 bg-gray-100 rounded-lg">Select class first</div>
+                ) : subjects.length === 0 ? (
+                  <div className="mt-1 text-xs text-orange-600 py-2 px-3 bg-orange-50 rounded-lg">No subjects configured for this class</div>
+                ) : (
+                  <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((sub) => (
+                        <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
 
-            {/* Notice Tab */}
-            <TabsContent value="notice" className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Post Notice</h2>
-              <NoticeFormPlaceholder />
-            </TabsContent>
+              {/* Date */}
+              <div>
+                <Label>Diary Date *</Label>
+                <Input
+                  type="date"
+                  className="mt-1"
+                  value={form.diary_date}
+                  onChange={(e) => setForm({ ...form, diary_date: e.target.value })}
+                  required
+                />
+              </div>
 
-            {/* Quiz Tab */}
-            <TabsContent value="quiz" className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Post Quiz</h2>
-              <QuizFormPlaceholder />
-            </TabsContent>
-          </Tabs>
+              {/* Title */}
+              <div>
+                <Label>Title *</Label>
+                <Input
+                  className="mt-1"
+                  placeholder="e.g., Today's lesson on Fractions"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label>Description *</Label>
+                <Textarea
+                  className="mt-1 min-h-32"
+                  placeholder="What was taught, activities, homework assigned, etc."
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Submit */}
+              <div className="flex gap-3 justify-end pt-2 border-t">
+                <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-pink-600 hover:bg-pink-700" disabled={saving}>
+                  {saving ? 'Posting...' : 'Post Diary'}
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </main>
+
+      {/* AI Assist Drawer */}
+      {showAIAssist && (
+        <AIAssistDrawer
+          type="diary"
+          className={form.class_name}
+          section={form.section}
+          academicYear={academicYear}
+          onInsert={(generated) => {
+            setForm(f => ({
+              ...f,
+              title: generated.title || f.title,
+              description: generated.body || f.description,
+            }));
+            setShowAIAssist(false);
+            toast.success('Content inserted!');
+          }}
+          onClose={() => setShowAIAssist(false)}
+        />
+      )}
     </div>
   );
 }
