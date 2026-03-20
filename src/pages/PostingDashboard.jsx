@@ -111,24 +111,6 @@ export default function PostingDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 shadow-md">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="hover:bg-white/20 p-2 rounded-lg transition">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <Notebook className="h-5 w-5" />
-          <h1 className="text-xl font-bold">Post Diary</h1>
-          <button
-            type="button"
-            onClick={() => setShowAIAssist(true)}
-            className="ml-auto flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition"
-          >
-            <Sparkles className="h-3.5 w-3.5" /> AI Assist
-          </button>
-        </div>
-      </header>
-
       {/* Form */}
       <main className="flex-1 overflow-y-auto pb-8">
         <div className="max-w-2xl mx-auto p-4">
