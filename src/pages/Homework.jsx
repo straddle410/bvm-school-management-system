@@ -162,7 +162,11 @@ export default function Homework() {
   });
 
   const bulkStatusMutation = useMutation({
-    mutationFn: ({ homework_ids, status }) => base44.functions.invoke('bulkUpdateHomeworkStatus', { homework_ids, status }),
+    mutationFn: ({ homework_ids, status }) => {
+      const staffSession = getStaffSession();
+      const token = staffSession?.staff_session_token || localStorage.getItem('staff_session_token') || '';
+      return base44.functions.invoke('bulkUpdateHomeworkStatus', { homework_ids, status, staff_session_token: token });
+    },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
       setSelected(new Set());
