@@ -61,8 +61,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     const [invoices, payments] = await Promise.all([
-      base44.entities.FeeInvoice.filter({ academic_year: academicYear }),
-      base44.entities.FeePayment.filter({ academic_year: academicYear })
+      base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
+      base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear })
     ]);
 
     // Active invoices: not Cancelled/Waived, created on or before cutoff (ignoring empty due_date)
