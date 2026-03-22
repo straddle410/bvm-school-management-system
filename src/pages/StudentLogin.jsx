@@ -54,8 +54,14 @@ export default function StudentLogin() {
         academic_year: response.data.academic_year,
         parent_name: response.data.parent_name,
         parent_phone: response.data.parent_phone,
+        must_change_password: response.data.must_change_password,
       });
-      window.location.href = createPageUrl('StudentDashboard');
+      // Force password change if required
+      if (response.data.must_change_password) {
+        window.location.href = createPageUrl('StudentChangePassword') + '?forced=1';
+      } else {
+        window.location.href = createPageUrl('StudentDashboard');
+      }
     } catch {
       setError('Login failed. Please try again.');
     } finally {
@@ -161,7 +167,7 @@ export default function StudentLogin() {
           </form>
 
           <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-5">
-            Default password: <strong className="text-gray-600">BVM123</strong> · Contact admin to reset
+            Forgot your password? Contact the school administration to reset it.
           </p>
         </div>
 
