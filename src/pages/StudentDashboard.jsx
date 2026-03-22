@@ -54,6 +54,11 @@ export default function StudentDashboard() {
   useEffect(() => {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
+    // Force password change if flagged
+    if (session.must_change_password) {
+      window.location.href = createPageUrl('StudentChangePassword') + '?forced=1';
+      return;
+    }
     setStudent(session);
 
     // Handle notification deep-link: ?openFees=1&receiptNo=XXX
