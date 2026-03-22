@@ -409,14 +409,22 @@ export default function StudentProfile() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">My Profile</h2>
               {sessionStudent && (
-                <Button 
-                  onClick={() => setShowChangePassword(true)}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Lock className="h-4 w-4" />
-                  Change Password
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => setShowChangePassword(true)}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    Change Password
+                  </Button>
+                  <Link to="/DeleteAccount">
+                    <Button variant="outline" className="flex items-center gap-2 border-red-200 text-red-600 hover:bg-red-50">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Account
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
             <ProfileContent student={student} attendance={attendance} marks={marks} />
