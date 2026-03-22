@@ -120,10 +120,11 @@ function DayRow({ day, filters, onDrillDown, showVoided }) {
             {day.voidedAmount > 0 ? <span className="text-amber-600">₹{fmt(day.voidedAmount)}</span> : <span className="text-slate-300">—</span>}
           </td>
         )}
-        <td className="px-4 py-3 text-right">
+        <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
           <button
-            onClick={e => { e.stopPropagation(); onDrillDown(day.date); }}
-            className="text-xs text-blue-600 hover:text-blue-800 underline"
+            onClick={() => onDrillDown(day.date)}
+            className="text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+            type="button"
           >
             View receipts
           </button>
