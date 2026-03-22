@@ -202,6 +202,26 @@ html {
   overscroll-behavior: none;
 }
 
+/* ── Overscroll & Sticky Element Fixes ── */
+/* Prevent sticky headers from causing scroll interference */
+.sticky, [class*="sticky"] {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Ensure scrollable containers don't cause overscroll issues */
+.overflow-y-auto, .overflow-auto, .overflow-y-scroll {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix fixed bottom nav overscroll */
+nav[class*="fixed"], header[class*="sticky"] {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
 /* ── Page Transitions & Animations ── */
 main, [role="main"] {
   animation: fadeIn 0.3s ease-out;
