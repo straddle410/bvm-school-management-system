@@ -830,7 +830,7 @@ export default function Students() {
                 </button>
               )}
             </div>
-          ) : (
+          ) : activeTab !== 'deletion' ? (
             <div className="space-y-1.5">
               {/* Desktop column headers */}
               <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
