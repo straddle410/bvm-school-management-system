@@ -7,7 +7,7 @@ import { CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getStaffSession } from '@/components/useStaffSession';
 
-export default function DeletionRequestsTab() {
+export default function StaffDeletionRequestsTab() {
   const queryClient = useQueryClient();
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -17,10 +17,10 @@ export default function DeletionRequestsTab() {
     queryFn: () => base44.entities.DeletionRequest.list('-requested_at'),
   });
 
-  const staffRequests = requests.filter(r => r.account_type === 'student');
+  const staffRequests = requests.filter(r => r.account_type === 'staff');
 
   const reviewMutation = useMutation({
-    mutationFn: async ({ id, status, rejection_reason, entity_db_id, account_type }) => {
+    mutationFn: async ({ id, status, rejection_reason, entity_db_id }) => {
       const session = getStaffSession();
       await base44.entities.DeletionRequest.update(id, {
         status,
@@ -30,22 +30,13 @@ export default function DeletionRequestsTab() {
       });
 
       if (status === 'Approved' && entity_db_id) {
-        if (account_type === 'student') {
-          await base44.functions.invoke('softDeleteStudent', {
-            student_id: entity_db_id,
-            action: 'delete',
-            staff_session_token: session?.staff_session_token || null,
-          });
-        } else {
-          await base44.entities.StaffAccount.update(entity_db_id, { is_active: false });
-        }
+        await base44.entities.StaffAccount.update(entity_db_id, { is_active: false });
       }
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries(['deletion-requests']);
-      queryClient.invalidateQueries(['students']);
       queryClient.invalidateQueries(['staff-accounts-rbac']);
-      toast.success(status === 'Approved' ? 'Request approved — account deactivated' : 'Request rejected');
+      toast.success(status === 'Approved' ? 'Request approved — staff account deactivated' : 'Request rejected');
       setRejectingId(null);
       setRejectReason('');
     },
@@ -64,7 +55,7 @@ export default function DeletionRequestsTab() {
     return (
       <div className="p-12 text-center">
         <Trash2 className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-        <p className="text-gray-400 text-sm">No student deletion requests yet.</p>
+        <p className="text-gray-400 text-sm">No staff deletion requests yet.</p>
       </div>
     );
   }
@@ -79,7 +70,7 @@ export default function DeletionRequestsTab() {
                 <p className="font-semibold text-sm text-gray-900 dark:text-white">{req.display_name || req.username}</p>
                 {statusBadge(req.status)}
               </div>
-              <p className="text-xs text-gray-500">@{req.username} · Student</p>
+              <p className="text-xs text-gray-500">@{req.username} · Staff</p>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1"><span className="font-medium">Reason:</span> {req.reason}</p>
               {req.additional_notes && (
                 <p className="text-xs text-gray-500 mt-0.5 italic">"{req.additional_notes}"</p>
@@ -99,8 +90,8 @@ export default function DeletionRequestsTab() {
                   className="bg-green-600 hover:bg-green-700 text-xs h-8"
                   disabled={reviewMutation.isPending}
                   onClick={() => {
-                    if (!window.confirm(`Approve deletion for ${req.display_name || req.username}? Their account will be deactivated.`)) return;
-                    reviewMutation.mutate({ id: req.id, status: 'Approved', entity_db_id: req.entity_db_id, account_type: req.account_type });
+                    if (!window.confirm(`Approve deletion for ${req.display_name || req.username}? Their staff account will be deactivated.`)) return;
+                    reviewMutation.mutate({ id: req.id, status: 'Approved', entity_db_id: req.entity_db_id });
                   }}
                 >
                   <CheckCircle className="h-3.5 w-3.5 mr-1" /> Approve
@@ -116,7 +107,7 @@ export default function DeletionRequestsTab() {
                     />
                     <div className="flex gap-1">
                       <button
-                        onClick={() => reviewMutation.mutate({ id: req.id, status: 'Rejected', rejection_reason: rejectReason, entity_db_id: req.entity_db_id, account_type: req.account_type })}
+                        onClick={() => reviewMutation.mutate({ id: req.id, status: 'Rejected', rejection_reason: rejectReason, entity_db_id: req.entity_db_id })}
                         className="flex-1 bg-red-600 text-white rounded-lg py-1 text-xs font-semibold"
                       >Confirm</button>
                       <button onClick={() => setRejectingId(null)} className="flex-1 border border-gray-200 rounded-lg py-1 text-xs">Cancel</button>
