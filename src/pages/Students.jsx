@@ -870,8 +870,10 @@ export default function Students() {
              </div>
           )}
 
+          ) : null}
+
           {/* Pagination */}
-          {totalPages > 1 && (
+          {activeTab !== 'deletion' && totalPages > 1 && (
             <div className="flex items-center justify-center gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-3">
               <Button
                 variant="outline"
