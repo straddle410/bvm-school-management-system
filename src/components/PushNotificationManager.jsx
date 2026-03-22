@@ -41,17 +41,17 @@ async function getVapidKey() {
 export default function PushNotificationManager({ studentId }) {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
-  const [initAttempts, setInitAttempts] = useState(0);
 
   // Unlock AudioContext on user gesture
   useEffect(() => {
     try {
+      // Check if mobile browser (not PWA)
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       const isMobileBrowser = isMobile && !window.matchMedia('(display-mode: standalone)').matches;
 
       if (isMobileBrowser) {
         console.log('[Push] Mobile browser - skipping AudioContext');
-        return;
+        return; // skip on mobile browser
       }
 
       const unlock = async () => {
@@ -67,6 +67,7 @@ export default function PushNotificationManager({ studentId }) {
       document.addEventListener('touchstart', unlock, { once: true });
     } catch (e) {
       console.log('[Push] Error:', e);
+      // silently fail, don't crash app
     }
   }, []);
 
@@ -90,12 +91,13 @@ export default function PushNotificationManager({ studentId }) {
   useEffect(() => {
     try {
       console.log('[PushInit] Mounted with:', studentId);
+      console.log('[PushInit] Component mounted');
       console.log('[PushInit] All localStorage:', JSON.stringify(localStorage));
       console.log('[PushInit] student_id:', localStorage.getItem('student_id'));
       console.log('[PushInit] studentId:', localStorage.getItem('studentId'));
       console.log('[PushInit] student_token:', !!localStorage.getItem('student_token'));
 
-      // Get student session if exists
+      // Get student session if exists - use exact key from StudentLogin.jsx
       try {
         const sessionRaw = localStorage.getItem('student_session');
         console.log('[PushInit] student_session from localStorage:', sessionRaw ? 'EXISTS' : 'NOT FOUND');
@@ -110,16 +112,17 @@ export default function PushNotificationManager({ studentId }) {
         console.error('[PushInit] Failed to parse student_session:', e);
       }
 
-      // Detect iOS PWA
+      // Detect iOS PWA and show prompt if needed
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const isPWA = window.matchMedia('(display-mode: standalone)').matches;
 
       if (isIOS && isPWA && Notification.permission === 'default') {
         setShowIOSPrompt(true);
-        return;
+        return; // Don't auto-request on iOS
       }
     } catch (e) {
       console.log('[Push] Error:', e);
+      // silently fail, don't crash app
     }
   }, []);
 
@@ -128,6 +131,7 @@ export default function PushNotificationManager({ studentId }) {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         setShowIOSPrompt(false);
+        // Trigger the subscription process
         await initPushNotifications();
       } else {
         toast.error("Notifications blocked. Enable in iPhone Settings");
@@ -139,141 +143,121 @@ export default function PushNotificationManager({ studentId }) {
   };
 
   const initPushNotifications = async () => {
-    try {
-      console.log('[PushNotificationManager] Initializing push notifications...');
-      
-      // Check and request permission if needed
-      let permission = Notification.permission;
-      console.log('[Permission] Current status:', permission);
+   try {
+     console.log('[PushNotificationManager] Initializing push notifications...');
+     console.log('[Permission] Status:', Notification.permission);
 
-      if (permission === 'default') {
-        console.log('[Permission] Requesting user permission...');
-        permission = await Notification.requestPermission();
-        console.log('[Permission] User response:', permission);
-      }
+     // Get VAPID key directly
+     const vapidKey = await getVapidKey();
+     console.log('[VAPID] Key ready:', !!vapidKey);
+     if (!vapidKey) {
+       toast.error("Push notifications not configured");
+       return;
+     }
 
-      if (permission === 'denied') {
-        console.error('[Permission] Notifications blocked by user');
-        toast.error("Notifications blocked. Enable in your browser/device settings.");
-        return;
-      }
+     // Register service worker — same-origin URL required for Android PWA
+     if ('serviceWorker' in navigator) {
+       try {
+         await navigator.serviceWorker.register(
+           '/api/functions/firebaseMessagingServiceWorker',
+           { scope: '/' }
+         );
+         await navigator.serviceWorker.ready;
+         console.log('[ServiceWorker] Registered successfully');
+       } catch (error) {
+         console.error('[ServiceWorker] Registration failed:', error);
+       }
+     }
 
-      if (permission !== 'granted') {
-        console.warn('[Permission] Unexpected permission state:', permission);
-        return;
-      }
+     // Handle student notifications
+     if (studentSession?.student_id) {
+       console.log('[PushNotificationManager] Student session detected, initializing student push...');
+       await initStudentPushNotifications();
+       return;
+     }
 
-      // Get VAPID key
-      const vapidKey = await getVapidKey();
-      console.log('[VAPID] Key ready:', !!vapidKey);
-      if (!vapidKey) {
-        toast.error("Push notifications not configured");
-        return;
-      }
+     // Handle staff/admin and base44 authenticated users
+     const hasStaffSession = !!localStorage.getItem('staff_session');
+     let user = null;
+     let identifier = null;
 
-      // Register service worker
-      if ('serviceWorker' in navigator) {
-        try {
-          await navigator.serviceWorker.register(
-            '/api/functions/firebaseMessagingServiceWorker',
-            { scope: '/' }
-          );
-          await navigator.serviceWorker.ready;
-          console.log('[ServiceWorker] Registered successfully');
-        } catch (error) {
-          console.error('[ServiceWorker] Registration failed:', error);
-        }
-      }
+     if (hasStaffSession) {
+       try {
+         const staffRaw = localStorage.getItem('staff_session');
+         user = JSON.parse(staffRaw);
+         identifier = user.staff_id || user.username;
+         console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
+       } catch {}
+     } else {
+       user = await base44.auth.me().catch(() => null);
+       if (!user) {
+         console.log('[PushNotificationManager] No authenticated user');
+         return;
+       }
+       identifier = user.email;
+     }
 
-      // Handle student notifications
-      if (studentSession?.student_id) {
-        console.log('[PushNotificationManager] Student session detected, initializing student push...');
-        await initStudentPushNotifications();
-        return;
-      }
+     if (!identifier) {
+       console.log('[PushNotificationManager] No identifier found for user');
+       return;
+     }
 
-      // Handle staff/admin and base44 authenticated users
-      const hasStaffSession = !!localStorage.getItem('staff_session');
-      let user = null;
-      let identifier = null;
+     // Get or create notification preferences
+     const prefs = await base44.entities.NotificationPreference.filter({
+       user_email: identifier
+     });
+     let pref = prefs[0];
 
-      if (hasStaffSession) {
-        try {
-          const staffRaw = localStorage.getItem('staff_session');
-          user = JSON.parse(staffRaw);
-          identifier = user.staff_id || user.username;
-          console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
-        } catch {}
-      } else {
-        user = await base44.auth.me().catch(() => null);
-        if (!user) {
-          console.log('[PushNotificationManager] No authenticated user');
-          return;
-        }
-        identifier = user.email;
-      }
+     if (!pref) {
+       console.log('[PushNotificationManager] Creating new notification preference for', identifier);
+       pref = await base44.entities.NotificationPreference.create({
+         user_email: identifier,
+         notifications_enabled: true,
+         browser_push_enabled: true,
+         sound_enabled: true,
+         sound_volume: 0.7,
+         message_notifications: true
+       });
+     }
 
-      if (!identifier) {
-        console.log('[PushNotificationManager] No identifier found for user');
-        return;
-      }
+     if (!pref?.browser_push_enabled) {
+       console.log('[PushNotificationManager] Push notifications not enabled in preferences');
+       return;
+     }
 
-      // Get or create notification preferences
-      const prefs = await base44.entities.NotificationPreference.filter({
-        user_email: identifier
-      });
-      let pref = prefs[0];
+     // Get push subscription token via service worker
+     if ('serviceWorker' in navigator) {
+       try {
+         const registration = await navigator.serviceWorker.ready;
+         const applicationServerKey = urlBase64ToUint8Array(vapidKey);
 
-      if (!pref) {
-        console.log('[PushNotificationManager] Creating new notification preference for', identifier);
-        pref = await base44.entities.NotificationPreference.create({
-          user_email: identifier,
-          notifications_enabled: true,
-          browser_push_enabled: true,
-          sound_enabled: true,
-          sound_volume: 0.7,
-          message_notifications: true
-        });
-      }
+         const subscription = await registration.pushManager.subscribe({
+           userVisibleOnly: true,
+           applicationServerKey
+         });
 
-      if (!pref?.browser_push_enabled) {
-        console.log('[PushNotificationManager] Push notifications not enabled in preferences');
-        return;
-      }
+         const token = JSON.stringify(subscription.toJSON());
+         console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
 
-      // Get push subscription token via service worker
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey
-          });
-
-          const token = JSON.stringify(subscription.toJSON());
-          console.log('[PushNotificationManager] Token obtained:', token?.substring(0, 20) + '...');
-
-          if (token) {
-            const alreadyHadToken = !!pref.browser_push_token;
-            await base44.entities.NotificationPreference.update(pref.id, {
-              browser_push_token: token
-            });
-            console.log('[PushNotificationManager] Token saved to database');
-            if (!alreadyHadToken) {
-              toast.success("Notifications enabled successfully!");
-            }
-          }
-        } catch (error) {
-          console.error('[PushNotificationManager] Failed to get token:', error);
-          toast.error("Failed to enable notifications");
-        }
-      }
-    } catch (error) {
-      console.error('[PushNotificationManager] Setup failed:', error);
-      toast.error("Notification setup failed");
-    }
+         if (token) {
+           const alreadyHadToken = !!pref.browser_push_token;
+           await base44.entities.NotificationPreference.update(pref.id, {
+             browser_push_token: token
+           });
+           console.log('[PushNotificationManager] Token saved to preference');
+           if (!alreadyHadToken) {
+             toast.success("Notifications enabled successfully!");
+           }
+         }
+       } catch (error) {
+         console.error('[PushNotificationManager] Failed to get token:', error);
+         toast.error("Failed to enable notifications");
+       }
+     }
+   } catch (error) {
+     console.error('[PushNotificationManager] Setup failed:', error);
+     toast.error("Notification setup failed");
+   }
   };
 
   const initStudentPushNotifications = async () => {
@@ -286,7 +270,7 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Get VAPID key
+      // Get VAPID key directly
       const vapidKey = await getVapidKey();
       console.log('[VAPID] Key ready:', !!vapidKey);
       if (!vapidKey) {
@@ -295,6 +279,7 @@ export default function PushNotificationManager({ studentId }) {
       }
 
       // Get or create student notification preference
+      // Use student_id field (e.g., "S25007") NOT the UUID id field
       const studentIdValue = studentSession.student_id;
       console.log('[PushInit] Using student_id:', studentIdValue);
       const prefs = await base44.entities.StudentNotificationPreference.filter({
@@ -336,11 +321,11 @@ export default function PushNotificationManager({ studentId }) {
 
           if (token) {
             const alreadyHadToken = !!pref.browser_push_token;
-            console.log('[Token Save] Saving token for:', studentIdValue);
+            console.log('[Token Save] Saving token for:', studentIdValue, 'token:', token?.substring(0, 20));
             await base44.entities.StudentNotificationPreference.update(pref.id, {
               browser_push_token: token
             });
-            console.log('[PushNotificationManager] Student token saved to database');
+            console.log('[PushNotificationManager] Student token saved to DB');
             if (!alreadyHadToken) {
               toast.success("Student notifications enabled!");
             }
@@ -357,12 +342,14 @@ export default function PushNotificationManager({ studentId }) {
 
   useEffect(() => {
     try {
+      // Auto-run for non-iOS or if permission already granted
       console.log('[Permission]:', Notification.permission);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const isPWA = window.matchMedia('(display-mode: standalone)').matches;
 
-      // iOS limitation check
+      // iOS limitation check - must be PWA
       if (isIOS && !isPWA) {
+        // Only show this toast once per session
         if (!sessionStorage.getItem('ios_push_hint_shown')) {
           sessionStorage.setItem('ios_push_hint_shown', '1');
           toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
@@ -370,20 +357,28 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // iOS PWA - wait for button click
+      // Skip auto-init on iOS PWA if permission not granted yet (wait for button click)
       if (isIOS && isPWA && Notification.permission === 'default') {
         console.log('[PushNotificationManager] Waiting for iOS permission...');
         return;
       }
 
-      // Always attempt initialization (no session block)
-      console.log('[PushNotificationManager] Attempting initialization...');
-      initPushNotifications();
+      // Already initialized this session — skip to avoid repeated toasts
+      if (sessionStorage.getItem('push_initialized')) {
+        console.log('[PushNotificationManager] Already initialized this session, skipping.');
+        return;
+      }
 
-      // Listen for foreground notification messages
+      // Auto-init for non-iOS or already granted
+      if (!isIOS || Notification.permission === 'granted') {
+        console.log('[PushNotificationManager] Auto-initializing...');
+        sessionStorage.setItem('push_initialized', '1');
+        initPushNotifications();
+      }
+
+      // Listen for foreground notification messages to play sound
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', (event) => {
-          console.log('[Notification] Foreground message received:', event.data);
           if (event.data?.type === 'PLAY_SOUND') {
             playSound();
           }
@@ -391,6 +386,7 @@ export default function PushNotificationManager({ studentId }) {
       }
     } catch (e) {
       console.log('[Push] Error:', e);
+      // silently fail, don't crash app
     }
   }, [studentSession]);
 
