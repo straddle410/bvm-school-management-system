@@ -621,11 +621,11 @@ export default function Students() {
 
   const { data: pendingDeletions } = useQuery({
     queryKey: ['deletion-requests-count'],
-    queryFn: () => base44.entities.DeletionRequest.filter({ account_type: 'student', status: 'Pending' }),
+    queryFn: () => base44.entities.DeletionRequest.list(),
     enabled: !!isAdmin,
     refetchInterval: 60000,
   });
-  const pendingDeletionCount = pendingDeletions?.length || 0;
+  const pendingDeletionCount = (pendingDeletions || []).filter(r => r.account_type === 'student' && r.status === 'Pending').length;
 
   // Stats derived from server total count (accurate) per tab
   const totalActive = activeTab === 'active' ? totalCount : allStudents.filter(s => s.status === 'Published').length;
