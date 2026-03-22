@@ -2,10 +2,24 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me().catch(() => null);
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!['admin', 'principal'].includes(user.role?.toLowerCase())) {
+    const body = await req.json().catch(() => ({}));
+    const staffInfo = body.staffInfo;
+    let userRole = null;
+    let base44 = createClientFromRequest(req);
+    
+    // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
+    if (staffInfo?.staff_id || staffInfo?.role) {
+      // Mobile staff session
+      userRole = (staffInfo?.role || '').toLowerCase().trim();
+    } else {
+      // Web Base44 auth
+      const user = await base44.auth.me().catch(() => null);
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      userRole = (user.role || '').toLowerCase().trim();
+    }
+    
+    const allowedRoles = ['admin', 'principal', 'accountant'];
+    if (!userRole || !allowedRoles.includes(userRole)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
