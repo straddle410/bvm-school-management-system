@@ -142,6 +142,18 @@ export default function StudentMore() {
               <p className="text-xs text-gray-500 mt-0.5">Update your password</p>
             </div>
           </button>
+          <Link
+            to="/DeleteAccount"
+            className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+              <UserX className="h-5 w-5 text-orange-600" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-gray-900">Delete My Account</p>
+              <p className="text-xs text-gray-500 mt-0.5">Request account deletion</p>
+            </div>
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"

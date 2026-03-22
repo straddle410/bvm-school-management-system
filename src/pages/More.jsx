@@ -335,6 +335,7 @@ export default function More() {
                    <div className="divide-y divide-gray-50 dark:divide-gray-700">
                      <MenuItem item={{ label: 'My Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' }} />
                      <MenuItem item={{ label: 'Change Password', sub: 'Update your login password', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'ChangeStaffPassword' }} />
+                     <MenuItem item={{ label: 'Delete My Account', sub: 'Request account deletion', icon: UserX, color: '#f57c00', bg: '#fff3e0', page: 'DeleteAccount' }} />
                    </div>
                  </div>
 
