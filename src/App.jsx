@@ -48,10 +48,11 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <AnimatePresence mode="wait">
     <Routes>
       <Route path="/" element={
         <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
+          <PageTransition><MainPage /></PageTransition>
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (
@@ -60,19 +61,20 @@ const AuthenticatedApp = () => {
           path={`/${path}`}
           element={
             <LayoutWrapper currentPageName={path}>
-              <Page />
+              <PageTransition><Page /></PageTransition>
             </LayoutWrapper>
           }
         />
       ))}
-      <Route path="/NotificationAnalytics" element={<LayoutWrapper currentPageName="NotificationAnalytics"><NotificationAnalytics /></LayoutWrapper>} />
-      <Route path="/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
-      <Route path="/pages/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
-      <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><StudentQuiz /></LayoutWrapper>} />
-      <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><StudentChangePassword /></LayoutWrapper>} />
-      <Route path="/DeleteAccount" element={<DeleteAccount />} />
+      <Route path="/NotificationAnalytics" element={<LayoutWrapper currentPageName="NotificationAnalytics"><PageTransition><NotificationAnalytics /></PageTransition></LayoutWrapper>} />
+      <Route path="/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PageTransition><PostingDashboard /></PageTransition></LayoutWrapper>} />
+      <Route path="/pages/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PageTransition><PostingDashboard /></PageTransition></LayoutWrapper>} />
+      <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><PageTransition><StudentQuiz /></PageTransition></LayoutWrapper>} />
+      <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><PageTransition><StudentChangePassword /></PageTransition></LayoutWrapper>} />
+      <Route path="/DeleteAccount" element={<PageTransition><DeleteAccount /></PageTransition>} />
        <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </AnimatePresence>
   );
 };
 
