@@ -284,6 +284,22 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
+      let permission = Notification.permission;
+      console.log('[Permission] Student status:', permission);
+
+      // Request permission if default
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+        console.log('[Permission] After student request:', permission);
+      }
+
+      // Exit if denied
+      if (permission === 'denied') {
+        console.warn('[PushNotificationManager] Student notification permission denied');
+        toast.error("Enable notifications in your browser/device settings");
+        return;
+      }
+
       // Get VAPID key directly
       const vapidKey = await getVapidKey();
       console.log('[VAPID] Key ready:', !!vapidKey);
