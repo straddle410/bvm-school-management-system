@@ -56,6 +56,10 @@ Deno.serve(async (req) => {
     const staffInfo = body.staffInfo;
     let baseUser = null;
     let userRole = null;
+    let base44 = null;
+    
+    // Initialize base44 client first
+    base44 = createClientFromRequest(req);
     
     // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
     if (staffInfo?.staff_id || staffInfo?.role) {
@@ -63,7 +67,6 @@ Deno.serve(async (req) => {
       userRole = (staffInfo?.role || '').toLowerCase().trim();
     } else {
       // Web Base44 auth
-      const base44 = createClientFromRequest(req);
       baseUser = await base44.auth.me().catch(() => null);
       if (!baseUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -111,8 +114,6 @@ Deno.serve(async (req) => {
     const modeFilter = filterMode
       ? (Array.isArray(filterMode) ? filterMode : [filterMode]).map(m => m.toUpperCase())
       : null;
-
-    const base44 = createClientFromRequest(req);
 
     // ── Fetch payments in date range ──────────────────────────────────────
     let payments = await base44.asServiceRole.entities.FeePayment.filter(
