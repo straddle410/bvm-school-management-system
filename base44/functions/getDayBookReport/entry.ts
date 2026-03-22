@@ -65,11 +65,18 @@ Deno.serve(async (req) => {
     if (staffInfo?.staff_id || staffInfo?.role) {
       // Mobile staff session
       userRole = (staffInfo?.role || '').toLowerCase().trim();
+      console.log('[getDayBookReport] Mobile staff session detected:', { staff_id: staffInfo.staff_id, role: userRole });
     } else {
       // Web Base44 auth
-      baseUser = await base44.auth.me().catch(() => null);
+      try {
+        baseUser = await base44.auth.me();
+      } catch (authErr) {
+        console.log('[getDayBookReport] Base44 auth failed:', authErr?.message);
+        return Response.json({ error: 'Unauthorized', details: authErr?.message }, { status: 401 });
+      }
       if (!baseUser) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        console.log('[getDayBookReport] auth.me() returned null');
+        return Response.json({ error: 'Unauthorized', details: 'auth.me() returned null' }, { status: 401 });
       }
       const candidates = [
         baseUser?.role,
@@ -78,11 +85,13 @@ Deno.serve(async (req) => {
         baseUser?.app_metadata?.role
       ].filter(v => v !== null && v !== undefined && v !== '');
       userRole = String(candidates[0] || '').trim().toLowerCase();
+      console.log('[getDayBookReport] Base44 auth successful:', { userRole });
     }
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
     
     if (!userRole || !allowedRoles.includes(userRole)) {
+      console.log('[getDayBookReport] Role check failed:', { userRole, allowedRoles });
       return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
 
