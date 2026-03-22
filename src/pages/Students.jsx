@@ -816,59 +816,60 @@ export default function Students() {
           )}
 
           {/* List */}
-          {activeTab !== 'deletion' && isLoading ? (
-            <div className="space-y-3">
-              {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white dark:bg-gray-800 rounded-2xl animate-pulse" />)}
-            </div>
-          ) : activeTab !== 'deletion' && students.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center">
-              <Users className="h-10 w-10 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400 dark:text-gray-500 text-sm">No students found.</p>
-              {isAdmin && (
-                <button onClick={openAdd} className="mt-4 text-[#1a237e] font-semibold text-sm hover:underline">
-                  + Add first student
-                </button>
-              )}
-            </div>
-          ) : activeTab !== 'deletion' ? (
-            <div className="space-y-1.5">
-              {/* Desktop column headers */}
-              <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-                <div className="w-4 flex-shrink-0" /> {/* checkbox spacer */}
-                <div className="w-9 flex-shrink-0" /> {/* avatar spacer */}
-                <div className="w-48 flex-shrink-0">Name / ID</div>
-                <div className="w-20 flex-shrink-0">Class</div>
-                <div className="w-16 flex-shrink-0">Sec</div>
-                <div className="w-16 flex-shrink-0">Roll</div>
-                <div className="w-24 flex-shrink-0">Status</div>
-                <div className="w-20 flex-shrink-0">Transport</div>
-                <div className="w-20 flex-shrink-0">Hostel</div>
-                <div className="w-8 flex-shrink-0" /> {/* action menu spacer */}
+          {activeTab !== 'deletion' && (
+            isLoading ? (
+              <div className="space-y-3">
+                {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white dark:bg-gray-800 rounded-2xl animate-pulse" />)}
               </div>
-               {students.map(student => (
-                 <div key={student.id} className="flex gap-2 items-start">
-                   {isAdmin && !isLocked(student) && !student.is_deleted && activeTab !== 'alumni' && !showDeleted && (
-                     <input
-                       type="checkbox"
-                       checked={selectedIds.has(student.id)}
-                       onChange={() => handleToggleSelect(student.id)}
-                       className="w-4 h-4 rounded mt-3.5 cursor-pointer flex-shrink-0 accent-[#1a237e]"
-                     />
-                   )}
-                   <StudentCard
-                     student={student}
-                     onView={() => openProfile(student)}
-                     onEdit={() => openEdit(student)}
-                     onArchive={() => handleArchive(student)}
-                     onDelete={() => handleDelete(student)}
-                     onRestore={() => handleRestore(student)}
-                     onResetPassword={() => handleResetPassword(student)}
-                     isAdmin={isAdmin}
-                   />
-                 </div>
-               ))}
-             </div>
-             ) : null}
+            ) : students.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center">
+                <Users className="h-10 w-10 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 dark:text-gray-500 text-sm">No students found.</p>
+                {isAdmin && (
+                  <button onClick={openAdd} className="mt-4 text-[#1a237e] font-semibold text-sm hover:underline">
+                    + Add first student
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                  <div className="w-4 flex-shrink-0" />
+                  <div className="w-9 flex-shrink-0" />
+                  <div className="w-48 flex-shrink-0">Name / ID</div>
+                  <div className="w-20 flex-shrink-0">Class</div>
+                  <div className="w-16 flex-shrink-0">Sec</div>
+                  <div className="w-16 flex-shrink-0">Roll</div>
+                  <div className="w-24 flex-shrink-0">Status</div>
+                  <div className="w-20 flex-shrink-0">Transport</div>
+                  <div className="w-20 flex-shrink-0">Hostel</div>
+                  <div className="w-8 flex-shrink-0" />
+                </div>
+                {students.map(student => (
+                  <div key={student.id} className="flex gap-2 items-start">
+                    {isAdmin && !isLocked(student) && !student.is_deleted && activeTab !== 'alumni' && !showDeleted && (
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(student.id)}
+                        onChange={() => handleToggleSelect(student.id)}
+                        className="w-4 h-4 rounded mt-3.5 cursor-pointer flex-shrink-0 accent-[#1a237e]"
+                      />
+                    )}
+                    <StudentCard
+                      student={student}
+                      onView={() => openProfile(student)}
+                      onEdit={() => openEdit(student)}
+                      onArchive={() => handleArchive(student)}
+                      onDelete={() => handleDelete(student)}
+                      onRestore={() => handleRestore(student)}
+                      onResetPassword={() => handleResetPassword(student)}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
+                ))}
+              </div>
+            )
+          )}
 
           {/* Pagination */}
           {activeTab !== 'deletion' && totalPages > 1 && (
