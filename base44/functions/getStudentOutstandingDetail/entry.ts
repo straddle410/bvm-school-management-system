@@ -30,8 +30,8 @@ Deno.serve(async (req) => {
     const cutoff = asOfDate || new Date().toISOString().split('T')[0];
 
     const [invoices, payments] = await Promise.all([
-      base44.entities.FeeInvoice.filter({ academic_year: academicYear, student_id: studentId }),
-      base44.entities.FeePayment.filter({ academic_year: academicYear, student_id: studentId })
+      base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear, student_id: studentId }),
+      base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear, student_id: studentId })
     ]);
 
     const activeInvoices = invoices.filter(inv => {
