@@ -259,6 +259,22 @@ main, [role="main"] {
   animation: slideInUp 0.25s ease-out;
 }
 
+/* ── Accessibility & UX Polish ── */
+/* Improve color contrast for muted text */
+.text-muted-foreground {
+  opacity: 1; /* Ensure muted text is not too faint */
+}
+
+/* Smooth tap highlight removal for cleaner mobile experience */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Restore tap highlight for interactive elements */
+a, button, [role="button"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+}
+
 /* ── Disable System Gestures & Text Selection ── */
 button, a, [role="button"], .interactive {
   user-select: none;
