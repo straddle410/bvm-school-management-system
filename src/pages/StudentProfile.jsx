@@ -309,7 +309,7 @@ export default function StudentProfile() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <button onClick={() => window.history.back()} className="flex items-center gap-2 text-blue-200 hover:text-white mb-4 font-semibold">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-200 hover:text-white mb-4 font-semibold">
             <ArrowLeft className="h-5 w-5" /> Back
           </button>
           <div className="flex items-center gap-4">
