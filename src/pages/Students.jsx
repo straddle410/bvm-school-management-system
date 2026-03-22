@@ -619,6 +619,14 @@ export default function Students() {
     }
   };
 
+  const { data: pendingDeletions } = useQuery({
+    queryKey: ['deletion-requests-count'],
+    queryFn: () => base44.entities.DeletionRequest.filter({ account_type: 'student', status: 'Pending' }),
+    enabled: !!isAdmin,
+    refetchInterval: 60000,
+  });
+  const pendingDeletionCount = pendingDeletions?.length || 0;
+
   // Stats derived from server total count (accurate) per tab
   const totalActive = activeTab === 'active' ? totalCount : allStudents.filter(s => s.status === 'Published').length;
   const totalPending = allStudents.filter(s => s.status === 'Pending').length;
