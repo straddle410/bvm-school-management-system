@@ -212,12 +212,10 @@ export default function DayBookReport() {
     });
   };
 
-  const handleDrillDown = (date, mode) => {
+  const handleDrillDown = useCallback((date, mode) => {
     setDrawerDate(date);
     setDrawerMode(mode || null);
-    // Ensure drawer opens by explicitly setting state
-    window.dispatchEvent(new Event('daybook-drawer-open'));
-  };
+  }, []);
 
   const handleExport = async () => {
     setExporting(true);
