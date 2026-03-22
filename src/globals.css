@@ -142,6 +142,16 @@
   select,
   textarea {
     @apply bg-background text-foreground border-border placeholder:text-muted-foreground;
+    /* Prevent iOS zoom on focus (requires font-size >= 16px) */
+    font-size: 16px;
+  }
+
+  select {
+    /* Touch-friendly select on mobile */
+    min-height: 44px;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
   }
 
   select option {
@@ -150,6 +160,7 @@
 
   textarea {
     @apply bg-background text-foreground border-border placeholder:text-muted-foreground;
+    font-size: 16px;
   }
 
   label {
