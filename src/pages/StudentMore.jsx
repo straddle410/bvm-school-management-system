@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { HelpCircle, BarChart3, FileText, Image, User, Shield, LogOut, Lock, Eye, EyeOff, X, ArrowLeft, Trash2 } from 'lucide-react';
+import { HelpCircle, BarChart3, FileText, Image, User, Shield, LogOut, Lock, Eye, EyeOff, X, ArrowLeft, UserX } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 export default function StudentMore() {
@@ -19,9 +20,19 @@ export default function StudentMore() {
     const raw = sessionStorage.getItem('student_session') || localStorage.getItem('student_session');
     let parsedSession = null;
     try { parsedSession = raw ? JSON.parse(raw) : null; } catch (e) {}
-    if (!parsedSession) { navigate(createPageUrl('StudentLogin')); return; }
+    
+    if (!parsedSession) {
+      navigate(createPageUrl('StudentLogin'));
+      return;
+    }
     setSession(parsedSession);
-    base44.entities.SchoolProfile.list().then(p => p.length && setSchoolProfile(p[0])).catch(() => {});
+
+    // Load school profile from cache if available
+    base44.entities.SchoolProfile.list()
+      .then(p => p.length && setSchoolProfile(p[0]))
+      .catch(() => {});
+    // Also update Quiz link to use StudentQuiz
+
   }, [navigate]);
 
   const handleLogout = () => {
@@ -42,7 +53,11 @@ export default function StudentMore() {
         current_password: pwForm.current,
         new_password: pwForm.newPw,
       });
-      if (res.data?.error) { setPwError(res.data.error); setPwLoading(false); return; }
+      if (res.data?.error) {
+        setPwError(res.data.error);
+        setPwLoading(false);
+        return;
+      }
       toast.success('Password changed successfully');
       setShowChangePassword(false);
       setPwForm({ current: '', newPw: '', confirm: '' });
@@ -95,7 +110,11 @@ export default function StudentMore() {
         {/* Menu Items */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-100">
           {menuItems.map((item) => (
-            <Link key={item.label} to={createPageUrl(item.page)} className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+            <Link
+              key={item.label}
+              to={createPageUrl(item.page)}
+              className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+            >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
                 <item.icon className="h-5 w-5" style={{ color: item.color }} />
               </div>
@@ -110,7 +129,10 @@ export default function StudentMore() {
         {/* Account Section */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-100">
           <p className="px-4 pt-3.5 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Account</p>
-          <button onClick={() => setShowChangePassword(true)} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+          <button
+           onClick={() => setShowChangePassword(true)}
+           className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
             <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
               <Shield className="h-5 w-5 text-purple-600" />
             </div>
@@ -119,16 +141,22 @@ export default function StudentMore() {
               <p className="text-xs text-gray-500 mt-0.5">Update your password</p>
             </div>
           </button>
-          <Link to="/DeleteAccount" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
-            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
-              <Trash2 className="h-5 w-5 text-red-500" />
+          <Link
+            to="/DeleteAccount"
+            className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+              <UserX className="h-5 w-5 text-orange-600" />
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-red-600">Delete My Account</p>
+              <p className="text-sm font-semibold text-gray-900">Delete My Account</p>
               <p className="text-xs text-gray-500 mt-0.5">Request account deletion</p>
             </div>
           </Link>
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
             <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
               <LogOut className="h-5 w-5 text-red-600" />
             </div>
@@ -143,56 +171,56 @@ export default function StudentMore() {
         <p className="text-center text-xs text-gray-400 py-4">
           {schoolProfile?.school_name || 'BVM School of Excellence'}
         </p>
-      </div>
-
-      {/* Change Password Modal */}
-      {showChangePassword && session && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <Lock className="h-5 w-5 text-[#1a237e]" /> Change Password
-              </h2>
-              <button onClick={() => { setShowChangePassword(false); setPwError(''); }} className="text-gray-400 hover:text-gray-600">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              {[
-                { label: 'Current Password', key: 'current' },
-                { label: 'New Password', key: 'newPw' },
-                { label: 'Confirm New Password', key: 'confirm' },
-              ].map(({ label, key }) => (
-                <div key={key}>
-                  <label className="text-sm font-medium text-gray-700 block mb-1.5">{label}</label>
-                  <div className="relative">
-                    <input
-                      type={showPw[key] ? 'text' : 'password'}
-                      value={pwForm[key]}
-                      onChange={e => setPwForm(f => ({ ...f, [key]: e.target.value }))}
-                      required
-                      placeholder={label}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a237e] bg-gray-50"
-                    />
-                    <button type="button" onClick={() => setShowPw(s => ({ ...s, [key]: !s[key] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      {showPw[key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{pwError}</div>}
-              <div className="flex gap-2 pt-1">
-                <button type="button" onClick={() => { setShowChangePassword(false); setPwError(''); }} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-semibold">
-                  Cancel
-                </button>
-                <button type="submit" disabled={pwLoading} className="flex-1 bg-[#1a237e] text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">
-                  {pwLoading ? 'Saving...' : 'Change Password'}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
-      )}
-    </div>
-  );
-}
+
+        {/* Change Password Modal */}
+         {showChangePassword && session && (
+         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+             <div className="flex items-center justify-between mb-4">
+               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                 <Lock className="h-5 w-5 text-[#1a237e]" /> Change Password
+               </h2>
+               <button onClick={() => { setShowChangePassword(false); setPwError(''); }} className="text-gray-400 hover:text-gray-600">
+                 <X className="h-5 w-5" />
+               </button>
+             </div>
+             <form onSubmit={handleChangePassword} className="space-y-4">
+               {[
+                 { label: 'Current Password', key: 'current' },
+                 { label: 'New Password', key: 'newPw' },
+                 { label: 'Confirm New Password', key: 'confirm' },
+               ].map(({ label, key }) => (
+                 <div key={key}>
+                   <label className="text-sm font-medium text-gray-700 block mb-1.5">{label}</label>
+                   <div className="relative">
+                     <input
+                       type={showPw[key] ? 'text' : 'password'}
+                       value={pwForm[key]}
+                       onChange={e => setPwForm(f => ({ ...f, [key]: e.target.value }))}
+                       required
+                       placeholder={label}
+                       className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a237e] bg-gray-50"
+                     />
+                     <button type="button" onClick={() => setShowPw(s => ({ ...s, [key]: !s[key] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                       {showPw[key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                     </button>
+                   </div>
+                 </div>
+               ))}
+               {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{pwError}</div>}
+               <div className="flex gap-2 pt-1">
+                 <button type="button" onClick={() => { setShowChangePassword(false); setPwError(''); }} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-semibold">
+                   Cancel
+                 </button>
+                 <button type="submit" disabled={pwLoading} className="flex-1 bg-[#1a237e] text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">
+                   {pwLoading ? 'Saving...' : 'Change Password'}
+                 </button>
+               </div>
+             </form>
+           </div>
+         </div>
+         )}
+         </div>
+         );
+        }
