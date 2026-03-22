@@ -143,7 +143,8 @@ function DayRow({ day, filters, onDrillDown, showVoided }) {
           <td className="px-4 py-2 text-right">
             <button
               onClick={() => onDrillDown(day.date, m.mode)}
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              className="text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+              type="button"
             >
               Details
             </button>
