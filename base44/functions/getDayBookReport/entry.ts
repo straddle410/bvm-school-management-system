@@ -116,9 +116,9 @@ Deno.serve(async (req) => {
       : null;
 
     // ── Fetch payments in date range ──────────────────────────────────────
-    let payments = await base44.asServiceRole.entities.FeePayment.filter(
-      academicYear ? { academic_year: academicYear } : {}
-    );
+    const paymentFilter = {};
+    if (academicYear) paymentFilter.academic_year = academicYear;
+    let payments = await base44.asServiceRole.entities.FeePayment.filter(paymentFilter);
 
     // Date filter by payment_date
     payments = payments.filter(p => {
