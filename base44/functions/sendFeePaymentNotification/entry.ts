@@ -30,42 +30,46 @@ Deno.serve(async (req) => {
     const amountStr = payment.amount_paid ? `₹${Number(payment.amount_paid).toLocaleString()}` : '';
     const subject = '✅ Fee Payment Received';
     const body = `Payment of ${amountStr} received. Receipt: ${receiptNo}`;
-    const receiptUrl = `/StudentDashboard?openFees=1&receiptNo=${receiptNo}`;
-    const academicYear = payment.academic_year || student.academic_year || '2024-25';
+    const academicYear = payment.academic_year || '2024-25';
 
-    // Send push via centralized function first, track success
+    // Send push via centralized function
     let isPushSent = false;
     try {
       await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-        student_ids: [student.student_id],
+        student_ids: [studentId],
         title: subject,
         message: body,
         receipt_no: receiptNo,
       });
       isPushSent = true;
-      console.log('[sendFeePaymentNotification] Push sent for student:', student.student_id);
+      console.log('[sendFeePaymentNotification] Push sent for:', studentId);
     } catch (pushErr) {
-      console.warn('[sendFeePaymentNotification] Push failed (non-fatal):', pushErr.message);
+      console.warn('[sendFeePaymentNotification] Push failed:', pushErr.message);
     }
 
-    // Create Message entity (serves as dedup record + in-app notification)
-    await base44.asServiceRole.entities.Message.create({
-      sender_id: 'system',
-      sender_name: 'School',
-      sender_role: 'admin',
-      recipient_type: 'individual',
-      recipient_id: student.student_id,
-      recipient_name: student.name,
-      subject,
-      body,
-      is_read: false,
-      academic_year: academicYear,
-      context_type: 'fee_payment',
-      context_id: receiptNo,
-      is_push_sent: isPushSent,
-    });
+    // Create Message + mark payment as notified (dual-write for safety)
+    await Promise.all([
+      base44.asServiceRole.entities.Message.create({
+        sender_id: 'system',
+        sender_name: 'School',
+        sender_role: 'admin',
+        recipient_type: 'individual',
+        recipient_id: studentId,
+        recipient_name: studentName,
+        subject,
+        body,
+        is_read: false,
+        academic_year: academicYear,
+        context_type: 'fee_payment',
+        context_id: receiptNo,
+        is_push_sent: isPushSent,
+      }),
+      base44.asServiceRole.entities.FeePayment.update(payment.id, {
+        notification_sent: true
+      })
+    ]);
 
-    return Response.json({ success: true, receipt_no: receiptNo, student_id: student.student_id });
+    return Response.json({ success: true, receipt_no: receiptNo, student_id: studentId });
   } catch (error) {
     console.error('[sendFeePaymentNotification] Error:', error.message);
     return Response.json({ success: false, error: error.message }, { status: 500 });
