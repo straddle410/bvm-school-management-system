@@ -11,28 +11,17 @@ Deno.serve(async (req) => {
     if (staffInfo?.staff_id || staffInfo?.role) {
       // Mobile staff session
       userRole = (staffInfo?.role || '').toLowerCase().trim();
-      console.log('[getStudentOutstandingDetail] Mobile staff session detected:', { staff_id: staffInfo.staff_id, role: userRole });
     } else {
       // Web Base44 auth
-      let user = null;
-      try {
-        user = await base44.auth.me();
-      } catch (authErr) {
-        console.log('[getStudentOutstandingDetail] Base44 auth failed:', authErr?.message);
-        return Response.json({ error: 'Unauthorized', details: authErr?.message }, { status: 401 });
+      const user = await base44.auth.me().catch(() => null);
+      if (user) {
+        userRole = (user.role || '').toLowerCase().trim();
       }
-      if (!user) {
-        console.log('[getStudentOutstandingDetail] auth.me() returned null');
-        return Response.json({ error: 'Unauthorized', details: 'auth.me() returned null' }, { status: 401 });
-      }
-      userRole = (user.role || '').toLowerCase().trim();
-      console.log('[getStudentOutstandingDetail] Base44 auth successful:', { userRole });
     }
     
     const allowedRoles = ['admin', 'principal', 'accountant'];
     if (!userRole || !allowedRoles.includes(userRole)) {
-      console.log('[getStudentOutstandingDetail] Role check failed:', { userRole, allowedRoles });
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+      return Response.json({ error: 'Unauthorized', status: 'no valid auth' }, { status: 401 });
     }
 
     const { studentId, academicYear, asOfDate } = body;
