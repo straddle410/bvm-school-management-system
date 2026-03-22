@@ -868,9 +868,7 @@ export default function Students() {
                  </div>
                ))}
              </div>
-          )}
-
-          ) : null}
+             ) : null}
 
           {/* Pagination */}
           {activeTab !== 'deletion' && totalPages > 1 && (
