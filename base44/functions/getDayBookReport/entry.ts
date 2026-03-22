@@ -65,34 +65,24 @@ Deno.serve(async (req) => {
     if (staffInfo?.staff_id || staffInfo?.role) {
       // Mobile staff session
       userRole = (staffInfo?.role || '').toLowerCase().trim();
-      console.log('[getDayBookReport] Mobile staff session detected:', { staff_id: staffInfo.staff_id, role: userRole });
     } else {
       // Web Base44 auth
-      try {
-        baseUser = await base44.auth.me();
-      } catch (authErr) {
-        console.log('[getDayBookReport] Base44 auth failed:', authErr?.message);
-        return Response.json({ error: 'Unauthorized', details: authErr?.message }, { status: 401 });
+      baseUser = await base44.auth.me().catch(() => null);
+      if (baseUser) {
+        const candidates = [
+          baseUser?.role,
+          baseUser?.roleName,
+          baseUser?.user_metadata?.role,
+          baseUser?.app_metadata?.role
+        ].filter(v => v !== null && v !== undefined && v !== '');
+        userRole = String(candidates[0] || '').trim().toLowerCase();
       }
-      if (!baseUser) {
-        console.log('[getDayBookReport] auth.me() returned null');
-        return Response.json({ error: 'Unauthorized', details: 'auth.me() returned null' }, { status: 401 });
-      }
-      const candidates = [
-        baseUser?.role,
-        baseUser?.roleName,
-        baseUser?.user_metadata?.role,
-        baseUser?.app_metadata?.role
-      ].filter(v => v !== null && v !== undefined && v !== '');
-      userRole = String(candidates[0] || '').trim().toLowerCase();
-      console.log('[getDayBookReport] Base44 auth successful:', { userRole });
     }
 
     const allowedRoles = ['admin', 'principal', 'accountant'];
     
     if (!userRole || !allowedRoles.includes(userRole)) {
-      console.log('[getDayBookReport] Role check failed:', { userRole, allowedRoles });
-      return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
+      return Response.json({ error: 'Unauthorized', status: 'no valid auth' }, { status: 401 });
     }
 
     const {
