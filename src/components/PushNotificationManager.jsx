@@ -363,16 +363,9 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Already initialized this session — skip to avoid repeated toasts
-      if (sessionStorage.getItem('push_initialized')) {
-        console.log('[PushNotificationManager] Already initialized this session, skipping.');
-        return;
-      }
-
       // Auto-init for non-iOS or already granted
       if (!isIOS || Notification.permission === 'granted') {
         console.log('[PushNotificationManager] Auto-initializing...');
-        sessionStorage.setItem('push_initialized', '1');
         initPushNotifications();
       }
 
