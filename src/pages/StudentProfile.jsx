@@ -194,6 +194,7 @@ export default function StudentProfile() {
   const [pwLoading, setPwLoading] = useState(false);
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const raw = localStorage.getItem('student_session') || sessionStorage.getItem('student_session');
