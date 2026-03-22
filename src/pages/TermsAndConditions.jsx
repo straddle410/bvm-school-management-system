@@ -80,9 +80,11 @@ export default function TermsAndConditions() {
 
           <Section title="8. Contact Information">
             <p>For questions, concerns, or requests related to these Terms and Conditions or your data, please contact the school administration:</p>
-            <div className="mt-3 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600">
-             <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
-             <p className="text-slate-500 dark:text-gray-400 text-xs mt-1">Please reach out to the school office for the most current contact details.</p>
+            <div className="mt-3 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600 space-y-2">
+              <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
+              <p className="text-slate-600 dark:text-gray-300 text-sm">📍 Vidya Nagar Colony, Kothakota, Wanaparthy Dist</p>
+              <p className="text-slate-600 dark:text-gray-300 text-sm">📞 <a href="tel:+919101724665" className="underline hover:text-indigo-600">+91 91017 24665</a></p>
+              <p className="text-slate-600 dark:text-gray-300 text-sm">✉️ <a href="mailto:support@bvmse.in" className="underline hover:text-indigo-600">support@bvmse.in</a></p>
             </div>
           </Section>
 
