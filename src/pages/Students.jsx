@@ -16,7 +16,8 @@ import ManageRollNumbers from '@/components/students/ManageRollNumbers';
 import PastYearWarning, { isPastAcademicYear } from '@/components/PastYearWarning';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight, Hash, Archive, ChevronDown, Bus, MoreVertical, Download, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight, Hash, Archive, ChevronDown, Bus, MoreVertical, Download, TrendingUp, ArrowLeft, UserX } from 'lucide-react';
+import DeletionRequestsTab from '@/components/students/DeletionRequestsTab';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
@@ -24,7 +25,6 @@ import { createPageUrl } from '@/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { normalizeStudentData, namesMatch } from '@/components/normalizeStudentData';
-import DeletionRequestsTab from '@/components/students/DeletionRequestsTab';
 import { isLocked, isValidTransition, ACTIVE_STATUSES } from '@/components/students/studentStatusUtils';
 import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
@@ -44,7 +44,7 @@ export default function Students() {
   const [user, setUser] = useState(null);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('active'); // 'active' | 'pipeline' | 'alumni'
+  const [activeTab, setActiveTab] = useState('active'); // 'active' | 'pipeline' | 'alumni' | 'deletion'
   const [filterClass, setFilterClass] = useState('all');
   const [filterSection, setFilterSection] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -686,7 +686,7 @@ export default function Students() {
               { key: 'active', label: 'Active Students', color: 'text-green-700', activeBg: 'bg-green-50 border-b-2 border-green-600' },
               ...(isAdmin ? [{ key: 'pipeline', label: 'Admission Pipeline', color: 'text-yellow-700', activeBg: 'bg-yellow-50 border-b-2 border-yellow-500' }] : []),
               ...(isAdmin ? [{ key: 'alumni', label: 'Alumni / Archive', color: 'text-gray-600', activeBg: 'bg-gray-50 border-b-2 border-gray-500' }] : []),
-              ...(isAdmin ? [{ key: 'deletion', label: 'Deletion Requests', color: 'text-red-600', activeBg: 'bg-red-50 border-b-2 border-red-500' }] : []),
+              ...(isAdmin ? [{ key: 'deletion', label: 'Deletion Requests', color: 'text-red-700', activeBg: 'bg-red-50 border-b-2 border-red-500' }] : []),
             ].map(tab => (
               <button
                  key={tab.key}
@@ -701,13 +701,8 @@ export default function Students() {
             ))}
           </div>
 
-          {/* Deletion Requests Tab */}
-          {activeTab === 'deletion' && isAdmin && (
-            <DeletionRequestsTab />
-          )}
-
           {/* Filters */}
-          {activeTab !== 'deletion' && <StudentFilters
+          <StudentFilters
             search={search} onSearch={handleSearchChange}
             filterClass={filterClass} onFilterClass={(v) => { setFilterClass(v); setFilterSection('all'); setPage(1); }}
             filterSection={filterSection} onFilterSection={(v) => { setFilterSection(v); setPage(1); }}
@@ -720,7 +715,7 @@ export default function Students() {
             showDeleted={showDeleted} onToggleDeleted={isAdmin && activeTab === 'active' ? () => { setShowDeleted(v => !v); setPage(1); } : null}
             availableClasses={sfAvailableClasses}
             availableSections={sfAvailableSections}
-          />}
+          />
 
           {/* Bulk Actions — Admin only, Active tab only */}
           {isAdmin && selectableStudents.length > 0 && activeTab !== 'alumni' && !showDeleted && (
