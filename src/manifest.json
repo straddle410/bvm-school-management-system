@@ -11,10 +11,16 @@
   "lang": "en",
   "icons": [
     {
-      "src": "https://base44.com/logo_v2.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "https://media.base44.com/images/public/69965572f33252d650e49c9b/a306ef453_generated_image.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://media.base44.com/images/public/69965572f33252d650e49c9b/a306ef453_generated_image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
