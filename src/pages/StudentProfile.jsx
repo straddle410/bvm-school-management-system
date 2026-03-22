@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, BookOpen, User, Phone, Award, TrendingUp, Clock, ShieldCheck, Lock, Eye, EyeOff, X, Trash2 } from 'lucide-react';
