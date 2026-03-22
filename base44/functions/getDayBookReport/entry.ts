@@ -203,6 +203,7 @@ Deno.serve(async (req) => {
     if (reportMode === 'details' || (reportMode === 'summary' && detailDate)) {
       const dateRows = allRows.filter(r => r.date === detailDate);
       const total = dateRows.length;
+      console.log('[getDayBookReport] Details mode:', { detailDate, allRowsCount: allRows.length, dateRowsCount: total });
       const start = (page - 1) * pageSize;
       const paged = dateRows.slice(start, start + pageSize);
       return Response.json({
