@@ -28,7 +28,7 @@ export default function DayBookDetailDrawer({ open, onClose, date, filters }) {
       if (raw) staffInfo = JSON.parse(raw);
     } catch {}
     
-    base44.functions.invoke('getDayBookReport', {
+    const payload = {
       reportMode: 'details',
       detailDate: date,
       dateFrom: date,
@@ -40,7 +40,11 @@ export default function DayBookDetailDrawer({ open, onClose, date, filters }) {
       includeCancelled: filters.includeCancelled,
       pageSize: 500,
       staffInfo  // Pass staff session for auth
-    }).then(res => {
+    };
+    
+    console.log('[DayBookDetailDrawer] Invoking with payload:', { date, academicYear: filters.academicYear, hasStaffInfo: !!staffInfo });
+    
+    base44.functions.invoke('getDayBookReport', payload).then(res => {
       console.log('[DayBookDetailDrawer] Response:', { meta: res.data.meta, rowCount: res.data.rows?.length });
       setRows(res.data.rows || []);
       setMeta(res.data.meta || null);
