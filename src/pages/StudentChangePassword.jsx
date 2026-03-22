@@ -21,6 +21,7 @@ export default function StudentChangePassword() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const isForced = new URLSearchParams(window.location.search).get('forced') === '1';
 
   useEffect(() => {
     const s = getStudentSession();
@@ -32,8 +33,16 @@ export default function StudentChangePassword() {
     e.preventDefault();
     setError('');
 
-    if (newPassword.length < 4) {
-      setError('New password must be at least 4 characters.');
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters.');
+      return;
+    }
+    if (!/[a-zA-Z]/.test(newPassword)) {
+      setError('Password must contain at least one letter.');
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setError('Password must contain at least one number.');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -50,6 +59,15 @@ export default function StudentChangePassword() {
       });
 
       if (res.data?.success) {
+        // Clear forced flag from session
+        try {
+          const raw = localStorage.getItem('student_session');
+          if (raw) {
+            const s = JSON.parse(raw);
+            s.must_change_password = false;
+            localStorage.setItem('student_session', JSON.stringify(s));
+          }
+        } catch {}
         setSuccess(true);
         toast.success('Password changed successfully!');
       } else {
