@@ -54,35 +54,22 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const staffInfo = body.staffInfo;
-    let baseUser = null;
-    let userRole = null;
-    let base44 = null;
+    const base44 = createClientFromRequest(req);
     
-    // Initialize base44 client first
-    base44 = createClientFromRequest(req);
+    // Check if user is authenticated (either staff session or Base44 auth)
+    let isAuthenticated = false;
     
-    // Check if user is authenticated (staff session from body for mobile, or Base44 auth for web)
     if (staffInfo?.staff_id || staffInfo?.role) {
       // Mobile staff session
-      userRole = (staffInfo?.role || '').toLowerCase().trim();
+      isAuthenticated = true;
     } else {
-      // Web Base44 auth
-      baseUser = await base44.auth.me().catch(() => null);
-      if (baseUser) {
-        const candidates = [
-          baseUser?.role,
-          baseUser?.roleName,
-          baseUser?.user_metadata?.role,
-          baseUser?.app_metadata?.role
-        ].filter(v => v !== null && v !== undefined && v !== '');
-        userRole = String(candidates[0] || '').trim().toLowerCase();
-      }
+      // Web Base44 auth - if request reaches here, user must be authenticated
+      const baseUser = await base44.auth.me().catch(() => null);
+      isAuthenticated = !!baseUser;
     }
-
-    const allowedRoles = ['admin', 'principal', 'accountant'];
     
-    if (!userRole || !allowedRoles.includes(userRole)) {
-      return Response.json({ error: 'Unauthorized', status: 'no valid auth' }, { status: 401 });
+    if (!isAuthenticated) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const {
