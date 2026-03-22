@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     // ── Fetch payments in date range ──────────────────────────────────────
     const paymentFilter = {};
     if (academicYear) paymentFilter.academic_year = academicYear;
-    let payments = await base44.asServiceRole.entities.FeePayment.filter(paymentFilter);
+    let payments = await base44.entities.FeePayment.filter(paymentFilter);
 
     // Date filter by payment_date
     payments = payments.filter(p => {
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     const invoiceMap = {};
     const invoiceFilter = {};
     if (academicYear) invoiceFilter.academic_year = academicYear;
-    const invs = await base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter);
+    const invs = await base44.entities.FeeInvoice.filter(invoiceFilter);
     for (const inv of invs) invoiceMap[inv.id] = inv;
 
     // Class filter
