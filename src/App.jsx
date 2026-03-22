@@ -1,4 +1,5 @@
 import { Toaster } from "sonner"
+import DeleteAccount from './pages/DeleteAccount'
 import { QueryClientProvider } from '@tanstack/react-query'
 import NotificationAnalytics from './pages/NotificationAnalytics'
 import PostingDashboard from './pages/PostingDashboard'
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
       <Route path="/pages/PostingDashboard" element={<LayoutWrapper currentPageName="PostingDashboard"><PostingDashboard /></LayoutWrapper>} />
       <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><StudentQuiz /></LayoutWrapper>} />
       <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><StudentChangePassword /></LayoutWrapper>} />
+       <Route path="/DeleteAccount" element={<DeleteAccount />} />
        <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
