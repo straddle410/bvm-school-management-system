@@ -108,7 +108,7 @@ export default function StudentChangePassword() {
             <h2 className="text-lg font-bold text-gray-800 mb-2">Password Changed!</h2>
             <p className="text-gray-500 text-sm mb-6">Your password has been updated successfully.</p>
             <button
-              onClick={() => navigate(createPageUrl('StudentDashboard'))}
+              onClick={() => { window.location.href = createPageUrl('StudentDashboard'); }}
               className="w-full bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white py-3 rounded-xl font-bold text-sm"
             >
               Back to Dashboard
