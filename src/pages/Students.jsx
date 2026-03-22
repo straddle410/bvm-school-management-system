@@ -699,11 +699,16 @@ export default function Students() {
               <button
                  key={tab.key}
                  onClick={() => { setActiveTab(tab.key); setPage(1); setSelectedIds(new Set()); setFilterClass('all'); setFilterSection('all'); setFilterTransport('all'); setFilterHostel('all'); setFilterDaysColor('all'); }}
-                className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab.key ? `${tab.activeBg} ${tab.color}` : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                className={`flex-1 py-2.5 text-xs font-semibold transition-colors relative ${activeTab === tab.key ? `${tab.activeBg} ${tab.color}` : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
               >
                 {tab.label}
                 {activeTab === tab.key && totalCount > 0 && (
                   <span className="ml-1.5 text-[10px] font-bold opacity-70">({totalCount})</span>
+                )}
+                {tab.key === 'deletion' && pendingDeletionCount > 0 && activeTab !== 'deletion' && (
+                  <span className="ml-1.5 inline-flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1">
+                    {pendingDeletionCount}
+                  </span>
                 )}
               </button>
             ))}
