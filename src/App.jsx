@@ -1,4 +1,6 @@
 import { Toaster } from "sonner"
+import { AnimatePresence } from "framer-motion"
+import PageTransition from "@/components/PageTransition"
 import { QueryClientProvider } from '@tanstack/react-query'
 import NotificationAnalytics from './pages/NotificationAnalytics'
 import PostingDashboard from './pages/PostingDashboard'
