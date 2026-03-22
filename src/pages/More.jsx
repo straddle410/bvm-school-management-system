@@ -9,7 +9,7 @@ import {
   Megaphone, ClipboardList, LayoutDashboard, Users, UserPlus, BookOpen,
   ClipboardCheck, Settings, ChevronRight, LogOut, GraduationCap,
   Phone, Globe, Shield, HelpCircle, Info, LogIn, MessageSquare,
-  Ticket, Calendar, TrendingUp, FileText, Award, BarChart3, AlertCircle, Image, User as UserIcon
+  Ticket, Calendar, TrendingUp, FileText, Award, BarChart3, AlertCircle, Image, User as UserIcon, Trash2
 } from 'lucide-react';
 
 export default function More() {
@@ -335,7 +335,14 @@ export default function More() {
                    <div className="divide-y divide-gray-50 dark:divide-gray-700">
                      <MenuItem item={{ label: 'My Profile', sub: 'View & edit your profile', icon: UserIcon, color: '#1976d2', bg: '#e3f2fd', page: 'Profile' }} />
                      <MenuItem item={{ label: 'Change Password', sub: 'Update your login password', icon: Shield, color: '#7e57c2', bg: '#ede7f6', page: 'ChangeStaffPassword' }} />
-                     <MenuItem item={{ label: 'Delete My Account', sub: 'Request account deletion', icon: UserX, color: '#f57c00', bg: '#fff3e0', page: 'DeleteAccount' }} />
+                   </div>
+                 </div>
+
+                 {/* Delete Account */}
+                 <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                   <p className="px-4 pt-4 pb-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Account Deletion</p>
+                   <div className="divide-y divide-gray-50 dark:divide-gray-700">
+                     <MenuItem item={{ label: 'Delete My Account', sub: 'Submit an account deletion request', icon: Trash2, color: '#e53935', bg: '#ffebee', page: 'DeleteAccount' }} />
                    </div>
                  </div>
 
