@@ -25,17 +25,12 @@ Deno.serve(async (req) => {
     const results = [];
 
     for (const record of attendanceRecords) {
-      const { student_id, attendance_id, student_name, class_name, section, academic_year } = record;
+      const { student_id, attendance_id, student_name, class_name, section, academic_year, notification_sent } = record;
 
-      // Duplicate check: skip if already notified for this exact attendance record
-      const existing = await base44.asServiceRole.entities.Message.filter({
-        context_type: 'absent_notification',
-        context_id: attendance_id,
-      });
-
-      if (existing.length > 0) {
-        console.log(`[AbsentNotif] Skipping duplicate for student ${student_id}, attendance_id ${attendance_id}`);
-        results.push({ student_id, status: 'skipped', reason: 'Already notified for this absence' });
+      // Deduplication check: skip if attendance record already notified
+      if (notification_sent) {
+        console.log(`[AbsentNotif] Skipping (already notified) for student ${student_id}, attendance_id ${attendance_id}`);
+        results.push({ student_id, status: 'skipped', reason: 'Already notified' });
         continue;
       }
 
@@ -84,11 +79,18 @@ Deno.serve(async (req) => {
         // Message was still created, so mark as partial success
         results.push({ student_id, status: 'message_created_push_failed', message_id: createdMessage.id, error: pushErr.message });
       }
-      // Update is_push_sent flag
+      // Update is_push_sent flag and mark attendance record as notified
       if (pushSuccess) {
         try {
           await base44.asServiceRole.entities.Message.update(createdMessage.id, { is_push_sent: true });
         } catch {}
+      }
+
+      // Mark attendance record as notified
+      try {
+        await base44.asServiceRole.entities.Attendance.update(attendance_id, { notification_sent: true });
+      } catch (updateErr) {
+        console.warn(`[AbsentNotif] Failed to update attendance ${attendance_id} notification_sent:`, updateErr.message);
       }
     }
 
