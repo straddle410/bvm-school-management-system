@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { studentId, academicYear, asOfDate } = await req.json().catch(() => ({}));
+    const { studentId, academicYear, asOfDate } = body;
     if (!studentId || !academicYear) {
       return Response.json({ error: 'studentId and academicYear required' }, { status: 400 });
     }
