@@ -13,37 +13,18 @@ Deno.serve(async (req) => {
     const payment = data;
     const receiptNo = payment.receipt_no;
 
-    if (!receiptNo) {
-      console.log('[sendFeePaymentNotification] No receipt_no, skipping');
-      return Response.json({ success: true, message: 'No receipt_no' });
+    if (!receiptNo || payment.notification_sent) {
+      console.log('[sendFeePaymentNotification] Skip: no receipt or already notified');
+      return Response.json({ success: true, message: 'Skipped' });
     }
 
-    // Deduplication check - only scan last 1 day of messages (not entire table)
-    const oneDayAgo = new Date(Date.now() - 86400000).toISOString();
-    const existing = await base44.asServiceRole.entities.Message.filter({
-      context_type: 'fee_payment',
-      context_id: receiptNo,
-      created_date: { $gte: oneDayAgo }
-    });
-    if (existing.length > 0) {
-      console.log('[sendFeePaymentNotification] Duplicate skipped for receipt:', receiptNo);
-      return Response.json({ success: true, message: 'Duplicate prevented' });
-    }
-
-    // Lookup student - single query attempt
+    // Use student data directly from payment (no lookup query)
     const studentId = payment.student_id;
-    let student = null;
-    if (studentId) {
-      const results = await base44.asServiceRole.entities.Student.filter({ student_id: studentId });
-      student = results[0];
-      if (!student) {
-        const fallback = await base44.asServiceRole.entities.Student.filter({ id: studentId });
-        student = fallback[0];
-      }
-    }
-    if (!student) {
-      console.error('[sendFeePaymentNotification] Student not found:', studentId);
-      return Response.json({ success: false, error: 'Student not found' });
+    const studentName = payment.student_name || 'Student';
+    
+    if (!studentId) {
+      console.error('[sendFeePaymentNotification] No student_id in payment');
+      return Response.json({ success: false, error: 'No student_id' });
     }
 
     const amountStr = payment.amount_paid ? `₹${Number(payment.amount_paid).toLocaleString()}` : '';
