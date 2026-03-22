@@ -41,10 +41,12 @@ export default function DayBookDetailDrawer({ open, onClose, date, filters }) {
       pageSize: 500,
       staffInfo  // Pass staff session for auth
     }).then(res => {
+      console.log('[DayBookDetailDrawer] Response:', { meta: res.data.meta, rowCount: res.data.rows?.length });
       setRows(res.data.rows || []);
       setMeta(res.data.meta || null);
     }).catch(err => {
-      console.error('[DayBookDetailDrawer] Error:', err?.response?.data || err?.message);
+      console.error('[DayBookDetailDrawer] Error:', { status: err?.response?.status, data: err?.response?.data, msg: err?.message });
+      setRows([]);
     }).finally(() => setLoading(false));
   }, [open, date, JSON.stringify(filters)]);
 
