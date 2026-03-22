@@ -18,26 +18,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'No receipt_no' });
     }
 
-    // Deduplication check using Message entity
+    // Deduplication check - only scan last 1 day of messages (not entire table)
+    const oneDayAgo = new Date(Date.now() - 86400000).toISOString();
     const existing = await base44.asServiceRole.entities.Message.filter({
       context_type: 'fee_payment',
       context_id: receiptNo,
+      created_date: { $gte: oneDayAgo }
     });
     if (existing.length > 0) {
       console.log('[sendFeePaymentNotification] Duplicate skipped for receipt:', receiptNo);
       return Response.json({ success: true, message: 'Duplicate prevented' });
     }
 
-    // Lookup student
+    // Lookup student - single query attempt
     const studentId = payment.student_id;
     let student = null;
     if (studentId) {
       const results = await base44.asServiceRole.entities.Student.filter({ student_id: studentId });
       student = results[0];
-    }
-    if (!student) {
-      const results = await base44.asServiceRole.entities.Student.filter({ id: studentId });
-      student = results[0];
+      if (!student) {
+        const fallback = await base44.asServiceRole.entities.Student.filter({ id: studentId });
+        student = fallback[0];
+      }
     }
     if (!student) {
       console.error('[sendFeePaymentNotification] Student not found:', studentId);
