@@ -58,31 +58,19 @@ export default function DeleteAccount() {
     setError('');
     setLoading(true);
     try {
-      // Verify password via login function
-      if (accountType === 'student') {
-        const res = await base44.functions.invoke('studentLogin', {
-          username: username.trim(),
-          password: password,
-        });
-        if (res.data?.error || !res.data?.success) {
-          setError('Incorrect password. Please try again.');
-          setLoading(false);
-          return;
-        }
-      } else {
-        const res = await base44.functions.invoke('staffLogin', {
-          username: username.trim(),
-          password: password,
-        });
-        if (res.data?.error || !res.data?.success) {
-          setError('Incorrect password. Please try again.');
-          setLoading(false);
-          return;
-        }
+      const res = await base44.functions.invoke('verifyAccountPassword', {
+        account_type: accountType,
+        username: username.trim(),
+        password: password,
+      });
+      if (res.data?.error || !res.data?.success) {
+        setError(res.data?.error || 'Incorrect password. Please try again.');
+        setLoading(false);
+        return;
       }
       setStep(3);
-    } catch {
-      setError('Password verification failed. Please try again.');
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Password verification failed. Please try again.');
     }
     setLoading(false);
   };
