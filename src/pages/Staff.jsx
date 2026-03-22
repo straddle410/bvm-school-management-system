@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2, ChevronDown, AlertTriangle } from 'lucide-react';
+import StaffDeletionRequestsTab from '@/components/staff/StaffDeletionRequestsTab';
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
@@ -536,6 +537,7 @@ export default function Staff() {
               <TabsTrigger value="add">Add Staff</TabsTrigger>
               <TabsTrigger value="manage">Staff Management</TabsTrigger>
               <TabsTrigger value="roles">Role Templates</TabsTrigger>
+              <TabsTrigger value="deletion" className="text-red-600">Deletion Requests</TabsTrigger>
             </TabsList>
 
             {/* Add Staff Tab */}
@@ -841,6 +843,11 @@ export default function Staff() {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            {/* Deletion Requests Tab */}
+            <TabsContent value="deletion" className="space-y-4">
+              <StaffDeletionRequestsTab />
             </TabsContent>
 
             {/* Roles Tab */}
