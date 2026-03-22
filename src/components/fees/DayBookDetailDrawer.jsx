@@ -20,6 +20,14 @@ export default function DayBookDetailDrawer({ open, onClose, date, filters }) {
   useEffect(() => {
     if (!open || !date) return;
     setLoading(true);
+    
+    // Get staff session if available (for mobile/staff portal)
+    let staffInfo = null;
+    try {
+      const raw = localStorage.getItem('staff_session');
+      if (raw) staffInfo = JSON.parse(raw);
+    } catch {}
+    
     base44.functions.invoke('getDayBookReport', {
       reportMode: 'details',
       detailDate: date,
@@ -30,10 +38,13 @@ export default function DayBookDetailDrawer({ open, onClose, date, filters }) {
       mode: filters.mode?.length ? filters.mode : undefined,
       includeReversals: filters.includeReversals,
       includeCancelled: filters.includeCancelled,
-      pageSize: 500
+      pageSize: 500,
+      staffInfo  // Pass staff session for auth
     }).then(res => {
       setRows(res.data.rows || []);
       setMeta(res.data.meta || null);
+    }).catch(err => {
+      console.error('[DayBookDetailDrawer] Error:', err?.response?.data || err?.message);
     }).finally(() => setLoading(false));
   }, [open, date, JSON.stringify(filters)]);
 
