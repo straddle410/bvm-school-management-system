@@ -116,13 +116,18 @@ export default function StudentChangePassword() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm p-6">
+            {isForced && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm font-medium">
+                🔒 You must set a new password before continuing.
+              </div>
+            )}
             <div className="flex items-center gap-3 mb-6">
               <div className="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center">
                 <Lock className="h-6 w-6 text-[#1a237e]" />
               </div>
               <div>
                 <p className="font-semibold text-gray-800">Update Password</p>
-                <p className="text-xs text-gray-500">Default password is BVM123</p>
+                <p className="text-xs text-gray-500">Choose a strong password to secure your account</p>
               </div>
             </div>
 
@@ -154,7 +159,7 @@ export default function StudentChangePassword() {
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     required
-                    placeholder="Enter new password (min 4 chars)"
+                    placeholder="Min 6 chars, at least 1 letter & 1 number"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
                   />
                   <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
