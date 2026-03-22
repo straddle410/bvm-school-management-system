@@ -133,9 +133,9 @@ Deno.serve(async (req) => {
 
     // Invoice map (for class/student enrichment)
     const invoiceMap = {};
-    const invs = await base44.asServiceRole.entities.FeeInvoice.filter(
-      academicYear ? { academic_year: academicYear } : {}
-    );
+    const invoiceFilter = {};
+    if (academicYear) invoiceFilter.academic_year = academicYear;
+    const invs = await base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter);
     for (const inv of invs) invoiceMap[inv.id] = inv;
 
     // Class filter
