@@ -226,12 +226,12 @@ export default function PushNotificationManager({ studentId }) {
      let pref;
      if (hasStaffSession) {
        console.log('[PushStaff] Querying StaffNotificationPreference for staff_id:', identifier);
-       const prefs = await base44.entities.StaffNotificationPreference.filter({ staff_id: identifier });
+       const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({ staff_id: identifier });
        console.log('[PushStaff] Found prefs:', prefs.length);
        pref = prefs[0];
        if (!pref) {
          console.log('[PushStaff] Creating new StaffNotificationPreference for staff_id:', identifier);
-         pref = await base44.entities.StaffNotificationPreference.create({
+         pref = await base44.asServiceRole.entities.StaffNotificationPreference.create({
            staff_id: identifier,
            staff_name: user?.name || user?.full_name || '',
            browser_push_enabled: true,
@@ -280,13 +280,13 @@ export default function PushNotificationManager({ studentId }) {
            const alreadyHadToken = !!pref.browser_push_token;
            if (hasStaffSession) {
              console.log('[PushStaff] Saving token to StaffNotificationPreference id:', pref.id, 'staff_id:', identifier);
-             await base44.entities.StaffNotificationPreference.update(pref.id, {
-               staff_id: identifier,
-               browser_push_token: token,
-               browser_push_enabled: true,
-               staff_name: user?.name || user?.full_name || pref.staff_name || '',
-             });
-             console.log('[PushNotificationManager] Staff token saved to StaffNotificationPreference');
+              await base44.asServiceRole.entities.StaffNotificationPreference.update(pref.id, {
+                staff_id: identifier,
+                browser_push_token: token,
+                browser_push_enabled: true,
+                staff_name: user?.name || user?.full_name || pref.staff_name || '',
+              });
+              console.log('[PushNotificationManager] Staff token saved to StaffNotificationPreference');
            } else {
              await base44.entities.NotificationPreference.update(pref.id, {
                browser_push_token: token
