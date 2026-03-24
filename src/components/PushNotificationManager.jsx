@@ -166,9 +166,9 @@ export default function PushNotificationManager({ studentId }) {
       try {
         const parsed = JSON.parse(studentSessionRaw);
         studentId = parsed?.student_id || null;
-        console.log('[PushFix] Student detected:', studentId);
+        console.log('[FINAL FIX] Student detected:', studentId);
       } catch (e) {
-        console.log('[PushFix] Student session parse error');
+        console.log('[FINAL FIX] Student parse error');
       }
     }
 
@@ -178,18 +178,16 @@ export default function PushNotificationManager({ studentId }) {
       try {
         const parsed = JSON.parse(staffSessionRaw);
         staffId = parsed?.staff_id || parsed?.username || null;
-        console.log('[PushFix] Staff detected:', staffId);
-      } catch (e) {
-        console.log('[PushFix] Staff session parse error');
-      }
+      } catch (e) {}
     }
 
+    console.log('[FINAL FIX] studentId:', studentId, 'staffId:', staffId);
+
     if (!studentId && !staffId) {
-      console.log('[PushFix] No user → skipping OneSignal');
+      console.log('[FINAL FIX] No user → skip OneSignal');
       return;
     }
 
-    console.log('[PushFix] Using user:', studentId || staffId);
     initOneSignal(studentId || staffId);
   }, [studentSession]);
 
