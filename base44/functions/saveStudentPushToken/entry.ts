@@ -48,6 +48,45 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Register device in OneSignal
+    try {
+      const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+      const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+      if (ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY) {
+        const parsedSub = typeof subscription === 'string' ? JSON.parse(subscription) : subscription;
+        const endpoint = parsedSub?.endpoint;
+        if (endpoint) {
+          const osRes = await fetch('https://onesignal.com/api/v1/players', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              app_id: ONESIGNAL_APP_ID,
+              device_type: 5,
+              identifier: endpoint,
+              external_user_id: student_id,
+            }),
+          });
+          const osData = await osRes.json();
+          if (osData.id) {
+            const latestPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ student_id });
+            if (latestPrefs.length > 0) {
+              await base44.asServiceRole.entities.StudentNotificationPreference.update(latestPrefs[0].id, {
+                onesignal_player_id: osData.id,
+              });
+            }
+            console.log('[saveStudentPushToken] OneSignal player registered:', osData.id);
+          } else {
+            console.warn('[saveStudentPushToken] OneSignal registration failed:', JSON.stringify(osData));
+          }
+        }
+      }
+    } catch (osErr) {
+      console.warn('[saveStudentPushToken] OneSignal registration error (non-fatal):', osErr.message);
+    }
+
     return Response.json({ success: true });
   } catch (error) {
     console.error('saveStudentPushToken error:', error);
