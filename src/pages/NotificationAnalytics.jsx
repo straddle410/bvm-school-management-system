@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Users, Users2, TrendingUp } from 'lucide-react';
+import { Bell, Users, Users2, TrendingUp, AlertCircle } from 'lucide-react';
 
 export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
@@ -28,6 +28,7 @@ export default function NotificationAnalytics() {
 
   const studentLogs = logs.filter(l => l.target_type === 'student');
   const staffLogs = logs.filter(l => l.target_type === 'staff');
+  const failedLogs = logs.filter(l => l.status === 'failed');
   const totalRecipients = logs.reduce((sum, l) => sum + (l.recipients_count || 0), 0);
 
   return (
@@ -38,7 +39,7 @@ export default function NotificationAnalytics() {
       </div>
 
       <Tabs defaultValue="summary" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Summary
@@ -54,6 +55,10 @@ export default function NotificationAnalytics() {
           <TabsTrigger value="delivery" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Delivery
+          </TabsTrigger>
+          <TabsTrigger value="failed" className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Failed
           </TabsTrigger>
         </TabsList>
 
@@ -281,6 +286,50 @@ export default function NotificationAnalytics() {
                 </table>
                 {logs.length === 0 && (
                   <p className="text-center py-4 text-gray-500">No notifications found</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 5: Failed */}
+        <TabsContent value="failed">
+          <Card>
+            <CardHeader>
+              <CardTitle>Failed Notifications ({failedLogs.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Title</th>
+                      <th className="text-left py-2 px-2">Type</th>
+                      <th className="text-left py-2 px-2">Error Message</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {failedLogs.map((log) => (
+                      <tr key={log.id} className="border-b hover:bg-red-50">
+                        <td className="py-2 px-2 text-gray-600">
+                          {new Date(log.sent_date).toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">
+                          <span className="capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            {log.target_type}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-red-600 font-medium">
+                          {log.error_message || 'Unknown error'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {failedLogs.length === 0 && (
+                  <p className="text-center py-4 text-gray-500">No failed notifications found</p>
                 )}
               </div>
             </CardContent>
