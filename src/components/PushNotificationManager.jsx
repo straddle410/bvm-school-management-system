@@ -199,7 +199,7 @@ export default function PushNotificationManager({ studentId }) {
        try {
          const staffRaw = localStorage.getItem('staff_session');
          user = JSON.parse(staffRaw);
-         identifier = user.email || user.staff_id || user.username;
+         identifier = user.staff_id || user.username;
          console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
        } catch {}
      } else {
@@ -219,12 +219,12 @@ export default function PushNotificationManager({ studentId }) {
      // For staff sessions, use StaffNotificationPreference; for base44 users, use NotificationPreference
      let pref;
      if (hasStaffSession) {
-       const prefs = await base44.entities.StaffNotificationPreference.filter({ staff_email: identifier });
+       const prefs = await base44.entities.StaffNotificationPreference.filter({ staff_id: identifier });
        pref = prefs[0];
        if (!pref) {
          console.log('[PushNotificationManager] Creating new StaffNotificationPreference for', identifier);
          pref = await base44.entities.StaffNotificationPreference.create({
-           staff_email: identifier,
+           staff_id: identifier,
            staff_name: user?.name || user?.full_name || '',
            browser_push_enabled: true,
            browser_push_token: null,
@@ -269,6 +269,7 @@ export default function PushNotificationManager({ studentId }) {
            const alreadyHadToken = !!pref.browser_push_token;
            if (hasStaffSession) {
              await base44.entities.StaffNotificationPreference.update(pref.id, {
+               staff_id: identifier,
                browser_push_token: token,
                browser_push_enabled: true,
                staff_name: user?.name || user?.full_name || pref.staff_name || '',

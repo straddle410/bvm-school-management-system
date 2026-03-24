@@ -25,19 +25,24 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, sent: 0, reason: 'Push notifications disabled' });
     }
 
-    const { staff_emails, title, message, url } = await req.json();
+    const { staff_ids, staff_emails, title, message, url } = await req.json();
 
-    if (!staff_emails || staff_emails.length === 0) {
+    // Support staff_ids (new) or staff_emails (legacy fallback)
+    const identifiers = staff_ids || staff_emails;
+    const useStaffId = !!staff_ids;
+
+    if (!identifiers || identifiers.length === 0) {
       return Response.json({ success: true, sent: 0 });
     }
 
-    // Get push tokens for the given emails
+    // Get push tokens — filter by staff_id (preferred) or staff_email (legacy)
     const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-    const targets = prefs.filter(p =>
-      staff_emails.includes(p.staff_email) &&
-      p.browser_push_enabled &&
-      p.browser_push_token
-    );
+    const targets = prefs.filter(p => {
+      const match = useStaffId
+        ? identifiers.includes(p.staff_id)
+        : identifiers.includes(p.staff_email);
+      return match && p.browser_push_enabled && p.browser_push_token;
+    });
 
     if (targets.length === 0) {
       return Response.json({ success: true, sent: 0 });
