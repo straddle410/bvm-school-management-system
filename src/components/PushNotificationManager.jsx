@@ -193,6 +193,9 @@ export default function PushNotificationManager({ studentId }) {
     setTimeout(() => {
       initOneSignal(studentId || staffId);
     }, 2000);
+
+    console.log('[FINAL] Calling init after user ready');
+    initPushNotifications();
   }, [studentSession]);
 
   useEffect(() => {
@@ -525,7 +528,7 @@ export default function PushNotificationManager({ studentId }) {
       }
 
       if (!isIOS || Notification.permission === 'granted') {
-        initPushNotifications();
+        // DO NOTHING HERE — push init is handled after user detection
       }
 
       if ('serviceWorker' in navigator) {
