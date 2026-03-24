@@ -19,8 +19,6 @@ export default function PushNotificationManager() {
           appId: ONESIGNAL_APP_ID,
           notifyButton: { enable: false },
           allowLocalhostAsSecureOrigin: true,
-          serviceWorkerPath: '/api/functions/OneSignalSDKWorker',
-          serviceWorkerParam: { scope: '/' },
         });
 
         await OneSignal.Notifications.requestPermission();
