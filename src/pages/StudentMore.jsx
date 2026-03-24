@@ -35,7 +35,11 @@ export default function StudentMore() {
 
   }, [navigate]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Disassociate device from OneSignal
+    if (window.OneSignal) {
+      await window.OneSignal.logout().catch(e => console.warn('[OneSignal] Logout error:', e));
+    }
     sessionStorage.removeItem('student_session');
     localStorage.removeItem('student_session');
     navigate(createPageUrl('StudentLogin'));
