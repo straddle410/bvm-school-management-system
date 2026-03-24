@@ -41,11 +41,21 @@ async function initOneSignal(externalUserId) {
     return;
   }
 
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  window.OneSignalDeferred.push(async function (OneSignal) {
-    try {
-      await OneSignal.init({
-        appId,
+  try {
+    const appIdRes = await fetch('/api/functions/getOneSignalAppId');
+    const appIdData = await appIdRes.json();
+    const appId = appIdData?.appId || appIdData?.app_id;
+    if (!appId) {
+      console.warn('[OneSignal] App ID not available, skipping init');
+      _oneSignalLoaded = false;
+      return;
+    }
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function (OneSignal) {
+      try {
+        await OneSignal.init({
+          appId,
         serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerParam: { scope: '/' },
