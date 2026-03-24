@@ -1,122 +1,58 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import webpush from 'npm:web-push@3.6.7';
 
 Deno.serve(async (req) => {
   try {
-    const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
-    const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
-
-    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-      console.error('[SendPush] Missing VAPID keys');
-      return Response.json({ error: 'VAPID keys not configured' }, { status: 500 });
-    }
-
-    webpush.setVapidDetails('mailto:admin@school.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-    console.log('[SendPush] VAPID configured, key prefix:', VAPID_PUBLIC_KEY.substring(0, 20) + '...');
-
     const base44 = createClientFromRequest(req);
 
     // Central safety check — respect global NotificationSettings
     const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
-
-    let settings = null;
-    if (settingsList && settingsList.length > 0) {
-      settings = settingsList[0];
-    }
-
-    console.log('[SendPush] DEBUG enable_push:', settings?.enable_push);
+    const settings = settingsList?.[0];
+    console.log('[SendStudentPush] enable_push:', settings?.enable_push);
 
     if (!settings || settings.enable_push != true) {
-      console.log('[SendPush] Push disabled or settings missing, skipping notification.');
-      return Response.json({ success: true, sent: 0, skipped: 0, reason: 'Push notifications disabled' });
+      console.log('[SendStudentPush] Push disabled, skipping.');
+      return Response.json({ success: true, sent: 0, reason: 'Push notifications disabled' });
     }
 
-    const { student_ids, title, message, url, icon, receipt_no } = await req.json();
-    const notificationUrl = url || '';
+    const { student_ids, title, message, url } = await req.json();
 
     if (!student_ids || !student_ids.length) {
       return Response.json({ error: 'Missing student_ids' }, { status: 400 });
     }
 
-    const payload = JSON.stringify({
-      title: title || 'New Notification',
-      body: message || '',
-      icon: icon || 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
-      badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69965572f33252d650e49c9b/30c52e9c7_lOGO.jpeg',
-      ...(notificationUrl ? { click_action: notificationUrl } : {}),
-      data: { url: notificationUrl },
-      vibrate: [200, 100, 200],
+    const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.error('[SendStudentPush] Missing OneSignal credentials');
+      return Response.json({ error: 'OneSignal not configured' }, { status: 500 });
+    }
+
+    const body = {
+      app_id: ONESIGNAL_APP_ID,
+      include_external_user_ids: student_ids,
+      contents: { en: message || '' },
+      headings: { en: title || 'New Notification' },
+      ...(url ? { url } : {}),
+    };
+
+    console.log('[SendStudentPush] Sending to', student_ids.length, 'students via OneSignal');
+
+    const res = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
 
-    console.log('[SendPush] Payload:', payload);
+    const data = await res.json();
+    console.log('[SendStudentPush] OneSignal response:', JSON.stringify(data));
 
-    // Fetch prefs for the specific student_ids only
-    const allPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
-    const prefMap = new Map(allPrefs.map(p => [p.student_id, p]));
-
-    let sent = 0;
-    let failed = 0;
-    const errors = [];
-
-    // Create parallel push tasks for all students
-    const pushTasks = student_ids.map(async (sid) => {
-      const pref = prefMap.get(sid);
-      if (!pref || !pref.browser_push_enabled || !pref.browser_push_token) {
-        console.log('[SendPush] No pref/token for student:', sid);
-        return { status: 'skipped', sid };
-      }
-
-      let subscription;
-      try {
-        subscription = JSON.parse(pref.browser_push_token);
-      } catch {
-        console.error('[SendPush] Invalid JSON token for student:', sid);
-        errors.push({ student_id: sid, error: 'Invalid subscription JSON' });
-        return { status: 'failed', sid };
-      }
-
-      if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
-        console.error('[SendPush] Subscription missing required fields for student:', sid, {
-          has_endpoint: !!subscription.endpoint,
-          has_p256dh: !!subscription.keys?.p256dh,
-          has_auth: !!subscription.keys?.auth,
-        });
-        errors.push({ student_id: sid, error: 'Subscription missing endpoint/keys' });
-        return { status: 'failed', sid };
-      }
-
-      console.log('[SendPush] Sending to student:', sid, 'endpoint prefix:', subscription.endpoint.substring(0, 50) + '...');
-
-      try {
-        const result = await webpush.sendNotification(subscription, payload);
-        console.log('[SendPush] ✅ Success for', sid, 'status:', result.statusCode);
-        return { status: 'success', sid };
-      } catch (err) {
-        console.error('[SendPush] ❌ Failed for', sid, 'status:', err.statusCode, 'error:', err.message);
-        errors.push({ student_id: sid, error: err.message, statusCode: err.statusCode });
-        // Clear invalid/expired subscriptions
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          try {
-            await base44.asServiceRole.entities.StudentNotificationPreference.update(pref.id, {
-              browser_push_token: null,
-              browser_push_enabled: false,
-            });
-            console.log('[SendPush] Cleared expired token for student:', sid);
-          } catch {}
-        }
-        return { status: 'failed', sid };
-      }
-    });
-
-    // Execute all pushes in parallel and collect results
-    const results = await Promise.all(pushTasks);
-    sent = results.filter(r => r.status === 'success').length;
-    failed = results.filter(r => r.status === 'failed').length;
-
-    console.log('[SendPush] Done. sent:', sent, 'failed:', failed);
-    return Response.json({ success: true, sent, failed, errors });
+    return Response.json({ success: true, sent: data.recipients ?? 0, onesignal: data });
   } catch (error) {
-    console.error('[SendPush] Fatal error:', error.message);
+    console.error('[SendStudentPush] Fatal error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
