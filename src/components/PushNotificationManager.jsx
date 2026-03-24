@@ -41,6 +41,7 @@ async function getVapidKey() {
 // Store resolved OneSignal instance for later use
 let _oneSignalInstance = null;
 let _oneSignalInitialized = false;
+let _pushInitialized = false;
 
 async function initOneSignal() {
   if (typeof window === 'undefined') return;
@@ -156,12 +157,16 @@ export default function PushNotificationManager({ studentId }) {
   }, []);
 
   useEffect(() => {
+    // studentSession already initialized via useState from localStorage — no re-parsing needed
+    // Detect iOS PWA and show prompt if needed
     try {
-      // studentSession is already initialized from localStorage via useState
-      // Just log for debug purposes
-      if (studentSession) {
-        console.log('[PushInit] Student session active:', studentSession.student_id);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+      if (isIOS && isPWA && Notification.permission === 'default') {
+        setShowIOSPrompt(true);
       }
+    } catch (e) {}
+  }, []);
 
   const handleEnableNotifications = async () => {
     try {
@@ -180,6 +185,8 @@ export default function PushNotificationManager({ studentId }) {
   };
 
   const initPushNotifications = async () => {
+   if (_pushInitialized) return;
+   _pushInitialized = true;
    try {
      console.log('[PushNotificationManager] Initializing push notifications...');
      let permission = Notification.permission;
@@ -342,10 +349,11 @@ export default function PushNotificationManager({ studentId }) {
        }
      }
    } catch (error) {
-     console.error('[PushNotificationManager] Setup failed:', error);
-     toast.error("Notification setup failed");
-   }
-  };
+      _pushInitialized = false; // allow retry on error
+      console.error('[PushNotificationManager] Setup failed:', error);
+      toast.error("Notification setup failed");
+    }
+   };
 
   const initStudentPushNotifications = async () => {
     try {
@@ -462,14 +470,10 @@ export default function PushNotificationManager({ studentId }) {
 
   useEffect(() => {
     try {
-      // Auto-run for non-iOS or if permission already granted
-      console.log('[Permission]:', Notification.permission);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const isPWA = window.matchMedia('(display-mode: standalone)').matches;
 
-      // iOS limitation check - must be PWA
       if (isIOS && !isPWA) {
-        // Only show this toast once per session
         if (!sessionStorage.getItem('ios_push_hint_shown')) {
           sessionStorage.setItem('ios_push_hint_shown', '1');
           toast.info("To receive notifications on iPhone: Open in Safari > Share > Add to Home Screen");
@@ -477,29 +481,21 @@ export default function PushNotificationManager({ studentId }) {
         return;
       }
 
-      // Skip auto-init on iOS PWA if permission not granted yet (wait for button click)
       if (isIOS && isPWA && Notification.permission === 'default') {
-        console.log('[PushNotificationManager] Waiting for iOS permission...');
-        return;
+        return; // wait for button click
       }
 
-      // Auto-init for non-iOS or already granted
       if (!isIOS || Notification.permission === 'granted') {
-        console.log('[PushNotificationManager] Auto-initializing...');
         initPushNotifications();
       }
 
-      // Listen for foreground notification messages to play sound
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data?.type === 'PLAY_SOUND') {
-            playSound();
-          }
+          if (event.data?.type === 'PLAY_SOUND') playSound();
         });
       }
     } catch (e) {
       console.log('[Push] Error:', e);
-      // silently fail, don't crash app
     }
   }, [studentSession]);
 
