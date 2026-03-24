@@ -42,14 +42,12 @@ async function getVapidKey() {
 let _oneSignalInstance = null;
 let _oneSignalInitialized = false;
 
-// Initialize OneSignal using a custom backend-served service worker path.
-// This avoids the /OneSignalSDKWorker.js MIME type error in Base44.
 async function initOneSignal() {
-  try {
-    if (typeof window === 'undefined') return;
-    if (_oneSignalInitialized) return; // prevent double-init
-    _oneSignalInitialized = true;
+  if (typeof window === 'undefined') return;
+  if (_oneSignalInitialized) return;
+  _oneSignalInitialized = true;
 
+  try {
     const appIdRes = await fetch('/api/functions/getOneSignalAppId');
     const appIdData = await appIdRes.json();
     const appId = appIdData?.appId || appIdData?.app_id;
@@ -60,14 +58,15 @@ async function initOneSignal() {
     }
 
     window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async (OneSignal) => {
+    window.OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
         appId,
         serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerParam: { scope: '/' },
+        autoRegister: false,
+        autoResubscribe: true,
         notifyButton: { enable: false },
-        promptOptions: { autoPrompt: false },
       });
       _oneSignalInstance = OneSignal;
       console.log('[OneSignal] Initialized successfully');
