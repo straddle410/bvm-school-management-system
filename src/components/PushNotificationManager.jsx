@@ -58,6 +58,9 @@ async function initOneSignal() {
       return;
     }
 
+    // Prevent any default OneSignal behavior before init
+    window.OneSignal = window.OneSignal || [];
+
     // Set up deferred handler BEFORE loading the SDK script
     // This ensures our serviceWorkerPath config is applied before the SDK registers a worker
     window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -68,7 +71,8 @@ async function initOneSignal() {
         serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerParam: { scope: '/' },
         autoRegister: false,
-        autoResubscribe: true,
+        autoResubscribe: false,
+        allowLocalhostAsSecureOrigin: true,
         notifyButton: { enable: false },
       });
       _oneSignalInstance = OneSignal;
