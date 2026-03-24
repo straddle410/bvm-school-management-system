@@ -103,40 +103,78 @@ Deno.serve(async (req) => {
 
     // Send consolidated push via OneSignal if there are recipients
     if (externalUserIds.length > 0) {
+      const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+      const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+      const targetType = notifyStudents && !notifyStaff ? 'student' : (notifyStaff && !notifyStudents ? 'staff' : 'general');
+      const title = notice.title || 'Notice';
+      const message = (notice.content || '').substring(0, 100);
+      
       try {
-        const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
-        const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
-        
-        const payload = {
-          app_id: ONESIGNAL_APP_ID,
-          include_external_user_ids: externalUserIds,
-          contents: { en: (notice.content || '').substring(0, 100) },
-          headings: { en: notice.title },
-          url: notice.target_audience === 'Staff' || notice.target_audience === 'Teachers' ? '/Notices' : '/StudentNotices',
-        };
-        
-        console.log(`[notifyStudentsOnNoticePublish] OneSignal request payload:`, JSON.stringify(payload));
-        
         const res = await fetch('https://onesignal.com/api/v1/notifications', {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            app_id: ONESIGNAL_APP_ID,
+            include_external_user_ids: externalUserIds,
+            contents: { en: message },
+            headings: { en: title },
+            url: notice.target_audience === 'Staff' || notice.target_audience === 'Teachers' ? '/Notices' : '/StudentNotices',
+          }),
         });
         
-        const data = await res.json();
-        console.log(`[notifyStudentsOnNoticePublish] OneSignal response status: ${res.status}`);
-        console.log(`[notifyStudentsOnNoticePublish] OneSignal response:`, JSON.stringify(data));
+        const osData = await res.json();
         
-        if (!res.ok) {
-          console.error(`[notifyStudentsOnNoticePublish] OneSignal error (${res.status}):`, JSON.stringify(data));
-        } else {
+        if (res.ok) {
           console.log(`[notifyStudentsOnNoticePublish] OneSignal sent to ${externalUserIds.length} recipients`);
+          // Log success
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: osData.id || 'unknown',
+            target_type: targetType,
+            target_user_ids: externalUserIds,
+            title: title,
+            message: message,
+            recipients_count: osData.recipients || externalUserIds.length,
+            status: 'sent',
+            context_type: 'notice_published',
+            context_id: notice.id || 'unknown',
+            sent_date: new Date().toISOString(),
+          });
+        } else {
+          console.error(`[notifyStudentsOnNoticePublish] OneSignal failed (${res.status}):`, JSON.stringify(osData));
+          // Log failure
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: osData.id || 'unknown',
+            target_type: targetType,
+            target_user_ids: externalUserIds,
+            title: title,
+            message: message,
+            recipients_count: externalUserIds.length,
+            status: 'failed',
+            error_message: osData.errors?.[0] || JSON.stringify(osData),
+            context_type: 'notice_published',
+            context_id: notice.id || 'unknown',
+            sent_date: new Date().toISOString(),
+          });
         }
       } catch (pushErr) {
-        console.error('[notifyStudentsOnNoticePublish] OneSignal failed (non-fatal):', pushErr.message);
+        console.error('[notifyStudentsOnNoticePublish] OneSignal network error:', pushErr.message);
+        // Log network failure
+        await base44.asServiceRole.entities.PushNotificationLog.create({
+          one_signal_notification_id: 'network_error',
+          target_type: targetType,
+          target_user_ids: externalUserIds,
+          title: title,
+          message: message,
+          recipients_count: externalUserIds.length,
+          status: 'failed',
+          error_message: pushErr.message,
+          context_type: 'notice_published',
+          context_id: notice.id || 'unknown',
+          sent_date: new Date().toISOString(),
+        });
       }
     }
 

@@ -36,43 +36,6 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'No student_id' });
     }
 
-    // Check if student has push enabled
-    const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ student_id: studentId });
-    const pref = prefs[0];
-    if (!pref || !pref.browser_push_enabled) {
-      console.log('[sendFeePaymentNotification] Push not enabled for student:', studentId);
-      // Still create message, just skip push
-      const amountStr = payment.amount_paid ? `₹${Number(payment.amount_paid).toLocaleString()}` : '';
-      const profilesList = await base44.asServiceRole.entities.SchoolProfile.list();
-      const schoolName = (profilesList[0] || {}).school_name || 'School';
-      const paymentTemplate = settings.fee_payment_template ||
-        `Payment of {{amount}} received for {{student_name}}. Receipt No: {{receipt_no}}.`;
-      const subject = '✅ Fee Payment Received';
-      const body = paymentTemplate
-        .replace(/{{amount}}/g, amountStr)
-        .replace(/{{student_name}}/g, studentName)
-        .replace(/{{receipt_no}}/g, receiptNo)
-        .replace(/{{school_name}}/g, schoolName);
-      const academicYear = payment.academic_year || '2024-25';
-      await base44.asServiceRole.entities.Message.create({
-        sender_id: 'system',
-        sender_name: 'School',
-        sender_role: 'admin',
-        recipient_type: 'individual',
-        recipient_id: studentId,
-        recipient_name: studentName,
-        subject,
-        body,
-        is_read: false,
-        academic_year: academicYear,
-        context_type: 'fee_payment',
-        context_id: receiptNo,
-        is_push_sent: false,
-      });
-      await base44.asServiceRole.entities.FeePayment.update(payment.id, { notification_sent: true });
-      return Response.json({ success: true, receipt_no: receiptNo, student_id: studentId });
-    }
-
     const amountStr = payment.amount_paid ? `₹${Number(payment.amount_paid).toLocaleString()}` : '';
     const profilesList = await base44.asServiceRole.entities.SchoolProfile.list();
     const schoolName = (profilesList[0] || {}).school_name || 'School';
@@ -89,9 +52,10 @@ Deno.serve(async (req) => {
     // Send consolidated push via OneSignal
     let isPushSent = false;
     let oneSignalId = 'unknown';
+    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+    const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+    
     try {
-      const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
-      const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
       const res = await fetch('https://onesignal.com/api/v1/notifications', {
         method: 'POST',
         headers: {
@@ -106,26 +70,57 @@ Deno.serve(async (req) => {
         }),
       });
       const osData = await res.json();
+      
       if (res.ok) {
         isPushSent = true;
         oneSignalId = osData.id || 'unknown';
         console.log('[sendFeePaymentNotification] OneSignal sent for:', studentId);
-        // Log successful push
+        // Log success
         await base44.asServiceRole.entities.PushNotificationLog.create({
           one_signal_notification_id: oneSignalId,
           target_type: 'student',
           target_user_ids: [`student_${studentId}`],
           title: subject,
           message: body.substring(0, 100),
-          recipients_count: 1,
+          recipients_count: osData.recipients || 1,
           status: 'sent',
+          context_type: 'fee_payment',
+          context_id: receiptNo,
+          sent_date: new Date().toISOString(),
+        });
+      } else {
+        console.error(`[sendFeePaymentNotification] OneSignal failed (${res.status}):`, JSON.stringify(osData));
+        // Log failure
+        await base44.asServiceRole.entities.PushNotificationLog.create({
+          one_signal_notification_id: osData.id || 'unknown',
+          target_type: 'student',
+          target_user_ids: [`student_${studentId}`],
+          title: subject,
+          message: body.substring(0, 100),
+          recipients_count: 1,
+          status: 'failed',
+          error_message: osData.errors?.[0] || JSON.stringify(osData),
           context_type: 'fee_payment',
           context_id: receiptNo,
           sent_date: new Date().toISOString(),
         });
       }
     } catch (pushErr) {
-      console.warn('[sendFeePaymentNotification] OneSignal failed:', pushErr.message);
+      console.warn('[sendFeePaymentNotification] OneSignal network error:', pushErr.message);
+      // Log network failure
+      await base44.asServiceRole.entities.PushNotificationLog.create({
+        one_signal_notification_id: 'network_error',
+        target_type: 'student',
+        target_user_ids: [`student_${studentId}`],
+        title: subject,
+        message: body.substring(0, 100),
+        recipients_count: 1,
+        status: 'failed',
+        error_message: pushErr.message,
+        context_type: 'fee_payment',
+        context_id: receiptNo,
+        sent_date: new Date().toISOString(),
+      });
     }
 
     // Create Message + mark payment as notified (dual-write for safety)

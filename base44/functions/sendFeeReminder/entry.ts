@@ -103,9 +103,10 @@ Deno.serve(async (req) => {
 
     // Send consolidated push via OneSignal if there are recipients
     if (externalUserIds.length > 0) {
+      const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+      const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+      
       try {
-        const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
-        const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
         const res = await fetch('https://onesignal.com/api/v1/notifications', {
           method: 'POST',
           headers: {
@@ -120,9 +121,10 @@ Deno.serve(async (req) => {
           }),
         });
         const osData = await res.json();
-        console.log(`[sendFeeReminder] OneSignal sent to ${externalUserIds.length} students`);
-        // Log push
+        
         if (res.ok) {
+          console.log(`[sendFeeReminder] OneSignal sent to ${externalUserIds.length} students`);
+          // Log success
           await base44.asServiceRole.entities.PushNotificationLog.create({
             one_signal_notification_id: osData.id || 'unknown',
             target_type: 'student',
@@ -135,9 +137,39 @@ Deno.serve(async (req) => {
             context_id: academic_year,
             sent_date: new Date().toISOString(),
           });
+        } else {
+          console.error(`[sendFeeReminder] OneSignal failed (${res.status}):`, JSON.stringify(osData));
+          // Log failure
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: osData.id || 'unknown',
+            target_type: 'student',
+            target_user_ids: externalUserIds,
+            title: 'Fee Payment Reminder',
+            message: 'Fee payment reminder',
+            recipients_count: externalUserIds.length,
+            status: 'failed',
+            error_message: osData.errors?.[0] || JSON.stringify(osData),
+            context_type: 'fee_reminder',
+            context_id: academic_year,
+            sent_date: new Date().toISOString(),
+          });
         }
       } catch (pushError) {
-        console.error(`[sendFeeReminder] OneSignal error:`, pushError.message);
+        console.error(`[sendFeeReminder] OneSignal network error:`, pushError.message);
+        // Log network failure
+        await base44.asServiceRole.entities.PushNotificationLog.create({
+          one_signal_notification_id: 'network_error',
+          target_type: 'student',
+          target_user_ids: externalUserIds,
+          title: 'Fee Payment Reminder',
+          message: 'Fee payment reminder',
+          recipients_count: externalUserIds.length,
+          status: 'failed',
+          error_message: pushError.message,
+          context_type: 'fee_reminder',
+          context_id: academic_year,
+          sent_date: new Date().toISOString(),
+        });
         results.failed_count = messagesToCreate.length;
       }
     }
