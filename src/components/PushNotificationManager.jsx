@@ -20,6 +20,7 @@ export default function PushNotificationManager() {
           notifyButton: { enable: false },
           allowLocalhostAsSecureOrigin: true,
           serviceWorkerPath: '/api/functions/onesignalServiceWorker',
+          serviceWorkerUpdaterPath: '/api/functions/onesignalServiceWorker',
           serviceWorkerParam: { scope: '/' },
         });
 
