@@ -65,32 +65,7 @@ async function initOneSignal(userIdentifier) {
       return;
     }
 
-    // Delay to ensure page/SDK is ready before pushing to deferred array
-    setTimeout(() => {
-      window.OneSignalDeferred = [];
-      window.OneSignalDeferred.push(async function(OneSignal) {
-        window._oneSignalInstance = OneSignal;
-        _oneSignalInstance = OneSignal;
-        await OneSignal.init({
-          appId,
-          serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
-          serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
-          serviceWorkerParam: { scope: '/' },
-          autoRegister: false,
-          notifyButton: { enable: false },
-        });
-        console.log('[FINAL] OneSignal initialized correctly');
-      });
-
-      // Load SDK only once, after deferred array is populated
-      if (!document.querySelector('script[src*="OneSignalSDK"]')) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-        script.defer = true;
-        document.head.appendChild(script);
-      }
-    }, 2000);
-  } catch (e) {
+    window.OneSignalDeferred = [];
     console.warn('[OneSignal] Init error (non-fatal):', e.message);
     _oneSignalInitialized = false;
   }
