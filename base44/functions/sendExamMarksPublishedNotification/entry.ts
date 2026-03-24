@@ -30,6 +30,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields: examTypeId, examTypeName, academicYear' }, { status: 400 });
     }
 
+    // Check NotificationSettings before proceeding
+    const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
+    const settings = settingsList[0];
+    if (!settings || settings.enable_push !== true) {
+      console.log('[sendExamMarksPublishedNotification] Push disabled or settings missing, skipping notification.');
+      return Response.json({ success: true, skipped: true, reason: 'Push notifications disabled' });
+    }
+
     console.log('[sendExamMarksPublishedNotification] Processing exam:', examTypeName, 'year:', academicYear, 'classes:', applicableClasses);
 
     // Fetch all students for the given academic year and applicable classes
