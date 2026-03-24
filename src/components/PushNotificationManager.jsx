@@ -38,16 +38,47 @@ async function getVapidKey() {
   }
 }
 
-// OneSignal SDK initialization is disabled — the SDK requires /OneSignalSDKWorker.js
-// which is not available in this environment. player_id collection is skipped for now.
-// The onesignal_player_id fields in entities are reserved for future native app integration.
+// Initialize OneSignal using a custom backend-served service worker path.
+// This avoids the /OneSignalSDKWorker.js MIME type error in Base44.
 async function initOneSignal() {
-  // no-op: intentionally disabled
+  try {
+    if (typeof window === 'undefined' || !window.OneSignalDeferred) return;
+
+    const appIdRes = await fetch('/api/functions/getOneSignalAppId');
+    const appIdData = await appIdRes.json();
+    const appId = appIdData?.appId || appIdData?.app_id;
+    if (!appId) {
+      console.warn('[OneSignal] App ID not available, skipping init');
+      return;
+    }
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async (OneSignal) => {
+      await OneSignal.init({
+        appId,
+        serviceWorkerParam: { scope: '/' },
+        serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
+        serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
+        notifyButton: { enable: false },
+        promptOptions: { autoPrompt: false },
+      });
+      console.log('[OneSignal] Initialized successfully');
+    });
+  } catch (e) {
+    console.warn('[OneSignal] Init error (non-fatal):', e.message);
+  }
 }
 
 async function getOneSignalPlayerId() {
-  // no-op: OneSignal SDK not loaded
-  return null;
+  try {
+    if (typeof window === 'undefined' || !window.OneSignal) return null;
+    const playerId = await window.OneSignal.getUserId();
+    console.log('[OneSignal] Player ID:', playerId);
+    return playerId || null;
+  } catch (e) {
+    console.warn('[OneSignal] getPlayerId error (non-fatal):', e.message);
+    return null;
+  }
 }
 
 export default function PushNotificationManager({ studentId }) {
