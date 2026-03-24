@@ -64,7 +64,7 @@ async function initOneSignal(userIdentifier) {
 
     // Delay to ensure page/SDK is ready before pushing to deferred array
     setTimeout(() => {
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      window.OneSignalDeferred = [];
       window.OneSignalDeferred.push(async function(OneSignal) {
         window._oneSignalInstance = OneSignal;
         _oneSignalInstance = OneSignal;
@@ -83,7 +83,7 @@ async function initOneSignal(userIdentifier) {
       if (!document.querySelector('script[src*="OneSignalSDK"]')) {
         const script = document.createElement('script');
         script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-        script.async = true;
+        script.defer = true;
         document.head.appendChild(script);
       }
     }, 2000);
