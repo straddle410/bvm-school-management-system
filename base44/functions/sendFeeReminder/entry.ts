@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       try {
         const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
         const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
-        await fetch('https://onesignal.com/api/v1/notifications', {
+        const res = await fetch('https://onesignal.com/api/v1/notifications', {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
@@ -119,18 +119,23 @@ Deno.serve(async (req) => {
             headings: { en: 'Fee Payment Reminder' },
           }),
         });
+        const osData = await res.json();
         console.log(`[sendFeeReminder] OneSignal sent to ${externalUserIds.length} students`);
-        // Mark all as push sent
-        for (const { tempMsg } of messagesToCreate) {
-          await base44.asServiceRole.entities.Message.update(tempMsg.id, { is_push_sent: true });
-          results.success_count++;
-          results.notified_students.push(tempMsg.recipient_name);
+        // Log push
+        if (res.ok) {
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: osData.id || 'unknown',
+            target_type: 'student',
+            target_user_ids: externalUserIds,
+            title: 'Fee Payment Reminder',
+            message: 'Fee payment reminder',
+            recipients_count: osData.recipients || externalUserIds.length,
+            status: 'sent',
+            context_type: 'fee_reminder',
+            context_id: academic_year,
+            sent_date: new Date().toISOString(),
+          });
         }
-      } catch (pushError) {
-        console.error(`[sendFeeReminder] OneSignal error:`, pushError.message);
-        results.failed_count = messagesToCreate.length;
-      }
-    }
 
     return Response.json(results);
   } catch (error) {

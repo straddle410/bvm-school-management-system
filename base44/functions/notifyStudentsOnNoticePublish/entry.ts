@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
         .filter(p => p.browser_push_enabled && p.staff_id)
         .map(p => p.staff_id);
 
+      console.log(`[notifyStudentsOnNoticePublish] Staff push eligible (${staffIds.length}):`, JSON.stringify(staffIds));
+
       for (const staffId of staffIds) {
         externalUserIds.push(`staff_${staffId}`);
       }
@@ -104,21 +106,63 @@ Deno.serve(async (req) => {
       try {
         const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
         const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
-        await fetch('https://onesignal.com/api/v1/notifications', {
+        
+        const payload = {
+          app_id: ONESIGNAL_APP_ID,
+          include_external_user_ids: externalUserIds,
+          contents: { en: (notice.content || '').substring(0, 100) },
+          headings: { en: notice.title },
+          url: notice.target_audience === 'Staff' || notice.target_audience === 'Teachers' ? '/Notices' : '/StudentNotices',
+        };
+        
+        console.log(`[notifyStudentsOnNoticePublish] OneSignal request payload:`, JSON.stringify(payload));
+        
+        const res = await fetch('https://onesignal.com/api/v1/notifications', {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            app_id: ONESIGNAL_APP_ID,
-            include_external_user_ids: externalUserIds,
-            contents: { en: (notice.content || '').substring(0, 100) },
-            headings: { en: notice.title },
-            url: notice.target_audience === 'Staff' || notice.target_audience === 'Teachers' ? '/Notices' : '/StudentNotices',
-          }),
+          body: JSON.stringify(payload),
         });
-        console.log(`[notifyStudentsOnNoticePublish] OneSignal sent to ${externalUserIds.length} recipients`);
+        
+        const data = await res.json();
+        console.log(`[notifyStudentsOnNoticePublish] OneSignal response status: ${res.status}`);
+        console.log(`[notifyStudentsOnNoticePublish] OneSignal response:`, JSON.stringify(data));
+        
+        if (!res.ok) {
+          console.error(`[notifyStudentsOnNoticePublish] OneSignal error (${res.status}):`, JSON.stringify(data));
+          // Log failed attempt
+          const targetType = notifyStaff && !notifyStudents ? 'staff' : (notifyStudents && !notifyStaff ? 'student' : 'general');
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: 'failed',
+            target_type: targetType,
+            target_user_ids: externalUserIds,
+            title: notice.title,
+            message: (notice.content || '').substring(0, 100),
+            recipients_count: externalUserIds.length,
+            status: 'failed',
+            context_type: 'notice_publish',
+            context_id: notice.id,
+            sent_date: new Date().toISOString(),
+          });
+        } else {
+          console.log(`[notifyStudentsOnNoticePublish] OneSignal sent to ${externalUserIds.length} recipients`);
+          // Log successful attempt
+          const targetType = notifyStaff && !notifyStudents ? 'staff' : (notifyStudents && !notifyStaff ? 'student' : 'general');
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: data.id || 'unknown',
+            target_type: targetType,
+            target_user_ids: externalUserIds,
+            title: notice.title,
+            message: (notice.content || '').substring(0, 100),
+            recipients_count: data.recipients || externalUserIds.length,
+            status: 'sent',
+            context_type: 'notice_publish',
+            context_id: notice.id,
+            sent_date: new Date().toISOString(),
+          });
+        }
       } catch (pushErr) {
         console.error('[notifyStudentsOnNoticePublish] OneSignal failed (non-fatal):', pushErr.message);
       }

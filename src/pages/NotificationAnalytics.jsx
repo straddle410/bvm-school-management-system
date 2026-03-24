@@ -1,230 +1,292 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Bell, BarChart3, Calendar } from 'lucide-react';
-import LoginRequired from '@/components/LoginRequired';
-import PushHealthDashboard from '@/components/analytics/PushHealthDashboard';
-import PushAdoptionTracker from '@/components/PushAdoptionTracker';
-import AppInstallationTracker from '@/components/AppInstallationTracker';
-import { format, subDays } from 'date-fns';
-
-const TYPE_LABELS = {
-  absent_notification: 'Absent Notification',
-  fee_payment: 'Fee Payment',
-  fee_reminder: 'Fee Reminder',
-  marks_publish: 'Marks Published',
-  hall_ticket_published: 'Hall Ticket',
-  notice_posted: 'Notice',
-  homework_published: 'Homework',
-  diary_published: 'Diary',
-};
-
-const TYPE_COLORS = {
-  absent_notification: 'bg-red-100 text-red-700',
-  fee_payment: 'bg-green-100 text-green-700',
-  fee_reminder: 'bg-amber-100 text-amber-700',
-  marks_publish: 'bg-purple-100 text-purple-700',
-  hall_ticket_published: 'bg-blue-100 text-blue-700',
-  notice_posted: 'bg-indigo-100 text-indigo-700',
-  homework_published: 'bg-pink-100 text-pink-700',
-  diary_published: 'bg-teal-100 text-teal-700',
-};
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Bell, Users, Users2, TrendingUp } from 'lucide-react';
 
 export default function NotificationAnalytics() {
-  const [tab, setTab] = useState('analytics');
-  const [startDate, setStartDate] = useState(format(subDays(new Date(), 29), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [queryDates, setQueryDates] = useState({ startDate: format(subDays(new Date(), 29), 'yyyy-MM-dd'), endDate: format(new Date(), 'yyyy-MM-dd') });
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['push-analytics', queryDates.startDate, queryDates.endDate],
-    queryFn: async () => {
-      const staffRaw = localStorage.getItem('staff_session');
-      const res = await base44.functions.invoke('getPushNotificationAnalytics', {
-        startDate: queryDates.startDate,
-        endDate: queryDates.endDate,
-        _staffSession: staffRaw ? JSON.parse(staffRaw) : undefined,
-      });
-      return res.data;
-    },
-  });
+  useEffect(() => {
+    const loadLogs = async () => {
+      try {
+        const data = await base44.entities.PushNotificationLog.list('-sent_date', 500);
+        setLogs(data || []);
+      } catch (err) {
+        console.error('Failed to load logs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLogs();
+  }, []);
 
-  const pushByTypeEntries = data?.pushByType
-    ? Object.entries(data.pushByType).sort((a, b) => b[1] - a[1])
-    : [];
+  if (loading) {
+    return <div className="p-4 text-center">Loading analytics...</div>;
+  }
 
-  const dailyChartData = data?.pushPerDay || [];
+  const studentLogs = logs.filter(l => l.target_type === 'student');
+  const staffLogs = logs.filter(l => l.target_type === 'staff');
+  const totalRecipients = logs.reduce((sum, l) => sum + (l.recipients_count || 0), 0);
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal']}>
-      <div className="min-h-screen bg-gray-50 pb-8">
-        {/* Header */}
-        <div className="bg-[#1a237e] text-white px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Bell className="h-6 w-6 text-yellow-400" />
-            <div>
-              <h1 className="text-xl font-bold">Push Notification Analytics</h1>
-              <p className="text-blue-200 text-xs">Track push notification usage by date range</p>
-            </div>
-          </div>
-        </div>
+    <div className="p-4 max-w-6xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Notification Analytics</h1>
+        <p className="text-gray-600">Track all push notifications sent to students and staff</p>
+      </div>
 
-        <div className="px-4 py-5 space-y-5 max-w-4xl mx-auto">
-          {/* Tab Navigation */}
-          <div className="flex gap-2 border-b border-gray-200">
-            <button
-              onClick={() => setTab('analytics')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                tab === 'analytics'
-                  ? 'text-[#1a237e] border-b-2 border-[#1a237e]'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Push Analytics
-            </button>
-            <button
-              onClick={() => setTab('health')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                tab === 'health'
-                  ? 'text-[#1a237e] border-b-2 border-[#1a237e]'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Push Health
-            </button>
+      <Tabs defaultValue="summary" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="summary" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Summary
+          </TabsTrigger>
+          <TabsTrigger value="students" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Students
+          </TabsTrigger>
+          <TabsTrigger value="staff" className="flex items-center gap-2">
+            <Users2 className="h-4 w-4" />
+            Staff
+          </TabsTrigger>
+          <TabsTrigger value="delivery" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Delivery
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab 1: Summary */}
+        <TabsContent value="summary" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Notifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{logs.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Recipients</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{totalRecipients}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {logs.length > 0
+                    ? `${Math.round((logs.filter(l => l.status === 'sent').length / logs.length) * 100)}%`
+                    : '0%'}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Date Range Picker */}
           <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-end">
-                <div className="flex-1">
-                  <Label className="text-xs font-semibold text-gray-600 mb-1">From Date</Label>
-                  <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} max={endDate} />
-                </div>
-                <div className="flex-1">
-                  <Label className="text-xs font-semibold text-gray-600 mb-1">To Date</Label>
-                  <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} min={startDate} max={format(new Date(), 'yyyy-MM-dd')} />
-                </div>
-                <Button
-                  onClick={() => setQueryDates({ startDate, endDate })}
-                  disabled={isFetching}
-                  className="bg-[#1a237e] hover:bg-[#283593] text-white min-w-[100px]"
-                >
-                  {isFetching ? 'Loading...' : 'Apply'}
-                </Button>
+            <CardHeader>
+              <CardTitle>Recent Notifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Title</th>
+                      <th className="text-left py-2 px-2">Type</th>
+                      <th className="text-left py-2 px-2">Recipients</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.slice(0, 10).map((log) => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2">
+                          {new Date(log.sent_date).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">
+                          <span className="capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            {log.target_type}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              log.status === 'sent'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {log.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {tab === 'analytics' && (
-            <>
-              {isLoading ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                </div>
-              ) : data ? (
-                <>
-                  {/* Total Push Sent */}
-                  <Card className="bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white">
-                    <CardContent className="p-5 flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                        <Bell className="h-7 w-7 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-blue-200 text-sm">Total Push Notifications Sent</p>
-                        <p className="text-4xl font-bold">{data.totalPushSent.toLocaleString()}</p>
-                        <p className="text-blue-200 text-xs mt-1">
-                          {queryDates.startDate} → {queryDates.endDate}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Breakdown by Type */}
-                  {pushByTypeEntries.length > 0 && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <BarChart3 className="h-4 w-4 text-[#1a237e]" />
-                          <h2 className="text-sm font-bold text-gray-800">Push Notifications by Type</h2>
-                        </div>
-                        <div className="space-y-3">
-                          {pushByTypeEntries.map(([type, count]) => {
-                            const pct = data.totalPushSent > 0 ? Math.round((count / data.totalPushSent) * 100) : 0;
-                            const colorClass = TYPE_COLORS[type] || 'bg-gray-100 text-gray-700';
-                            const label = TYPE_LABELS[type] || type;
-                            return (
-                              <div key={type}>
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorClass}`}>{label}</span>
-                                  <span className="text-sm font-bold text-gray-800">{count.toLocaleString()} <span className="text-gray-400 font-normal text-xs">({pct}%)</span></span>
-                                </div>
-                                <div className="w-full bg-gray-100 rounded-full h-2">
-                                  <div className="bg-[#1a237e] h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Daily Push Chart */}
-                  {dailyChartData.length > 1 && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Calendar className="h-4 w-4 text-[#1a237e]" />
-                          <h2 className="text-sm font-bold text-gray-800">Daily Push Trend</h2>
-                        </div>
-                        <ResponsiveContainer width="100%" height={200}>
-                          <BarChart data={dailyChartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => format(new Date(d), 'MMM d')} />
-                            <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
-                            <Tooltip labelFormatter={d => format(new Date(d), 'MMM d, yyyy')} />
-                            <Bar dataKey="count" name="Push Sent" fill="#1a237e" radius={[3, 3, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {data.totalPushSent === 0 && (
-                    <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-                      <Bell className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-                      <p className="text-gray-500 text-sm">No push notifications sent in this date range.</p>
-                    </div>
-                  )}
-                </>
-              ) : null}
-            </>
-          )}
-
-          {tab === 'health' && (
-            <div className="space-y-8">
-              <PushHealthDashboard startDate={startDate} endDate={endDate} />
-
-              <div className="mt-10 pt-8 border-t">
-                <h2 className="text-lg font-semibold mb-6">Push Adoption Tracker</h2>
-                <PushAdoptionTracker />
+        {/* Tab 2: Students */}
+        <TabsContent value="students">
+          <Card>
+            <CardHeader>
+              <CardTitle>Student Notifications ({studentLogs.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Title</th>
+                      <th className="text-left py-2 px-2">Recipients</th>
+                      <th className="text-left py-2 px-2">Context</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {studentLogs.map((log) => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2">
+                          {new Date(log.sent_date).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
+                        <td className="py-2 px-2">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              log.status === 'sent'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {log.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {studentLogs.length === 0 && (
+                  <p className="text-center py-4 text-gray-500">No student notifications found</p>
+                )}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-              <div className="mt-10 pt-8 border-t">
-                <h2 className="text-lg font-semibold mb-6">App Installation Tracker</h2>
-                <AppInstallationTracker />
+        {/* Tab 3: Staff */}
+        <TabsContent value="staff">
+          <Card>
+            <CardHeader>
+              <CardTitle>Staff Notifications ({staffLogs.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Title</th>
+                      <th className="text-left py-2 px-2">Recipients</th>
+                      <th className="text-left py-2 px-2">Context</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staffLogs.map((log) => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2">
+                          {new Date(log.sent_date).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
+                        <td className="py-2 px-2">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              log.status === 'sent'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {log.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {staffLogs.length === 0 && (
+                  <p className="text-center py-4 text-gray-500">No staff notifications found</p>
+                )}
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </LoginRequired>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 4: Delivery */}
+        <TabsContent value="delivery">
+          <Card>
+            <CardHeader>
+              <CardTitle>Delivery Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Title</th>
+                      <th className="text-left py-2 px-2">Recipients Count</th>
+                      <th className="text-left py-2 px-2">OneSignal ID</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log) => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2 text-xs font-mono text-gray-600 truncate max-w-xs">
+                          {log.one_signal_notification_id || 'N/A'}
+                        </td>
+                        <td className="py-2 px-2">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              log.status === 'sent'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {log.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {logs.length === 0 && (
+                  <p className="text-center py-4 text-gray-500">No notifications found</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

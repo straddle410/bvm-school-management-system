@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       try {
         const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
         const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
-        await fetch('https://onesignal.com/api/v1/notifications', {
+        const res = await fetch('https://onesignal.com/api/v1/notifications', {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
@@ -133,17 +133,23 @@ Deno.serve(async (req) => {
             headings: { en: 'Absent Notification' },
           }),
         });
+        const osData = await res.json();
         console.log(`[AbsentNotif] OneSignal sent to ${externalUserIds.length} students`);
-        // Update results for pending records
-        for (const { createdMessage } of messagesToCreate) {
-          await base44.asServiceRole.entities.Message.update(createdMessage.id, { is_push_sent: true });
-          const idx = results.findIndex(r => r.message_id === createdMessage.id);
-          if (idx >= 0) results[idx].status = 'success';
+        // Log push
+        if (res.ok) {
+          await base44.asServiceRole.entities.PushNotificationLog.create({
+            one_signal_notification_id: osData.id || 'unknown',
+            target_type: 'student',
+            target_user_ids: externalUserIds,
+            title: 'Absent Notification',
+            message: 'Student marked absent',
+            recipients_count: osData.recipients || externalUserIds.length,
+            status: 'sent',
+            context_type: 'absent_notification',
+            context_id: 'batch',
+            sent_date: new Date().toISOString(),
+          });
         }
-      } catch (pushErr) {
-        console.error('[AbsentNotif] OneSignal error:', pushErr.message);
-      }
-    }
 
     const successCount = results.filter(r => r.status === 'success').length;
     const skippedCount = results.filter(r => r.status === 'skipped').length;

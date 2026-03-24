@@ -88,10 +88,11 @@ Deno.serve(async (req) => {
 
     // Send consolidated push via OneSignal
     let isPushSent = false;
+    let oneSignalId = 'unknown';
     try {
       const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
       const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
-      await fetch('https://onesignal.com/api/v1/notifications', {
+      const res = await fetch('https://onesignal.com/api/v1/notifications', {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
@@ -104,8 +105,25 @@ Deno.serve(async (req) => {
           headings: { en: subject },
         }),
       });
-      isPushSent = true;
-      console.log('[sendFeePaymentNotification] OneSignal sent for:', studentId);
+      const osData = await res.json();
+      if (res.ok) {
+        isPushSent = true;
+        oneSignalId = osData.id || 'unknown';
+        console.log('[sendFeePaymentNotification] OneSignal sent for:', studentId);
+        // Log successful push
+        await base44.asServiceRole.entities.PushNotificationLog.create({
+          one_signal_notification_id: oneSignalId,
+          target_type: 'student',
+          target_user_ids: [`student_${studentId}`],
+          title: subject,
+          message: body.substring(0, 100),
+          recipients_count: 1,
+          status: 'sent',
+          context_type: 'fee_payment',
+          context_id: receiptNo,
+          sent_date: new Date().toISOString(),
+        });
+      }
     } catch (pushErr) {
       console.warn('[sendFeePaymentNotification] OneSignal failed:', pushErr.message);
     }
