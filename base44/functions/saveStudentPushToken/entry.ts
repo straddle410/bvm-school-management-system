@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 🚀 OneSignal Registration (FIXED)
+    // 🚀 OneSignal Registration (FINAL FIX)
     try {
       const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
       const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
@@ -54,36 +54,47 @@ Deno.serve(async (req) => {
 
         console.log("[OneSignal] Sending request to OneSignal");
 
-        const osRes = await fetch('https://onesignal.com/api/v1/players', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            app_id: ONESIGNAL_APP_ID,
-            device_type: 5,
-            identifier: subscriptionStr, // ✅ FIXED HERE
-            external_user_id: student_id,
-          }),
-        });
+        // ✅ FIX: extract endpoint properly
+        const parsedSub = JSON.parse(subscriptionStr);
+        const endpoint = parsedSub?.endpoint;
 
-        const osData = await osRes.json();
+        console.log("[OneSignal] endpoint:", endpoint);
 
-        console.log("[OneSignal] Response:", osData);
-
-        if (osData.id) {
-          const latestPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ student_id });
-
-          if (latestPrefs.length > 0) {
-            await base44.asServiceRole.entities.StudentNotificationPreference.update(latestPrefs[0].id, {
-              onesignal_player_id: osData.id,
-            });
-          }
-
-          console.log("[OneSignal] player_id saved:", osData.id);
+        if (!endpoint) {
+          console.log("[OneSignal] No endpoint found → skipping OneSignal");
         } else {
-          console.log("[OneSignal] registration failed:", osData);
+
+          const osRes = await fetch('https://onesignal.com/api/v1/players', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              app_id: ONESIGNAL_APP_ID,
+              device_type: 5,
+              identifier: endpoint, // ✅ FINAL CORRECT FIX
+              external_user_id: student_id,
+            }),
+          });
+
+          const osData = await osRes.json();
+
+          console.log("[OneSignal] Response:", osData);
+
+          if (osData.id) {
+            const latestPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({ student_id });
+
+            if (latestPrefs.length > 0) {
+              await base44.asServiceRole.entities.StudentNotificationPreference.update(latestPrefs[0].id, {
+                onesignal_player_id: osData.id,
+              });
+            }
+
+            console.log("[OneSignal] player_id saved:", osData.id);
+          } else {
+            console.log("[OneSignal] registration failed:", osData);
+          }
         }
       }
 
