@@ -57,6 +57,8 @@ async function initOneSignal() {
       return;
     }
 
+    // Set up deferred handler BEFORE loading the SDK script
+    // This ensures our serviceWorkerPath config is applied before the SDK registers a worker
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     window.OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
@@ -71,6 +73,12 @@ async function initOneSignal() {
       _oneSignalInstance = OneSignal;
       console.log('[OneSignal] Initialized successfully');
     });
+
+    // Dynamically load SDK so deferred array is already populated when it runs
+    const script = document.createElement('script');
+    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    script.async = true;
+    document.head.appendChild(script);
   } catch (e) {
     console.warn('[OneSignal] Init error (non-fatal):', e.message);
     _oneSignalInitialized = false;
@@ -149,41 +157,11 @@ export default function PushNotificationManager({ studentId }) {
 
   useEffect(() => {
     try {
-      console.log('[PushInit] Mounted with:', studentId);
-      console.log('[PushInit] Component mounted');
-      console.log('[PushInit] All localStorage:', JSON.stringify(localStorage));
-      console.log('[PushInit] student_id:', localStorage.getItem('student_id'));
-      console.log('[PushInit] studentId:', localStorage.getItem('studentId'));
-      console.log('[PushInit] student_token:', !!localStorage.getItem('student_token'));
-
-      // Get student session if exists - use exact key from StudentLogin.jsx
-      try {
-        const sessionRaw = localStorage.getItem('student_session');
-        console.log('[PushInit] student_session from localStorage:', sessionRaw ? 'EXISTS' : 'NOT FOUND');
-        if (sessionRaw) {
-          const session = JSON.parse(sessionRaw);
-          console.log('[PushInit] Parsed student_session:', JSON.stringify(session));
-          const studentIdValue = session?.student_id || session?.id;
-          console.log('[PushInit] Fixed studentId:', studentIdValue);
-          setStudentSession(session);
-        }
-      } catch (e) {
-        console.error('[PushInit] Failed to parse student_session:', e);
+      // studentSession is already initialized from localStorage via useState
+      // Just log for debug purposes
+      if (studentSession) {
+        console.log('[PushInit] Student session active:', studentSession.student_id);
       }
-
-      // Detect iOS PWA and show prompt if needed
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-
-      if (isIOS && isPWA && Notification.permission === 'default') {
-        setShowIOSPrompt(true);
-        return; // Don't auto-request on iOS
-      }
-    } catch (e) {
-      console.log('[Push] Error:', e);
-      // silently fail, don't crash app
-    }
-  }, []);
 
   const handleEnableNotifications = async () => {
     try {
