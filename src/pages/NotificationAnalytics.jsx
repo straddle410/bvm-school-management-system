@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, Users, Users2, TrendingUp, AlertCircle } from 'lucide-react';
+import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
@@ -31,11 +32,113 @@ export default function NotificationAnalytics() {
   const failedLogs = logs.filter(l => l.status === 'failed');
   const totalRecipients = logs.reduce((sum, l) => sum + (l.recipients_count || 0), 0);
 
+  // Prepare chart data
+  const dailyData = logs.reduce((acc, log) => {
+    const date = new Date(log.sent_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+    const existing = acc.find(item => item.date === date);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      acc.push({ date, count: 1 });
+    }
+    return acc;
+  }, []).slice(-7);
+
+  const successFailedData = [
+    { name: 'Sent', count: logs.filter(l => l.status === 'sent').length },
+    { name: 'Failed', count: failedLogs.length }
+  ];
+
+  const typeData = [
+    { name: 'Students', count: studentLogs.length },
+    { name: 'Staff', count: staffLogs.length }
+  ];
+
+  const COLORS = ['#22c55e', '#ef4444'];
+  const TYPE_COLORS = ['#3b82f6', '#8b5cf6'];
+
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Notification Analytics</h1>
         <p className="text-gray-600">Track all push notifications sent to students and staff</p>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Chart 1: Daily Notifications */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Daily Notifications (Last 7)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={dailyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" fontSize={12} />
+                <YAxis fontSize={12} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Chart 2: Success vs Failed */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Success vs Failed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={successFailedData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, count }) => `${name}: ${count}`}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  dataKey="count"
+                >
+                  {successFailedData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Chart 3: Type Distribution */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Student vs Staff</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={typeData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, count }) => `${name}: ${count}`}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  dataKey="count"
+                >
+                  {typeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="summary" className="w-full">
