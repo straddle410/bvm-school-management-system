@@ -194,7 +194,11 @@ export default function More() {
                              {user?.role || 'User'}
                            </span>
                        <button
-                         onClick={() => {
+                         onClick={async () => {
+                           // Disassociate device from OneSignal
+                           if (window.OneSignal) {
+                             await window.OneSignal.logout().catch(e => console.warn('[OneSignal] Logout error:', e));
+                           }
                            clearStaffSession();
                            // Clear all cached profile data on logout
                            Object.keys(localStorage).forEach(k => {

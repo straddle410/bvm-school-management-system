@@ -60,6 +60,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     
+    // Disassociate device from OneSignal
+    if (window.OneSignal) {
+      window.OneSignal.logout().catch(e => console.warn('[OneSignal] Logout error:', e));
+    }
+    
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
       base44.auth.logout(window.location.href);
