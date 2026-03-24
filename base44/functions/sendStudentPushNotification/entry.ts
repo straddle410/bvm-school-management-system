@@ -18,9 +18,16 @@ Deno.serve(async (req) => {
 
     // Central safety check — respect global NotificationSettings
     const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
-    const settings = settingsList[0];
+
+    let settings = null;
+    if (settingsList && settingsList.length > 0) {
+      settings = settingsList[0];
+    }
+
+    console.log('[SendPush] DEBUG enable_push:', settings?.enable_push);
+
     if (!settings || settings.enable_push != true) {
-      console.log('[SendPush] Global push disabled, skipping notification.');
+      console.log('[SendPush] Push disabled or settings missing, skipping notification.');
       return Response.json({ success: true, sent: 0, skipped: 0, reason: 'Push notifications disabled' });
     }
 
