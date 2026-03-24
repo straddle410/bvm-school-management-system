@@ -38,11 +38,14 @@ async function getVapidKey() {
   }
 }
 
+// Store resolved OneSignal instance for later use
+let _oneSignalInstance = null;
+
 // Initialize OneSignal using a custom backend-served service worker path.
 // This avoids the /OneSignalSDKWorker.js MIME type error in Base44.
 async function initOneSignal() {
   try {
-    if (typeof window === 'undefined' || !window.OneSignalDeferred) return;
+    if (typeof window === 'undefined') return;
 
     const appIdRes = await fetch('/api/functions/getOneSignalAppId');
     const appIdData = await appIdRes.json();
@@ -56,12 +59,14 @@ async function initOneSignal() {
     window.OneSignalDeferred.push(async (OneSignal) => {
       await OneSignal.init({
         appId,
-        serviceWorkerParam: { scope: '/' },
+        // Custom service worker path — avoids /OneSignalSDKWorker.js at root
         serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
+        serviceWorkerParam: { scope: '/' },
         notifyButton: { enable: false },
         promptOptions: { autoPrompt: false },
       });
+      _oneSignalInstance = OneSignal;
       console.log('[OneSignal] Initialized successfully');
     });
   } catch (e) {
@@ -71,9 +76,11 @@ async function initOneSignal() {
 
 async function getOneSignalPlayerId() {
   try {
-    if (typeof window === 'undefined' || !window.OneSignal) return null;
-    const playerId = await window.OneSignal.getUserId();
-    console.log('[OneSignal] Player ID:', playerId);
+    // OneSignal SDK v16 API: User.PushSubscription.id (getUserId removed)
+    const os = _oneSignalInstance || window.OneSignal;
+    if (!os) return null;
+    const playerId = os.User?.PushSubscription?.id;
+    console.log('[OneSignal] Player ID (v16):', playerId);
     return playerId || null;
   } catch (e) {
     console.warn('[OneSignal] getPlayerId error (non-fatal):', e.message);
