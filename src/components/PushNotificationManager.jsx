@@ -47,12 +47,15 @@ let _oneSignalInitialized = false;
 async function initOneSignal() {
   try {
     if (typeof window === 'undefined') return;
+    if (_oneSignalInitialized) return; // prevent double-init
+    _oneSignalInitialized = true;
 
     const appIdRes = await fetch('/api/functions/getOneSignalAppId');
     const appIdData = await appIdRes.json();
     const appId = appIdData?.appId || appIdData?.app_id;
     if (!appId) {
       console.warn('[OneSignal] App ID not available, skipping init');
+      _oneSignalInitialized = false;
       return;
     }
 
@@ -60,7 +63,6 @@ async function initOneSignal() {
     window.OneSignalDeferred.push(async (OneSignal) => {
       await OneSignal.init({
         appId,
-        // Custom service worker path — avoids /OneSignalSDKWorker.js at root
         serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerParam: { scope: '/' },
@@ -72,6 +74,7 @@ async function initOneSignal() {
     });
   } catch (e) {
     console.warn('[OneSignal] Init error (non-fatal):', e.message);
+    _oneSignalInitialized = false;
   }
 }
 
