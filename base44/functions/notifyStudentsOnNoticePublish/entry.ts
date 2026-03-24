@@ -132,36 +132,8 @@ Deno.serve(async (req) => {
         
         if (!res.ok) {
           console.error(`[notifyStudentsOnNoticePublish] OneSignal error (${res.status}):`, JSON.stringify(data));
-          // Log failed attempt
-          const targetType = notifyStaff && !notifyStudents ? 'staff' : (notifyStudents && !notifyStaff ? 'student' : 'general');
-          await base44.asServiceRole.entities.PushNotificationLog.create({
-            one_signal_notification_id: 'failed',
-            target_type: targetType,
-            target_user_ids: externalUserIds,
-            title: notice.title,
-            message: (notice.content || '').substring(0, 100),
-            recipients_count: externalUserIds.length,
-            status: 'failed',
-            context_type: 'notice_publish',
-            context_id: notice.id,
-            sent_date: new Date().toISOString(),
-          });
         } else {
           console.log(`[notifyStudentsOnNoticePublish] OneSignal sent to ${externalUserIds.length} recipients`);
-          // Log successful attempt
-          const targetType = notifyStaff && !notifyStudents ? 'staff' : (notifyStudents && !notifyStaff ? 'student' : 'general');
-          await base44.asServiceRole.entities.PushNotificationLog.create({
-            one_signal_notification_id: data.id || 'unknown',
-            target_type: targetType,
-            target_user_ids: externalUserIds,
-            title: notice.title,
-            message: (notice.content || '').substring(0, 100),
-            recipients_count: data.recipients || externalUserIds.length,
-            status: 'sent',
-            context_type: 'notice_publish',
-            context_id: notice.id,
-            sent_date: new Date().toISOString(),
-          });
         }
       } catch (pushErr) {
         console.error('[notifyStudentsOnNoticePublish] OneSignal failed (non-fatal):', pushErr.message);

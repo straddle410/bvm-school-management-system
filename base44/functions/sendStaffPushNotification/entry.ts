@@ -40,6 +40,15 @@ Deno.serve(async (req) => {
 
     console.log('[SendStaffPush] Sending to', externalUserIds.length, 'staff via OneSignal');
 
+    const res = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
     const data = await res.json();
     console.log('[SendStaffPush] OneSignal request payload:', JSON.stringify(body));
     console.log('[SendStaffPush] OneSignal response status:', res.status);
@@ -47,42 +56,7 @@ Deno.serve(async (req) => {
 
     if (!res.ok) {
       console.error('[SendStaffPush] OneSignal error:', res.status, JSON.stringify(data));
-      // Log failed staff push
-      try {
-        await base44.asServiceRole.entities.PushNotificationLog.create({
-          one_signal_notification_id: 'failed',
-          target_type: 'staff',
-          target_user_ids: externalUserIds,
-          title: title || 'Staff Notification',
-          message: message || '',
-          recipients_count: externalUserIds.length,
-          status: 'failed',
-          context_type: 'staff_notification',
-          context_id: 'manual',
-          sent_date: new Date().toISOString(),
-        });
-      } catch (logErr) {
-        console.error('[SendStaffPush] Failed to log error:', logErr.message);
-      }
       return Response.json({ success: false, sent: 0, error: data, status: res.status }, { status: res.status });
-    }
-
-    // Log successful staff push
-    try {
-      await base44.asServiceRole.entities.PushNotificationLog.create({
-        one_signal_notification_id: data.id || 'unknown',
-        target_type: 'staff',
-        target_user_ids: externalUserIds,
-        title: title || 'Staff Notification',
-        message: message || '',
-        recipients_count: data.recipients || externalUserIds.length,
-        status: 'sent',
-        context_type: 'staff_notification',
-        context_id: 'manual',
-        sent_date: new Date().toISOString(),
-      });
-    } catch (logErr) {
-      console.error('[SendStaffPush] Failed to log success:', logErr.message);
     }
 
     return Response.json({ success: true, sent: data.recipients ?? 0, onesignal: data });
