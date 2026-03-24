@@ -38,6 +38,45 @@ async function getVapidKey() {
   }
 }
 
+// Initialize OneSignal once (runs after SDK script loads)
+function initOneSignal() {
+  try {
+    if (!window.OneSignal) return;
+    const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+    if (!appId) {
+      console.warn('[OneSignal] VITE_ONESIGNAL_APP_ID not set');
+      return;
+    }
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId,
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: true,
+      });
+      console.log('[OneSignal] Initialized');
+    });
+  } catch (e) {
+    console.warn('[OneSignal] Init error:', e);
+  }
+}
+
+async function getOneSignalPlayerId() {
+  try {
+    if (!window.OneSignal) return null;
+    return await new Promise((resolve) => {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        const id = await OneSignal.User.PushSubscription.id;
+        resolve(id || null);
+      });
+    });
+  } catch (e) {
+    console.warn('[OneSignal] getPlayerId error:', e);
+    return null;
+  }
+}
+
 export default function PushNotificationManager({ studentId }) {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [studentSession, setStudentSession] = useState(null);
@@ -87,6 +126,12 @@ export default function PushNotificationManager({ studentId }) {
       console.log('[Sound] Error:', e);
     }
   };
+
+  // Initialize OneSignal on mount
+  useEffect(() => {
+    const timer = setTimeout(() => initOneSignal(), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     try {
@@ -281,6 +326,23 @@ export default function PushNotificationManager({ studentId }) {
            if (!alreadyHadToken) {
              toast.success("Notifications enabled successfully!");
            }
+
+           // --- OneSignal: collect player_id in parallel (non-blocking) ---
+           setTimeout(async () => {
+             try {
+               const playerId = await getOneSignalPlayerId();
+               if (playerId) {
+                 await base44.functions.invoke('saveOneSignalPlayerId', {
+                   player_id: playerId,
+                   user_type: hasStaffSession ? 'staff' : 'user',
+                   identifier,
+                 });
+                 console.log('[OneSignal] Player ID saved for', hasStaffSession ? 'staff' : 'user', identifier);
+               }
+             } catch (e) {
+               console.warn('[OneSignal] Failed to save player_id (non-fatal):', e.message);
+             }
+           }, 2000);
          }
        } catch (error) {
          console.error('[PushNotificationManager] Failed to get token:', error);
@@ -378,6 +440,23 @@ export default function PushNotificationManager({ studentId }) {
             if (!alreadyHadToken) {
               toast.success("Student notifications enabled!");
             }
+
+            // --- OneSignal: collect player_id in parallel (non-blocking) ---
+            setTimeout(async () => {
+              try {
+                const playerId = await getOneSignalPlayerId();
+                if (playerId) {
+                  await base44.functions.invoke('saveOneSignalPlayerId', {
+                    player_id: playerId,
+                    user_type: 'student',
+                    identifier: studentIdValue,
+                  });
+                  console.log('[OneSignal] Player ID saved for student:', studentIdValue);
+                }
+              } catch (e) {
+                console.warn('[OneSignal] Failed to save student player_id (non-fatal):', e.message);
+              }
+            }, 2000);
           }
         } catch (error) {
           console.error('[PushNotificationManager] Failed to get student token:', error);
