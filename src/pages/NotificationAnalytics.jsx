@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Users, Users2, TrendingUp, AlertCircle } from 'lucide-react';
+import { Bell, Users, Users2, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 export default function NotificationAnalytics() {
@@ -348,10 +348,19 @@ export default function NotificationAnalytics() {
         </TabsContent>
 
         {/* Tab 4: Delivery */}
-        <TabsContent value="delivery">
+        <TabsContent value="delivery" onPointerDown={fetchDeliveryStats}>
           <Card>
             <CardHeader>
-              <CardTitle>Delivery Details</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Delivery Details</CardTitle>
+                <button
+                  onClick={fetchDeliveryStats}
+                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loadingDelivery ? 'animate-spin' : ''}`} />
+                  Refresh Stats
+                </button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -359,36 +368,42 @@ export default function NotificationAnalytics() {
                   <thead className="border-b">
                     <tr>
                       <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Recipients Count</th>
+                      <th className="text-left py-2 px-2">Sent</th>
+                      <th className="text-left py-2 px-2">Delivered</th>
+                      <th className="text-left py-2 px-2">Failed</th>
+                      <th className="text-left py-2 px-2">Opened</th>
                       <th className="text-left py-2 px-2">OneSignal ID</th>
-                      <th className="text-left py-2 px-2">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log) => (
-                      <tr key={log.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">{log.recipients_count}</td>
-                        <td className="py-2 px-2 text-xs font-mono text-gray-600 truncate max-w-xs">
-                          {log.one_signal_notification_id || 'N/A'}
-                        </td>
-                        <td className="py-2 px-2">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              log.status === 'sent'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {log.status.toUpperCase()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {logs.map((log) => {
+                      const stats = deliveryStats[log.id];
+                      return (
+                        <tr key={log.id} className="border-b hover:bg-gray-50">
+                          <td className="py-2 px-2 font-medium">{log.title}</td>
+                          <td className="py-2 px-2">{stats ? stats.recipients : log.recipients_count}</td>
+                          <td className="py-2 px-2 text-green-600 font-medium">
+                            {stats ? stats.successful : '-'}
+                          </td>
+                          <td className="py-2 px-2 text-red-600 font-medium">
+                            {stats ? stats.failed : '-'}
+                          </td>
+                          <td className="py-2 px-2 text-blue-600 font-medium">
+                            {stats ? stats.opened : '-'}
+                          </td>
+                          <td className="py-2 px-2 text-xs font-mono text-gray-600 truncate max-w-xs">
+                            {log.one_signal_notification_id || 'N/A'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {logs.length === 0 && (
                   <p className="text-center py-4 text-gray-500">No notifications found</p>
+                )}
+                {loadingDelivery && (
+                  <p className="text-center py-4 text-gray-500">Loading delivery stats...</p>
                 )}
               </div>
             </CardContent>
