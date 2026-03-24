@@ -8,6 +8,8 @@ import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Leg
 export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deliveryStats, setDeliveryStats] = useState({});
+  const [loadingDelivery, setLoadingDelivery] = useState(false);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -22,6 +24,34 @@ export default function NotificationAnalytics() {
     };
     loadLogs();
   }, []);
+
+  // Fetch delivery stats when Delivery tab is opened
+  const fetchDeliveryStats = async () => {
+    if (Object.keys(deliveryStats).length > 0) return; // Already cached
+    
+    setLoadingDelivery(true);
+    const statsPromises = logs
+      .filter(log => log.one_signal_notification_id && log.one_signal_notification_id !== 'unknown' && log.one_signal_notification_id !== 'network_error')
+      .map(async (log) => {
+        try {
+          const response = await base44.functions.invoke('getNotificationStats', {
+            notification_id: log.one_signal_notification_id
+          });
+          return { id: log.id, stats: response.data };
+        } catch (err) {
+          console.error('Failed to fetch stats for', log.one_signal_notification_id, err);
+          return { id: log.id, stats: null };
+        }
+      });
+
+    const results = await Promise.all(statsPromises);
+    const statsMap = {};
+    results.forEach(({ id, stats }) => {
+      statsMap[id] = stats;
+    });
+    setDeliveryStats(statsMap);
+    setLoadingDelivery(false);
+  };
 
   if (loading) {
     return <div className="p-4 text-center">Loading analytics...</div>;
