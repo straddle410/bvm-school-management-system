@@ -80,6 +80,11 @@ async function initOneSignal(userIdentifier) {
         autoRegister: false,
         autoResubscribe: false,
         allowLocalhostAsSecureOrigin: true,
+        promptOptions: {
+          slidedown: {
+            enabled: false,
+          },
+        },
         notifyButton: { enable: false },
       });
       console.log('[FINAL] OneSignal initialized correctly');
