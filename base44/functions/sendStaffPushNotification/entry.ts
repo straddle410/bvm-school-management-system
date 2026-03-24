@@ -22,19 +22,21 @@ Deno.serve(async (req) => {
     const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
 
     if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
-      console.error('[SendStaffPush] Missing OneSignal credentials');
       return Response.json({ error: 'OneSignal not configured' }, { status: 500 });
     }
 
+    // Build external_user_ids with staff_ prefix (matches frontend OneSignal.login())
+    const externalUserIds = staff_ids.map(id => `staff_${id}`);
+
     const body = {
       app_id: ONESIGNAL_APP_ID,
-      include_external_user_ids: staff_ids,
+      include_external_user_ids: externalUserIds,
       contents: { en: message || '' },
       headings: { en: title || 'New Notification' },
       ...(url ? { url } : {}),
     };
 
-    console.log('[SendStaffPush] Sending to', staff_ids.length, 'staff via OneSignal');
+    console.log('[SendStaffPush] Sending to', externalUserIds.length, 'staff via OneSignal');
 
     const res = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',

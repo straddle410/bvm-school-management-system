@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
-// Singleton guards
+// Singleton guard
 let _oneSignalLoaded = false;
-let _oneSignalInstance = null;
 
-async function initOneSignal(userIdentifier) {
-  if (!userIdentifier || _oneSignalLoaded) return;
+async function initOneSignal(externalUserId) {
+  if (!externalUserId || _oneSignalLoaded) return;
   _oneSignalLoaded = true;
 
   try {
@@ -23,8 +21,6 @@ async function initOneSignal(userIdentifier) {
 
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     window.OneSignalDeferred.push(async function (OneSignal) {
-      _oneSignalInstance = OneSignal;
-      window._oneSignalInstance = OneSignal;
       await OneSignal.init({
         appId,
         serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
@@ -36,7 +32,11 @@ async function initOneSignal(userIdentifier) {
         promptOptions: { slidedown: { enabled: false } },
         notifyButton: { enable: false },
       });
-      console.log('[OneSignal] Initialized for user:', userIdentifier);
+
+      // Associate this device with the external user ID
+      // This enables bulk sending via include_external_user_ids
+      await OneSignal.login(externalUserId);
+      console.log('[OneSignal] Initialized and logged in as:', externalUserId);
     });
 
     if (!document.querySelector('script[src*="OneSignalSDK"]')) {
@@ -51,66 +51,37 @@ async function initOneSignal(userIdentifier) {
   }
 }
 
-async function getOneSignalPlayerId() {
-  try {
-    const os = _oneSignalInstance || window._oneSignalInstance || window.OneSignal;
-    if (!os) return null;
-    const playerId = os.User?.PushSubscription?.id;
-    console.log('[OneSignal] Player ID:', playerId);
-    return playerId || null;
-  } catch (e) {
-    console.warn('[OneSignal] getPlayerId error:', e.message);
-    return null;
-  }
-}
-
-async function savePlayerIdForUser(userType, identifier) {
-  try {
-    const playerId = await getOneSignalPlayerId();
-    if (!playerId) return;
-    await base44.functions.invoke('saveOneSignalPlayerId', {
-      player_id: playerId,
-      user_type: userType,
-      identifier,
-    });
-    console.log('[OneSignal] Player ID saved for', userType, identifier);
-  } catch (e) {
-    console.warn('[OneSignal] Failed to save player_id (non-fatal):', e.message);
-  }
-}
-
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
 
   useEffect(() => {
     const run = async () => {
       try {
-        // Determine user identity
-        let userType = null;
-        let identifier = null;
+        // Determine external user ID
+        let externalUserId = null;
 
         const studentRaw = localStorage.getItem('student_session');
         if (studentRaw) {
           const s = JSON.parse(studentRaw);
-          identifier = s?.student_id || s?.id;
-          userType = 'student';
+          const sid = s?.student_id || s?.id;
+          if (sid) externalUserId = `student_${sid}`;
         }
 
-        if (!identifier) {
+        if (!externalUserId) {
           const staffRaw = localStorage.getItem('staff_session');
           if (staffRaw) {
             const s = JSON.parse(staffRaw);
-            identifier = s?.staff_id || s?.username;
-            userType = 'staff';
+            const sid = s?.staff_id || s?.username;
+            if (sid) externalUserId = `staff_${sid}`;
           }
         }
 
-        if (!identifier) {
+        if (!externalUserId) {
           console.log('[OneSignal] No user session found, skipping push init');
           return;
         }
 
-        // iOS PWA prompt
+        // iOS PWA check
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const isPWA = window.matchMedia('(display-mode: standalone)').matches;
         if (isIOS && !isPWA) {
@@ -125,10 +96,7 @@ export default function PushNotificationManager() {
         }
 
         // Init OneSignal after short delay to not block render
-        setTimeout(() => initOneSignal(identifier), 2000);
-
-        // Save player ID after OneSignal has time to initialize
-        setTimeout(() => savePlayerIdForUser(userType, identifier), 6000);
+        setTimeout(() => initOneSignal(externalUserId), 2000);
 
       } catch (e) {
         console.warn('[PushNotificationManager] Error (non-fatal):', e.message);
