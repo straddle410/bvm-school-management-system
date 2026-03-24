@@ -191,17 +191,23 @@ export default function PushNotificationManager({ studentId }) {
      }
 
      // Handle staff/admin and base44 authenticated users
-     const hasStaffSession = !!localStorage.getItem('staff_session');
+     const staffRaw = localStorage.getItem('staff_session');
+     const hasStaffSession = !!staffRaw;
      let user = null;
      let identifier = null;
 
+     console.log('[PushStaff] hasStaffSession:', hasStaffSession);
+
      if (hasStaffSession) {
        try {
-         const staffRaw = localStorage.getItem('staff_session');
          user = JSON.parse(staffRaw);
+         console.log('[PushStaff] Parsed staff_session keys:', Object.keys(user));
+         console.log('[PushStaff] staff_id:', user.staff_id, '| username:', user.username, '| email:', user.email);
          identifier = user.staff_id || user.username;
-         console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
-       } catch {}
+         console.log('[PushStaff] Using identifier:', identifier);
+       } catch (e) {
+         console.error('[PushStaff] Failed to parse staff_session:', e);
+       }
      } else {
        user = await base44.auth.me().catch(() => null);
        if (!user) {
@@ -219,16 +225,21 @@ export default function PushNotificationManager({ studentId }) {
      // For staff sessions, use StaffNotificationPreference; for base44 users, use NotificationPreference
      let pref;
      if (hasStaffSession) {
+       console.log('[PushStaff] Querying StaffNotificationPreference for staff_id:', identifier);
        const prefs = await base44.entities.StaffNotificationPreference.filter({ staff_id: identifier });
+       console.log('[PushStaff] Found prefs:', prefs.length);
        pref = prefs[0];
        if (!pref) {
-         console.log('[PushNotificationManager] Creating new StaffNotificationPreference for', identifier);
+         console.log('[PushStaff] Creating new StaffNotificationPreference for staff_id:', identifier);
          pref = await base44.entities.StaffNotificationPreference.create({
            staff_id: identifier,
            staff_name: user?.name || user?.full_name || '',
            browser_push_enabled: true,
            browser_push_token: null,
          });
+         console.log('[PushStaff] Created pref id:', pref?.id);
+       } else {
+         console.log('[PushStaff] Found existing pref id:', pref.id, '| browser_push_enabled:', pref.browser_push_enabled);
        }
      } else {
        const prefs = await base44.entities.NotificationPreference.filter({ user_email: identifier });
@@ -268,14 +279,8 @@ export default function PushNotificationManager({ studentId }) {
          if (token) {
            const alreadyHadToken = !!pref.browser_push_token;
            if (hasStaffSession) {
+             console.log('[PushStaff] Saving token to StaffNotificationPreference id:', pref.id, 'staff_id:', identifier);
              await base44.entities.StaffNotificationPreference.update(pref.id, {
-               staff_id: identifier,
-               browser_push_token: token,
-               browser_push_enabled: true,
-               staff_name: user?.name || user?.full_name || pref.staff_name || '',
-             });
-             console.log('[PushNotificationManager] Staff token saved to StaffNotificationPreference');
-           } else {
              await base44.entities.NotificationPreference.update(pref.id, {
                browser_push_token: token
              });
