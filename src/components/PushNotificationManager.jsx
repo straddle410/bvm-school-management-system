@@ -38,45 +38,16 @@ async function getVapidKey() {
   }
 }
 
-// Initialize OneSignal once — fetches App ID from backend
+// OneSignal SDK initialization is disabled — the SDK requires /OneSignalSDKWorker.js
+// which is not available in this environment. player_id collection is skipped for now.
+// The onesignal_player_id fields in entities are reserved for future native app integration.
 async function initOneSignal() {
-  try {
-    if (!window.OneSignal && !window.OneSignalDeferred) return;
-    const res = await fetch('/api/functions/getOneSignalAppId');
-    const data = await res.json();
-    const appId = data.appId;
-    if (!appId) {
-      console.warn('[OneSignal] App ID not available');
-      return;
-    }
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId,
-        notifyButton: { enable: false },
-        allowLocalhostAsSecureOrigin: true,
-      });
-      console.log('[OneSignal] Initialized with appId:', appId.substring(0, 8) + '...');
-    });
-  } catch (e) {
-    console.warn('[OneSignal] Init error:', e);
-  }
+  // no-op: intentionally disabled
 }
 
 async function getOneSignalPlayerId() {
-  try {
-    if (!window.OneSignal) return null;
-    return await new Promise((resolve) => {
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      window.OneSignalDeferred.push(async function(OneSignal) {
-        const id = await OneSignal.User.PushSubscription.id;
-        resolve(id || null);
-      });
-    });
-  } catch (e) {
-    console.warn('[OneSignal] getPlayerId error:', e);
-    return null;
-  }
+  // no-op: OneSignal SDK not loaded
+  return null;
 }
 
 export default function PushNotificationManager({ studentId }) {
