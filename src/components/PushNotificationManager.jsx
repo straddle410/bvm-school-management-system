@@ -40,6 +40,7 @@ async function getVapidKey() {
 
 // Store resolved OneSignal instance for later use
 let _oneSignalInstance = null;
+let _oneSignalInitialized = false;
 
 // Initialize OneSignal using a custom backend-served service worker path.
 // This avoids the /OneSignalSDKWorker.js MIME type error in Base44.
