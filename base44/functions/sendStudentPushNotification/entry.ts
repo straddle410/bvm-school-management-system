@@ -15,9 +15,16 @@ Deno.serve(async (req) => {
     console.log('[SendPush] VAPID configured, key prefix:', VAPID_PUBLIC_KEY.substring(0, 20) + '...');
 
     const base44 = createClientFromRequest(req);
+
+    // Central safety check — respect global NotificationSettings
+    const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
+    const settings = settingsList[0];
+    if (!settings || settings.enable_push !== true) {
+      console.log('[SendPush] Global push disabled, skipping notification.');
+      return Response.json({ success: true, sent: 0, skipped: 0, reason: 'Push notifications disabled' });
+    }
+
     const { student_ids, title, message, url, icon, receipt_no } = await req.json();
-    const baseUrl = 'https://app.bvmse.in';
-    const notificationUrl = receipt_no ? `${baseUrl}/StudentDashboard?openFees=1&receiptNo=${receipt_no}` : (url ? `${baseUrl}${url}` : `${baseUrl}/StudentDashboard`);
 
     if (!student_ids || !student_ids.length) {
       return Response.json({ error: 'Missing student_ids' }, { status: 400 });
