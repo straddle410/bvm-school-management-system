@@ -15,12 +15,22 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-    // Load custom template from SchoolProfile (if any)
-    const profiles = await base44.asServiceRole.entities.SchoolProfile.list();
+    // Load NotificationSettings + SchoolProfile
+    const [settingsList, profiles] = await Promise.all([
+      base44.asServiceRole.entities.NotificationSettings.list(),
+      base44.asServiceRole.entities.SchoolProfile.list(),
+    ]);
+    const settings = settingsList[0] || {};
     const profile = profiles[0] || {};
     const schoolName = profile.school_name || 'School';
-    const templateStr = profile.fee_reminder_template ||
-      `Dear {parent_name}, fee of ₹{amount_due} is pending for {student_name} ({class}). Please pay at the earliest.`;
+
+    if (settings.enable_push === false) {
+      console.log('[sendFeeReminder] Push disabled in NotificationSettings, skipping.');
+      return Response.json({ success_count: 0, skipped_count: selectedStudents.length, failed_count: 0, notified_students: [], errors: [] });
+    }
+
+    const templateStr = settings.fee_template ||
+      `Dear {{parent_name}}, fee of ₹{{amount}} is pending for {{student_name}} ({{class}}). Please pay at the earliest.`;
 
     const results = {
       success_count: 0,
@@ -46,11 +56,11 @@ Deno.serve(async (req) => {
         }
 
         const reminderMessage = templateStr
-          .replace(/{parent_name}/g, student.parent_name || 'Parent')
-          .replace(/{amount_due}/g, student.due_amount)
-          .replace(/{student_name}/g, student.student_name)
-          .replace(/{class}/g, student.class_name)
-          .replace(/{school_name}/g, schoolName);
+          .replace(/{{parent_name}}/g, student.parent_name || 'Parent')
+          .replace(/{{amount}}/g, student.due_amount)
+          .replace(/{{student_name}}/g, student.student_name)
+          .replace(/{{class}}/g, student.class_name)
+          .replace(/{{school_name}}/g, schoolName);
 
         // Send push via centralized function first, track success
         let isPushSent = false;

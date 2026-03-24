@@ -15,12 +15,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No attendance records provided' }, { status: 400 });
     }
 
-    // Load custom template from SchoolProfile (if any)
-    const profiles = await base44.asServiceRole.entities.SchoolProfile.list();
+    // Load NotificationSettings + SchoolProfile
+    const [settingsList, profiles] = await Promise.all([
+      base44.asServiceRole.entities.NotificationSettings.list(),
+      base44.asServiceRole.entities.SchoolProfile.list(),
+    ]);
+    const settings = settingsList[0] || {};
     const profile = profiles[0] || {};
     const schoolName = profile.school_name || 'School';
-    const templateStr = profile.absent_message_template ||
-      `Dear student/parent, {student_name} was marked absent today (Class {class}-{section}). If this is incorrect, please contact the school.`;
+
+    if (settings.enable_push === false) {
+      console.log('[AbsentNotif] Push disabled in NotificationSettings, skipping.');
+      return Response.json({ success: true, message: 'Push notifications disabled', results: [] });
+    }
+
+    const templateStr = settings.absent_template ||
+      `Dear student/parent, {{student_name}} was marked absent today (Class {{class}}-{{section}}). If this is incorrect, please contact the school.`;
 
     const results = [];
 
@@ -41,11 +51,11 @@ Deno.serve(async (req) => {
 
       const today = new Date().toLocaleDateString('en-IN');
       const messageBody = templateStr
-        .replace(/{student_name}/g, student_name)
-        .replace(/{class}/g, class_name)
-        .replace(/{section}/g, section)
-        .replace(/{date}/g, today)
-        .replace(/{school_name}/g, schoolName);
+        .replace(/{{student_name}}/g, student_name)
+        .replace(/{{class}}/g, class_name)
+        .replace(/{{section}}/g, section)
+        .replace(/{{date}}/g, today)
+        .replace(/{{school_name}}/g, schoolName);
 
       // Create Message entity
       const createdMessage = await base44.asServiceRole.entities.Message.create({

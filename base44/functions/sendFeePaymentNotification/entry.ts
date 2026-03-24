@@ -13,6 +13,15 @@ Deno.serve(async (req) => {
     const payment = data;
     const receiptNo = payment.receipt_no;
 
+    // Load NotificationSettings
+    const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
+    const settings = settingsList[0] || {};
+
+    if (settings.enable_push === false) {
+      console.log('[sendFeePaymentNotification] Push disabled in NotificationSettings, skipping.');
+      return Response.json({ success: true, message: 'Push notifications disabled' });
+    }
+
     if (!receiptNo || payment.notification_sent) {
       console.log('[sendFeePaymentNotification] Skip: no receipt or already notified');
       return Response.json({ success: true, message: 'Skipped' });
@@ -28,8 +37,16 @@ Deno.serve(async (req) => {
     }
 
     const amountStr = payment.amount_paid ? `₹${Number(payment.amount_paid).toLocaleString()}` : '';
+    const profilesList = await base44.asServiceRole.entities.SchoolProfile.list();
+    const schoolName = (profilesList[0] || {}).school_name || 'School';
+    const paymentTemplate = settings.fee_payment_template ||
+      `Payment of {{amount}} received for {{student_name}}. Receipt No: {{receipt_no}}.`;
     const subject = '✅ Fee Payment Received';
-    const body = `Payment of ${amountStr} received. Receipt: ${receiptNo}`;
+    const body = paymentTemplate
+      .replace(/{{amount}}/g, amountStr)
+      .replace(/{{student_name}}/g, studentName)
+      .replace(/{{receipt_no}}/g, receiptNo)
+      .replace(/{{school_name}}/g, schoolName);
     const academicYear = payment.academic_year || '2024-25';
 
     // Send push via centralized function
