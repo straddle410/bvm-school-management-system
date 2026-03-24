@@ -12,87 +12,106 @@ Deno.serve(async (req) => {
     const notice = data;
     const target_audience = notice.target_audience || 'All';
     const target_classes = notice.target_classes || [];
-
-    // Only notify students if audience is All or Students
-    if (target_audience !== 'Students' && target_audience !== 'All') {
-      return Response.json({ success: true, notified: 0 });
-    }
-
     const currentAcademicYear = notice.academic_year || '2024-25';
 
-    let students = await base44.asServiceRole.entities.Student.filter({
-      status: 'Published',
-      academic_year: currentAcademicYear,
-    });
+    const notifyStudents = target_audience === 'Students' || target_audience === 'All';
+    const notifyStaff = target_audience === 'Staff' || target_audience === 'Teachers' || target_audience === 'All';
 
-    if (target_audience === 'Students' && target_classes.length > 0) {
-      students = students.filter(s => target_classes.includes(s.class_name));
-    }
-
-    if (students.length === 0) {
+    if (!notifyStudents && !notifyStaff) {
       return Response.json({ success: true, notified: 0 });
     }
 
     let notified = 0;
     const pushStudentIds = [];
 
-    for (const student of students) {
-      try {
-        const contextId = `${notice.id}_${student.student_id}`;
+    // --- Student notifications ---
+    if (notifyStudents) {
+      let students = await base44.asServiceRole.entities.Student.filter({
+        status: 'Published',
+        academic_year: currentAcademicYear,
+      });
 
-        // Deduplication check via Message entity
-        const existing = await base44.asServiceRole.entities.Message.filter({
-          recipient_id: student.student_id,
-          context_type: 'notice_posted',
-          context_id: contextId,
-        });
+      if (target_classes.length > 0) {
+        students = students.filter(s => target_classes.includes(s.class_name));
+      }
 
-        if (existing.length > 0) {
-          console.log(`[notifyStudentsOnNoticePublish] Duplicate skipped for ${student.student_id}`);
-          continue;
+      for (const student of students) {
+        try {
+          const contextId = `${notice.id}_${student.student_id}`;
+
+          const existing = await base44.asServiceRole.entities.Message.filter({
+            recipient_id: student.student_id,
+            context_type: 'notice_posted',
+            context_id: contextId,
+          });
+
+          if (existing.length > 0) {
+            console.log(`[notifyStudentsOnNoticePublish] Duplicate skipped for ${student.student_id}`);
+            continue;
+          }
+
+          const willSendPush = notice.sendPushNotification === true;
+
+          await base44.asServiceRole.entities.Message.create({
+            sender_id: 'system',
+            sender_name: 'School',
+            sender_role: 'admin',
+            recipient_type: 'individual',
+            recipient_id: student.student_id,
+            recipient_name: student.name,
+            subject: notice.title,
+            body: (notice.content || '').substring(0, 200),
+            is_read: false,
+            academic_year: currentAcademicYear,
+            context_type: 'notice_posted',
+            context_id: contextId,
+            is_push_sent: willSendPush,
+          });
+
+          notified++;
+
+          if (willSendPush) {
+            pushStudentIds.push(student.student_id);
+          }
+        } catch (err) {
+          console.error(`[notifyStudentsOnNoticePublish] Failed for ${student.student_id}:`, err.message);
         }
+      }
 
-        const willSendPush = notice.sendPushNotification === true;
-
-        // Create Message entity (in-app notification + dedup record)
-        await base44.asServiceRole.entities.Message.create({
-          sender_id: 'system',
-          sender_name: 'School',
-          sender_role: 'admin',
-          recipient_type: 'individual',
-          recipient_id: student.student_id,
-          recipient_name: student.name,
-          subject: notice.title,
-          body: (notice.content || '').substring(0, 200),
-          is_read: false,
-          academic_year: currentAcademicYear,
-          context_type: 'notice_posted',
-          context_id: contextId,
-          is_push_sent: willSendPush,
-        });
-
-        notified++;
-
-        if (willSendPush) {
-          pushStudentIds.push(student.student_id);
+      if (pushStudentIds.length > 0) {
+        try {
+          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
+            student_ids: pushStudentIds,
+            title: notice.title,
+            message: (notice.content || '').substring(0, 100),
+            url: `/StudentNotices`,
+          });
+          console.log(`[notifyStudentsOnNoticePublish] Push sent to ${pushStudentIds.length} students`);
+        } catch (pushErr) {
+          console.error('[notifyStudentsOnNoticePublish] Student push failed (non-fatal):', pushErr.message);
         }
-      } catch (err) {
-        console.error(`[notifyStudentsOnNoticePublish] Failed for ${student.student_id}:`, err.message);
       }
     }
 
-    // Send push only if admin explicitly enabled it
-    if (pushStudentIds.length > 0) {
+    // --- Staff notifications ---
+    if (notifyStaff && notice.sendPushNotification === true) {
       try {
-        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-          student_ids: pushStudentIds,
-          title: notice.title,
-          message: (notice.content || '').substring(0, 100),
-          url: `/StudentNotices`,
-        });
-        console.log(`[notifyStudentsOnNoticePublish] Push sent to ${pushStudentIds.length} students`);
-      } catch (pushErr) {
-        console.error('[notifyStudentsOnNoticePublish] Push failed (non-fatal):', pushErr.message);
+        const staffPrefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
+        const staffIds = staffPrefs
+          .filter(p => p.browser_push_enabled && p.browser_push_token && p.staff_id)
+          .map(p => p.staff_id);
+
+        if (staffIds.length > 0) {
+          await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
+            staff_ids: staffIds,
+            title: notice.title,
+            message: (notice.content || '').substring(0, 100),
+            url: `/Notices`,
+          });
+          console.log(`[notifyStudentsOnNoticePublish] Staff push sent to ${staffIds.length} staff`);
+        }
+      } catch (staffPushErr) {
+        console.error('[notifyStudentsOnNoticePublish] Staff push failed (non-fatal):', staffPushErr.message);
       }
     }
 
