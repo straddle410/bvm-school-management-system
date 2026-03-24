@@ -38,13 +38,15 @@ async function getVapidKey() {
   }
 }
 
-// Initialize OneSignal once (runs after SDK script loads)
-function initOneSignal() {
+// Initialize OneSignal once — fetches App ID from backend
+async function initOneSignal() {
   try {
-    if (!window.OneSignal) return;
-    const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+    if (!window.OneSignal && !window.OneSignalDeferred) return;
+    const res = await fetch('/api/functions/getOneSignalAppId');
+    const data = await res.json();
+    const appId = data.appId;
     if (!appId) {
-      console.warn('[OneSignal] VITE_ONESIGNAL_APP_ID not set');
+      console.warn('[OneSignal] App ID not available');
       return;
     }
     window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -54,7 +56,7 @@ function initOneSignal() {
         notifyButton: { enable: false },
         allowLocalhostAsSecureOrigin: true,
       });
-      console.log('[OneSignal] Initialized');
+      console.log('[OneSignal] Initialized with appId:', appId.substring(0, 8) + '...');
     });
   } catch (e) {
     console.warn('[OneSignal] Init error:', e);
