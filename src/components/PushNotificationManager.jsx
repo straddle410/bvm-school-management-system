@@ -113,8 +113,14 @@ export default function PushNotificationManager() {
           const staffRaw = localStorage.getItem('staff_session');
           if (staffRaw) {
             const s = JSON.parse(staffRaw);
-            const sid = s?.staff_id || s?.username;
-            if (sid) externalUserId = `staff_${sid}`;
+            // CRITICAL: Use staff_id (UUID from StaffAccount.id), NOT username or staff_code
+            const sid = s?.staff_id;
+            if (sid) {
+              externalUserId = `staff_${sid}`;
+              console.log('[PushNotificationManager] Staff push registration: staff_id=', sid, 'externalUserId=', externalUserId);
+            } else {
+              console.warn('[PushNotificationManager] staff_session missing staff_id (expected UUID)');
+            }
           }
         }
 
