@@ -43,8 +43,12 @@ let _oneSignalInstance = null;
 let _oneSignalInitialized = false;
 let _pushInitialized = false;
 
-async function initOneSignal() {
+async function initOneSignal(userIdentifier) {
   if (typeof window === 'undefined') return;
+  if (!userIdentifier) {
+    console.log('[OneSignal] No user — skipping init');
+    return;
+  }
   if (_oneSignalInitialized) return;
   _oneSignalInitialized = true;
 
@@ -58,32 +62,32 @@ async function initOneSignal() {
       return;
     }
 
-    // Prevent any default OneSignal behavior before init
-    window.OneSignal = window.OneSignal || [];
-
-    // Set up deferred handler BEFORE loading the SDK script
-    // This ensures our serviceWorkerPath config is applied before the SDK registers a worker
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId,
-        serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
-        serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
-        serviceWorkerParam: { scope: '/' },
-        autoRegister: false,
-        autoResubscribe: false,
-        allowLocalhostAsSecureOrigin: true,
-        notifyButton: { enable: false },
+    // Delay to ensure page/SDK is ready before pushing to deferred array
+    setTimeout(() => {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId,
+          serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
+          serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
+          serviceWorkerParam: { scope: '/' },
+          autoRegister: false,
+          autoResubscribe: false,
+          allowLocalhostAsSecureOrigin: true,
+          notifyButton: { enable: false },
+        });
+        _oneSignalInstance = OneSignal;
+        console.log('[OneSignal] Initialized for user:', userIdentifier);
       });
-      _oneSignalInstance = OneSignal;
-      console.log('[OneSignal] Initialized successfully');
-    });
 
-    // Dynamically load SDK so deferred array is already populated when it runs
-    const script = document.createElement('script');
-    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-    script.async = true;
-    document.head.appendChild(script);
+      // Load SDK only once, after deferred array is populated
+      if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+        script.async = true;
+        document.head.appendChild(script);
+      }
+    }, 2000);
   } catch (e) {
     console.warn('[OneSignal] Init error (non-fatal):', e.message);
     _oneSignalInitialized = false;
@@ -154,11 +158,17 @@ export default function PushNotificationManager({ studentId }) {
     }
   };
 
-  // Initialize OneSignal on mount
+  // Initialize OneSignal only when user is known
   useEffect(() => {
-    const timer = setTimeout(() => initOneSignal(), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    const studentId = studentSession?.student_id;
+    let staffId = null;
+    try {
+      const staffRaw = localStorage.getItem('staff_session');
+      if (staffRaw) staffId = JSON.parse(staffRaw)?.staff_id || JSON.parse(staffRaw)?.username;
+    } catch {}
+    const identifier = studentId || staffId;
+    if (identifier) initOneSignal(identifier);
+  }, [studentSession]);
 
   useEffect(() => {
     // studentSession already initialized via useState from localStorage — no re-parsing needed
