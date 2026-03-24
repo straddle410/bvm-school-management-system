@@ -1,85 +1,56 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import webpush from 'npm:web-push@3.6.7';
-
-const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') || '';
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || '';
-
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    'mailto:admin@school.com',
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  );
-}
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Central safety check — respect global NotificationSettings
+    // Respect global push settings
     const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
-    const settings = settingsList[0];
-    console.log('[SendStaffPush] DEBUG enable_push:', settings?.enable_push);
-    if (!settings || settings.enable_push != true) {
-      console.log('[SendStaffPush] Push disabled, skipping staff notification.');
+    const settings = settingsList?.[0];
+    if (!settings || settings.enable_push !== true) {
+      console.log('[SendStaffPush] Push disabled, skipping.');
       return Response.json({ success: true, sent: 0, reason: 'Push notifications disabled' });
     }
 
-    const { staff_ids, staff_emails, title, message, url } = await req.json();
+    const { staff_ids, title, message, url } = await req.json();
 
-    // Support staff_ids (new) or staff_emails (legacy fallback)
-    const identifiers = staff_ids || staff_emails;
-    const useStaffId = !!staff_ids;
-
-    if (!identifiers || identifiers.length === 0) {
-      return Response.json({ success: true, sent: 0 });
+    if (!staff_ids || !staff_ids.length) {
+      return Response.json({ error: 'Missing staff_ids' }, { status: 400 });
     }
 
-    // Get push tokens — filter by staff_id (preferred) or staff_email (legacy)
-    const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-    const targets = prefs.filter(p => {
-      const match = useStaffId
-        ? identifiers.includes(p.staff_id)
-        : identifiers.includes(p.staff_email);
-      return match && p.browser_push_enabled && p.browser_push_token;
+    const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.error('[SendStaffPush] Missing OneSignal credentials');
+      return Response.json({ error: 'OneSignal not configured' }, { status: 500 });
+    }
+
+    const body = {
+      app_id: ONESIGNAL_APP_ID,
+      include_external_user_ids: staff_ids,
+      contents: { en: message || '' },
+      headings: { en: title || 'New Notification' },
+      ...(url ? { url } : {}),
+    };
+
+    console.log('[SendStaffPush] Sending to', staff_ids.length, 'staff via OneSignal');
+
+    const res = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
 
-    if (targets.length === 0) {
-      return Response.json({ success: true, sent: 0 });
-    }
+    const data = await res.json();
+    console.log('[SendStaffPush] OneSignal response:', JSON.stringify(data));
 
-    let sent = 0;
-    const payload = JSON.stringify({ title, body: message, url });
-
-    for (const pref of targets) {
-      try {
-        let subscription;
-        try {
-          subscription = typeof pref.browser_push_token === 'string'
-            ? JSON.parse(pref.browser_push_token)
-            : pref.browser_push_token;
-        } catch {
-          continue;
-        }
-        await webpush.sendNotification(subscription, payload);
-        sent++;
-      } catch (err) {
-        console.error(`Push failed for ${pref.staff_email}:`, err.message);
-        // If subscription is invalid, disable it
-        if (err.statusCode === 410) {
-          try {
-            await base44.asServiceRole.entities.StaffNotificationPreference.update(pref.id, {
-              browser_push_enabled: false,
-              browser_push_token: null,
-            });
-          } catch {}
-        }
-      }
-    }
-
-    return Response.json({ success: true, sent });
+    return Response.json({ success: true, sent: data.recipients ?? 0, onesignal: data });
   } catch (error) {
-    console.error('Error in sendStaffPushNotification:', error);
+    console.error('[SendStaffPush] Fatal error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
