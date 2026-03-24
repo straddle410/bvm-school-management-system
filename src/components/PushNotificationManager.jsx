@@ -66,18 +66,17 @@ async function initOneSignal(userIdentifier) {
     setTimeout(() => {
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       window.OneSignalDeferred.push(async function(OneSignal) {
+        window._oneSignalInstance = OneSignal;
+        _oneSignalInstance = OneSignal;
         await OneSignal.init({
           appId,
           serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
           serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
           serviceWorkerParam: { scope: '/' },
           autoRegister: false,
-          autoResubscribe: false,
-          allowLocalhostAsSecureOrigin: true,
           notifyButton: { enable: false },
         });
-        _oneSignalInstance = OneSignal;
-        console.log('[OneSignal] Initialized for user:', userIdentifier);
+        console.log('[FINAL] OneSignal initialized correctly');
       });
 
       // Load SDK only once, after deferred array is populated
