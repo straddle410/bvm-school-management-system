@@ -10,6 +10,7 @@ import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 import PushNotificationManager from '@/components/PushNotificationManager';
+import OneSignalTokenSync from '@/components/OneSignalTokenSync';
 import { getProxiedImageUrl } from '@/components/imageProxy';
 import StudentAuthGuard from '@/components/StudentAuthGuard';
 import StaffAuthGuard from '@/components/StaffAuthGuard';
@@ -161,6 +162,7 @@ export default function Layout({ children, currentPageName }) {
     <AcademicYearProvider>
       <MessageNotificationListener />
       <PushNotificationManager />
+      <OneSignalTokenSync />
       <StaffAuthGuard currentPageName={currentPageName}>
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
       fontFamily: "'Segoe UI', sans-serif",
