@@ -69,17 +69,13 @@ async function initOneSignal(externalUserId) {
       console.error('[OneSignal] SDK init error:', initErr.message);
       _oneSignalLoaded = false;
     }
-    });
+  });
 
-    if (!document.querySelector('script[src*="OneSignalSDK"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    }
-  } catch (e) {
-    console.error('[OneSignal] Script load or execution error:', e.message);
-    _oneSignalLoaded = false;
+  if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    script.defer = true;
+    document.head.appendChild(script);
   }
 }
 
