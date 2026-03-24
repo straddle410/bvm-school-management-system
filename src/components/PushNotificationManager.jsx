@@ -190,7 +190,9 @@ export default function PushNotificationManager({ studentId }) {
       return;
     }
 
-    initOneSignal(studentId || staffId);
+    setTimeout(() => {
+      initOneSignal(studentId || staffId);
+    }, 2000);
   }, [studentSession]);
 
   useEffect(() => {
