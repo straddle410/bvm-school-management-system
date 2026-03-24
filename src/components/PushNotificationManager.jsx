@@ -160,14 +160,29 @@ export default function PushNotificationManager({ studentId }) {
 
   // Initialize OneSignal only when user is known
   useEffect(() => {
-    const studentId = studentSession?.student_id;
+    const studentId = studentSession?.student_id || null;
+
+    const staffSessionRaw = localStorage.getItem('staff_session');
     let staffId = null;
-    try {
-      const staffRaw = localStorage.getItem('staff_session');
-      if (staffRaw) staffId = JSON.parse(staffRaw)?.staff_id || JSON.parse(staffRaw)?.username;
-    } catch {}
-    const identifier = studentId || staffId;
-    if (identifier) initOneSignal(identifier);
+    if (staffSessionRaw) {
+      try {
+        const parsed = JSON.parse(staffSessionRaw);
+        staffId = parsed?.staff_id || parsed?.username || null;
+        console.log('[PushFix] Staff detected:', staffId);
+      } catch (e) {
+        console.log('[PushFix] Staff session parse error');
+      }
+    }
+
+    console.log('[PushFix] studentId:', studentId, 'staffId:', staffId);
+
+    if (!studentId && !staffId) {
+      console.log('[PushFix] No user → skipping OneSignal');
+      return;
+    }
+
+    console.log('[PushFix] Initializing OneSignal...');
+    initOneSignal(studentId || staffId);
   }, [studentSession]);
 
   useEffect(() => {
