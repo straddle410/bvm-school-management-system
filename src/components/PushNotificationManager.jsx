@@ -165,7 +165,7 @@ export default function PushNotificationManager({ studentId }) {
     if (studentSessionRaw) {
       try {
         const parsed = JSON.parse(studentSessionRaw);
-        studentId = parsed?.student_id || null;
+        studentId = parsed?.student_id || parsed?.id || null;
         console.log('[FINAL FIX] Student detected:', studentId);
       } catch (e) {
         console.log('[FINAL FIX] Student parse error');
