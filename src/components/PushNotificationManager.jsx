@@ -199,7 +199,7 @@ export default function PushNotificationManager({ studentId }) {
        try {
          const staffRaw = localStorage.getItem('staff_session');
          user = JSON.parse(staffRaw);
-         identifier = user.staff_id || user.username;
+         identifier = user.email || user.staff_id || user.username;
          console.log('[PushNotificationManager] Staff session detected, identifier:', identifier);
        } catch {}
      } else {
@@ -216,22 +216,34 @@ export default function PushNotificationManager({ studentId }) {
        return;
      }
 
-     // Get or create notification preferences
-     const prefs = await base44.entities.NotificationPreference.filter({
-       user_email: identifier
-     });
-     let pref = prefs[0];
-
-     if (!pref) {
-       console.log('[PushNotificationManager] Creating new notification preference for', identifier);
-       pref = await base44.entities.NotificationPreference.create({
-         user_email: identifier,
-         notifications_enabled: true,
-         browser_push_enabled: true,
-         sound_enabled: true,
-         sound_volume: 0.7,
-         message_notifications: true
-       });
+     // For staff sessions, use StaffNotificationPreference; for base44 users, use NotificationPreference
+     let pref;
+     if (hasStaffSession) {
+       const prefs = await base44.entities.StaffNotificationPreference.filter({ staff_email: identifier });
+       pref = prefs[0];
+       if (!pref) {
+         console.log('[PushNotificationManager] Creating new StaffNotificationPreference for', identifier);
+         pref = await base44.entities.StaffNotificationPreference.create({
+           staff_email: identifier,
+           staff_name: user?.name || user?.full_name || '',
+           browser_push_enabled: true,
+           browser_push_token: null,
+         });
+       }
+     } else {
+       const prefs = await base44.entities.NotificationPreference.filter({ user_email: identifier });
+       pref = prefs[0];
+       if (!pref) {
+         console.log('[PushNotificationManager] Creating new NotificationPreference for', identifier);
+         pref = await base44.entities.NotificationPreference.create({
+           user_email: identifier,
+           notifications_enabled: true,
+           browser_push_enabled: true,
+           sound_enabled: true,
+           sound_volume: 0.7,
+           message_notifications: true
+         });
+       }
      }
 
      if (!pref?.browser_push_enabled) {
@@ -255,10 +267,19 @@ export default function PushNotificationManager({ studentId }) {
 
          if (token) {
            const alreadyHadToken = !!pref.browser_push_token;
-           await base44.entities.NotificationPreference.update(pref.id, {
-             browser_push_token: token
-           });
-           console.log('[PushNotificationManager] Token saved to preference');
+           if (hasStaffSession) {
+             await base44.entities.StaffNotificationPreference.update(pref.id, {
+               browser_push_token: token,
+               browser_push_enabled: true,
+               staff_name: user?.name || user?.full_name || pref.staff_name || '',
+             });
+             console.log('[PushNotificationManager] Staff token saved to StaffNotificationPreference');
+           } else {
+             await base44.entities.NotificationPreference.update(pref.id, {
+               browser_push_token: token
+             });
+             console.log('[PushNotificationManager] Token saved to NotificationPreference');
+           }
            if (!alreadyHadToken) {
              toast.success("Notifications enabled successfully!");
            }

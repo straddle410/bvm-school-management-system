@@ -15,6 +15,16 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Central safety check — respect global NotificationSettings
+    const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
+    const settings = settingsList[0];
+    console.log('[SendStaffPush] DEBUG enable_push:', settings?.enable_push);
+    if (!settings || settings.enable_push != true) {
+      console.log('[SendStaffPush] Push disabled, skipping staff notification.');
+      return Response.json({ success: true, sent: 0, reason: 'Push notifications disabled' });
+    }
+
     const { staff_emails, title, message, url } = await req.json();
 
     if (!staff_emails || staff_emails.length === 0) {
