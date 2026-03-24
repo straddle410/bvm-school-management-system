@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'academic_year, sender_id, and sender_name are required' }, { status: 400 });
     }
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
 
     // Load NotificationSettings + SchoolProfile
     const [settingsList, profiles] = await Promise.all([
@@ -32,26 +32,33 @@ Deno.serve(async (req) => {
     const templateStr = settings.fee_template ||
       `Dear {{parent_name}}, fee of ₹{{amount}} is pending for {{student_name}} ({{class}}). Please pay at the earliest.`;
 
-    const results = {
-      success_count: 0,
-      failed_count: 0,
-      skipped_count: 0,
-      notified_students: [],
-      errors: []
-    };
+    // Fetch StudentNotificationPreference for push filtering
+    const studentPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
+    const prefsByStudentId = Object.fromEntries(
+      studentPrefs.map(p => [p.student_id, p])
+    );
+
+    const externalUserIds = [];
+    const messagesToCreate = [];
 
     for (const student of selectedStudents) {
       try {
+        const pref = prefsByStudentId[student.student_id];
+        // Skip if push not enabled
+        if (!pref || !pref.browser_push_enabled) {
+          console.log(`[sendFeeReminder] Skipping ${student.student_id} - push not enabled`);
+          continue;
+        }
+
         const contextId = `${student.student_id}_${academic_year}_${today}`;
 
-        // Deduplication check — skip if already sent today (unless allowDuplicate is true)
+        // Deduplication check
         const existing = await base44.asServiceRole.entities.Message.filter({
           context_type: 'fee_reminder',
           context_id: contextId,
         });
         if (!allowDuplicate && existing.length > 0) {
           console.log(`[sendFeeReminder] Skipping duplicate reminder for ${student.student_id}`);
-          results.skipped_count++;
           continue;
         }
 
@@ -62,8 +69,7 @@ Deno.serve(async (req) => {
           .replace(/{{class}}/g, student.class_name)
           .replace(/{{school_name}}/g, schoolName);
 
-        // Send push via centralized function first, track success
-        let isPushSent = false;
+        // Create Message record
         const tempMsg = await base44.asServiceRole.entities.Message.create({
           sender_id: sender_id,
           sender_name: sender_name,
@@ -80,25 +86,49 @@ Deno.serve(async (req) => {
           is_push_sent: false,
         });
 
-        try {
-          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-            student_ids: [student.student_id],
-            title: 'Fee Payment Reminder',
-            message: `Fee of ₹${student.due_amount} is pending. Tap to view.`,
-            url: `/StudentMessaging?messageId=${tempMsg.id}`,
-          });
-          isPushSent = true;
-          await base44.asServiceRole.entities.Message.update(tempMsg.id, { is_push_sent: true });
-        } catch (pushError) {
-          console.warn(`[sendFeeReminder] Push failed for ${student.student_id} (non-fatal):`, pushError.message);
-        }
-
-        const createdMessage = tempMsg;
-        results.success_count++;
-        results.notified_students.push(student.student_name);
+        externalUserIds.push(`student_${student.student_id}`);
+        messagesToCreate.push({ tempMsg, student });
       } catch (error) {
-        results.failed_count++;
-        results.errors.push(`${student.student_name}: ${error.message}`);
+        console.error(`[sendFeeReminder] Error for ${student.student_name}:`, error.message);
+      }
+    }
+
+    const results = {
+      success_count: 0,
+      failed_count: 0,
+      skipped_count: selectedStudents.length - messagesToCreate.length,
+      notified_students: [],
+      errors: []
+    };
+
+    // Send consolidated push via OneSignal if there are recipients
+    if (externalUserIds.length > 0) {
+      try {
+        const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+        const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+        await fetch('https://onesignal.com/api/v1/notifications', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            app_id: ONESIGNAL_APP_ID,
+            include_external_user_ids: externalUserIds,
+            contents: { en: 'Fee payment reminder' },
+            headings: { en: 'Fee Payment Reminder' },
+          }),
+        });
+        console.log(`[sendFeeReminder] OneSignal sent to ${externalUserIds.length} students`);
+        // Mark all as push sent
+        for (const { tempMsg } of messagesToCreate) {
+          await base44.asServiceRole.entities.Message.update(tempMsg.id, { is_push_sent: true });
+          results.success_count++;
+          results.notified_students.push(tempMsg.recipient_name);
+        }
+      } catch (pushError) {
+        console.error(`[sendFeeReminder] OneSignal error:`, pushError.message);
+        results.failed_count = messagesToCreate.length;
       }
     }
 
