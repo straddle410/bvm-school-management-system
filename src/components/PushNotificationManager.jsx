@@ -78,7 +78,7 @@ async function initOneSignal(externalUserId) {
       document.head.appendChild(script);
     }
   } catch (e) {
-    console.warn('[OneSignal] Init error (non-fatal):', e.message);
+    console.error('[OneSignal] Script load or execution error:', e.message);
     _oneSignalLoaded = false;
   }
 }
