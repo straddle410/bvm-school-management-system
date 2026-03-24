@@ -49,8 +49,11 @@ async function initOneSignal(userIdentifier) {
     console.log('[OneSignal] No user — skipping init');
     return;
   }
-  if (_oneSignalInitialized) return;
-  _oneSignalInitialized = true;
+  if (window._oneSignalLoaded) {
+    console.log('[FINAL] OneSignal already loaded → skipping');
+    return;
+  }
+  window._oneSignalLoaded = true;
 
   try {
     const appIdRes = await fetch('/api/functions/getOneSignalAppId');
