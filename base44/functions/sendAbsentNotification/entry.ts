@@ -150,6 +150,10 @@ Deno.serve(async (req) => {
             sent_date: new Date().toISOString(),
           });
         }
+      } catch (pushErr) {
+        console.error('[AbsentNotif] OneSignal error:', pushErr.message);
+      }
+    }
 
     const successCount = results.filter(r => r.status === 'success').length;
     const skippedCount = results.filter(r => r.status === 'skipped').length;

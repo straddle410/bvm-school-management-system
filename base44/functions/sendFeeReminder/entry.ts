@@ -136,6 +136,11 @@ Deno.serve(async (req) => {
             sent_date: new Date().toISOString(),
           });
         }
+      } catch (pushError) {
+        console.error(`[sendFeeReminder] OneSignal error:`, pushError.message);
+        results.failed_count = messagesToCreate.length;
+      }
+    }
 
     return Response.json(results);
   } catch (error) {
