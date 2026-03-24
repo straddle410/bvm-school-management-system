@@ -78,6 +78,8 @@ async function initOneSignal(userIdentifier) {
         serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
         serviceWorkerParam: { scope: '/' },
         autoRegister: false,
+        autoResubscribe: false,
+        allowLocalhostAsSecureOrigin: true,
         notifyButton: { enable: false },
       });
       console.log('[FINAL] OneSignal initialized correctly');
