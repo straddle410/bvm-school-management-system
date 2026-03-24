@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       try {
         const staffPrefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
         const staffIds = staffPrefs
-          .filter(p => p.browser_push_enabled && p.browser_push_token && p.staff_id)
+          .filter(p => p.browser_push_enabled && p.onesignal_player_id && p.staff_id)
           .map(p => p.staff_id);
 
         if (staffIds.length > 0) {
