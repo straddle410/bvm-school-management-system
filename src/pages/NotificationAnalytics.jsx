@@ -9,7 +9,8 @@ export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deliveryStats, setDeliveryStats] = useState({});
-  const [loadingDelivery, setLoadingDelivery] = useState(false);
+  const [loadingRows, setLoadingRows] = useState({});
+  const [deliveryStatsFetched, setDeliveryStatsFetched] = useState(false);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -25,24 +26,57 @@ export default function NotificationAnalytics() {
     loadLogs();
   }, []);
 
+  // Fetch delivery stats for a single notification (lazy load with caching)
+  const fetchSingleStat = async (log) => {
+    const notificationId = log.one_signal_notification_id;
+    const logId = log.id;
+    
+    // Return cached result if exists
+    if (deliveryStats[logId]) return deliveryStats[logId];
+    
+    // Set loading state for this row
+    setLoadingRows(prev => ({ ...prev, [logId]: true }));
+    
+    try {
+      const response = await base44.functions.invoke('getNotificationStats', {
+        notification_id: notificationId
+      });
+      const stats = response.data;
+      
+      // Cache the result
+      setDeliveryStats(prev => ({ ...prev, [logId]: stats }));
+      return stats;
+    } catch (err) {
+      console.error('Failed to fetch stats for', notificationId, err);
+      return null;
+    } finally {
+      setLoadingRows(prev => ({ ...prev, [logId]: false }));
+    }
+  };
+
   // Fetch delivery stats when Delivery tab is opened
   const fetchDeliveryStats = async () => {
-    if (Object.keys(deliveryStats).length > 0) return; // Already cached
+    if (deliveryStatsFetched) return; // Already fetched once
     
-    setLoadingDelivery(true);
-    const statsPromises = logs
-      .filter(log => log.one_signal_notification_id && log.one_signal_notification_id !== 'unknown' && log.one_signal_notification_id !== 'network_error')
-      .map(async (log) => {
-        try {
-          const response = await base44.functions.invoke('getNotificationStats', {
-            notification_id: log.one_signal_notification_id
-          });
-          return { id: log.id, stats: response.data };
-        } catch (err) {
-          console.error('Failed to fetch stats for', log.one_signal_notification_id, err);
-          return { id: log.id, stats: null };
-        }
-      });
+    setDeliveryStatsFetched(true);
+    const validLogs = logs.filter(
+      log => log.one_signal_notification_id && 
+             log.one_signal_notification_id !== 'unknown' && 
+             log.one_signal_notification_id !== 'network_error'
+    );
+    
+    // Fetch all in parallel
+    const statsPromises = validLogs.map(async (log) => {
+      try {
+        const response = await base44.functions.invoke('getNotificationStats', {
+          notification_id: log.one_signal_notification_id
+        });
+        return { id: log.id, stats: response.data };
+      } catch (err) {
+        console.error('Failed to fetch stats for', log.one_signal_notification_id, err);
+        return { id: log.id, stats: null };
+      }
+    });
 
     const results = await Promise.all(statsPromises);
     const statsMap = {};
@@ -50,7 +84,6 @@ export default function NotificationAnalytics() {
       statsMap[id] = stats;
     });
     setDeliveryStats(statsMap);
-    setLoadingDelivery(false);
   };
 
   if (loading) {
@@ -384,11 +417,15 @@ export default function NotificationAnalytics() {
               <div className="flex items-center justify-between">
                 <CardTitle>Delivery Details</CardTitle>
                 <button
-                  onClick={fetchDeliveryStats}
+                  onClick={() => {
+                    setDeliveryStats({});
+                    setDeliveryStatsFetched(false);
+                    fetchDeliveryStats();
+                  }}
                   className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
                 >
-                  <RefreshCw className={`h-4 w-4 ${loadingDelivery ? 'animate-spin' : ''}`} />
-                  Refresh Stats
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
                 </button>
               </div>
             </CardHeader>
@@ -408,21 +445,44 @@ export default function NotificationAnalytics() {
                   <tbody>
                     {logs.map((log) => {
                       const stats = deliveryStats[log.id];
+                      const isLoading = loadingRows[log.id];
+                      const hasValidId = log.one_signal_notification_id && 
+                                        log.one_signal_notification_id !== 'unknown' && 
+                                        log.one_signal_notification_id !== 'network_error';
+                      
                       return (
                         <tr key={log.id} className="border-b hover:bg-gray-50">
                           <td className="py-2 px-2 font-medium">{log.title}</td>
-                          <td className="py-2 px-2">{stats ? stats.recipients : log.recipients_count}</td>
+                          <td className="py-2 px-2">
+                            {isLoading ? (
+                              <RefreshCw className="h-3 w-3 animate-spin text-gray-400" />
+                            ) : stats ? (
+                              stats.recipients
+                            ) : (
+                              log.recipients_count
+                            )}
+                          </td>
                           <td className="py-2 px-2 text-green-600 font-medium">
-                            {stats ? stats.successful : '-'}
+                            {isLoading ? '-' : stats ? stats.successful : '-'}
                           </td>
                           <td className="py-2 px-2 text-red-600 font-medium">
-                            {stats ? stats.failed : '-'}
+                            {isLoading ? '-' : stats ? stats.failed : '-'}
                           </td>
                           <td className="py-2 px-2 text-blue-600 font-medium">
-                            {stats ? stats.opened : '-'}
+                            {isLoading ? '-' : stats ? stats.opened : '-'}
                           </td>
                           <td className="py-2 px-2 text-xs font-mono text-gray-600 truncate max-w-xs">
-                            {log.one_signal_notification_id || 'N/A'}
+                            {hasValidId ? (
+                              <button
+                                onClick={() => fetchSingleStat(log)}
+                                className="hover:underline"
+                                title="Click to fetch stats"
+                              >
+                                {log.one_signal_notification_id}
+                              </button>
+                            ) : (
+                              'N/A'
+                            )}
                           </td>
                         </tr>
                       );
@@ -431,9 +491,6 @@ export default function NotificationAnalytics() {
                 </table>
                 {logs.length === 0 && (
                   <p className="text-center py-4 text-gray-500">No notifications found</p>
-                )}
-                {loadingDelivery && (
-                  <p className="text-center py-4 text-gray-500">Loading delivery stats...</p>
                 )}
               </div>
             </CardContent>
