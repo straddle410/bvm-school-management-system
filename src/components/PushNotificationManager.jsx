@@ -281,6 +281,13 @@ export default function PushNotificationManager({ studentId }) {
            if (hasStaffSession) {
              console.log('[PushStaff] Saving token to StaffNotificationPreference id:', pref.id, 'staff_id:', identifier);
              await base44.entities.StaffNotificationPreference.update(pref.id, {
+               staff_id: identifier,
+               browser_push_token: token,
+               browser_push_enabled: true,
+               staff_name: user?.name || user?.full_name || pref.staff_name || '',
+             });
+             console.log('[PushNotificationManager] Staff token saved to StaffNotificationPreference');
+           } else {
              await base44.entities.NotificationPreference.update(pref.id, {
                browser_push_token: token
              });
