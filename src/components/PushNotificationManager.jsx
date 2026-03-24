@@ -265,13 +265,13 @@ export default function PushNotificationManager({ studentId }) {
          if (token) {
            const alreadyHadToken = !!pref.browser_push_token;
            if (hasStaffSession) {
-             console.log('[PushStaff] Saving staff push token via backend for staff_id:', identifier);
-              await base44.functions.invoke('saveStaffPushToken', {
-                staff_id: identifier,
-                browser_push_token: token,
-                staff_name: user?.name || user?.full_name || '',
-              });
-              console.log('[PushNotificationManager] Staff token saved via backend');
+             console.log('Calling saveStaffPushToken', identifier);
+             await base44.functions.invoke('saveStaffPushToken', {
+               staff_id: identifier,
+               browser_push_token: token,
+               staff_name: user?.name || user?.full_name || '',
+             });
+             console.log('[PushNotificationManager] Staff token saved via backend');
            } else {
              await base44.entities.NotificationPreference.update(pref.id, {
                browser_push_token: token
