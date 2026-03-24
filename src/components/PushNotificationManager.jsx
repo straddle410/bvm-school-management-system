@@ -2,25 +2,48 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
-// Singleton guard
+// Singleton guard + permission state tracking
 let _oneSignalLoaded = false;
+let _permissionDenied = false;
+let _externalUserIdRegistered = null;
 
 async function initOneSignal(externalUserId) {
-  if (!externalUserId || _oneSignalLoaded) return;
+  if (!externalUserId || _oneSignalLoaded || _permissionDenied) return;
+
+  // Avoid double-registration
+  if (_externalUserIdRegistered === externalUserId) return;
+
   _oneSignalLoaded = true;
 
   try {
-    const appIdRes = await fetch('/api/functions/getOneSignalAppId');
-    const appIdData = await appIdRes.json();
-    const appId = appIdData?.appId || appIdData?.app_id;
-    if (!appId) {
-      console.warn('[OneSignal] App ID not available, skipping init');
+    // Request notification permission upfront before SDK init
+    const permission = Notification.permission;
+    if (permission === 'default') {
+      console.log('[OneSignal] Requesting notification permission...');
+      const result = await Notification.requestPermission();
+      if (result === 'denied') {
+        console.warn('[OneSignal] Permission denied, skipping subscription');
+        _permissionDenied = true;
+        _oneSignalLoaded = false;
+        return;
+      }
+    } else if (permission === 'denied') {
+      console.warn('[OneSignal] Permission previously denied, skipping');
+      _permissionDenied = true;
       _oneSignalLoaded = false;
       return;
     }
 
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async function (OneSignal) {
+    console.log('[OneSignal] Permission granted, initializing SDK...');
+  } catch (permErr) {
+    console.warn('[OneSignal] Permission request error:', permErr.message);
+    _oneSignalLoaded = false;
+    return;
+  }
+
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async function (OneSignal) {
+    try {
       await OneSignal.init({
         appId,
         serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
@@ -35,8 +58,17 @@ async function initOneSignal(externalUserId) {
 
       // Associate this device with the external user ID
       // This enables bulk sending via include_external_user_ids
-      await OneSignal.login(externalUserId);
-      console.log('[OneSignal] Initialized and logged in as:', externalUserId);
+      try {
+        await OneSignal.login(externalUserId);
+        _externalUserIdRegistered = externalUserId;
+        console.log('[OneSignal] Successfully logged in as:', externalUserId);
+      } catch (loginErr) {
+        console.error('[OneSignal] Login failed:', loginErr.message);
+      }
+    } catch (initErr) {
+      console.error('[OneSignal] SDK init error:', initErr.message);
+      _oneSignalLoaded = false;
+    }
     });
 
     if (!document.querySelector('script[src*="OneSignalSDK"]')) {
