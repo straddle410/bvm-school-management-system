@@ -15,10 +15,10 @@ Deno.serve(async (req) => {
 
     // Load NotificationSettings
     const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
-    const settings = settingsList[0] || {};
+    const settings = settingsList[0];
 
-    if (settings.enable_push === false) {
-      console.log('[sendFeePaymentNotification] Push disabled in NotificationSettings, skipping.');
+    if (!settings || settings.enable_push !== true) {
+      console.log('[sendFeePaymentNotification] Push disabled or settings missing, skipping notification.');
       return Response.json({ success: true, message: 'Push notifications disabled' });
     }
 

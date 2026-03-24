@@ -20,12 +20,12 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.NotificationSettings.list(),
       base44.asServiceRole.entities.SchoolProfile.list(),
     ]);
-    const settings = settingsList[0] || {};
+    const settings = settingsList[0];
     const profile = profiles[0] || {};
     const schoolName = profile.school_name || 'School';
 
-    if (settings.enable_push === false) {
-      console.log('[AbsentNotif] Push disabled in NotificationSettings, skipping.');
+    if (!settings || settings.enable_push !== true) {
+      console.log('[AbsentNotif] Push disabled or settings missing, skipping notification.');
       return Response.json({ success: true, message: 'Push notifications disabled', results: [] });
     }
 
