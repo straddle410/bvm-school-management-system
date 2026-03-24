@@ -22,10 +22,16 @@ Deno.serve(async (req) => {
     }
 
     let notified = 0;
-    const pushStudentIds = [];
+    const externalUserIds = [];
 
     // --- Student notifications ---
     if (notifyStudents) {
+      // Fetch student prefs for push filtering
+      const studentPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
+      const prefsByStudentId = Object.fromEntries(
+        studentPrefs.map(p => [p.student_id, p])
+      );
+
       let students = await base44.asServiceRole.entities.Student.filter({
         status: 'Published',
         academic_year: currentAcademicYear,
@@ -51,8 +57,10 @@ Deno.serve(async (req) => {
           }
 
           const willSendPush = notice.sendPushNotification === true;
+          const pref = prefsByStudentId[student.student_id];
+          const canSendPush = willSendPush && pref && pref.browser_push_enabled;
 
-          await base44.asServiceRole.entities.Message.create({
+          const msgRecord = await base44.asServiceRole.entities.Message.create({
             sender_id: 'system',
             sender_name: 'School',
             sender_role: 'admin',
@@ -65,57 +73,58 @@ Deno.serve(async (req) => {
             academic_year: currentAcademicYear,
             context_type: 'notice_posted',
             context_id: contextId,
-            is_push_sent: willSendPush,
+            is_push_sent: canSendPush,
           });
 
           notified++;
 
-          if (willSendPush) {
-            pushStudentIds.push(student.student_id);
+          if (canSendPush) {
+            externalUserIds.push(`student_${student.student_id}`);
           }
         } catch (err) {
           console.error(`[notifyStudentsOnNoticePublish] Failed for ${student.student_id}:`, err.message);
-        }
-      }
-
-      if (pushStudentIds.length > 0) {
-        try {
-          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-            student_ids: pushStudentIds,
-            title: notice.title,
-            message: (notice.content || '').substring(0, 100),
-            url: `/StudentNotices`,
-          });
-          console.log(`[notifyStudentsOnNoticePublish] Push sent to ${pushStudentIds.length} students`);
-        } catch (pushErr) {
-          console.error('[notifyStudentsOnNoticePublish] Student push failed (non-fatal):', pushErr.message);
         }
       }
     }
 
     // --- Staff notifications ---
     if (notifyStaff && notice.sendPushNotification === true) {
-      try {
-        const staffPrefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-        const staffIds = staffPrefs
-          .filter(p => p.browser_push_enabled && p.onesignal_player_id && p.staff_id)
-          .map(p => p.staff_id);
+      const staffPrefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
+      const staffIds = staffPrefs
+        .filter(p => p.browser_push_enabled && p.staff_id)
+        .map(p => p.staff_id);
 
-        if (staffIds.length > 0) {
-          await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
-            staff_ids: staffIds,
-            title: notice.title,
-            message: (notice.content || '').substring(0, 100),
-            url: `/Notices`,
-          });
-          console.log(`[notifyStudentsOnNoticePublish] Staff push sent to ${staffIds.length} staff`);
-        }
-      } catch (staffPushErr) {
-        console.error('[notifyStudentsOnNoticePublish] Staff push failed (non-fatal):', staffPushErr.message);
+      for (const staffId of staffIds) {
+        externalUserIds.push(`staff_${staffId}`);
       }
     }
 
-    return Response.json({ success: true, notified, push_sent: pushStudentIds.length });
+    // Send consolidated push via OneSignal if there are recipients
+    if (externalUserIds.length > 0) {
+      try {
+        const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+        const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+        await fetch('https://onesignal.com/api/v1/notifications', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            app_id: ONESIGNAL_APP_ID,
+            include_external_user_ids: externalUserIds,
+            contents: { en: (notice.content || '').substring(0, 100) },
+            headings: { en: notice.title },
+            url: notice.target_audience === 'Staff' || notice.target_audience === 'Teachers' ? '/Notices' : '/StudentNotices',
+          }),
+        });
+        console.log(`[notifyStudentsOnNoticePublish] OneSignal sent to ${externalUserIds.length} recipients`);
+      } catch (pushErr) {
+        console.error('[notifyStudentsOnNoticePublish] OneSignal failed (non-fatal):', pushErr.message);
+      }
+    }
+
+    return Response.json({ success: true, notified, push_sent: externalUserIds.length });
   } catch (error) {
     console.error('[notifyStudentsOnNoticePublish] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

@@ -32,7 +32,15 @@ Deno.serve(async (req) => {
     const templateStr = settings.absent_template ||
       `Dear student/parent, {{student_name}} was marked absent today (Class {{class}}-{{section}}). If this is incorrect, please contact the school.`;
 
+    // Fetch StudentNotificationPreference for push filtering
+    const studentPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
+    const prefsByStudentId = Object.fromEntries(
+      studentPrefs.map(p => [p.student_id, p])
+    );
+
     const results = [];
+    const externalUserIds = [];
+    const messagesToCreate = [];
 
     for (const record of attendanceRecords) {
       const { student_id, attendance_id, student_name, class_name, section, academic_year } = record;
@@ -57,6 +65,32 @@ Deno.serve(async (req) => {
         .replace(/{{date}}/g, today)
         .replace(/{{school_name}}/g, schoolName);
 
+      // Check if push enabled for this student
+      const pref = prefsByStudentId[student_id];
+      if (!pref || !pref.browser_push_enabled) {
+        console.log(`[AbsentNotif] Skipping push for ${student_id} - push not enabled`);
+        // Still create message
+        const createdMessage = await base44.asServiceRole.entities.Message.create({
+          sender_id: user.email || 'admin',
+          sender_name: user.full_name || 'School Admin',
+          sender_role: 'admin',
+          recipient_type: 'individual',
+          recipient_id: student_id,
+          recipient_name: student_name,
+          recipient_class: class_name,
+          recipient_section: section,
+          subject: 'Absent Notification',
+          body: messageBody,
+          is_read: false,
+          academic_year: academic_year,
+          context_type: 'absent_notification',
+          context_id: attendance_id,
+          is_push_sent: false,
+        });
+        results.push({ student_id, status: 'message_only', message_id: createdMessage.id });
+        continue;
+      }
+
       // Create Message entity
       const createdMessage = await base44.asServiceRole.entities.Message.create({
         sender_id: user.email || 'admin',
@@ -73,41 +107,50 @@ Deno.serve(async (req) => {
         academic_year: academic_year,
         context_type: 'absent_notification',
         context_id: attendance_id,
+        is_push_sent: false,
       });
 
-      console.log(`[AbsentNotif] Created message ${createdMessage.id} for student ${student_id}`);
+      externalUserIds.push(`student_${student_id}`);
+      messagesToCreate.push({ createdMessage, student_id });
+      results.push({ student_id, status: 'pending', message_id: createdMessage.id });
+    }
 
-      // Send push notification using existing function
-      let pushSuccess = false;
+    // Send consolidated push via OneSignal if there are recipients
+    if (externalUserIds.length > 0) {
       try {
-        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-          student_ids: [student_id],
-          title: 'Absent Notification',
-          message: messageBody,
-          url: `/StudentMessaging?messageId=${createdMessage.id}`,
+        const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
+        const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+        await fetch('https://onesignal.com/api/v1/notifications', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            app_id: ONESIGNAL_APP_ID,
+            include_external_user_ids: externalUserIds,
+            contents: { en: 'Absent notification' },
+            headings: { en: 'Absent Notification' },
+          }),
         });
-        pushSuccess = true;
-        console.log(`[AbsentNotif] Push sent for student ${student_id}`);
-        results.push({ student_id, status: 'success', message_id: createdMessage.id });
-      } catch (pushErr) {
-        console.error(`[AbsentNotif] Push failed for student ${student_id}:`, pushErr.message);
-        // Message was still created, so mark as partial success
-        results.push({ student_id, status: 'message_created_push_failed', message_id: createdMessage.id, error: pushErr.message });
-      }
-      // Update is_push_sent flag
-      if (pushSuccess) {
-        try {
+        console.log(`[AbsentNotif] OneSignal sent to ${externalUserIds.length} students`);
+        // Update results for pending records
+        for (const { createdMessage } of messagesToCreate) {
           await base44.asServiceRole.entities.Message.update(createdMessage.id, { is_push_sent: true });
-        } catch {}
+          const idx = results.findIndex(r => r.message_id === createdMessage.id);
+          if (idx >= 0) results[idx].status = 'success';
+        }
+      } catch (pushErr) {
+        console.error('[AbsentNotif] OneSignal error:', pushErr.message);
       }
     }
 
     const successCount = results.filter(r => r.status === 'success').length;
     const skippedCount = results.filter(r => r.status === 'skipped').length;
-    const failedCount = results.filter(r => r.status === 'message_created_push_failed').length;
+    const messageOnlyCount = results.filter(r => r.status === 'message_only').length;
 
-    console.log(`[AbsentNotif] Done. success: ${successCount}, skipped: ${skippedCount}, failed: ${failedCount}`);
-    return Response.json({ success: true, results, successCount, skippedCount, failedCount });
+    console.log(`[AbsentNotif] Done. success: ${successCount}, message_only: ${messageOnlyCount}, skipped: ${skippedCount}`);
+    return Response.json({ success: true, results, successCount, messageOnlyCount, skippedCount });
 
   } catch (error) {
     console.error('[AbsentNotif] Fatal error:', error.message);
