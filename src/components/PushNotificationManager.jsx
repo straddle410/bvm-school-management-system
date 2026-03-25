@@ -104,6 +104,14 @@ export default function PushNotificationManager() {
           await OneSignal.login(externalUserId);
           console.log('[PushNotificationManager] OneSignal login done');
 
+          // Explicitly opt in to push subscription (needed when autoRegister is false)
+          try {
+            await OneSignal.User.PushSubscription.optIn();
+            console.log('[PushNotificationManager] PushSubscription optIn done');
+          } catch (optInErr) {
+            console.warn('[PushNotificationManager] optIn error:', optInErr.message);
+          }
+
           setTimeout(async () => {
             try {
               const playerId = OneSignal.User.PushSubscription.id;
