@@ -51,6 +51,8 @@ export default function StudentDashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const [showNotifBanner, setShowNotifBanner] = useState(false);
+
   useEffect(() => {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
@@ -71,10 +73,26 @@ export default function StudentDashboard() {
       navigate(target, { replace: true });
     }
 
-    // Delay push registration so it doesn't block dashboard render
-    const timer = setTimeout(() => autoRegisterPush(session), 3000);
-    return () => clearTimeout(timer);
+    // Show notification banner if permission not yet decided
+    if ('Notification' in window && Notification.permission === 'default') {
+      setTimeout(() => setShowNotifBanner(true), 2000);
+    } else {
+      // Delay push registration so it doesn't block dashboard render
+      const timer = setTimeout(() => autoRegisterPush(session), 3000);
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  const handleEnableNotifications = async () => {
+    setShowNotifBanner(false);
+    const session = getStudentSession();
+    if (!session) return;
+    // Request permission in response to user gesture (required on Android)
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      await autoRegisterPush(session);
+    }
+  };
 
   const autoRegisterPush = async (session) => {
     try {
@@ -342,6 +360,31 @@ export default function StudentDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Notification Permission Banner */}
+      {showNotifBanner && (
+        <div className="mx-4 mt-3 bg-indigo-600 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg">
+          <Bell className="h-5 w-5 flex-shrink-0 text-white" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold leading-tight">Enable Notifications</p>
+            <p className="text-xs text-indigo-200 leading-tight mt-0.5">Get instant alerts for notices, marks & more</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={handleEnableNotifications}
+              className="bg-white text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl"
+            >
+              Allow
+            </button>
+            <button
+              onClick={() => setShowNotifBanner(false)}
+              className="text-indigo-200 text-xs px-1 py-1.5"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Student Info Card */}
       <div className="px-4 pt-4 pb-2">
