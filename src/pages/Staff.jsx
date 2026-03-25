@@ -258,13 +258,17 @@ export default function Staff() {
     const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
     const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
 
-    // Generate ID client-side instantly: get next counter and format
-    const prefix = derivedRole === 'teacher' ? 'T' : derivedRole === 'admin' || derivedRole === 'principal' ? 'A' : 'S';
+    // Generate ID client-side: A### for admin/accountant/principal, T### for everyone else
+    const ADMIN_ROLES = ['admin', 'accountant', 'principal'];
+    const prefix = ADMIN_ROLES.includes(derivedRole) ? 'A' : 'T';
     const existingIds = staffList
-      .filter(s => s.username && s.username.startsWith(prefix))
+      .filter(s => s.username && s.username.toUpperCase().startsWith(prefix))
       .map(s => parseInt(s.username.slice(1), 10))
       .filter(n => !isNaN(n));
-    const nextNum = (Math.max(...existingIds, 100)) + 1;
+    // Find next available number (not just max+1) to avoid gaps causing duplicates
+    const usedSet = new Set(existingIds);
+    let nextNum = 101;
+    while (usedSet.has(nextNum)) nextNum++;
     const generatedId = prefix + nextNum;
 
     setForm(f => ({ ...f, username: generatedId, staff_code: generatedId }));
