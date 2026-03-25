@@ -23,7 +23,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'STUDENT_NOT_FOUND' }, { status: 401 });
     }
 
-    const student = students[0];
+    // If multiple records (e.g. promoted to new year), pick the latest academic year
+    const student = students.sort((a, b) => {
+      const ay = (s) => s.academic_year || '';
+      return ay(b).localeCompare(ay(a));
+    })[0];
 
     // Check if student is active
     if (student.is_deleted || (student.is_active === false)) {
