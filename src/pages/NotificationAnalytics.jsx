@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import RecipientModal from '@/components/RecipientModal';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +8,9 @@ import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Leg
 
 export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [recipients, setRecipients] = useState([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deliveryStats, setDeliveryStats] = useState({});
   const [loadingRows, setLoadingRows] = useState({});
@@ -25,6 +29,30 @@ export default function NotificationAnalytics() {
     };
     loadLogs();
   }, []);
+
+  const openRecipients = async (log) => {
+    setSelectedLog(log);
+    setRecipients([]);
+    setRecipientsLoading(true);
+
+    const studentIds = [];
+    const staffIds = [];
+    (log.target_user_ids || []).forEach(id => {
+      if (id.startsWith('student_')) studentIds.push(id.replace('student_', ''));
+      else if (id.startsWith('staff_')) staffIds.push(id.replace('staff_', ''));
+    });
+
+    const [students, staff] = await Promise.all([
+      studentIds.length ? base44.entities.Student.filter({ student_id: { $in: studentIds } }) : [],
+      staffIds.length ? base44.entities.StaffAccount.filter({ id: { $in: staffIds } }) : []
+    ]);
+
+    setRecipients([
+      ...students.map(s => s.name),
+      ...staff.map(s => s.name)
+    ]);
+    setRecipientsLoading(false);
+  };
 
   // Fetch delivery stats for a single notification (lazy load with caching)
   const fetchSingleStat = async (log) => {
@@ -124,6 +152,12 @@ export default function NotificationAnalytics() {
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
+      <RecipientModal
+        log={selectedLog}
+        recipients={recipients}
+        loading={recipientsLoading}
+        onClose={() => setSelectedLog(null)}
+      />
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Notification Analytics</h1>
         <p className="text-gray-600">Track all push notifications sent to students and staff</p>
@@ -341,7 +375,9 @@ export default function NotificationAnalytics() {
                           {new Date(log.sent_date).toLocaleDateString('en-IN')}
                         </td>
                         <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2">
+                          <button onClick={() => openRecipients(log)} className="text-blue-600 hover:underline font-medium">{log.recipients_count}</button>
+                        </td>
                         <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
                         <td className="py-2 px-2">
                           <span
@@ -391,7 +427,9 @@ export default function NotificationAnalytics() {
                           {new Date(log.sent_date).toLocaleDateString('en-IN')}
                         </td>
                         <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2">
+                          <button onClick={() => openRecipients(log)} className="text-blue-600 hover:underline font-medium">{log.recipients_count}</button>
+                        </td>
                         <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
                         <td className="py-2 px-2">
                           <span
@@ -526,7 +564,9 @@ export default function NotificationAnalytics() {
                       <tr key={log.id} className="border-b hover:bg-gray-50">
                         <td className="py-2 px-2">{new Date(log.sent_date).toLocaleDateString('en-IN')}</td>
                         <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2">
+                          <button onClick={() => openRecipients(log)} className="text-blue-600 hover:underline font-medium">{log.recipients_count}</button>
+                        </td>
                         <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
                         <td className="py-2 px-2">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
