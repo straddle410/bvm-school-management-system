@@ -8,7 +8,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
  * Also used as a one-time migration endpoint to assign IDs to existing staff.
  */
 
-const ADMIN_ROLES = ['admin', 'accountant'];
+const ADMIN_ROLES = ['admin', 'accountant', 'principal'];
 
 function getPrefix(role) {
   return ADMIN_ROLES.includes((role || '').toLowerCase()) ? 'A' : 'T';
