@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { staff_id, staff_name } = await req.json();
+    const { staff_id, staff_name, staff_code } = await req.json();
 
     if (!staff_id) {
       return Response.json({ error: 'staff_id is required' }, { status: 400 });
@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
         onesignal_player_id: playerId,
         browser_push_enabled: true,
         ...(staff_name ? { staff_name } : {}),
+        ...(staff_code ? { staff_code } : {}),
       });
       console.log('[saveStaffPushToken] Updated onesignal_player_id for staff_id:', staff_id);
     } else {
@@ -56,6 +57,7 @@ Deno.serve(async (req) => {
         onesignal_player_id: playerId,
         browser_push_enabled: true,
         ...(staff_name ? { staff_name } : {}),
+        ...(staff_code ? { staff_code } : {}),
       });
       console.log('[saveStaffPushToken] Created new record for staff_id:', staff_id);
     }
