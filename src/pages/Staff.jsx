@@ -127,7 +127,6 @@ export default function Staff() {
   const { data: staffList = [] } = useQuery({
     queryKey: ['staff-accounts-rbac'],
     queryFn: () => base44.entities.StaffAccount.list('-created_date'),
-    enabled: activeTab !== 'add', // Only load when viewing/managing staff
   });
 
   const { data: roleTemplates = [] } = useQuery({
