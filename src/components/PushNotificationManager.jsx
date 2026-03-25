@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+  const [showAndroidPrompt, setShowAndroidPrompt] = useState(false);
+  const [pendingInit, setPendingInit] = useState(false);
 
   useEffect(() => {
     const run = async () => {
@@ -69,11 +71,10 @@ export default function PushNotificationManager() {
         return;
       }
       if (permission === 'default') {
-        const result = await Notification.requestPermission();
-        if (result !== 'granted') {
-          console.warn('[PushNotificationManager] Permission not granted:', result);
-          return;
-        }
+        // Android requires permission request via user gesture — show a banner
+        setPendingInit(true);
+        setShowAndroidPrompt(true);
+        return;
       }
 
       // Fetch OneSignal App ID
@@ -140,11 +141,18 @@ export default function PushNotificationManager() {
   const handleEnableNotifications = async () => {
     try {
       const permission = await Notification.requestPermission();
+      setShowIOSPrompt(false);
+      setShowAndroidPrompt(false);
       if (permission === 'granted') {
-        setShowIOSPrompt(false);
         toast.success('Notifications enabled!');
+        // If we had a pending init, re-trigger it now that permission is granted
+        if (pendingInit) {
+          setPendingInit(false);
+          // Re-run the init by reloading OneSignal setup
+          window.location.reload();
+        }
       } else {
-        toast.error('Notifications blocked. Enable in iPhone Settings.');
+        toast.error('Notifications blocked. Please enable from device settings.');
       }
     } catch (e) {
       toast.error('Failed to enable notifications');
@@ -153,14 +161,27 @@ export default function PushNotificationManager() {
 
   return (
     <>
-      {showIOSPrompt && (
+      {(showIOSPrompt || showAndroidPrompt) && (
         <div className="fixed bottom-20 left-0 right-0 z-50 flex justify-center px-4">
-          <Button
-            onClick={handleEnableNotifications}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg text-base py-6 px-8 rounded-full"
-          >
-            🔔 Enable Notifications
-          </Button>
+          <div className="bg-white border border-blue-200 shadow-xl rounded-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full">
+            <span className="text-2xl">🔔</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-gray-800">Enable Notifications</p>
+              <p className="text-xs text-gray-500">Get alerts for notices, homework & more</p>
+            </div>
+            <button
+              onClick={handleEnableNotifications}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-3 py-2 rounded-xl"
+            >
+              Allow
+            </button>
+            <button
+              onClick={() => { setShowIOSPrompt(false); setShowAndroidPrompt(false); }}
+              className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
     </>
