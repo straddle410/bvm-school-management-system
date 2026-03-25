@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
@@ -12,128 +11,127 @@ export default function PushNotificationManager() {
     const run = async () => {
       console.log('[PushNotificationManager] mounted');
 
-      // CRITICAL: Check student_session FIRST and RETURN early if found
-       // Students must NEVER fall through to staff session check
-       const studentRaw = localStorage.getItem('student_session');
-       if (studentRaw) {
-         try {
-           const student = JSON.parse(studentRaw);
-           const studentId = student?.student_id;
-           if (!studentId) {
-             console.log('[PushNotificationManager] Student session found but no student_id, skipping');
-             return;
-           }
-           const externalUserId = `student_${studentId}`;
-           const tokenSaveFn = 'saveStudentPushToken';
-           const tokenSavePayload = (playerId) => ({ student_id: studentId, player_id: playerId });
-           console.log('[PushNotificationManager] Student session detected:', externalUserId);
+      const studentRaw = localStorage.getItem('student_session');
+      if (!studentRaw) {
+        console.log('[PushNotificationManager] No student session found');
+        return;
+      }
 
-           // iOS PWA check
-           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-           const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-           if (isIOS && !isPWA) {
-             if (!sessionStorage.getItem('ios_push_hint_shown')) {
-               sessionStorage.setItem('ios_push_hint_shown', '1');
-               toast.info('To receive notifications on iPhone: Safari → Share → Add to Home Screen');
-             }
-             return;
-           }
-           if (isIOS && isPWA && Notification.permission === 'default') {
-             setShowIOSPrompt(true);
-             return;
-           }
+      try {
+        const student = JSON.parse(studentRaw);
+        const studentId = student?.student_id;
+        if (!studentId) {
+          console.log('[PushNotificationManager] Student session found but no student_id');
+          return;
+        }
 
-           // Check/request notification permission
-           const permission = Notification.permission;
-           if (permission === 'denied') {
-             console.warn('[PushNotificationManager] Notification permission denied');
-             return;
-           }
-           if (permission === 'default') {
-             setPendingInit(true);
-             setShowAndroidPrompt(true);
-             return;
-           }
+        const externalUserId = `student_${studentId}`;
+        const tokenSaveFn = 'saveStudentPushToken';
+        const tokenSavePayload = (playerId) => ({ student_id: studentId, player_id: playerId });
+        console.log('[PushNotificationManager] Student session detected:', externalUserId);
 
-           // Fetch OneSignal App ID
-           const appIdRes = await fetch('/api/functions/getOneSignalAppId');
-           const appIdData = await appIdRes.json();
-           const appId = appIdData?.appId || appIdData?.app_id;
-           if (!appId) {
-             console.warn('[PushNotificationManager] OneSignal App ID not available');
-             return;
-           }
+        // iOS PWA check
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+        if (isIOS && !isPWA) {
+          if (!sessionStorage.getItem('ios_push_hint_shown')) {
+            sessionStorage.setItem('ios_push_hint_shown', '1');
+            toast.info('To receive notifications on iPhone: Safari → Share → Add to Home Screen');
+          }
+          return;
+        }
+        if (isIOS && isPWA && Notification.permission === 'default') {
+          setShowIOSPrompt(true);
+          return;
+        }
 
-           // Load OneSignal SDK and init
-           window.OneSignalDeferred = window.OneSignalDeferred || [];
-           window.OneSignalDeferred.push(async function (OneSignal) {
-             try {
-               await OneSignal.init({
-                 appId,
-                 serviceWorkerParam: { scope: '/' },
-                 autoRegister: false,
-                 autoResubscribe: false,
-                 allowLocalhostAsSecureOrigin: true,
-                 promptOptions: { slidedown: { enabled: false } },
-                 notifyButton: { enable: false },
-               });
+        // Check notification permission
+        const permission = Notification.permission;
+        if (permission === 'denied') {
+          console.warn('[PushNotificationManager] Notification permission denied');
+          return;
+        }
+        if (permission === 'default') {
+          setPendingInit(true);
+          setShowAndroidPrompt(true);
+          return;
+        }
 
-               console.log('[PushNotificationManager] OneSignal init done, logging in:', externalUserId);
-               await OneSignal.login(externalUserId);
-               console.log('[PushNotificationManager] OneSignal login done');
+        // Fetch OneSignal App ID
+        const appIdRes = await fetch('/api/functions/getOneSignalAppId');
+        const appIdData = await appIdRes.json();
+        const appId = appIdData?.appId || appIdData?.app_id;
+        if (!appId) {
+          console.warn('[PushNotificationManager] OneSignal App ID not available');
+          return;
+        }
 
-               try {
-                 await OneSignal.User.PushSubscription.optIn();
-                 console.log('[PushNotificationManager] PushSubscription optIn done');
-               } catch (optInErr) {
-                 console.warn('[PushNotificationManager] optIn error:', optInErr.message);
-               }
+        // Load OneSignal SDK
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async function (OneSignal) {
+          try {
+            await OneSignal.init({
+              appId,
+              serviceWorkerParam: { scope: '/' },
+              autoRegister: false,
+              autoResubscribe: false,
+              allowLocalhostAsSecureOrigin: true,
+              promptOptions: { slidedown: { enabled: false } },
+              notifyButton: { enable: false },
+            });
 
-               let playerId = null;
-               let attempts = 0;
-               const maxAttempts = 20;
+            console.log('[PushNotificationManager] OneSignal init done, logging in:', externalUserId);
+            await OneSignal.login(externalUserId);
+            console.log('[PushNotificationManager] OneSignal login done');
 
-               const waitForSubscription = setInterval(async () => {
-                 attempts++;
-                 const id = OneSignal.User.PushSubscription.id;
-                 const isSubscribed = OneSignal.User.PushSubscription.isSubscribed;
-                 console.log(`[PushNotificationManager] Attempt ${attempts}: id=${id}, isSubscribed=${isSubscribed}`);
+            try {
+              await OneSignal.User.PushSubscription.optIn();
+              console.log('[PushNotificationManager] PushSubscription optIn done');
+            } catch (optInErr) {
+              console.warn('[PushNotificationManager] optIn error:', optInErr.message);
+            }
 
-                 if (id && isSubscribed) {
-                   clearInterval(waitForSubscription);
-                   playerId = id;
-                   console.log(`${tokenSaveFn} playerId ready:`, playerId);
+            let playerId = null;
+            let attempts = 0;
+            const maxAttempts = 20;
 
-                   try {
-                     await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
-                     console.log(`${tokenSaveFn} called successfully with playerId:`, playerId);
-                   } catch (e) {
-                     console.error('Push save error:', e);
-                   }
-                 } else if (attempts >= maxAttempts) {
-                   clearInterval(waitForSubscription);
-                   console.warn('[PushNotificationManager] Subscription not ready after 10s, giving up');
-                 }
-               }, 500);
-             } catch (err) {
-               console.error('[PushNotificationManager] OneSignal error:', err.message);
-             }
-           });
+            const waitForSubscription = setInterval(async () => {
+              attempts++;
+              const id = OneSignal.User.PushSubscription.id;
+              const isSubscribed = OneSignal.User.PushSubscription.isSubscribed;
+              console.log(`[PushNotificationManager] Attempt ${attempts}: id=${id}, isSubscribed=${isSubscribed}`);
 
-           if (!document.querySelector('script[src*="OneSignalSDK"]')) {
-             const script = document.createElement('script');
-             script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-             script.defer = true;
-             document.head.appendChild(script);
-           }
-         } catch (e) {
-           console.error('[PushNotificationManager] Student session error:', e);
-         }
-       }
+              if (id && isSubscribed) {
+                clearInterval(waitForSubscription);
+                playerId = id;
+                console.log(`${tokenSaveFn} playerId ready:`, playerId);
 
-       // Staff/admin session handling goes here (if needed)
-       console.log('[PushNotificationManager] No session found, skipping');
-      };
+                try {
+                  await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
+                  console.log(`${tokenSaveFn} called successfully with playerId:`, playerId);
+                } catch (e) {
+                  console.error('Push save error:', e);
+                }
+              } else if (attempts >= maxAttempts) {
+                clearInterval(waitForSubscription);
+                console.warn('[PushNotificationManager] Subscription not ready after 10s, giving up');
+              }
+            }, 500);
+          } catch (err) {
+            console.error('[PushNotificationManager] OneSignal error:', err.message);
+          }
+        });
+
+        if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+          script.defer = true;
+          document.head.appendChild(script);
+        }
+      } catch (e) {
+        console.error('[PushNotificationManager] Error:', e);
+      }
+    };
 
     run();
   }, []);
@@ -145,10 +143,8 @@ export default function PushNotificationManager() {
       setShowAndroidPrompt(false);
       if (permission === 'granted') {
         toast.success('Notifications enabled!');
-        // If we had a pending init, re-trigger it now that permission is granted
         if (pendingInit) {
           setPendingInit(false);
-          // Re-run the init by reloading OneSignal setup
           window.location.reload();
         }
       } else {
