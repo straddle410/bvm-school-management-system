@@ -144,9 +144,12 @@ Deno.serve(async (req) => {
         // ── STEP 3a: Create NEW record — do NOT touch old record ──
         await base44.asServiceRole.entities.Student.create({
           student_id: student.student_id,
+          student_id_norm: student.student_id_norm || (student.student_id ? student.student_id.trim().toLowerCase() : null),
           name: student.name,
           username: student.username,
           password: student.password,
+          password_hash: student.password_hash || null,
+          must_change_password: student.must_change_password || false,
           photo_url: student.photo_url,
           class_name: nextClass,
           section: student.section || 'A',
