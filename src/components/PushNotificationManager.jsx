@@ -10,14 +10,11 @@ let _externalUserIdRegistered = null;
 
 async function initOneSignal(externalUserId, staffId) {
   if (!externalUserId || _oneSignalLoaded || _permissionDenied) return;
-
-  // Avoid double-registration
   if (_externalUserIdRegistered === externalUserId) return;
 
   _oneSignalLoaded = true;
 
   try {
-    // Request notification permission upfront before SDK init
     const permission = Notification.permission;
     if (permission === 'default') {
       console.log('[OneSignal] Requesting notification permission...');
@@ -34,7 +31,6 @@ async function initOneSignal(externalUserId, staffId) {
       _oneSignalLoaded = false;
       return;
     }
-
     console.log('[OneSignal] Permission granted, initializing SDK...');
   } catch (permErr) {
     console.warn('[OneSignal] Permission request error:', permErr.message);
@@ -57,56 +53,59 @@ async function initOneSignal(externalUserId, staffId) {
       try {
         await OneSignal.init({
           appId,
-        serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
-        serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
-        serviceWorkerParam: { scope: '/' },
-        autoRegister: false,
-        autoResubscribe: false,
-        allowLocalhostAsSecureOrigin: true,
-        promptOptions: { slidedown: { enabled: false } },
-        notifyButton: { enable: false },
-      });
+          serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
+          serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
+          serviceWorkerParam: { scope: '/' },
+          autoRegister: false,
+          autoResubscribe: false,
+          allowLocalhostAsSecureOrigin: true,
+          promptOptions: { slidedown: { enabled: false } },
+          notifyButton: { enable: false },
+        });
 
-      // Associate this device with the external user ID
-      // This enables bulk sending via include_external_user_ids
-      try {
-        await OneSignal.login(externalUserId);
-        _externalUserIdRegistered = externalUserId;
-        console.log('[OneSignal] Successfully logged in as:', externalUserId);
+        try {
+          await OneSignal.login(externalUserId);
+          _externalUserIdRegistered = externalUserId;
+          console.log('[OneSignal] Successfully logged in as:', externalUserId);
 
-        // Save staff push token to backend to create StaffNotificationPreference
-        if (staffId) {
-          try {
-            const playerId = OneSignal.User.PushSubscription.id;
-            if (!playerId) {
-              console.warn('[OneSignal] playerId not available after login');
-              return;
+          if (staffId) {
+            const alreadySaved = sessionStorage.getItem(`push_saved_${staffId}`);
+            if (!alreadySaved) {
+              setTimeout(async () => {
+                try {
+                  const playerId = OneSignal.User.PushSubscription.id;
+                  if (!playerId) {
+                    console.warn('[OneSignal] playerId not ready after delay');
+                    return;
+                  }
+                  console.log('[OneSignal] playerId:', playerId);
+                  await base44.functions.invoke('saveStaffPushToken', {
+                    staff_id: staffId,
+                    player_id: playerId,
+                  });
+                  sessionStorage.setItem(`push_saved_${staffId}`, '1');
+                  console.log('[OneSignal] saveStaffPushToken called for staff_id:', staffId);
+                } catch (saveErr) {
+                  console.warn('[OneSignal] saveStaffPushToken failed (non-fatal):', saveErr.message);
+                }
+              }, 3000);
             }
-            console.log('[OneSignal] playerId:', playerId);
-            await base44.functions.invoke('saveStaffPushToken', {
-              staff_id: staffId,
-              player_id: playerId,
-            });
-            console.log('[OneSignal] saveStaffPushToken called for staff_id:', staffId);
-          } catch (saveErr) {
-            console.warn('[OneSignal] saveStaffPushToken failed (non-fatal):', saveErr.message);
           }
+        } catch (loginErr) {
+          console.error('[OneSignal] Login failed:', loginErr.message);
         }
-      } catch (loginErr) {
-        console.error('[OneSignal] Login failed:', loginErr.message);
+      } catch (initErr) {
+        console.error('[OneSignal] SDK init error:', initErr.message);
+        _oneSignalLoaded = false;
       }
-    } catch (initErr) {
-      console.error('[OneSignal] SDK init error:', initErr.message);
-      _oneSignalLoaded = false;
-        }
-      });
+    });
 
-      if (!document.querySelector('script[src*="OneSignalSDK"]')) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-        script.defer = true;
-        document.head.appendChild(script);
-      }
+    if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    }
   } catch (e) {
     console.error('[OneSignal] Init error:', e.message);
     _oneSignalLoaded = false;
