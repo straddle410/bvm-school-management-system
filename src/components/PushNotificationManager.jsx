@@ -92,7 +92,6 @@ export default function PushNotificationManager() {
         try {
           await OneSignal.init({
             appId,
-            // Use default /OneSignalSDKWorker.js at root — required for Android PWA/TWA
             serviceWorkerParam: { scope: '/' },
             autoRegister: false,
             autoResubscribe: false,
