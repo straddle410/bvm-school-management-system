@@ -50,7 +50,36 @@ Deno.serve(async (req) => {
     const data = await res.json();
     console.log('[SendStudentPush] OneSignal response:', JSON.stringify(data));
 
-    return Response.json({ success: true, sent: data.recipients ?? 0, onesignal: data });
+    if (res.ok) {
+      await base44.asServiceRole.entities.PushNotificationLog.create({
+        one_signal_notification_id: data.id || 'unknown',
+        target_type: 'student',
+        target_user_ids: externalUserIds,
+        title: title || 'New Notification',
+        message: (message || '').substring(0, 100),
+        recipients_count: data.recipients ?? externalUserIds.length,
+        status: 'sent',
+        context_type: 'custom_student_push',
+        context_id: 'batch',
+        sent_date: new Date().toISOString(),
+      });
+      return Response.json({ success: true, sent: data.recipients ?? 0, onesignal: data });
+    } else {
+      await base44.asServiceRole.entities.PushNotificationLog.create({
+        one_signal_notification_id: data.id || 'unknown',
+        target_type: 'student',
+        target_user_ids: externalUserIds,
+        title: title || 'New Notification',
+        message: (message || '').substring(0, 100),
+        recipients_count: externalUserIds.length,
+        status: 'failed',
+        error_message: data.errors?.[0] || JSON.stringify(data),
+        context_type: 'custom_student_push',
+        context_id: 'batch',
+        sent_date: new Date().toISOString(),
+      });
+      return Response.json({ success: false, sent: 0, error: data, status: res.status }, { status: res.status });
+    }
   } catch (error) {
     console.error('[SendStudentPush] Fatal error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
