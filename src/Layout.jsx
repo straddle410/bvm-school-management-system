@@ -8,12 +8,11 @@ import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
-import PushDebugPanel from '@/components/PushDebugPanel';
-import StaffAuthGuard from '@/components/StaffAuthGuard';
-import StudentAuthGuard from '@/components/StudentAuthGuard';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import { getProxiedImageUrl } from '@/components/imageProxy';
+import StudentAuthGuard from '@/components/StudentAuthGuard';
+import StaffAuthGuard from '@/components/StaffAuthGuard';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
@@ -147,88 +146,87 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem("vite-ui-theme", "light");
     return (
       <AcademicYearProvider>
-        <PushNotificationManager />
-        <PushDebugPanel />
         <div className="min-h-screen bg-gray-100 flex flex-col relative">
-          <main className="flex-1 overflow-y-auto pb-20">
+          <main className="flex-1 overflow-y-auto">
             <StudentAuthGuard currentPageName={currentPageName}>
               {children}
             </StudentAuthGuard>
           </main>
-          <StudentBottomNav currentPageName={currentPageName} />
         </div>
       </AcademicYearProvider>);
+
   }
 
   return (
     <AcademicYearProvider>
       <MessageNotificationListener />
       <PushNotificationManager />
-      <PushDebugPanel />
       <StaffAuthGuard currentPageName={currentPageName}>
-        <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
-          fontFamily: "'Segoe UI', sans-serif",
-          paddingTop: 'env(safe-area-inset-top)',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-          paddingLeft: 'env(safe-area-inset-left)',
-          paddingRight: 'env(safe-area-inset-right)'
-        }}>
-          {/* Top Header */}
-          <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
-            {currentPageName !== 'Dashboard' && (
-              <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/Dashboard')} className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0">
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-            )}
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-sm sm:text-base tracking-tight leading-tight truncate">
-                  {schoolProfile?.school_name || 'BVM School'}
-                </span>
-                {!studentSession && <span className="text-[10px] sm:text-xs text-white/70">Staff Portal</span>}
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              <button
-                onClick={() => setIsDark(v => !v)}
-                className="p-1.5 rounded-lg hover:bg-white/20 transition flex-shrink-0"
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDark ? <Sun className="h-5 w-5 text-yellow-300" /> : <Moon className="h-5 w-5 text-white/80" />}
-              </button>
-              <AcademicYearSelector />
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="flex-1 overflow-y-auto pb-20">
-            {children}
-          </main>
-
-          {/* Bottom Navigation */}
-          <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
-            <div className="flex items-center justify-around py-1 overflow-x-auto">
-              {getBottomNav(isAdmin, userRole).map((item) => {
-                  const isActive = currentPageName === item.page;
-                  const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
-                  return (
-                    <Link
-                      key={item.name}
-                      to={href}
-                      className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-w-[48px] min-h-[48px] justify-center ${
-                      isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                      <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
-                      <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
-                        {item.name}
-                      </span>
-                      {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
-                    </Link>);
-                })}
-            </div>
-          </nav>
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
+      fontFamily: "'Segoe UI', sans-serif",
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+      paddingLeft: 'env(safe-area-inset-left)',
+      paddingRight: 'env(safe-area-inset-right)'
+    }}>
+      {/* Top Header */}
+      <header className="no-print bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-2 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md w-full relative min-h-14 py-2">
+        {currentPageName !== 'Dashboard' && (
+          <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/Dashboard')} className="hover:bg-white/20 p-1 rounded-lg transition flex-shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        )}
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <LogoWithFallback src={schoolProfile?.logo_url} alt="Logo" />
+          <div className="flex flex-col min-w-0">
+            <span className="font-bold text-sm sm:text-base tracking-tight leading-tight truncate">
+              {schoolProfile?.school_name || 'BVM School'}
+            </span>
+            {!studentSession && <span className="text-[10px] sm:text-xs text-white/70">Staff Portal</span>}
+          </div>
         </div>
-      </StaffAuthGuard>
-    </AcademicYearProvider>
-  );
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          <button
+            onClick={() => setIsDark(v => !v)}
+            className="p-1.5 rounded-lg hover:bg-white/20 transition flex-shrink-0"
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? <Sun className="h-5 w-5 text-yellow-300" /> : <Moon className="h-5 w-5 text-white/80" />}
+          </button>
+          <AcademicYearSelector />
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto pb-20">
+        <StaffAuthGuard currentPageName={currentPageName}>
+          {children}
+        </StaffAuthGuard>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
+        <div className="flex items-center justify-around py-1 overflow-x-auto">
+          {getBottomNav(isAdmin, userRole).map((item) => {
+              const isActive = currentPageName === item.page;
+              const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
+              return (
+                <Link
+                  key={item.name}
+                  to={href}
+                  className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl transition-all relative flex-1 min-w-[48px] min-h-[48px] justify-center ${
+                  isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  <item.icon className={`${userRole === 'accountant' ? 'h-6 w-6' : 'h-6 w-6'} ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`} />
+                  <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                    {item.name}
+                  </span>
+                  {isActive && <div className="w-1 h-1 rounded-full bg-[#1a237e] mt-0.5" />}
+                </Link>);
+            })}
+        </div>
+        </nav>
+        </div>
+        </StaffAuthGuard>
+        </AcademicYearProvider>);
+
 }
