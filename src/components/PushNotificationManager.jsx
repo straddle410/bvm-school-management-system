@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -7,7 +8,7 @@ let _oneSignalLoaded = false;
 let _permissionDenied = false;
 let _externalUserIdRegistered = null;
 
-async function initOneSignal(externalUserId) {
+async function initOneSignal(externalUserId, staffId) {
   if (!externalUserId || _oneSignalLoaded || _permissionDenied) return;
 
   // Avoid double-registration
@@ -72,6 +73,22 @@ async function initOneSignal(externalUserId) {
         await OneSignal.login(externalUserId);
         _externalUserIdRegistered = externalUserId;
         console.log('[OneSignal] Successfully logged in as:', externalUserId);
+
+        // Save staff push token to backend to create StaffNotificationPreference
+        if (staffId) {
+          try {
+            const playerId = await OneSignal.getUserId();
+            if (playerId) {
+              await base44.functions.invoke('saveStaffPushToken', {
+                staff_id: staffId,
+                player_id: playerId,
+              });
+              console.log('[OneSignal] saveStaffPushToken called for staff_id:', staffId);
+            }
+          } catch (saveErr) {
+            console.warn('[OneSignal] saveStaffPushToken failed (non-fatal):', saveErr.message);
+          }
+        }
       } catch (loginErr) {
         console.error('[OneSignal] Login failed:', loginErr.message);
       }
@@ -144,7 +161,9 @@ export default function PushNotificationManager() {
         }
 
         // Init OneSignal after short delay to not block render
-        setTimeout(() => initOneSignal(externalUserId), 2000);
+        const rawStaff = localStorage.getItem('staff_session');
+        const staffId = rawStaff ? JSON.parse(rawStaff)?.id : null;
+        setTimeout(() => initOneSignal(externalUserId, staffId), 2000);
 
       } catch (e) {
         console.warn('[PushNotificationManager] Error (non-fatal):', e.message);
