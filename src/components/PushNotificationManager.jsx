@@ -116,10 +116,10 @@ export default function PushNotificationManager() {
                   console.warn('[PushNotificationManager] Subscription not ready after 10s, giving up');
                 }
               }, 500);
-        } catch (err) {
-          console.error('[PushNotificationManager] OneSignal error:', err.message);
-        }
-      });
+              } catch (err) {
+              console.error('[PushNotificationManager] OneSignal error:', err.message);
+              }
+              });
 
       if (!document.querySelector('script[src*="OneSignalSDK"]')) {
         const script = document.createElement('script');
@@ -127,6 +127,14 @@ export default function PushNotificationManager() {
         script.defer = true;
         document.head.appendChild(script);
       }
+        } catch (e) {
+          console.error('[PushNotificationManager] Student session error:', e);
+          return;
+        }
+      }
+
+      // Staff/admin session handling goes here (if needed)
+      console.log('[PushNotificationManager] No session found, skipping');
     };
 
     run();
