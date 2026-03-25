@@ -10,21 +10,34 @@ export default function PushNotificationManager() {
     const run = async () => {
       console.log('[PushNotificationManager] mounted');
 
+      // Detect session type — staff takes priority, then student
       const staffRaw = localStorage.getItem('staff_session');
-      if (!staffRaw) {
-        console.log('[PushNotificationManager] No staff_session found, skipping');
+      const studentRaw = localStorage.getItem('student_session');
+
+      let externalUserId = null;
+      let tokenSaveFn = null;
+      let tokenSavePayload = null;
+
+      if (staffRaw) {
+        const staff = JSON.parse(staffRaw);
+        const staffId = staff?.staff_id;
+        if (!staffId) return;
+        externalUserId = `staff_${staffId}`;
+        tokenSaveFn = 'saveStaffPushToken';
+        tokenSavePayload = (playerId) => ({ staff_id: staffId, player_id: playerId });
+        console.log('[PushNotificationManager] Staff session detected:', externalUserId);
+      } else if (studentRaw) {
+        const student = JSON.parse(studentRaw);
+        const studentId = student?.student_id;
+        if (!studentId) return;
+        externalUserId = `student_${studentId}`;
+        tokenSaveFn = 'saveStudentPushToken';
+        tokenSavePayload = (playerId) => ({ student_id: studentId, player_id: playerId });
+        console.log('[PushNotificationManager] Student session detected:', externalUserId);
+      } else {
+        console.log('[PushNotificationManager] No session found, skipping');
         return;
       }
-
-      const staff = JSON.parse(staffRaw);
-      const staffId = staff?.staff_id;
-      if (!staffId) {
-        console.warn('[PushNotificationManager] staff_session missing staff_id');
-        return;
-      }
-
-      const externalUserId = `staff_${staffId}`;
-      console.log('[PushNotificationManager] externalUserId:', externalUserId);
 
       // iOS PWA check
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -87,18 +100,15 @@ export default function PushNotificationManager() {
           setTimeout(async () => {
             try {
               const playerId = OneSignal.User.PushSubscription.id;
-              console.log('FORCE playerId:', playerId);
+              console.log(`${tokenSaveFn} playerId:`, playerId);
 
               if (!playerId) {
                 console.warn('playerId not ready');
                 return;
               }
 
-              await base44.functions.invoke('saveStaffPushToken', {
-                staff_id: staffId,
-                player_id: playerId,
-              });
-              console.log('FORCE saveStaffPushToken called');
+              await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
+              console.log(`${tokenSaveFn} called successfully`);
             } catch (e) {
               console.error('Push save error:', e);
             }
