@@ -8,9 +8,7 @@ export default function PushNotificationManager() {
 
   useEffect(() => {
     const run = async () => {
-      console.log('PNM mounted');
-      console.log('student_session:', localStorage.getItem('student_session'));
-      console.log('staff_session:', localStorage.getItem('staff_session'));
+      console.log('[PushNotificationManager] mounted');
 
       // Detect session type — staff takes priority, then student
       const staffRaw = localStorage.getItem('staff_session');
@@ -43,8 +41,6 @@ export default function PushNotificationManager() {
         tokenSavePayload = (playerId) => ({ student_id: studentId, player_id: playerId });
         console.log('[PushNotificationManager] Student session detected:', externalUserId);
       }
-
-      console.log('Checking student flow', { studentRaw: !!studentRaw, externalUserId });
 
       if (!externalUserId) {
         console.log('[PushNotificationManager] No session found, skipping');
@@ -106,7 +102,6 @@ export default function PushNotificationManager() {
           });
 
           console.log('[PushNotificationManager] OneSignal init done, logging in:', externalUserId);
-          if (externalUserId.startsWith('student_')) console.log('Student OneSignal login triggered');
           await OneSignal.login(externalUserId);
           console.log('[PushNotificationManager] OneSignal login done');
 
@@ -120,7 +115,6 @@ export default function PushNotificationManager() {
                 return;
               }
 
-              if (tokenSaveFn === 'saveStudentPushToken') console.log('Calling saveStudentPushToken', { playerId });
               await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
               console.log(`${tokenSaveFn} called successfully`);
             } catch (e) {
