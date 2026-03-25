@@ -259,8 +259,9 @@ export default function Staff() {
     const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
 
     // Generate ID client-side: A### for admin/accountant/principal, T### for everyone else
-    const ADMIN_ROLES = ['admin', 'accountant', 'principal'];
-    const prefix = ADMIN_ROLES.includes(derivedRole) ? 'A' : 'T';
+    const ADMIN_ROLE_KEYS = ['admin', 'accountant', 'principal'];
+    const isAdminRole = ADMIN_ROLE_KEYS.includes(derivedRole) || ADMIN_ROLE_KEYS.some(r => rawRoleName.includes(r));
+    const prefix = isAdminRole ? 'A' : 'T';
     const existingIds = staffList
       .filter(s => s.username && s.username.toUpperCase().startsWith(prefix))
       .map(s => parseInt(s.username.slice(1), 10))
@@ -575,7 +576,7 @@ export default function Staff() {
                           />
                           <Lock className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">Auto-generated (T### teacher, A### admin, S### staff)</p>
+                        <p className="text-xs text-slate-400 mt-1">Auto-generated (T### teacher/staff, A### admin/accountant/principal)</p>
                       </div>
 
                       <div>
