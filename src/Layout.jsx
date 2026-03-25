@@ -8,11 +8,11 @@ import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { AcademicYearProvider, useAcademicYear } from '@/components/AcademicYearContext';
 import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
+import PushDebugPanel from '@/components/PushDebugPanel';
+import StaffAuthGuard from '@/components/StaffAuthGuard';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import { getProxiedImageUrl } from '@/components/imageProxy';
-import StudentAuthGuard from '@/components/StudentAuthGuard';
-import StaffAuthGuard from '@/components/StaffAuthGuard';
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
@@ -146,6 +146,8 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem("vite-ui-theme", "light");
     return (
       <AcademicYearProvider>
+        <PushNotificationManager />
+        <PushDebugPanel />
         <div className="min-h-screen bg-gray-100 flex flex-col relative">
           <main className="flex-1 overflow-y-auto">
             <StudentAuthGuard currentPageName={currentPageName}>
@@ -161,6 +163,7 @@ export default function Layout({ children, currentPageName }) {
     <AcademicYearProvider>
       <MessageNotificationListener />
       <PushNotificationManager />
+      <PushDebugPanel />
       <StaffAuthGuard currentPageName={currentPageName}>
     <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
       fontFamily: "'Segoe UI', sans-serif",
