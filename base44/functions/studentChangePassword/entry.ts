@@ -15,9 +15,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    // Fetch student
+    // Fetch student by custom student_id field (e.g. S25061), not the internal DB id
     const students = await base44.asServiceRole.entities.Student.filter({
-      id: student_id
+      student_id: student_id
     });
 
     if (students.length === 0) {
@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
     // Hash new password with bcrypt
     const newPasswordHash = await bcrypt.hash(new_password, 10);
 
-    // Update student record
-    await base44.asServiceRole.entities.Student.update(student_id, {
+    // Update student record using internal DB id
+    await base44.asServiceRole.entities.Student.update(student.id, {
       password_hash: newPasswordHash,
       password: null,
       must_change_password: false
