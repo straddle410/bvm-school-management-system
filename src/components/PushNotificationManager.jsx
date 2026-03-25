@@ -68,29 +68,23 @@ async function initOneSignal(externalUserId, staffId) {
           _externalUserIdRegistered = externalUserId;
           console.log('[OneSignal] Successfully logged in as:', externalUserId);
 
-          if (staffId) {
-            const alreadySaved = sessionStorage.getItem(`push_saved_${staffId}`);
-            if (!alreadySaved) {
-              setTimeout(async () => {
-                try {
-                  const playerId = OneSignal.User.PushSubscription.id;
-                  if (!playerId) {
-                    console.warn('[OneSignal] playerId not ready after delay');
-                    return;
-                  }
-                  console.log('[OneSignal] playerId:', playerId);
-                  await base44.functions.invoke('saveStaffPushToken', {
-                    staff_id: staffId,
-                    player_id: playerId,
-                  });
-                  sessionStorage.setItem(`push_saved_${staffId}`, '1');
-                  console.log('[OneSignal] saveStaffPushToken called for staff_id:', staffId);
-                } catch (saveErr) {
-                  console.warn('[OneSignal] saveStaffPushToken failed (non-fatal):', saveErr.message);
-                }
-              }, 3000);
+          setTimeout(async () => {
+            try {
+              const playerId = OneSignal.User.PushSubscription.id;
+              console.log('playerId:', playerId);
+              if (!playerId) {
+                console.warn('playerId not ready');
+                return;
+              }
+              await base44.functions.invoke('saveStaffPushToken', {
+                staff_id: staffId,
+                player_id: playerId,
+              });
+              console.log('saveStaffPushToken called');
+            } catch (e) {
+              console.error('Push save error:', e);
             }
-          }
+          }, 3000);
         } catch (loginErr) {
           console.error('[OneSignal] Login failed:', loginErr.message);
         }
