@@ -113,7 +113,7 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
           </div>
           <div>
             <Label className="text-xs">Username</Label>
-            <Input value={formData.username || ''} onChange={e => set('username', e.target.value)} placeholder="Login username" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
+            <Input value={formData.username || ''} placeholder="Auto-generated" className="mt-1 rounded-xl bg-gray-50 opacity-60 cursor-not-allowed" readOnly={true} disabled={true} />
           </div>
           <div>
             <Label className="text-xs">Password</Label>
