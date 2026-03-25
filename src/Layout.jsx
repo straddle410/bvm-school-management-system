@@ -150,14 +150,14 @@ export default function Layout({ children, currentPageName }) {
         <PushNotificationManager />
         <PushDebugPanel />
         <div className="min-h-screen bg-gray-100 flex flex-col relative">
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto pb-20">
             <StudentAuthGuard currentPageName={currentPageName}>
               {children}
             </StudentAuthGuard>
           </main>
+          <StudentBottomNav currentPageName={currentPageName} />
         </div>
       </AcademicYearProvider>);
-
   }
 
   return (
@@ -232,5 +232,4 @@ export default function Layout({ children, currentPageName }) {
         </div>
         </StaffAuthGuard>
         </AcademicYearProvider>);
-
 }
