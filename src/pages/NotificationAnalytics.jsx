@@ -90,8 +90,8 @@ export default function NotificationAnalytics() {
     return <div className="p-4 text-center">Loading analytics...</div>;
   }
 
-  const studentLogs = logs.filter(l => l.target_type === 'student');
-  const staffLogs = logs.filter(l => l.target_type === 'staff');
+  const studentLogs = logs.filter(l => l.target_type === 'student' || l.target_type === 'general');
+  const staffLogs = logs.filter(l => l.target_type === 'staff' || l.target_type === 'general');
   const failedLogs = logs.filter(l => l.status === 'failed');
   const totalRecipients = logs.reduce((sum, l) => sum + (l.recipients_count || 0), 0);
 
