@@ -90,7 +90,7 @@ export default function StudentChangePassword() {
       {/* Header */}
       <header className="bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(createPageUrl('StudentDashboard'))} className="p-1 hover:bg-white/20 rounded-lg transition">
+          <button onClick={() => window.history.length > 1 ? navigate(-1) : (window.location.href = createPageUrl('StudentDashboard'))} className="p-1 hover:bg-white/20 rounded-lg transition">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
