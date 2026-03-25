@@ -5,9 +5,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
-    const { student_id, current_password, new_password } = payload;
+    const { student_db_id, student_id, current_password, new_password } = payload;
 
-    if (!student_id || !current_password || !new_password) {
+    // Accept either internal db id (preferred) or custom student_id field
+    const lookupId = student_db_id || student_id;
+
+    if (!lookupId || !current_password || !new_password) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -15,10 +18,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    // Fetch student by custom student_id field (e.g. S25061), not the internal DB id
-    const students = await base44.asServiceRole.entities.Student.filter({
-      student_id: student_id
-    });
+    // Look up by internal DB id first (most reliable), fallback to student_id field
+    let students;
+    if (student_db_id) {
+      students = await base44.asServiceRole.entities.Student.filter({ id: student_db_id });
+    } else {
+      students = await base44.asServiceRole.entities.Student.filter({ student_id: lookupId });
+    }
 
     if (students.length === 0) {
       return Response.json({ error: 'Student not found' }, { status: 404 });

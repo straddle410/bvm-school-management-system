@@ -53,6 +53,7 @@ export default function StudentChangePassword() {
     setLoading(true);
     try {
       const res = await base44.functions.invoke('studentChangePassword', {
+        student_db_id: student.id,
         student_id: student.student_id,
         current_password: currentPassword,
         new_password: newPassword,
