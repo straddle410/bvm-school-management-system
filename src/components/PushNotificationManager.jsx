@@ -77,14 +77,17 @@ async function initOneSignal(externalUserId, staffId) {
         // Save staff push token to backend to create StaffNotificationPreference
         if (staffId) {
           try {
-            const playerId = await OneSignal.getUserId();
-            if (playerId) {
-              await base44.functions.invoke('saveStaffPushToken', {
-                staff_id: staffId,
-                player_id: playerId,
-              });
-              console.log('[OneSignal] saveStaffPushToken called for staff_id:', staffId);
+            const playerId = OneSignal.User.PushSubscription.id;
+            if (!playerId) {
+              console.warn('[OneSignal] playerId not available after login');
+              return;
             }
+            console.log('[OneSignal] playerId:', playerId);
+            await base44.functions.invoke('saveStaffPushToken', {
+              staff_id: staffId,
+              player_id: playerId,
+            });
+            console.log('[OneSignal] saveStaffPushToken called for staff_id:', staffId);
           } catch (saveErr) {
             console.warn('[OneSignal] saveStaffPushToken failed (non-fatal):', saveErr.message);
           }
