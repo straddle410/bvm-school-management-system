@@ -90,8 +90,9 @@ export default function NotificationAnalytics() {
     return <div className="p-4 text-center">Loading analytics...</div>;
   }
 
-  const studentLogs = logs.filter(l => l.target_type === 'student' || l.target_type === 'general');
-  const staffLogs = logs.filter(l => l.target_type === 'staff' || l.target_type === 'general');
+  const studentLogs = logs.filter(l => l.target_type === 'student');
+  const staffLogs = logs.filter(l => l.target_type === 'staff');
+  const generalLogs = logs.filter(l => l.target_type === 'general');
   const failedLogs = logs.filter(l => l.status === 'failed');
   const totalRecipients = logs.reduce((sum, l) => sum + (l.recipients_count || 0), 0);
 
@@ -114,7 +115,8 @@ export default function NotificationAnalytics() {
 
   const typeData = [
     { name: 'Students', count: studentLogs.length },
-    { name: 'Staff', count: staffLogs.length }
+    { name: 'Staff', count: staffLogs.length },
+    { name: 'General', count: generalLogs.length }
   ];
 
   const COLORS = ['#22c55e', '#ef4444'];
@@ -205,7 +207,7 @@ export default function NotificationAnalytics() {
       </div>
 
       <Tabs defaultValue="summary" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Summary
@@ -221,6 +223,10 @@ export default function NotificationAnalytics() {
           <TabsTrigger value="delivery" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Delivery
+          </TabsTrigger>
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            General
           </TabsTrigger>
           <TabsTrigger value="failed" className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
@@ -497,7 +503,51 @@ export default function NotificationAnalytics() {
           </Card>
         </TabsContent>
 
-        {/* Tab 5: Failed */}
+        {/* Tab 5: General */}
+        <TabsContent value="general">
+          <Card>
+            <CardHeader>
+              <CardTitle>General Notifications ({generalLogs.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Title</th>
+                      <th className="text-left py-2 px-2">Recipients</th>
+                      <th className="text-left py-2 px-2">Context</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {generalLogs.map((log) => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2">{new Date(log.sent_date).toLocaleDateString('en-IN')}</td>
+                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">{log.recipients_count}</td>
+                        <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
+                        <td className="py-2 px-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            log.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {log.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {generalLogs.length === 0 && (
+                  <p className="text-center py-4 text-gray-500">No general notifications found</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 6: Failed */}
         <TabsContent value="failed">
           <Card>
             <CardHeader>
