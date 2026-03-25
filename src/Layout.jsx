@@ -10,6 +10,7 @@ import AcademicYearSelector from '@/components/AcademicYearSelector';
 import StudentBottomNav from '@/components/StudentBottomNav';
 import PushDebugPanel from '@/components/PushDebugPanel';
 import StaffAuthGuard from '@/components/StaffAuthGuard';
+import StudentAuthGuard from '@/components/StudentAuthGuard';
 import MessageNotificationListener from '@/components/messaging/MessageNotificationListener';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import { getProxiedImageUrl } from '@/components/imageProxy';
