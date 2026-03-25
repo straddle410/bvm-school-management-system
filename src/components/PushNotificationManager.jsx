@@ -26,15 +26,23 @@ export default function PushNotificationManager() {
         tokenSaveFn = 'saveStaffPushToken';
         tokenSavePayload = (playerId) => ({ staff_id: staffId, player_id: playerId });
         console.log('[PushNotificationManager] Staff session detected:', externalUserId);
-      } else if (studentRaw) {
+        // Staff takes priority — do not fall through to student
+      }
+
+      if (!externalUserId && studentRaw) {
         const student = JSON.parse(studentRaw);
         const studentId = student?.student_id;
-        if (!studentId) return;
+        if (!studentId) {
+          console.log('[PushNotificationManager] Student session found but no student_id, skipping');
+          return;
+        }
         externalUserId = `student_${studentId}`;
         tokenSaveFn = 'saveStudentPushToken';
         tokenSavePayload = (playerId) => ({ student_id: studentId, player_id: playerId });
         console.log('[PushNotificationManager] Student session detected:', externalUserId);
-      } else {
+      }
+
+      if (!externalUserId) {
         console.log('[PushNotificationManager] No session found, skipping');
         return;
       }
