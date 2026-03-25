@@ -116,46 +116,6 @@ export default function PushNotificationManager() {
                   console.warn('[PushNotificationManager] Subscription not ready after 10s, giving up');
                 }
               }, 500);
-
-          console.log('[PushNotificationManager] OneSignal init done, logging in:', externalUserId);
-          await OneSignal.login(externalUserId);
-          console.log('[PushNotificationManager] OneSignal login done');
-
-          // Explicitly opt in to push subscription (needed when autoRegister is false)
-          try {
-            await OneSignal.User.PushSubscription.optIn();
-            console.log('[PushNotificationManager] PushSubscription optIn done');
-          } catch (optInErr) {
-            console.warn('[PushNotificationManager] optIn error:', optInErr.message);
-          }
-
-          // Wait for subscription to be ready (up to 10 seconds on Android)
-          let playerId = null;
-          let attempts = 0;
-          const maxAttempts = 20; // 20 * 500ms = 10 seconds
-          
-          const waitForSubscription = setInterval(async () => {
-            attempts++;
-            const id = OneSignal.User.PushSubscription.id;
-            const isSubscribed = OneSignal.User.PushSubscription.isSubscribed();
-            console.log(`[PushNotificationManager] Attempt ${attempts}: id=${id}, isSubscribed=${isSubscribed}`);
-            
-            if (id && isSubscribed) {
-              clearInterval(waitForSubscription);
-              playerId = id;
-              console.log(`${tokenSaveFn} playerId ready:`, playerId);
-
-              try {
-                await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
-                console.log(`${tokenSaveFn} called successfully with playerId:`, playerId);
-              } catch (e) {
-                console.error('Push save error:', e);
-              }
-            } else if (attempts >= maxAttempts) {
-              clearInterval(waitForSubscription);
-              console.warn('[PushNotificationManager] Subscription not ready after 10s, giving up');
-            }
-          }, 500);
         } catch (err) {
           console.error('[PushNotificationManager] OneSignal error:', err.message);
         }
