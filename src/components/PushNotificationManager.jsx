@@ -67,6 +67,13 @@ export default function PushNotificationManager() {
         }
 
         // Load OneSignal SDK
+        if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+          script.defer = true;
+          document.head.appendChild(script);
+        }
+
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         window.OneSignalDeferred.push(async function (OneSignal) {
           try {
@@ -91,24 +98,21 @@ export default function PushNotificationManager() {
               console.warn('[PushNotificationManager] optIn error:', optInErr.message);
             }
 
-            let playerId = null;
             let attempts = 0;
             const maxAttempts = 20;
 
             const waitForSubscription = setInterval(async () => {
               attempts++;
               const id = OneSignal.User.PushSubscription.id;
-              const isSubscribed = OneSignal.User.PushSubscription.isSubscribed;
-              console.log(`[PushNotificationManager] Attempt ${attempts}: id=${id}, isSubscribed=${isSubscribed}`);
+              console.log(`[PushNotificationManager] Attempt ${attempts}: id=${id}`);
 
-              if (id && isSubscribed) {
+              if (id && typeof id === 'string' && id.length > 0) {
                 clearInterval(waitForSubscription);
-                playerId = id;
-                console.log(`${tokenSaveFn} playerId ready:`, playerId);
+                console.log(`${tokenSaveFn} playerId ready:`, id);
 
                 try {
-                  await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
-                  console.log(`${tokenSaveFn} called successfully with playerId:`, playerId);
+                  await base44.functions.invoke(tokenSaveFn, tokenSavePayload(id));
+                  console.log(`${tokenSaveFn} called successfully with playerId:`, id);
                 } catch (e) {
                   console.error('Push save error:', e);
                 }
@@ -121,15 +125,8 @@ export default function PushNotificationManager() {
             console.error('[PushNotificationManager] OneSignal error:', err.message);
           }
         });
-
-        if (!document.querySelector('script[src*="OneSignalSDK"]')) {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-          script.defer = true;
-          document.head.appendChild(script);
-        }
       } catch (e) {
-        console.error('[PushNotificationManager] Error:', e);
+        console.error('[PushNotificationManager] Error parsing student session:', e);
       }
     };
 
