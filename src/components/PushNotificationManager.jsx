@@ -101,35 +101,43 @@ export default function PushNotificationManager() {
 
           oneSignalRef.current = OneSignal;
 
-          // --- Force fresh subscription: logout then login ---
-          // This ensures each device gets its own unique playerId
+          // --- Login (associates this device with external_user_id in OneSignal) ---
+          // OneSignal automatically creates a separate subscription per device.
+          // Do NOT logout — that would remove this device's subscription.
           const currentExtId = OneSignal.User.getExternalId?.();
-          if (currentExtId) {
-            console.log('[PNM] Logging out previous session:', currentExtId);
-            await OneSignal.logout();
-            console.log('[PNM] Logout complete');
+          if (currentExtId !== externalUserId) {
+            console.log('[PNM] OneSignal.login():', externalUserId);
+            await OneSignal.login(externalUserId);
+            console.log('[PNM] Login complete');
+          } else {
+            console.log('[PNM] Already logged in as:', externalUserId);
           }
-          console.log('[PNM] OneSignal.login():', externalUserId);
-          await OneSignal.login(externalUserId);
-          console.log('[PNM] Login complete');
 
-          // --- Always listen for fresh subscription (never reuse old playerId) ---
+          // --- Listen for subscription changes (fires when this device gets a new playerId) ---
           OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
             const newId = event?.current?.id;
-            console.log('[PNM] PushSubscription change event, newId:', newId);
-            await saveToken(newId);
+            const isOptedIn = event?.current?.optedIn;
+            console.log('[PNM] PushSubscription change — id:', newId, 'optedIn:', isOptedIn);
+            if (newId && isOptedIn) {
+              await saveToken(newId);
+            }
           });
 
-          // Also check if a fresh playerId is immediately available post-login
-          const freshId = OneSignal.User.PushSubscription.id;
-          console.log('[PNM] Post-login playerId check:', freshId);
-          if (freshId) {
-            await saveToken(freshId);
-          }
+          // --- Check if this device already has an active subscription ---
+          const existingId = OneSignal.User.PushSubscription.id;
+          const isOptedIn = OneSignal.User.PushSubscription.optedIn;
+          console.log('[PNM] Current subscription — id:', existingId, 'optedIn:', isOptedIn);
 
-          // --- Show prompt if permission not yet granted ---
-          if (Notification.permission === 'default') {
-            console.log('[PNM] Permission default — showing prompt');
+          if (existingId && isOptedIn) {
+            // Device already subscribed and active — save its playerId
+            await saveToken(existingId);
+          } else if (Notification.permission === 'granted') {
+            // Permission granted but no active subscription — request it
+            console.log('[PNM] Permission granted but no active subscription, requesting...');
+            try { await OneSignal.Notifications.requestPermission(); } catch {}
+          } else {
+            // Permission not yet granted — show prompt
+            console.log('[PNM] No active subscription, showing prompt');
             setShowPrompt(true);
           }
         } catch (err) {
