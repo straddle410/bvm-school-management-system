@@ -30,13 +30,15 @@ Deno.serve(async (req) => {
 
     const body = {
       app_id: ONESIGNAL_APP_ID,
-      include_external_user_ids: externalUserIds,
+      include_aliases: { external_id: externalUserIds },
+      target_channel: 'push',
       contents: { en: message || '' },
       headings: { en: title || 'New Notification' },
       ...(url ? { url } : {}),
     };
 
     console.log('[SendStudentPush] Sending to', externalUserIds.length, 'students via OneSignal');
+    console.log('[SendStudentPush] Request payload:', JSON.stringify(body));
 
     const res = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
@@ -48,7 +50,7 @@ Deno.serve(async (req) => {
     });
 
     const data = await res.json();
-    console.log('[SendStudentPush] OneSignal response:', JSON.stringify(data));
+    console.log('[SendStudentPush] OneSignal response (status', res.status, '):', JSON.stringify(data));
 
     if (res.ok) {
       await base44.asServiceRole.entities.PushNotificationLog.create({
