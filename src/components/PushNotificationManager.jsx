@@ -102,7 +102,19 @@ export default function PushNotificationManager() {
             notifyButton: { enable: false },
           });
 
-          console.log('[PushNotificationManager] OneSignal init done, logging in:', externalUserId);
+          // Request permission BEFORE login so subscription is created
+          if (Notification.permission === 'default') {
+            console.log('[PushNotificationManager] Requesting notification permission...');
+            await OneSignal.Notifications.requestPermission();
+            console.log('[PushNotificationManager] Permission result:', Notification.permission);
+          }
+
+          if (Notification.permission !== 'granted') {
+            console.warn('[PushNotificationManager] Permission not granted, skipping login');
+            return;
+          }
+
+          console.log('[PushNotificationManager] Logging in:', externalUserId);
           await OneSignal.login(externalUserId);
           console.log('[PushNotificationManager] OneSignal login done');
 
