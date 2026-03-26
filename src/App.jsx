@@ -7,6 +7,7 @@ import PostingDashboard from './pages/PostingDashboard'
 import StudentQuiz from './pages/StudentQuiz'
 import StudentChangePassword from './pages/StudentChangePassword'
 import DeleteAccount from './pages/DeleteAccount'
+import OneSignalDiagnostic from './pages/OneSignalDiagnostic'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
       <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><PageTransition><StudentQuiz /></PageTransition></LayoutWrapper>} />
       <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><PageTransition><StudentChangePassword /></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><DeleteAccount /></PageTransition>} />
+      <Route path="/OneSignalDiagnostic" element={<PageTransition><OneSignalDiagnostic /></PageTransition>} />
        <Route path="*" element={<PageNotFound />} />
     </Routes>
     </AnimatePresence>
