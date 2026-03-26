@@ -102,26 +102,39 @@ export default function PushNotificationManager() {
             notifyButton: { enable: false },
           });
 
-          console.log('[PushNotificationManager] OneSignal init done, logging in:', externalUserId);
-          await OneSignal.login(externalUserId);
-          console.log('[PushNotificationManager] OneSignal login done');
+          // Guard: only login if not already logged in as this user
+          const currentExtId = OneSignal.User.getExternalId?.();
+          if (currentExtId !== externalUserId) {
+            console.log('[PushNotificationManager] OneSignal login:', externalUserId);
+            await OneSignal.login(externalUserId);
+          } else {
+            console.log('[PushNotificationManager] Already logged in as:', externalUserId);
+          }
 
-          setTimeout(async () => {
+          // Save token via event listener (reliable, no setTimeout)
+          let tokenSaved = false;
+          const saveToken = async (playerId) => {
+            if (!playerId || tokenSaved) return;
+            tokenSaved = true;
             try {
-              const playerId = OneSignal.User.PushSubscription.id;
-              console.log(`${tokenSaveFn} playerId:`, playerId);
-
-              if (!playerId) {
-                console.warn('playerId not ready');
-                return;
-              }
-
               await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
-              console.log(`${tokenSaveFn} called successfully`);
+              console.log(`[PushNotificationManager] ${tokenSaveFn} saved playerId:`, playerId);
             } catch (e) {
-              console.error('Push save error:', e);
+              console.error('[PushNotificationManager] Token save error:', e);
             }
-          }, 4000);
+          };
+
+          // Try immediately (returning user already subscribed)
+          const existingId = OneSignal.User.PushSubscription.id;
+          if (existingId) {
+            await saveToken(existingId);
+          } else {
+            // First-time user: wait for subscription to become active
+            OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
+              const newId = event?.current?.id;
+              await saveToken(newId);
+            });
+          }
         } catch (err) {
           console.error('[PushNotificationManager] OneSignal error:', err.message);
         }
