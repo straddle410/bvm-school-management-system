@@ -3,7 +3,8 @@ import RecipientModal from '@/components/RecipientModal';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Users, Users2, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
+import { Bell, Users, Users2, TrendingUp, AlertCircle, RefreshCw, FlaskConical } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 export default function NotificationAnalytics() {
@@ -158,9 +159,18 @@ export default function NotificationAnalytics() {
         loading={recipientsLoading}
         onClose={() => setSelectedLog(null)}
       />
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Notification Analytics</h1>
-        <p className="text-gray-600">Track all push notifications sent to students and staff</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Notification Analytics</h1>
+          <p className="text-gray-600">Track all push notifications sent to students and staff</p>
+        </div>
+        <Link
+          to="/OneSignalDiagnostic"
+          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+        >
+          <FlaskConical className="h-4 w-4" />
+          Push Diagnostic
+        </Link>
       </div>
 
       {/* Charts Section */}
