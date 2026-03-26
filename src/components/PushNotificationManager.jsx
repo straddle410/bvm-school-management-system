@@ -92,8 +92,6 @@ export default function PushNotificationManager() {
         try {
           await OneSignal.init({
             appId,
-            serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
-            serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
             serviceWorkerParam: { scope: '/' },
             autoRegister: true,
             autoResubscribe: true,
