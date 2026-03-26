@@ -106,22 +106,25 @@ export default function PushNotificationManager() {
           await OneSignal.login(externalUserId);
           console.log('[PushNotificationManager] OneSignal login done');
 
-          setTimeout(async () => {
-            try {
-              const playerId = OneSignal.User.PushSubscription.id;
-              console.log(`${tokenSaveFn} playerId:`, playerId);
+          let tokenSaved = false;
 
-              if (!playerId) {
-                console.warn('playerId not ready');
-                return;
-              }
-
+          // 1. Listen for subscription changes (handles async registration)
+          OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
+            const playerId = event.current.id;
+            if (playerId && OneSignal.User.PushSubscription.optedIn && !tokenSaved) {
+              tokenSaved = true;
+              console.log('[PNM] Saving playerId from change event:', playerId);
               await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
-              console.log(`${tokenSaveFn} called successfully`);
-            } catch (e) {
-              console.error('Push save error:', e);
             }
-          }, 4000);
+          });
+
+          // 2. Check initial state (handles already-subscribed devices)
+          const existingId = OneSignal.User.PushSubscription.id;
+          if (existingId && OneSignal.User.PushSubscription.optedIn && !tokenSaved) {
+            tokenSaved = true;
+            console.log('[PNM] Saving playerId from initial check:', existingId);
+            await base44.functions.invoke(tokenSaveFn, tokenSavePayload(existingId));
+          }
         } catch (err) {
           console.error('[PushNotificationManager] OneSignal error:', err.message);
         }
