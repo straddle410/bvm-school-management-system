@@ -101,28 +101,30 @@ export default function PushNotificationManager() {
 
           oneSignalRef.current = OneSignal;
 
-          // --- Always login ---
+          // --- Force fresh subscription: logout then login ---
+          // This ensures each device gets its own unique playerId
           const currentExtId = OneSignal.User.getExternalId?.();
-          if (currentExtId !== externalUserId) {
-            console.log('[PNM] OneSignal.login():', externalUserId);
-            await OneSignal.login(externalUserId);
-            console.log('[PNM] Login complete');
-          } else {
-            console.log('[PNM] Already logged in as:', externalUserId);
+          if (currentExtId) {
+            console.log('[PNM] Logging out previous session:', currentExtId);
+            await OneSignal.logout();
+            console.log('[PNM] Logout complete');
           }
+          console.log('[PNM] OneSignal.login():', externalUserId);
+          await OneSignal.login(externalUserId);
+          console.log('[PNM] Login complete');
 
-          // --- Try immediate playerId (returning subscribed user) ---
-          const existingId = OneSignal.User.PushSubscription.id;
-          if (existingId) {
-            console.log('[PNM] Existing playerId found:', existingId);
-            await saveToken(existingId);
-          } else {
-            // Listen for subscription change (fires after permission granted)
-            OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
-              const newId = event?.current?.id;
-              console.log('[PNM] PushSubscription change event, newId:', newId);
-              await saveToken(newId);
-            });
+          // --- Always listen for fresh subscription (never reuse old playerId) ---
+          OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
+            const newId = event?.current?.id;
+            console.log('[PNM] PushSubscription change event, newId:', newId);
+            await saveToken(newId);
+          });
+
+          // Also check if a fresh playerId is immediately available post-login
+          const freshId = OneSignal.User.PushSubscription.id;
+          console.log('[PNM] Post-login playerId check:', freshId);
+          if (freshId) {
+            await saveToken(freshId);
           }
 
           // --- Show prompt if permission not yet granted ---
