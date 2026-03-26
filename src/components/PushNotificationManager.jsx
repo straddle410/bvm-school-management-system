@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 export default function PushNotificationManager() {
-  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
-  const [showAndroidPrompt, setShowAndroidPrompt] = useState(false);
-  const [pendingInit, setPendingInit] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const oneSignalRef = useRef(null); // hold OneSignal instance after init
+  const initDoneRef = useRef(false);
 
   useEffect(() => {
     const run = async () => {
-      console.log('[PushNotificationManager] mounted');
+      if (initDoneRef.current) return;
+      initDoneRef.current = true;
 
-      // Detect session type — staff takes priority, then student
+      console.log('[PNM] Starting push init');
+
+      // --- Resolve session ---
       const staffRaw = localStorage.getItem('staff_session');
       const studentRaw = localStorage.getItem('student_session');
 
@@ -23,33 +25,24 @@ export default function PushNotificationManager() {
       if (staffRaw) {
         const staff = JSON.parse(staffRaw);
         const staffId = staff?.staff_id;
-        if (!staffId) return;
+        if (!staffId) { console.log('[PNM] No staff_id, skipping'); return; }
         externalUserId = `staff_${staffId}`;
         tokenSaveFn = 'saveStaffPushToken';
-        tokenSavePayload = (playerId) => ({ staff_id: staffId, player_id: playerId });
-        console.log('[PushNotificationManager] Staff session detected:', externalUserId);
-        // Staff takes priority — do not fall through to student
-      }
-
-      if (!externalUserId && studentRaw) {
+        tokenSavePayload = (pid) => ({ staff_id: staffId, player_id: pid });
+        console.log('[PNM] Staff session:', externalUserId);
+      } else if (studentRaw) {
         const student = JSON.parse(studentRaw);
         const studentId = student?.student_id;
-        if (!studentId) {
-          console.log('[PushNotificationManager] Student session found but no student_id, skipping');
-          return;
-        }
+        if (!studentId) { console.log('[PNM] No student_id, skipping'); return; }
         externalUserId = `student_${studentId}`;
         tokenSaveFn = 'saveStudentPushToken';
-        tokenSavePayload = (playerId) => ({ student_id: studentId, player_id: playerId });
-        console.log('[PushNotificationManager] Student session detected:', externalUserId);
+        tokenSavePayload = (pid) => ({ student_id: studentId, player_id: pid });
+        console.log('[PNM] Student session:', externalUserId);
       }
 
-      if (!externalUserId) {
-        console.log('[PushNotificationManager] No session found, skipping');
-        return;
-      }
+      if (!externalUserId) { console.log('[PNM] No session, skipping'); return; }
 
-      // iOS PWA check
+      // --- iOS non-PWA: hint only ---
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const isPWA = window.matchMedia('(display-mode: standalone)').matches;
       if (isIOS && !isPWA) {
@@ -59,37 +52,40 @@ export default function PushNotificationManager() {
         }
         return;
       }
-      if (isIOS && isPWA && Notification.permission === 'default') {
-        setShowIOSPrompt(true);
+
+      // --- Permission denied: nothing we can do ---
+      if (Notification.permission === 'denied') {
+        console.warn('[PNM] Permission denied, skipping init');
         return;
       }
 
-      // Check/request notification permission
-      const permission = Notification.permission;
-      if (permission === 'denied') {
-        console.warn('[PushNotificationManager] Notification permission denied');
-        return;
-      }
-      if (permission === 'default') {
-        // Android requires permission request via user gesture — show a banner
-        setPendingInit(true);
-        setShowAndroidPrompt(true);
-        return;
-      }
-
-      // Fetch OneSignal App ID
+      // --- Fetch OneSignal App ID ---
       const appIdRes = await fetch('/api/functions/getOneSignalAppId');
       const appIdData = await appIdRes.json();
       const appId = appIdData?.appId || appIdData?.app_id;
-      if (!appId) {
-        console.warn('[PushNotificationManager] OneSignal App ID not available');
-        return;
-      }
+      if (!appId) { console.warn('[PNM] No OneSignal App ID'); return; }
 
-      // Load OneSignal SDK and init
+      console.log('[PNM] OneSignal App ID fetched, setting up SDK');
+
+      // --- Token save helper ---
+      let tokenSaved = false;
+      const saveToken = async (playerId) => {
+        if (!playerId || tokenSaved) return;
+        tokenSaved = true;
+        console.log('[PNM] Saving playerId:', playerId, 'via', tokenSaveFn);
+        try {
+          await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
+          console.log('[PNM] Token saved successfully');
+        } catch (e) {
+          console.error('[PNM] Token save error:', e);
+        }
+      };
+
+      // --- Init OneSignal REGARDLESS of permission state ---
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       window.OneSignalDeferred.push(async function (OneSignal) {
         try {
+          console.log('[PNM] OneSignal.init() starting');
           await OneSignal.init({
             appId,
             serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
@@ -101,46 +97,47 @@ export default function PushNotificationManager() {
             promptOptions: { slidedown: { enabled: false } },
             notifyButton: { enable: false },
           });
+          console.log('[PNM] OneSignal.init() complete');
 
-          // Guard: only login if not already logged in as this user
+          oneSignalRef.current = OneSignal;
+
+          // --- Always login ---
           const currentExtId = OneSignal.User.getExternalId?.();
           if (currentExtId !== externalUserId) {
-            console.log('[PushNotificationManager] OneSignal login:', externalUserId);
+            console.log('[PNM] OneSignal.login():', externalUserId);
             await OneSignal.login(externalUserId);
+            console.log('[PNM] Login complete');
           } else {
-            console.log('[PushNotificationManager] Already logged in as:', externalUserId);
+            console.log('[PNM] Already logged in as:', externalUserId);
           }
 
-          // Save token via event listener (reliable, no setTimeout)
-          let tokenSaved = false;
-          const saveToken = async (playerId) => {
-            if (!playerId || tokenSaved) return;
-            tokenSaved = true;
-            try {
-              await base44.functions.invoke(tokenSaveFn, tokenSavePayload(playerId));
-              console.log(`[PushNotificationManager] ${tokenSaveFn} saved playerId:`, playerId);
-            } catch (e) {
-              console.error('[PushNotificationManager] Token save error:', e);
-            }
-          };
-
-          // Try immediately (returning user already subscribed)
+          // --- Try immediate playerId (returning subscribed user) ---
           const existingId = OneSignal.User.PushSubscription.id;
           if (existingId) {
+            console.log('[PNM] Existing playerId found:', existingId);
             await saveToken(existingId);
           } else {
-            // First-time user: wait for subscription to become active
+            // Listen for subscription change (fires after permission granted)
             OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
               const newId = event?.current?.id;
+              console.log('[PNM] PushSubscription change event, newId:', newId);
               await saveToken(newId);
             });
           }
+
+          // --- Show prompt if permission not yet granted ---
+          if (Notification.permission === 'default') {
+            console.log('[PNM] Permission default — showing prompt');
+            setShowPrompt(true);
+          }
         } catch (err) {
-          console.error('[PushNotificationManager] OneSignal error:', err.message);
+          console.error('[PNM] OneSignal error:', err.message);
         }
       });
 
+      // Load SDK if not already loaded
       if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+        console.log('[PNM] Loading OneSignal SDK script');
         const script = document.createElement('script');
         script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
         script.defer = true;
@@ -153,16 +150,18 @@ export default function PushNotificationManager() {
 
   const handleEnableNotifications = async () => {
     try {
+      console.log('[PNM] User clicked Allow — requesting permission');
       const permission = await Notification.requestPermission();
-      setShowIOSPrompt(false);
-      setShowAndroidPrompt(false);
+      setShowPrompt(false);
       if (permission === 'granted') {
+        console.log('[PNM] Permission granted by user');
         toast.success('Notifications enabled!');
-        // If we had a pending init, re-trigger it now that permission is granted
-        if (pendingInit) {
-          setPendingInit(false);
-          // Re-run the init by reloading OneSignal setup
-          window.location.reload();
+        // OneSignal detects the permission change via PushSubscription change event
+        // If playerId still not available, trigger OneSignal native prompt
+        if (oneSignalRef.current) {
+          try {
+            await oneSignalRef.current.Notifications.requestPermission();
+          } catch {}
         }
       } else {
         toast.error('Notifications blocked. Please enable from device settings.');
@@ -174,7 +173,7 @@ export default function PushNotificationManager() {
 
   return (
     <>
-      {(showIOSPrompt || showAndroidPrompt) && (
+      {showPrompt && (
         <div className="fixed bottom-20 left-0 right-0 z-50 flex justify-center px-4">
           <div className="bg-white border border-blue-200 shadow-xl rounded-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full">
             <span className="text-2xl">🔔</span>
@@ -189,7 +188,7 @@ export default function PushNotificationManager() {
               Allow
             </button>
             <button
-              onClick={() => { setShowIOSPrompt(false); setShowAndroidPrompt(false); }}
+              onClick={() => setShowPrompt(false)}
               className="text-gray-400 hover:text-gray-600 text-lg leading-none"
             >
               ✕
