@@ -99,6 +99,25 @@ export default function PushNotificationManager() {
           });
           console.log('[PNM] OneSignal.init() complete');
 
+          // --- Debug service worker registration ---
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+              console.log('[PNM] SW ready — scope:', reg.scope, 'state:', reg.active?.state);
+            });
+            const swReg = await navigator.serviceWorker.getRegistration('/');
+            if (swReg) {
+              console.log('[PNM] SW registration found — scope:', swReg.scope, 'active:', swReg.active?.state, 'installing:', swReg.installing?.state);
+            } else {
+              console.warn('[PNM] No SW registration at scope "/" — attempting manual registration');
+              try {
+                const newReg = await navigator.serviceWorker.register('/api/functions/oneSignalServiceWorker', { scope: '/' });
+                console.log('[PNM] SW manually registered — scope:', newReg.scope);
+              } catch (swErr) {
+                console.error('[PNM] SW manual registration failed:', swErr);
+              }
+            }
+          }
+
           oneSignalRef.current = OneSignal;
 
           // --- Login (associates this device with external_user_id in OneSignal) ---
