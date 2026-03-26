@@ -134,16 +134,19 @@ export default function PushNotificationManager() {
             // Active subscription on this device — save playerId
             console.log('[PNM] Active subscription found, saving playerId:', subId);
             await saveToken(subId);
-          } else {
-            // No active subscription on this device — must create one
-            console.log('[PNM] No subscription → requesting permission');
-            if (Notification.permission === 'granted') {
-              // Permission already granted — trigger subscription creation
-              try { await OneSignal.Notifications.requestPermission(); } catch {}
-            } else {
-              // Need user to grant permission first
-              setShowPrompt(true);
+          } else if (Notification.permission === 'granted') {
+            // Permission already granted but subscription inactive — activate it directly
+            console.log('[PNM] Permission granted but subscription inactive, calling setActive(true)');
+            try {
+              await OneSignal.User.PushSubscription.setActive(true);
+              // playerId will arrive via the 'change' event listener above
+            } catch (e) {
+              console.error('[PNM] setActive error:', e);
             }
+          } else {
+            // No permission yet — prompt user
+            console.log('[PNM] No permission, showing prompt');
+            setShowPrompt(true);
           }
         } catch (err) {
           console.error('[PNM] OneSignal error:', err.message);
