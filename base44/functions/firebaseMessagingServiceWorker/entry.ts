@@ -1,7 +1,9 @@
 Deno.serve(() => {
   const script = `
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener('install', (e) => { self.skipWaiting(); });
+self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
+self.addEventListener('push', (event) => {});
+self.addEventListener('notificationclick', (event) => {});
 `;
   return new Response(script, {
     headers: {
