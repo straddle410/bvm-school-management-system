@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 export default function PushNotificationManager() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
@@ -28,7 +27,6 @@ export default function PushNotificationManager() {
         tokenSaveFn = 'saveStaffPushToken';
         tokenSavePayload = (playerId) => ({ staff_id: staffId, player_id: playerId });
         console.log('[PushNotificationManager] Staff session detected:', externalUserId);
-        // Staff takes priority — do not fall through to student
       }
 
       if (!externalUserId && studentRaw) {
@@ -64,7 +62,7 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Check/request notification permission
+      // Check notification permission — do NOT request here (needs user gesture)
       const permission = Notification.permission;
       if (permission === 'denied') {
         console.warn('[PushNotificationManager] Notification permission denied');
@@ -77,7 +75,7 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Fetch OneSignal App ID
+      // Permission already granted — proceed with OneSignal init
       const appIdRes = await fetch('/api/functions/getOneSignalAppId');
       const appIdData = await appIdRes.json();
       const appId = appIdData?.appId || appIdData?.app_id;
@@ -86,7 +84,6 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Load OneSignal SDK and init
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       window.OneSignalDeferred.push(async function (OneSignal) {
         try {
@@ -100,13 +97,6 @@ export default function PushNotificationManager() {
             notifyButton: { enable: false },
           });
 
-          // Request permission BEFORE login so subscription is created
-          if (Notification.permission === 'default') {
-            console.log('[PushNotificationManager] Requesting notification permission...');
-            await OneSignal.Notifications.requestPermission();
-            console.log('[PushNotificationManager] Permission result:', Notification.permission);
-          }
-
           if (Notification.permission !== 'granted') {
             console.warn('[PushNotificationManager] Permission not granted, skipping login');
             return;
@@ -118,7 +108,6 @@ export default function PushNotificationManager() {
 
           let tokenSaved = false;
 
-          // 1. Listen for subscription changes (handles async registration)
           OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
             const playerId = event.current.id;
             if (playerId && OneSignal.User.PushSubscription.optedIn && !tokenSaved) {
@@ -128,7 +117,6 @@ export default function PushNotificationManager() {
             }
           });
 
-          // 2. Check initial state (handles already-subscribed devices)
           const existingId = OneSignal.User.PushSubscription.id;
           if (existingId && OneSignal.User.PushSubscription.optedIn && !tokenSaved) {
             tokenSaved = true;
@@ -151,24 +139,26 @@ export default function PushNotificationManager() {
     run();
   }, []);
 
+  // IMPORTANT: requestPermission() called ONLY here, directly inside button click handler
   const handleEnableNotifications = async () => {
     try {
-      const permission = await Notification.requestPermission();
-      setShowIOSPrompt(false);
-      setShowAndroidPrompt(false);
+      const permission = await window.OneSignal.Notifications.requestPermission();
+
       if (permission === 'granted') {
-        toast.success('Notifications enabled!');
-        // If we had a pending init, re-trigger it now that permission is granted
+        console.log('[PNM] Permission granted via button');
+        setShowIOSPrompt(false);
+        setShowAndroidPrompt(false);
         if (pendingInit) {
           setPendingInit(false);
-          // Re-run the init by reloading OneSignal setup
           window.location.reload();
         }
       } else {
-        toast.error('Notifications blocked. Please enable from device settings.');
+        console.warn('[PNM] Permission denied');
+        setShowIOSPrompt(false);
+        setShowAndroidPrompt(false);
       }
     } catch (e) {
-      toast.error('Failed to enable notifications');
+      console.error('[PNM] Permission error:', e);
     }
   };
 
