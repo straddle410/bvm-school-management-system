@@ -57,10 +57,15 @@ async function runDiagnostic() {
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       window.OneSignalDeferred.push(async (OneSignal) => {
         try {
+          // If already initialized, skip init gracefully
+          if (OneSignal.initialized) {
+            result.initSuccess = true;
+            result.initNote = 'already_initialized_skipped';
+            resolve();
+            return;
+          }
           await OneSignal.init({
             appId,
-            serviceWorkerPath: '/api/functions/oneSignalServiceWorker',
-            serviceWorkerUpdaterPath: '/api/functions/oneSignalServiceWorker',
             serviceWorkerParam: { scope: '/' },
             autoRegister: true,
             autoResubscribe: true,
@@ -71,11 +76,22 @@ async function runDiagnostic() {
           result.initSuccess = true;
           resolve();
         } catch (e) {
-          reject(e);
+          result.initError = e?.message || String(e);
+          // Still consider success if error is about already being initialized
+          if (e?.message?.includes('already') || e?.message?.includes('initialized')) {
+            result.initSuccess = true;
+            result.initNote = 'caught_already_initialized';
+            resolve();
+          } else {
+            reject(e);
+          }
         }
       });
     });
-  } catch { return result; }
+  } catch (e) {
+    result.initError = e?.message || String(e);
+    return result;
+  }
 
   const OS = window.OneSignal;
 
