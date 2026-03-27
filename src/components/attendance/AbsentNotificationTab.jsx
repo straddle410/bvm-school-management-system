@@ -111,7 +111,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
           const formattedDate = parsedDate instanceof Date && !isNaN(parsedDate)
             ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
             : rawDateStr;
-          const parent = (record.parent_name || 'Guardian').trim();
+          const parent = ((studentMap[record.student_id] || {}).father_name || (studentMap[record.student_id] || {}).mother_name || (studentMap[record.student_id] || {}).guardian_name || (studentMap[record.student_id] || {}).parent_name || 'Guardian').trim(); || student.mother_name || student.guardian_name || student.parent_name || 'Guardian').trim();
           const variables = [
             parent,                                                                            // {{1}} parent_name
             (record.student_name || record.student_id || 'Student').trim(),                   // {{2}} student_name
