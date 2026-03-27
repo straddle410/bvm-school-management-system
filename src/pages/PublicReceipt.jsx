@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function PublicReceipt() {
-  const { receipt_no: rawReceiptNo } = useParams();
-  const receiptNo = rawReceiptNo ? decodeURIComponent(rawReceiptNo) : '';
+ const params = new URLSearchParams(window.location.search);
+const receiptNo = decodeURIComponent(params.get("receipt_no") || "");
   const navigate = useNavigate();
 
   const { data, isLoading, error } = useQuery({
