@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Bell, Calendar, Users, XCircle, Send, CheckCircle2 } from 'lucide-react';
+import { XCircle, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
 
@@ -18,8 +18,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   const [whatsappResult, setWhatsappResult] = useState(null);
   const queryClient = useQueryClient();
 
-  // Fetch all absent attendance records for the selected date
-  const { data: absentRecords = [], isLoading, refetch } = useQuery({
+  const { data: absentRecords = [], isLoading } = useQuery({
     queryKey: ['absent-records-for-notif', selectedDate, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
       date: selectedDate,
@@ -33,11 +32,9 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     refetchOnWindowFocus: true,
   });
 
-  // Check which attendance IDs already have a notification sent
   const { data: existingMessages = [] } = useQuery({
     queryKey: ['absent-notif-messages', selectedDate, academicYear],
     queryFn: async () => {
-      // Fetch all absent_notification messages for this academic year
       const msgs = await base44.entities.Message.filter({
         context_type: 'absent_notification',
         academic_year: academicYear,
@@ -71,7 +68,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   };
 
   const handleSend = async () => {
-    console.log('STEP 1: handleSend started');
     if (selectedIds.size === 0) {
       toast.error('Please select at least one student');
       return;
@@ -81,9 +77,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     setSentResults(null);
     setWhatsappResult(null);
     try {
-      // Fetch full student records and school profile in parallel
       const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
-      console.log('STEP 2: selectedRecords', selectedRecords);
       const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
       const [studentFetches, schoolProfileList] = await Promise.all([
         Promise.all(studentIds.map(id => base44.entities.Student.filter({ student_id: id }))),
@@ -91,51 +85,44 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       ]);
       const studentMap = {};
       studentFetches.flat().forEach(s => { studentMap[s.student_id] = s; });
-      const schoolName = schoolProfileList?.[0]?.school_name || 'School';
+      const schoolName = (schoolProfileList?.[0]?.school_name || 'School').trim();
 
-      const dateLabel = selectedDate || new Date().toLocaleDateString('en-IN');
+      const rawDateStr = selectedDate || new Date().toISOString().slice(0, 10);
+      const parsedDate = new Date(rawDateStr);
+      const formattedDate = !isNaN(parsedDate)
+        ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
+        : rawDateStr;
 
-      // Build recipients with correct variable mapping
       const recipients = [];
       for (const record of selectedRecords) {
-        console.log('STEP 3: record', record);
         const student = studentMap[record.student_id] || {};
         const rawPhone = student.parent_phone || student.alternate_parent_phone;
         if (!rawPhone) continue;
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
-        const classValue = `Class ${record.class_name || ''}-${record.section || ''}`.trim();
-          const rawDateStr = dateLabel || selectedDate || new Date().toISOString().slice(0, 10);
-          const parsedDate = new Date(rawDateStr);
-          const formattedDate = parsedDate instanceof Date && !isNaN(parsedDate)
-            ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
-            : rawDateStr;
-          const parent = (student.father_name || student.mother_name || student.guardian_name || student.parent_name || 'Guardian').trim();
-          const variables = [
-            parent,                                                                            // {{1}} parent_name
-            (record.student_name || record.student_id || 'Student').trim(),                   // {{2}} student_name
-            classValue,                                                                        // {{3}} class (e.g. "Class 2-A")
-            formattedDate,                                                                     // {{4}} date (e.g. "27 March 2026")
-            (schoolName || 'School').trim(),                                                   // {{5}} school_name
-          ];
-          console.log('Absent FINAL variables:', variables);
-          if (variables.length !== 5) {
-            console.error('[AbsentNotification] Invalid variable count', variables);
-            continue;
-          }
-          if (variables.some(v => !v || v.toString().trim() === '')) {
-            console.error('[AbsentNotification] Empty variable detected', variables);
-            continue;
-          }
-        recipients.push({
-          student_id: record.student_id,
-          phone,
-          variables,
-        });
-      }
 
-      console.log('STEP 4: recipients', recipients);
+        const classValue = `Class ${record.class_name || ''}-${record.section || ''}`.trim();
+        const parent = (student.father_name || student.mother_name || student.guardian_name || student.parent_name || 'Guardian').trim();
+        const studentName = (record.student_name || record.student_id || 'Student').trim();
+
+        const variables = [
+          parent,        // {{1}} parent_name
+          studentName,   // {{2}} student_name
+          classValue,    // {{3}} class
+          formattedDate, // {{4}} date
+          schoolName,    // {{5}} school_name
+        ];
+
+        console.log('Absent FINAL variables:', variables);
+
+        if (variables.length !== 5 || variables.some(v => !v || v.toString().trim() === '')) {
+          console.error('[AbsentNotification] Invalid variables', variables);
+          continue;
+        }
+
+        recipients.push({ student_id: record.student_id, phone, variables });
+      }
 
       if (recipients.length === 0) {
         toast.error('No valid phone numbers found for selected students');
@@ -143,7 +130,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         return;
       }
 
-      console.log('STEP 5: calling sendWhatsAppBulkMessage');
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
         template_id: 'absent_notification',
         use_case: 'Absent',
@@ -163,7 +149,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
 
   return (
     <div className="space-y-4">
-      {/* Date picker + summary */}
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2">
@@ -171,7 +156,13 @@ export default function AbsentNotificationTab({ academicYear, user }) {
             <input
               type="date"
               value={selectedDate}
-              onChange={e => { setSelectedDate(e.target.value); setSelectedIds(new Set()); setSentResults(null); queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] }); queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] }); }}
+              onChange={e => {
+                setSelectedDate(e.target.value);
+                setSelectedIds(new Set());
+                setSentResults(null);
+                queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] });
+                queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] });
+              }}
               className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm"
             />
           </div>
@@ -181,7 +172,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         </CardContent>
       </Card>
 
-      {/* Results banner */}
       {whatsappResult && (
         <Card className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
           <CardContent className="p-4 space-y-3">
@@ -207,7 +197,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         </Card>
       )}
 
-      {/* Absent students list */}
       {isLoading ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="py-12 flex justify-center">
@@ -225,7 +214,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       ) : (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-0">
-            {/* Header row */}
             <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
               <div className="flex items-center gap-3">
                 <Checkbox
@@ -248,7 +236,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
               </Button>
             </div>
 
-            {/* Student rows */}
             <div className="divide-y dark:divide-gray-700 max-h-[500px] overflow-y-auto">
               {absentRecords.map(record => {
                 const alreadySent = alreadyNotifiedIds.has(record.id);
