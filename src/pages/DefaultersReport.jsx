@@ -174,29 +174,39 @@ export default function DefaultersReportPage() {
   };
 
   const handleSendReminder = async () => {
-    if (selectedStudents.length === 0) return;
+    if (selectedStudents.length === 0) {
+      toast.error('Please select at least one student');
+      return;
+    }
     setSendingReminders(true);
     setReminderResult(null);
     try {
-      // Fetch full student records to get alternate phones
+      // Fetch full student records to get parent details
       const studentRecords = await Promise.all(
         selectedStudents.map(id => base44.entities.Student.filter({ id }))
       );
       const studentMap = {};
       studentRecords.flat().forEach(s => { studentMap[s.id] = s; });
 
-      // Build recipients array with phone fallback logic
       const recipients = [];
       for (const row of rows.filter(r => selectedStudents.includes(r.student.id))) {
         const studentRecord = studentMap[row.student.id] || {};
         const rawPhone = row.phone1 || studentRecord.alternate_parent_phone;
         if (!rawPhone) continue;
         const digits = rawPhone.replace(/\D/g, '');
-        const phone = digits.startsWith('91') ? `+${digits}` : `+91${digits}`;
+        if (digits.length < 10) continue;
+        const phone = digits.startsWith('91') ? digits : `91${digits}`;
         recipients.push({
           student_id: row.student.id,
           phone,
-          variables: [row.student.name, `Rs.${(row.due || 0).toLocaleString()}`],
+          variables: [
+            studentRecord.parent_name || row.student.name,  // {{1}}
+            row.student.name,                               // {{2}}
+            String(row.due || 0),                           // {{3}}
+            '',                                             // {{4}} term_name — not in row, leave blank
+            '',                                             // {{5}} due_date — not in row, leave blank
+            'BVM School',                                   // {{6}}
+          ],
         });
       }
 
@@ -207,7 +217,7 @@ export default function DefaultersReportPage() {
       }
 
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
-        template_id: 'fee_reminder_mock',
+        template_id: 'fee_reminder',
         use_case: 'FeeReminder',
         recipients,
       });
@@ -561,7 +571,7 @@ export default function DefaultersReportPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <h4 className="font-semibold text-green-900">WhatsApp Reminders Sent (Mock)</h4>
+                  <h4 className="font-semibold text-green-900">WhatsApp Reminders Sent</h4>
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="bg-white rounded-lg p-3 border">
@@ -569,11 +579,11 @@ export default function DefaultersReportPage() {
                     <p className="text-xs text-gray-500">Total Sent</p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-2xl font-bold text-green-600">{reminderResult.delivered}</p>
+                    <p className="text-2xl font-bold text-green-600">{reminderResult.success ?? reminderResult.delivered ?? 0}</p>
                     <p className="text-xs text-gray-500">Delivered</p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-2xl font-bold text-red-600">{reminderResult.failed}</p>
+                    <p className="text-2xl font-bold text-red-600">{reminderResult.failed ?? 0}</p>
                     <p className="text-xs text-gray-500">Failed</p>
                   </div>
                 </div>
