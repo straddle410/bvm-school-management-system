@@ -86,7 +86,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       console.log('STEP 2: selectedRecords', selectedRecords);
       const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
       const [studentFetches, schoolProfileList] = await Promise.all([
-        Promise.all(studentIds.map(id => base44.entities.Student.filter({ id }))),
+        Promise.all(studentIds.map(id => base44.entities.Student.filter({ student_id: id }))),
         base44.entities.SchoolProfile.list(),
       ]);
       const studentMap = {};
