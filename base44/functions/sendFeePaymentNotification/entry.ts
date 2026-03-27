@@ -7,6 +7,18 @@ Deno.serve(async (req) => {
     // Entity automation payload: { event, data } OR direct flat record
     const body = await req.json();
     console.log('FEE RECEIPT FUNCTION TRIGGERED', body);
+
+    // Log automation trigger
+    const triggerRecord = body.data || body;
+    await base44.asServiceRole.entities.AuditLog.create({
+      action: 'FEE_RECEIPT_TRIGGER',
+      module: 'Fees',
+      details: 'Function triggered',
+      student_id: triggerRecord?.student_id,
+      performed_by: 'AUTOMATION'
+    });
+    console.log('[sendFeePaymentNotification] Audit log created for trigger');
+
     // Support both wrapped { data: {...} } and flat record
     const record = body.data || body;
 
