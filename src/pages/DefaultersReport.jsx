@@ -228,6 +228,7 @@ export default function DefaultersReportPage() {
         return;
       }
 
+      console.log('RECIPIENTS:', recipients);
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
         template_id: 'fee_reminder',
         use_case: 'FeeReminder',
