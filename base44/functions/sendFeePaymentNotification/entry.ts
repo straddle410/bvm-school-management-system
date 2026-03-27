@@ -4,10 +4,11 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Entity automation payload: { event, data }
+    // Entity automation payload: { event, data } OR direct flat record
     const body = await req.json();
     console.log('FEE RECEIPT FUNCTION TRIGGERED', body);
-    const record = body.data;
+    // Support both wrapped { data: {...} } and flat record
+    const record = body.data || body;
 
     if (!record || !record.student_id) {
       console.log('[sendFeePaymentNotification] No record data, skipping');
