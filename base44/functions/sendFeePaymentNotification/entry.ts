@@ -47,39 +47,38 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'No valid phone number, skipping' }, { status: 200 });
     }
 
-    // 4. Build receipt link — full URL using BASE44_APP_ID
-    const appId = Deno.env.get('BASE44_APP_ID') || '';
-    const baseUrl = appId ? `https://app-${appId}.base44.app` : '';
-    if (!baseUrl) {
-      console.log('[sendFeePaymentNotification] Cannot determine app base URL, skipping');
-      return Response.json({ message: 'No base URL, skipping' }, { status: 200 });
-    }
-    const receiptLink = `${baseUrl}/PrintReceiptA5?paymentId=${record.id}`;
+    // 4. Build public receipt link
+    const receiptLink = `https://www.app.bvmse.in/receipt/${record.receipt_no}`;
 
     // 5. Format class_name as "5-A"
     const className = [record.class_name, student.section].filter(Boolean).join('-');
 
     // 6. Build exactly 5 variables
     const variables = [
-      String(record.amount_paid || 0).trim(),   // {{1}} amount_paid
-      (record.student_name || student.name || 'Student').trim(), // {{2}} student_name
-      (className || record.class_name || '').trim(), // {{3}} class_name
-      receiptLink.trim(),                        // {{4}} receiptLink
-      schoolName,                                // {{5}} schoolName
+      String(record.amount_paid),     // {{1}}
+      String(record.student_name || student.name || 'Student'),    // {{2}}
+      String(className || record.class_name || ''),              // {{3}}
+      String(receiptLink),            // {{4}}
+      String(schoolName)              // {{5}}
     ];
 
-    // 7. Validation — skip if any variable is empty
-    const emptyIdx = variables.findIndex(v => !v || v.trim() === '');
-    if (emptyIdx !== -1) {
-      console.warn(`[sendFeePaymentNotification] Empty variable at index ${emptyIdx}, skipping`, variables);
-      return Response.json({ message: `Empty variable at index ${emptyIdx}, skipping` }, { status: 200 });
+    // 7. Validation — strict check
+    if (variables.length !== 5) {
+      console.warn('[sendFeePaymentNotification] Variable count mismatch, skipping');
+      return Response.json({ message: 'Variable count mismatch', status: 200 });
     }
 
-    // 8. Debug log
-    console.log('FINAL PHONE:', cleanPhone);
-    console.log('FEE RECEIPT PAYLOAD:', { mobile: cleanPhone, variables, template_name: 'fee_recepit' });
-    console.log('CALLING WA FUNCTION WITH SERVICE ROLE');
-    console.log('WA USING TEMPLATE:', 'fee_recepit');
+    if (variables.some(v => !v || v === 'undefined')) {
+      console.log('[sendFeePaymentNotification] INVALID VARIABLES:', variables);
+      return Response.json({ message: 'Invalid variables, skipping' }, { status: 200 });
+    }
+
+    // 8. Final log
+    console.log('[sendFeePaymentNotification] FINAL WA PAYLOAD:', {
+      mobile: cleanPhone,
+      variables,
+      template: 'fee_recepit'
+    });
 
     // 9. Send WhatsApp via service role
     const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
