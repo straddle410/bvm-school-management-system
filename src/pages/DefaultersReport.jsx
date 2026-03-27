@@ -202,7 +202,10 @@ export default function DefaultersReportPage() {
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
-        const formatted_due_date = format(new Date(), 'dd MMMM yyyy');
+        const rawDueDate = row.due_date ? new Date(row.due_date) : null;
+        const formatted_due_date = rawDueDate && !isNaN(rawDueDate)
+          ? format(rawDueDate, 'dd MMMM yyyy')
+          : 'Due Soon';
         const variables = [
             (studentRecord.parent_name || 'Guardian').toString().trim(),                    // {{1}} parent_name
             (row.student.name || 'Student').toString().trim(),                              // {{2}} student_name
@@ -228,7 +231,9 @@ export default function DefaultersReportPage() {
         return;
       }
 
-      console.log('RECIPIENTS:', recipients);
+      if (recipients.length > 0) {
+        console.log('SAMPLE PAYLOAD:', { phone: recipients[0].phone, variables: recipients[0].variables });
+      }
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
         template_id: 'fee_reminder',
         use_case: 'FeeReminder',
@@ -423,6 +428,7 @@ export default function DefaultersReportPage() {
                       <th className="px-4 py-3 text-left font-semibold">Student</th>
                       <th className="px-4 py-3 text-left font-semibold">Class</th>
                       <th className="px-4 py-3 text-right font-semibold">Due</th>
+                      <th className="px-4 py-3 text-left font-semibold">Due Date</th>
                       <th className="px-4 py-3 text-left font-semibold">Last Payment</th>
                       <th className="px-4 py-3 text-center font-semibold">Days Since</th>
                       <th className="px-4 py-3 text-left font-semibold">Phone</th>
@@ -458,6 +464,9 @@ export default function DefaultersReportPage() {
                           <td className="px-4 py-3 font-medium">{row.student.name}</td>
                           <td className="px-4 py-3">{row.class.name}</td>
                           <td className="px-4 py-3 text-right font-bold text-red-600">₹{(row.due || 0).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-sm">
+                            {row.due_date ? format(new Date(row.due_date), 'dd MMM yyyy') : 'N/A'}
+                          </td>
                           <td className="px-4 py-3 text-sm">{row.lastPaymentDate || 'Never'}</td>
                           <td className="px-4 py-3 text-center text-sm">{row.daysSinceLastPayment !== null ? row.daysSinceLastPayment : 'N/A'}</td>
                           <td className="px-4 py-3">

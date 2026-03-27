@@ -82,6 +82,17 @@ Deno.serve(async (req) => {
     // Build per-student aggregates (same as Outstanding Report)
     const studentDataMap = {};
 
+    // Build earliest due_date per student from active invoices
+    const studentDueDateMap = {};
+    for (const inv of activeInvoices) {
+      if (!inv.student_id) continue;
+      const invDueDate = inv.due_date || inv.installment_due_date || null;
+      if (!invDueDate) continue;
+      if (!studentDueDateMap[inv.student_id] || invDueDate < studentDueDateMap[inv.student_id]) {
+        studentDueDateMap[inv.student_id] = invDueDate;
+      }
+    }
+
     const ensure = (studentId, studentName, className_) => {
       if (!studentDataMap[studentId]) {
         studentDataMap[studentId] = {
@@ -215,6 +226,7 @@ Deno.serve(async (req) => {
         net: netInvoiced,
         paid: paidAmount,
         due: due,
+        due_date: studentDueDateMap[studentId] || null,
         lastPaymentDate: latestPaymentDate,
         daysSinceLastPayment: daysSinceLastPayment,
         phone1: student.parent_phone || null,
