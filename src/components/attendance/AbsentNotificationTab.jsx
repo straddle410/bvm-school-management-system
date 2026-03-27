@@ -105,12 +105,12 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         recipients.push({
           student_id: record.student_id,
           phone,
-          variables: [
-            student.parent_name || '',   // {{1}} parent_name
-            record.student_name || student.name || record.student_id, // {{2}} student_name
-            record.class_name || '',     // {{3}} class_name
-            dateLabel,                   // {{4}} date
-            schoolName,                  // {{5}} school_name
+          values: [
+            student.parent_name || 'Parent',                              // {{1}} parent_name
+            record.student_name || student.name || record.student_id,    // {{2}} student_name
+            record.class_name || '',                                      // {{3}} class
+            dateLabel,                                                    // {{4}} date
+            schoolName,                                                   // {{5}} school_name
           ],
         });
       }
