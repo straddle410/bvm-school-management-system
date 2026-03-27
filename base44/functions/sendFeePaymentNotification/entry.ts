@@ -1,0 +1,65 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+
+    // Entity automation payload: { event, data }
+    const body = await req.json();
+    const record = body.data;
+
+    if (!record || !record.student_id) {
+      return Response.json({ message: 'No record data, skipping' }, { status: 200 });
+    }
+
+    // 1. Get school name
+    const schoolProfileList = await base44.asServiceRole.entities.SchoolProfile.list();
+    const schoolName = schoolProfileList?.[0]?.school_name || 'School';
+
+    // 2. Get student
+    const students = await base44.asServiceRole.entities.Student.filter({ student_id: record.student_id });
+    const student = students[0] || {};
+
+    // 3. Get phone
+    const rawPhone = student.parent_phone || student.alternate_parent_phone;
+    if (!rawPhone) {
+      console.log(`[sendFeePaymentNotification] No phone for student ${record.student_id}, skipping`);
+      return Response.json({ message: 'No phone number, skipping' }, { status: 200 });
+    }
+
+    const digits = rawPhone.replace(/\D/g, '');
+    if (digits.length < 10) {
+      console.log(`[sendFeePaymentNotification] Invalid phone ${rawPhone}, skipping`);
+      return Response.json({ message: 'Invalid phone number, skipping' }, { status: 200 });
+    }
+    const phone = digits.startsWith('91') ? digits : `91${digits}`;
+
+    // 4. Build receipt link
+    const receiptLink = `/PrintReceiptA5?paymentId=${record.id}`;
+
+    // 5. Build values matching template placeholders
+    const values = [
+      record.student_name,                         // {{1}}
+      record.class_name,                           // {{2}}
+      String(record.amount_paid || 0),             // {{3}}
+      record.payment_date || '',                   // {{4}}
+      receiptLink,                                 // {{5}}
+      schoolName,                                  // {{6}}
+    ];
+
+    // 6. Send WhatsApp
+    console.log(`[sendFeePaymentNotification] Sending to ${phone} for student ${record.student_name}`);
+    const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
+      template_id: 'fee_receipt',
+      use_case: 'FeeReminder',
+      recipients: [{ phone, values }],
+    });
+
+    console.log('[sendFeePaymentNotification] Result:', result);
+    return Response.json({ success: true, result });
+
+  } catch (error) {
+    console.error('[sendFeePaymentNotification] Error:', error.message);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
