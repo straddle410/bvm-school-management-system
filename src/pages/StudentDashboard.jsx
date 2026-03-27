@@ -13,7 +13,6 @@ import { useDarkMode } from '@/components/useDarkMode';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
-import PushNotificationManager from '@/components/PushNotificationManager';
 import { clearSession } from '@/components/sessionHelper';
 
 function getStudentSession() {
@@ -51,19 +50,15 @@ export default function StudentDashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const [showNotifBanner, setShowNotifBanner] = useState(false);
-
   useEffect(() => {
     const session = getStudentSession();
     if (!session) { window.location.href = createPageUrl('StudentLogin'); return; }
-    // Force password change if flagged
     if (session.must_change_password) {
       window.location.href = createPageUrl('StudentChangePassword') + '?forced=1';
       return;
     }
     setStudent(session);
 
-    // Handle notification deep-link: ?openFees=1&receiptNo=XXX
     const params = new URLSearchParams(window.location.search);
     if (params.get('openFees') === '1') {
       const receiptNo = params.get('receiptNo');
@@ -72,104 +67,7 @@ export default function StudentDashboard() {
         : createPageUrl('StudentFees');
       navigate(target, { replace: true });
     }
-
-    // Show notification banner if permission not yet decided
-    if ('Notification' in window && Notification.permission === 'default') {
-      setTimeout(() => setShowNotifBanner(true), 2000);
-    } else {
-      // Delay push registration so it doesn't block dashboard render
-      const timer = setTimeout(() => autoRegisterPush(session), 3000);
-      return () => clearTimeout(timer);
-    }
   }, []);
-
-  const handleEnableNotifications = async () => {
-    setShowNotifBanner(false);
-    const session = getStudentSession();
-    if (!session) return;
-    // Request permission in response to user gesture (required on Android)
-    const perm = await Notification.requestPermission();
-    if (perm === 'granted') {
-      await autoRegisterPush(session);
-    }
-  };
-
-  const autoRegisterPush = async (session) => {
-    try {
-      const studentId = session?.student_id;
-      if (!studentId) { console.log('[AutoPush] No student_id in session'); return; }
-      if (!('Notification' in window) || !('serviceWorker' in navigator)) { console.log('[AutoPush] Browser does not support push'); return; }
-
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-      if (isIOS && !isPWA) { console.log('[AutoPush] iOS browser (not PWA) — skipping auto-register'); return; }
-
-      // Check existing pref/token — also re-register if token is stale (raw URL, no keys)
-      const prefs = await base44.entities.StudentNotificationPreference.filter({ student_id: studentId });
-      const pref = prefs[0];
-      if (pref?.browser_push_token) {
-        try {
-          const parsed = JSON.parse(pref.browser_push_token);
-          if (parsed.endpoint && parsed.keys?.p256dh && parsed.keys?.auth) {
-            console.log('[AutoPush] Valid token already exists, skipping');
-            return;
-          }
-          console.log('[AutoPush] Existing token is stale/missing keys — re-registering');
-        } catch {
-          console.log('[AutoPush] Existing token is not valid JSON (raw URL) — re-registering');
-        }
-      }
-
-      // Request permission (non-blocking — only proceed if granted)
-      let permission = Notification.permission;
-      if (permission === 'default') {
-        permission = await Notification.requestPermission();
-      }
-      if (permission !== 'granted') { console.log('[AutoPush] Permission not granted:', permission); return; }
-
-      // Register service worker
-      const reg = await navigator.serviceWorker.register('/api/functions/firebaseMessagingServiceWorker', { scope: '/' });
-      await navigator.serviceWorker.ready;
-      console.log('[AutoPush] Service worker ready');
-
-      // Get VAPID key
-      const vapidRes = await fetch('/api/functions/getVapidPublicKey');
-      const { vapidKey } = await vapidRes.json();
-      if (!vapidKey) { console.error('[AutoPush] No VAPID key returned'); return; }
-      console.log('[AutoPush] VAPID key prefix:', vapidKey.substring(0, 20) + '...');
-
-      // Convert VAPID key
-      const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
-      const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
-      const rawData = window.atob(base64);
-      const applicationServerKey = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; ++i) applicationServerKey[i] = rawData.charCodeAt(i);
-
-      // Always unsubscribe existing subscription and create a fresh one
-      // This ensures the subscription matches the current VAPID key and SW
-      const existingSub = await reg.pushManager.getSubscription();
-      if (existingSub) {
-        console.log('[AutoPush] Unsubscribing stale subscription...');
-        await existingSub.unsubscribe();
-      }
-      const subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
-      console.log('[AutoPush] New subscription endpoint prefix:', subscription.endpoint.substring(0, 50) + '...');
-
-      const subJson = subscription.toJSON();
-      console.log('[AutoPush] Subscription endpoint:', subJson.endpoint?.substring(0, 40) + '...');
-      console.log('[AutoPush] Has p256dh:', !!subJson.keys?.p256dh, 'Has auth:', !!subJson.keys?.auth);
-
-      // Save via saveStudentPushToken
-      await base44.functions.invoke('saveStudentPushToken', {
-        student_id: studentId,
-        subscription: subJson,
-      });
-
-      console.log('[AutoPush] ✅ Push subscription saved successfully for', studentId);
-    } catch (err) {
-      console.error('[AutoPush] Failed:', err.message);
-    }
-  };
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -319,8 +217,7 @@ export default function StudentDashboard() {
       {/* Unified Notification Hub */}
       <StudentNotificationHub studentSession={student} />
 
-      {/* Push Notification Manager */}
-      <PushNotificationManager studentId={student?.student_id} />
+
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a237e] via-[#283593] to-[#3949ab] text-white px-4 py-3 shadow-md">
@@ -361,30 +258,6 @@ export default function StudentDashboard() {
         </div>
       </header>
 
-      {/* Notification Permission Banner */}
-      {showNotifBanner && (
-        <div className="mx-4 mt-3 bg-indigo-600 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg">
-          <Bell className="h-5 w-5 flex-shrink-0 text-white" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold leading-tight">Enable Notifications</p>
-            <p className="text-xs text-indigo-200 leading-tight mt-0.5">Get instant alerts for notices, marks & more</p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={handleEnableNotifications}
-              className="bg-white text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl"
-            >
-              Allow
-            </button>
-            <button
-              onClick={() => setShowNotifBanner(false)}
-              className="text-indigo-200 text-xs px-1 py-1.5"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Student Info Card */}
       <div className="px-4 pt-4 pb-2">
