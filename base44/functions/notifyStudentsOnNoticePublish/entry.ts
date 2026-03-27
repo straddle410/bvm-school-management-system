@@ -22,16 +22,9 @@ Deno.serve(async (req) => {
     }
 
     let notified = 0;
-    const externalUserIds = [];
 
     // --- Student notifications ---
     if (notifyStudents) {
-      // Fetch student prefs for push filtering
-      const studentPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
-      const prefsByStudentId = Object.fromEntries(
-        studentPrefs.map(p => [p.student_id, p])
-      );
-
       let students = await base44.asServiceRole.entities.Student.filter({
         status: 'Published',
         academic_year: currentAcademicYear,
@@ -56,11 +49,7 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          const willSendPush = notice.sendPushNotification === true;
-          const pref = prefsByStudentId[student.student_id];
-          const canSendPush = willSendPush && pref && pref.browser_push_enabled;
-
-          const msgRecord = await base44.asServiceRole.entities.Message.create({
+          await base44.asServiceRole.entities.Message.create({
             sender_id: 'system',
             sender_name: 'School',
             sender_role: 'admin',
@@ -73,36 +62,15 @@ Deno.serve(async (req) => {
             academic_year: currentAcademicYear,
             context_type: 'notice_posted',
             context_id: contextId,
-            is_push_sent: canSendPush,
+            is_push_sent: false,
           });
 
           notified++;
-
-          if (canSendPush) {
-            externalUserIds.push(`student_${student.student_id}`);
-          }
         } catch (err) {
           console.error(`[notifyStudentsOnNoticePublish] Failed for ${student.student_id}:`, err.message);
         }
       }
     }
-
-    // --- Staff notifications ---
-    if (notifyStaff && notice.sendPushNotification === true) {
-      const staffPrefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-      const staffIds = staffPrefs
-        .filter(p => p.browser_push_enabled && p.staff_id)
-        .map(p => p.staff_id);
-
-      console.log(`[notifyStudentsOnNoticePublish] Staff push eligible (${staffIds.length}):`, JSON.stringify(staffIds));
-
-      for (const staffId of staffIds) {
-        externalUserIds.push(`staff_${staffId}`);
-      }
-    }
-
-    // PUSH DISABLED TEMPORARILY — OneSignal block commented out
-    // if (externalUserIds.length > 0) { ... }
 
     return Response.json({ success: true, notified, push_sent: 0 });
   } catch (error) {

@@ -15,44 +15,30 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No attendance records provided' }, { status: 400 });
     }
 
-    // Load NotificationSettings + SchoolProfile
-    const [settingsList, profiles] = await Promise.all([
-      base44.asServiceRole.entities.NotificationSettings.list(),
+    // Load SchoolProfile + NotificationSettings for template
+    const [profiles, settingsList] = await Promise.all([
       base44.asServiceRole.entities.SchoolProfile.list(),
+      base44.asServiceRole.entities.NotificationSettings.list(),
     ]);
-    const settings = settingsList[0];
     const profile = profiles[0] || {};
     const schoolName = profile.school_name || 'School';
-
-    if (!settings || settings.enable_push !== true) {
-      console.log('[AbsentNotif] Push disabled or settings missing, skipping notification.');
-      return Response.json({ success: true, message: 'Push notifications disabled', results: [] });
-    }
+    const settings = settingsList[0] || {};
 
     const templateStr = settings.absent_template ||
       `Dear student/parent, {{student_name}} was marked absent today (Class {{class}}-{{section}}). If this is incorrect, please contact the school.`;
 
-    // Fetch StudentNotificationPreference for push filtering
-    const studentPrefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
-    const prefsByStudentId = Object.fromEntries(
-      studentPrefs.map(p => [p.student_id, p])
-    );
-
     const results = [];
-    const externalUserIds = [];
-    const messagesToCreate = [];
 
     for (const record of attendanceRecords) {
       const { student_id, attendance_id, student_name, class_name, section, academic_year } = record;
 
-      // Duplicate check: skip if already notified for this exact attendance record
+      // Duplicate check
       const existing = await base44.asServiceRole.entities.Message.filter({
         context_type: 'absent_notification',
         context_id: attendance_id,
       });
 
       if (existing.length > 0) {
-        console.log(`[AbsentNotif] Skipping duplicate for student ${student_id}, attendance_id ${attendance_id}`);
         results.push({ student_id, status: 'skipped', reason: 'Already notified for this absence' });
         continue;
       }
@@ -65,33 +51,6 @@ Deno.serve(async (req) => {
         .replace(/{{date}}/g, today)
         .replace(/{{school_name}}/g, schoolName);
 
-      // Check if push enabled for this student
-      const pref = prefsByStudentId[student_id];
-      if (!pref || !pref.browser_push_enabled) {
-        console.log(`[AbsentNotif] Skipping push for ${student_id} - push not enabled`);
-        // Still create message
-        const createdMessage = await base44.asServiceRole.entities.Message.create({
-          sender_id: user.email || 'admin',
-          sender_name: user.full_name || 'School Admin',
-          sender_role: 'admin',
-          recipient_type: 'individual',
-          recipient_id: student_id,
-          recipient_name: student_name,
-          recipient_class: class_name,
-          recipient_section: section,
-          subject: 'Absent Notification',
-          body: messageBody,
-          is_read: false,
-          academic_year: academic_year,
-          context_type: 'absent_notification',
-          context_id: attendance_id,
-          is_push_sent: false,
-        });
-        results.push({ student_id, status: 'message_only', message_id: createdMessage.id });
-        continue;
-      }
-
-      // Create Message entity
       const createdMessage = await base44.asServiceRole.entities.Message.create({
         sender_id: user.email || 'admin',
         sender_name: user.full_name || 'School Admin',
@@ -110,20 +69,14 @@ Deno.serve(async (req) => {
         is_push_sent: false,
       });
 
-      externalUserIds.push(`student_${student_id}`);
-      messagesToCreate.push({ createdMessage, student_id });
-      results.push({ student_id, status: 'pending', message_id: createdMessage.id });
+      results.push({ student_id, status: 'success', message_id: createdMessage.id });
     }
-
-    // PUSH DISABLED TEMPORARILY — OneSignal block commented out
-    // if (externalUserIds.length > 0) { ... }
 
     const successCount = results.filter(r => r.status === 'success').length;
     const skippedCount = results.filter(r => r.status === 'skipped').length;
-    const messageOnlyCount = results.filter(r => r.status === 'message_only').length;
 
-    console.log(`[AbsentNotif] Done. success: ${successCount}, message_only: ${messageOnlyCount}, skipped: ${skippedCount}`);
-    return Response.json({ success: true, results, successCount, messageOnlyCount, skippedCount });
+    console.log(`[AbsentNotif] Done. success: ${successCount}, skipped: ${skippedCount}`);
+    return Response.json({ success: true, results, successCount, skippedCount });
 
   } catch (error) {
     console.error('[AbsentNotif] Fatal error:', error.message);
