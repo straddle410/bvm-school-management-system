@@ -6,6 +6,7 @@ Deno.serve(async (req) => {
 
     // Entity automation payload: { event, data }
     const body = await req.json();
+    console.log('FEE RECEIPT FUNCTION TRIGGERED', body);
     const record = body.data;
 
     if (!record || !record.student_id) {
@@ -70,6 +71,7 @@ Deno.serve(async (req) => {
 
     // 8. Debug log
     console.log('FEE RECEIPT WA:', { phone, variables });
+    console.log('FEE RECEIPT PAYLOAD:', { phone, variables, template_id: 'fee_receipt' });
 
     // 9. Send WhatsApp
     const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
@@ -78,10 +80,12 @@ Deno.serve(async (req) => {
       recipients: [{ student_id: record.student_id, phone, variables }],
     });
 
+    console.log('FEE RECEIPT RESPONSE:', result);
     console.log('[sendFeePaymentNotification] Result:', result);
     return Response.json({ success: true, result });
 
   } catch (error) {
+    console.error('FEE RECEIPT ERROR:', error);
     console.error('[sendFeePaymentNotification] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
