@@ -20,8 +20,16 @@ export default function PublicReceipt() {
 
       const allPayments = await base44.asServiceRole.entities.FeePayment.list();
 
+      const clean = (val) => 
+        (val || '')
+          .toString()
+          .trim()
+          .replace(/%2F/g, '/')
+          .replace(/\s/g, '')
+          .toLowerCase();
+
       const payment = allPayments.find(p => 
-        p.receipt_no === receiptNo
+        clean(p.receipt_no) === clean(receiptNo)
       );
 
       if (!payment) {
