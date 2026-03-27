@@ -45,13 +45,13 @@ Deno.serve(async (req) => {
       const r = recipients[i];
       const log = logEntries[i];
 
-      if (!r.variables || r.variables.length !== 5) {
+      if (!r.variables || r.variables.length === 0) {
         console.error(`[sendWhatsAppBulkMessage] Invalid variables for ${r.phone}:`, r.variables);
         failedCount++;
         await base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
           status: 'failed',
-          error_reason: 'Invalid variables length: expected 5',
-          status_history: [{ status: 'queued', timestamp: now }, { status: 'failed', timestamp: sentAt, reason: 'Invalid variables length' }],
+          error_reason: 'No variables provided',
+          status_history: [{ status: 'queued', timestamp: now }, { status: 'failed', timestamp: sentAt, reason: 'No variables provided' }],
         });
         continue;
       }
@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
         },
       };
 
+      console.log('WA DEBUG REQUEST:', { phone: r.phone, template_id, variables: r.variables });
       console.log('MSG91 PAYLOAD:', JSON.stringify(msg91Payload, null, 2));
 
       try {
@@ -86,6 +87,7 @@ Deno.serve(async (req) => {
         });
 
         const rawText = await apiRes.text();
+        console.log('WA DEBUG RESPONSE:', { phone: r.phone, status: apiRes.status, body: rawText });
         console.log(`[sendWhatsAppBulkMessage] ${r.phone} status:`, apiRes.status, rawText);
         let apiData = {};
         try { apiData = JSON.parse(rawText); } catch {}
@@ -108,6 +110,7 @@ Deno.serve(async (req) => {
         }
       } catch (sendErr) {
         failedCount++;
+        console.error('WA ERROR:', { phone: r.phone, error: sendErr.message });
         console.error(`[sendWhatsAppBulkMessage] Error sending to ${r.phone}:`, sendErr.message);
         await base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
           status: 'failed',
