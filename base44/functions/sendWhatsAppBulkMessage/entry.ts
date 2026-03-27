@@ -34,94 +34,83 @@ Deno.serve(async (req) => {
       })
     ));
 
-    // Step 2: Build MSG91 bulk payload — single API call
-    const toArray = recipients.map(r => ({
-      phone: r.phone,
-      var: r.variables,
-    }));
-
-    const msg91Payload = {
-      integrated_number: MSG91_INTEGRATED_NUMBER,
-      content_type: 'template',
-      payload: {
-        messaging_product: 'whatsapp',
-        type: 'template',
-        template: {
-          name: template_id,
-          language: { code: 'en' },
-        },
-        to: toArray,
-      },
-    };
-
-    console.log(`[sendWhatsAppBulkMessage] Sending bulk to ${recipients.length} recipients`);
-
-    // Step 3: Single API call to MSG91
-    const apiRes = await fetch(MSG91_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'authkey': MSG91_AUTH_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(msg91Payload),
-    });
-
-    const rawText = await apiRes.text();
-    console.log('[sendWhatsAppBulkMessage] MSG91 HTTP status:', apiRes.status);
-    console.log('[sendWhatsAppBulkMessage] MSG91 raw response:', rawText);
-    let apiData = {};
-    try { apiData = JSON.parse(rawText); } catch {}
-    console.log('[sendWhatsAppBulkMessage] MSG91 parsed:', JSON.stringify(apiData));
-    console.log('[sendWhatsAppBulkMessage] MSG91 error code:', apiData?.code || apiData?.error_code || 'N/A');
-    console.log('[sendWhatsAppBulkMessage] MSG91 error message:', apiData?.message || apiData?.error || 'N/A');
+    // Step 2: Send one-by-one using components/parameters format
+    console.log(`[sendWhatsAppBulkMessage] Sending to ${recipients.length} recipients one-by-one`);
 
     const sentAt = new Date().toISOString();
+    let successCount = 0;
+    let failedCount = 0;
 
-    if (apiRes.ok && apiData.type !== 'error') {
-      // Step 4: Success — update all logs to "sent"
-      const msgIds = apiData?.data?.message_ids || apiData?.message_ids || [];
+    for (let i = 0; i < recipients.length; i++) {
+      const r = recipients[i];
+      const log = logEntries[i];
 
-      await Promise.all(logEntries.map((log, idx) =>
-        base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
-          status: 'sent',
-          msg91_message_id: msgIds[idx] || null,
-          status_history: [
-            { status: 'queued', timestamp: now },
-            { status: 'sent', timestamp: sentAt },
-          ],
-        })
-      ));
+      const msg91Payload = {
+        integrated_number: MSG91_INTEGRATED_NUMBER,
+        content_type: 'template',
+        payload: {
+          messaging_product: 'whatsapp',
+          type: 'template',
+          template: {
+            name: template_id,
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: (r.variables || []).map(v => ({ type: 'text', text: String(v) })),
+              },
+            ],
+          },
+          to: r.phone,
+        },
+      };
 
-      return Response.json({
-        total: recipients.length,
-        success: recipients.length,
-        failed: 0,
-        api_response: apiData,
-      });
+      console.log(`[sendWhatsAppBulkMessage] Payload for ${r.phone}:`, JSON.stringify(msg91Payload));
 
-    } else {
-      // Step 5: Failure — update all logs to "failed"
-      const errorReason = apiData?.message || apiData?.error || 'MSG91 API error';
+      try {
+        const apiRes = await fetch(MSG91_ENDPOINT, {
+          method: 'POST',
+          headers: { 'authkey': MSG91_AUTH_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify(msg91Payload),
+        });
 
-      await Promise.all(logEntries.map(log =>
-        base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
+        const rawText = await apiRes.text();
+        console.log(`[sendWhatsAppBulkMessage] ${r.phone} status:`, apiRes.status, rawText);
+        let apiData = {};
+        try { apiData = JSON.parse(rawText); } catch {}
+
+        if (apiRes.ok && apiData.type !== 'error') {
+          successCount++;
+          await base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
+            status: 'sent',
+            msg91_message_id: apiData?.data?.message_id || null,
+            status_history: [{ status: 'queued', timestamp: now }, { status: 'sent', timestamp: sentAt }],
+          });
+        } else {
+          failedCount++;
+          const errorReason = apiData?.message || apiData?.error || 'MSG91 API error';
+          await base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
+            status: 'failed',
+            error_reason: errorReason,
+            status_history: [{ status: 'queued', timestamp: now }, { status: 'failed', timestamp: sentAt, reason: errorReason }],
+          });
+        }
+      } catch (sendErr) {
+        failedCount++;
+        console.error(`[sendWhatsAppBulkMessage] Error sending to ${r.phone}:`, sendErr.message);
+        await base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
           status: 'failed',
-          error_reason: errorReason,
-          status_history: [
-            { status: 'queued', timestamp: now },
-            { status: 'failed', timestamp: sentAt, reason: errorReason },
-          ],
-        })
-      ));
-
-      return Response.json({
-        total: recipients.length,
-        success: 0,
-        failed: recipients.length,
-        error: errorReason,
-        api_response: apiData,
-      });
+          error_reason: sendErr.message,
+          status_history: [{ status: 'queued', timestamp: now }, { status: 'failed', timestamp: sentAt, reason: sendErr.message }],
+        });
+      }
     }
+
+    return Response.json({
+      total: recipients.length,
+      success: successCount,
+      failed: failedCount,
+    });
 
   } catch (error) {
     console.error('[sendWhatsAppBulkMessage] Error:', error.message);
