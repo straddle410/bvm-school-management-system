@@ -189,14 +189,18 @@ Deno.serve(async (req) => {
     // ──────────────────────────────────────────────────────────────────────
 
     // Test WhatsApp notification
-    await base44.asServiceRole.functions.invoke('sendFeePaymentNotification', {
-      student_id: payment.student_id,
-      student_name: payment.student_name,
-      class_name: payment.class_name,
-      amount_paid: payment.amount_paid,
-      receipt_no: payment.receipt_no,
-      id: payment.id
-    });
+    try {
+      await base44.asServiceRole.functions.invoke('sendFeePaymentNotification', {
+        student_id: payment.student_id,
+        student_name: payment.student_name,
+        class_name: payment.class_name,
+        amount_paid: payment.amount_paid,
+        receipt_no: payment.receipt_no,
+        id: payment.id
+      });
+    } catch (err) {
+      console.log("WA ERROR (ignored):", err);
+    }
 
     return Response.json({ success: true, receipt_no: receiptNo, payment_id: payment.id, new_status: newStatus, balance: Math.max(0, newBalance) });
   } catch (error) {
