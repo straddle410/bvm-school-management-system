@@ -6,17 +6,18 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function PublicReceipt() {
-  const { receipt_no } = useParams();
+  const { receipt_no: rawReceiptNo } = useParams();
+  const receiptNo = rawReceiptNo ? decodeURIComponent(rawReceiptNo) : '';
   const navigate = useNavigate();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['public-receipt', receipt_no],
+    queryKey: ['public-receipt', receiptNo],
     queryFn: async () => {
-      if (!receipt_no) throw new Error('No receipt number provided');
+      if (!receiptNo) throw new Error('No receipt number provided');
 
       // Fetch FeePayment by receipt_no
       const payments = await base44.asServiceRole.entities.FeePayment.filter({
-        receipt_no: receipt_no.toUpperCase()
+        receipt_no: receiptNo.toUpperCase()
       }, '-created_date', 1);
 
       if (!payments || payments.length === 0) {
@@ -48,7 +49,7 @@ export default function PublicReceipt() {
         invoice
       };
     },
-    enabled: !!receipt_no,
+    enabled: !!receiptNo,
     retry: 0,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 5
