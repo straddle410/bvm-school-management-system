@@ -71,6 +71,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   };
 
   const handleSend = async () => {
+    console.log('STEP 1: handleSend started');
     if (selectedIds.size === 0) {
       toast.error('Please select at least one student');
       return;
@@ -82,6 +83,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     try {
       // Fetch full student records and school profile in parallel
       const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
+      console.log('STEP 2: selectedRecords', selectedRecords);
       const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
       const [studentFetches, schoolProfileList] = await Promise.all([
         Promise.all(studentIds.map(id => base44.entities.Student.filter({ id }))),
@@ -96,6 +98,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       // Build recipients with correct variable mapping
       const recipients = [];
       for (const record of selectedRecords) {
+        console.log('STEP 3: record', record);
         const student = studentMap[record.student_id] || {};
         const rawPhone = student.parent_phone || student.alternate_parent_phone;
         if (!rawPhone) continue;
@@ -115,12 +118,15 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         });
       }
 
+      console.log('STEP 4: recipients', recipients);
+
       if (recipients.length === 0) {
         toast.error('No valid phone numbers found for selected students');
         setSending(false);
         return;
       }
 
+      console.log('STEP 5: calling sendWhatsAppBulkMessage');
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
         template_id: 'absent_notification',
         use_case: 'Absent',
