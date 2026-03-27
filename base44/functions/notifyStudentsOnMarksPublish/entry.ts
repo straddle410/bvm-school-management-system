@@ -67,23 +67,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, notified: 0 });
     }
 
-    // Send push notification if enabled
-    try {
-      const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
-        student_id: student_id
-      });
-      const pref = prefs[0];
-      if (pref && pref.browser_push_enabled && pref.browser_push_token) {
-        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-          student_ids: [student_id],
-          title: 'Your Results Are Published',
-          message: `${marks.subject} - ${marks.exam_type}`,
-          url: '/Results',
-        });
-      }
-    } catch (pushErr) {
-      console.error('Push send error (non-fatal):', pushErr.message);
-    }
+    // PUSH DISABLED TEMPORARILY
 
     return Response.json({ success: true, notified });
   } catch (error) {

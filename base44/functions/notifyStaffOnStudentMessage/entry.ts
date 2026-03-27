@@ -66,29 +66,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Push notifications for staff with tokens
-    if (notified > 0) {
-      try {
-        const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-        for (const pref of prefs) {
-          if (
-            staffEmails.includes(pref.staff_email) &&
-            pref.browser_push_enabled &&
-            pref.browser_push_token &&
-            pref.notify_on_student_message !== false
-          ) {
-            await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
-              staff_emails: [pref.staff_email],
-              title: `Message from ${message.sender_name || 'Student'}`,
-              message: message.subject || (message.body || '').substring(0, 80),
-              url: '/Messaging',
-            });
-          }
-        }
-      } catch (pushErr) {
-        console.error('Push send error (non-fatal):', pushErr.message);
-      }
-    }
+    // PUSH DISABLED TEMPORARILY
 
     return Response.json({ success: true, notified });
   } catch (error) {

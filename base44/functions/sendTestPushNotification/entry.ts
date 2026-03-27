@@ -3,6 +3,9 @@ import webpush from 'npm:web-push@3.6.7';
 
 Deno.serve(async (req) => {
   try {
+    // PUSH DISABLED TEMPORARILY
+    return Response.json({ success: true, message: 'Push disabled temporarily' });
+
     const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
     const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {

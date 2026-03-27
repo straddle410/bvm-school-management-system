@@ -80,32 +80,7 @@ Deno.serve(async (req) => {
     const results = await Promise.all(notificationPromises);
     notified = results.filter(r => r !== null).length;
 
-    // FIX #4: Send push notifications to staff with enabled push
-    if (notified > 0) {
-      try {
-        const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-        const prefMap = new Map(prefs.map(p => [p.staff_email, p]));
-
-        const pushStaffEmails = staffEmails
-          .filter(email => {
-            const p = prefMap.get(email);
-            return p && p.browser_push_enabled && p.browser_push_token;
-          });
-
-        if (pushStaffEmails.length > 0) {
-          await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
-            staff_emails: pushStaffEmails,
-            title: `Notice: ${notice.title}`,
-            message: (notice.content || '').substring(0, 100),
-            url: '/Notices',
-          }).catch(pushErr => {
-            console.error('Staff push send error (non-fatal):', pushErr.message);
-          });
-        }
-      } catch (pushErr) {
-        console.error('Staff push delivery error (non-fatal):', pushErr.message);
-      }
-    }
+    // PUSH DISABLED TEMPORARILY
 
     return Response.json({ success: true, notified });
   } catch (error) {

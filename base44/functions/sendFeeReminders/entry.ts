@@ -72,25 +72,7 @@ Deno.serve(async (req) => {
           .replace('{amount}', outstanding_balance.toString())
           .replace('{class}', class_name + ' ' + section);
 
-        // STEP 4 - SEND PUSH NOTIFICATION
-        try {
-          const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({
-            student_id: student_id,
-          });
-          const pref = prefs[0];
-
-          if (pref && pref.browser_push_enabled && pref.browser_push_token) {
-            await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-              student_ids: [student_id],
-              title: personalTitle,
-              message: personalMessage,
-              url: '/fees',
-              data: { type: 'fee_reminder' }
-            });
-          }
-        } catch (pushErr) {
-          console.error(`Failed to send push notification for student ${student_id}:`, pushErr.message);
-        }
+        // STEP 4 - PUSH DISABLED TEMPORARILY
 
         // STEP 5 - CREATE IN-APP NOTIFICATION
         await base44.asServiceRole.entities.Notification.create({

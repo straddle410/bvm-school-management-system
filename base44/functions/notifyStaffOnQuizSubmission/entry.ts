@@ -62,29 +62,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Push notifications
-    if (notified > 0) {
-      try {
-        const prefs = await base44.asServiceRole.entities.StaffNotificationPreference.filter({});
-        for (const pref of prefs) {
-          if (
-            staffEmails.includes(pref.staff_email) &&
-            pref.browser_push_enabled &&
-            pref.browser_push_token &&
-            pref.notify_on_quiz_submission !== false
-          ) {
-            await base44.asServiceRole.functions.invoke('sendStaffPushNotification', {
-              staff_emails: [pref.staff_email],
-              title: 'Quiz Submitted',
-              message: `${attempt.student_name || 'A student'} submitted "${quiz.title}"`,
-              url: '/Quiz',
-            });
-          }
-        }
-      } catch (pushErr) {
-        console.error('Push send error (non-fatal):', pushErr.message);
-      }
-    }
+    // PUSH DISABLED TEMPORARILY
 
     return Response.json({ success: true, notified });
   } catch (error) {

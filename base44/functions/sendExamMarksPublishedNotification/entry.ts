@@ -78,19 +78,8 @@ Deno.serve(async (req) => {
         console.error('[sendExamMarksPublishedNotification] Duplicate check error:', dupErr.message);
       }
 
-      // Send push notification
-      let isPushSent = false;
-      try {
-        await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-          student_ids: [studentId],
-          title,
-          message: msgBody,
-          url: notificationUrl,
-        });
-        isPushSent = true;
-      } catch (pushErr) {
-        console.error('[sendExamMarksPublishedNotification] Push failed for student:', studentId, pushErr.message);
-      }
+      // PUSH DISABLED TEMPORARILY
+      const isPushSent = false;
 
       // Create Message entity for deduplication and in-app badge/notification
       try {

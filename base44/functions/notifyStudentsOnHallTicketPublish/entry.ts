@@ -33,19 +33,8 @@ Deno.serve(async (req) => {
     const title = 'Hall Ticket Published';
     const body = `Your exam hall ticket for ${hallTicket.exam_type || 'Exam'} is now available. Download and print it.`;
 
-    // Send push first, track success
-    let isPushSent = false;
-    try {
-      await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-        student_ids: [student_id],
-        title,
-        message: body,
-        url: '/StudentHallTicketView',
-      });
-      isPushSent = true;
-    } catch (pushErr) {
-      console.warn('[notifyStudentsOnHallTicketPublish] Push failed (non-fatal):', pushErr.message);
-    }
+    // PUSH DISABLED TEMPORARILY
+    const isPushSent = false;
 
     // Create Message entity (dedup record + in-app notification)
     await base44.asServiceRole.entities.Message.create({

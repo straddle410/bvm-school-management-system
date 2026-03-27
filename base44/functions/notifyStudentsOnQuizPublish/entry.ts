@@ -81,31 +81,7 @@ Deno.serve(async (req) => {
     const results = await Promise.all(notificationPromises);
     notified = results.filter(r => r !== null).length;
 
-    // Send push notifications to students with push tokens
-    if (notified > 0) {
-      try {
-        const prefs = await base44.asServiceRole.entities.StudentNotificationPreference.filter({});
-        const prefMap = new Map(prefs.map(p => [p.student_id, p]));
-
-        const pushStudentIds = students
-          .filter(s => {
-            const p = prefMap.get(s.student_id);
-            return p && p.browser_push_enabled && p.browser_push_token;
-          })
-          .map(s => s.student_id);
-
-        if (pushStudentIds.length > 0) {
-          await base44.asServiceRole.functions.invoke('sendStudentPushNotification', {
-            student_ids: pushStudentIds,
-            title: 'New Quiz Posted',
-            message: `${quiz.title}${quiz.subject ? ' - ' + quiz.subject : ''}`,
-            url: '/Quiz',
-          });
-        }
-      } catch (pushErr) {
-        console.error('Push send error (non-fatal):', pushErr.message);
-      }
-    }
+    // PUSH DISABLED TEMPORARILY
 
     return Response.json({ success: true, notified });
   } catch (error) {

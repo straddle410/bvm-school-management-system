@@ -4,13 +4,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Respect global push settings
-    const settingsList = await base44.asServiceRole.entities.NotificationSettings.list();
-    const settings = settingsList?.[0];
-    if (!settings || settings.enable_push !== true) {
-      console.log('[SendStaffPush] Push disabled, skipping.');
-      return Response.json({ success: true, sent: 0, reason: 'Push notifications disabled' });
-    }
+    // PUSH DISABLED TEMPORARILY
+    return Response.json({ success: true, message: 'Push disabled temporarily' });
 
     const { staff_ids, title, message, url } = await req.json();
 

@@ -49,79 +49,8 @@ Deno.serve(async (req) => {
       .replace(/{{school_name}}/g, schoolName);
     const academicYear = payment.academic_year || '2024-25';
 
-    // Send consolidated push via OneSignal
-    let isPushSent = false;
-    let oneSignalId = 'unknown';
-    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
-    const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
-    
-    try {
-      const res = await fetch('https://onesignal.com/api/v1/notifications', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          app_id: ONESIGNAL_APP_ID,
-          include_external_user_ids: [`student_${studentId}`],
-          contents: { en: body },
-          headings: { en: subject },
-        }),
-      });
-      const osData = await res.json();
-      
-      if (res.ok) {
-        isPushSent = true;
-        oneSignalId = osData.id || 'unknown';
-        console.log('[sendFeePaymentNotification] OneSignal sent for:', studentId);
-        // Log success
-        await base44.asServiceRole.entities.PushNotificationLog.create({
-          one_signal_notification_id: oneSignalId,
-          target_type: 'student',
-          target_user_ids: [`student_${studentId}`],
-          title: subject,
-          message: body.substring(0, 100),
-          recipients_count: osData.recipients || 1,
-          status: 'sent',
-          context_type: 'fee_payment',
-          context_id: receiptNo,
-          sent_date: new Date().toISOString(),
-        });
-      } else {
-        console.error(`[sendFeePaymentNotification] OneSignal failed (${res.status}):`, JSON.stringify(osData));
-        // Log failure
-        await base44.asServiceRole.entities.PushNotificationLog.create({
-          one_signal_notification_id: osData.id || 'unknown',
-          target_type: 'student',
-          target_user_ids: [`student_${studentId}`],
-          title: subject,
-          message: body.substring(0, 100),
-          recipients_count: 1,
-          status: 'failed',
-          error_message: osData.errors?.[0] || JSON.stringify(osData),
-          context_type: 'fee_payment',
-          context_id: receiptNo,
-          sent_date: new Date().toISOString(),
-        });
-      }
-    } catch (pushErr) {
-      console.warn('[sendFeePaymentNotification] OneSignal network error:', pushErr.message);
-      // Log network failure
-      await base44.asServiceRole.entities.PushNotificationLog.create({
-        one_signal_notification_id: 'network_error',
-        target_type: 'student',
-        target_user_ids: [`student_${studentId}`],
-        title: subject,
-        message: body.substring(0, 100),
-        recipients_count: 1,
-        status: 'failed',
-        error_message: pushErr.message,
-        context_type: 'fee_payment',
-        context_id: receiptNo,
-        sent_date: new Date().toISOString(),
-      });
-    }
+    // PUSH DISABLED TEMPORARILY — OneSignal block commented out
+    const isPushSent = false;
 
     // Create Message + mark payment as notified (dual-write for safety)
     await Promise.all([
