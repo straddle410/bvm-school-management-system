@@ -50,8 +50,8 @@ Deno.serve(async (req) => {
           name: template_id,
           language: { code: 'en' },
         },
+        to: toArray,
       },
-      to: toArray,
     };
 
     console.log(`[sendWhatsAppBulkMessage] Sending bulk to ${recipients.length} recipients`);
