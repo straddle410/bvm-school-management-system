@@ -80,30 +80,37 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     setSentResults(null);
     setWhatsappResult(null);
     try {
-      // Fetch full student records to get alternate phones
+      // Fetch full student records and school profile in parallel
       const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
       const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
-      const studentFetches = await Promise.all(studentIds.map(id => base44.entities.Student.filter({ id })));
+      const [studentFetches, schoolProfileList] = await Promise.all([
+        Promise.all(studentIds.map(id => base44.entities.Student.filter({ id }))),
+        base44.entities.SchoolProfile.list(),
+      ]);
       const studentMap = {};
       studentFetches.flat().forEach(s => { studentMap[s.id] = s; });
+      const schoolName = schoolProfileList?.[0]?.school_name || 'School';
 
       const dateLabel = selectedDate || new Date().toLocaleDateString('en-IN');
 
-      // Build recipients with phone fallback
+      // Build recipients with correct variable mapping
       const recipients = [];
       for (const record of selectedRecords) {
         const student = studentMap[record.student_id] || {};
-        const rawPhone = record.student_id ? (student.parent_phone || student.alternate_parent_phone) : null;
+        const rawPhone = student.parent_phone || student.alternate_parent_phone;
         if (!rawPhone) continue;
         const digits = rawPhone.replace(/\D/g, '');
-        const phone = digits.startsWith('91') ? `+${digits}` : `+91${digits}`;
+        if (digits.length < 10) continue;
+        const phone = digits.startsWith('91') ? digits : `91${digits}`;
         recipients.push({
           student_id: record.student_id,
           phone,
           variables: [
-            record.student_name || student.name || record.student_id,
-            `${record.class_name}-${record.section}`,
-            dateLabel,
+            student.parent_name || '',   // {{1}} parent_name
+            record.student_name || student.name || record.student_id, // {{2}} student_name
+            record.class_name || '',     // {{3}} class_name
+            dateLabel,                   // {{4}} date
+            schoolName,                  // {{5}} school_name
           ],
         });
       }
@@ -115,7 +122,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       }
 
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
-        template_id: 'absent_notification_mock',
+        template_id: 'absent_notification',
         use_case: 'Absent',
         recipients,
       });
@@ -157,7 +164,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <p className="text-sm font-semibold text-green-800 dark:text-green-300">WhatsApp Notifications Sent (Mock)</p>
+              <p className="text-sm font-semibold text-green-800 dark:text-green-300">WhatsApp Notifications Sent</p>
             </div>
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
@@ -165,11 +172,11 @@ export default function AbsentNotificationTab({ academicYear, user }) {
                 <p className="text-xs text-gray-500">Total Sent</p>
               </div>
               <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
-                <p className="text-xl font-bold text-green-600">{whatsappResult.delivered}</p>
+                <p className="text-xl font-bold text-green-600">{whatsappResult.success ?? whatsappResult.delivered ?? 0}</p>
                 <p className="text-xs text-gray-500">Delivered</p>
               </div>
               <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
-                <p className="text-xl font-bold text-red-600">{whatsappResult.failed}</p>
+                <p className="text-xl font-bold text-red-600">{whatsappResult.failed ?? 0}</p>
                 <p className="text-xs text-gray-500">Failed</p>
               </div>
             </div>
