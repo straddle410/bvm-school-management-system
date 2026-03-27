@@ -19,8 +19,7 @@ export default function PublicReceipt() {
     queryFn: async () => {
 
       const allPayments = await base44.asServiceRole.entities.FeePayment.list();
-      console.log("ALL RECEIPTS:", allPayments.map(p => p.receipt_no));
-
+     console.log("ALL RECEIPTS DATA:", allPayments);
       const clean = (val) => 
         (val || '')
           .toString()
