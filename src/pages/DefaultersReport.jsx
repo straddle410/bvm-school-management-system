@@ -183,10 +183,12 @@ export default function DefaultersReportPage() {
     try {
       // Fetch full student records to get parent details
       const studentRecords = await Promise.all(
-        selectedStudents.map(id => base44.entities.Student.filter({ id }))
+        selectedStudents.map(studentCode =>
+          base44.entities.Student.filter({ student_id: studentCode })
+        )
       );
       const studentMap = {};
-      studentRecords.flat().forEach(s => { studentMap[s.id] = s; });
+      studentRecords.flat().forEach(s => { studentMap[s.student_id] = s; });
 
       const recipients = [];
       for (const row of rows.filter(r => selectedStudents.includes(r.student.id))) {
