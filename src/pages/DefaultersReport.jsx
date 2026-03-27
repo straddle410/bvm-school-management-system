@@ -55,6 +55,9 @@ export default function DefaultersReportPage() {
   const [sendingReminders, setSendingReminders] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [reminderResult, setReminderResult] = useState(null);
+  const [isDueDateModalOpen, setIsDueDateModalOpen] = useState(false);
+  const [bulkDueDate, setBulkDueDate] = useState('');
+  const [savingDueDate, setSavingDueDate] = useState(false);
 
   useEffect(() => {
     const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
@@ -174,6 +177,29 @@ export default function DefaultersReportPage() {
     }
   };
 
+  const handleSetDueDate = async () => {
+    if (!bulkDueDate) {
+      toast.error('Please select a due date');
+      return;
+    }
+    setSavingDueDate(true);
+    try {
+      const res = await base44.functions.invoke('updateDefaulterDueDate', {
+        student_ids: selectedStudents,
+        due_date: bulkDueDate,
+        academic_year: academicYear,
+      });
+      toast.success(`Due date updated for ${res.data.updated} invoice(s)`);
+      setIsDueDateModalOpen(false);
+      setBulkDueDate('');
+      queryClient.invalidateQueries({ queryKey: ['defaultersReport'] });
+    } catch (err) {
+      toast.error('Failed to update due date: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setSavingDueDate(false);
+    }
+  };
+
   const handleSendReminder = async () => {
     if (selectedStudents.length === 0) {
       toast.error('Please select at least one student');
@@ -272,14 +298,24 @@ export default function DefaultersReportPage() {
               <p className="text-gray-600">Track students with outstanding fees for follow-up</p>
             </div>
             {(userRole === 'admin' || userRole === 'accountant') && (
-              <Button
-                onClick={() => { setIsReminderModalOpen(true); setReminderResult(null); }}
-                disabled={selectedStudents.length === 0}
-                className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
-              >
-                <Send className="h-4 w-4" />
-                Send Reminder ({selectedStudents.length} selected)
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => { setIsDueDateModalOpen(true); setBulkDueDate(''); }}
+                  disabled={selectedStudents.length === 0}
+                  className="gap-2 border-orange-400 text-orange-700 hover:bg-orange-50"
+                >
+                  📅 Set Due Date ({selectedStudents.length} selected)
+                </Button>
+                <Button
+                  onClick={() => { setIsReminderModalOpen(true); setReminderResult(null); }}
+                  disabled={selectedStudents.length === 0}
+                  className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+                >
+                  <Send className="h-4 w-4" />
+                  Send Reminder ({selectedStudents.length} selected)
+                </Button>
+              </div>
             )}
           </div>
 
@@ -559,6 +595,38 @@ export default function DefaultersReportPage() {
             }}
           />
         )}
+
+        {/* Set Due Date Modal */}
+        <Dialog open={isDueDateModalOpen} onOpenChange={setIsDueDateModalOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Set Due Date</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-3">
+              <p className="text-sm text-gray-600">
+                Setting due date for <strong>{selectedStudents.length}</strong> selected student(s).
+                This will update all active invoices for each student.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Due Date</label>
+                <input
+                  type="date"
+                  value={bulkDueDate}
+                  onChange={e => setBulkDueDate(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDueDateModalOpen(false)} disabled={savingDueDate}>
+                Cancel
+              </Button>
+              <Button onClick={handleSetDueDate} disabled={savingDueDate} className="bg-[#1a237e] hover:bg-[#283593]">
+                {savingDueDate ? 'Saving...' : 'Save'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Send Reminder Modal */}
         <Dialog open={isReminderModalOpen} onOpenChange={(open) => { setIsReminderModalOpen(open); if (!open) setReminderResult(null); }}>
