@@ -45,6 +45,17 @@ Deno.serve(async (req) => {
       const r = recipients[i];
       const log = logEntries[i];
 
+      if (!r.variables || r.variables.length !== 5) {
+        console.error(`[sendWhatsAppBulkMessage] Invalid variables for ${r.phone}:`, r.variables);
+        failedCount++;
+        await base44.asServiceRole.entities.WhatsAppMessageLog.update(log.id, {
+          status: 'failed',
+          error_reason: 'Invalid variables length: expected 5',
+          status_history: [{ status: 'queued', timestamp: now }, { status: 'failed', timestamp: sentAt, reason: 'Invalid variables length' }],
+        });
+        continue;
+      }
+
       const msg91Payload = {
         integrated_number: MSG91_INTEGRATED_NUMBER,
         content_type: 'template',
@@ -57,7 +68,7 @@ Deno.serve(async (req) => {
             components: [
               {
                 type: 'body',
-                parameters: (r.variables || []).map(v => ({ type: 'text', text: String(v) })),
+                parameters: r.variables.map(v => ({ type: 'text', text: String(v) })),
               },
             ],
           },
@@ -65,7 +76,7 @@ Deno.serve(async (req) => {
         },
       };
 
-      console.log(`[sendWhatsAppBulkMessage] Payload for ${r.phone}:`, JSON.stringify(msg91Payload));
+      console.log('MSG91 PAYLOAD:', JSON.stringify(msg91Payload, null, 2));
 
       try {
         const apiRes = await fetch(MSG91_ENDPOINT, {
