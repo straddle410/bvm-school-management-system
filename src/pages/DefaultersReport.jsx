@@ -202,12 +202,12 @@ export default function DefaultersReportPage() {
           student_id: row.student.id,
           phone,
           variables: [
-            'Naresh',          // {{1}} parent_name
-            'Rahul',           // {{2}} student_name
-            '5000',            // {{3}} pending_fee
-            'Term 1',          // {{4}} term_name
-            '30 March 2026',   // {{5}} due_date
-            'BVM School',      // {{6}} school_name
+            studentRecord.parent_name || row.student.name,  // {{1}} parent_name
+            row.student.name,                               // {{2}} student_name
+            String(row.due || 0),                           // {{3}} pending_fee
+            '',                                             // {{4}} term_name
+            '',                                             // {{5}} due_date
+            schoolProfile?.school_name || 'School',        // {{6}} school_name
           ],
         });
       }
