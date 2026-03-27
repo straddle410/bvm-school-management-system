@@ -105,14 +105,21 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
-        const classSection = `${record.class_name || ''}-${record.section || ''}`.replace(/^-|-$/, '').trim() || 'Class';
+        const classValue = `Class ${record.class_name || ''}-${record.section || ''}`.trim();
+          const rawDateStr = dateLabel || selectedDate || new Date().toISOString().slice(0, 10);
+          const parsedDate = new Date(rawDateStr);
+          const formattedDate = parsedDate instanceof Date && !isNaN(parsedDate)
+            ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
+            : rawDateStr;
+          const parent = (record.parent_name || 'Guardian').trim();
           const variables = [
-            'Parent',                                                                          // {{1}} parent_name
+            parent,                                                                            // {{1}} parent_name
             (record.student_name || record.student_id || 'Student').trim(),                   // {{2}} student_name
-            classSection,                                                                      // {{3}} class (e.g. "2-A")
-            (dateLabel || selectedDate || new Date().toISOString().slice(0, 10)).trim(),       // {{4}} date
+            classValue,                                                                        // {{3}} class (e.g. "Class 2-A")
+            formattedDate,                                                                     // {{4}} date (e.g. "27 March 2026")
             (schoolName || 'School').trim(),                                                   // {{5}} school_name
           ];
+          console.log('Absent FINAL variables:', variables);
           if (variables.length !== 5) {
             console.error('[AbsentNotification] Invalid variable count', variables);
             continue;
