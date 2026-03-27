@@ -15,6 +15,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sending, setSending] = useState(false);
   const [sentResults, setSentResults] = useState(null);
+  const [whatsappResult, setWhatsappResult] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch all absent attendance records for the selected date
@@ -75,35 +76,51 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       return;
     }
 
-    const selectedRecords = absentRecords
-      .filter(r => selectedIds.has(r.id))
-      .map(r => ({
-        student_id: r.student_id,
-        attendance_id: r.id,
-        student_name: r.student_name || r.student_id,
-        class_name: r.class_name,
-        section: r.section,
-        academic_year: r.academic_year,
-      }));
-
     setSending(true);
     setSentResults(null);
+    setWhatsappResult(null);
     try {
-      const response = await base44.functions.invoke('sendAbsentNotification', {
-        attendanceRecords: selectedRecords,
+      // Fetch full student records to get alternate phones
+      const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
+      const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
+      const studentFetches = await Promise.all(studentIds.map(id => base44.entities.Student.filter({ id })));
+      const studentMap = {};
+      studentFetches.flat().forEach(s => { studentMap[s.id] = s; });
+
+      const dateLabel = selectedDate || new Date().toLocaleDateString('en-IN');
+
+      // Build recipients with phone fallback
+      const recipients = [];
+      for (const record of selectedRecords) {
+        const student = studentMap[record.student_id] || {};
+        const rawPhone = record.student_id ? (student.parent_phone || student.alternate_parent_phone) : null;
+        if (!rawPhone) continue;
+        const digits = rawPhone.replace(/\D/g, '');
+        const phone = digits.startsWith('91') ? `+${digits}` : `+91${digits}`;
+        recipients.push({
+          student_id: record.student_id,
+          phone,
+          variables: [
+            record.student_name || student.name || record.student_id,
+            `${record.class_name}-${record.section}`,
+            dateLabel,
+          ],
+        });
+      }
+
+      if (recipients.length === 0) {
+        toast.error('No valid phone numbers found for selected students');
+        setSending(false);
+        return;
+      }
+
+      const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
+        template_id: 'absent_notification_mock',
+        use_case: 'Absent',
+        recipients,
       });
-      const data = response.data;
-      setSentResults(data);
+      setWhatsappResult(res.data);
       setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] });
-      queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] });
-      refetch();
-      if (data.successCount > 0) {
-        toast.success(`Notifications sent to ${data.successCount} student(s)`);
-      }
-      if (data.skippedCount > 0) {
-        toast.info(`${data.skippedCount} already notified — skipped`);
-      }
     } catch (err) {
       toast.error('Failed to send notifications: ' + (err?.message || 'Unknown error'));
     } finally {
@@ -135,13 +152,27 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       </Card>
 
       {/* Results banner */}
-      {sentResults && (
+      {whatsappResult && (
         <Card className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-          <CardContent className="p-4 flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-            <p className="text-sm text-green-800 dark:text-green-300">
-              Sent: {sentResults.successCount} · Skipped (duplicate): {sentResults.skippedCount} · Failed: {sentResults.failedCount}
-            </p>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <p className="text-sm font-semibold text-green-800 dark:text-green-300">WhatsApp Notifications Sent (Mock)</p>
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
+                <p className="text-xl font-bold text-gray-800 dark:text-white">{whatsappResult.total}</p>
+                <p className="text-xs text-gray-500">Total Sent</p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
+                <p className="text-xl font-bold text-green-600">{whatsappResult.delivered}</p>
+                <p className="text-xs text-gray-500">Delivered</p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
+                <p className="text-xl font-bold text-red-600">{whatsappResult.failed}</p>
+                <p className="text-xs text-gray-500">Failed</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
