@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function PublicReceipt() {
- const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.href.split('?')[1]);
 const receiptNo = decodeURIComponent(params.get("receipt_no") || "");
   const navigate = useNavigate();
 
