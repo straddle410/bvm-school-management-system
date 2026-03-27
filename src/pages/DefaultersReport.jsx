@@ -190,6 +190,9 @@ export default function DefaultersReportPage() {
       const studentMap = {};
       studentRecords.flat().forEach(s => { studentMap[s.student_id] = s; });
 
+      const schoolProfileList = await base44.entities.SchoolProfile.list();
+      const schoolName = schoolProfileList?.[0]?.school_name || 'School';
+
       const recipients = [];
       for (const row of rows.filter(r => selectedStudents.includes(r.student.id))) {
         const studentRecord = studentMap[row.student.id] || {};
@@ -207,7 +210,7 @@ export default function DefaultersReportPage() {
             String(row.due || 0),                           // {{3}} pending_fee
             '',                                             // {{4}} term_name
             '',                                             // {{5}} due_date
-            schoolProfile?.school_name || 'School',        // {{6}} school_name
+            schoolName,                                     // {{6}} school_name
           ],
         });
       }
