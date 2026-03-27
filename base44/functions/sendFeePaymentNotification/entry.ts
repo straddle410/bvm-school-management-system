@@ -60,7 +60,9 @@ Deno.serve(async (req) => {
     }
 
     // 4. Build public receipt link
-    const receiptLink = `https://www.app.bvmse.in/receipt/${record.receipt_no}`;
+    const safeReceiptNo = encodeURIComponent(record.receipt_no);
+    const receiptLink =
+      "https://www.app.bvmse.in/receipt/" + safeReceiptNo;
 
     // 5. Format class_name as "5-A"
     const className = [record.class_name, student.section].filter(Boolean).join('-');
