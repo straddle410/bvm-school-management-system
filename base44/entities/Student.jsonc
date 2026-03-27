@@ -1,0 +1,204 @@
+{
+  "name": "Student",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Unique student ID (e.g. S0001). NULL for Pending/Verified students. Assigned only on Approved status.",
+      "unique": true
+    },
+    "student_id_norm": {
+      "type": "string",
+      "description": "Normalized student_id: trim + uppercase for case-insensitive matching"
+    },
+    "username": {
+      "type": "string",
+      "description": "Login username (auto-generated or set by admin)"
+    },
+    "password": {
+      "type": "string",
+      "description": "DEPRECATED: plaintext password (kept for backward compatibility, will be migrated to password_hash)"
+    },
+    "password_hash": {
+      "type": "string",
+      "description": "Bcrypt-hashed password (new standard)"
+    },
+    "must_change_password": {
+      "type": "boolean",
+      "default": true,
+      "description": "Force password change on next login"
+    },
+    "name": {
+      "type": "string",
+      "description": "Full name"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Student photo URL"
+    },
+    "class_name": {
+      "type": "string",
+      "enum": [
+        "Nursery",
+        "LKG",
+        "UKG",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "description": "Class/Grade"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section (e.g. A, B, C, D) \u2014 no enum restriction, driven by SectionConfig"
+    },
+    "roll_no": {
+      "type": "number",
+      "description": "Roll number"
+    },
+    "parent_name": {
+      "type": "string",
+      "description": "Parent/Guardian name"
+    },
+    "parent_phone": {
+      "type": "string",
+      "description": "Parent primary phone number"
+    },
+    "alternate_parent_phone": {
+      "type": "string",
+      "description": "Parent alternate phone number \u2014 used as fallback if primary is not reachable on WhatsApp"
+    },
+    "parent_email": {
+      "type": "string",
+      "description": "Parent email"
+    },
+    "dob": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ],
+      "description": "Gender"
+    },
+    "address": {
+      "type": "string",
+      "description": "Home address"
+    },
+    "blood_group": {
+      "type": "string",
+      "enum": [
+        "A+",
+        "A-",
+        "B+",
+        "B-",
+        "AB+",
+        "AB-",
+        "O+",
+        "O-"
+      ],
+      "description": "Blood group"
+    },
+    "admission_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of admission"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year this enrollment belongs to (e.g. 2024-25)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Verified",
+        "Approved",
+        "Published",
+        "Passed Out",
+        "Transferred",
+        "Archived"
+      ],
+      "default": "Pending",
+      "description": "Student status"
+    },
+    "transport_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the student uses school transport. Adds a fixed Transport fee line item to their annual invoice."
+    },
+    "hostel_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the student stays in the hostel. Adds a class-wise Hostel fee line item to their annual invoice."
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Verified by user email"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Approved by user email"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft delete flag \u2014 deleted students are hidden from all views but never permanently removed"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Active status \u2014 false when archived or inactive"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when student was archived"
+    },
+    "archived_by": {
+      "type": "string",
+      "description": "Email of admin who archived the student"
+    },
+    "is_whatsapp_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether WhatsApp is available on the student's primary or alternate parent phone number"
+    },
+    "last_whatsapp_status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "delivered",
+        "failed"
+      ],
+      "description": "Most recent WhatsApp message delivery status for this student"
+    },
+    "last_whatsapp_error_reason": {
+      "type": "string",
+      "description": "Error reason from MSG91 if last WhatsApp message failed (optional)"
+    }
+  },
+  "required": [
+    "name",
+    "class_name",
+    "section"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": false
+  }
+}

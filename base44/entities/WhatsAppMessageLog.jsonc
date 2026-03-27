@@ -1,0 +1,89 @@
+{
+  "name": "WhatsAppMessageLog",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity ID"
+    },
+    "phone_number_used": {
+      "type": "string",
+      "description": "Actual phone number (primary or alternate) the message was sent to"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "MSG91 WhatsApp template ID used for this message"
+    },
+    "use_case": {
+      "type": "string",
+      "enum": [
+        "FeeReminder",
+        "Absent",
+        "Notice"
+      ],
+      "description": "Notification use case that triggered this message"
+    },
+    "message_variables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered array of variable values injected into the template ({{1}}, {{2}}, ...)"
+    },
+    "msg91_message_id": {
+      "type": "string",
+      "description": "Unique message ID returned by MSG91 for this send attempt (optional until MSG91 is integrated)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sent",
+        "delivered",
+        "failed"
+      ],
+      "default": "queued",
+      "description": "Current delivery status of this message"
+    },
+    "error_reason": {
+      "type": "string",
+      "description": "Error reason from MSG91 if status is failed (optional)"
+    },
+    "timestamp_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the message was sent or queued"
+    },
+    "status_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Full chronological history of status changes for this message"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year context for this message"
+    }
+  },
+  "required": [
+    "student_id",
+    "phone_number_used",
+    "template_id",
+    "use_case",
+    "status",
+    "timestamp_sent"
+  ]
+}
