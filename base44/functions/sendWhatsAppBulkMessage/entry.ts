@@ -35,14 +35,9 @@ Deno.serve(async (req) => {
     ));
 
     // Step 2: Build MSG91 bulk payload — single API call
-    const toArray = recipients.map(({ phone, variables }) => ({
-      phone,
-      components: [
-        {
-          type: 'body',
-          parameters: (variables || []).map(v => ({ type: 'text', text: String(v) })),
-        },
-      ],
+    const toArray = recipients.map(r => ({
+      mobile: r.phone,
+      variables: r.variables,
     }));
 
     const msg91Payload = {
@@ -54,7 +49,6 @@ Deno.serve(async (req) => {
         template: {
           name: template_id,
           language: { code: 'en' },
-          components: [],
         },
       },
       to: toArray,
