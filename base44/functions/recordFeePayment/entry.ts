@@ -188,6 +188,16 @@ Deno.serve(async (req) => {
     // This avoids context loss in async fire-and-forget patterns
     // ──────────────────────────────────────────────────────────────────────
 
+    // Test WhatsApp notification
+    await base44.asServiceRole.functions.invoke('sendFeePaymentNotification', {
+      student_id: payment.student_id,
+      student_name: payment.student_name,
+      class_name: payment.class_name,
+      amount_paid: payment.amount_paid,
+      receipt_no: payment.receipt_no,
+      id: payment.id
+    });
+
     return Response.json({ success: true, receipt_no: receiptNo, payment_id: payment.id, new_status: newStatus, balance: Math.max(0, newBalance) });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
