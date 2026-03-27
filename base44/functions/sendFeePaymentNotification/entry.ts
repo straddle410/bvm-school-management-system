@@ -77,13 +77,13 @@ Deno.serve(async (req) => {
 
     // 8. Debug log
     console.log('FINAL PHONE:', cleanPhone);
-    console.log('FEE RECEIPT PAYLOAD:', { phone: cleanPhone, variables, template_id: 'fee_receipt' });
+    console.log('FEE RECEIPT PAYLOAD:', { mobile: cleanPhone, variables, template_name: 'fee_recepit' });
     console.log('CALLING WA FUNCTION WITH SERVICE ROLE');
+    console.log('WA USING TEMPLATE:', 'fee_recepit');
 
     // 9. Send WhatsApp via service role
     const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
-      template_id: 'fee_receipt',
-      use_case: 'FeeReminder',
+      template_name: 'fee_recepit',
       recipients: [{ mobile: cleanPhone, variables }],
     });
 
