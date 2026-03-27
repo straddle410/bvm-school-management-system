@@ -225,7 +225,7 @@ export default function StudentDashboard() {
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
             {schoolProfile?.logo_url ? (
               <img
-                src={schoolProfile.logo_url}
+                src={schoolProfile?.logo_url}
                 alt="School Logo"
                 className="h-10 w-10 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow"
               />
