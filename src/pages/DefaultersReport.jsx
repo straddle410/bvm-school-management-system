@@ -191,57 +191,8 @@ export default function DefaultersReportPage() {
 
 
   const handleSendReminder = async (allowDuplicate = false) => {
-    setSendingReminders(true);
-    try {
-      // Get staff session for sender info
-      const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
-      
-      // Prepare student data from selected rows
-      const studentsData = rows
-        .filter(row => selectedStudents.includes(row.student.id))
-        .map(row => ({
-          student_id: row.student.id,
-          student_name: row.student.name,
-          parent_name: row.student.name,
-          due_amount: row.due,
-          class_name: row.class.name
-        }));
-
-      const res = await base44.functions.invoke('sendFeeReminder', {
-        selectedStudents: studentsData,
-        academic_year: academicYear,
-        sender_id: staffSession.username || 'admin',
-        sender_name: staffSession.name || 'Admin',
-        allowDuplicate: allowDuplicate
-      });
-      
-      const result = res.data;
-      setReminderResult(result);
-      setLastSendAllowDuplicate(allowDuplicate);
-      
-      // If there are skipped reminders and this was the first attempt, show the warning
-      if (result.skipped_count > 0 && !allowDuplicate) {
-        // Result will be shown in the modal
-        return;
-      }
-      
-      // Success path
-      if (result.success_count > 0) {
-        toast.success(`Reminders sent to ${result.success_count} students`);
-      }
-      
-      if (result.failed_count > 0) {
-        toast.warning(`${result.failed_count} reminders failed to send`);
-      }
-      
-      setSelectedStudents([]);
-      setIsReminderModalOpen(false);
-      setReminderResult(null);
-    } catch (error) {
-      toast.error('Failed to send reminders: ' + error.message);
-    } finally {
-      setSendingReminders(false);
-    }
+    setIsReminderModalOpen(false);
+    toast.info('Notification feature will be upgraded soon');
   };
 
   if (isLoading) {
