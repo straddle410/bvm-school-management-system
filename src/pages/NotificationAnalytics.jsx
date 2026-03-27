@@ -1,191 +1,173 @@
 import { useState, useEffect } from 'react';
-import RecipientModal from '@/components/RecipientModal';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Users, Users2, TrendingUp, AlertCircle, RefreshCw, FlaskConical } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Bell, Users, TrendingUp, AlertCircle, RefreshCw, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+
+const COLORS_STATUS = ['#22c55e', '#ef4444'];
+const COLORS_USE_CASE = ['#3b82f6', '#f59e0b', '#8b5cf6'];
 
 export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
-  const [selectedLog, setSelectedLog] = useState(null);
-  const [recipients, setRecipients] = useState([]);
-  const [recipientsLoading, setRecipientsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [deliveryStats, setDeliveryStats] = useState({});
-  const [loadingRows, setLoadingRows] = useState({});
-  const [deliveryStatsFetched, setDeliveryStatsFetched] = useState(false);
+  const [filterUseCase, setFilterUseCase] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [waAvailability, setWaAvailability] = useState({ available: 0, unavailable: 0 });
 
-  useEffect(() => {
-    const loadLogs = async () => {
-      try {
-        const data = await base44.entities.PushNotificationLog.list('-sent_date', 500);
-        setLogs(data || []);
-      } catch (err) {
-        console.error('Failed to load logs:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadLogs();
-  }, []);
-
-  const openRecipients = async (log) => {
-    setSelectedLog(log);
-    setRecipients([]);
-    setRecipientsLoading(true);
-
-    const studentIds = [];
-    const staffIds = [];
-    (log.target_user_ids || []).forEach(id => {
-      if (id.startsWith('student_')) studentIds.push(id.replace('student_', ''));
-      else if (id.startsWith('staff_')) staffIds.push(id.replace('staff_', ''));
-    });
-
-    const [students, staff] = await Promise.all([
-      studentIds.length ? base44.entities.Student.filter({ student_id: { $in: studentIds } }) : [],
-      staffIds.length ? base44.entities.StaffAccount.filter({ id: { $in: staffIds } }) : []
-    ]);
-
-    setRecipients([
-      ...students.map(s => s.name),
-      ...staff.map(s => s.name)
-    ]);
-    setRecipientsLoading(false);
-  };
-
-  // Fetch delivery stats for a single notification (lazy load with caching)
-  const fetchSingleStat = async (log) => {
-    const notificationId = log.one_signal_notification_id;
-    const logId = log.id;
-    
-    // Return cached result if exists
-    if (deliveryStats[logId]) return deliveryStats[logId];
-    
-    // Set loading state for this row
-    setLoadingRows(prev => ({ ...prev, [logId]: true }));
-    
+  const loadData = async () => {
+    setLoading(true);
     try {
-      const response = await base44.functions.invoke('getNotificationStats', {
-        notification_id: notificationId
-      });
-      const stats = response.data;
-      
-      // Cache the result
-      setDeliveryStats(prev => ({ ...prev, [logId]: stats }));
-      return stats;
+      const [allLogs, students] = await Promise.all([
+        base44.entities.WhatsAppMessageLog.list('-timestamp_sent', 500),
+        base44.entities.Student.filter({ status: 'Published' }),
+      ]);
+      setLogs(allLogs || []);
+
+      const available = students.filter(s => s.is_whatsapp_available === true).length;
+      setWaAvailability({ available, unavailable: students.length - available });
     } catch (err) {
-      console.error('Failed to fetch stats for', notificationId, err);
-      return null;
+      console.error('Failed to load WhatsApp analytics:', err);
     } finally {
-      setLoadingRows(prev => ({ ...prev, [logId]: false }));
+      setLoading(false);
     }
   };
 
-  // Fetch delivery stats when Delivery tab is opened
-  const fetchDeliveryStats = async () => {
-    if (deliveryStatsFetched) return; // Already fetched once
-    
-    setDeliveryStatsFetched(true);
-    const validLogs = logs.filter(
-      log => log.one_signal_notification_id && 
-             log.one_signal_notification_id !== 'unknown' && 
-             log.one_signal_notification_id !== 'network_error'
-    );
-    
-    // Fetch all in parallel
-    const statsPromises = validLogs.map(async (log) => {
-      try {
-        const response = await base44.functions.invoke('getNotificationStats', {
-          notification_id: log.one_signal_notification_id
-        });
-        return { id: log.id, stats: response.data };
-      } catch (err) {
-        console.error('Failed to fetch stats for', log.one_signal_notification_id, err);
-        return { id: log.id, stats: null };
-      }
-    });
+  useEffect(() => { loadData(); }, []);
 
-    const results = await Promise.all(statsPromises);
-    const statsMap = {};
-    results.forEach(({ id, stats }) => {
-      statsMap[id] = stats;
-    });
-    setDeliveryStats(statsMap);
-  };
+  // Apply filters
+  const filteredLogs = logs.filter(log => {
+    if (filterUseCase && log.use_case !== filterUseCase) return false;
+    if (filterDateFrom && log.timestamp_sent < filterDateFrom) return false;
+    if (filterDateTo && log.timestamp_sent > filterDateTo + 'T23:59:59') return false;
+    return true;
+  });
 
-  if (loading) {
-    return <div className="p-4 text-center">Loading analytics...</div>;
-  }
+  // Metrics
+  const totalSent = filteredLogs.length;
+  const delivered = filteredLogs.filter(l => l.status === 'delivered').length;
+  const failed = filteredLogs.filter(l => l.status === 'failed').length;
+  const successRate = totalSent > 0 ? Math.round((delivered / totalSent) * 100) : 0;
 
-  const studentLogs = logs.filter(l => l.target_type === 'student');
-  const staffLogs = logs.filter(l => l.target_type === 'staff');
-  const generalLogs = logs.filter(l => l.target_type === 'general');
-  const failedLogs = logs.filter(l => l.status === 'failed');
-  const totalRecipients = logs.reduce((sum, l) => sum + (l.recipients_count || 0), 0);
+  // Chart: Status breakdown
+  const statusData = [
+    { name: 'Delivered', count: delivered },
+    { name: 'Failed', count: failed },
+  ];
 
-  // Prepare chart data
-  const dailyData = logs.reduce((acc, log) => {
-    const date = new Date(log.sent_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-    const existing = acc.find(item => item.date === date);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      acc.push({ date, count: 1 });
-    }
+  // Chart: Daily trend (last 7 days)
+  const dailyData = filteredLogs.reduce((acc, log) => {
+    const date = new Date(log.timestamp_sent).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+    const existing = acc.find(d => d.date === date);
+    if (existing) existing.count += 1;
+    else acc.push({ date, count: 1 });
     return acc;
   }, []).slice(-7);
 
-  const successFailedData = [
-    { name: 'Sent', count: logs.filter(l => l.status === 'sent').length },
-    { name: 'Failed', count: failedLogs.length }
+  // Chart: Use case split
+  const useCaseData = ['FeeReminder', 'Absent', 'Notice'].map(uc => ({
+    name: uc,
+    count: filteredLogs.filter(l => l.use_case === uc).length,
+  }));
+
+  // WhatsApp availability chart
+  const availabilityData = [
+    { name: 'Available', count: waAvailability.available },
+    { name: 'Unavailable', count: waAvailability.unavailable },
   ];
 
-  const typeData = [
-    { name: 'Students', count: studentLogs.length },
-    { name: 'Staff', count: staffLogs.length },
-    { name: 'General', count: generalLogs.length }
-  ];
+  const failedLogs = filteredLogs.filter(l => l.status === 'failed');
 
-  const COLORS = ['#22c55e', '#ef4444'];
-  const TYPE_COLORS = ['#3b82f6', '#8b5cf6'];
+  if (loading) {
+    return <div className="p-4 text-center">Loading WhatsApp analytics...</div>;
+  }
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <RecipientModal
-        log={selectedLog}
-        recipients={recipients}
-        loading={recipientsLoading}
-        onClose={() => setSelectedLog(null)}
-      />
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Notification Analytics</h1>
-          <p className="text-gray-600">Track all push notifications sent to students and staff</p>
+          <h1 className="text-3xl font-bold mb-2">WhatsApp Notification Analytics</h1>
+          <p className="text-gray-600">Track all WhatsApp messages sent to parents</p>
         </div>
-        <Link
-          to="/OneSignalDiagnostic"
+        <button
+          onClick={loadData}
           className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
         >
-          <FlaskConical className="h-4 w-4" />
-          Push Diagnostic
-        </Link>
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </button>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Chart 1: Daily Notifications */}
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <Select value={filterUseCase || '__all__'} onValueChange={v => setFilterUseCase(v === '__all__' ? '' : v)}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="All Use Cases" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">All Use Cases</SelectItem>
+            <SelectItem value="FeeReminder">Fee Reminder</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+            <SelectItem value="Notice">Notice</SelectItem>
+          </SelectContent>
+        </Select>
+        <input
+          type="date"
+          value={filterDateFrom}
+          onChange={e => setFilterDateFrom(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm"
+          placeholder="From"
+        />
+        <input
+          type="date"
+          value={filterDateTo}
+          onChange={e => setFilterDateTo(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm"
+          placeholder="To"
+        />
+        {(filterUseCase || filterDateFrom || filterDateTo) && (
+          <button
+            onClick={() => { setFilterUseCase(''); setFilterDateFrom(''); setFilterDateTo(''); }}
+            className="text-sm text-red-600 hover:underline px-2"
+          >
+            Clear Filters
+          </button>
+        )}
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Daily Notifications (Last 7)</CardTitle>
-          </CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-600">Total Sent</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold">{totalSent}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-600">Delivered</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-green-600">{delivered}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-600">Failed</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-red-600">{failed}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-blue-600">{successRate}%</div></CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Daily Trend */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Daily Messages (Last 7)</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={dailyData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" fontSize={12} />
-                <YAxis fontSize={12} />
+                <XAxis dataKey="date" fontSize={11} />
+                <YAxis fontSize={11} />
                 <Tooltip />
                 <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -193,27 +175,15 @@ export default function NotificationAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Chart 2: Success vs Failed */}
+        {/* Status Breakdown */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Success vs Failed</CardTitle>
-          </CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Delivered vs Failed</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie
-                  data={successFailedData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`}
-                  outerRadius={60}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {successFailedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
+                <Pie data={statusData} cx="50%" cy="50%" outerRadius={60} dataKey="count"
+                  label={({ name, count }) => `${name}: ${count}`} labelLine={false}>
+                  {statusData.map((_, i) => <Cell key={i} fill={COLORS_STATUS[i]} />)}
                 </Pie>
                 <Tooltip />
               </PieChart>
@@ -221,27 +191,15 @@ export default function NotificationAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Chart 3: Type Distribution */}
+        {/* Use Case Split */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Student vs Staff</CardTitle>
-          </CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Use Case Split</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie
-                  data={typeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`}
-                  outerRadius={60}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {typeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
-                  ))}
+                <Pie data={useCaseData} cx="50%" cy="50%" outerRadius={60} dataKey="count"
+                  label={({ name, count }) => count > 0 ? `${name}: ${count}` : ''} labelLine={false}>
+                  {useCaseData.map((_, i) => <Cell key={i} fill={COLORS_USE_CASE[i]} />)}
                 </Pie>
                 <Tooltip />
               </PieChart>
@@ -251,391 +209,186 @@ export default function NotificationAnalytics() {
       </div>
 
       <Tabs defaultValue="summary" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="summary" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            Summary
+            <Bell className="h-4 w-4" /> Summary
           </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Students
+          <TabsTrigger value="logs" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" /> All Logs
           </TabsTrigger>
-          <TabsTrigger value="staff" className="flex items-center gap-2">
-            <Users2 className="h-4 w-4" />
-            Staff
-          </TabsTrigger>
-          <TabsTrigger value="delivery" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Delivery
-          </TabsTrigger>
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            General
+          <TabsTrigger value="availability" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> WA Availability
           </TabsTrigger>
           <TabsTrigger value="failed" className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            Failed
+            <AlertCircle className="h-4 w-4" /> Failed
           </TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Summary */}
-        <TabsContent value="summary" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <TabsContent value="summary">
+          <Card>
+            <CardHeader><CardTitle>Recent Messages</CardTitle></CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Student ID</th>
+                      <th className="text-left py-2 px-2">Phone</th>
+                      <th className="text-left py-2 px-2">Use Case</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLogs.slice(0, 15).map(log => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2">{new Date(log.timestamp_sent).toLocaleDateString('en-IN')}</td>
+                        <td className="py-2 px-2 font-mono text-xs">{log.student_id}</td>
+                        <td className="py-2 px-2">{log.phone_number_used}</td>
+                        <td className="py-2 px-2">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">{log.use_case}</span>
+                        </td>
+                        <td className="py-2 px-2">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            log.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>{log.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredLogs.length === 0 && <p className="text-center py-4 text-gray-500">No messages found</p>}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 2: All Logs */}
+        <TabsContent value="logs">
+          <Card>
+            <CardHeader><CardTitle>All WhatsApp Logs ({filteredLogs.length})</CardTitle></CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Student ID</th>
+                      <th className="text-left py-2 px-2">Phone</th>
+                      <th className="text-left py-2 px-2">Use Case</th>
+                      <th className="text-left py-2 px-2">Template ID</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                      <th className="text-left py-2 px-2">Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLogs.map(log => (
+                      <tr key={log.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-2">{new Date(log.timestamp_sent).toLocaleDateString('en-IN')}</td>
+                        <td className="py-2 px-2 font-mono text-xs">{log.student_id}</td>
+                        <td className="py-2 px-2">{log.phone_number_used}</td>
+                        <td className="py-2 px-2">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">{log.use_case}</span>
+                        </td>
+                        <td className="py-2 px-2 text-xs text-gray-500">{log.template_id}</td>
+                        <td className="py-2 px-2">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            log.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>{log.status}</span>
+                        </td>
+                        <td className="py-2 px-2 text-xs text-red-500">{log.error_reason || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredLogs.length === 0 && <p className="text-center py-4 text-gray-500">No logs found</p>}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 3: WA Availability */}
+        <TabsContent value="availability">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Notifications</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>WhatsApp Availability</CardTitle></CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{logs.length}</div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-3xl font-bold text-green-600">{waAvailability.available}</p>
+                    <p className="text-sm text-gray-600 mt-1">WhatsApp Available</p>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-3xl font-bold text-red-600">{waAvailability.unavailable}</p>
+                    <p className="text-sm text-gray-600 mt-1">Not Available</p>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={availabilityData} cx="50%" cy="50%" outerRadius={70} dataKey="count"
+                      label={({ name, count }) => `${name}: ${count}`} labelLine={false}>
+                      {availabilityData.map((_, i) => <Cell key={i} fill={COLORS_STATUS[i]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Recipients</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Use Case Breakdown</CardTitle></CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{totalRecipients}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {logs.length > 0
-                    ? `${Math.round((logs.filter(l => l.status === 'sent').length / logs.length) * 100)}%`
-                    : '0%'}
+                <div className="space-y-3 pt-2">
+                  {useCaseData.map((uc, i) => (
+                    <div key={uc.name} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ background: COLORS_USE_CASE[i] }} />
+                        <span className="font-medium">{uc.name}</span>
+                      </div>
+                      <span className="text-xl font-bold">{uc.count}</span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Notifications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Type</th>
-                      <th className="text-left py-2 px-2">Recipients</th>
-                      <th className="text-left py-2 px-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.slice(0, 10).map((log) => (
-                      <tr key={log.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-2">
-                          {new Date(log.sent_date).toLocaleDateString('en-IN')}
-                        </td>
-                        <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">
-                          <span className="capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                            {log.target_type}
-                          </span>
-                        </td>
-                        <td className="py-2 px-2">{log.recipients_count}</td>
-                        <td className="py-2 px-2">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              log.status === 'sent'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {log.status.toUpperCase()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
-        {/* Tab 2: Students */}
-        <TabsContent value="students">
-          <Card>
-            <CardHeader>
-              <CardTitle>Student Notifications ({studentLogs.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Recipients</th>
-                      <th className="text-left py-2 px-2">Context</th>
-                      <th className="text-left py-2 px-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentLogs.map((log) => (
-                      <tr key={log.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-2">
-                          {new Date(log.sent_date).toLocaleDateString('en-IN')}
-                        </td>
-                        <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">
-                          <button onClick={() => openRecipients(log)} className="text-blue-600 hover:underline font-medium">{log.recipients_count}</button>
-                        </td>
-                        <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
-                        <td className="py-2 px-2">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              log.status === 'sent'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {log.status.toUpperCase()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {studentLogs.length === 0 && (
-                  <p className="text-center py-4 text-gray-500">No student notifications found</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tab 3: Staff */}
-        <TabsContent value="staff">
-          <Card>
-            <CardHeader>
-              <CardTitle>Staff Notifications ({staffLogs.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Recipients</th>
-                      <th className="text-left py-2 px-2">Context</th>
-                      <th className="text-left py-2 px-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {staffLogs.map((log) => (
-                      <tr key={log.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-2">
-                          {new Date(log.sent_date).toLocaleDateString('en-IN')}
-                        </td>
-                        <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">
-                          <button onClick={() => openRecipients(log)} className="text-blue-600 hover:underline font-medium">{log.recipients_count}</button>
-                        </td>
-                        <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
-                        <td className="py-2 px-2">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              log.status === 'sent'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {log.status.toUpperCase()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {staffLogs.length === 0 && (
-                  <p className="text-center py-4 text-gray-500">No staff notifications found</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tab 4: Delivery */}
-        <TabsContent value="delivery" onPointerDown={fetchDeliveryStats}>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Delivery Details</CardTitle>
-                <button
-                  onClick={() => {
-                    setDeliveryStats({});
-                    setDeliveryStatsFetched(false);
-                    fetchDeliveryStats();
-                  }}
-                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Refresh
-                </button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Sent</th>
-                      <th className="text-left py-2 px-2">Delivered</th>
-                      <th className="text-left py-2 px-2">Failed</th>
-                      <th className="text-left py-2 px-2">Opened</th>
-                      <th className="text-left py-2 px-2">OneSignal ID</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log) => {
-                      const stats = deliveryStats[log.id];
-                      const isLoading = loadingRows[log.id];
-                      const hasValidId = log.one_signal_notification_id && 
-                                        log.one_signal_notification_id !== 'unknown' && 
-                                        log.one_signal_notification_id !== 'network_error';
-                      
-                      return (
-                        <tr key={log.id} className="border-b hover:bg-gray-50">
-                          <td className="py-2 px-2 font-medium">{log.title}</td>
-                          <td className="py-2 px-2">
-                            {isLoading ? (
-                              <RefreshCw className="h-3 w-3 animate-spin text-gray-400" />
-                            ) : stats ? (
-                              stats.recipients
-                            ) : (
-                              log.recipients_count
-                            )}
-                          </td>
-                          <td className="py-2 px-2 text-green-600 font-medium">
-                            {isLoading ? '-' : stats ? stats.successful : '-'}
-                          </td>
-                          <td className="py-2 px-2 text-red-600 font-medium">
-                            {isLoading ? '-' : stats ? stats.failed : '-'}
-                          </td>
-                          <td className="py-2 px-2 text-blue-600 font-medium">
-                            {isLoading ? '-' : stats ? stats.opened : '-'}
-                          </td>
-                          <td className="py-2 px-2 text-xs font-mono text-gray-600 truncate max-w-xs">
-                            {hasValidId ? (
-                              <button
-                                onClick={() => fetchSingleStat(log)}
-                                className="hover:underline"
-                                title="Click to fetch stats"
-                              >
-                                {log.one_signal_notification_id}
-                              </button>
-                            ) : (
-                              'N/A'
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {logs.length === 0 && (
-                  <p className="text-center py-4 text-gray-500">No notifications found</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tab 5: General */}
-        <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Notifications ({generalLogs.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Recipients</th>
-                      <th className="text-left py-2 px-2">Context</th>
-                      <th className="text-left py-2 px-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {generalLogs.map((log) => (
-                      <tr key={log.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-2">{new Date(log.sent_date).toLocaleDateString('en-IN')}</td>
-                        <td className="py-2 px-2 font-medium">{log.title}</td>
-                        <td className="py-2 px-2">
-                          <button onClick={() => openRecipients(log)} className="text-blue-600 hover:underline font-medium">{log.recipients_count}</button>
-                        </td>
-                        <td className="py-2 px-2 text-gray-600">{log.context_type}</td>
-                        <td className="py-2 px-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            log.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {log.status.toUpperCase()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {generalLogs.length === 0 && (
-                  <p className="text-center py-4 text-gray-500">No general notifications found</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tab 6: Failed */}
+        {/* Tab 4: Failed */}
         <TabsContent value="failed">
           <Card>
-            <CardHeader>
-              <CardTitle>Failed Notifications ({failedLogs.length})</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Failed Messages ({failedLogs.length})</CardTitle></CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b">
                     <tr>
                       <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-left py-2 px-2">Title</th>
-                      <th className="text-left py-2 px-2">Type</th>
-                      <th className="text-left py-2 px-2">Error Message</th>
+                      <th className="text-left py-2 px-2">Student ID</th>
+                      <th className="text-left py-2 px-2">Phone</th>
+                      <th className="text-left py-2 px-2">Use Case</th>
+                      <th className="text-left py-2 px-2">Error Reason</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {failedLogs.map((log) => (
+                    {failedLogs.map(log => (
                       <tr key={log.id} className="border-b hover:bg-red-50">
-                        <td className="py-2 px-2 text-gray-600">
-                          {new Date(log.sent_date).toLocaleString('en-IN')}
-                        </td>
-                        <td className="py-2 px-2 font-medium">{log.title}</td>
+                        <td className="py-2 px-2">{new Date(log.timestamp_sent).toLocaleDateString('en-IN')}</td>
+                        <td className="py-2 px-2 font-mono text-xs">{log.student_id}</td>
+                        <td className="py-2 px-2">{log.phone_number_used}</td>
                         <td className="py-2 px-2">
-                          <span className="capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                            {log.target_type}
-                          </span>
+                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">{log.use_case}</span>
                         </td>
-                        <td className="py-2 px-2 text-red-600 font-medium">
-                          {log.error_message || 'Unknown error'}
-                        </td>
+                        <td className="py-2 px-2 text-red-600">{log.error_reason || 'Unknown error'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                {failedLogs.length === 0 && (
-                  <p className="text-center py-4 text-gray-500">No failed notifications found</p>
-                )}
+                {failedLogs.length === 0 && <p className="text-center py-4 text-gray-500">No failed messages</p>}
               </div>
             </CardContent>
           </Card>
