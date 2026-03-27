@@ -74,6 +74,7 @@ const AuthenticatedApp = () => {
       <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><PageTransition><StudentQuiz /></PageTransition></LayoutWrapper>} />
       <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><PageTransition><StudentChangePassword /></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><DeleteAccount /></PageTransition>} />
+      <Route path="/receipt" element={<PublicReceipt />} />
       <Route path="/receipt/:receipt_no" element={<PublicReceipt />} />
 
        <Route path="*" element={<PageNotFound />} />
