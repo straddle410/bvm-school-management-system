@@ -53,9 +53,7 @@ export default function DefaultersReportPage() {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState(null);
   const [reminderResult, setReminderResult] = useState(null);
-  const [lastSendAllowDuplicate, setLastSendAllowDuplicate] = useState(false);
 
   useEffect(() => {
     const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
@@ -106,20 +104,7 @@ export default function DefaultersReportPage() {
         ...(appliedFilters.search && { search: appliedFilters.search })
       });
 
-      console.log('Filter params being sent:', {
-        academicYear: academicYear,
-        className: appliedFilters.className,
-        section: appliedFilters.section,
-        minDue: appliedFilters.minDue,
-        status: appliedFilters.status,
-        search: appliedFilters.search,
-        page: page
-      });
-
       console.log('DefaultersReport sending academicYear:', academicYear);
-      console.log('Type:', typeof academicYear);
-      console.log('FULL params being sent:', JSON.stringify(Object.fromEntries(params)));
-
       const res = await base44.functions.invoke('getDefaultersReport', { ...Object.fromEntries(params) });
       return res.data;
     }
@@ -188,11 +173,50 @@ export default function DefaultersReportPage() {
     }
   };
 
+  const handleSendReminder = async () => {
+    if (selectedStudents.length === 0) return;
+    setSendingReminders(true);
+    setReminderResult(null);
+    try {
+      // Fetch full student records to get alternate phones
+      const studentRecords = await Promise.all(
+        selectedStudents.map(id => base44.entities.Student.filter({ id }))
+      );
+      const studentMap = {};
+      studentRecords.flat().forEach(s => { studentMap[s.id] = s; });
 
+      // Build recipients array with phone fallback logic
+      const recipients = [];
+      for (const row of rows.filter(r => selectedStudents.includes(r.student.id))) {
+        const studentRecord = studentMap[row.student.id] || {};
+        const rawPhone = row.phone1 || studentRecord.alternate_parent_phone;
+        if (!rawPhone) continue;
+        const digits = rawPhone.replace(/\D/g, '');
+        const phone = digits.startsWith('91') ? `+${digits}` : `+91${digits}`;
+        recipients.push({
+          student_id: row.student.id,
+          phone,
+          variables: [row.student.name, `Rs.${(row.due || 0).toLocaleString()}`],
+        });
+      }
 
-  const handleSendReminder = async (allowDuplicate = false) => {
-    setIsReminderModalOpen(false);
-    toast.info('Notification feature will be upgraded soon');
+      if (recipients.length === 0) {
+        toast.error('No valid phone numbers found for selected students');
+        setSendingReminders(false);
+        return;
+      }
+
+      const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
+        template_id: 'fee_reminder_mock',
+        use_case: 'FeeReminder',
+        recipients,
+      });
+      setReminderResult(res.data);
+    } catch (err) {
+      toast.error('Failed to send reminders: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setSendingReminders(false);
+    }
   };
 
   if (isLoading) {
@@ -221,7 +245,7 @@ export default function DefaultersReportPage() {
             </div>
             {(userRole === 'admin' || userRole === 'accountant') && (
               <Button
-                onClick={() => setIsReminderModalOpen(true)}
+                onClick={() => { setIsReminderModalOpen(true); setReminderResult(null); }}
                 disabled={selectedStudents.length === 0}
                 className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
               >
@@ -230,8 +254,6 @@ export default function DefaultersReportPage() {
               </Button>
             )}
           </div>
-
-
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -507,14 +529,14 @@ export default function DefaultersReportPage() {
         )}
 
         {/* Send Reminder Modal */}
-        <Dialog open={isReminderModalOpen} onOpenChange={setIsReminderModalOpen}>
+        <Dialog open={isReminderModalOpen} onOpenChange={(open) => { setIsReminderModalOpen(open); if (!open) setReminderResult(null); }}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center justify-between">
-                <DialogTitle>Send Fee Reminder</DialogTitle>
+                <DialogTitle>Send Fee Reminder via WhatsApp</DialogTitle>
                 {!reminderResult && (
                   <Button
-                    onClick={() => handleSendReminder(false)}
+                    onClick={handleSendReminder}
                     disabled={sendingReminders}
                     className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
                   >
@@ -526,7 +548,7 @@ export default function DefaultersReportPage() {
                     ) : (
                       <>
                         <Send className="h-4 w-4" />
-                        Send Reminder ({selectedStudents.length} selected)
+                        Send ({selectedStudents.length} selected)
                       </>
                     )}
                   </Button>
@@ -534,103 +556,87 @@ export default function DefaultersReportPage() {
               </div>
             </DialogHeader>
 
-            {/* Duplicate Warning Section */}
-            {reminderResult && reminderResult.skipped_count > 0 && !lastSendAllowDuplicate && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-4">
-                <div>
-                  <h4 className="font-semibold text-yellow-900 mb-2">Reminder Already Sent Today</h4>
-                  <p className="text-sm text-yellow-800">
-                    Reminder was already sent today to <strong>{reminderResult.skipped_count}</strong> student{reminderResult.skipped_count > 1 ? 's' : ''}.
-                  </p>
-                  {reminderResult.success_count > 0 && (
-                    <p className="text-sm text-yellow-800 mt-2">
-                      <strong>{reminderResult.success_count}</strong> student{reminderResult.success_count > 1 ? 's' : ''} received the reminder successfully.
-                    </p>
-                  )}
+            {/* WhatsApp Send Result */}
+            {reminderResult && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <h4 className="font-semibold text-green-900">WhatsApp Reminders Sent (Mock)</h4>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleSendReminder(true)}
-                    disabled={sendingReminders}
-                    className="gap-2 bg-orange-600 hover:bg-orange-700"
-                  >
-                    {sendingReminders ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4" />
-                        Send Again
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsReminderModalOpen(false);
-                      setReminderResult(null);
-                    }}
-                    disabled={sendingReminders}
-                  >
-                    Cancel
-                  </Button>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-2xl font-bold text-gray-800">{reminderResult.total}</p>
+                    <p className="text-xs text-gray-500">Total Sent</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-2xl font-bold text-green-600">{reminderResult.delivered}</p>
+                    <p className="text-xs text-gray-500">Delivered</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-2xl font-bold text-red-600">{reminderResult.failed}</p>
+                    <p className="text-xs text-gray-500">Failed</p>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  onClick={() => { setIsReminderModalOpen(false); setReminderResult(null); }}
+                >
+                  Close
+                </Button>
               </div>
             )}
 
-            <div className="space-y-4 py-4">
-              {/* Selected Students Table */}
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold">Student Name</th>
-                      <th className="px-3 py-2 text-left font-semibold">Class</th>
-                      <th className="px-3 py-2 text-right font-semibold">Due Amount</th>
-                      <th className="px-3 py-2 text-left font-semibold">Parent Name</th>
-                      <th className="px-3 py-2 text-left font-semibold">Phone</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+            {!reminderResult && (
+              <div className="space-y-4 py-4">
+                {/* Selected Students Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-semibold">Student Name</th>
+                        <th className="px-3 py-2 text-left font-semibold">Class</th>
+                        <th className="px-3 py-2 text-right font-semibold">Due Amount</th>
+                        <th className="px-3 py-2 text-left font-semibold">Phone</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows
+                        .filter(row => selectedStudents.includes(row.student.id))
+                        .map((row, idx) => (
+                          <tr key={idx} className="border-t">
+                            <td className="px-3 py-2">{row.student.name}</td>
+                            <td className="px-3 py-2">{row.class.name}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-red-600">
+                              ₹{row.due.toLocaleString()}
+                            </td>
+                            <td className="px-3 py-2">{row.phone1 || '-'}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Message Preview */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h4 className="font-semibold mb-3 text-sm">Message Preview (first 2):</h4>
+                  <div className="space-y-2">
                     {rows
                       .filter(row => selectedStudents.includes(row.student.id))
+                      .slice(0, 2)
                       .map((row, idx) => (
-                        <tr key={idx} className="border-t">
-                          <td className="px-3 py-2">{row.student.name}</td>
-                          <td className="px-3 py-2">{row.class.name}</td>
-                          <td className="px-3 py-2 text-right font-semibold text-red-600">
-                            ₹{row.due.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-2">{row.student.name}</td>
-                          <td className="px-3 py-2">{row.phone1 || '-'}</td>
-                        </tr>
+                        <div key={idx} className="text-sm text-gray-700 bg-white p-3 rounded border">
+                          Dear {row.student.name}, Fee of ₹{row.due.toLocaleString()} is pending. Please pay at earliest.
+                        </div>
                       ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Message Preview */}
-              <div className="border rounded-lg p-4 bg-gray-50">
-                <h4 className="font-semibold mb-3 text-sm">Message Preview:</h4>
-                <div className="space-y-2">
-                  {rows
-                    .filter(row => selectedStudents.includes(row.student.id))
-                    .slice(0, 2)
-                    .map((row, idx) => (
-                      <div key={idx} className="text-sm text-gray-700 bg-white p-3 rounded border">
-                        Dear {row.student.name}, Fee of ₹{row.due.toLocaleString()} is pending for {row.student.name} ({row.class.name}). Please pay at earliest.
-                      </div>
-                    ))}
-                  {selectedStudents.length > 2 && (
-                    <p className="text-xs text-gray-500 italic">
-                      ...and {selectedStudents.length - 2} more students
-                    </p>
-                  )}
+                    {selectedStudents.length > 2 && (
+                      <p className="text-xs text-gray-500 italic">
+                        ...and {selectedStudents.length - 2} more students
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {!reminderResult && (
               <DialogFooter>
@@ -642,7 +648,7 @@ export default function DefaultersReportPage() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={() => handleSendReminder(false)}
+                  onClick={handleSendReminder}
                   disabled={sendingReminders}
                   className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
                 >
