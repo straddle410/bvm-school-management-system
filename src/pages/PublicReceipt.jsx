@@ -18,15 +18,15 @@ export default function PublicReceipt() {
     retry: 0,
     queryFn: async () => {
 
-      const payments = await base44.asServiceRole.entities.FeePayment.filter({
-        receipt_no: receiptNo.toUpperCase()
-      }, '-created_date', 1);
+      const allPayments = await base44.asServiceRole.entities.FeePayment.list();
 
-      if (!payments || payments.length === 0) {
+      const payment = allPayments.find(p => 
+        p.receipt_no === receiptNo
+      );
+
+      if (!payment) {
         return null;
       }
-
-      const payment = payments[0];
 
       const students = await base44.asServiceRole.entities.Student.filter({
         student_id: payment.student_id
