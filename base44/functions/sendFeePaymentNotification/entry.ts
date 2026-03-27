@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import axios from 'npm:axios@1.6.0';
 
 Deno.serve(async (req) => {
   try {
@@ -94,14 +95,51 @@ Deno.serve(async (req) => {
       template: 'fee_recepit'
     });
 
-    // 9. Send WhatsApp via service role
-    const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
-      template_name: 'fee_recepit',
-      recipients: [{ mobile: cleanPhone, variables }],
-    });
+    // 9. Send WhatsApp via MSG91 API
+    const payload = {
+      integrated_number: "919010724665",
+      content_type: "template",
+      payload: {
+        messaging_product: "whatsapp",
+        type: "template",
+        template: {
+          name: "fee_recepit",
+          language: {
+            code: "te",
+            policy: "deterministic"
+          },
+          namespace: "6a70912b_12e8_4bbe_9e14_f1f979c61040",
+          to_and_components: [
+            {
+              to: [cleanPhone],
+              components: {
+                body_1: { type: "text", value: variables[0] },
+                body_2: { type: "text", value: variables[1] },
+                body_3: { type: "text", value: variables[2] },
+                body_4: { type: "text", value: variables[3] },
+                body_5: { type: "text", value: variables[4] }
+              }
+            }
+          ]
+        }
+      }
+    };
 
-    console.log('[sendFeePaymentNotification] Result:', result);
-    return Response.json({ success: true, result });
+    console.log('FINAL MSG91 PAYLOAD:', payload);
+
+    const result = await axios.post(
+      'https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/',
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          authkey: Deno.env.get('MSG91_AUTH_KEY')
+        }
+      }
+    );
+
+    console.log('[sendFeePaymentNotification] Result:', result.data);
+    return Response.json({ success: true, result: result.data });
 
   } catch (error) {
     console.error('FEE RECEIPT ERROR:', error);
