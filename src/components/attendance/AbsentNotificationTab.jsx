@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sending, setSending] = useState(false);
   const [sentResults, setSentResults] = useState(null);
+  const queryClient = useQueryClient();
 
   // Fetch all absent attendance records for the selected date
   const { data: absentRecords = [], isLoading, refetch } = useQuery({
@@ -24,7 +26,10 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       academic_year: academicYear,
     }),
     enabled: !!selectedDate && !!academicYear,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Check which attendance IDs already have a notification sent
@@ -39,7 +44,10 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       return msgs;
     },
     enabled: !!selectedDate && !!academicYear,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const alreadyNotifiedIds = new Set(existingMessages.map(m => m.context_id));
@@ -87,6 +95,8 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       const data = response.data;
       setSentResults(data);
       setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] });
+      queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] });
       refetch();
       if (data.successCount > 0) {
         toast.success(`Notifications sent to ${data.successCount} student(s)`);
@@ -114,7 +124,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
             <input
               type="date"
               value={selectedDate}
-              onChange={e => { setSelectedDate(e.target.value); setSelectedIds(new Set()); setSentResults(null); }}
+              onChange={e => { setSelectedDate(e.target.value); setSelectedIds(new Set()); setSentResults(null); queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] }); queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] }); }}
               className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm"
             />
           </div>
