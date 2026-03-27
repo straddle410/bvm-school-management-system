@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -201,17 +202,17 @@ export default function DefaultersReportPage() {
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
+        const formatted_due_date = format(new Date(), 'dd MMMM yyyy');
         const variables = [
-            (studentRecord.parent_name || row.student.name || 'Parent').toString().trim(),  // {{1}} parent_name
+            (studentRecord.parent_name || 'Guardian').toString().trim(),                    // {{1}} parent_name
             (row.student.name || 'Student').toString().trim(),                              // {{2}} student_name
-            String(row.due || 0).trim(),                                                    // {{3}} pending_fee
-            'School Fee',                                                                   // {{4}} term_name
-            'As soon as possible',                                                          // {{5}} due_date
+            String(row.due || 0),                                                           // {{3}} amount_due
+            'School Fee',                                                                   // {{4}} fee_type
+            formatted_due_date,                                                             // {{5}} due_date
             (schoolName || 'School').toString().trim(),                                     // {{6}} school_name
           ];
-          // Validate: skip if any variable is empty
-          if (variables.some(v => !v || v.toString().trim() === '')) {
-            console.error('Invalid variables for student', row.student.id, variables);
+          if (variables.length !== 6 || variables.some(v => !v || v.toString().trim() === '')) {
+            console.error('Invalid fee reminder variables', variables);
             continue;
           }
         recipients.push({
