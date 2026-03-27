@@ -66,8 +66,14 @@ Deno.serve(async (req) => {
       body: JSON.stringify(msg91Payload),
     });
 
-    const apiData = await apiRes.json().catch(() => ({}));
-    console.log('[sendWhatsAppBulkMessage] MSG91 response:', JSON.stringify(apiData));
+    const rawText = await apiRes.text();
+    console.log('[sendWhatsAppBulkMessage] MSG91 HTTP status:', apiRes.status);
+    console.log('[sendWhatsAppBulkMessage] MSG91 raw response:', rawText);
+    let apiData = {};
+    try { apiData = JSON.parse(rawText); } catch {}
+    console.log('[sendWhatsAppBulkMessage] MSG91 parsed:', JSON.stringify(apiData));
+    console.log('[sendWhatsAppBulkMessage] MSG91 error code:', apiData?.code || apiData?.error_code || 'N/A');
+    console.log('[sendWhatsAppBulkMessage] MSG91 error message:', apiData?.message || apiData?.error || 'N/A');
 
     const sentAt = new Date().toISOString();
 
