@@ -28,19 +28,24 @@ Deno.serve(async (req) => {
     // 2. Get student
     const students = await base44.asServiceRole.entities.Student.filter({ student_id: record.student_id });
     const student = students[0] || {};
+    console.log('STUDENT DATA:', student);
 
-    // 3. Get phone — only digits, must start with 91
-    const rawPhone = student.parent_phone || student.alternate_parent_phone;
-    if (!rawPhone) {
-      console.log(`[sendFeePaymentNotification] No phone for student ${record.student_id}, skipping`);
-      return Response.json({ message: 'No phone number, skipping' }, { status: 200 });
+    // 3. Get phone — try all known phone fields
+    const rawPhone =
+      student.parent_phone ||
+      student.alternate_parent_phone ||
+      student.father_phone ||
+      student.mother_phone;
+
+    let cleanPhone = (rawPhone || '').replace(/\D/g, '');
+    if (cleanPhone.length === 10) {
+      cleanPhone = '91' + cleanPhone;
     }
-    const digits = rawPhone.replace(/\D/g, '');
-    if (digits.length < 10) {
-      console.log(`[sendFeePaymentNotification] Invalid phone ${rawPhone}, skipping`);
-      return Response.json({ message: 'Invalid phone number, skipping' }, { status: 200 });
+
+    if (!cleanPhone || cleanPhone.length < 12) {
+      console.log('NO VALID PHONE:', student);
+      return Response.json({ message: 'No valid phone number, skipping' }, { status: 200 });
     }
-    const phone = digits.startsWith('91') ? digits : `91${digits}`;
 
     // 4. Build receipt link — full URL using BASE44_APP_ID
     const appId = Deno.env.get('BASE44_APP_ID') || '';
@@ -71,17 +76,16 @@ Deno.serve(async (req) => {
     }
 
     // 8. Debug log
-    console.log('FEE RECEIPT WA:', { phone, variables });
-    console.log('FEE RECEIPT PAYLOAD:', { phone, variables, template_id: 'fee_receipt' });
+    console.log('FINAL PHONE:', cleanPhone);
+    console.log('FEE RECEIPT PAYLOAD:', { phone: cleanPhone, variables, template_id: 'fee_receipt' });
 
     // 9. Send WhatsApp
     const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
       template_id: 'fee_receipt',
       use_case: 'FeeReminder',
-      recipients: [{ student_id: record.student_id, phone, variables }],
+      recipients: [{ student_id: record.student_id, phone: cleanPhone, variables }],
     });
 
-    console.log('FEE RECEIPT RESPONSE:', result);
     console.log('[sendFeePaymentNotification] Result:', result);
     return Response.json({ success: true, result });
 
