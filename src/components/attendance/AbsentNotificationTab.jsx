@@ -90,7 +90,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         base44.entities.SchoolProfile.list(),
       ]);
       const studentMap = {};
-      studentFetches.flat().forEach(s => { studentMap[s.id] = s; });
+      studentFetches.flat().forEach(s => { studentMap[s.student_id] = s; });
       const schoolName = schoolProfileList?.[0]?.school_name || 'School';
 
       const dateLabel = selectedDate || new Date().toLocaleDateString('en-IN');
