@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
+    console.log("FUNCTION CALLED: recordFeePayment");
     const base44 = createClientFromRequest(req);
     
     // Extract staff info and payment data from request body

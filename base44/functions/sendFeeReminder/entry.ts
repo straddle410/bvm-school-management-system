@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
+    console.log("FUNCTION CALLED: sendFeeReminder");
     const base44 = createClientFromRequest(req);
     const { selectedStudents, academic_year, sender_id, sender_name, allowDuplicate = false } = await req.json();
 
