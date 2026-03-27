@@ -201,17 +201,23 @@ export default function DefaultersReportPage() {
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
+        const variables = [
+            (studentRecord.parent_name || row.student.name || 'Parent').toString().trim(),  // {{1}} parent_name
+            (row.student.name || 'Student').toString().trim(),                              // {{2}} student_name
+            String(row.due || 0).trim(),                                                    // {{3}} pending_fee
+            'School Fee',                                                                   // {{4}} term_name
+            'As soon as possible',                                                          // {{5}} due_date
+            (schoolName || 'School').toString().trim(),                                     // {{6}} school_name
+          ];
+          // Validate: skip if any variable is empty
+          if (variables.some(v => !v || v.toString().trim() === '')) {
+            console.error('Invalid variables for student', row.student.id, variables);
+            continue;
+          }
         recipients.push({
           student_id: row.student.id,
           phone,
-          variables: [
-            studentRecord.parent_name || row.student.name,  // {{1}} parent_name
-            row.student.name,                               // {{2}} student_name
-            String(row.due || 0),                           // {{3}} pending_fee
-            '',                                             // {{4}} term_name
-            '',                                             // {{5}} due_date
-            schoolName,                                     // {{6}} school_name
-          ],
+          variables,
         });
       }
 

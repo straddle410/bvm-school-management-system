@@ -37,22 +37,27 @@ Deno.serve(async (req) => {
     // 4. Build receipt link
     const receiptLink = `/PrintReceiptA5?paymentId=${record.id}`;
 
-    // 5. Build values matching template placeholders
-    const values = [
-      record.student_name,                         // {{1}}
-      record.class_name,                           // {{2}}
-      String(record.amount_paid || 0),             // {{3}}
-      record.payment_date || '',                   // {{4}}
-      receiptLink,                                 // {{5}}
-      schoolName,                                  // {{6}}
+    // 5. Build variables matching template placeholders (MUST use 'variables' key)
+    const variables = [
+      (record.student_name || 'Student').toString().trim(),           // {{1}}
+      (record.class_name || 'Class').toString().trim(),              // {{2}}
+      String(record.amount_paid || 0).trim(),                        // {{3}}
+      (record.payment_date || new Date().toISOString().slice(0, 10)).trim(), // {{4}}
+      receiptLink.trim(),                                            // {{5}}
+      schoolName.trim(),                                             // {{6}}
     ];
+
+    if (variables.some(v => !v || v.toString().trim() === '')) {
+      console.error('[sendFeePaymentNotification] Invalid variables:', variables);
+      return Response.json({ message: 'Invalid template variables, skipping' }, { status: 200 });
+    }
 
     // 6. Send WhatsApp
     console.log(`[sendFeePaymentNotification] Sending to ${phone} for student ${record.student_name}`);
     const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
       template_id: 'fee_receipt',
       use_case: 'FeeReminder',
-      recipients: [{ phone, values }],
+      recipients: [{ student_id: studentId, phone, variables }],
     });
 
     console.log('[sendFeePaymentNotification] Result:', result);

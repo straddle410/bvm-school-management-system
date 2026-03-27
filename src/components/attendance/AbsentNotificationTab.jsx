@@ -105,16 +105,21 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
+        const variables = [
+            'Parent',                                                          // {{1}} parent_name
+            (record.student_name || record.student_id || 'Student').trim(),    // {{2}} student_name
+            (record.class_name || 'Class').trim(),                             // {{3}} class
+            (dateLabel || new Date().toLocaleDateString('en-IN')).trim(),     // {{4}} date
+            (schoolName || 'School').trim(),                                  // {{5}} school_name
+          ];
+          if (variables.some(v => !v || v.toString().trim() === '')) {
+            console.error('Invalid variables for student', record.student_id, variables);
+            continue;
+          }
         recipients.push({
           student_id: record.student_id,
           phone,
-          values: [
-            'Parent',                                       // {{1}} parent_name
-            record.student_name || record.student_id,      // {{2}} student_name
-            record.class_name || 'Class',                  // {{3}} class
-            dateLabel,                                     // {{4}} date
-            schoolName,                                    // {{5}} school_name
-          ],
+          variables,
         });
       }
 
