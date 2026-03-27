@@ -78,12 +78,13 @@ Deno.serve(async (req) => {
     // 8. Debug log
     console.log('FINAL PHONE:', cleanPhone);
     console.log('FEE RECEIPT PAYLOAD:', { phone: cleanPhone, variables, template_id: 'fee_receipt' });
+    console.log('CALLING WA FUNCTION WITH SERVICE ROLE');
 
-    // 9. Send WhatsApp
+    // 9. Send WhatsApp via service role
     const result = await base44.asServiceRole.functions.invoke('sendWhatsAppBulkMessage', {
       template_id: 'fee_receipt',
       use_case: 'FeeReminder',
-      recipients: [{ student_id: record.student_id, phone: cleanPhone, variables }],
+      recipients: [{ mobile: cleanPhone, variables }],
     });
 
     console.log('[sendFeePaymentNotification] Result:', result);
