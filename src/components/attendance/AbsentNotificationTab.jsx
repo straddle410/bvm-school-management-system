@@ -105,15 +105,20 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         const digits = rawPhone.replace(/\D/g, '');
         if (digits.length < 10) continue;
         const phone = digits.startsWith('91') ? digits : `91${digits}`;
-        const variables = [
-            'Parent',                                                          // {{1}} parent_name
-            (record.student_name || record.student_id || 'Student').trim(),    // {{2}} student_name
-            (record.class_name || 'Class').trim(),                             // {{3}} class
-            (dateLabel || new Date().toLocaleDateString('en-IN')).trim(),     // {{4}} date
-            (schoolName || 'School').trim(),                                  // {{5}} school_name
+        const classSection = `${record.class_name || ''}-${record.section || ''}`.replace(/^-|-$/, '').trim() || 'Class';
+          const variables = [
+            'Parent',                                                                          // {{1}} parent_name
+            (record.student_name || record.student_id || 'Student').trim(),                   // {{2}} student_name
+            classSection,                                                                      // {{3}} class (e.g. "2-A")
+            (dateLabel || selectedDate || new Date().toISOString().slice(0, 10)).trim(),       // {{4}} date
+            (schoolName || 'School').trim(),                                                   // {{5}} school_name
           ];
+          if (variables.length !== 5) {
+            console.error('[AbsentNotification] Invalid variable count', variables);
+            continue;
+          }
           if (variables.some(v => !v || v.toString().trim() === '')) {
-            console.error('Invalid variables for student', record.student_id, variables);
+            console.error('[AbsentNotification] Empty variable detected', variables);
             continue;
           }
         recipients.push({
