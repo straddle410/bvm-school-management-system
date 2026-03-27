@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
 
     // Step 2: Build MSG91 bulk payload — single API call
     const toArray = recipients.map(r => ({
-      mobile: r.phone,
+      phone: r.phone,
       variables: r.variables,
     }));
 
