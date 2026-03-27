@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     // 4. Build public receipt link
     const receiptLink =
-      "https://www.app.bvmse.in/receipt?receipt_no=" +
+      "https://app.bvmse.in/receipt?receipt_no=" +
       encodeURIComponent(record.receipt_no);
 
     // 5. Format class_name as "5-A"
