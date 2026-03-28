@@ -22,9 +22,6 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
     : ['Pending'];
 
   const dis = locked || !isAdmin;
-  // Class/section always editable by admin (even approved) to fix missing data
-  const classDisabled = !isAdmin || loadingClasses;
-  const sectionDisabled = !isAdmin || loadingSections || !formData.class_name;
 
   // Dynamic class/section state
   const [availableClasses, setAvailableClasses] = useState([]);
@@ -72,6 +69,10 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
     // Reset section when class changes
     onChange({ ...formData, class_name: newClass, section: '' });
   };
+
+  // Class/section always editable by admin (even approved) to fix missing data
+  const classDisabled = !isAdmin || loadingClasses;
+  const sectionDisabled = !isAdmin || loadingSections || !formData.class_name;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -144,7 +145,7 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Select
               value={formData.class_name || ''}
               onValueChange={locked ? undefined : handleClassChange}
-              disabled={dis || loadingClasses}
+              disabled={classDisabled}
             >
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50">
                 <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select class'} />
