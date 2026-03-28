@@ -51,13 +51,14 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   const { data: students = [], isLoading: isLoadingStudents } = useQuery({
     queryKey: ['students-published', selectedClass, academicYear, studentPage],
     queryFn: async () => {
+      // Fetch with limit for performance — sort by name for consistent ordering
       const all = await base44.entities.Student.filter({ 
         class_name: selectedClass, 
         academic_year: academicYear, 
         status: 'Published', 
         is_deleted: false,
         is_active: true
-      });
+      }, 'name', 200);
       const start = studentPage * STUDENTS_LIMIT;
       return all.slice(start, start + STUDENTS_LIMIT);
     },
@@ -265,7 +266,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
 
               <CardContent className="p-5 space-y-4">
                 {/* Fee breakdown */}
-                {((invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).length > 0 || hostelAdjustments > 0) && (
+                {(invoice.fee_heads || []).filter(fh => fh.gross_amount > 0).length > 0 && (
                   <div className="overflow-x-auto">
                     <table className="w-full text-base">
                       <thead>
@@ -289,14 +290,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                             <td className="py-3 text-right font-bold text-base">₹{(fh.net_amount || fh.amount || 0).toLocaleString()}</td>
                           </tr>
                         ))}
-                        {hostelAdjustments > 0 && (
-                          <tr className="border-b border-slate-200 bg-blue-50">
-                            <td className="py-3 text-slate-800 text-base font-medium">Hostel Fee</td>
-                            <td className="py-3 text-right text-slate-700 text-base">₹{hostelAdjustments.toLocaleString()}</td>
-                            {invoice.discount_total > 0 && <td className="py-3 text-right">—</td>}
-                            <td className="py-3 text-right font-bold text-base">₹{hostelAdjustments.toLocaleString()}</td>
-                          </tr>
-                        )}
+
                       </tbody>
                     </table>
                   </div>

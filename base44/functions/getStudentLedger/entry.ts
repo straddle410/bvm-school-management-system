@@ -46,10 +46,8 @@ Deno.serve(async (req) => {
     const allowedRoles = ['admin', 'principal', 'accountant'];
     
     if (!allowedRoles.includes(userRole)) {
-      console.log(`[RBAC-BLOCK] role="${userRole}" not in ${JSON.stringify(allowedRoles)}`);
       return Response.json({ error: 'Forbidden', userRole, allowedRoles }, { status: 403 });
     }
-    console.log(`[RBAC-ALLOW] role="${userRole}"`);
 
     const base44 = createClientFromRequest(req);
 
