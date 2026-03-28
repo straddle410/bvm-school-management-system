@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Percent, Tag, Edit2, Archive, Plus, Search, AlertCircle, Users, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 const EMPTY_FORM = {
   discount_type: 'AMOUNT',
@@ -25,11 +24,15 @@ const EMPTY_FORM = {
 export default function DiscountManager({ academicYear, isArchived, feeHeads = [] }) {
   const queryClient = useQueryClient();
   const [filterClass, setFilterClass] = useState('');
-  const [search, setSearch] = useState('');
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingDiscount, setEditingDiscount] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
   const [discountPage, setDiscountPage] = useState(0);
   const DISCOUNTS_LIMIT = 100;
 
@@ -223,7 +226,7 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
             <SelectTrigger className="w-36"><SelectValue placeholder="All Classes" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={null}>All Classes</SelectItem>
-              {CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+              {availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="relative">
@@ -340,8 +343,8 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
               <div className="space-y-2">
                 <Label>Class</Label>
                 <Select value={filterClass} onValueChange={(v) => { setFilterClass(v); setSelectedStudent(null); }}>
-                  <SelectTrigger><SelectValue placeholder="Select class first" /></SelectTrigger>
-                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+                 <SelectTrigger><SelectValue placeholder="Select class first" /></SelectTrigger>
+                 <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
                 </Select>
 
                 {filterClass && (

@@ -6,12 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, FileText, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 export default function GenerateInvoices({ academicYear }) {
   const [selectedClass, setSelectedClass] = useState('');
-  const [result, setResult] = useState(null);
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
   const staffInfo = (() => { try { const r = localStorage.getItem('staff_session'); return r ? JSON.parse(r) : null; } catch { return null; } })();
 
   const { data: plan } = useQuery({
@@ -48,7 +55,7 @@ export default function GenerateInvoices({ academicYear }) {
     <div className="space-y-4">
       <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setResult(null); }}>
         <SelectTrigger className="w-44"><SelectValue placeholder="Select Class" /></SelectTrigger>
-        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+        <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
       </Select>
 
       {selectedClass && !plan && (

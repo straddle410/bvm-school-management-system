@@ -11,8 +11,7 @@ import { createPageUrl } from '@/utils';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import VoidModal from './ReversalModal';
 import ReceiptPreviewModal from './ReceiptPreviewModal';
-
-const CLASSES = ['All', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
 const yesterday = () => format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
@@ -37,12 +36,15 @@ const modeColor = {
 export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) {
   const [classFilter, setClassFilter] = useState('All');
   const [search, setSearch] = useState('');
-  const [activePreset, setActivePreset] = useState('Today');
-  const [fromDate, setFromDate] = useState(today());
-  const [toDate, setToDate] = useState(today());
-  const [reversingPayment, setReversingPayment] = useState(null);
-  const [voidingPaymentId, setVoidingPaymentId] = useState(null);
-  const [printingPaymentId, setPrintingPaymentId] = useState(null);
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  React.useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(['All', ...(result?.classes || [])]);
+    });
+  }, [academicYear]);
+
   const [receiptPreview, setReceiptPreview] = useState(null);
   const [recordingNewPayment, setRecordingNewPayment] = useState(false);
   const queryClient = useQueryClient();
@@ -148,7 +150,7 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
         <Select value={classFilter} onValueChange={setClassFilter}>
           <SelectTrigger className="w-52 text-base min-h-[48px]"><SelectValue placeholder="All Classes" /></SelectTrigger>
           <SelectContent>
-            {CLASSES.map(c => (
+            {availableClasses.map(c => (
               <SelectItem key={c} value={c} className="text-base py-3">{c === 'All' ? 'All Classes' : `Class ${c}`}</SelectItem>
             ))}
           </SelectContent>

@@ -8,14 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { getStaffSession } from '@/components/useStaffSession';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 export default function FeePlanManager({ academicYear }) {
   const queryClient = useQueryClient();
   const [selectedClass, setSelectedClass] = useState('');
-  const [plan, setPlan] = useState(null);
-  const [feeItems, setFeeItems] = useState([]);
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
   const [dueDate, setDueDate] = useState('');
 
   const { data: feeHeads = [] } = useQuery({
@@ -85,7 +91,7 @@ export default function FeePlanManager({ academicYear }) {
       <div className="flex flex-wrap gap-3 items-center">
         <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); }}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Select Class" /></SelectTrigger>
-          <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+          <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
         </Select>
         {selectedClass && !isLoading && (
           <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">

@@ -10,14 +10,13 @@ import { Search, User, Receipt } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import StudentListVirtual from './StudentListVirtual';
 import PullToRefresh from '@/components/PullToRefresh';
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 const LoadingSpinner = () => (
   <div className="flex justify-center py-12">
     <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
   </div>
 );
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 const statusColor = {
   Pending: 'bg-yellow-100 text-yellow-800',
@@ -35,9 +34,15 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
 
   const [selectedClass, setSelectedClass] = useState(urlClassName);
   const [search, setSearch] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [payingInvoice, setPayingInvoice] = useState(null);
-  const [studentPage, setStudentPage] = useState(0);
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
   const [pendingStudentId, setPendingStudentId] = useState(urlStudentId);
   const STUDENTS_LIMIT = 50;
 
@@ -194,7 +199,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
         <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(null); setSearch(''); setStudentPage(0); }}>
           <SelectTrigger className="w-56 text-base min-h-[48px]"><SelectValue placeholder="Select Class" /></SelectTrigger>
           <SelectContent>
-            {CLASSES.map(c => (
+            {availableClasses.map(c => (
               <SelectItem key={c} value={c} className="text-base py-3">Class {c}</SelectItem>
             ))}
           </SelectContent>

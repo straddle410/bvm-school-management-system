@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { Plus, Send, X, AlertCircle, Loader2 } from 'lucide-react';
 import { getStaffSession } from '@/components/useStaffSession';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 const STATUS_COLORS = {
   DRAFT: 'bg-yellow-100 text-yellow-800',
@@ -34,6 +33,15 @@ export default function AdditionalChargesTab({ academicYear, isArchived }) {
   const user = getStaffSession();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
   const [confirmPublish, setConfirmPublish] = useState(null);
   const [confirmCancel, setConfirmCancel] = useState(null);
 
@@ -145,8 +153,8 @@ export default function AdditionalChargesTab({ academicYear, isArchived }) {
               <div>
                 <label className="text-xs font-medium text-slate-600">Class *</label>
                 <Select value={form.class_name} onValueChange={v => setForm({ ...form, class_name: v, student_ids: [] })}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select Class" /></SelectTrigger>
-                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
+                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select Class" /></SelectTrigger>
+                 <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
