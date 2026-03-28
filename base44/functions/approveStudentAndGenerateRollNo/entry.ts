@@ -21,10 +21,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { student_db_id, staffInfo } = await req.json();
-    if (!staffInfo || !staffInfo.staff_id) {
+    if (!staffInfo || (!staffInfo.staff_id && !staffInfo.id && !staffInfo.email)) {
       return Response.json({ error: 'Unauthorized: Missing staff info' }, { status: 401 });
     }
-    const user = staffInfo;
+    const user = { ...staffInfo, email: staffInfo.email || staffInfo.username || 'admin' };
 
     if (!student_db_id) {
       return Response.json({ error: 'student_db_id required in payload' }, { status: 400 });
