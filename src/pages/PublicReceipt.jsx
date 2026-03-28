@@ -22,7 +22,14 @@ export default function PublicReceipt() {
     }
   });
 
-  const handleDownload
+  const handleDownload = async () => {
+    const element = receiptRef.current;
+    if (!element) return;
+    const canvas = await html2canvas(element, {
+      scale: 2, useCORS: true, logging: false,
+      backgroundColor: '#ffffff', allowTaint: true,
+      scrollX: 0, scrollY: 0, windowWidth: 560
+    });
     const imgData = canvas.toDataURL('image/jpeg', 1);
     const pdf = new jsPDF('p', 'mm', 'a5');
     const pdfWidth = 128;
