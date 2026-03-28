@@ -248,14 +248,14 @@ export default function Students() {
       const normalized = normalizeStudentData({ ...data, photo_url });
 
       if (id) {
-        // EDIT: if class/section/year changed → auto-assign new roll_no
+        // EDIT: if class/section/year changed → auto-assign new roll_no if all are present
         const orig = selectedStudent?.id === id ? selectedStudent : null;
         const classChanged = orig && (
           normalized.class_name !== orig.class_name ||
           normalized.section !== orig.section ||
           normalized.academic_year !== orig.academic_year
         );
-        if (classChanged) {
+        if (classChanged && normalized.class_name && normalized.section && normalized.academic_year) {
           const nextRoll = await generateRollNo(normalized.class_name, normalized.section, normalized.academic_year);
           if (nextRoll) normalized.roll_no = nextRoll;
         }
@@ -329,8 +329,36 @@ export default function Students() {
     onError: (err) => toast.error(err.message)
   });
 
+  const generateRollNo = async (className, section, year) => {
+    if (!className || !section || !year) return null;
+    try {
+      const classStudents = await base44.asServiceRole.entities.Student.filter({
+        class_name: className,
+        section: section,
+        academic_year: year
+      });
+      const EXCLUDED_STATUSES = ['Archived', 'Passed Out', 'Transferred'];
+      const activeStudents = classStudents.filter(s => !s.is_deleted && !EXCLUDED_STATUSES.includes(s.status));
+      const maxRoll = activeStudents.reduce((max, s) => {
+        const r = parseInt(s.roll_no);
+        return !isNaN(r) && r > max ? r : max;
+      }, 0);
+      return maxRoll + 1;
+    } catch { return null; }
+  };
+
   const handleSubmit = e => {
     e.preventDefault();
+    // Validate: class is always required
+    if (!formData.class_name || !formData.class_name.trim()) {
+      toast.error('Class is required.');
+      return;
+    }
+    // Validate: parent phone is always required
+    if (!formData.parent_phone || !formData.parent_phone.trim()) {
+      toast.error('Parent phone is required.');
+      return;
+    }
     saveMutation.mutate({
       id: isEdit ? selectedStudent.id : null,
       data: formData,
