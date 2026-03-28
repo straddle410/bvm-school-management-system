@@ -18,8 +18,7 @@ export default function NotificationAnalytics() {
   const [waAvailability, setWaAvailability] = useState({ available: 0, unavailable: 0, unchecked: 0 });
   const [waStudents, setWaStudents] = useState({ available: [], unavailable: [], unchecked: [] });
   const [waListFilter, setWaListFilter] = useState(null); // 'available' | 'unavailable' | 'unchecked' | null
-  const [checkingWa, setCheckingWa] = useState(false);
-  const [checkResult, setCheckResult] = useState(null); // 'available' | 'unavailable' | null
+ // 'available' | 'unavailable' | null
 
   const loadData = async () => {
     setLoading(true);
@@ -30,15 +29,18 @@ export default function NotificationAnalytics() {
       ]);
       setLogs(allLogs || []);
 
-      // is_whatsapp_available is set by the "Check WhatsApp" function.
-      // Students with no phone never have WA; students with phone may be checked or unchecked.
+      // Derive WA status from actual delivery history in WhatsAppMessageLog.
+      // A student's last_whatsapp_status on Student record reflects the most recent delivery.
       const noPhone = students.filter(s => !s.parent_phone || s.parent_phone.trim() === '');
       const withPhone = students.filter(s => s.parent_phone && s.parent_phone.trim() !== '');
-      const waCheckedYes = withPhone.filter(s => s.is_whatsapp_available === true);
-      const waCheckedNo = withPhone.filter(s => s.is_whatsapp_available === false).concat(noPhone);
-      const waUnchecked = withPhone.filter(s => s.is_whatsapp_available === undefined || s.is_whatsapp_available === null);
-      setWaAvailability({ available: waCheckedYes.length, unavailable: waCheckedNo.length, unchecked: waUnchecked.length });
-      setWaStudents({ available: waCheckedYes, unavailable: waCheckedNo, unchecked: waUnchecked });
+      // WA confirmed active: had at least one delivered message
+      const waActive = withPhone.filter(s => s.last_whatsapp_status === 'delivered');
+      // WA inactive: has phone but last message failed
+      const waFailed = withPhone.filter(s => s.last_whatsapp_status === 'failed');
+      // No data: has phone but never messaged OR no phone
+      const waNoData = withPhone.filter(s => !s.last_whatsapp_status).concat(noPhone);
+      setWaAvailability({ available: waActive.length, unavailable: waFailed.length, unchecked: waNoData.length });
+      setWaStudents({ available: waActive, unavailable: waFailed, unchecked: waNoData });
     } catch (err) {
       console.error('Failed to load WhatsApp analytics:', err);
     } finally {
@@ -91,19 +93,7 @@ export default function NotificationAnalytics() {
   ];
   const COLORS_AVAIL = ['#22c55e', '#ef4444', '#94a3b8'];
 
-  const handleCheckWa = async () => {
-    setCheckingWa(true);
-    setCheckResult(null);
-    try {
-      const res = await base44.functions.invoke('checkWhatsAppAvailability', {});
-      setCheckResult(res.data);
-      await loadData(); // refresh counts
-    } catch (e) {
-      setCheckResult({ error: e.message });
-    } finally {
-      setCheckingWa(false);
-    }
-  };
+
 
   const failedLogs = filteredLogs.filter(l => l.status === 'failed');
 
@@ -342,27 +332,14 @@ export default function NotificationAnalytics() {
 
         {/* Tab 3: WA Availability */}
         <TabsContent value="availability">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleCheckWa}
-              disabled={checkingWa}
-              className="flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-60"
-            >
-              {checkingWa ? <><RefreshCw className="h-4 w-4 animate-spin" /> Checking...</> : <><CheckCircle2 className="h-4 w-4" /> Check WhatsApp Availability</>}
-            </button>
-            <span className="text-xs text-gray-500">Verifies each phone number via MSG91 and updates student records</span>
-            {checkResult && !checkResult.error && (
-              <span className="text-xs bg-green-50 border border-green-200 text-green-800 px-3 py-1 rounded-lg">
-                ✅ Checked {checkResult.checked} students — {checkResult.wa_available} WA active, {checkResult.wa_unavailable} not active
-              </span>
-            )}
-            {checkResult?.error && <span className="text-xs text-red-600">Error: {checkResult.error}</span>}
+          <div className="mb-3 text-xs text-gray-500 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+            ℹ️ WA Active = students who received a delivered message. Not Active = last message failed. No History = never messaged or no phone.
           </div>
           {waListFilter && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-lg">
-                  {waListFilter === 'available' ? '✅ WhatsApp Active' : waListFilter === 'unavailable' ? '❌ WhatsApp Not Active / No Phone' : '⏳ Not Yet Checked'}
+                  {waListFilter === 'available' ? '✅ WA Active (Delivered)' : waListFilter === 'unavailable' ? '❌ Last Message Failed' : '⚪ No Message History / No Phone'}
                   <span className="ml-2 text-sm font-normal text-gray-500">({(waStudents[waListFilter] || []).length} students)</span>
                 </h3>
                 <button onClick={() => setWaListFilter(null)} className="text-sm text-gray-500 hover:text-gray-800 border px-3 py-1 rounded-lg">✕ Close</button>

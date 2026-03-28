@@ -40,8 +40,9 @@ Deno.serve(async (req) => {
         { method: 'GET', headers: { 'Content-Type': 'application/json' } }
       );
       const data = await res.json();
+      console.log(`[WA CHECK] phone=${phone} status=${res.status} response=${JSON.stringify(data)}`);
       
-      // MSG91 returns { type: "success", message: "number_exists" } if WA is available
+      // MSG91 check-number response inspection
       const isAvailable = data?.message === 'number_exists' || data?.type === 'success';
       
       await base44.asServiceRole.entities.Student.update(student.id, {
