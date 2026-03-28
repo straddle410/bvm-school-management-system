@@ -14,7 +14,7 @@ export default function PublicReceipt() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['public-receipt', receiptNo],
-    enabled: !!receiptNo,
+    enabled: true,
     retry: 0,
     queryFn: async () => {
 
