@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { appParams } from '@/lib/app-params';
+import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,18 +17,8 @@ export default function PublicReceipt() {
     enabled: !!receiptNo,
     retry: 1,
     queryFn: async () => {
-      const appId = appParams.appId || import.meta.env.VITE_BASE44_APP_ID;
-      const res = await fetch(
-        `https://app.base44.com/api/apps/${appId}/functions/getPublicReceipt`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ receipt_no: receiptNo }),
-        }
-      );
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error || 'Not found');
-      return json;
+      const res = await base44.functions.invoke('getPublicReceipt', { receipt_no: receiptNo });
+      return res.data;
     }
   });
 
