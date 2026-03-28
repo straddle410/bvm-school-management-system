@@ -26,7 +26,9 @@ export default function NotificationAnalytics() {
       ]);
       setLogs(allLogs || []);
 
-      const available = students.filter(s => s.is_whatsapp_available === true).length;
+      // is_whatsapp_available is never populated in this system.
+      // Use parent_phone as the real indicator of WhatsApp reachability.
+      const available = students.filter(s => s.parent_phone && s.parent_phone.trim() !== '').length;
       setWaAvailability({ available, unavailable: students.length - available });
     } catch (err) {
       console.error('Failed to load WhatsApp analytics:', err);
