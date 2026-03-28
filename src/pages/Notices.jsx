@@ -23,6 +23,7 @@ import TableBuilder from '@/components/TableBuilder';
 import LoginRequired from '@/components/LoginRequired';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 const TYPE_COLORS = {
   General: 'bg-blue-100 text-blue-700',
@@ -68,6 +69,13 @@ export default function Notices() {
    const [editingNotice, setEditingNotice] = useState(null);
 
   const queryClient = useQueryClient();
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  useEffect(() => {
+   if (!academicYear) return;
+   getClassesForYear(academicYear).then(r => setAvailableClasses(r?.classes || []));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [academicYear]);
 
   useEffect(() => {
      const staffData = getStaffSession();
@@ -410,7 +418,7 @@ export default function Notices() {
               <div>
                 <Label>Target Classes <span className="text-gray-400 font-normal">(leave empty for all classes)</span></Label>
                 <div className="mt-1.5 border dark:border-gray-700 rounded-xl p-3 bg-gray-50 dark:bg-gray-800 grid grid-cols-4 sm:grid-cols-5 gap-2">
-                  {['Nursery','LKG','UKG','1','2','3','4','5','6','7','8','9','10'].map(cls => {
+                  {availableClasses.map(cls => {
                     const selected = form.target_classes?.includes(cls);
                     return (
                       <button

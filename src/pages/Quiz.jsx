@@ -36,8 +36,8 @@ import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 import { markStaffNotificationsRead } from '@/components/StaffNotificationBadges';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getClassesForYear } from '@/components/classSectionHelper';
 
-const CLASSES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'General Knowledge'];
 
 export default function Quiz() {
@@ -64,6 +64,12 @@ export default function Quiz() {
    });
 
    const queryClient = useQueryClient();
+   const [availableClasses, setAvailableClasses] = useState([]);
+
+   useEffect(() => {
+     if (!academicYear) return;
+     getClassesForYear(academicYear).then(r => setAvailableClasses(r?.classes || []));
+   }, [academicYear]);
 
    const [unreadQuizNotifMap, setUnreadQuizNotifMap] = useState({}); // quizId -> notifId
 
@@ -786,7 +792,7 @@ export default function Quiz() {
                      <SelectValue placeholder="Select class" />
                    </SelectTrigger>
                    <SelectContent>
-                     {CLASSES.map(c => (
+                     {availableClasses.map(c => (
                        <SelectItem key={c} value={c}>Class {c}</SelectItem>
                      ))}
                    </SelectContent>

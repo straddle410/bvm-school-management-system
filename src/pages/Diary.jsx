@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Notebook, Trash2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginRequired from '@/components/LoginRequired';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 import { format } from 'date-fns';
 import AIAssistDrawer from '@/components/AIAssistDrawer';
 
@@ -39,8 +40,20 @@ export default function Diary() {
     diary_date: format(new Date(), 'yyyy-MM-dd'),
   });
   const [formErrors, setFormErrors] = useState({});
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
   const { academicYear } = useAcademicYear();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(r => setAvailableClasses(r?.classes || []));
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (!form.class_name || !academicYear) { setAvailableSections([]); return; }
+    getSectionsForClass(academicYear, form.class_name).then(r => setAvailableSections(r?.sections || []));
+  }, [form.class_name, academicYear]);
 
   useEffect(() => {
     const staffData = getStaffSession();
@@ -162,8 +175,6 @@ export default function Diary() {
     });
     setShowForm(true);
   };
-
-  const classes = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher']} pageName="Diary">
@@ -310,32 +321,29 @@ export default function Diary() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Class *</Label>
-                    <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v })} required>
-                     <SelectTrigger>
-                       <SelectValue />
-                     </SelectTrigger>
-                     <SelectContent position="popper">
-                        {classes.map((cls) => (
-                          <SelectItem key={cls} value={cls}>
-                            Class {cls}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Section</Label>
-                    <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })}>
+                    <Select value={form.class_name} onValueChange={(v) => setForm({ ...form, class_name: v, section: '' })} required>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent position="popper">
-                        <SelectItem value="A">A</SelectItem>
-                        <SelectItem value="B">B</SelectItem>
-                        <SelectItem value="C">C</SelectItem>
-                        <SelectItem value="D">D</SelectItem>
-                      </SelectContent>
-                    </Select>
+                         {availableClasses.map((cls) => (
+                            <SelectItem key={cls} value={cls}>
+                              Class {cls}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                  </div>
+                  <div>
+                    <Label>Section</Label>
+                    <Select value={form.section} onValueChange={(v) => setForm({ ...form, section: v })} disabled={!form.class_name}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select section" />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          {availableSections.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
                   </div>
                 </div>
                 <div>

@@ -16,8 +16,7 @@ import { createPageUrl } from '@/utils';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import LedgerRowDrawer from '@/components/fees/LedgerRowDrawer';
 import moment from 'moment';
-
-const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 function fmt(n) {
   return (n ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -47,18 +46,19 @@ function StudentLedgerContent() {
   const [exporting, setExporting] = useState(false);
   const [invoicesCache, setInvoicesCache] = useState([]);
 
-  // Fetch sections for selected class from SectionConfig
-  const { data: sectionConfig = [] } = useQuery({
-    queryKey: ['section-config', academicYear],
-    queryFn: () => base44.entities.SectionConfig.filter({ academic_year: academicYear }),
-    staleTime: 60000
-  });
+  // Dynamic classes + sections from SectionConfig
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState(['A']);
 
-  const availableSections = useMemo(() => {
-    if (!selectedClass) return ['A'];
-    const cfg = sectionConfig.find(s => s.class_name === selectedClass);
-    return cfg?.sections?.length ? cfg.sections : ['A'];
-  }, [sectionConfig, selectedClass]);
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(r => setAvailableClasses(r?.classes || []));
+  }, [academicYear]);
+
+  useEffect(() => {
+    if (!selectedClass || !academicYear) { setAvailableSections(['A']); return; }
+    getSectionsForClass(academicYear, selectedClass).then(r => setAvailableSections(r?.sections || ['A']));
+  }, [selectedClass, academicYear]);
 
   // Students for selected class + section
   const { data: classStudents = [], isFetching: loadingStudents } = useQuery({
@@ -210,10 +210,10 @@ function StudentLedgerContent() {
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLASS_OPTIONS.map(c => (
+                  {availableClasses.map(c => (
                     <SelectItem key={c} value={c} className="text-base py-2">{c === 'Nursery' || c === 'LKG' || c === 'UKG' ? c : `Class ${c}`}</SelectItem>
                   ))}
-                </SelectContent>
+               </SelectContent>
               </Select>
             </div>
             <div className="w-32">

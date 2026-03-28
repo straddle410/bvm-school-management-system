@@ -38,6 +38,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from "sonner";
 import NotificationSettingsSection from '@/components/NotificationSettingsSection';
+import { getClassesForYear } from '@/components/classSectionHelper';
 import ClassSubjectConfigTab from '@/components/settings/ClassSubjectConfigTab';
 import ClassSubjectVerifier from '@/components/settings/ClassSubjectVerifier';
 import ClassSectionConfigTab from '@/components/settings/ClassSectionConfigTab';
@@ -96,18 +97,16 @@ function TransportFeeSettings({ schoolProfiles, queryClient }) {
   );
 }
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-
-function HostelFeeSettings({ schoolProfiles, queryClient }) {
+function HostelFeeSettings({ schoolProfiles, queryClient, availableClasses }) {
   const [config, setConfig] = React.useState([]);
 
   React.useEffect(() => {
     if (schoolProfiles.length > 0) {
       const existing = schoolProfiles[0].hostel_fee_config || [];
-      // Ensure all classes are represented
       const map = {};
       for (const e of existing) map[e.class_name] = e.amount;
-      setConfig(CLASSES.map(c => ({ class_name: c, amount: map[c] || 0 })));
+      const classes = availableClasses?.length ? availableClasses : ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+      setConfig(classes.map(c => ({ class_name: c, amount: map[c] || 0 })));
     }
   }, [schoolProfiles]);
 
@@ -185,6 +184,14 @@ export default function Settings() {
   const [logoFile, setLogoFile] = useState(null);
   const [showYearDialog, setShowYearDialog] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [availableClassesList, setAvailableClassesList] = useState([]);
+
+  // Load dynamic classes for hostel fee config
+  useEffect(() => {
+    const currentYear = schoolForm.academic_year;
+    if (!currentYear) return;
+    getClassesForYear(currentYear).then(r => setAvailableClassesList(r?.classes || []));
+  }, [schoolForm.academic_year]);
 
   // Fetch user role on mount
   useEffect(() => {
@@ -874,7 +881,7 @@ export default function Settings() {
 
           {/* Hostel */}
           {activeItem === 'hostel' && (
-            <HostelFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} />
+            <HostelFeeSettings schoolProfiles={schoolProfiles} queryClient={queryClient} availableClasses={availableClassesList} />
           )}
 
           {/* Class Subjects */}
