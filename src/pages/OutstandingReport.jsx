@@ -11,14 +11,9 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getClassesForYear } from '@/components/classSectionHelper';
 import OutstandingDetailDrawer from '@/components/fees/OutstandingDetailDrawer';
 import moment from 'moment';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-
-function fmt(n) {
-  return (n ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
 
 function SortIcon({ field, sort }) {
   if (!sort.startsWith(field)) return <ArrowUpDown className="h-3 w-3 inline ml-1 text-slate-400" />;
@@ -30,6 +25,15 @@ function SortIcon({ field, sort }) {
 function OutstandingReportContent() {
   const { academicYear } = useAcademicYear();
   const today = moment().format('YYYY-MM-DD');
+  const [availableClasses, setAvailableClasses] = useState([]);
+
+  // Load dynamic classes on mount
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
 
   const [asOfDate, setAsOfDate] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -162,7 +166,7 @@ function OutstandingReportContent() {
                 <SelectTrigger className="mt-1"><SelectValue placeholder="All classes" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">All classes</SelectItem>
-                  {CLASSES.map(cls => <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>)}
+                  {availableClasses.map(cls => <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

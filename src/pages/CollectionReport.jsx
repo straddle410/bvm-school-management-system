@@ -10,14 +10,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, Filter } from 'lucide-react';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getClassesForYear } from '@/components/classSectionHelper';
 import moment from 'moment';
 
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const PAYMENT_MODES = ['Cash', 'Cheque', 'Online', 'DD', 'UPI'];
 
 function CollectionReportContent() {
   const { academicYear } = useAcademicYear();
   const today = new Date().toISOString().split('T')[0];
+  const [availableClasses, setAvailableClasses] = useState([]);
+  
+  // Load dynamic classes on mount
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
   
   // Filters - default to today
   const [dateRange, setDateRange] = useState({ start: today, end: today });
@@ -233,8 +242,8 @@ function CollectionReportContent() {
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="All classes" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>All classes</SelectItem>
-                  {CLASSES.map(cls => <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>)}
+                   <SelectItem value={null}>All classes</SelectItem>
+                   {availableClasses.map(cls => <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

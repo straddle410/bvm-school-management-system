@@ -12,13 +12,38 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import LoginRequired from '@/components/LoginRequired';
 import { useAcademicYear } from '@/components/AcademicYearContext';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
 
 
 export default function DefaultersReportPage() {
   const { academicYear } = useAcademicYear();
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
 
-  
+  // Load dynamic classes on mount
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
+  // Load dynamic sections when class changes
+  useEffect(() => {
+    if (!academicYear || !filters.className) {
+      setAvailableSections([]);
+      return;
+    }
+    getSectionsForClass(academicYear, filters.className).then(result => {
+      setAvailableSections(result?.sections || []);
+      // Reset section filter if no longer valid
+      if (filters.section && !result?.sections?.includes(filters.section)) {
+        setFilters(prev => ({ ...prev, section: '' }));
+      }
+    });
+  }, [academicYear, filters.className]);
+
   const [userRole, setUserRole] = useState('');
   
   const [filters, setFilters] = useState({
@@ -400,7 +425,7 @@ export default function DefaultersReportPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all__">All Classes</SelectItem>
-                    {['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(cls => (
+                    {availableClasses.map(cls => (
                       <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
                     ))}
                   </SelectContent>
@@ -411,7 +436,7 @@ export default function DefaultersReportPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all__">All Sections</SelectItem>
-                    {['A', 'B', 'C', 'D', 'E'].map(sec => (
+                    {availableSections.map(sec => (
                       <SelectItem key={sec} value={sec}>Section {sec}</SelectItem>
                     ))}
                   </SelectContent>
