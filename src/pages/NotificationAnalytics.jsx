@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 const COLORS_STATUS = ['#22c55e', '#ef4444'];
-const COLORS_USE_CASE = ['#3b82f6', '#f59e0b', '#8b5cf6'];
+const COLORS_USE_CASE = ['#3b82f6', '#f59e0b', '#8b5cf6', '#22c55e'];
 
 export default function NotificationAnalytics() {
   const [logs, setLogs] = useState([]);
@@ -67,7 +67,7 @@ export default function NotificationAnalytics() {
   }, []).slice(-7);
 
   // Chart: Use case split
-  const useCaseData = ['FeeReminder', 'Absent', 'Notice'].map(uc => ({
+  const useCaseData = ['FeeReminder', 'FeePayment', 'Absent', 'Notice'].map(uc => ({
     name: uc,
     count: filteredLogs.filter(l => l.use_case === uc).length,
   }));
@@ -109,6 +109,7 @@ export default function NotificationAnalytics() {
           <SelectContent>
             <SelectItem value="__all__">All Use Cases</SelectItem>
             <SelectItem value="FeeReminder">Fee Reminder</SelectItem>
+            <SelectItem value="FeePayment">Fee Payment</SelectItem>
             <SelectItem value="Absent">Absent</SelectItem>
             <SelectItem value="Notice">Notice</SelectItem>
           </SelectContent>
