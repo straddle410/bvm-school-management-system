@@ -15,9 +15,11 @@ export default function NotificationAnalytics() {
   const [filterUseCase, setFilterUseCase] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
-  const [waAvailability, setWaAvailability] = useState({ available: 0, unavailable: 0 });
-  const [waStudents, setWaStudents] = useState({ available: [], unavailable: [] });
-  const [waListFilter, setWaListFilter] = useState(null); // 'available' | 'unavailable' | null
+  const [waAvailability, setWaAvailability] = useState({ available: 0, unavailable: 0, unchecked: 0 });
+  const [waStudents, setWaStudents] = useState({ available: [], unavailable: [], unchecked: [] });
+  const [waListFilter, setWaListFilter] = useState(null); // 'available' | 'unavailable' | 'unchecked' | null
+  const [checkingWa, setCheckingWa] = useState(false);
+  const [checkResult, setCheckResult] = useState(null); // 'available' | 'unavailable' | null
 
   const loadData = async () => {
     setLoading(true);
@@ -28,11 +30,15 @@ export default function NotificationAnalytics() {
       ]);
       setLogs(allLogs || []);
 
-      // Use parent_phone as the real indicator of WhatsApp reachability.
-      const availableList = students.filter(s => s.parent_phone && s.parent_phone.trim() !== '');
-      const unavailableList = students.filter(s => !s.parent_phone || s.parent_phone.trim() === '');
-      setWaAvailability({ available: availableList.length, unavailable: unavailableList.length });
-      setWaStudents({ available: availableList, unavailable: unavailableList });
+      // is_whatsapp_available is set by the "Check WhatsApp" function.
+      // Students with no phone never have WA; students with phone may be checked or unchecked.
+      const noPhone = students.filter(s => !s.parent_phone || s.parent_phone.trim() === '');
+      const withPhone = students.filter(s => s.parent_phone && s.parent_phone.trim() !== '');
+      const waCheckedYes = withPhone.filter(s => s.is_whatsapp_available === true);
+      const waCheckedNo = withPhone.filter(s => s.is_whatsapp_available === false).concat(noPhone);
+      const waUnchecked = withPhone.filter(s => s.is_whatsapp_available === undefined || s.is_whatsapp_available === null);
+      setWaAvailability({ available: waCheckedYes.length, unavailable: waCheckedNo.length, unchecked: waUnchecked.length });
+      setWaStudents({ available: waCheckedYes, unavailable: waCheckedNo, unchecked: waUnchecked });
     } catch (err) {
       console.error('Failed to load WhatsApp analytics:', err);
     } finally {
@@ -79,9 +85,25 @@ export default function NotificationAnalytics() {
 
   // WhatsApp availability chart
   const availabilityData = [
-    { name: 'Available', count: waAvailability.available },
-    { name: 'Unavailable', count: waAvailability.unavailable },
+    { name: 'WA Active', count: waAvailability.available },
+    { name: 'Not Active', count: waAvailability.unavailable },
+    { name: 'Not Checked', count: waAvailability.unchecked },
   ];
+  const COLORS_AVAIL = ['#22c55e', '#ef4444', '#94a3b8'];
+
+  const handleCheckWa = async () => {
+    setCheckingWa(true);
+    setCheckResult(null);
+    try {
+      const res = await base44.functions.invoke('checkWhatsAppAvailability', {});
+      setCheckResult(res.data);
+      await loadData(); // refresh counts
+    } catch (e) {
+      setCheckResult({ error: e.message });
+    } finally {
+      setCheckingWa(false);
+    }
+  };
 
   const failedLogs = filteredLogs.filter(l => l.status === 'failed');
 
@@ -320,12 +342,28 @@ export default function NotificationAnalytics() {
 
         {/* Tab 3: WA Availability */}
         <TabsContent value="availability">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleCheckWa}
+              disabled={checkingWa}
+              className="flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-60"
+            >
+              {checkingWa ? <><RefreshCw className="h-4 w-4 animate-spin" /> Checking...</> : <><CheckCircle2 className="h-4 w-4" /> Check WhatsApp Availability</>}
+            </button>
+            <span className="text-xs text-gray-500">Verifies each phone number via MSG91 and updates student records</span>
+            {checkResult && !checkResult.error && (
+              <span className="text-xs bg-green-50 border border-green-200 text-green-800 px-3 py-1 rounded-lg">
+                ✅ Checked {checkResult.checked} students — {checkResult.wa_available} WA active, {checkResult.wa_unavailable} not active
+              </span>
+            )}
+            {checkResult?.error && <span className="text-xs text-red-600">Error: {checkResult.error}</span>}
+          </div>
           {waListFilter && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-lg">
-                  {waListFilter === 'available' ? '✅ Students with WhatsApp (have phone)' : '❌ Students without Phone Number'}
-                  <span className="ml-2 text-sm font-normal text-gray-500">({waStudents[waListFilter].length} students)</span>
+                  {waListFilter === 'available' ? '✅ WhatsApp Active' : waListFilter === 'unavailable' ? '❌ WhatsApp Not Active / No Phone' : '⏳ Not Yet Checked'}
+                  <span className="ml-2 text-sm font-normal text-gray-500">({(waStudents[waListFilter] || []).length} students)</span>
                 </h3>
                 <button onClick={() => setWaListFilter(null)} className="text-sm text-gray-500 hover:text-gray-800 border px-3 py-1 rounded-lg">✕ Close</button>
               </div>
@@ -341,7 +379,7 @@ export default function NotificationAnalytics() {
                     </tr>
                   </thead>
                   <tbody>
-                    {waStudents[waListFilter].map(s => (
+                    {(waStudents[waListFilter] || []).map(s => (
                       <tr key={s.id} className="border-b hover:bg-gray-50">
                         <td className="py-2 px-3 font-mono text-xs">{s.student_id}</td>
                         <td className="py-2 px-3 font-medium">{s.name}</td>
@@ -352,7 +390,7 @@ export default function NotificationAnalytics() {
                     ))}
                   </tbody>
                 </table>
-                {waStudents[waListFilter].length === 0 && <p className="text-center py-4 text-gray-500">No students in this category</p>}
+                {(waStudents[waListFilter] || []).length === 0 && <p className="text-center py-4 text-gray-500">No students in this category</p>}
               </div>
             </div>
           )}
@@ -360,23 +398,28 @@ export default function NotificationAnalytics() {
             <Card>
               <CardHeader><CardTitle>WhatsApp Availability</CardTitle></CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <button onClick={() => setWaListFilter(waListFilter === 'available' ? null : 'available')} className="text-center p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition cursor-pointer w-full">
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <button onClick={() => setWaListFilter(waListFilter === 'available' ? null : 'available')} className="text-center p-3 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition cursor-pointer w-full">
                      <p className="text-3xl font-bold text-green-600">{waAvailability.available}</p>
-                     <p className="text-sm text-gray-600 mt-1">Have Phone Number</p>
-                     <p className="text-xs text-green-700 mt-1 underline">Click to view list</p>
+                     <p className="text-sm text-gray-600 mt-1">WA Active</p>
+                     <p className="text-xs text-green-700 mt-1 underline">View list</p>
                    </button>
-                   <button onClick={() => setWaListFilter(waListFilter === 'unavailable' ? null : 'unavailable')} className="text-center p-4 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition cursor-pointer w-full">
+                   <button onClick={() => setWaListFilter(waListFilter === 'unavailable' ? null : 'unavailable')} className="text-center p-3 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition cursor-pointer w-full">
                      <p className="text-3xl font-bold text-red-600">{waAvailability.unavailable}</p>
-                     <p className="text-sm text-gray-600 mt-1">No Phone Number</p>
-                     <p className="text-xs text-red-700 mt-1 underline">Click to view list</p>
+                     <p className="text-sm text-gray-600 mt-1">Not Active / No Phone</p>
+                     <p className="text-xs text-red-700 mt-1 underline">View list</p>
+                   </button>
+                   <button onClick={() => setWaListFilter(waListFilter === 'unchecked' ? null : 'unchecked')} className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition cursor-pointer w-full">
+                     <p className="text-3xl font-bold text-gray-500">{waAvailability.unchecked}</p>
+                     <p className="text-sm text-gray-600 mt-1">Not Checked Yet</p>
+                     <p className="text-xs text-gray-500 mt-1 underline">View list</p>
                    </button>
                 </div>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie data={availabilityData} cx="50%" cy="50%" outerRadius={70} dataKey="count"
-                      label={({ name, count }) => `${name}: ${count}`} labelLine={false}>
-                      {availabilityData.map((_, i) => <Cell key={i} fill={COLORS_STATUS[i]} />)}
+                      label={({ name, count }) => count > 0 ? `${name}: ${count}` : ''} labelLine={false}>
+                      {availabilityData.map((_, i) => <Cell key={i} fill={COLORS_AVAIL[i]} />)}
                     </Pie>
                     <Tooltip />
                   </PieChart>
