@@ -107,37 +107,32 @@ Deno.serve(async (req) => {
     }
 
     // ========== GENERATE ROLL NUMBER ==========
-    // Scope: class + section + academic_year
-    if (!student.class_name || !student.section) {
-      return Response.json(
-        { error: 'Student must have class_name and section to assign roll number' },
-        { status: 400 }
-      );
+    // Scope: class + section + academic_year (skip if missing)
+    let assignedRollNo = null;
+    if (student.class_name && student.section) {
+      const classStudents = await base44.asServiceRole.entities.Student.filter({
+        class_name: student.class_name,
+        section: student.section,
+        academic_year: student.academic_year
+      });
+
+      const EXCLUDED_STATUSES = ['Archived', 'Passed Out', 'Transferred'];
+      const activeStudents = classStudents.filter(s => !s.is_deleted && !EXCLUDED_STATUSES.includes(s.status));
+      
+      const maxRoll = activeStudents.reduce((max, s) => {
+        const r = parseInt(s.roll_no);
+        return !isNaN(r) && r > max ? r : max;
+      }, 0);
+      
+      assignedRollNo = maxRoll + 1;
     }
-
-    const classStudents = await base44.asServiceRole.entities.Student.filter({
-      class_name: student.class_name,
-      section: student.section,
-      academic_year: student.academic_year
-    });
-
-    // Exclude archived/passed-out/transferred/deleted students
-    const EXCLUDED_STATUSES = ['Archived', 'Passed Out', 'Transferred'];
-    const activeStudents = classStudents.filter(s => !s.is_deleted && !EXCLUDED_STATUSES.includes(s.status));
-    
-    const maxRoll = activeStudents.reduce((max, s) => {
-      const r = parseInt(s.roll_no);
-      return !isNaN(r) && r > max ? r : max;
-    }, 0);
-    
-    const assignedRollNo = maxRoll + 1;
 
     // ========== ATOMIC UPDATE ==========
     const DEFAULT_PASSWORD = 'BVM123';
     const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
 
     // Change status + set ID + set roll_no + set credentials in one operation
-    await base44.asServiceRole.entities.Student.update(student_db_id, {
+    const updateData = {
       status: 'Approved',
       student_id: generatedId,
       student_id_norm: generatedId.toLowerCase(),
@@ -145,9 +140,10 @@ Deno.serve(async (req) => {
       password_hash: passwordHash,
       password: null,
       must_change_password: true,
-      roll_no: assignedRollNo,
       approved_by: user.email
-    });
+    };
+    if (assignedRollNo !== null) updateData.roll_no = assignedRollNo;
+    await base44.asServiceRole.entities.Student.update(student_db_id, updateData);
 
     return Response.json({
       success: true,
