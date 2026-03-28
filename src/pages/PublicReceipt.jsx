@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { appParams } from '@/lib/app-params';
 import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import html2canvas from 'html2canvas';
@@ -17,31 +17,12 @@ export default function PublicReceipt() {
     enabled: !!receiptNo,
     retry: 1,
     queryFn: async () => {
-      const appId = appParams.appId;
-      // Use window.location.origin so it's always same-origin (no CORS)
-      const origin = window.location.origin;
-      const res = await fetch(
-        `${origin}/api/apps/${appId}/functions/getPublicReceipt`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ receipt_no: receiptNo }),
-        }
-      );
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error || 'Not found');
-      return json;
+      const res = await base44.functions.invoke('getPublicReceipt', { receipt_no: receiptNo });
+      return res.data;
     }
   });
 
-  const handleDownload = async () => {
-    const element = receiptRef.current;
-    if (!element) return;
-    const canvas = await html2canvas(element, {
-      scale: 2, useCORS: true, logging: false,
-      backgroundColor: '#ffffff', allowTaint: true,
-      scrollX: 0, scrollY: 0, windowWidth: 560
-    });
+  const handleDownload
     const imgData = canvas.toDataURL('image/jpeg', 1);
     const pdf = new jsPDF('p', 'mm', 'a5');
     const pdfWidth = 128;
