@@ -124,48 +124,56 @@ function CollectionReportContent() {
 
   // Export to CSV
   const exportCSV = () => {
-    const headers = ['Date', 'Receipt No.', 'Student', 'Class', 'Mode', 'Amount (₹)'];
+    if (isSummaryMode) {
+      // Summary mode: class-level rows
+      const headers = ['Class', 'Invoiced Net (₹)', 'Collected (₹)', 'Coverage %', 'Receipts', 'Students Paid'];
+      const csvRows = filteredPayments.map(p => [
+        p.class?.name || '',
+        p.totalInvoicedNet || 0,
+        p.collectedAmount || 0,
+        ((p.coveragePercent || 0).toFixed(1)) + '%',
+        p.receiptsCount || 0,
+        p.studentsPaidCount || 0
+      ]);
+      const csvContent = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `collection-summary-${moment().format('YYYY-MM-DD')}.csv`;
+      document.body.appendChild(a); a.click();
+      window.URL.revokeObjectURL(url); a.remove();
+      return;
+    }
+
+    // Details mode: use correct backend field names
+    const headers = ['Date', 'Receipt No.', 'Student', 'Mode', 'Amount (₹)'];
     const rows = filteredPayments.map(p => [
-      moment(p.payment_date).format('YYYY-MM-DD'),
-      p.receipt_no || '',
-      p.student_name || '',
-      p.class_name || '',
-      p.payment_mode || '',
-      p.amount_paid || 0
+      p.postedAt || '',
+      p.receiptNo || '',
+      p.student?.name ? `"${p.student.name}"` : '',
+      p.mode || '',
+      p.amount || 0
     ]);
 
-    // Summary section
     const summaryRows = [
       [],
       ['SUMMARY'],
       ['Total Receipts:', filteredPayments.length],
-      ['Total Amount:', summary.totalAmount],
-      ['Average Per Receipt:', summary.avgPerReceipt.toFixed(2)]
+      ['Total Amount:', summary.totalAmount]
     ];
-
-    // Mode breakdown
-    const modeRows = [
-      [],
-      ['BREAKDOWN BY MODE']
-    ];
-    Object.entries(modeBreakdown).forEach(([mode, amount]) => {
-      modeRows.push([mode, amount]);
-    });
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => 
-        typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell
-      ).join(',')),
-      ...summaryRows.map(row => row.join(',')),
-      ...modeRows.map(row => row.join(','))
+      ...rows.map(row => row.join(',')),
+      ...summaryRows.map(row => row.join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Wave3A-Collection-${moment().format('YYYY-MM-DD')}.csv`;
+    a.download = `collection-details-${moment().format('YYYY-MM-DD')}.csv`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -188,7 +196,7 @@ function CollectionReportContent() {
     <div className="p-4 space-y-6 dark:bg-gray-900 min-h-screen">
     {/* Header */}
     <div>
-     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Wave 3A Collection Report</h1>
+     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Collection Report</h1>
      <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">Cash payments collected (excluding reversals, credits, adjustments)</p>
       </div>
 
