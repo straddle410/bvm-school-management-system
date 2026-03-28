@@ -240,7 +240,7 @@ export default function StudentNotifications() {
         </div>
       </div>
 
-      <StudentBottomNav currentPage="StudentNotifications" />
+      <StudentBottomNav currentPage="StudentMore" />
     </div>
   );
 }
