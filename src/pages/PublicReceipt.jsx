@@ -9,48 +9,16 @@ import jsPDF from 'jspdf';
 export default function PublicReceipt() {
   const receiptRef = useRef();
 
-  const search = window.location.href.split('?')[1] || "";
-  const params = new URLSearchParams(search);
-  const receiptNo = decodeURIComponent(params.get("receipt_no") || "");
+  const urlParams = new URLSearchParams(window.location.search);
+  const receiptNo = urlParams.get('receipt_no') || '';
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['public-receipt', receiptNo],
     enabled: !!receiptNo,
     retry: 0,
     queryFn: async () => {
-      // Try direct filter first, fall back to list if needed
-      let payments = await base44.asServiceRole.entities.FeePayment.filter(
-        { receipt_no: receiptNo },
-        '-created_date',
-        5
-      );
-
-      // Fallback: fetch large list and find client-side (handles encoding variants)
-      if (!payments || payments.length === 0) {
-        const clean = (val) =>
-          (val || '').toString().trim().replace(/%2F/g, '/').replace(/\s/g, '').toLowerCase();
-
-        const allPayments = await base44.asServiceRole.entities.FeePayment.filter(
-          {}, '-created_date', 2000
-        );
-        payments = allPayments.filter(p => clean(p.receipt_no) === clean(receiptNo));
-      }
-
-      const payment = payments[0];
-      if (!payment) return null;
-
-      const [students, schoolProfiles, invoices] = await Promise.all([
-        base44.asServiceRole.entities.Student.filter({ student_id: payment.student_id }),
-        base44.asServiceRole.entities.SchoolProfile.list(),
-        base44.asServiceRole.entities.FeeInvoice.filter({ id: payment.invoice_id }),
-      ]);
-
-      return {
-        payment,
-        student: students[0] || {},
-        school: schoolProfiles[0] || {},
-        invoice: invoices[0] || null,
-      };
+      const res = await base44.functions.invoke('getPublicReceipt', { receipt_no: receiptNo });
+      return res.data;
     }
   });
 
@@ -64,7 +32,7 @@ export default function PublicReceipt() {
     });
     const imgData = canvas.toDataURL('image/jpeg', 1);
     const pdf = new jsPDF('p', 'mm', 'a5');
-    const pdfWidth = 148 - 20;
+    const pdfWidth = 128;
     const imgHeight = (canvas.height * pdfWidth) / canvas.width;
     pdf.addImage(imgData, 'JPEG', 10, 15, pdfWidth, Math.min(imgHeight, 180));
     pdf.save(`Receipt_${receiptNo.replace(/[^a-zA-Z0-9-]/g, '')}.pdf`);
@@ -92,12 +60,12 @@ export default function PublicReceipt() {
     );
   }
 
-  if (!data) {
+  if (error || !data || data.error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8">
           <h2 className="text-xl font-bold text-gray-700">Receipt Not Found</h2>
-          <p className="text-gray-500 mt-2">Receipt number: {receiptNo}</p>
+          <p className="text-gray-500 mt-2">No receipt found for: {receiptNo}</p>
         </div>
       </div>
     );
@@ -116,7 +84,6 @@ export default function PublicReceipt() {
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4">
-      {/* Download Button */}
       <div className="max-w-lg mx-auto mb-4 flex justify-end">
         <Button onClick={handleDownload} variant="outline" size="sm">
           <Download className="h-4 w-4 mr-2" />
@@ -124,9 +91,7 @@ export default function PublicReceipt() {
         </Button>
       </div>
 
-      {/* Receipt Card */}
-      <div ref={receiptRef} className="bg-white w-full max-w-lg mx-auto rounded-lg shadow-md"
-        style={{ padding: '24px' }}>
+      <div ref={receiptRef} className="bg-white w-full max-w-lg mx-auto rounded-lg shadow-md" style={{ padding: '24px' }}>
 
         {/* Header */}
         <div className="border-b-2 border-gray-800 pb-4 mb-5 flex items-center gap-3">
@@ -230,7 +195,7 @@ export default function PublicReceipt() {
                 <span className="text-base font-semibold text-gray-900">{payment.collected_by_name}</span>
               </div>
             )}
-            {balanceAfterPayment != null && balanceAfterPayment > 0 && (
+            {balanceAfterPayment != null && balanceAfterPayment > 0.01 && (
               <div className="flex justify-between items-center py-1 pt-2 border-t">
                 <span className="text-lg font-bold text-gray-700">Balance Due</span>
                 <span className="text-lg font-bold text-red-600">
@@ -241,7 +206,6 @@ export default function PublicReceipt() {
           </div>
         </div>
 
-        {/* VOID watermark */}
         {payment.status === 'VOID' && (
           <div className="text-center py-3 mb-4 bg-red-50 border border-red-300 rounded">
             <span className="text-2xl font-bold text-red-600 tracking-widest">VOID</span>

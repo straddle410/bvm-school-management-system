@@ -28,7 +28,6 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -37,18 +36,15 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
     <AnimatePresence mode="wait">
     <Routes>
@@ -74,10 +70,7 @@ const AuthenticatedApp = () => {
       <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><PageTransition><StudentQuiz /></PageTransition></LayoutWrapper>} />
       <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><PageTransition><StudentChangePassword /></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><DeleteAccount /></PageTransition>} />
-      <Route path="/receipt" element={<PublicReceipt />} />
-      <Route path="/receipt/:receipt_no" element={<PublicReceipt />} />
-
-       <Route path="*" element={<PageNotFound />} />
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
     </AnimatePresence>
   );
@@ -85,13 +78,18 @@ const AuthenticatedApp = () => {
 
 
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <Routes>
+            {/* Public routes — no auth check */}
+            <Route path="/receipt" element={<PublicReceipt />} />
+            <Route path="/receipt/:receipt_no" element={<PublicReceipt />} />
+            {/* All other routes go through auth */}
+            <Route path="*" element={<AuthenticatedApp />} />
+          </Routes>
         </Router>
         <Toaster />
       </QueryClientProvider>
