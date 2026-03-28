@@ -22,6 +22,9 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
     : ['Pending'];
 
   const dis = locked || !isAdmin;
+  // Class/section always editable by admin (even approved) to fix missing data
+  const classDisabled = !isAdmin || loadingClasses;
+  const sectionDisabled = !isAdmin || loadingSections || !formData.class_name;
 
   // Dynamic class/section state
   const [availableClasses, setAvailableClasses] = useState([]);
@@ -70,8 +73,21 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
     onChange({ ...formData, class_name: newClass, section: '' });
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.class_name) {
+      alert('Class is required. Please select a class.');
+      return;
+    }
+    if (!formData.parent_phone || formData.parent_phone.trim() === '') {
+      alert('Parent phone number is required.');
+      return;
+    }
+    onSubmit(e);
+  };
+
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {locked && (
         <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
           <Lock className="h-4 w-4 flex-shrink-0" />
@@ -142,8 +158,8 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Label className="text-xs">Section</Label>
             <Select
               value={formData.section || ''}
-              onValueChange={locked ? undefined : v => set('section', v)}
-              disabled={dis || loadingSections || !formData.class_name}
+              onValueChange={v => set('section', v)}
+              disabled={sectionDisabled}
             >
               <SelectTrigger className="mt-1 rounded-xl bg-gray-50">
                 <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select section'} />
@@ -264,8 +280,8 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Input value={formData.parent_name || ''} onChange={e => set('parent_name', e.target.value)} placeholder="Guardian name" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
           <div>
-            <Label className="text-xs">Phone</Label>
-            <Input value={formData.parent_phone || ''} onChange={e => set('parent_phone', e.target.value)} placeholder="+91 98765 43210" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
+            <Label className="text-xs">Phone <span className="text-red-500">*</span></Label>
+            <Input value={formData.parent_phone || ''} onChange={e => set('parent_phone', e.target.value)} placeholder="+91 98765 43210" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} required />
           </div>
           <div>
             <Label className="text-xs">Email</Label>
