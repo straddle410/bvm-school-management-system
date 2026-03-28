@@ -8,13 +8,10 @@
  *   - No negative "reversal entry" rows exist in this system.
  *   - Running balance: Invoice debits increase it; POSTED payments decrease it.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // Statuses that mark a payment as voided (zero financial effect)
 const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
-
-// Valid active statuses for payments that affect balance
-const ACTIVE_STATUSES = new Set(['', null, undefined, 'POSTED', 'Active', 'ACTIVE']);
 
 Deno.serve(async (req) => {
   try {
