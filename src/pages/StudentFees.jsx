@@ -46,10 +46,9 @@ export default function StudentFees() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['student-all-payments', session?.student_id],
     queryFn: async () => {
-      // Fetch all payments, not just 'Active' status (some may have different statuses)
+      // Exclude VOID payments; valid payments can have empty/null status or 'Active'
       const payments = await base44.entities.FeePayment.filter({ student_id: session?.student_id }, '-payment_date', 500);
-      console.log(`[StudentFees] Fetched ${payments.length} payments for ${session?.student_id}:`, payments.map(p => ({ id: p.id, amount: p.amount_paid, status: p.status, receipt_no: p.receipt_no })));
-      return payments.filter(p => p.status === 'Active');
+      return payments.filter(p => p.status !== 'VOID' && p.status !== 'CANCELLED');
     },
     enabled: !!session?.student_id,
     staleTime: 2 * 60 * 1000,

@@ -17,7 +17,7 @@ import DefaulterDetailDrawer from '@/components/fees/DefaulterDetailDrawer';
 
 export default function DefaultersReportPage() {
   const { academicYear } = useAcademicYear();
-  console.log('useAcademicYear returned:', academicYear);
+
   
   const [userRole, setUserRole] = useState('');
   
@@ -43,10 +43,7 @@ export default function DefaultersReportPage() {
     search: ''
   });
 
-  const { data: classes } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Student.list()
-  });
+
   const [page, setPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -108,7 +105,7 @@ export default function DefaultersReportPage() {
         ...(appliedFilters.search && { search: appliedFilters.search })
       });
 
-      console.log('DefaultersReport sending academicYear:', academicYear);
+
       const res = await base44.functions.invoke('getDefaultersReport', { ...Object.fromEntries(params) });
       return res.data;
     }

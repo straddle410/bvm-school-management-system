@@ -23,16 +23,24 @@ export default function ParentStatement() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const printRef = useRef(null);
 
-  // Student search
+  // Student search — filter server-side by student_id to avoid fetching all students
   const { data: searchResults = [] } = useQuery({
     queryKey: ['student-search-ps', searchInput],
     queryFn: async () => {
       if (!searchInput || searchInput.length < 2) return [];
-      const students = await base44.entities.Student.filter({ is_deleted: false, is_active: true, status: 'Published' });
       const q = searchInput.toLowerCase();
-      return students.filter(s =>
-        s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q)
-      ).slice(0, 10);
+      // Try ID match first (fast), then name match
+      const [byId, byName] = await Promise.all([
+        base44.entities.Student.filter({ student_id_norm: searchInput.toUpperCase(), is_deleted: false, status: 'Published' }),
+        base44.entities.Student.filter({ is_deleted: false, is_active: true, status: 'Published' })
+      ]);
+      const combined = [...byId, ...byName];
+      const seen = new Set();
+      return combined.filter(s => {
+        if (seen.has(s.id)) return false;
+        seen.add(s.id);
+        return s.name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q);
+      }).slice(0, 10);
     },
     enabled: searchInput.length >= 2,
     staleTime: 30000
@@ -212,7 +220,7 @@ function ParentStatementContent({ student, summary, payments, academicYear }) {
             </div>
             <div>
               <p className="text-gray-600 text-xs uppercase tracking-wide">Class</p>
-              <p className="font-semibold text-gray-900">{student.class_name} {student.section}</p>
+              <p className="font-semibold text-gray-900">{student.class_name || student.class} {student.section}</p>
             </div>
             <div>
               <p className="text-gray-600 text-xs uppercase tracking-wide">Academic Year</p>
