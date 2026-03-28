@@ -17,10 +17,9 @@ export default function PublicReceipt() {
     enabled: !!receiptNo,
     retry: 1,
     queryFn: async () => {
-      const { appId, appBaseUrl } = appParams;
-      const baseUrl = appBaseUrl || 'https://app.base44.com';
+      const appId = appParams.appId || import.meta.env.VITE_BASE44_APP_ID;
       const res = await fetch(
-        `${baseUrl}/api/apps/${appId}/functions/getPublicReceipt`,
+        `https://app.base44.com/api/apps/${appId}/functions/getPublicReceipt`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
