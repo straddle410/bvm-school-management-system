@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Bell, MessageSquare, BookOpen, FileText, Award, Ticket, Book, CheckCheck, Inbox } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import StudentBottomNav from '@/components/StudentBottomNav';
+import { Home } from 'lucide-react';
 
 function getStudentSession() {
   try { return JSON.parse(localStorage.getItem('student_session')); } catch { return null; }
@@ -240,7 +240,24 @@ export default function StudentNotifications() {
         </div>
       </div>
 
-      <StudentBottomNav currentPage="StudentMore" />
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50">
+        <div className="mx-3 md:mx-4 mb-3 md:mb-4 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] border border-white/60">
+          <div className="flex items-center justify-center px-2 md:px-3 py-3 md:py-4">
+            <Link
+              to={createPageUrl('StudentDashboard')}
+              className="flex flex-col items-center gap-2 px-6 py-2 transition-all min-h-[70px] justify-center"
+            >
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-[#1a237e] to-[#3949ab] shadow-md">
+                <Home className="h-6 w-6 md:h-7 md:w-7 text-white" />
+              </div>
+              <span className="text-sm md:text-base font-bold text-[#1a237e]">
+                Home
+              </span>
+            </Link>
+          </div>
+        </div>
+      </nav>
     </div>
   );
 }
