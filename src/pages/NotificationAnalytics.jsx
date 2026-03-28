@@ -22,7 +22,7 @@ export default function NotificationAnalytics() {
     try {
       const [allLogs, students] = await Promise.all([
         base44.entities.WhatsAppMessageLog.list('-timestamp_sent', 500),
-        base44.entities.Student.filter({ status: 'Published' }),
+        base44.entities.Student.filter({ status: 'Published', is_deleted: false, is_active: true }),
       ]);
       setLogs(allLogs || []);
 
