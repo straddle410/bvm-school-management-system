@@ -1,20 +1,24 @@
 /**
  * Defaulters Report Endpoint
- * Returns students with outstanding balance (due > 0) sorted by due amount and days since last payment.
- * Uses same truth as Outstanding report (invoice.net, valid payments only, VOID excluded).
+ * Uses IDENTICAL balance calculation logic as getStudentLedger to ensure data matches.
+ * Balance = sum(debits) - sum(credits) for POSTED rows, where:
+ *   - Invoices (non-cancelled/waived) → debit += total_amount
+ *   - TRANSPORT_ADJUSTMENT/HOSTEL_ADJUSTMENT positive → debit, negative → credit
+ *   - CREDIT_ADJUSTMENT → credit
+ *   - Standard payments → credit
+ *   - VOID payments → excluded
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    console.log('RAW URL:', req.url);
-    
-    // Parse request body (base44.functions.invoke sends POST body)
     const body = await req.json();
     console.log('ALL params:', body);
-    
+
     const academicYear = body.academicYear || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2);
     const className = body.className || null;
     console.log('className filter value:', className);
@@ -29,7 +33,7 @@ Deno.serve(async (req) => {
     const pageSize = parseInt(body.pageSize) || 50;
     const skipCount = (page - 1) * pageSize;
 
-    // Fetch data in parallel — same as Outstanding Report
+    // Fetch all data in parallel
     const [invoices, payments, allStudents, followUps, academicYears] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
       base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
@@ -45,40 +49,22 @@ Deno.serve(async (req) => {
     const safeFollowUps = Array.isArray(followUps) ? followUps : [];
     const safeAcademicYears = Array.isArray(academicYears) ? academicYears : [];
 
-    // Get academic year start date from database, fallback to April 1st
+    // Get academic year start date, fallback to April 1st
     let ayStartDate;
     const today = new Date();
-    
     if (safeAcademicYears.length > 0 && safeAcademicYears[0].start_date) {
       ayStartDate = new Date(safeAcademicYears[0].start_date);
     } else {
-      // Fallback to April 1st
       const ayParts = academicYear.split('-');
       const startYear = parseInt(ayParts[0]);
-      ayStartDate = new Date(startYear, 3, 1); // April = month 3 (0-indexed)
+      ayStartDate = new Date(startYear, 3, 1); // April 1st
     }
 
-    const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
-
-    // Active invoices: not Cancelled/Waived (same as Outstanding Report)
-    const activeInvoices = safeInvoices.filter(inv => {
-      const excludedStatuses = new Set(['Cancelled', 'Waived']);
-      return !excludedStatuses.has(inv.status);
-    });
-
-    // Active payments: EXCLUDE VOID (same as Outstanding Report)
-    const activePayments = safePayments.filter(p => {
-      const rawStatus = (p.status || '').toUpperCase();
-      return !VOID_STATUSES.has(rawStatus) && !VOID_STATUSES.has(p.status);
-    });
-
-    // Build student lookup for enrichment (no filtering - include all students)
+    // Build student lookup
     const studentLookup = {};
-    safeStudents.forEach(s => {
-      studentLookup[s.student_id] = s;
-    });
+    safeStudents.forEach(s => { studentLookup[s.student_id] = s; });
 
-    // Build latest follow-ups map (latest per student)
+    // Build latest follow-ups map
     const latestFollowUpMap = {};
     safeFollowUps.forEach(fu => {
       if (!latestFollowUpMap[fu.student_id] || new Date(fu.created_date) > new Date(latestFollowUpMap[fu.student_id].created_date)) {
@@ -86,19 +72,8 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Build per-student aggregates (same as Outstanding Report)
+    // Build per-student balance using LEDGER-IDENTICAL logic
     const studentDataMap = {};
-
-    // Build earliest due_date per student from active invoices
-    const studentDueDateMap = {};
-    for (const inv of activeInvoices) {
-      if (!inv.student_id) continue;
-      const invDueDate = inv.due_date || inv.installment_due_date || null;
-      if (!invDueDate) continue;
-      if (!studentDueDateMap[inv.student_id] || invDueDate < studentDueDateMap[inv.student_id]) {
-        studentDueDateMap[inv.student_id] = invDueDate;
-      }
-    }
 
     const ensure = (studentId, studentName, className_) => {
       if (!studentDataMap[studentId]) {
@@ -106,109 +81,111 @@ Deno.serve(async (req) => {
           studentId,
           studentName: studentName || '',
           className: className_ || '',
-          grossAmount: 0,
-          discountAmount: 0,
-          netInvoiced: 0,
-          paidAmount: 0,
+          totalDebit: 0,    // invoices + positive adjustments
+          totalCredit: 0,   // payments + credits + negative adjustments
           lastPaymentDate: null
         };
       }
       return studentDataMap[studentId];
     };
 
-    // Aggregate invoices (same as Outstanding Report)
-    for (const inv of activeInvoices) {
-      const row = ensure(inv.student_id, inv.student_name, inv.class_name);
-      const gross = inv.gross_total ?? inv.total_amount ?? 0;
-      const discount = inv.discount_total ?? 0;
+    // ── INVOICE ROWS (DEBIT) — same as ledger ──
+    // Skip Cancelled and Waived (Waived is shown as VOID in ledger = zero effect)
+    for (const inv of safeInvoices) {
+      if (inv.status === 'Cancelled' || inv.status === 'Waived') continue;
       const net = inv.total_amount ?? 0;
-
-      row.grossAmount += gross;
-      row.discountAmount += discount;
-      row.netInvoiced += net;
+      const row = ensure(inv.student_id, inv.student_name, inv.class_name);
+      row.totalDebit += net;
     }
 
-    // Aggregate payments (same as Outstanding Report)
-    for (const p of activePayments) {
-      let contribution = 0;
+    // ── PAYMENT ROWS — same classification as ledger ──
+    const seenIds = new Set();
+    for (const p of safePayments) {
+      if (seenIds.has(p.id)) continue;
+      seenIds.add(p.id);
 
-      if (p.entry_type === 'CREDIT_ADJUSTMENT') {
-        contribution = p.amount_paid || 0;
-      } else {
-        contribution = p.amount_paid || 0;
-        if (contribution < 0) contribution = 0;
-      }
+      const rawStatus = (p.status || '').toUpperCase();
+      const isVoid = VOID_STATUSES.has(rawStatus) || VOID_STATUSES.has(p.status);
+      if (isVoid) continue; // VOID: excluded (zero financial effect, same as ledger)
 
-      if (contribution === 0) continue;
+      const amount = p.amount_paid ?? 0;
+      const isTransportAdj = p.entry_type === 'TRANSPORT_ADJUSTMENT';
+      const isHostelAdj = p.entry_type === 'HOSTEL_ADJUSTMENT';
+      const isCredit = p.entry_type === 'CREDIT_ADJUSTMENT';
 
+      // Find student ID from payment or linked invoice
       const inv = safeInvoices.find(i => i.id === p.invoice_id);
       const sid = p.student_id || inv?.student_id;
       if (!sid) continue;
 
       const row = ensure(sid, p.student_name || inv?.student_name, p.class_name || inv?.class_name);
-      row.paidAmount += contribution;
 
-      if (p.payment_date && (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate)) {
-        row.lastPaymentDate = p.payment_date;
+      if (isTransportAdj || isHostelAdj) {
+        // Positive = debit (student owes more), Negative = credit (student owes less)
+        if (amount > 0) {
+          row.totalDebit += Math.abs(amount);
+        } else {
+          row.totalCredit += Math.abs(amount);
+        }
+      } else if (isCredit) {
+        // Credit adjustment: reduces balance
+        row.totalCredit += Math.abs(amount);
+      } else {
+        // Standard payment: reduces balance
+        const contribution = amount < 0 ? 0 : amount; // guard negative
+        row.totalCredit += contribution;
+        if (p.payment_date && (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate)) {
+          row.lastPaymentDate = p.payment_date;
+        }
       }
     }
 
-    // Process into defaulters list (build from studentDataMap like Outstanding Report)
+    // Build earliest due_date per student from active invoices
+    const studentDueDateMap = {};
+    for (const inv of safeInvoices) {
+      if (inv.status === 'Cancelled' || inv.status === 'Waived') continue;
+      const invDueDate = inv.due_date || null;
+      if (!invDueDate) continue;
+      if (!studentDueDateMap[inv.student_id] || invDueDate < studentDueDateMap[inv.student_id]) {
+        studentDueDateMap[inv.student_id] = invDueDate;
+      }
+    }
+
+    // Build defaulters list
     const defaultersList = [];
 
     Object.values(studentDataMap).forEach(studentData => {
       const studentId = studentData.studentId;
-      
-      // Enrich with Student entity details (if available and not deleted)
       const student = studentLookup[studentId];
-      if (!student) return; // Skip if student not found
-      if (student.is_deleted === true) return; // Skip deleted students
-      if (student.is_active === false) return; // Skip inactive/archived students
+      if (!student) return;
+      if (student.is_deleted === true) return;
+      if (student.is_active === false) return;
 
       // Apply class/section filter
       if (className && student.class_name !== className) return;
       if (section && student.section !== section) return;
 
-      // Calculate amounts (same as Outstanding Report)
-      const grossAmount = studentData.grossAmount || 0;
-      const discountAmount = studentData.discountAmount || 0;
-      const netInvoiced = studentData.netInvoiced || 0;
-      const paidAmount = studentData.paidAmount || 0;
-      const latestPaymentDate = studentData.lastPaymentDate || null;
-
-      const rawOutstanding = netInvoiced - paidAmount;
-      const due = Math.max(rawOutstanding, 0);
+      // Calculate outstanding = debit - credit (same as ledger closing balance)
+      const due = Math.max(studentData.totalDebit - studentData.totalCredit, 0);
 
       // Filter by minDue
       if (due < minDue) return;
 
-      // Calculate days since last payment (for display only - no filter)
+      // Calculate days since last payment
       let daysSinceLastPayment;
-      if (latestPaymentDate) {
-        const lastPayDate = new Date(latestPaymentDate);
+      if (studentData.lastPaymentDate) {
+        const lastPayDate = new Date(studentData.lastPaymentDate);
         daysSinceLastPayment = Math.floor((today - lastPayDate) / (1000 * 60 * 60 * 24));
       } else {
-        // Never paid: calculate days since academic year start
-        const diffTime = today - ayStartDate;
-        daysSinceLastPayment = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        daysSinceLastPayment = Math.floor((today - ayStartDate) / (1000 * 60 * 60 * 24));
       }
 
-      // Filter by days since last payment
-      if (daysSinceLastPaymentMin !== null) {
-        if (daysSinceLastPayment < daysSinceLastPaymentMin) {
-          return;
-        }
-      }
+      if (daysSinceLastPaymentMin !== null && daysSinceLastPayment < daysSinceLastPaymentMin) return;
 
-      // Build defaulter row
       const latestFU = latestFollowUpMap[studentId];
+      if (followUpStatus && latestFU && !followUpStatus.includes(latestFU.status)) return;
+      if (followUpStatus && !latestFU && !followUpStatus.includes('NEW')) return;
 
-      // Filter by follow-up status if provided
-      if (followUpStatus && latestFU) {
-        if (!followUpStatus.includes(latestFU.status)) return;
-      }
-
-      // Apply search
       if (search) {
         const searchFields = [
           student.name?.toLowerCase() || '',
@@ -219,23 +196,15 @@ Deno.serve(async (req) => {
       }
 
       defaultersList.push({
-        student: {
-          id: student.student_id,
-          name: student.name,
-          admissionNo: student.student_id
-        },
-        class: {
-          name: student.class_name
-        },
+        student: { id: student.student_id, name: student.name, admissionNo: student.student_id },
+        class: { name: student.class_name },
         section: student.section,
-        gross: grossAmount,
-        discount: discountAmount,
-        net: netInvoiced,
-        paid: paidAmount,
-        due: due,
+        net: studentData.totalDebit,
+        paid: studentData.totalCredit,
+        due,
         due_date: studentDueDateMap[studentId] || null,
-        lastPaymentDate: latestPaymentDate,
-        daysSinceLastPayment: daysSinceLastPayment,
+        lastPaymentDate: studentData.lastPaymentDate,
+        daysSinceLastPayment,
         phone1: student.parent_phone || null,
         phone2: null,
         latestFollowUp: latestFU ? {
@@ -251,39 +220,32 @@ Deno.serve(async (req) => {
     defaultersList.sort((a, b) => {
       if (sort === 'due_desc') {
         if (b.due !== a.due) return b.due - a.due;
-        const aDays = a.daysSinceLastPayment ?? 0;
-        const bDays = b.daysSinceLastPayment ?? 0;
-        return bDays - aDays;
+        return (b.daysSinceLastPayment ?? 0) - (a.daysSinceLastPayment ?? 0);
       }
       return 0;
     });
 
-    // Calculate summary
     const countNeverPaid = defaultersList.filter(d => d.lastPaymentDate === null).length;
     const countNoPayment90Days = defaultersList.filter(d => d.daysSinceLastPayment !== null && d.daysSinceLastPayment >= 90).length;
     const totalDue = defaultersList.reduce((sum, d) => sum + d.due, 0);
 
-    // Paginate
     const totalRows = defaultersList.length;
     const rows = defaultersList.slice(skipCount, skipCount + pageSize);
 
     return Response.json({
-      meta: {
-        page: page,
-        pageSize: pageSize,
-        total: totalRows,
-        totalPages: Math.ceil(totalRows / pageSize)
-      },
+      meta: { page, pageSize, total: totalRows, totalPages: Math.ceil(totalRows / pageSize) },
       summary: {
         countStudents: totalRows,
-        totalDue: totalDue,
+        totalDue,
         avgDue: totalRows > 0 ? Math.round(totalDue / totalRows) : 0,
-        countNeverPaid: countNeverPaid,
-        countNoPayment90Days: countNoPayment90Days
+        countNeverPaid,
+        countNoPayment90Days
       },
-      rows: rows
+      rows
     });
+
   } catch (error) {
+    console.error('getDefaultersReport error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
