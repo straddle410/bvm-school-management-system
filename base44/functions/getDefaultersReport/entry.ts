@@ -3,7 +3,7 @@
  * Returns students with outstanding balance (due > 0) sorted by due amount and days since last payment.
  * Uses same truth as Outstanding report (invoice.net, valid payments only, VOID excluded).
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
@@ -38,12 +38,19 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear })
     ]);
 
+    // Safety: ensure all are arrays
+    const safeInvoices = Array.isArray(invoices) ? invoices : [];
+    const safePayments = Array.isArray(payments) ? payments : [];
+    const safeStudents = Array.isArray(allStudents) ? allStudents : [];
+    const safeFollowUps = Array.isArray(followUps) ? followUps : [];
+    const safeAcademicYears = Array.isArray(academicYears) ? academicYears : [];
+
     // Get academic year start date from database, fallback to April 1st
     let ayStartDate;
     const today = new Date();
     
-    if (academicYears.length > 0 && academicYears[0].start_date) {
-      ayStartDate = new Date(academicYears[0].start_date);
+    if (safeAcademicYears.length > 0 && safeAcademicYears[0].start_date) {
+      ayStartDate = new Date(safeAcademicYears[0].start_date);
     } else {
       // Fallback to April 1st
       const ayParts = academicYear.split('-');
@@ -54,26 +61,26 @@ Deno.serve(async (req) => {
     const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
     // Active invoices: not Cancelled/Waived (same as Outstanding Report)
-    const activeInvoices = invoices.filter(inv => {
+    const activeInvoices = safeInvoices.filter(inv => {
       const excludedStatuses = new Set(['Cancelled', 'Waived']);
       return !excludedStatuses.has(inv.status);
     });
 
     // Active payments: EXCLUDE VOID (same as Outstanding Report)
-    const activePayments = payments.filter(p => {
+    const activePayments = safePayments.filter(p => {
       const rawStatus = (p.status || '').toUpperCase();
       return !VOID_STATUSES.has(rawStatus) && !VOID_STATUSES.has(p.status);
     });
 
     // Build student lookup for enrichment (no filtering - include all students)
     const studentLookup = {};
-    allStudents.forEach(s => {
+    safeStudents.forEach(s => {
       studentLookup[s.student_id] = s;
     });
 
     // Build latest follow-ups map (latest per student)
     const latestFollowUpMap = {};
-    followUps.forEach(fu => {
+    safeFollowUps.forEach(fu => {
       if (!latestFollowUpMap[fu.student_id] || new Date(fu.created_date) > new Date(latestFollowUpMap[fu.student_id].created_date)) {
         latestFollowUpMap[fu.student_id] = fu;
       }
@@ -134,7 +141,7 @@ Deno.serve(async (req) => {
 
       if (contribution === 0) continue;
 
-      const inv = invoices.find(i => i.id === p.invoice_id);
+      const inv = safeInvoices.find(i => i.id === p.invoice_id);
       const sid = p.student_id || inv?.student_id;
       if (!sid) continue;
 
