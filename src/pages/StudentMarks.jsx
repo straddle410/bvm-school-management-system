@@ -48,6 +48,7 @@ export default function StudentMarks() {
     },
     enabled: !!session?.student_id,
     staleTime: 0,
+    refetchInterval: 5000,
   });
 
   // Derive distinct exam types from allMarks
