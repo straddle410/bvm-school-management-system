@@ -76,13 +76,28 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
-    // Use list() for payments - filter() returns truncated JSON for large datasets
-    const [invoicesRaw, paymentsRaw] = await Promise.all([
+    // Paginate payments in batches of 50 to stay under 64KB SDK limit
+    const fetchAllPayments = async (ayFilter) => {
+      let all = [];
+      let skip = 0;
+      while (true) {
+        const batchRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', 50, skip);
+        const batch = toArray(batchRaw);
+        if (batch.length === 0) break;
+        all = all.concat(batch.filter(p => !ayFilter || p.academic_year === ayFilter));
+        skip += 50;
+        if (batch.length < 50) break;
+        // If all older than our year range, stop early (payments sorted desc by date)
+        // Can't easily determine this without knowing year date range, so fetch all
+      }
+      return all;
+    };
+    const [invoicesRaw, allPaymentsList] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
-      base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000)
+      fetchAllPayments(academicYear)
     ]);
     const invoices = toArray(invoicesRaw);
-    const payments = toArray(paymentsRaw).filter(p => p.academic_year === academicYear);
+    const payments = allPaymentsList;
 
     // Active invoices: not Cancelled/Waived, created on or before cutoff (ignoring empty due_date)
     const activeInvoices = invoices.filter(inv => {

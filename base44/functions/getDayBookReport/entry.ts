@@ -122,16 +122,28 @@ Deno.serve(async (req) => {
     const paymentFilter = {};
     if (academicYear) paymentFilter.academic_year = academicYear;
     // Use list() instead of filter() - filter() returns truncated double-encoded JSON for large datasets
-    const allPaymentsRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000);
-    let payments = toArray(allPaymentsRaw).filter(p =>
-      !paymentFilter.academic_year || p.academic_year === paymentFilter.academic_year
-    );
-
-    // Date filter by payment_date
-    payments = payments.filter(p => {
-      const d = p.payment_date || (p.created_date || '').split('T')[0];
-      return d && d >= dateFrom && d <= dateTo;
-    });
+    // Paginate in batches of 50 to stay under 64KB SDK limit
+    let payments = [];
+    let skip = 0;
+    const batchSize = 50;
+    // Pre-compute cutoff: if dateFrom is set, stop fetching once we pass it (sorted desc)
+    while (true) {
+      const batchRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', batchSize, skip);
+      const batch = toArray(batchRaw);
+      if (batch.length === 0) break;
+      // Filter this batch for academicYear and date range
+      const filtered = batch.filter(p => {
+        if (academicYear && p.academic_year !== academicYear) return false;
+        const d = p.payment_date || (p.created_date || '').split('T')[0];
+        return d && d >= dateFrom && d <= dateTo;
+      });
+      payments = payments.concat(filtered);
+      skip += batchSize;
+      if (batch.length < batchSize) break;
+      // Optimization: since sorted desc, if oldest in batch is before dateFrom, stop
+      const oldest = batch[batch.length - 1]?.payment_date || '';
+      if (oldest && oldest < dateFrom) break;
+    }
 
     // Payment mode filter
     if (modeFilter && modeFilter.length > 0) {

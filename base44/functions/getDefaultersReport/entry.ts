@@ -37,18 +37,31 @@ Deno.serve(async (req) => {
     const page = parseInt(body.page) || 1;
     const pageSize = parseInt(body.pageSize) || 50;
 
-    // Fetch same way as getOutstandingReport
-    // Use list() for payments - filter() truncates JSON for large datasets
-    const [rawInv, rawPay, rawStudents, rawFollowUps, rawAcYears] = await Promise.all([
+    // Paginate payments in batches of 50 to stay under 64KB SDK limit
+    const fetchAllPay = async () => {
+      let all = [];
+      let skip = 0;
+      while (true) {
+        const bRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', 50, skip);
+        const b = toArray(bRaw);
+        if (b.length === 0) break;
+        all = all.concat(b);
+        skip += 50;
+        if (b.length < 50) break;
+      }
+      return all;
+    };
+
+    const [rawInv, rawStudents, rawFollowUps, rawAcYears, rawPay] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
-      base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000),
       base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000),
-      base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear })
+      base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear }),
+      fetchAllPay()
     ]);
 
     const allInvoices = toArray(rawInv);
-    const allPayments = toArray(rawPay).filter(p => p.academic_year === academicYear);
+    const allPayments = rawPay.filter(p => p.academic_year === academicYear);
     const allStudents = toArray(rawStudents);
     const allFollowUps = toArray(rawFollowUps);
     const acYears = toArray(rawAcYears);
@@ -82,9 +95,9 @@ Deno.serve(async (req) => {
 
     console.log(`activeInvoices=${activeInvoices.length} activePayments=${activePayments.length}`);
 
-    // Per-student aggregation (same as getOutstandingReport)
+    // Per-student aggregation
     const studentMap = {};
-    const ensure = (sid, name, cls) => {
+    const ensure = (sid) => {
       if (!studentMap[sid]) studentMap[sid] = { netInvoiced: 0, paidAmount: 0, lastPaymentDate: null };
       return studentMap[sid];
     };

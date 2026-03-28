@@ -65,12 +65,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'date parameter required (YYYY-MM-DD)' }, { status: 400 });
     }
 
-    // Use list() - filter() truncates for large datasets
-    let allPayments = toArray(await base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000));
-    allPayments = allPayments.filter(p => {
-      const pDate = p.payment_date || (p.created_date || '').split('T')[0];
-      return pDate === date;
-    });
+    // Paginate in batches of 50 to stay under 64KB SDK limit
+    let allPaymentsRaw = [];
+    let _skip = 0;
+    while (true) {
+      const bRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', 50, _skip);
+      const b = toArray(bRaw);
+      if (b.length === 0) break;
+      allPaymentsRaw = allPaymentsRaw.concat(b);
+      _skip += 50;
+      if (b.length < 50) break;
+      const oldest = b[b.length - 1]?.payment_date || '';
+      if (oldest && oldest < date) break;
+    }
+    // Filter to only this date
+    const allPayments = allPaymentsRaw.filter(p => (p.payment_date || '').split('T')[0] === date);
 
     // Separate valid and voided payments
     const validPayments = allPayments.filter(p => p.status !== 'VOID' && p.status !== 'CANCELLED' && p.amount_paid > 0);

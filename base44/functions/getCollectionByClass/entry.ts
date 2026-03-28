@@ -117,12 +117,29 @@ Deno.serve(async (req) => {
 
     // ── Fetch payments + invoices in parallel ───────────────────────────────
     const invoiceFilter = academicYear ? { academic_year: academicYear } : {};
-    // Use list() for payments - filter() truncates JSON for large datasets
-    const [payments_raw, invoices_raw] = await Promise.all([
-      base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000),
+    // Paginate payments in batches of 50 to stay under 64KB SDK limit
+    const fetchPaymentsPaginated = async () => {
+      let all = [];
+      let skip = 0;
+      while (true) {
+        const bRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', 50, skip);
+        const b = toArray(bRaw);
+        if (b.length === 0) break;
+        all = all.concat(b);
+        skip += 50;
+        if (b.length < 50) break;
+        if (dateFrom) {
+          const oldest = b[b.length - 1]?.payment_date || '';
+          if (oldest && oldest < dateFrom) break;
+        }
+      }
+      return all;
+    };
+    const [payments_raw_list, invoices_raw] = await Promise.all([
+      fetchPaymentsPaginated(),
       base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter),
     ]);
-    let payments = toArray(payments_raw);
+    let payments = payments_raw_list;
     if (academicYear) payments = payments.filter(p => p.academic_year === academicYear);
     const invoices_arr = toArray(invoices_raw);
 
