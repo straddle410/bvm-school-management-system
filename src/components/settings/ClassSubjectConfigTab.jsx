@@ -8,8 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Save, Check, Zap, GripVertical, Trash2 } from 'lucide-react';
-
-const CLASSES = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+import { getClassesForYear } from '@/components/classSectionHelper';
 
 // Import canonical normalizer from helper
 import { getSubjectsForClass, getAllSubjectsForYear } from '@/components/subjectHelper';
@@ -104,11 +103,21 @@ const testClassMapping = async (cls, subjects) => {
 export default function ClassSubjectConfigTab() {
    const { academicYear } = useAcademicYear();
    const queryClient = useQueryClient();
-   const [selectedClass, setSelectedClass] = useState(CLASSES[0]);
-   const [saving, setSaving] = useState(false);
-   const [showSuccessModal, setShowSuccessModal] = useState(false);
-   const [draggedFrom, setDraggedFrom] = useState(null);
+   const [dynamicClasses, setDynamicClasses] = useState([]);
+   const [selectedClass, setSelectedClass] = useState('');
    const [selectedSubjectToAdd, setSelectedSubjectToAdd] = useState('');
+
+   // Load classes dynamically from SectionConfig
+   useEffect(() => {
+     if (!academicYear) return;
+     getClassesForYear(academicYear).then(result => {
+       const classes = result?.classes || [];
+       setDynamicClasses(classes);
+       if (classes.length > 0 && !selectedClass) {
+         setSelectedClass(classes[0]);
+       }
+     });
+   }, [academicYear]);
 
   const { data: allSubjects = [], refetch: refetchSubjects } = useQuery({
     queryKey: ['all-subjects-for-year', academicYear],
@@ -230,7 +239,7 @@ export default function ClassSubjectConfigTab() {
       <CardContent className="space-y-5">
         {/* Class Selector */}
         <div className="flex flex-wrap gap-2">
-          {CLASSES.map(cls => (
+          {dynamicClasses.map(cls => (
             <button
               key={cls}
               onClick={() => {
@@ -250,7 +259,7 @@ export default function ClassSubjectConfigTab() {
         </div>
 
         {/* Subject Checkboxes */}
-         {isLoading || selected === null ? (
+        {isLoading || selected === null ? (
           <p className="text-slate-400 text-sm">Loading...</p>
         ) : (
           <>
