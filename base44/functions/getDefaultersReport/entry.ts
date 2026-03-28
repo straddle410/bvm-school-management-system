@@ -1,5 +1,6 @@
 /**
- * Defaulters Report - uses same proven logic as getStudentLedger
+ * Defaulters Report
+ * Uses invoice.paid_amount (authoritative source) to match ledger exactly.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
@@ -84,18 +85,16 @@ Deno.serve(async (req) => {
       if (!prev || fu.created_date > prev.created_date) followUpMap[fu.student_id] = fu;
     });
 
-    // Active invoices
+    // Active invoices (not Cancelled/Waived)
     const activeInvoices = allInvoices.filter(inv => !['Cancelled', 'Waived'].includes(inv.status));
 
-    // Active payments
+    // Active payments (not VOID) — used only for last payment date
     const activePayments = allPayments.filter(p => {
       const s = (p.status || '').toUpperCase();
       return !VOID_STATUSES.has(s);
     });
 
-    console.log(`activeInvoices=${activeInvoices.length} activePayments=${activePayments.length}`);
-
-    // Per-student aggregation
+    // Per-student aggregation using invoice.paid_amount (authoritative, matches ledger)
     const studentMap = {};
     const ensure = (sid) => {
       if (!studentMap[sid]) studentMap[sid] = { netInvoiced: 0, paidAmount: 0, lastPaymentDate: null };
@@ -104,22 +103,17 @@ Deno.serve(async (req) => {
 
     for (const inv of activeInvoices) {
       if (!inv.student_id) continue;
-      ensure(inv.student_id).netInvoiced += inv.total_amount ?? 0;
+      const row = ensure(inv.student_id);
+      row.netInvoiced += inv.total_amount ?? 0;
+      row.paidAmount += inv.paid_amount ?? 0; // authoritative paid total
     }
 
+    // Last payment date from active payments (for display/sort only)
     for (const p of activePayments) {
-      let contribution = p.amount_paid || 0;
-      if (p.entry_type !== 'CREDIT_ADJUSTMENT' && contribution < 0) contribution = 0;
-      if (contribution === 0) continue;
-
-      const inv = allInvoices.find(i => i.id === p.invoice_id);
-      const sid = p.student_id || inv?.student_id;
-      if (!sid) continue;
-
-      const row = ensure(sid);
-      row.paidAmount += contribution;
-      if (p.payment_date && (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate)) {
-        row.lastPaymentDate = p.payment_date;
+      const sid = p.student_id;
+      if (!sid || !studentMap[sid]) continue;
+      if (p.payment_date && (!studentMap[sid].lastPaymentDate || p.payment_date > studentMap[sid].lastPaymentDate)) {
+        studentMap[sid].lastPaymentDate = p.payment_date;
       }
     }
 

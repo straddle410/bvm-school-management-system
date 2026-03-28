@@ -117,7 +117,8 @@ Deno.serve(async (req) => {
       return true;
     });
 
-    // Build per-student aggregates
+    // Build per-student aggregates using invoice.paid_amount and invoice.balance
+    // These are the authoritative source maintained by recordFeePayment — matches ledger exactly
     const studentMap = {};
 
     const ensure = (studentId, studentName, className_) => {
@@ -131,69 +132,33 @@ Deno.serve(async (req) => {
           netInvoiced: 0,
           paidAmount: 0,
           lastPaymentDate: null,
-          invoices: [],
-          payments: []
         };
       }
       return studentMap[studentId];
     };
 
-    // Aggregate invoices
+    // Aggregate invoices — use invoice.paid_amount as the canonical paid total
     for (const inv of activeInvoices) {
+      if (!inv.student_id) continue;
       const row = ensure(inv.student_id, inv.student_name, inv.class_name);
       const gross = inv.gross_total ?? inv.total_amount ?? 0;
       const discount = inv.discount_total ?? 0;
       const net = inv.total_amount ?? 0;
+      const paid = inv.paid_amount ?? 0;  // authoritative — maintained by recordFeePayment
 
       row.grossAmount += gross;
       row.discountAmount += discount;
       row.netInvoiced += net;
-      row.invoices.push({
-        id: inv.id,
-        installment: inv.installment_name,
-        dueDate: inv.due_date,
-        gross,
-        discount,
-        net,
-        status: inv.status
-      });
+      row.paidAmount += paid;
     }
 
-    // Aggregate payments (VOID already excluded above)
+    // Derive last payment date from active payments (for display only)
     for (const p of activePayments) {
-      let contribution = 0;
-
-      if (p.entry_type === 'CREDIT_ADJUSTMENT') {
-        contribution = p.amount_paid || 0;
-      } else {
-        // Standard cash/UPI/bank payment — positive contribution
-        contribution = p.amount_paid || 0;
-        if (contribution < 0) contribution = 0; // guard: no negative standard payments
+      const sid = p.student_id;
+      if (!sid || !studentMap[sid]) continue;
+      if (p.payment_date && (!studentMap[sid].lastPaymentDate || p.payment_date > studentMap[sid].lastPaymentDate)) {
+        studentMap[sid].lastPaymentDate = p.payment_date;
       }
-
-      if (contribution === 0) continue;
-
-      // Always lookup in ALL invoices (including non-active) to find student context
-      // Only filter which invoices contribute to netInvoiced above
-      const inv = invoices.find(i => i.id === p.invoice_id);
-      const sid = p.student_id || inv?.student_id;
-      if (!sid) continue;
-
-      const row = ensure(sid, p.student_name || inv?.student_name, p.class_name || inv?.class_name);
-      row.paidAmount += contribution;
-
-      if (p.payment_date && (!row.lastPaymentDate || p.payment_date > row.lastPaymentDate)) {
-        row.lastPaymentDate = p.payment_date;
-      }
-      row.payments.push({
-        id: p.id,
-        receiptNo: p.receipt_no,
-        date: p.payment_date,
-        mode: p.payment_mode,
-        amount: contribution,
-        entryType: p.entry_type,
-        remarks: p.remarks
-      });
     }
 
     let rows = Object.values(studentMap).map(row => {
