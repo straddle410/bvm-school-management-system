@@ -105,6 +105,9 @@ export default function ClassSubjectConfigTab() {
    const queryClient = useQueryClient();
    const [dynamicClasses, setDynamicClasses] = useState([]);
    const [selectedClass, setSelectedClass] = useState('');
+   const [saving, setSaving] = useState(false);
+   const [showSuccessModal, setShowSuccessModal] = useState(false);
+   const [draggedFrom, setDraggedFrom] = useState(null);
    const [selectedSubjectToAdd, setSelectedSubjectToAdd] = useState('');
 
    // Load classes dynamically from SectionConfig
