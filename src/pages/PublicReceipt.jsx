@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { appParams } from '@/lib/app-params';
 import { useQuery } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,21 @@ export default function PublicReceipt() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['public-receipt', receiptNo],
     enabled: !!receiptNo,
-    retry: 0,
+    retry: 1,
     queryFn: async () => {
-      const res = await base44.functions.invoke('getPublicReceipt', { receipt_no: receiptNo });
-      return res.data;
+      const { appId, appBaseUrl } = appParams;
+      const baseUrl = appBaseUrl || 'https://app.base44.com';
+      const res = await fetch(
+        `${baseUrl}/api/apps/${appId}/functions/getPublicReceipt`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ receipt_no: receiptNo }),
+        }
+      );
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || 'Not found');
+      return json;
     }
   });
 
@@ -60,7 +71,7 @@ export default function PublicReceipt() {
     );
   }
 
-  if (error || !data || data.error) {
+  if (error || !data) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8">
