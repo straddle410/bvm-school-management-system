@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,6 +44,9 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   }, [academicYear]);
 
   const [pendingStudentId, setPendingStudentId] = useState(urlStudentId);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [payingInvoice, setPayingInvoice] = useState(null);
+  const [studentPage, setStudentPage] = useState(0);
   const STUDENTS_LIMIT = 50;
 
   // Defer student loading to avoid blocking student ledger tab
