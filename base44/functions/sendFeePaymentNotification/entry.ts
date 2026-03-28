@@ -139,11 +139,21 @@ Deno.serve(async (req) => {
     );
 
     console.log('[sendFeePaymentNotification] Result:', result.data);
+
+    // Log to WhatsAppMessageLog for analytics
+    await base44.asServiceRole.entities.WhatsAppMessageLog.create({
+      student_id: record.student_id,
+      phone_number_used: cleanPhone,
+      use_case: 'FeePayment',
+      template_id: 'fee_recepit',
+      status: 'sent',
+      timestamp_sent: new Date().toISOString(),
+    });
+
     return Response.json({ success: true, result: result.data });
 
   } catch (error) {
     console.error('FEE RECEIPT ERROR:', error);
-    console.error('[sendFeePaymentNotification] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
