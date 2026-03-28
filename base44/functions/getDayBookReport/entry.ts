@@ -18,7 +18,24 @@
  *   detailDate       (required when reportMode=details)
  *   page / pageSize  (for details)
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+function toArray(val) {
+  // Keep parsing strings until we get a non-string (handles double-encoded JSON)
+  let iterations = 0;
+  while (typeof val === 'string' && iterations++ < 3) {
+    try { val = JSON.parse(val); } catch { return []; }
+  }
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object') {
+    if (val.results !== undefined) return toArray(val.results);
+    if (val.data !== undefined) return toArray(val.data);
+    if (val.items !== undefined) return toArray(val.items);
+    const keys = Object.keys(val);
+    if (keys.length > 0 && keys.every(k => !isNaN(k))) return Object.values(val);
+  }
+  return [];
+}
 
 const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
@@ -104,7 +121,11 @@ Deno.serve(async (req) => {
     // ── Fetch payments in date range ──────────────────────────────────────
     const paymentFilter = {};
     if (academicYear) paymentFilter.academic_year = academicYear;
-    let payments = await base44.asServiceRole.entities.FeePayment.filter(paymentFilter);
+    // Use list() instead of filter() - filter() returns truncated double-encoded JSON for large datasets
+    const allPaymentsRaw = await base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000);
+    let payments = toArray(allPaymentsRaw).filter(p =>
+      !paymentFilter.academic_year || p.academic_year === paymentFilter.academic_year
+    );
 
     // Date filter by payment_date
     payments = payments.filter(p => {
@@ -121,7 +142,7 @@ Deno.serve(async (req) => {
     const invoiceMap = {};
     const invoiceFilter = {};
     if (academicYear) invoiceFilter.academic_year = academicYear;
-    const invs = await base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter);
+    const invs = toArray(await base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter));
     for (const inv of invs) invoiceMap[inv.id] = inv;
 
     // Class filter

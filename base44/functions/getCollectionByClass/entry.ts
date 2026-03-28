@@ -16,7 +16,23 @@
  *   classId        (alias for className in details mode)
  *   page / pageSize
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+function toArray(val) {
+  let iterations = 0;
+  while (typeof val === 'string' && iterations++ < 3) {
+    try { val = JSON.parse(val); } catch { return []; }
+  }
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object') {
+    if (val.results !== undefined) return toArray(val.results);
+    if (val.data !== undefined) return toArray(val.data);
+    if (val.items !== undefined) return toArray(val.items);
+    const keys = Object.keys(val);
+    if (keys.length > 0 && keys.every(k => !isNaN(k))) return Object.values(val);
+  }
+  return [];
+}
 
 const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
@@ -101,18 +117,19 @@ Deno.serve(async (req) => {
 
     // ── Fetch payments + invoices in parallel ───────────────────────────────
     const invoiceFilter = academicYear ? { academic_year: academicYear } : {};
+    // Use list() for payments - filter() truncates JSON for large datasets
     const [payments_raw, invoices_raw] = await Promise.all([
-      base44.asServiceRole.entities.FeePayment.filter(
-        academicYear ? { academic_year: academicYear } : {}
-      ),
+      base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000),
       base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter),
     ]);
-    let payments = payments_raw;
+    let payments = toArray(payments_raw);
+    if (academicYear) payments = payments.filter(p => p.academic_year === academicYear);
+    const invoices_arr = toArray(invoices_raw);
 
     // Build class → invoiced net map (exclude Cancelled/Waived)
     const EXCLUDED_INVOICE_STATUSES = new Set(['Cancelled', 'Waived']);
     const classInvoicedNet = {};
-    for (const inv of invoices_raw) {
+    for (const inv of invoices_arr) {
       if (EXCLUDED_INVOICE_STATUSES.has(inv.status)) continue;
       const cls = inv.class_name || 'Unknown';
       classInvoicedNet[cls] = (classInvoicedNet[cls] || 0) + (inv.total_amount ?? 0);

@@ -3,7 +3,23 @@
  * Returns payment collections for a specific date, with breakdown by mode.
  * Matches Day Book logic exactly: VOID/CANCELLED never counted in totals.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+function toArray(val) {
+  let iterations = 0;
+  while (typeof val === 'string' && iterations++ < 3) {
+    try { val = JSON.parse(val); } catch { return []; }
+  }
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object') {
+    if (val.results !== undefined) return toArray(val.results);
+    if (val.data !== undefined) return toArray(val.data);
+    if (val.items !== undefined) return toArray(val.items);
+    const keys = Object.keys(val);
+    if (keys.length > 0 && keys.every(k => !isNaN(k))) return Object.values(val);
+  }
+  return [];
+}
 
 Deno.serve(async (req) => {
   try {
@@ -49,8 +65,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'date parameter required (YYYY-MM-DD)' }, { status: 400 });
     }
 
-    // Fetch all payments and filter by date
-    let allPayments = await base44.asServiceRole.entities.FeePayment.filter({});
+    // Use list() - filter() truncates for large datasets
+    let allPayments = toArray(await base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000));
     allPayments = allPayments.filter(p => {
       const pDate = p.payment_date || (p.created_date || '').split('T')[0];
       return pDate === date;

@@ -1,20 +1,22 @@
 /**
  * Defaulters Report - uses same proven logic as getStudentLedger
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
-// Helper: normalize SDK response to array (handles array, object wrappers, or JSON string)
 function toArray(val) {
-  if (Array.isArray(val)) return val;
-  if (typeof val === 'string') {
-    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+  let iterations = 0;
+  while (typeof val === 'string' && iterations++ < 3) {
+    try { val = JSON.parse(val); } catch { return []; }
   }
+  if (Array.isArray(val)) return val;
   if (val && typeof val === 'object') {
-    if (Array.isArray(val.results)) return val.results;
-    if (Array.isArray(val.data)) return val.data;
-    if (Array.isArray(val.items)) return val.items;
+    if (val.results !== undefined) return toArray(val.results);
+    if (val.data !== undefined) return toArray(val.data);
+    if (val.items !== undefined) return toArray(val.items);
+    const keys = Object.keys(val);
+    if (keys.length > 0 && keys.every(k => !isNaN(k))) return Object.values(val);
   }
   return [];
 }
@@ -36,22 +38,20 @@ Deno.serve(async (req) => {
     const pageSize = parseInt(body.pageSize) || 50;
 
     // Fetch same way as getOutstandingReport
+    // Use list() for payments - filter() truncates JSON for large datasets
     const [rawInv, rawPay, rawStudents, rawFollowUps, rawAcYears] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
-      base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear }),
+      base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000),
       base44.asServiceRole.entities.Student.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.StudentFollowUp.filter({ academic_year: academicYear }, '-created_date', 5000),
       base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear })
     ]);
 
     const allInvoices = toArray(rawInv);
-    const allPayments = toArray(rawPay);
+    const allPayments = toArray(rawPay).filter(p => p.academic_year === academicYear);
     const allStudents = toArray(rawStudents);
     const allFollowUps = toArray(rawFollowUps);
     const acYears = toArray(rawAcYears);
-
-    // TEMP DEBUG
-    return Response.json({ invoices: allInvoices.length, payments: allPayments.length, students: allStudents.length, samplePay: allPayments[0] ? { student_id: allPayments[0].student_id, amount: allPayments[0].amount_paid, status: allPayments[0].status } : null });
 
     const today = new Date();
     let ayStart;

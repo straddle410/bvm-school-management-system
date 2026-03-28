@@ -5,7 +5,23 @@
  *   - Payments with status VOID/CANCELLED are excluded from paid totals.
  *   - This means voiding a payment increases the student's outstanding balance.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+function toArray(val) {
+  let iterations = 0;
+  while (typeof val === 'string' && iterations++ < 3) {
+    try { val = JSON.parse(val); } catch { return []; }
+  }
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object') {
+    if (val.results !== undefined) return toArray(val.results);
+    if (val.data !== undefined) return toArray(val.data);
+    if (val.items !== undefined) return toArray(val.items);
+    const keys = Object.keys(val);
+    if (keys.length > 0 && keys.every(k => !isNaN(k))) return Object.values(val);
+  }
+  return [];
+}
 
 const VOID_STATUSES = new Set(['VOID', 'CANCELLED']);
 
@@ -60,10 +76,13 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
-    const [invoices, payments] = await Promise.all([
+    // Use list() for payments - filter() returns truncated JSON for large datasets
+    const [invoicesRaw, paymentsRaw] = await Promise.all([
       base44.asServiceRole.entities.FeeInvoice.filter({ academic_year: academicYear }),
-      base44.asServiceRole.entities.FeePayment.filter({ academic_year: academicYear })
+      base44.asServiceRole.entities.FeePayment.list('-payment_date', 5000)
     ]);
+    const invoices = toArray(invoicesRaw);
+    const payments = toArray(paymentsRaw).filter(p => p.academic_year === academicYear);
 
     // Active invoices: not Cancelled/Waived, created on or before cutoff (ignoring empty due_date)
     const activeInvoices = invoices.filter(inv => {
