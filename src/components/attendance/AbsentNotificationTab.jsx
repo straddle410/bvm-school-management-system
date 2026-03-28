@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { XCircle, Send, CheckCircle2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { XCircle, Send, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
 
@@ -16,6 +17,8 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   const [sending, setSending] = useState(false);
   const [sentResults, setSentResults] = useState(null);
   const [whatsappResult, setWhatsappResult] = useState(null);
+  const [confirmResend, setConfirmResend] = useState(false);
+  const [resendCount, setResendCount] = useState(0);
   const queryClient = useQueryClient();
 
   const { data: absentRecords = [], isLoading } = useQuery({
@@ -32,14 +35,15 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     refetchOnWindowFocus: true,
   });
 
-  const { data: existingMessages = [] } = useQuery({
-    queryKey: ['absent-notif-messages', selectedDate, academicYear],
+  // Fetch WA logs for absent notifications on this date
+  const { data: waLogs = [] } = useQuery({
+    queryKey: ['absent-wa-logs', selectedDate, academicYear],
     queryFn: async () => {
-      const msgs = await base44.entities.Message.filter({
-        context_type: 'absent_notification',
-        academic_year: academicYear,
+      const logs = await base44.entities.WhatsAppMessageLog.filter({
+        use_case: 'Absent',
       });
-      return msgs;
+      // Filter logs for the selected date
+      return logs.filter(l => l.timestamp_sent && l.timestamp_sent.startsWith(selectedDate));
     },
     enabled: !!selectedDate && !!academicYear,
     staleTime: 0,
@@ -48,7 +52,10 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     refetchOnWindowFocus: true,
   });
 
-  const alreadyNotifiedIds = new Set(existingMessages.map(m => m.context_id));
+  // Map: student_id -> log status (sent/delivered)
+  const notifiedStudentIds = new Set(
+    waLogs.filter(l => l.status === 'sent' || l.status === 'delivered').map(l => l.student_id)
+  );
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -59,23 +66,18 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   };
 
   const toggleSelectAll = () => {
-    const eligible = absentRecords.filter(r => !alreadyNotifiedIds.has(r.id));
-    if (selectedIds.size === eligible.length) {
+    if (selectedIds.size === absentRecords.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(eligible.map(r => r.id)));
+      setSelectedIds(new Set(absentRecords.map(r => r.id)));
     }
   };
 
-  const handleSend = async () => {
-    if (selectedIds.size === 0) {
-      toast.error('Please select at least one student');
-      return;
-    }
-
+  const doSend = async () => {
     setSending(true);
     setSentResults(null);
     setWhatsappResult(null);
+    setConfirmResend(false);
     try {
       const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
       const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
@@ -137,6 +139,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       });
       setWhatsappResult(res.data);
       setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['absent-wa-logs'] });
     } catch (err) {
       toast.error('Failed to send notifications: ' + (err?.message || 'Unknown error'));
     } finally {
@@ -144,8 +147,22 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     }
   };
 
-  const eligibleRecords = absentRecords.filter(r => !alreadyNotifiedIds.has(r.id));
-  const allEligibleSelected = eligibleRecords.length > 0 && selectedIds.size === eligibleRecords.length;
+  const handleSend = () => {
+    if (selectedIds.size === 0) {
+      toast.error('Please select at least one student');
+      return;
+    }
+    const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
+    const alreadyNotifiedCount = selectedRecords.filter(r => notifiedStudentIds.has(r.student_id)).length;
+    if (alreadyNotifiedCount > 0) {
+      setResendCount(alreadyNotifiedCount);
+      setConfirmResend(true);
+      return;
+    }
+    doSend();
+  };
+
+  const allSelected = absentRecords.length > 0 && selectedIds.size === absentRecords.length;
 
   return (
     <div className="space-y-4">
@@ -217,12 +234,12 @@ export default function AbsentNotificationTab({ academicYear, user }) {
             <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
               <div className="flex items-center gap-3">
                 <Checkbox
-                  checked={allEligibleSelected}
+                  checked={allSelected}
                   onCheckedChange={toggleSelectAll}
-                  disabled={eligibleRecords.length === 0}
+                  disabled={absentRecords.length === 0}
                 />
                 <span className="text-sm font-medium text-slate-700 dark:text-gray-300">
-                  {absentRecords.length} absent student(s) — {eligibleRecords.length} eligible
+                  {absentRecords.length} absent student(s)
                 </span>
               </div>
               <Button
@@ -238,17 +255,16 @@ export default function AbsentNotificationTab({ academicYear, user }) {
 
             <div className="divide-y dark:divide-gray-700 max-h-[500px] overflow-y-auto">
               {absentRecords.map(record => {
-                const alreadySent = alreadyNotifiedIds.has(record.id);
+                const alreadyNotified = notifiedStudentIds.has(record.student_id);
                 const isSelected = selectedIds.has(record.id);
                 return (
                   <div
                     key={record.id}
-                    className={`flex items-center gap-3 px-4 py-3 transition-colors ${alreadySent ? 'opacity-50' : 'hover:bg-slate-50 dark:hover:bg-gray-700'}`}
+                    className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-gray-700`}
                   >
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => !alreadySent && toggleSelect(record.id)}
-                      disabled={alreadySent}
+                      onCheckedChange={() => toggleSelect(record.id)}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900 dark:text-white text-sm truncate">
@@ -258,7 +274,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
                         {record.student_id} · Class {record.class_name}-{record.section}
                       </p>
                     </div>
-                    {alreadySent ? (
+                    {alreadyNotified ? (
                       <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" /> Notified
                       </span>
@@ -274,6 +290,27 @@ export default function AbsentNotificationTab({ academicYear, user }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Confirm resend dialog */}
+      <Dialog open={confirmResend} onOpenChange={setConfirmResend}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Already Notified
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 py-2">
+            <strong>{resendCount}</strong> of the selected students already received an absent notification today. Do you want to send again?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmResend(false)}>Cancel</Button>
+            <Button onClick={doSend} className="bg-red-600 hover:bg-red-700 text-white">
+              <Send className="h-4 w-4 mr-1.5" /> Send Again
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

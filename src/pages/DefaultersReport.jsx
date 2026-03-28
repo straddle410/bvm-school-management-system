@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Eye, Phone, MessageCircle, Send, X, Loader2, CheckCircle2 } from 'lucide-react';
+import { Download, Eye, Phone, MessageCircle, Send, X, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -52,6 +52,8 @@ export default function DefaultersReportPage() {
   const [sendingReminders, setSendingReminders] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [reminderResult, setReminderResult] = useState(null);
+  const [confirmResend, setConfirmResend] = useState(false);
+  const [alreadySentStudents, setAlreadySentStudents] = useState([]);
   const [isDueDateModalOpen, setIsDueDateModalOpen] = useState(false);
   const [bulkDueDate, setBulkDueDate] = useState('');
   const [savingDueDate, setSavingDueDate] = useState(false);
@@ -60,6 +62,18 @@ export default function DefaultersReportPage() {
     const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
     setUserRole((staffSession.role || '').toLowerCase());
   }, []);
+
+  // Fetch today's fee reminder WA logs to track who was already sent
+  const { data: todayFeeReminderLogs = [], refetch: refetchReminderLogs } = useQuery({
+    queryKey: ['fee-reminder-wa-logs', academicYear],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const logs = await base44.entities.WhatsAppMessageLog.filter({ use_case: 'FeeReminder' });
+      return logs.filter(l => l.status === 'sent' || l.status === 'delivered');
+    },
+    staleTime: 0,
+  });
+  const reminderSentStudentIds = new Set(todayFeeReminderLogs.map(l => l.student_id));
 
   const handleApplyFilters = () => {
     setAppliedFilters({ ...filters });
@@ -197,13 +211,10 @@ export default function DefaultersReportPage() {
     }
   };
 
-  const handleSendReminder = async () => {
-    if (selectedStudents.length === 0) {
-      toast.error('Please select at least one student');
-      return;
-    }
+  const doSendReminder = async () => {
     setSendingReminders(true);
     setReminderResult(null);
+    setConfirmResend(false);
     try {
       // Fetch full student records to get parent details
       const studentRecords = await Promise.all(
@@ -263,11 +274,27 @@ export default function DefaultersReportPage() {
         recipients,
       });
       setReminderResult(res.data);
+      refetchReminderLogs();
     } catch (err) {
       toast.error('Failed to send reminders: ' + (err?.message || 'Unknown error'));
     } finally {
       setSendingReminders(false);
     }
+  };
+
+  const handleSendReminder = () => {
+    if (selectedStudents.length === 0) {
+      toast.error('Please select at least one student');
+      return;
+    }
+    const alreadySent = selectedStudents.filter(id => reminderSentStudentIds.has(id));
+    if (alreadySent.length > 0) {
+      setAlreadySentStudents(alreadySent);
+      setConfirmResend(true);
+      return;
+    }
+    setIsReminderModalOpen(true);
+    setReminderResult(null);
   };
 
   if (isLoading) {
@@ -305,10 +332,10 @@ export default function DefaultersReportPage() {
                   📅 Set Due Date ({selectedStudents.length} selected)
                 </Button>
                 <Button
-                  onClick={() => { setIsReminderModalOpen(true); setReminderResult(null); }}
-                  disabled={selectedStudents.length === 0}
-                  className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
-                >
+                           onClick={handleSendReminder}
+                           disabled={selectedStudents.length === 0}
+                           className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
+                         >
                   <Send className="h-4 w-4" />
                   Send Reminder ({selectedStudents.length} selected)
                 </Button>
@@ -694,6 +721,7 @@ export default function DefaultersReportPage() {
                         <th className="px-3 py-2 text-left font-semibold">Class</th>
                         <th className="px-3 py-2 text-right font-semibold">Due Amount</th>
                         <th className="px-3 py-2 text-left font-semibold">Phone</th>
+                        <th className="px-3 py-2 text-center font-semibold">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -707,6 +735,15 @@ export default function DefaultersReportPage() {
                               ₹{row.due.toLocaleString()}
                             </td>
                             <td className="px-3 py-2">{row.phone1 || '-'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {reminderSentStudentIds.has(row.student.id) ? (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1 justify-center">
+                                  <CheckCircle2 className="h-3 w-3" /> Notified
+                                </span>
+                              ) : (
+                                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Pending</span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                     </tbody>
@@ -745,7 +782,7 @@ export default function DefaultersReportPage() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleSendReminder}
+                  onClick={doSendReminder}
                   disabled={sendingReminders}
                   className="gap-2 bg-[#1a237e] hover:bg-[#283593]"
                 >
@@ -766,6 +803,27 @@ export default function DefaultersReportPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Resend confirmation dialog for fee reminders */}
+      <Dialog open={confirmResend} onOpenChange={setConfirmResend}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Already Notified
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 py-2">
+            <strong>{alreadySentStudents.length}</strong> of the selected students already received a fee reminder. Do you want to send again?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmResend(false)}>Cancel</Button>
+            <Button onClick={() => { setConfirmResend(false); setIsReminderModalOpen(true); setReminderResult(null); }} className="bg-[#1a237e] hover:bg-[#283593]">
+              <Send className="h-4 w-4 mr-1.5" /> Send Again
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </LoginRequired>
   );
 }
