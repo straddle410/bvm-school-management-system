@@ -16,6 +16,8 @@ export default function NotificationAnalytics() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [waAvailability, setWaAvailability] = useState({ available: 0, unavailable: 0 });
+  const [waStudents, setWaStudents] = useState({ available: [], unavailable: [] });
+  const [waListFilter, setWaListFilter] = useState(null); // 'available' | 'unavailable' | null
 
   const loadData = async () => {
     setLoading(true);
@@ -26,10 +28,11 @@ export default function NotificationAnalytics() {
       ]);
       setLogs(allLogs || []);
 
-      // is_whatsapp_available is never populated in this system.
       // Use parent_phone as the real indicator of WhatsApp reachability.
-      const available = students.filter(s => s.parent_phone && s.parent_phone.trim() !== '').length;
-      setWaAvailability({ available, unavailable: students.length - available });
+      const availableList = students.filter(s => s.parent_phone && s.parent_phone.trim() !== '');
+      const unavailableList = students.filter(s => !s.parent_phone || s.parent_phone.trim() === '');
+      setWaAvailability({ available: availableList.length, unavailable: unavailableList.length });
+      setWaStudents({ available: availableList, unavailable: unavailableList });
     } catch (err) {
       console.error('Failed to load WhatsApp analytics:', err);
     } finally {
@@ -317,19 +320,57 @@ export default function NotificationAnalytics() {
 
         {/* Tab 3: WA Availability */}
         <TabsContent value="availability">
+          {waListFilter && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-lg">
+                  {waListFilter === 'available' ? '✅ Students with WhatsApp (have phone)' : '❌ Students without Phone Number'}
+                  <span className="ml-2 text-sm font-normal text-gray-500">({waStudents[waListFilter].length} students)</span>
+                </h3>
+                <button onClick={() => setWaListFilter(null)} className="text-sm text-gray-500 hover:text-gray-800 border px-3 py-1 rounded-lg">✕ Close</button>
+              </div>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left py-2 px-3">Student ID</th>
+                      <th className="text-left py-2 px-3">Name</th>
+                      <th className="text-left py-2 px-3">Class</th>
+                      <th className="text-left py-2 px-3">Parent</th>
+                      <th className="text-left py-2 px-3">Phone</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {waStudents[waListFilter].map(s => (
+                      <tr key={s.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-3 font-mono text-xs">{s.student_id}</td>
+                        <td className="py-2 px-3 font-medium">{s.name}</td>
+                        <td className="py-2 px-3">{s.class_name} - {s.section}</td>
+                        <td className="py-2 px-3 text-gray-600">{s.parent_name || '-'}</td>
+                        <td className="py-2 px-3">{s.parent_phone || <span className="text-red-500 italic">No phone</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {waStudents[waListFilter].length === 0 && <p className="text-center py-4 text-gray-500">No students in this category</p>}
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader><CardTitle>WhatsApp Availability</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-3xl font-bold text-green-600">{waAvailability.available}</p>
-                    <p className="text-sm text-gray-600 mt-1">WhatsApp Available</p>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-3xl font-bold text-red-600">{waAvailability.unavailable}</p>
-                    <p className="text-sm text-gray-600 mt-1">Not Available</p>
-                  </div>
+                  <button onClick={() => setWaListFilter(waListFilter === 'available' ? null : 'available')} className="text-center p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition cursor-pointer w-full">
+                     <p className="text-3xl font-bold text-green-600">{waAvailability.available}</p>
+                     <p className="text-sm text-gray-600 mt-1">Have Phone Number</p>
+                     <p className="text-xs text-green-700 mt-1 underline">Click to view list</p>
+                   </button>
+                   <button onClick={() => setWaListFilter(waListFilter === 'unavailable' ? null : 'unavailable')} className="text-center p-4 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition cursor-pointer w-full">
+                     <p className="text-3xl font-bold text-red-600">{waAvailability.unavailable}</p>
+                     <p className="text-sm text-gray-600 mt-1">No Phone Number</p>
+                     <p className="text-xs text-red-700 mt-1 underline">Click to view list</p>
+                   </button>
                 </div>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
