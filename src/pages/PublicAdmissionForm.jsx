@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, Check, AlertCircle } from 'lucide-react';
+import { getClassesForYear, getSectionsForClass } from '@/components/classSectionHelper';
 
 export default function PublicAdmissionForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -17,12 +18,16 @@ export default function PublicAdmissionForm() {
   const [selectedYear, setSelectedYear] = useState(null);
   const [yearError, setYearError] = useState(null);
   const [availableClasses, setAvailableClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [loadingSections, setLoadingSections] = useState(false);
 
   const [formData, setFormData] = useState({
     student_name: '',
     dob: '',
     gender: '',
     applying_for_class: '',
+    section: '',
     photo_url: '',
     parent_name: '',
     parent_phone: '',
@@ -33,7 +38,7 @@ export default function PublicAdmissionForm() {
     academic_year: ''
   });
 
-  // Load admission open years and available classes on mount
+  // Load admission open years on mount
   useEffect(() => {
     const loadAdmissionData = async () => {
       try {
@@ -44,7 +49,6 @@ export default function PublicAdmissionForm() {
           setYearError('Admissions are currently closed.');
         } else {
           setAdmissionYears(years);
-          // If only one year, auto-select it and load classes
           if (years.length === 1) {
             setSelectedYear(years[0].year);
             setFormData(prev => ({ ...prev, academic_year: years[0].year }));
@@ -62,19 +66,39 @@ export default function PublicAdmissionForm() {
     loadAdmissionData();
   }, []);
 
-  // Load available classes for a given academic year
+  // Load available classes for a given academic year using classSectionHelper
   const loadClassesForYear = async (year) => {
+    if (!year) {
+      setAvailableClasses([]);
+      return;
+    }
+    setLoadingClasses(true);
     try {
-      const sectionConfigs = await base44.entities.SectionConfig.filter({
-        academic_year: year,
-        is_active: true
-      });
-      // Extract unique class names and sort
-      const classNames = [...new Set(sectionConfigs.map(s => s.class_name))];
-      setAvailableClasses(classNames);
+      const result = await getClassesForYear(year);
+      setAvailableClasses(result.classes || []);
     } catch (error) {
       console.error('Failed to load classes:', error);
       setAvailableClasses([]);
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
+
+  // Load available sections for a given class
+  const loadSectionsForClass = async (year, cls) => {
+    if (!year || !cls) {
+      setAvailableSections([]);
+      return;
+    }
+    setLoadingSections(true);
+    try {
+      const result = await getSectionsForClass(year, cls);
+      setAvailableSections(result.sections || []);
+    } catch (error) {
+      console.error('Failed to load sections:', error);
+      setAvailableSections([]);
+    } finally {
+      setLoadingSections(false);
     }
   };
 
@@ -89,8 +113,15 @@ export default function PublicAdmissionForm() {
 
   const handleYearChange = async (value) => {
     setSelectedYear(value);
-    setFormData(prev => ({ ...prev, academic_year: value, applying_for_class: '' }));
+    setFormData(prev => ({ ...prev, academic_year: value, applying_for_class: '', section: '' }));
     await loadClassesForYear(value);
+  };
+
+  const handleClassChange = async (value) => {
+    setFormData(prev => ({ ...prev, applying_for_class: value, section: '' }));
+    if (selectedYear) {
+      await loadSectionsForClass(selectedYear, value);
+    }
   };
 
   const handleFileUpload = async (e, fileType) => {
@@ -137,6 +168,7 @@ export default function PublicAdmissionForm() {
         dob: formData.dob,
         gender: formData.gender,
         applying_for_class: formData.applying_for_class,
+        section: formData.section,
         parent_name: formData.parent_name,
         parent_phone: formData.parent_phone,
         parent_email: formData.parent_email,
@@ -274,9 +306,9 @@ export default function PublicAdmissionForm() {
                     </div>
                     <div>
                       <Label>Applying for Class *</Label>
-                      <Select value={formData.applying_for_class} onValueChange={(val) => handleSelectChange('applying_for_class', val)}>
+                      <Select value={formData.applying_for_class} onValueChange={handleClassChange} disabled={loadingClasses}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select class" />
+                          <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select class'} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableClasses.length > 0 ? (
@@ -291,16 +323,35 @@ export default function PublicAdmissionForm() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label>Student Photo</Label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'photo')}
-                      disabled={loading}
-                      className="w-full p-2 border rounded-md"
-                    />
-                    {formData.photo_url && <p className="text-xs text-green-600 mt-1">✓ Photo uploaded</p>}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Section</Label>
+                      <Select value={formData.section} onValueChange={(val) => handleSelectChange('section', val)} disabled={loadingSections || !formData.applying_for_class}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select section'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableSections.length > 0 ? (
+                            availableSections.map(sec => (
+                              <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem disabled value="">No sections available</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Student Photo</Label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'photo')}
+                        disabled={loading}
+                        className="w-full p-2 border rounded-md"
+                      />
+                      {formData.photo_url && <p className="text-xs text-green-600 mt-1">✓ Photo uploaded</p>}
+                    </div>
                   </div>
                 </div>
               </div>

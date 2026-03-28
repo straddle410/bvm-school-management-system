@@ -1,0 +1,92 @@
+{
+  "name": "Admission",
+  "type": "object",
+  "properties": {
+    "application_no": {
+      "type": "string",
+      "description": "Application number"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "dob": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ]
+    },
+    "applying_for_class": {
+      "type": "string",
+      "description": "Applying for class \u2014 no enum restriction, driven by SectionConfig"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section \u2014 no enum restriction, driven by SectionConfig"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Student photo"
+    },
+    "parent_name": {
+      "type": "string",
+      "description": "Parent name"
+    },
+    "parent_phone": {
+      "type": "string",
+      "description": "Parent phone"
+    },
+    "parent_email": {
+      "type": "string",
+      "description": "Parent email"
+    },
+    "address": {
+      "type": "string",
+      "description": "Address"
+    },
+    "previous_school": {
+      "type": "string",
+      "description": "Previous school name"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Document URLs"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Submitted",
+        "Under Review",
+        "Verified",
+        "Approved",
+        "Rejected",
+        "Converted"
+      ],
+      "default": "Submitted"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Admin remarks"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year"
+    }
+  },
+  "required": [
+    "student_name",
+    "applying_for_class",
+    "parent_name",
+    "parent_phone"
+  ]
+}
