@@ -25,6 +25,7 @@ export default function AcademicYearSelector() {
   // Staff: locked read-only Active year only, no dropdown
   if (!isAdmin) {
     const activeYear = displayYears.find(y => (y.status || '').toLowerCase() === 'active');
+    displayYears = activeYear ? [activeYear] : [];
     if (activeYear) {
       return (
         <div className="flex items-center gap-1.5 text-xs text-blue-200 font-semibold px-2 py-1.5 bg-white/10 rounded-lg">
