@@ -64,8 +64,10 @@ function CollectionReportContent() {
           pageSize: 9999,
           staffInfo
         });
+        console.log('[DEBUG] Function response:', res);
         return res.data?.data || res.data || {};
       } catch (err) {
+        console.error('[DEBUG] Function error:', err);
         if (err.response?.status === 403 || err.response?.status === 401) {
           return {};
         }
