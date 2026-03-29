@@ -22,15 +22,15 @@ export default function AcademicYearSelector() {
   const seen = new Set();
   let displayYears = academicYears.filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
 
-  // Staff: locked read-only Active year only, no dropdown
+  // Staff: locked read-only current year only, no dropdown
   if (!isAdmin) {
-    const activeYear = displayYears.find(y => (y.status || '').toLowerCase() === 'active');
-    displayYears = activeYear ? [activeYear] : [];
-    if (activeYear) {
+    const currentYear = displayYears.find(y => y.is_current === true);
+    displayYears = currentYear ? [currentYear] : [];
+    if (currentYear) {
       return (
         <div className="flex items-center gap-1.5 text-xs text-blue-200 font-semibold px-2 py-1.5 bg-white/10 rounded-lg">
           <span>{academicYear}</span>
-          <span className="text-[10px] text-green-300 font-bold">(Active)</span>
+          <span className="text-[10px] text-green-300 font-bold">(Current)</span>
           <Lock className="h-3 w-3" />
         </div>
       );
@@ -80,7 +80,7 @@ export default function AcademicYearSelector() {
                 }`}
               >
                 <span>{y.year}</span>
-                {(y.status || '').toLowerCase() === 'active' && <span className="ml-2 text-xs font-bold text-green-600">[Active]</span>}
+                {y.is_current && <span className="ml-2 text-xs font-bold text-green-600">[Current]</span>}
               </button>
             ))}
           </div>

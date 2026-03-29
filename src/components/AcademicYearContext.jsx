@@ -100,11 +100,11 @@ export function AcademicYearProvider({ children }) {
         setAcademicYears(years);
 
         if (!adminAccess) {
-          // STAFF LOCK: Always force Active year (only one), ignore localStorage
-          const activeYear = years.find(y => (y.status || '').toLowerCase() === 'active');
-          if (activeYear) {
-            setAcademicYearState(activeYear.year);
-            localStorage.setItem('selected_academic_year', activeYear.year);
+          // STAFF LOCK: Always force current year (only one), ignore localStorage
+          const currentYear = years.find(y => y.is_current === true);
+          if (currentYear) {
+            setAcademicYearState(currentYear.year);
+            localStorage.setItem('selected_academic_year', currentYear.year);
           }
         } else {
           // ADMIN/PRINCIPAL: Honour saved selection or fall back to current year
@@ -137,9 +137,9 @@ export function AcademicYearProvider({ children }) {
     // Only admin can change the year
     if (!isAdmin) return;
     setAcademicYearState(year);
-    // Only persist to localStorage if year is Active — staff should only see Active year
-    const isActive = academicYears.find(y => y.year === year && (y.status || '').toLowerCase() === 'active');
-    if (isActive) {
+    // Only persist to localStorage if year is current — staff should only see current year
+    const isCurrent = academicYears.find(y => y.year === year && y.is_current === true);
+    if (isCurrent) {
       localStorage.setItem('selected_academic_year', year);
     }
   };
