@@ -53,16 +53,16 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
    const receiptNumber = payment ? payment.receipt_no : invoicePayments[0]?.receipt_no;
 
    // Use receipt snapshot if available (frozen at payment time), else fall back to live invoice data
-   const snapshot = payment?.receipt_snapshot;
-   const displayGrossAmount = snapshot?.invoice_gross_total ?? (invoice.gross_total || invoice.total_amount);
-   const displayDiscountAmount = snapshot?.invoice_discount_total ?? (invoice.discount_total || 0);
-   const displayNetAmount = snapshot?.invoice_net_total ?? invoice.total_amount;
-   const displayBalanceBefore = snapshot?.balance_before;
-   const isSnapshotReceipt = !!snapshot;
+    const snapshot = payment?.receipt_snapshot;
+    const displayGrossAmount = snapshot?.invoice_gross_total ?? (invoice.gross_total || invoice.total_amount);
+    const displayDiscountAmount = snapshot?.invoice_discount_total ?? (invoice.discount_total || 0);
+    const displayNetAmount = snapshot?.invoice_net_total ?? invoice.total_amount;
+    const displayBalanceBefore = snapshot?.balance_before;
+    const isSnapshotReceipt = !!snapshot;
 
-  // Total Paid Till Date = invoice.paid_amount (source of truth after payment is recorded)
-  // This matches the student ledger and admin receipt
-  const totalPaidTillDate = invoice.paid_amount;
+   // Total Paid Till Date = frozen from snapshot at payment time (locked, never changes)
+   // If snapshot exists, use it; otherwise, use balance calculation (no snapshot for old payments)
+   const totalPaidTillDate = snapshot?.invoice_net_total - (snapshot?.balance_before || 0) ?? invoice.paid_amount;
 
   // Calculate balance after cumulative payments
   const balanceAfterPayment = invoice.total_amount - totalPaidTillDate;
