@@ -54,7 +54,7 @@ function CollectionReportContent() {
           academicYear,
           dateFrom: dateRange.start,
           dateTo: dateRange.end,
-          className: normalizedClass || undefined,
+          className: normalizedClass ? `Class ${normalizedClass}` : undefined,
           mode: normalizedMode || undefined,
           reportMode: mode,
           classId: normalizedClass || undefined,
@@ -81,7 +81,7 @@ function CollectionReportContent() {
     if (dateRange.end && p.payment_date > dateRange.end) return false;
 
     // Class filter
-    if (normalizedClass && p.class_name !== normalizedClass) return false;
+    if (normalizedClass && p.class_name !== `Class ${normalizedClass}`) return false;
 
     // Payment mode filter
     if (normalizedMode && p.payment_mode !== normalizedMode) return false;
