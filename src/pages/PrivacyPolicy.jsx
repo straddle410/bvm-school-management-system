@@ -152,15 +152,18 @@ export default function PrivacyPolicy() {
 
           {/* 5.1 Cloud Infrastructure & Third-Party Services */}
           <Section title="5.1 Cloud Infrastructure & Third-Party Services">
-            <p><strong>Google Firebase Services</strong></p>
-            <p>We use secure cloud infrastructure including <strong>Google Firebase services</strong> for data storage, user authentication, and push notifications. Firebase is a service provided by Google Inc. and helps us securely store and manage school data.</p>
+            <p><strong>Cloud Data Storage</strong></p>
+            <p>All school data (student records, academic data, attendance, fees) is stored on secure cloud servers provided by our platform infrastructure. Data is encrypted at rest and in transit, and access is restricted to authorized users only.</p>
+
+            <p className="mt-3"><strong>WhatsApp Notifications via MSG91</strong></p>
+            <p>We use <strong>MSG91</strong> (a TRAI-registered Indian messaging service) to send WhatsApp notifications to parents and guardians. These notifications include:</p>
             <ul className="list-disc list-inside space-y-1.5 pl-2 mt-2">
-              <li><strong>Data Storage:</strong> Student records, academic data, and school information are stored on Google's secure cloud servers</li>
-              <li><strong>Authentication:</strong> User login and session management are handled through Firebase Authentication</li>
-              <li><strong>Push Notifications:</strong> School announcements and important alerts are delivered through Firebase Cloud Messaging (FCM)</li>
-              <li><strong>Device Information:</strong> Firebase may collect device identifiers and usage data as per Google's privacy policies to ensure smooth app functionality</li>
+              <li><strong>Absent Alerts:</strong> Parents are notified when their child is marked absent</li>
+              <li><strong>Fee Reminders:</strong> Automated reminders for outstanding fee balances</li>
+              <li><strong>Other Alerts:</strong> Important school updates as configured by the administration</li>
             </ul>
-            <p className="mt-2 text-xs text-slate-500 dark:text-gray-500 italic">Firebase operates under Google's privacy policies. For information on how Google processes data, please visit Google's privacy policy at https://policies.google.com/privacy</p>
+            <p className="mt-2">For MSG91 notifications, only the parent's <strong>WhatsApp-enabled phone number</strong> is shared with MSG91 for the purpose of message delivery. No other personal data is shared. MSG91 operates as a TRAI-registered messaging platform in compliance with Indian telecom regulations.</p>
+            <p className="mt-2 text-xs text-slate-500 dark:text-gray-500 italic">Parents who do not wish to receive WhatsApp notifications may contact the school administration to opt out.</p>
           </Section>
 
           {/* 6. Data Retention */}
