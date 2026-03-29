@@ -9,13 +9,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'student_id and academic_year required' }, { status: 400 });
     }
 
-    // Fetch invoices and payments
-    const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
+    // Verify user is authenticated
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Fetch invoices and payments (using user-scoped access)
+    const invoices = await base44.entities.FeeInvoice.filter({
       student_id,
       academic_year
     });
 
-    const payments = await base44.asServiceRole.entities.FeePayment.filter({
+    const payments = await base44.entities.FeePayment.filter({
       student_id,
       academic_year
     });
