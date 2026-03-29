@@ -358,6 +358,15 @@ export default function Settings() {
     onError: (err) => toast.error(`Fix failed: ${err.message}`)
   });
 
+  const deleteYearMutation = useMutation({
+    mutationFn: (id) => base44.entities.AcademicYear.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['academic-years']);
+      toast.success('Academic year deleted');
+    },
+    onError: (err) => toast.error(`Delete failed: ${err.message}`)
+  });
+
   const toggleAdmissionMutation = useMutation({
     mutationFn: ({ id, admission_open }) => {
       const year = academicYears.find(y => y.id === id);
@@ -717,9 +726,20 @@ export default function Settings() {
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                           {isArchived ? (
-                            <span className="text-xs text-slate-400 italic">Archived — restore via status</span>
-                          ) : (
-                            <>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (window.confirm(`Delete academic year "${year.year}"? This cannot be undone.`)) {
+                                  deleteYearMutation.mutate(year.id);
+                                }
+                              }}
+                              disabled={deleteYearMutation.isPending}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                              </Button>
+                              ) : (
+                              <>
                               <Button 
                                 variant="outline" 
                                 size="sm"
