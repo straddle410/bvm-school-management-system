@@ -38,15 +38,36 @@ Deno.serve(async (req) => {
       return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
-    // Use passed dates, fallback to academic year dates if not provided
+    // Fetch student to determine attendance start date
+    const student = await base44.asServiceRole.entities.Student.filter({ student_id: student_id }).catch(() => null);
+    const studentRecord = student?.[0];
+
+    // Determine attendance start date: use admission_date if available, otherwise academic year start
     let startDate = start_date;
     let endDate = end_date;
+    let effectiveStudentStartDate = null;
     
     if (!startDate || !endDate) {
       const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academic_year }).catch(() => []);
       const yearConfig = yearConfigs?.[0];
-      startDate = start_date || yearConfig?.start_date || new Date().toISOString().split('T')[0];
+      const academicYearStart = yearConfig?.start_date || new Date().toISOString().split('T')[0];
+      
+      // Determine student's effective start date for attendance
+      if (studentRecord?.admission_date) {
+        effectiveStudentStartDate = studentRecord.admission_date;
+      } else {
+        effectiveStudentStartDate = academicYearStart;
+      }
+      
+      startDate = start_date || effectiveStudentStartDate;
       endDate = end_date || yearConfig?.end_date || new Date().toISOString().split('T')[0];
+    } else if (!effectiveStudentStartDate) {
+      // If dates are passed, also set effective start date
+      if (studentRecord?.admission_date) {
+        effectiveStudentStartDate = studentRecord.admission_date;
+      } else {
+        effectiveStudentStartDate = start_date;
+      }
     }
 
     const allAttendance = await base44.asServiceRole.entities.Attendance.filter({
@@ -58,15 +79,16 @@ Deno.serve(async (req) => {
       return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
     }
 
-    const start = new Date(startDate);
+    // Use effective student start date (admission_date or academic year start)
+    const effectiveStart = new Date(effectiveStudentStartDate || startDate);
+    effectiveStart.setUTCHours(0, 0, 0, 0);
     const end = new Date(endDate);
-    start.setUTCHours(0, 0, 0, 0);
     end.setUTCHours(23, 59, 59, 999);
 
     const recordsInRange = allAttendance.filter(a => {
       const attDate = new Date(a.date);
       attDate.setUTCHours(0, 0, 0, 0);
-      return attDate >= start && attDate <= end;
+      return attDate >= effectiveStart && attDate <= end;
     });
 
     if (!recordsInRange || recordsInRange.length === 0) {

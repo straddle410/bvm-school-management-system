@@ -26,15 +26,23 @@ export default function StudentAttendance() {
     queryFn: async () => {
       if (!session?.student_id) return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
       try {
-        // Get academic year start date from database
-        const years = await base44.entities.AcademicYear.filter({ year: session.academic_year });
-        const startDate = years.length > 0 ? years[0].start_date : new Date().toISOString().split('T')[0];
+        // Get academic year and student details
+        const [years, students] = await Promise.all([
+          base44.entities.AcademicYear.filter({ year: session.academic_year }),
+          base44.entities.Student.filter({ student_id: session.student_id })
+        ]);
+        
+        const academicYearStart = years.length > 0 ? years[0].start_date : new Date().toISOString().split('T')[0];
+        const student = students?.[0];
+        
+        // Determine student's effective attendance start date
+        const effectiveStartDate = student?.admission_date ? student.admission_date : academicYearStart;
         const endDate = new Date().toISOString().split('T')[0]; // Today
         
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
           academic_year: session.academic_year,
-          start_date: startDate,
+          start_date: effectiveStartDate,
           end_date: endDate
         });
         const data = res.data || {};
