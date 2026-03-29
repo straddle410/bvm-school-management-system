@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAcademicYear } from './AcademicYearContext';
+import { base44 } from '@/api/base44Client';
 import { ChevronDown, Lock } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AcademicYearSelector() {
   const { academicYear, setAcademicYear, academicYears, isAdmin, roleLoaded } = useAcademicYear();
@@ -74,10 +76,21 @@ export default function AcademicYearSelector() {
             {displayYears.map(y => (
               <button
                 key={y.id}
-                onClick={() => { setAcademicYear(y.year); setOpen(false); }}
+                onClick={async () => {
+                  if (!y.is_current) {
+                    try {
+                      await base44.functions.invoke('setAcademicYearCurrent', { yearId: y.id });
+                      setAcademicYear(y.year);
+                      toast.success('Academic year set as current');
+                    } catch (error) {
+                      toast.error('Failed to set as current: ' + error.message);
+                    }
+                  }
+                  setOpen(false);
+                }}
                 className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-blue-50 transition-colors ${
                   y.year === academicYear ? 'text-[#1a237e] bg-blue-50 font-bold' : 'text-gray-700'
-                }`}
+                } ${!y.is_current ? 'cursor-pointer' : 'opacity-75'}`}
               >
                 <span>{y.year}</span>
                 {y.is_current && <span className="ml-2 text-xs font-bold text-green-600">[Current]</span>}
