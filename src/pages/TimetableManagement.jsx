@@ -163,9 +163,9 @@ export default function TimetableManagement() {
     setEditingEntry(null);
   };
 
-  // Get unique teachers from Teacher entity or timetables
+  // Get unique teachers from StaffAccount or timetables
   const uniqueTeachers = allTeachers.length > 0 
-    ? [...new Set(allTeachers.map(t => t.full_name || t.name).filter(Boolean))].sort()
+    ? [...new Set(allTeachers.map(t => (t.staff_name || t.full_name || t.name || t.email)).filter(Boolean))].sort()
     : [...new Set(timetables.map(t => t.teacher_name).filter(Boolean))].sort();
 
   return (
