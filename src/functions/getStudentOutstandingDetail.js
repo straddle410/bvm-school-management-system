@@ -9,10 +9,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'student_id and academic_year required' }, { status: 400 });
     }
 
-    // Verify user is authenticated
+    // Verify user is authenticated and has staff access
     const user = await base44.auth.me();
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userRole = (user.role || '').toLowerCase();
+    const isStaff = userRole === 'admin' || userRole === 'principal' || userRole === 'accountant' || userRole === 'exam_staff';
+    if (!isStaff) {
+      return Response.json({ error: 'Forbidden: Staff access required' }, { status: 403 });
     }
 
     // Fetch invoices and payments using service role (RLS allows staff access)
