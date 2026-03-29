@@ -16,6 +16,7 @@ export default function StudentAttendance() {
   });
   const [showAbsentDates, setShowAbsentDates] = useState(false);
   const [showHalfDayDates, setShowHalfDayDates] = useState(false);
+  const [showMonthlyBreakdown, setShowMonthlyBreakdown] = useState(false);
 
   useEffect(() => {
     if (!session) navigate(createPageUrl('StudentLogin'));
@@ -24,7 +25,7 @@ export default function StudentAttendance() {
   const { data: attendanceData = {}, isLoading } = useQuery({
     queryKey: ['student-attendance', session?.student_id],
     queryFn: async () => {
-      if (!session?.student_id) return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
+      if (!session?.student_id) return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0, monthly_breakdown: [] };
       try {
         // Get academic year and student details
         const [years, students] = await Promise.all([
@@ -48,7 +49,7 @@ export default function StudentAttendance() {
         const data = res.data || {};
         return data;
       } catch {
-        return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0 };
+        return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0, monthly_breakdown: [] };
       }
     },
     enabled: !!session?.student_id,
@@ -95,7 +96,7 @@ export default function StudentAttendance() {
 
   if (!session) return null;
 
-  const { working_days = 0, present_days = 0, absent_days = 0, percentage = 0 } = attendanceData;
+  const { working_days = 0, present_days = 0, absent_days = 0, percentage = 0, monthly_breakdown = [] } = attendanceData;
   const half_days = halfDayRecords.length;
   const isLowAttendance = percentage < 75;
 
@@ -162,7 +163,47 @@ export default function StudentAttendance() {
                   <p className="text-xs text-gray-600">Half Day</p>
                 </button>
               </div>
+
+              {/* Monthly Breakdown Button */}
+              <button
+                onClick={() => setShowMonthlyBreakdown(!showMonthlyBreakdown)}
+                className="w-full mt-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 hover:from-blue-100 hover:to-blue-200 transition-colors text-left"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-blue-900">Monthly Breakdown</p>
+                  {showMonthlyBreakdown ? <ChevronUp className="h-4 w-4 text-blue-700" /> : <ChevronDown className="h-4 w-4 text-blue-700" />}
+                </div>
+              </button>
             </div>
+
+            {/* Monthly Breakdown */}
+            {showMonthlyBreakdown && monthly_breakdown && monthly_breakdown.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <h3 className="text-sm font-bold text-gray-700 mb-4">Monthly Statistics</h3>
+                <div className="space-y-3">
+                  {monthly_breakdown.map((month, idx) => {
+                    const monthPercent = month.working_days > 0 ? ((month.total_present / month.working_days) * 100) : 0;
+                    return (
+                      <div key={idx} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-semibold text-gray-900 text-sm">{month.month_display}</p>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                            monthPercent >= 75 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {monthPercent.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                          <div>Working: {month.working_days}</div>
+                          <div>Present: {month.total_present.toFixed(1)}</div>
+                          <div>Absent: {(month.working_days - month.total_present).toFixed(1)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Absent Dates List */}
             {showAbsentDates && (
