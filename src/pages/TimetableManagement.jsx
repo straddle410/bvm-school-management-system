@@ -75,9 +75,9 @@ export default function TimetableManagement() {
   });
 
   const { data: allTeachers = [] } = useQuery({
-    queryKey: ['teachers', academicYear],
-    queryFn: () => base44.entities.Teacher.filter({ academic_year: academicYear }),
-    enabled: !!academicYear
+    queryKey: ['teachers'],
+    queryFn: () => base44.entities.Teacher.list(),
+    enabled: true
   });
 
   const createMutation = useMutation({
