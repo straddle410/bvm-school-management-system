@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
     const months = [];
-    let monthIter = new Date(start);
+    let monthIter = new Date(effectiveStart);
     
     while (monthIter <= end) {
       const monthStart = new Date(monthIter.getFullYear(), monthIter.getMonth(), 1);
