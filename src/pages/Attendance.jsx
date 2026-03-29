@@ -791,25 +791,33 @@ function AttendanceSummaryTab({
     const overrideSetForClass = new Set(overrides.filter(o => o.class_name === filters.class && o.section === filters.section).map(o => o.date));
     const holidaySet = new Set(holidays.map(h => h.date).filter(d => !overrideSetForClass.has(d)));
     const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0 && !overrideSetForClass.has(d)));
-    const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
     // CANONICAL DEDUPLICATION: deduplicate before processing
     const dedupedAttendance = deduplicateAttendanceRecords(attendanceRecords);
     return students.map(student => {
-      const sa = dedupedAttendance.filter(a => a.student_id === student.student_id || a.student_id === student.id);
+      // ✅ FIX: Calculate effective start date based on admission_date
+      const effectiveStartDate = student.admission_date || filters.fromDate;
+      // Filter daysBetween to only count from effective start date
+      const studentDays = daysBetween.filter(d => d >= effectiveStartDate);
+      const studentWorkingDays = studentDays.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
+      const studentHolidayDays = studentDays.length - studentWorkingDays;
+      
+      const sa = dedupedAttendance.filter(a => (a.student_id === student.student_id || a.student_id === student.id) && a.date >= effectiveStartDate);
       const dateMap = {};
       sa.forEach(a => { if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !dateMap[a.date]) dateMap[a.date] = a.attendance_type; });
       const fullDays = Object.values(dateMap).filter(t => t === 'full_day').length;
       const halfDays = Object.values(dateMap).filter(t => t === 'half_day').length;
       const totalPresent = fullDays + halfDays * 0.5;
       // Absent = working days - present (accounts for half-days)
-      const absentDays = Math.max(0, workingDays - totalPresent);
+      const absentDays = Math.max(0, studentWorkingDays - totalPresent);
+      // Calculate unmarked records (before effective start date)
+      const unmarkedRecords = attendanceRecords.filter(a => (a.student_id === student.student_id || a.student_id === student.id) && a.date < effectiveStartDate).length;
       // Use shared calculation for consistent rounding across all views
-      const attendancePercent = getAttendancePercentage(totalPresent, workingDays);
+      const attendancePercent = getAttendancePercentage(totalPresent, studentWorkingDays);
       return {
         id: student.id, student_id: student.student_id, name: student.name,
         rollNo: student.roll_no || '-', class: student.class_name, section: student.section,
-        totalWorkingDays: workingDays, totalHolidays: daysBetween.length - workingDays,
-        presentDays: Math.round(totalPresent * 100) / 100, absentDays,
+        totalWorkingDays: studentWorkingDays, totalHolidays: studentHolidayDays,
+        presentDays: Math.round(totalPresent * 100) / 100, absentDays, unmarkedDays: unmarkedRecords,
         attendancePercent
       };
     });
