@@ -77,9 +77,10 @@ export default function PublicReceipt() {
   const displayGrossAmount = snapshot?.invoice_gross_total ?? invoice?.gross_total ?? invoice?.total_amount;
   const displayDiscountAmount = snapshot?.invoice_discount_total ?? invoice?.discount_total ?? 0;
   const displayNetAmount = snapshot?.invoice_net_total ?? invoice?.total_amount;
+  // Total Paid Till Date = frozen (previous payments) + THIS payment
   const totalPaidTillDate = snapshot?.total_paid_before != null
-    ? snapshot.total_paid_before + payment.amount_paid
-    : invoice?.paid_amount;
+    ? snapshot.total_paid_before + (payment?.amount_paid || 0)
+    : (invoice?.paid_amount || 0) + (payment?.amount_paid || 0);
   const balanceAfterPayment = displayNetAmount != null ? displayNetAmount - (totalPaidTillDate ?? 0) : null;
 
   return (
