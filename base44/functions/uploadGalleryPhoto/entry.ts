@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
 
     const body = await req.json();
-    const { album_id, photo_url, caption, uploaded_by, status } = body;
+    const { album_id, photo_url, caption, uploaded_by, status, academic_year } = body;
 
     if (!album_id || !photo_url) {
       return Response.json({ error: 'Missing album_id or photo_url' }, { status: 400 });
@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
       photo_url,
       caption: caption || '',
       uploaded_by: uploaded_by || (user?.email || 'unknown'),
-      status: status || 'Published'
+      status: status || 'Published',
+      academic_year: academic_year || ''
     });
 
     console.log(`[uploadGalleryPhoto] Success: ID=${photoRecord.id}, URL=${photo_url}`);

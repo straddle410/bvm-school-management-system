@@ -14,6 +14,7 @@ export default function UploadDialog({
   selectedAlbum,
   user,
   needsApproval,
+  academicYear,
   isUploading: parentIsUploading,
   onUploadSuccess
 }) {
@@ -68,7 +69,8 @@ export default function UploadDialog({
              photo_url: uploadRes.file_url,
              caption: caption || '',
              uploaded_by: user?.email || 'unknown',
-             status: needsApproval ? 'Pending' : 'Published'
+             status: needsApproval ? 'PendingApproval' : 'Published',
+             academic_year: academicYear || selectedAlbum.academic_year
            });
           
           if (!createRes.data || !createRes.data.success) {

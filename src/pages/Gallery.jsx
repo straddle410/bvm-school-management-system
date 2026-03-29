@@ -309,6 +309,7 @@ export default function Gallery() {
           selectedAlbum={selectedAlbum}
           user={user}
           needsApproval={needsApproval}
+          academicYear={academicYear}
           onUploadSuccess={handleUploadSuccess}
         />
       </div>
