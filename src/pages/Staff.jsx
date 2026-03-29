@@ -596,16 +596,16 @@ export default function Staff() {
                            <SelectTrigger>
                              <SelectValue placeholder="Select role" />
                            </SelectTrigger>
-                           <SelectContent position="popper">
-                            {roleTemplates.map(r => (
-                              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                           <SelectContent className="max-h-[260px] overflow-y-auto">
+                              {roleTemplates.map(r => (
+                                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                           </Select>
+                           </div>
 
-                      <div>
-                        <Label>Mobile</Label>
+                           <div>
+                           <Label>Mobile</Label>
                         <Input
                           value={form.mobile}
                           onChange={(e) => setForm(f => ({ ...f, mobile: e.target.value }))}
@@ -667,7 +667,7 @@ export default function Staff() {
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                   </SelectTrigger>
-                                  <SelectContent position="popper">
+                                  <SelectContent className="max-h-[260px] overflow-y-auto">
                                     <SelectItem value="Male">Male</SelectItem>
                                     <SelectItem value="Female">Female</SelectItem>
                                     <SelectItem value="Other">Other</SelectItem>
@@ -973,16 +973,16 @@ export default function Staff() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
-                    <SelectContent position="popper">
-                      {roleTemplates.map(r => (
-                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[260px] overflow-y-auto">
+                     {roleTemplates.map(r => (
+                       <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                     ))}
                     </SelectContent>
-                  </Select>
-                </div>
+                    </Select>
+                    </div>
 
-                <div>
-                  <Label>Mobile</Label>
+                    <div>
+                    <Label>Mobile</Label>
                   <Input
                     value={form.mobile}
                     onChange={(e) => setForm(f => ({ ...f, mobile: e.target.value }))}
@@ -1026,16 +1026,16 @@ export default function Staff() {
                             <SelectTrigger>
                               <SelectValue placeholder="Select" />
                             </SelectTrigger>
-                            <SelectContent position="popper">
+                            <SelectContent className="max-h-[260px] overflow-y-auto">
                               <SelectItem value="Male">Male</SelectItem>
                               <SelectItem value="Female">Female</SelectItem>
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>DOB</Label>
-                          <Input type="date" value={form.dob} onChange={(e) => setForm(f => ({ ...f, dob: e.target.value }))} />
+                            </Select>
+                            </div>
+                            <div>
+                            <Label>DOB</Label>
+                            <Input type="date" value={form.dob} onChange={(e) => setForm(f => ({ ...f, dob: e.target.value }))} />
                         </div>
                         <div>
                           <Label>Joining Date</Label>

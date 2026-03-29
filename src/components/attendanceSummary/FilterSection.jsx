@@ -115,7 +115,7 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
               <SelectTrigger>
                 <SelectValue placeholder="Select Class" />
               </SelectTrigger>
-              <SelectContent position="popper">
+              <SelectContent className="max-h-[260px] overflow-y-auto">
                 {classes.map(c => (
                   <SelectItem key={c} value={c}>Class {c}</SelectItem>
                 ))}
@@ -134,7 +134,7 @@ export default function FilterSection({ filters, setFilters, onGenerate, classes
               <SelectTrigger className={!filters.class || sections.length === 0 ? "opacity-50 cursor-not-allowed" : ""}>
                 <SelectValue placeholder="Section" />
               </SelectTrigger>
-              <SelectContent position="popper">
+              <SelectContent className="max-h-[260px] overflow-y-auto">
                 {sections.map(s => (
                   <SelectItem key={s} value={s}>Section {s}</SelectItem>
                 ))}

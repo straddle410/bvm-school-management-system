@@ -257,7 +257,7 @@ export default function Reports() {
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
-                    <SelectContent position="popper">
+                    <SelectContent className="max-h-[260px] overflow-y-auto">
                        <SelectItem value="all">All Classes</SelectItem>
                        {availableClasses.map(c => (
                          <SelectItem key={c} value={c}>Class {c}</SelectItem>
@@ -268,7 +268,7 @@ export default function Reports() {
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select Exam" />
                     </SelectTrigger>
-                    <SelectContent position="popper">
+                    <SelectContent className="max-h-[260px] overflow-y-auto">
                       <SelectItem value="all">All Exams</SelectItem>
                       {examTypes.map(e => (
                         <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>

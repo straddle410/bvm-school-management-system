@@ -782,7 +782,7 @@ export default function Students() {
                       <SelectTrigger className="h-8 text-xs w-44 rounded-xl">
                         <SelectValue placeholder="Change status to…" />
                       </SelectTrigger>
-                      <SelectContent position="popper">
+                      <SelectContent className="max-h-[260px] overflow-y-auto">
                         {availableBulkActions.map(a => (
                           <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
                         ))}
@@ -804,7 +804,7 @@ export default function Students() {
                       <SelectTrigger className="h-8 text-xs w-40 rounded-xl">
                         <SelectValue placeholder="Transport…" />
                       </SelectTrigger>
-                      <SelectContent position="popper">
+                      <SelectContent className="max-h-[260px] overflow-y-auto">
                          <SelectItem value="on">Transport ON</SelectItem>
                          <SelectItem value="off">Transport OFF</SelectItem>
                        </SelectContent>
@@ -825,7 +825,7 @@ export default function Students() {
                       <SelectTrigger className="h-8 text-xs w-40 rounded-xl">
                         <SelectValue placeholder="Hostel…" />
                       </SelectTrigger>
-                      <SelectContent position="popper">
+                      <SelectContent className="max-h-[260px] overflow-y-auto">
                          <SelectItem value="on">Hostel ON</SelectItem>
                          <SelectItem value="off">Hostel OFF</SelectItem>
                        </SelectContent>

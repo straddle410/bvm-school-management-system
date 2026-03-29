@@ -325,7 +325,7 @@ export default function Diary() {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent position="popper">
+                      <SelectContent className="max-h-[260px] overflow-y-auto">
                          {availableClasses.map((cls) => (
                             <SelectItem key={cls} value={cls}>
                               Class {cls}
@@ -340,7 +340,7 @@ export default function Diary() {
                         <SelectTrigger>
                           <SelectValue placeholder="Select section" />
                         </SelectTrigger>
-                        <SelectContent position="popper">
+                        <SelectContent className="max-h-[260px] overflow-y-auto">
                           {availableSections.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
                       </Select>
@@ -368,7 +368,7 @@ export default function Diary() {
                       <SelectTrigger className={formErrors.subject ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Select a subject" />
                       </SelectTrigger>
-                      <SelectContent position="popper">
+                      <SelectContent className="max-h-[260px] overflow-y-auto">
                         {subjects.map((subj) => (
                           <SelectItem key={subj.id} value={subj.id}>
                             {subj.name}
