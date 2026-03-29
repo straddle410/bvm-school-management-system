@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { getClassesForYear } from '@/components/classSectionHelper';
 export default function GenerateInvoices({ academicYear }) {
   const [selectedClass, setSelectedClass] = useState('');
   const [availableClasses, setAvailableClasses] = useState([]);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     if (!academicYear) return;
