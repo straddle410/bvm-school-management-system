@@ -79,15 +79,13 @@ export default function Layout({ children, currentPageName }) {
   const approvalsCount = useApprovalsCount(academicYear, isAdmin);
   const location = useLocation();
 
-  // Stack preservation: track last visited URL per bottom-nav tab
+  // Track active tab for highlight purposes only
   useEffect(() => {
     if (NO_LAYOUT_PAGES.includes(currentPageName) || !userRole) return;
     const navItems = getBottomNav(isAdmin, userRole);
     const isTabRoot = navItems.some(item => item.page === currentPageName);
     if (isTabRoot) sessionStorage.setItem('activeStaffTab', currentPageName);
-    const activeTab = sessionStorage.getItem('activeStaffTab') || (navItems[0]?.page ?? '');
-    if (activeTab) sessionStorage.setItem(`tabUrl_${activeTab}`, location.pathname + location.search);
-  }, [currentPageName, location.pathname, location.search, userRole, isAdmin]);
+  }, [currentPageName, userRole, isAdmin]);
 
   useEffect(() => {
     // Root route is handled by pages/Index.js which does session-based restore
@@ -222,9 +220,7 @@ export default function Layout({ children, currentPageName }) {
               const activeTab = sessionStorage.getItem('activeStaffTab');
               const onSubPage = !navItems.some(n => n.page === currentPageName);
               const isActive = currentPageName === item.page || (onSubPage && activeTab === item.page);
-              const rootHref = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
-              const storedUrl = sessionStorage.getItem(`tabUrl_${item.page}`);
-              const href = (currentPageName === item.page) ? rootHref : (storedUrl || rootHref);
+              const href = item.tab ? `${createPageUrl(item.page)}?tab=${item.tab}` : createPageUrl(item.page);
               return (
                 <Link
                   key={item.name}

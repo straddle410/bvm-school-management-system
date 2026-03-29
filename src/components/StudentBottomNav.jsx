@@ -41,14 +41,11 @@ export default function StudentBottomNav({ currentPage }) {
     } catch {}
   }, []);
 
-  // Stack preservation: save last visited URL per student tab
+  // Track active tab for highlight purposes only
   useEffect(() => {
     const activeTab = getActiveStudentTab(currentPage);
-    if (activeTab) {
-      sessionStorage.setItem('activeStudentTab', activeTab);
-      sessionStorage.setItem(`studentTabUrl_${activeTab}`, location.pathname + location.search);
-    }
-  }, [currentPage, location.pathname, location.search]);
+    if (activeTab) sessionStorage.setItem('activeStudentTab', activeTab);
+  }, [currentPage]);
 
   useEffect(() => {
     if (!studentSession?.student_id) return;
@@ -115,9 +112,7 @@ export default function StudentBottomNav({ currentPage }) {
           {navItems.map((item) => {
             const activeTab = getActiveStudentTab(currentPage);
             const isActive = activeTab === item.page;
-            const rootHref = createPageUrl(item.page);
-            const storedUrl = sessionStorage.getItem(`studentTabUrl_${item.page}`);
-            const href = (currentPage === item.page) ? rootHref : (storedUrl || rootHref);
+            const href = createPageUrl(item.page);
             const badgeCount = getBadgeCount(item);
             return (
               <Link
