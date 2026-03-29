@@ -22,17 +22,17 @@ export default function TermsAndConditions() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
-     <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 shadow-sm">
-       <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition">
-         <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-gray-300" />
-       </button>
-       <h1 className="text-base font-bold text-slate-800 dark:text-white">Terms &amp; Conditions</h1>
-     </div>
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 shadow-sm">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition">
+          <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-gray-300" />
+        </button>
+        <h1 className="text-base font-bold text-slate-800 dark:text-white">Terms &amp; Conditions</h1>
+      </div>
 
-     <div className="max-w-3xl mx-auto px-4 py-8">
-       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6 md:p-10">
-         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{schoolName}</h1>
-         <p className="text-sm text-slate-500 dark:text-gray-400 mb-8">Terms and Conditions &mdash; Last updated: March 2026</p>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6 md:p-10">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{schoolName}</h1>
+          <p className="text-sm text-slate-500 dark:text-gray-400 mb-8">Terms and Conditions &mdash; Last updated: March 2026</p>
 
           <Section title="1. Acceptance of Terms">
             <p>By accessing or using the {schoolName} School Management Application ("the App"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you may not use the App.</p>
