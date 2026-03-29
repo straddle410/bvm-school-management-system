@@ -18,8 +18,22 @@ export default function AcademicYearSelector() {
   // Wait until role is fully resolved — prevents dropdown flash for teachers
   if (!roleLoaded) return null;
 
-  // Teachers/Staff: locked read-only year display, no dropdown
+  // Dedupe by year string
+  const seen = new Set();
+  let displayYears = academicYears.filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
+
+  // Staff: locked read-only Active year only, no dropdown
   if (!isAdmin) {
+    const activeYear = displayYears.find(y => (y.status || '').toLowerCase() === 'active');
+    if (activeYear) {
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-blue-200 font-semibold px-2 py-1.5 bg-white/10 rounded-lg">
+          <span>{academicYear}</span>
+          <span className="text-[10px] text-green-300 font-bold">(Active)</span>
+          <Lock className="h-3 w-3" />
+        </div>
+      );
+    }
     return (
       <div className="flex items-center gap-1.5 text-xs text-blue-200 font-semibold px-2 py-1.5 bg-white/10 rounded-lg">
         <span>{academicYear}</span>
@@ -28,13 +42,10 @@ export default function AcademicYearSelector() {
     );
   }
 
-  // Dedupe by year string and exclude archived (safety net in case context still has stale data)
-  const seen = new Set();
-  const filteredYears = academicYears
-    .filter(y => (y.status || '').toLowerCase() !== 'archived')
-    .filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
+  // Admin: show all non-archived years
+  displayYears = displayYears.filter(y => (y.status || '').toLowerCase() !== 'archived');
 
-  if (filteredYears.length === 0) {
+  if (displayYears.length === 0) {
     return (
       <div className="text-xs text-blue-200 font-medium px-2 py-1 bg-white/10 rounded-lg">
         {academicYear}
@@ -56,10 +67,10 @@ export default function AcademicYearSelector() {
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
           <div
-            className="fixed bg-white rounded-xl shadow-xl border border-gray-100 min-w-28 overflow-hidden"
+            className="fixed bg-white rounded-xl shadow-xl border border-gray-100 min-w-40 overflow-hidden"
             style={{ top: dropdownPos.top + 8, right: dropdownPos.right, zIndex: 9999 }}
           >
-            {filteredYears.map(y => (
+            {displayYears.map(y => (
               <button
                 key={y.id}
                 onClick={() => { setAcademicYear(y.year); setOpen(false); }}
@@ -67,8 +78,8 @@ export default function AcademicYearSelector() {
                   y.year === academicYear ? 'text-[#1a237e] bg-blue-50 font-bold' : 'text-gray-700'
                 }`}
               >
-                {y.year}
-                {y.is_current && <span className="ml-1 text-xs text-green-600">(current)</span>}
+                <span>{y.year}</span>
+                {(y.status || '').toLowerCase() === 'active' && <span className="ml-2 text-xs font-bold text-green-600">[Active]</span>}
               </button>
             ))}
           </div>

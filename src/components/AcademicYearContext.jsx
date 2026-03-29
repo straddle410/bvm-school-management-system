@@ -40,12 +40,11 @@ export function AcademicYearProvider({ children }) {
           resolvedRole = 'student'; // Students are never admin
           setIsAdmin(false);
           setRoleLoaded(true);
-          // Load years with no role requirement
+          // Load years (staff sees all active years; filtering happens later with resolved role)
           try {
             const allYears = await base44.entities.AcademicYear.list('-start_date');
             const seen = new Set();
             const years = allYears
-              .filter(y => (y.status || '').toLowerCase() !== 'archived')
               .filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
             setAcademicYears(years);
             const saved = localStorage.getItem('selected_academic_year') || getDefaultYear();
@@ -94,16 +93,15 @@ export function AcademicYearProvider({ children }) {
       // Step 2: Load years with resolved role
       try {
         const allYears = await base44.entities.AcademicYear.list('-start_date');
-        // Filter out archived, then dedupe by year string (keep first occurrence = latest start_date)
+        // Dedupe by year, keep all (filtering by role happens in selector/context)
         const seen = new Set();
         const years = allYears
-          .filter(y => (y.status || '').toLowerCase() !== 'archived')
           .filter(y => { if (seen.has(y.year)) return false; seen.add(y.year); return true; });
         setAcademicYears(years);
 
         if (!adminAccess) {
-          // TEACHER LOCK: Always force Active year, ignore localStorage
-          const activeYear = years.find(y => y.status === 'Active');
+          // STAFF LOCK: Always force Active year (only one), ignore localStorage
+          const activeYear = years.find(y => (y.status || '').toLowerCase() === 'active');
           if (activeYear) {
             setAcademicYearState(activeYear.year);
             localStorage.setItem('selected_academic_year', activeYear.year);
