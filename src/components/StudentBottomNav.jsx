@@ -118,6 +118,7 @@ export default function StudentBottomNav({ currentPage }) {
             const rootHref = createPageUrl(item.page);
             const storedUrl = sessionStorage.getItem(`studentTabUrl_${item.page}`);
             const href = (currentPage === item.page) ? rootHref : (storedUrl || rootHref);
+            const badgeCount = getBadgeCount(item);
             return (
               <Link
                 key={item.page}
