@@ -18,15 +18,15 @@ async function fetchAll(sdk, entityName, filter = {}) {
   } catch { return []; }
 }
 
-// Delete records in batches
+// Delete records in parallel batches of 20
 async function deleteRecords(sdk, entityName, records, dryRun) {
   if (dryRun) return records.length;
   let deleted = 0;
-  for (const r of records) {
-    try {
-      await sdk.entities[entityName].delete(r.id);
-      deleted++;
-    } catch { /* skip locked/RLS-protected */ }
+  const BATCH = 20;
+  for (let i = 0; i < records.length; i += BATCH) {
+    const batch = records.slice(i, i + BATCH);
+    const results = await Promise.allSettled(batch.map(r => sdk.entities[entityName].delete(r.id)));
+    deleted += results.filter(r => r.status === 'fulfilled').length;
   }
   return deleted;
 }
