@@ -80,7 +80,8 @@ export default function Gallery() {
     : allPhotos.filter(p => p.status === 'Published' || (canUpload && p.uploaded_by === user?.email));
 
   const handleUploadSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id] });
+    queryClient.invalidateQueries({ queryKey: ['photos', selectedAlbum?.id, photoLimit, academicYear] });
+    queryClient.invalidateQueries({ queryKey: ['allAlbumPhotos', academicYear] });
   };
 
   const submitMutation = useMutation({

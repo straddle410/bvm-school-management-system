@@ -1,0 +1,41 @@
+{
+  "name": "GalleryPhoto",
+  "type": "object",
+  "properties": {
+    "album_id": {
+      "type": "string",
+      "description": "Album ID"
+    },
+    "photo_url": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Photo URL - must be full base44.app public file URL"
+    },
+    "caption": {
+      "type": "string",
+      "description": "Photo caption"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Uploaded by email"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "PendingApproval",
+        "Published",
+        "Rejected"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "album_id",
+    "photo_url"
+  ]
+}
