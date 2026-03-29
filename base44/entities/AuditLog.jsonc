@@ -1,0 +1,95 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "holiday_marked",
+        "holiday_removed",
+        "holiday_edited",
+        "override_applied",
+        "override_removed",
+        "student_id_changed",
+        "STUDENT_UPDATED",
+        "BULK_ROLL_RESEQUENCE",
+        "PREVIOUS_YEAR_COLLECTION",
+        "marks_published",
+        "marks_publication_revoked",
+        "marks_unlocked"
+      ],
+      "description": "Type of action"
+    },
+    "module": {
+      "type": "string",
+      "enum": [
+        "Holiday",
+        "Attendance",
+        "Override",
+        "Student",
+        "Fees",
+        "Marks"
+      ],
+      "description": "Module affected"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date related to action"
+    },
+    "performed_by": {
+      "type": "string",
+      "description": "Email of user"
+    },
+    "details": {
+      "type": "string",
+      "description": "Action details"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID for student-related audit logs"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name for bulk operations"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section for bulk operations"
+    },
+    "changed_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "old_value": {},
+          "new_value": {}
+        }
+      },
+      "description": "Field-level changes for STUDENT_UPDATED action"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the action occurred"
+    }
+  },
+  "required": [
+    "action",
+    "module",
+    "performed_by"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": true
+  }
+}

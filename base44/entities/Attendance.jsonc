@@ -1,0 +1,131 @@
+{
+  "name": "Attendance",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Attendance date"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section (e.g. A, B, C, D) \u2014 no enum restriction, driven by SectionConfig"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "attendance_type": {
+      "type": "string",
+      "enum": [
+        "full_day",
+        "half_day",
+        "absent",
+        "holiday"
+      ],
+      "default": "full_day",
+      "description": "Type of attendance"
+    },
+    "half_day_period": {
+      "type": "string",
+      "enum": [
+        "morning",
+        "afternoon"
+      ],
+      "description": "Which half of the day (morning/afternoon) - only for half_day"
+    },
+    "half_day_reason": {
+      "type": "string",
+      "description": "Reason for half day absence (optional)"
+    },
+    "is_present": {
+      "type": "boolean",
+      "default": true,
+      "description": "Present or absent (deprecated - use attendance_type)"
+    },
+    "is_holiday": {
+      "type": "boolean",
+      "default": false,
+      "description": "Day marked as holiday"
+    },
+    "holiday_reason": {
+      "type": "string",
+      "description": "Reason for holiday (e.g. Sunday, Festival)"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Remarks"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Taken",
+        "Submitted",
+        "Verified",
+        "Approved",
+        "Published",
+        "Holiday"
+      ],
+      "default": "Taken",
+      "description": "Attendance status"
+    },
+    "marked_by": {
+      "type": "string",
+      "description": "Marked by teacher email or SYSTEM for auto-submitted"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when attendance was submitted by staff"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Locked after 3:00 PM IST - prevents further edits unless unlocked by admin"
+    },
+    "locked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when attendance was locked"
+    },
+    "unlocked_by": {
+      "type": "string",
+      "description": "Email of admin who unlocked the attendance"
+    },
+    "auto_submitted": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if auto-created by system at 3:00 PM IST due to teacher inaction"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Parent notification sent"
+    }
+  },
+  "required": [
+    "date",
+    "class_name",
+    "section",
+    "student_id",
+    "academic_year"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": true
+  }
+}

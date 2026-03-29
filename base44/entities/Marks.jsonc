@@ -1,0 +1,91 @@
+{
+  "name": "Marks",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name (denormalized)"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section \u2014 no enum restriction, driven by SectionConfig"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject name"
+    },
+    "exam_type": {
+      "type": "string",
+      "description": "ExamType record ID (canonical UUID). Always store as ID, never as name."
+    },
+    "exam_type_name": {
+      "type": "string",
+      "description": "Denormalized display name of the exam type (e.g. 'Formative Assessment 1'). Stored at write time for display without lookup."
+    },
+    "marks_obtained": {
+      "type": "number",
+      "description": "Marks obtained"
+    },
+    "max_marks": {
+      "type": "number",
+      "description": "Maximum marks"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Grade"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Teacher remarks"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Submitted",
+        "Verified",
+        "Approved",
+        "Published"
+      ],
+      "default": "Draft"
+    },
+    "entered_by": {
+      "type": "string",
+      "description": "Entered by teacher"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Verified by"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Approved by"
+    }
+  },
+  "required": [
+    "student_id",
+    "subject",
+    "exam_type",
+    "marks_obtained",
+    "academic_year",
+    "class_name"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": true
+  }
+}

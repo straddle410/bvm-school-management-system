@@ -1,0 +1,56 @@
+{
+  "name": "QuizAttempt",
+  "type": "object",
+  "properties": {
+    "quiz_id": {
+      "type": "string",
+      "description": "Quiz ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_index": {
+            "type": "number"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Student answers"
+    },
+    "score": {
+      "type": "number",
+      "description": "Score obtained"
+    },
+    "attempt_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Attempt date"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    }
+  },
+  "required": [
+    "quiz_id",
+    "student_id"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": true
+  }
+}
