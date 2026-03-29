@@ -234,47 +234,9 @@ function MarkAttendanceTab({
       toast.success(message);
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['attendance'] });
+        queryClient.invalidateQueries({ queryKey: ['attendance-range'] }); // ✅ Refresh summary report
         refetchAttendance();
       }, 500);
-    },
-    onError: (err) => {
-      if (err?.message === 'PAST_YEAR_WARNING') setShowPastYearWarning(true);
-      else if (err?.message === 'Session expired') toast.error('❌ Session expired. Please login again.');
-      else if (err?.message === 'PARTIAL_FAILURE') toast.error(`❌ Some records failed (${err.failedCount}/${err.total}). Please retry.`);
-      else if (err?.response?.status === 401) toast.error('❌ Unauthorized. Please login again.');
-      else if (err?.response?.status === 403) toast.error('❌ This record is locked. Only admin can unlock and edit.');
-      else if (err?.response?.status === 400) toast.error('❌ Invalid data. ' + (err?.response?.data?.error || 'Please check your entries.'));
-      else if (err?.message?.includes('different from today')) toast.error('❌ Can only mark attendance for today');
-      else toast.error('❌ Failed to save: ' + (err?.message || 'Unknown error'));
-    }
-  });
-
-  const saveRangeMutation = useMutation({
-    mutationFn: async () => {
-      if (!rangeStart || !rangeEnd) throw new Error('Select start and end dates');
-      const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
-      
-      // ✅ OPTIMIZATION: Fetch ALL holidays for the range in ONE call
-      const existingHolidays = await base44.entities.Holiday.filter({ academic_year: academicYear });
-      const existingDates = new Set(existingHolidays.map(h => h.date));
-      
-      // ✅ In-memory filtering: determine which dates need new holiday records
-      const holidaysToCreate = [];
-      days.forEach((day, index) => {
-        const dateStr = format(day, 'yyyy-MM-dd');
-        if (!existingDates.has(dateStr)) {
-          holidaysToCreate.push({ date: dateStr, title: rangeReason || 'Holiday', reason: rangeReason || 'Holiday', marked_by: user?.email, academic_year: academicYear, status: 'Active' });
-        }
-        setRangeProgress(Math.round(((index + 1) / days.length) * 100));
-      });
-      
-      if (holidaysToCreate.length > 0) await base44.entities.Holiday.bulkCreate(holidaysToCreate);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holidays'] });
-      toast.success(`Holiday marked from ${rangeStart} to ${rangeEnd}`);
-      setShowRangeMode(false);
-      setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeProgress(0);
     },
     onError: (err) => { toast.error('Failed: ' + (err?.message || 'Unknown error')); setRangeProgress(0); }
   });
