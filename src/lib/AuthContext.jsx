@@ -1,14 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { appParams } from '@/lib/app-params';
-
-// Lazy import to avoid circular dependency
-let base44 = null;
-const getBase44 = () => {
-  if (!base44) {
-    base44 = require('@/api/base44Client').base44;
-  }
-  return base44;
-};
+import { base44 } from '@/api/base44Client';
 
 const AuthContext = createContext();
 
@@ -46,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Auth check timeout')), 5000)
       );
-      const currentUser = await Promise.race([getBase44().auth.me(), timeoutPromise]);
+      const currentUser = await Promise.race([base44.auth.me(), timeoutPromise]);
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
@@ -75,16 +67,16 @@ export const AuthProvider = ({ children }) => {
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
-      getBase44().auth.logout(window.location.href);
+      base44.auth.logout(window.location.href);
     } else {
       // Just remove the token without redirect
-      getBase44().auth.logout();
+      base44.auth.logout();
     }
   };
 
   const navigateToLogin = () => {
     // Use the SDK's redirectToLogin method
-    getBase44().auth.redirectToLogin(window.location.href);
+    base44.auth.redirectToLogin(window.location.href);
   };
 
   return (
