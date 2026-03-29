@@ -8,25 +8,14 @@ async function hashValue(value) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Safely fetch ALL records for an entity with optional filter (paginated)
+// Safely fetch ALL records for an entity with optional filter
 async function fetchAll(sdk, entityName, filter = {}) {
-  const PAGE = 500;
-  let all = [];
-  let skip = 0;
   try {
-    while (true) {
-      let page;
-      if (Object.keys(filter).length > 0) {
-        page = await sdk.entities[entityName].filter(filter, null, PAGE, skip) || [];
-      } else {
-        page = await sdk.entities[entityName].list(null, PAGE, skip) || [];
-      }
-      all = all.concat(page);
-      if (page.length < PAGE) break;
-      skip += PAGE;
+    if (Object.keys(filter).length > 0) {
+      return await sdk.entities[entityName].filter(filter, null, 10000) || [];
     }
-  } catch { /* return what we have */ }
-  return all;
+    return await sdk.entities[entityName].list(null, 10000) || [];
+  } catch { return []; }
 }
 
 // Delete records in parallel batches of 20
