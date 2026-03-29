@@ -34,6 +34,10 @@ function CollectionReportContent() {
   const [selectedMode, setSelectedMode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Normalize null to empty string for consistency
+  const normalizedClass = selectedClass === null ? '' : selectedClass;
+  const normalizedMode = selectedMode === null ? '' : selectedMode;
+
   // Fetch via protected server function (not direct entity access)
   const { data: reportData = {}, isLoading, error: fetchError } = useQuery({
     queryKey: ['fee-payments-collection', academicYear, dateRange, selectedClass, selectedMode, searchQuery],
@@ -50,10 +54,10 @@ function CollectionReportContent() {
           academicYear,
           dateFrom: dateRange.start,
           dateTo: dateRange.end,
-          className: selectedClass || undefined,
-          mode: selectedMode || undefined,
+          className: normalizedClass || undefined,
+          mode: normalizedMode || undefined,
           reportMode: mode,
-          classId: selectedClass || undefined,
+          classId: normalizedClass || undefined,
           pageSize: 9999,
           staffInfo
         });
@@ -77,10 +81,10 @@ function CollectionReportContent() {
     if (dateRange.end && p.payment_date > dateRange.end) return false;
 
     // Class filter
-    if (selectedClass && p.class_name !== selectedClass) return false;
+    if (normalizedClass && p.class_name !== normalizedClass) return false;
 
     // Payment mode filter
-    if (selectedMode && p.payment_mode !== selectedMode) return false;
+    if (normalizedMode && p.payment_mode !== normalizedMode) return false;
 
     // Search filter (receipt_no, student_name)
     if (searchQuery) {
@@ -253,7 +257,7 @@ function CollectionReportContent() {
                 <SelectTrigger className="mt-1"><SelectValue placeholder="All modes" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={null}>All modes</SelectItem>
-                  {PAYMENT_MODES.map(mode => <SelectItem key={mode} value={mode}>{mode}</SelectItem>)}
+                   {PAYMENT_MODES.map(mode => <SelectItem key={mode} value={mode}>{mode}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
