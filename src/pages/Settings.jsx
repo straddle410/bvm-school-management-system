@@ -185,6 +185,16 @@ export default function Settings() {
   const [showYearDialog, setShowYearDialog] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [availableClassesList, setAvailableClassesList] = useState([]);
+  const [schoolForm, setSchoolForm] = useState({
+    school_name: 'BVM School of Excellence',
+    address: '',
+    phone: '',
+    email: '',
+    website: '',
+    principal_name: '',
+    academic_year: '2024-25',
+    tagline: ''
+  });
 
   // Load dynamic classes for hostel fee config
   useEffect(() => {
@@ -221,16 +231,6 @@ export default function Settings() {
       localStorage.setItem('settings_active_item', itemId);
     } catch {}
   };
-  const [schoolForm, setSchoolForm] = useState({
-    school_name: 'BVM School of Excellence',
-    address: '',
-    phone: '',
-    email: '',
-    website: '',
-    principal_name: '',
-    academic_year: '2024-25',
-    tagline: ''
-  });
   const [yearForm, setYearForm] = useState({
     year: '',
     start_date: '',
