@@ -32,6 +32,8 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
     if (sortBy === 'totalHolidays-desc') return b.totalHolidays - a.totalHolidays;
     if (sortBy === 'presentDays') return a.presentDays - b.presentDays;
     if (sortBy === 'presentDays-desc') return b.presentDays - a.presentDays;
+    if (sortBy === 'unmarked') return (a.unmarkedDays || 0) - (b.unmarkedDays || 0);
+    if (sortBy === 'unmarked-desc') return (b.unmarkedDays || 0) - (a.unmarkedDays || 0);
     if (sortBy === 'absentDays') return a.absentDays - b.absentDays;
     if (sortBy === 'absentDays-desc') return b.absentDays - a.absentDays;
     if (sortBy === 'attendance-asc') return a.attendancePercent - b.attendancePercent;
@@ -164,6 +166,12 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
                     <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
                   </div>
                 </th>
+                <th onClick={() => handleHeaderClick('unmarked')} className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-gray-600 transition-colors group">
+                  <div className="flex items-center justify-center gap-2">
+                    Unmarked*
+                    <ArrowUpDown className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100" />
+                  </div>
+                </th>
                 <th onClick={() => handleHeaderClick('attendance-desc')} className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-gray-600 transition-colors group">
                   <div className="flex items-center justify-center gap-2">
                     Attendance %
@@ -184,6 +192,7 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
                     <td className="px-4 py-3 text-center text-slate-600">{student.totalHolidays}</td>
                     <td className="px-4 py-3 text-center font-medium text-green-600">{student.presentDays}</td>
                     <td className="px-4 py-3 text-center font-medium text-red-600">{student.absentDays}</td>
+                    <td className="px-4 py-3 text-center text-slate-500">{student.unmarkedDays || 0}</td>
                     <td className={`px-4 py-3 text-center font-bold ${isLowAttendance ? 'text-red-600 bg-red-100' : 'text-green-600'}`}>
                       {student.attendancePercent}%
                     </td>
@@ -199,7 +208,11 @@ export default function ReportTable({ data, searchTerm, setSearchTerm, sortBy, s
             No students match your search
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
+
+        <div className="text-xs text-slate-500 mt-4 pt-4 border-t">
+          *Unmarked: Records before effective attendance start date (admission date or academic year start)
+        </div>
+        </CardContent>
+        </Card>
+        );
 }
