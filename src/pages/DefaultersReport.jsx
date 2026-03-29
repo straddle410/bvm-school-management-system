@@ -20,30 +20,6 @@ export default function DefaultersReportPage() {
   const { academicYear } = useAcademicYear();
   const [availableClasses, setAvailableClasses] = useState([]);
   const [availableSections, setAvailableSections] = useState([]);
-
-  // Load dynamic classes on mount
-  useEffect(() => {
-    if (!academicYear) return;
-    getClassesForYear(academicYear).then(result => {
-      setAvailableClasses(result?.classes || []);
-    });
-  }, [academicYear]);
-
-  // Load dynamic sections when class changes
-  useEffect(() => {
-    if (!academicYear || !filters.className) {
-      setAvailableSections([]);
-      return;
-    }
-    getSectionsForClass(academicYear, filters.className).then(result => {
-      setAvailableSections(result?.sections || []);
-      // Reset section filter if no longer valid
-      if (filters.section && !result?.sections?.includes(filters.section)) {
-        setFilters(prev => ({ ...prev, section: '' }));
-      }
-    });
-  }, [academicYear, filters.className]);
-
   const [userRole, setUserRole] = useState('');
   
   const [filters, setFilters] = useState({
@@ -68,7 +44,6 @@ export default function DefaultersReportPage() {
     search: ''
   });
 
-
   const [page, setPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -82,6 +57,29 @@ export default function DefaultersReportPage() {
   const [isDueDateModalOpen, setIsDueDateModalOpen] = useState(false);
   const [bulkDueDate, setBulkDueDate] = useState('');
   const [savingDueDate, setSavingDueDate] = useState(false);
+
+  // Load dynamic classes on mount
+  useEffect(() => {
+    if (!academicYear) return;
+    getClassesForYear(academicYear).then(result => {
+      setAvailableClasses(result?.classes || []);
+    });
+  }, [academicYear]);
+
+  // Load dynamic sections when class changes
+  useEffect(() => {
+    if (!academicYear || !filters.className) {
+      setAvailableSections([]);
+      return;
+    }
+    getSectionsForClass(academicYear, filters.className).then(result => {
+      setAvailableSections(result?.sections || []);
+      // Reset section filter if no longer valid
+      if (filters.section && !result?.sections?.includes(filters.section)) {
+        setFilters(prev => ({ ...prev, section: '' }));
+      }
+    });
+  }, [academicYear, filters.className]);
 
   useEffect(() => {
     const staffSession = JSON.parse(localStorage.getItem('staff_session') || '{}');
