@@ -138,7 +138,7 @@ export default function HomeworkForm({ editItem, user, onClose, onSaved, isInlin
 
   const handleSave = async () => {
     if (!form.title || !form.class_name || !form.subject || !form.due_date) {
-      alert('Please fill all required fields.');
+      toast.error('Please fill all required fields: Title, Class, Subject, and Due Date.');
       return;
     }
     setLoading(true);
