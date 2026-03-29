@@ -242,7 +242,7 @@ export default function Dashboard() {
 
   // ─── TEACHER DASHBOARD ──────────────────────────────────────────────────────
   if (isTeacher) {
-    const teacherTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
+    const teacherTiles = visibleTiles.filter(t => t.page !== 'Students'); // Students page hidden from teachers
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
