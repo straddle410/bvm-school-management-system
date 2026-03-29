@@ -17,8 +17,8 @@ export default function OutstandingDetailDrawer({ row, academicYear, asOfDate, o
     queryKey: ['outstanding-detail', row?.student?.id, academicYear, asOfDate],
     queryFn: async () => {
       const res = await base44.functions.invoke('getStudentOutstandingDetail', {
-        studentId: row.student.id,
-        academicYear,
+        student_id: row.student.id,
+        academic_year: academicYear,
         asOfDate: asOfDate || undefined
       });
       return res.data;
