@@ -58,6 +58,9 @@ export default function StudentDashboard() {
       return;
     }
 
+    // Clear stale query cache on mount to prevent old student data from showing
+    queryClient.clear();
+
     // Verify the student still exists in DB and is not deleted
     const verifyStudent = async () => {
       try {
@@ -67,12 +70,10 @@ export default function StudentDashboard() {
           1
         );
         if (!results || results.length === 0) {
-          // Student deleted — force logout
           clearSession('student_session');
           window.location.replace(createPageUrl('StudentLogin'));
           return;
         }
-        // Student verified — update session with latest data
         const latestStudent = results[0];
         if (latestStudent.status === 'Archived' || latestStudent.status === 'Transferred') {
           clearSession('student_session');
@@ -80,7 +81,6 @@ export default function StudentDashboard() {
           return;
         }
       } catch (e) {
-        // On error, still allow access (network issue etc.)
         console.error('Student verification error:', e);
       }
     };
