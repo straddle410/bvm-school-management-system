@@ -3,70 +3,88 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { getAttendancePercentage } from '@/components/attendanceCalculations';
-import { AlertCircle, BarChart3, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import StudentMinimalFooterNav from '@/components/StudentMinimalFooterNav';
 
 export default function StudentAttendance() {
-
   const navigate = useNavigate();
-  const [session] = useState(() => {
-    try { const s = localStorage.getItem('student_session'); return s ? JSON.parse(s) : null; } catch { return null; }
-  });
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showAbsentDates, setShowAbsentDates] = useState(false);
   const [showHalfDayDates, setShowHalfDayDates] = useState(false);
   const [showMonthlyBreakdown, setShowMonthlyBreakdown] = useState(false);
 
   useEffect(() => {
-    if (!session) navigate(createPageUrl('StudentLogin'));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const { data: attendanceData = {}, isLoading } = useQuery({
-    queryKey: ['student-attendance', session?.student_id],
-    queryFn: async () => {
-      if (!session?.student_id) return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0, monthly_breakdown: [] };
+    const initSession = async () => {
       try {
-        // Get academic year and student details
+        const stored = localStorage.getItem('student_session');
+        if (!stored) {
+          navigate(createPageUrl('StudentLogin'));
+          return;
+        }
+        const parsed = JSON.parse(stored);
+        setSession(parsed);
+      } catch (err) {
+        console.error('Session error:', err);
+        navigate(createPageUrl('StudentLogin'));
+      } finally {
+        setLoading(false);
+      }
+    };
+    initSession();
+  }, []);
+
+  const { data: attendanceData = {}, isLoading: isQueryLoading, error: queryError } = useQuery({
+    queryKey: ['student-attendance', session?.student_id, session?.academic_year],
+    queryFn: async () => {
+      if (!session?.student_id || !session?.academic_year) {
+        console.warn('Missing session data:', { student_id: session?.student_id, academic_year: session?.academic_year });
+        return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0, monthly_breakdown: [] };
+      }
+
+      try {
         const [years, students] = await Promise.all([
-          base44.entities.AcademicYear.filter({ year: session.academic_year }),
-          base44.entities.Student.filter({ student_id: session.student_id })
+          base44.entities.AcademicYear.filter({ year: session.academic_year }).catch(() => []),
+          base44.entities.Student.filter({ student_id: session.student_id }).catch(() => [])
         ]);
-        
-        const academicYearStart = years.length > 0 ? years[0].start_date : new Date().toISOString().split('T')[0];
+
+        const academicYearStart = years?.[0]?.start_date || new Date().toISOString().split('T')[0];
         const student = students?.[0];
-        
-        // Determine student's effective attendance start date
-        const effectiveStartDate = student?.admission_date ? student.admission_date : academicYearStart;
-        const endDate = new Date().toISOString().split('T')[0]; // Today
-        
+        const effectiveStartDate = student?.admission_date || academicYearStart;
+        const endDate = new Date().toISOString().split('T')[0];
+
+        console.log('Fetching attendance:', { student_id: session.student_id, academic_year: session.academic_year, effectiveStartDate, endDate });
+
         const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
           student_id: session.student_id,
           academic_year: session.academic_year,
           start_date: effectiveStartDate,
           end_date: endDate
         });
-        const data = res.data || {};
+
+        const data = res?.data || {};
+        console.log('Attendance response:', data);
         return data;
-      } catch {
+      } catch (err) {
+        console.error('Attendance fetch error:', err);
         return { working_days: 0, present_days: 0, absent_days: 0, percentage: 0, monthly_breakdown: [] };
       }
     },
-    enabled: !!session?.student_id,
+    enabled: !!session?.student_id && !!session?.academic_year,
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: absentRecords = [] } = useQuery({
-    queryKey: ['student-absent-records', session?.student_id],
+    queryKey: ['student-absent-records', session?.student_id, session?.academic_year],
     queryFn: async () => {
-      if (!session?.student_id) return [];
       try {
         const records = await base44.entities.Attendance.filter({
           student_id: session.student_id,
           academic_year: session.academic_year,
           attendance_type: 'absent'
         }, '-date', 100);
-        return records;
+        return records || [];
       } catch {
         return [];
       }
@@ -76,16 +94,15 @@ export default function StudentAttendance() {
   });
 
   const { data: halfDayRecords = [] } = useQuery({
-    queryKey: ['student-halfday-records', session?.student_id],
+    queryKey: ['student-halfday-records', session?.student_id, session?.academic_year],
     queryFn: async () => {
-      if (!session?.student_id) return [];
       try {
         const records = await base44.entities.Attendance.filter({
           student_id: session.student_id,
           academic_year: session.academic_year,
           attendance_type: 'half_day'
         }, '-date', 100);
-        return records;
+        return records || [];
       } catch {
         return [];
       }
@@ -94,10 +111,18 @@ export default function StudentAttendance() {
     staleTime: 5 * 60 * 1000,
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center">
+        <div className="w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!session) return null;
 
   const { working_days = 0, present_days = 0, absent_days = 0, percentage = 0, monthly_breakdown = [] } = attendanceData;
-  const half_days = halfDayRecords.length;
+  const half_days = halfDayRecords?.length || 0;
   const isLowAttendance = percentage < 75;
 
   return (
@@ -116,9 +141,15 @@ export default function StudentAttendance() {
       </header>
 
       <div className="px-4 py-6 space-y-4">
-        {isLoading ? (
+        {isQueryLoading ? (
           <div className="text-center py-8">
             <div className="inline-block w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            <p className="text-sm text-gray-500 mt-2">Loading attendance data...</p>
+          </div>
+        ) : queryError ? (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+            <p className="text-sm font-semibold text-red-900">Error Loading Data</p>
+            <p className="text-xs text-red-700 mt-1">{queryError?.message || 'Please try again'}</p>
           </div>
         ) : (
           <>
@@ -137,7 +168,7 @@ export default function StudentAttendance() {
                   <p className="text-xs text-gray-600">Working Days</p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-3">
-                  <p className="font-bold text-green-900">{present_days}</p>
+                  <p className="font-bold text-green-900">{present_days.toFixed(1)}</p>
                   <p className="text-xs text-gray-600">Present</p>
                 </div>
               </div>
@@ -165,15 +196,17 @@ export default function StudentAttendance() {
               </div>
 
               {/* Monthly Breakdown Button */}
-              <button
-                onClick={() => setShowMonthlyBreakdown(!showMonthlyBreakdown)}
-                className="w-full mt-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 hover:from-blue-100 hover:to-blue-200 transition-colors text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-blue-900">Monthly Breakdown</p>
-                  {showMonthlyBreakdown ? <ChevronUp className="h-4 w-4 text-blue-700" /> : <ChevronDown className="h-4 w-4 text-blue-700" />}
-                </div>
-              </button>
+              {monthly_breakdown && monthly_breakdown.length > 0 && (
+                <button
+                  onClick={() => setShowMonthlyBreakdown(!showMonthlyBreakdown)}
+                  className="w-full mt-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 hover:from-blue-100 hover:to-blue-200 transition-colors text-left"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-blue-900">Monthly Breakdown</p>
+                    {showMonthlyBreakdown ? <ChevronUp className="h-4 w-4 text-blue-700" /> : <ChevronDown className="h-4 w-4 text-blue-700" />}
+                  </div>
+                </button>
+              )}
             </div>
 
             {/* Monthly Breakdown */}
@@ -182,7 +215,7 @@ export default function StudentAttendance() {
                 <h3 className="text-sm font-bold text-gray-700 mb-4">Monthly Statistics</h3>
                 <div className="space-y-3">
                   {monthly_breakdown.map((month, idx) => {
-                    const monthPercent = month.working_days > 0 ? ((month.total_present / month.working_days) * 100) : 0;
+                    const monthPercent = month.working_days > 0 ? (month.total_present / month.working_days) * 100 : 0;
                     return (
                       <div key={idx} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition">
                         <div className="flex items-center justify-between mb-2">
