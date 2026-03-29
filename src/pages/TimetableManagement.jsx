@@ -75,6 +75,12 @@ export default function TimetableManagement() {
     queryFn: () => base44.entities.ExamType.filter({ academic_year: academicYear, is_active: true })
   });
 
+  const { data: allTeachers = [] } = useQuery({
+    queryKey: ['teachers', academicYear],
+    queryFn: () => base44.entities.Teacher.filter({ academic_year: academicYear }),
+    enabled: !!academicYear
+  });
+
   const createMutation = useMutation({
     mutationFn: async ({ data, days }) => {
       // For multi-day creation, create one entry per day
@@ -158,8 +164,10 @@ export default function TimetableManagement() {
     setEditingEntry(null);
   };
 
-  // Get unique teachers from timetables
-  const uniqueTeachers = [...new Set(timetables.map(t => t.teacher_name))];
+  // Get unique teachers from Teacher entity or timetables
+  const uniqueTeachers = allTeachers.length > 0 
+    ? [...new Set(allTeachers.map(t => t.full_name || t.name).filter(Boolean))]
+    : [...new Set(timetables.map(t => t.teacher_name))];
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Timetable Management">
@@ -240,7 +248,7 @@ export default function TimetableManagement() {
                   className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                 >
                   <option value="">All Teachers</option>
-                  {uniqueTeachers.map(teacher => (
+                  {uniqueTeachers.sort().map(teacher => (
                     <option key={teacher} value={teacher}>{teacher}</option>
                   ))}
                 </select>
