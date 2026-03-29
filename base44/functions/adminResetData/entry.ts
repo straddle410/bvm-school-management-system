@@ -18,25 +18,28 @@ async function fetchPage(sdk, entityName, filter = {}) {
   } catch { return []; }
 }
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 // Delete ALL records by repeatedly fetching + deleting until none remain
 async function deleteAllRecords(sdk, entityName, filter = {}, dryRun) {
   if (dryRun) {
-    // For dry run just count
     const page = await fetchPage(sdk, entityName, filter);
-    return page.length; // approximate
+    return page.length;
   }
   let totalDeleted = 0;
-  const MAX_ROUNDS = 100; // safety cap
+  const MAX_ROUNDS = 100;
+  const BATCH = 5; // small batch to avoid rate limiting
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const records = await fetchPage(sdk, entityName, filter);
     if (!records || records.length === 0) break;
-    const BATCH = 20;
     for (let i = 0; i < records.length; i += BATCH) {
       const batch = records.slice(i, i + BATCH);
       await Promise.allSettled(batch.map(r => sdk.entities[entityName].delete(r.id)));
+      await sleep(200); // wait 200ms between batches to avoid rate limit
     }
     totalDeleted += records.length;
-    if (records.length < 300) break; // last page
+    if (records.length < 300) break;
+    await sleep(500); // wait between rounds
   }
   return totalDeleted;
 }
