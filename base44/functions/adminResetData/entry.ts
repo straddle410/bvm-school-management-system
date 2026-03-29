@@ -8,14 +8,37 @@ async function hashValue(value) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Safely fetch ALL records for an entity with optional filter
-async function fetchAll(sdk, entityName, filter = {}) {
+// Fetch one page of records
+async function fetchPage(sdk, entityName, filter = {}) {
   try {
     if (Object.keys(filter).length > 0) {
-      return await sdk.entities[entityName].filter(filter, null, 10000) || [];
+      return await sdk.entities[entityName].filter(filter, null, 300) || [];
     }
-    return await sdk.entities[entityName].list(null, 10000) || [];
+    return await sdk.entities[entityName].list(null, 300) || [];
   } catch { return []; }
+}
+
+// Delete ALL records by repeatedly fetching + deleting until none remain
+async function deleteAllRecords(sdk, entityName, filter = {}, dryRun) {
+  if (dryRun) {
+    // For dry run just count
+    const page = await fetchPage(sdk, entityName, filter);
+    return page.length; // approximate
+  }
+  let totalDeleted = 0;
+  const MAX_ROUNDS = 100; // safety cap
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    const records = await fetchPage(sdk, entityName, filter);
+    if (!records || records.length === 0) break;
+    const BATCH = 20;
+    for (let i = 0; i < records.length; i += BATCH) {
+      const batch = records.slice(i, i + BATCH);
+      await Promise.allSettled(batch.map(r => sdk.entities[entityName].delete(r.id)));
+    }
+    totalDeleted += records.length;
+    if (records.length < 300) break; // last page
+  }
+  return totalDeleted;
 }
 
 // Delete records in parallel batches of 20
@@ -35,99 +58,65 @@ async function resetFees(sdk, academicYear, dryRun) {
   const counts = {};
   const filter = academicYear ? { academic_year: academicYear } : {};
 
-  // 1. FeePayment (includes TRANSPORT_ADJUSTMENT)
-  const payments = await fetchAll(sdk, 'FeePayment', filter);
-  counts.FeePayment = await deleteRecords(sdk, 'FeePayment', payments, dryRun);
-
-  // 2. StudentFeeDiscount
-  const discounts = await fetchAll(sdk, 'StudentFeeDiscount', filter);
-  counts.StudentFeeDiscount = await deleteRecords(sdk, 'StudentFeeDiscount', discounts, dryRun);
-
-  // 3. AdditionalCharge
-  const charges = await fetchAll(sdk, 'AdditionalCharge', filter);
-  counts.AdditionalCharge = await deleteRecords(sdk, 'AdditionalCharge', charges, dryRun);
-
-  // 4. FeeFamily
-  const families = await fetchAll(sdk, 'FeeFamily', {});
-  counts.FeeFamily = await deleteRecords(sdk, 'FeeFamily', families, dryRun);
-
-  // 5. FeeInvoice (ANNUAL + ADHOC)
-  const invoices = await fetchAll(sdk, 'FeeInvoice', filter);
-  counts.FeeInvoice = await deleteRecords(sdk, 'FeeInvoice', invoices, dryRun);
-
-  // 6. FeePlan
-  const plans = await fetchAll(sdk, 'FeePlan', filter);
-  counts.FeePlan = await deleteRecords(sdk, 'FeePlan', plans, dryRun);
-
-  // 7. FeeHead (only if no academic year filter — these are school-wide)
+  counts.FeePayment = await deleteAllRecords(sdk, 'FeePayment', filter, dryRun);
+  counts.StudentFeeDiscount = await deleteAllRecords(sdk, 'StudentFeeDiscount', filter, dryRun);
+  counts.AdditionalCharge = await deleteAllRecords(sdk, 'AdditionalCharge', filter, dryRun);
+  counts.FeeFamily = await deleteAllRecords(sdk, 'FeeFamily', {}, dryRun);
+  counts.FeeInvoice = await deleteAllRecords(sdk, 'FeeInvoice', filter, dryRun);
+  counts.FeePlan = await deleteAllRecords(sdk, 'FeePlan', filter, dryRun);
   if (!academicYear) {
-    const feeHeads = await fetchAll(sdk, 'FeeHead', {});
-    counts.FeeHead = await deleteRecords(sdk, 'FeeHead', feeHeads, dryRun);
+    counts.FeeHead = await deleteAllRecords(sdk, 'FeeHead', {}, dryRun);
+    counts.FeeReceiptConfig = await deleteAllRecords(sdk, 'FeeReceiptConfig', {}, dryRun);
   }
-
-  // 8. FeeReceiptConfig (school-wide, only if no year filter)
-  if (!academicYear) {
-    const receiptConfigs = await fetchAll(sdk, 'FeeReceiptConfig', {});
-    counts.FeeReceiptConfig = await deleteRecords(sdk, 'FeeReceiptConfig', receiptConfigs, dryRun);
-  }
-
   return counts;
 }
 
 async function resetAttendance(sdk, academicYear, dryRun) {
   const filter = academicYear ? { academic_year: academicYear } : {};
-  const records = await fetchAll(sdk, 'Attendance', filter);
-  return { Attendance: await deleteRecords(sdk, 'Attendance', records, dryRun) };
+  return { Attendance: await deleteAllRecords(sdk, 'Attendance', filter, dryRun) };
 }
 
 async function resetMarks(sdk, academicYear, dryRun) {
   const filter = academicYear ? { academic_year: academicYear } : {};
   const counts = {};
-  const marks = await fetchAll(sdk, 'Marks', filter);
-  counts.Marks = await deleteRecords(sdk, 'Marks', marks, dryRun);
-  const examTypes = await fetchAll(sdk, 'ExamType', filter);
-  counts.ExamType = await deleteRecords(sdk, 'ExamType', examTypes, dryRun);
-  const timetables = await fetchAll(sdk, 'ExamTimetable', filter);
-  counts.ExamTimetable = await deleteRecords(sdk, 'ExamTimetable', timetables, dryRun);
-  const hallTickets = await fetchAll(sdk, 'HallTicket', filter);
-  counts.HallTicket = await deleteRecords(sdk, 'HallTicket', hallTickets, dryRun);
-  const progressCards = await fetchAll(sdk, 'ProgressCard', filter);
-  counts.ProgressCard = await deleteRecords(sdk, 'ProgressCard', progressCards, dryRun);
+  counts.Marks = await deleteAllRecords(sdk, 'Marks', filter, dryRun);
+  counts.ExamType = await deleteAllRecords(sdk, 'ExamType', filter, dryRun);
+  counts.ExamTimetable = await deleteAllRecords(sdk, 'ExamTimetable', filter, dryRun);
+  counts.HallTicket = await deleteAllRecords(sdk, 'HallTicket', filter, dryRun);
+  counts.ProgressCard = await deleteAllRecords(sdk, 'ProgressCard', filter, dryRun);
   return counts;
 }
 
 async function resetContent(sdk, academicYear, dryRun) {
   const filter = academicYear ? { academic_year: academicYear } : {};
   const counts = {};
-  const notices = await fetchAll(sdk, 'Notice', {});
-  counts.Notice = await deleteRecords(sdk, 'Notice', notices, dryRun);
-  const homework = await fetchAll(sdk, 'Homework', filter);
-  counts.Homework = await deleteRecords(sdk, 'Homework', homework, dryRun);
-  const diaries = await fetchAll(sdk, 'Diary', filter);
-  counts.Diary = await deleteRecords(sdk, 'Diary', diaries, dryRun);
-  const quizzes = await fetchAll(sdk, 'Quiz', filter);
-  counts.Quiz = await deleteRecords(sdk, 'Quiz', quizzes, dryRun);
-  const attempts = await fetchAll(sdk, 'QuizAttempt', {});
-  counts.QuizAttempt = await deleteRecords(sdk, 'QuizAttempt', attempts, dryRun);
+  counts.Notice = await deleteAllRecords(sdk, 'Notice', {}, dryRun);
+  counts.Homework = await deleteAllRecords(sdk, 'Homework', filter, dryRun);
+  counts.Diary = await deleteAllRecords(sdk, 'Diary', filter, dryRun);
+  counts.Quiz = await deleteAllRecords(sdk, 'Quiz', filter, dryRun);
+  counts.QuizAttempt = await deleteAllRecords(sdk, 'QuizAttempt', {}, dryRun);
   return counts;
 }
 
 async function resetStudents(sdk, academicYear, dryRun) {
   const filter = academicYear ? { academic_year: academicYear } : {};
-  const students = await fetchAll(sdk, 'Student', filter);
-  return { Student: await deleteRecords(sdk, 'Student', students, dryRun) };
+  return { Student: await deleteAllRecords(sdk, 'Student', filter, dryRun) };
 }
 
 async function resetStaff(sdk, dryRun) {
-  const staff = await fetchAll(sdk, 'StaffAccount', {});
-  // Protect system/default accounts
+  // Fetch all then filter out admin, then delete by ID list
+  const staff = await fetchPage(sdk, 'StaffAccount', {});
   const deletable = staff.filter(s => s.username !== 'admin');
-  return { StaffAccount: await deleteRecords(sdk, 'StaffAccount', deletable, dryRun) };
+  if (dryRun) return { StaffAccount: deletable.length };
+  let deleted = 0;
+  for (const s of deletable) {
+    try { await sdk.entities.StaffAccount.delete(s.id); deleted++; } catch {}
+  }
+  return { StaffAccount: deleted };
 }
 
 async function resetAcademicYears(sdk, dryRun) {
-  const years = await fetchAll(sdk, 'AcademicYear', {});
-  return { AcademicYear: await deleteRecords(sdk, 'AcademicYear', years, dryRun) };
+  return { AcademicYear: await deleteAllRecords(sdk, 'AcademicYear', {}, dryRun) };
 }
 
 Deno.serve(async (req) => {
