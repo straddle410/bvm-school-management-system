@@ -60,10 +60,10 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
     const displayBalanceBefore = snapshot?.balance_before;
     const isSnapshotReceipt = !!snapshot;
 
-   // Total Paid Till Date = amount paid BEFORE this payment + THIS payment (includes today's payment)
-   // For frozen receipts, use snapshot; for live invoices, add current payment to cumulative total
-   const totalPaidTillDate = snapshot 
-     ? (snapshot.total_paid_before + (payment?.amount_paid || 0)) 
+   // Total Paid Till Date = frozen cumulative (previous payments) + THIS payment (frozen at receipt time)
+   // Calculate from snapshot: net - balance_before + this payment = total paid till date
+   const totalPaidTillDate = snapshot
+     ? ((snapshot.invoice_net_total - snapshot.balance_before) + (payment?.amount_paid || 0))
      : (invoice.paid_amount || 0);
 
   // Calculate balance after cumulative payments
