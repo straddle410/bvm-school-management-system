@@ -137,7 +137,11 @@ export function AcademicYearProvider({ children }) {
     // Only admin can change the year
     if (!isAdmin) return;
     setAcademicYearState(year);
-    localStorage.setItem('selected_academic_year', year);
+    // Only persist to localStorage if year is Active — staff should only see Active year
+    const isActive = academicYears.find(y => y.year === year && (y.status || '').toLowerCase() === 'active');
+    if (isActive) {
+      localStorage.setItem('selected_academic_year', year);
+    }
   };
 
   return (
