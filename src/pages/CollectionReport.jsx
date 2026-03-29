@@ -63,7 +63,7 @@ function CollectionReportContent() {
         });
         return res.data?.data || res.data || {};
       } catch (err) {
-        if (err.response?.status === 403) {
+        if (err.response?.status === 403 || err.response?.status === 401) {
           return {};
         }
         throw err;
