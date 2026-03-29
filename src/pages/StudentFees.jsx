@@ -104,8 +104,16 @@ export default function StudentFees() {
     Cancelled: AlertCircle,
   };
 
+  // Calculate summary using frozen snapshot data from payments (locked at payment time)
+  // For unpaid invoices, use live totals; for paid invoices, use snapshot
   const totalAmount = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
-  const paidAmount = invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
+  
+  // Get frozen paid amount from payment snapshots (never changes)
+  const paidAmount = allPayments.reduce((sum, payment) => {
+    if (payment.status !== 'Active' || !payment.receipt_snapshot) return sum;
+    return sum + (payment.amount_paid || 0);
+  }, 0);
+  
   const balance = totalAmount - paidAmount;
 
   return (
