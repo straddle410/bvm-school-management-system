@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +25,11 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
   const queryClient = useQueryClient();
   const [filterClass, setFilterClass] = useState('');
   const [availableClasses, setAvailableClasses] = useState([]);
+  const [search, setSearch] = useState('');
+  const [showDialog, setShowDialog] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editingDiscount, setEditingDiscount] = useState(null);
 
   useEffect(() => {
     if (!academicYear) return;
