@@ -199,6 +199,8 @@ export default function StudentDashboard() {
     },
     enabled: !!student?.student_id,
     refetchInterval: 30000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Real-time: re-fetch badge counts when any notification is created

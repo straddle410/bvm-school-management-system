@@ -45,6 +45,8 @@ export default function StudentNotifications() {
     ),
     enabled: !!student?.student_id,
     refetchInterval: 30000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const { data: messages = [] } = useQuery({
@@ -56,6 +58,8 @@ export default function StudentNotifications() {
     ),
     enabled: !!student?.student_id,
     refetchInterval: 30000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Real-time refresh
