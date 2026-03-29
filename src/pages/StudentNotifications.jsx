@@ -201,7 +201,8 @@ export default function StudentNotifications() {
                 const cfg = TYPE_CONFIG[item.notifType] || DEFAULT_CONFIG;
                 const Icon = cfg.icon;
                 const preview = item.preview?.length > 70 ? item.preview.slice(0, 70) + '…' : item.preview;
-                const timeAgo = item.time ? formatDistanceToNow(new Date(item.time), { addSuffix: true }) : '';
+                const parseUtc = (s) => s ? new Date(s.endsWith('Z') || s.includes('+') ? s : s + 'Z') : null;
+                const timeAgo = item.time ? formatDistanceToNow(parseUtc(item.time), { addSuffix: true }) : '';
 
                 return (
                   <button

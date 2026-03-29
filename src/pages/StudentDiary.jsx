@@ -120,7 +120,7 @@ export default function StudentDiary() {
               <div className="flex items-start justify-between mb-2">
                 <h3 className="text-sm font-bold text-gray-900">{entry.subject}</h3>
                 <p className="text-xs text-gray-500">
-                  {new Date(entry.created_date).toLocaleDateString()}
+                  {entry.created_date ? new Date(entry.created_date.endsWith('Z') || entry.created_date.includes('+') ? entry.created_date : entry.created_date + 'Z').toLocaleDateString('en-IN', { timeZone: 'Asia/Calcutta' }) : ''}
                 </p>
               </div>
               {entry.teacher_name && (
