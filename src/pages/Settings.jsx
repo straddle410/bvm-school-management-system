@@ -737,11 +737,11 @@ export default function Settings() {
                               disabled={deleteYearMutation.isPending}
                             >
                               <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-                              </Button>
-                              ) : (
-                              <>
-                              <Button 
-                                variant="outline" 
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 onClick={() => {
                                   setEditingYearId(year.id);
