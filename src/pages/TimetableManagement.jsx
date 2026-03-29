@@ -166,8 +166,8 @@ export default function TimetableManagement() {
 
   // Get unique teachers from Teacher entity or timetables
   const uniqueTeachers = allTeachers.length > 0 
-    ? [...new Set(allTeachers.map(t => t.full_name || t.name).filter(Boolean))]
-    : [...new Set(timetables.map(t => t.teacher_name))];
+    ? allTeachers.map(t => t.full_name || t.name).filter(Boolean)
+    : timetables.map(t => t.teacher_name);
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Timetable Management">
