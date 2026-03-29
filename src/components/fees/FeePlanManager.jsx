@@ -16,6 +16,18 @@ export default function FeePlanManager({ academicYear }) {
   const [availableClasses, setAvailableClasses] = useState([]);
   const [plan, setPlan] = useState(null);
   const [feeItems, setFeeItems] = useState([]);
+  const [dueDate, setDueDate] = useState('');
+
+  const { data: classesData } = useQuery({
+    queryKey: ['classes-for-year', academicYear],
+    queryFn: () => getClassesForYear(academicYear),
+    enabled: !!academicYear,
+    staleTime: 10 * 60 * 1000
+  });
+
+  useEffect(() => {
+    setAvailableClasses(classesData?.classes || []);
+  }, [classesData]);
 
   const { data: feeHeads = [] } = useQuery({
     queryKey: ['fee-heads'],
