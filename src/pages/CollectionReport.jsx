@@ -25,7 +25,6 @@ function CollectionReportContent() {
     if (!academicYear) return;
     getClassesForYear(academicYear).then(result => {
       const classes = result?.classes || [];
-      console.log('[DEBUG] Available classes:', classes); // DEBUG
       setAvailableClasses(classes);
     });
   }, [academicYear]);
@@ -52,7 +51,6 @@ function CollectionReportContent() {
             return raw ? JSON.parse(raw) : null;
           } catch { return null; }
         })();
-        console.log('[DEBUG] Query params:', { academicYear, dateRange, normalizedClass });
         const res = await base44.functions.invoke('getCollectionByClass', {
           academicYear,
           dateFrom: dateRange.start,
@@ -64,10 +62,8 @@ function CollectionReportContent() {
           pageSize: 9999,
           staffInfo
         });
-        console.log('[DEBUG] Function response:', res);
         return res.data?.data || res.data || {};
       } catch (err) {
-        console.error('[DEBUG] Function error:', err);
         if (err.response?.status === 403 || err.response?.status === 401) {
           return {};
         }
