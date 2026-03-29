@@ -58,13 +58,12 @@ export default function TimetableManagement() {
     queryFn: async () => {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
-      const entries = await base44.entities.Timetable.filter(query);
+      let entries = await base44.entities.Timetable.filter(query);
       
-      if (filters.section) {
-        return entries.filter(e => e.section === filters.section);
-      }
       if (filters.teacher) {
-        return entries.filter(e => e.teacher_name.toLowerCase().includes(filters.teacher.toLowerCase()));
+        entries = entries.filter(e => e.teacher_name && e.teacher_name.toLowerCase() === filters.teacher.toLowerCase());
+      } else if (filters.section) {
+        entries = entries.filter(e => e.section === filters.section);
       }
       return entries;
     }
@@ -166,8 +165,8 @@ export default function TimetableManagement() {
 
   // Get unique teachers from Teacher entity or timetables
   const uniqueTeachers = allTeachers.length > 0 
-    ? allTeachers.map(t => t.full_name || t.name).filter(Boolean)
-    : timetables.map(t => t.teacher_name);
+    ? [...new Set(allTeachers.map(t => t.full_name || t.name).filter(Boolean))].sort()
+    : [...new Set(timetables.map(t => t.teacher_name).filter(Boolean))].sort();
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'exam_staff']} pageName="Timetable Management">
@@ -248,7 +247,7 @@ export default function TimetableManagement() {
                   className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
                 >
                   <option value="">All Teachers</option>
-                  {uniqueTeachers.sort().map(teacher => (
+                  {uniqueTeachers.map(teacher => (
                     <option key={teacher} value={teacher}>{teacher}</option>
                   ))}
                 </select>
@@ -292,24 +291,29 @@ export default function TimetableManagement() {
             </TabsContent>
 
             <TabsContent value="grid">
-              {filters.class && filters.section ? (
-                <TimetableGrid
-                  entries={timetables}
-                  title={`Class ${filters.class} - ${filters.section} Timetable`}
-                />
-              ) : (
-                <Card className="dark:bg-gray-800">
-                  <CardContent className="py-8">
-                    <div className="flex gap-3 items-start">
-                      <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Select Class and Section</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Choose a class and section to view the grid timetable</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+             {filters.teacher ? (
+               <TimetableGrid
+                 entries={timetables}
+                 title={`${filters.teacher} - Timetable (All Classes)`}
+               />
+             ) : filters.class && filters.section ? (
+               <TimetableGrid
+                 entries={timetables}
+                 title={`Class ${filters.class} - ${filters.section} Timetable`}
+               />
+             ) : (
+               <Card className="dark:bg-gray-800">
+                 <CardContent className="py-8">
+                   <div className="flex gap-3 items-start">
+                     <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+                     <div>
+                       <p className="font-medium text-gray-900 dark:text-white">Select Teacher or Class and Section</p>
+                       <p className="text-sm text-gray-600 dark:text-gray-400">Choose a teacher to view their timetable, or a class and section for class timetable</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+             )}
             </TabsContent>
 
             <TabsContent value="conflicts">
