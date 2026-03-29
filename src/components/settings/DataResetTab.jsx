@@ -312,6 +312,18 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
             <CardTitle className="text-red-700 flex items-center gap-2"><RotateCcw className="h-5 w-5" /> Step 1: Select Modules to Reset</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Quick presets */}
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="text-red-700 border-red-300" onClick={() => setSelectedModules(MODULES.filter(m => m.id !== 'staff').map(m => m.id))}>
+                🚀 Go-Live Preset (all except Staff)
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setSelectedModules(MODULES.map(m => m.id))}>
+                Select All
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setSelectedModules([])}>
+                Clear All
+              </Button>
+            </div>
             <div className="space-y-3">
               {MODULES.map(m => (
                 <div key={m.id} className="flex items-start gap-3 p-3 rounded-lg border bg-white hover:bg-slate-50">
