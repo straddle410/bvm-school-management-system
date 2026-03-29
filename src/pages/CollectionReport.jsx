@@ -82,20 +82,17 @@ function CollectionReportContent() {
   // Apply client-side filters
   const filteredPayments = allPayments.filter(p => {
     // Date range filter
-    if (dateRange.start && p.payment_date < dateRange.start) return false;
-    if (dateRange.end && p.payment_date > dateRange.end) return false;
-
-    // Class filter
-    if (normalizedClass && p.class_name !== normalizedClass) return false;
+    if (dateRange.start && p.postedAt < dateRange.start) return false;
+    if (dateRange.end && p.postedAt > dateRange.end) return false;
 
     // Payment mode filter
-    if (normalizedMode && p.payment_mode !== normalizedMode) return false;
+    if (normalizedMode && p.mode !== normalizedMode) return false;
 
-    // Search filter (receipt_no, student_name)
+    // Search filter (receiptNo, student name)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      if (!p.receipt_no?.toLowerCase().includes(query) &&
-          !p.student_name?.toLowerCase().includes(query)) {
+      if (!p.receiptNo?.toLowerCase().includes(query) &&
+          !p.student?.name?.toLowerCase().includes(query)) {
         return false;
       }
     }
@@ -112,7 +109,6 @@ function CollectionReportContent() {
   };
 
   if (isSummaryMode && reportData.summary) {
-    // Summary mode - aggregate all classes
     summary = {
       totalAmount: reportData.summary.totalCollected || 0,
       receiptCount: reportData.summary.totalReceipts || 0,
@@ -121,7 +117,6 @@ function CollectionReportContent() {
         : 0
     };
   } else {
-    // Details mode - calculate from filtered payments
     summary = {
       totalAmount: filteredPayments.reduce((sum, p) => sum + (p.amount || 0), 0),
       receiptCount: filteredPayments.length,
@@ -135,8 +130,8 @@ function CollectionReportContent() {
   const modeBreakdown = {};
   if (!isSummaryMode) {
     filteredPayments.forEach(p => {
-      const mode = p.mode || p.payment_mode || 'Unknown';
-      modeBreakdown[mode] = (modeBreakdown[mode] || 0) + (p.amount || p.amount_paid || 0);
+      const mode = p.mode || 'Unknown';
+      modeBreakdown[mode] = (modeBreakdown[mode] || 0) + (p.amount || 0);
     });
   }
 
@@ -167,11 +162,11 @@ function CollectionReportContent() {
     // Details mode: use correct backend field names
     const headers = ['Date', 'Receipt No.', 'Student', 'Mode', 'Amount (₹)'];
     const rows = filteredPayments.map(p => [
-      p.postedAt || '',
-      p.receiptNo || '',
+      p.postedAt,
+      p.receiptNo,
       p.student?.name ? `"${p.student.name}"` : '',
-      p.mode || '',
-      p.amount || 0
+      p.mode,
+      p.amount
     ]);
 
     const summaryRows = [
@@ -356,7 +351,6 @@ function CollectionReportContent() {
                       <TableHead className="text-xs font-semibold">Date</TableHead>
                       <TableHead className="text-xs font-semibold">Receipt No.</TableHead>
                       <TableHead className="text-xs font-semibold">Student</TableHead>
-                      <TableHead className="text-xs font-semibold">Class</TableHead>
                       <TableHead className="text-xs font-semibold">Mode</TableHead>
                       <TableHead className="text-xs font-semibold text-right">Amount (₹)</TableHead>
                     </>
@@ -378,10 +372,9 @@ function CollectionReportContent() {
                     ) : (
                       <>
                         <TableCell>{moment(payment.postedAt).format('YYYY-MM-DD')}</TableCell>
-                        <TableCell className="font-mono text-slate-600 dark:text-gray-400">{payment.receiptNo || '—'}</TableCell>
+                        <TableCell className="font-mono text-slate-600 dark:text-gray-400">{payment.receiptNo}</TableCell>
                         <TableCell className="dark:text-gray-300">{payment.student?.name || '—'}</TableCell>
-                        <TableCell className="dark:text-gray-300">Class {payment.student?.class || '—'}</TableCell>
-                        <TableCell className="text-slate-600 dark:text-gray-400">{payment.mode || '—'}</TableCell>
+                        <TableCell className="text-slate-600 dark:text-gray-400">{payment.mode}</TableCell>
                         <TableCell className="text-right font-medium">{(payment.amount || 0).toLocaleString('en-IN')}</TableCell>
                       </>
                     )}
