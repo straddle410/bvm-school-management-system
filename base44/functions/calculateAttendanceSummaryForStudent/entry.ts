@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       monthStart.setUTCHours(0, 0, 0, 0);
       monthEnd.setUTCHours(23, 59, 59, 999);
 
-      const periodStart = monthStart < start ? start : monthStart;
+      const periodStart = monthStart < effectiveStart ? effectiveStart : monthStart;
       const periodEnd = monthEnd > end ? end : monthEnd;
 
       const monthRecords = dedupedAttendance.filter(a => {
