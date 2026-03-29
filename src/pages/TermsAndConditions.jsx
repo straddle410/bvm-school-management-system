@@ -84,7 +84,7 @@ export default function TermsAndConditions() {
               <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
               <p className="text-slate-600 dark:text-gray-300 text-sm">📍 Vidya Nagar Colony, Kothakota, Wanaparthy Dist</p>
               <p className="text-slate-600 dark:text-gray-300 text-sm">📞 <a href="tel:+919101724665" className="underline hover:text-indigo-600">+91 91017 24665</a></p>
-              <p className="text-slate-600 dark:text-gray-300 text-sm">✉️ <a href="mailto:support@bvmse.in" className="underline hover:text-indigo-600">support@bvmse.in</a></p>
+              <p className="text-slate-600 dark:text-gray-300 text-sm">✉️ <a href="mailto:bvmschool1990@gmail.com" className="underline hover:text-indigo-600">bvmschool1990@gmail.com</a></p>
             </div>
           </Section>
 
