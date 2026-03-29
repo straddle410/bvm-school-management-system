@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoadingAuth(true);
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+        setTimeout(() => reject(new Error('Auth check timeout')), 15000)
       );
       const currentUser = await Promise.race([base44.auth.me(), timeoutPromise]);
       setUser(currentUser);
@@ -47,7 +47,9 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       
-      if (error.status === 401 || error.status === 403) {
+      if (error.message === 'Auth check timeout') {
+        console.warn('Auth check timed out, continuing with unauthenticated state');
+      } else if (error.status === 401 || error.status === 403) {
         setAuthError({
           type: 'auth_required',
           message: 'Authentication required'
