@@ -285,6 +285,10 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
             <Input value={formData.parent_phone || ''} onChange={e => set('parent_phone', e.target.value)} placeholder="+91 98765 43210" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} required />
           </div>
           <div>
+            <Label className="text-xs">Alternate Phone</Label>
+            <Input value={formData.alternate_parent_phone || ''} onChange={e => set('alternate_parent_phone', e.target.value)} placeholder="+91 98765 43210" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
+          </div>
+          <div className="col-span-2">
             <Label className="text-xs">Email</Label>
             <Input type="email" value={formData.parent_email || ''} onChange={e => set('parent_email', e.target.value)} placeholder="parent@email.com" className="mt-1 rounded-xl bg-gray-50" readOnly={dis} disabled={dis} />
           </div>
