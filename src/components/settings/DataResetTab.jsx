@@ -156,10 +156,25 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
     confirmSchool === (profile?.school_name || '') &&
     confirmDate === today;
 
+  const [resetProgress, setResetProgress] = useState({ current: '', done: [], counts: {} });
+
+  // Map module → entity list
+  const MODULE_ENTITIES = {
+    attendance: ['Attendance'],
+    content: ['Notice', 'Homework', 'Diary', 'Quiz', 'QuizAttempt'],
+    marks: ['Marks', 'ExamType', 'ExamTimetable', 'HallTicket', 'ProgressCard'],
+    students: ['Student'],
+    fees: ['FeePayment', 'StudentFeeDiscount', 'AdditionalCharge', 'FeeFamily', 'FeeInvoice', 'FeePlan', 'FeeHead', 'FeeReceiptConfig'],
+    staff: ['StaffAccount'],
+    academic_years: ['AcademicYear'],
+  };
+
   const runReset = async () => {
     setResetting(true);
+    const allCounts = {};
+    setResetProgress({ current: '', done: [], counts: {} });
     try {
-      // Skip backup if fees module not being reset
+      // Backup if fees selected
       let newBackupId = null;
       if (selectedModules.includes('fees')) {
         setCreatingBackup(true);
@@ -168,28 +183,36 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
           if (backupRes.data && backupRes.data.status === 'COMPLETED') {
             newBackupId = backupRes.data.id || backupRes.data.backupId;
             setBackupId(newBackupId);
-            toast.success(`Safety backup created: ${newBackupId}`);
           }
-        } catch (backupErr) {
-          console.warn('Backup creation failed, continuing without backup:', backupErr.message);
-          toast.warning('Backup skipped, proceeding with reset');
-        }
+        } catch {}
         setCreatingBackup(false);
       }
 
-      // Run actual reset
-      const res = await base44.functions.invoke('adminResetData', {
-        modules: selectedModules,
-        academicYear: selectedYear || undefined,
-        dryRun: false,
-        reset_token: resetToken,
-        record_id: otpRecordId,
-        confirmation_phrase: confirmPhrase,
-        confirmation_school_name: confirmSchool,
-        confirmation_date: confirmDate,
-        ...(newBackupId && { pre_reset_backup_id: newBackupId })
-      });
-      setResetResult(res.data);
+      const filter = selectedYear ? { academic_year: selectedYear } : {};
+      const entitiesWithNoYearFilter = ['FeeHead', 'FeeReceiptConfig', 'FeeFamily', 'StaffAccount', 'Notice', 'QuizAttempt'];
+
+      for (const moduleId of selectedModules) {
+        const entities = MODULE_ENTITIES[moduleId] || [];
+        for (const entityName of entities) {
+          setResetProgress(p => ({ ...p, current: entityName }));
+          const useFilter = entitiesWithNoYearFilter.includes(entityName) ? {} : filter;
+          // For StaffAccount, skip admin — handled inside the function
+          try {
+            const res = await base44.functions.invoke('adminDeleteSingleEntity', {
+              entityName,
+              filter: useFilter,
+              reset_token: resetToken,
+              record_id: otpRecordId,
+            });
+            allCounts[entityName] = res.data.deleted || 0;
+          } catch (e) {
+            allCounts[entityName] = `ERROR: ${e.response?.data?.error || e.message}`;
+          }
+          setResetProgress(p => ({ ...p, done: [...p.done, entityName], counts: { ...p.counts, [entityName]: allCounts[entityName] } }));
+        }
+      }
+
+      setResetResult({ counts: allCounts, pre_reset_backup_id: newBackupId });
       setStep(5);
       await loadAuditLogs();
     } catch (e) {
@@ -471,6 +494,25 @@ export default function DataResetTab({ schoolProfiles = [], academicYears = [] }
             {creatingBackup && (
               <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded px-3 py-2 text-sm text-blue-800">
                 <Loader2 className="h-4 w-4 animate-spin" /> Creating safety backup…
+              </div>
+            )}
+
+            {resetting && resetProgress.current && (
+              <div className="space-y-2 bg-slate-50 border rounded-lg p-3">
+                <div className="flex items-center gap-2 text-sm text-slate-700">
+                  <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                  <span>Deleting <strong>{resetProgress.current}</strong>…</span>
+                </div>
+                {resetProgress.done.length > 0 && (
+                  <div className="text-xs text-slate-500 space-y-0.5">
+                    {resetProgress.done.map(e => (
+                      <div key={e} className="flex gap-2">
+                        <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span>{e}: {resetProgress.counts[e]} deleted</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
