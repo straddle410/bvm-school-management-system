@@ -194,14 +194,41 @@ export default function PrivacyPolicy() {
             <p>To exercise any of these rights, please contact the school administration using the contact details in Section 9. We will respond to your request within 30 days.</p>
           </Section>
 
-          {/* 8. Cookies & Local Storage */}
-          <Section title="8. Cookies &amp; Local Storage">
+          {/* 7.1 Account & Data Deletion */}
+          <Section title="7.1 Account &amp; Data Deletion">
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="font-semibold text-red-800 dark:text-red-300 mb-1">Right to Delete Your Account &amp; Data</p>
+              <p className="text-red-700 dark:text-red-400 text-sm">In compliance with Google Play Store policies, users have the right to request deletion of their account and associated personal data.</p>
+            </div>
+            <ul className="list-disc list-inside space-y-1.5 pl-2 mt-3">
+              <li><strong>Students/Parents:</strong> Submit a data deletion request directly through the app by going to <em>More → Delete Account</em>. The school administration will process the request within 30 days.</li>
+              <li><strong>Staff Members:</strong> Contact your school administrator or email the school directly to request account deletion.</li>
+              <li><strong>What gets deleted:</strong> Login credentials, personal contact details, and account profile are permanently removed. Academic records (marks, attendance, fees) may be retained for legal compliance as outlined in Section 6.</li>
+              <li><strong>Pending requests</strong> can be tracked by contacting the school administration.</li>
+            </ul>
+          </Section>
+
+          {/* 8. Device Permissions */}
+          <Section title="8. App Permissions">
+            <p>Our app requests the following device permissions to provide its features:</p>
+            <DataTable rows={[
+              ['Internet Access', 'Required to connect to the school server, load student records, and sync data'],
+              ['Camera', 'Used to capture student/staff profile photos (only when you initiate photo upload)'],
+              ['Storage / Files', 'Used to save downloaded receipts, progress cards, and uploaded documents'],
+              ['Push Notifications', 'Used to deliver important school alerts and attendance notifications to your device'],
+              ['Network State', 'Used to check internet connectivity before syncing data'],
+            ]} />
+            <p className="mt-2 text-xs text-slate-500 dark:text-gray-500 italic">All permissions are optional where possible and are only activated when you use the relevant feature. You can manage app permissions at any time from your device settings.</p>
+          </Section>
+
+          {/* 9. Cookies & Local Storage */}
+          <Section title="9. Cookies &amp; Local Storage">
             <p>Our app uses browser local storage (not cookies) to maintain your login session and user preferences. This data is stored only on your device and is cleared when you log out.</p>
             <p>We do not use third-party tracking cookies or analytics scripts that collect personally identifiable information.</p>
           </Section>
 
-          {/* 9. Contact Information */}
-          <Section title="9. Contact Us">
+          {/* 10. Contact Information */}
+          <Section title="10. Contact Us">
             <p>For any questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact the school administration:</p>
             <div className="mt-3 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600 space-y-1">
              <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
@@ -214,8 +241,7 @@ export default function PrivacyPolicy() {
             </div>
           </Section>
 
-          {/* 10. Changes to this Policy */}
-          <Section title="10. Changes to This Policy">
+          <Section title="11. Changes to This Policy">
             <p>We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. When we make significant changes, we will notify users via the school's notice board within the app.</p>
             <p>Continued use of the App after changes are posted constitutes acceptance of the revised policy.</p>
           </Section>
