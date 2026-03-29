@@ -61,8 +61,8 @@ export default function StudentFeeReceipt({ isOpen, onClose, invoice, payment, p
     const isSnapshotReceipt = !!snapshot;
 
    // Total Paid Till Date = frozen from snapshot at payment time (locked, never changes)
-   // If snapshot exists, use it; otherwise, use balance calculation (no snapshot for old payments)
-   const totalPaidTillDate = snapshot?.invoice_net_total - (snapshot?.balance_before || 0) ?? invoice.paid_amount;
+   // Use snapshot.total_paid_before + this payment amount for accurate frozen value
+   const totalPaidTillDate = snapshot ? (snapshot.total_paid_before + (payment?.amount_paid || 0)) : invoice.paid_amount;
 
   // Calculate balance after cumulative payments
   const balanceAfterPayment = invoice.total_amount - totalPaidTillDate;
