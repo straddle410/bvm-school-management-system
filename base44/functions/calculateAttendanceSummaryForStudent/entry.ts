@@ -10,6 +10,18 @@ function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) 
   return d >= start && d <= end;
 }
 
+// Helper: Check if day is a working day (excludes only Sundays and marked holidays)
+function isWorkingDay(date, holidays, overrides) {
+  const dayOfWeek = new Date(date + 'T00:00:00').getDay();
+  // Sunday = 0, Saturdays = 6 ARE working days
+  const isSunday = dayOfWeek === 0;
+  const isHoliday = holidays.some(h => h.date === date);
+  const hasOverride = overrides.some(o => o.date === date);
+  // Holiday override takes precedence — it enables working day
+  if (hasOverride) return true;
+  return !isSunday && !isHoliday; // Working if not Sunday and not marked holiday
+}
+
 // CANONICAL DEDUPLICATION - Same logic as Summary Report
 function deduplicateAttendanceRecords(records) {
   if (!records || records.length === 0) return [];
@@ -75,9 +87,10 @@ Deno.serve(async (req) => {
       academic_year: academic_year
     }).catch(() => []);
 
-    if (!allAttendance || allAttendance.length === 0) {
-      return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
-    }
+    // Fetch holiday overrides to check for override days
+    const allOverrides = await base44.asServiceRole.entities.HolidayOverride.filter({
+      academic_year: academic_year
+    }).catch(() => []);
 
     // Use effective student start date (admission_date or academic year start)
     const effectiveStart = new Date(effectiveStudentStartDate || startDate);
@@ -85,59 +98,69 @@ Deno.serve(async (req) => {
     const end = new Date(endDate);
     end.setUTCHours(23, 59, 59, 999);
 
-    const recordsInRange = allAttendance.filter(a => {
+    // Build list of all calendar days in range (used for working day calculation)
+    const daysBetween = [];
+    let current = new Date(effectiveStart);
+    while (current <= end) {
+      daysBetween.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+
+    // Deduplicate records and create date map
+    const dedupedAttendance = deduplicateAttendanceRecords(allAttendance);
+    const recordsInRange = dedupedAttendance.filter(a => {
       const attDate = new Date(a.date);
       attDate.setUTCHours(0, 0, 0, 0);
       return attDate >= effectiveStart && attDate <= end;
     });
 
-    if (!recordsInRange || recordsInRange.length === 0) {
-      return Response.json({ working_days: 0, present_days: 0, absent_days: 0, percentage: 0 });
-    }
+    // Create date map for submitted attendance
+    const submittedDates = new Map();
+    recordsInRange.forEach(a => {
+      if (!submittedDates.has(a.date)) {
+        submittedDates.set(a.date, a);
+      }
+    });
 
-    // CANONICAL DEDUPLICATION - Same as Summary Report
-    const dedupedAttendance = deduplicateAttendanceRecords(recordsInRange);
-
-    // Fetch holidays to properly calculate working days (excluding holidays & Sundays)
+    // Fetch holidays and holiday overrides
     const holidays = await base44.asServiceRole.entities.Holiday.filter({ academic_year: academic_year, status: 'Active' }).catch(() => []);
-    const holidaySet = new Set(holidays.map(h => h.date));
-
-    // Calculate working dates ONLY for the range covered by actual attendance records
-    // (first attendance date to last attendance date) - SAME AS SUMMARY REPORT
-    const attendanceDates = dedupedAttendance.map(a => a.date).sort();
-    const rangeStart = new Date(attendanceDates[0]);
-    const rangeEnd = new Date(attendanceDates[attendanceDates.length - 1]);
-    rangeStart.setUTCHours(0, 0, 0, 0);
-    rangeEnd.setUTCHours(23, 59, 59, 999);
-
-    const daysBetween = [];
-    let current = new Date(rangeStart);
-    while (current <= rangeEnd) {
-      daysBetween.push(current.toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-    }
+    const overrides = allOverrides.filter(o => o.class_name === recordsInRange[0]?.class_name && o.section === recordsInRange[0]?.section);
     
-    const sundaySet = new Set(daysBetween.filter(d => new Date(d + 'T00:00:00').getDay() === 0));
-    const workingDays = daysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
+    // Calculate working days: all days that are NOT (Sunday OR marked holiday) AND NOT overridden
+    const workingDays = daysBetween.filter(d => isWorkingDay(d, holidays, overrides)).length;
+
+    // Count present/absent: 
+    // - Days WITH submitted attendance: use submitted status
+    // - Days WITHOUT submitted attendance: treat as PRESENT (user's rule)
+    const workingDaysSet = new Set(daysBetween.filter(d => isWorkingDay(d, holidays, overrides)));
 
     const fullDayDates = new Set();
     const halfDayDates = new Set();
+    const absentDates = new Set();
     
-    dedupedAttendance.forEach(a => {
-      // Exclude holidays, Sundays, and holiday-marked records from present count
-      if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+    recordsInRange.forEach(a => {
+      if (!a.is_holiday && a.attendance_type !== 'holiday' && workingDaysSet.has(a.date)) {
         if (a.attendance_type === 'full_day') {
           fullDayDates.add(a.date);
         } else if (a.attendance_type === 'half_day') {
           halfDayDates.add(a.date);
+        } else if (a.attendance_type === 'absent') {
+          absentDates.add(a.date);
         }
       }
     });
 
+    // Count unsubmitted working days as PRESENT (user's rule)
+    const submittedWorkingDays = new Set();
+    recordsInRange.forEach(a => {
+      if (workingDaysSet.has(a.date)) submittedWorkingDays.add(a.date);
+    });
+    const unsubmittedWorkingDays = Array.from(workingDaysSet).filter(d => !submittedWorkingDays.has(d)).length;
+
     const fullDays = fullDayDates.size;
     const halfDays = halfDayDates.size;
-    const totalPresent = fullDays + (halfDays * 0.5);
-    const absentDays = Math.max(0, workingDays - fullDays - halfDays);
+    const totalPresent = fullDays + (halfDays * 0.5) + unsubmittedWorkingDays;
+    const absentDays = absentDates.size;
     // Use consistent rounding: Math.round for all percentage calculations
     const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
 
@@ -153,7 +176,7 @@ Deno.serve(async (req) => {
       const periodStart = monthStart < effectiveStart ? effectiveStart : monthStart;
       const periodEnd = monthEnd > end ? end : monthEnd;
 
-      const monthRecords = dedupedAttendance.filter(a => {
+      const monthRecords = recordsInRange.filter(a => {
         const attDate = new Date(a.date);
         attDate.setUTCHours(0, 0, 0, 0);
         return attDate >= periodStart && attDate <= periodEnd;
@@ -166,25 +189,36 @@ Deno.serve(async (req) => {
         monthCurrent.setDate(monthCurrent.getDate() + 1);
       }
       
-      const monthWorkingDays = monthDaysBetween.filter(d => !holidaySet.has(d) && !sundaySet.has(d)).length;
+      const monthWorkingDays = monthDaysBetween.filter(d => isWorkingDay(d, holidays, overrides)).length;
+      const monthWorkingDaysSet = new Set(monthDaysBetween.filter(d => isWorkingDay(d, holidays, overrides)));
 
       const monthFullDayDates = new Set();
       const monthHalfDayDates = new Set();
+      const monthAbsentDates = new Set();
       
       monthRecords.forEach(a => {
-        if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !a.is_holiday && a.attendance_type !== 'holiday' && a.attendance_type !== 'absent') {
+        if (!a.is_holiday && a.attendance_type !== 'holiday' && monthWorkingDaysSet.has(a.date)) {
           if (a.attendance_type === 'full_day') {
             monthFullDayDates.add(a.date);
           } else if (a.attendance_type === 'half_day') {
             monthHalfDayDates.add(a.date);
+          } else if (a.attendance_type === 'absent') {
+            monthAbsentDates.add(a.date);
           }
         }
       });
 
+      // Count unsubmitted as PRESENT
+      const monthSubmittedWorkingDays = new Set();
+      monthRecords.forEach(a => {
+        if (monthWorkingDaysSet.has(a.date)) monthSubmittedWorkingDays.add(a.date);
+      });
+      const monthUnsubmittedWorkingDays = Array.from(monthWorkingDaysSet).filter(d => !monthSubmittedWorkingDays.has(d)).length;
+
       const monthFullDays = monthFullDayDates.size;
       const monthHalfDays = monthHalfDayDates.size;
-      const monthTotalPresent = monthFullDays + (monthHalfDays * 0.5);
-      const monthAbsent = Math.max(0, monthWorkingDays - monthFullDays - monthHalfDays);
+      const monthTotalPresent = monthFullDays + (monthHalfDays * 0.5) + monthUnsubmittedWorkingDays;
+      const monthAbsent = monthAbsentDates.size;
       const monthPercentage = monthWorkingDays > 0 ? Math.round((monthTotalPresent / monthWorkingDays) * 100) : 0;
 
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
