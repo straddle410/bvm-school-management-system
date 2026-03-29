@@ -777,9 +777,12 @@ function AttendanceSummaryTab({
       sa.forEach(a => { if (!holidaySet.has(a.date) && !sundaySet.has(a.date) && !dateMap[a.date]) dateMap[a.date] = a.attendance_type; });
       const fullDays = Object.values(dateMap).filter(t => t === 'full_day').length;
       const halfDays = Object.values(dateMap).filter(t => t === 'half_day').length;
-      const totalPresent = fullDays + halfDays * 0.5;
-      // Absent = working days - present (accounts for half-days)
-      const absentDays = Math.max(0, studentWorkingDays - totalPresent);
+      const absentDays = Object.values(dateMap).filter(t => t === 'absent').length;
+      // Unsubmitted working days count as PRESENT (user's rule)
+      const workingDaysSet = new Set(studentDays.filter(d => !holidaySet.has(d) && !sundaySet.has(d)));
+      const submittedWorkingDays = new Set(sa.filter(a => !holidaySet.has(a.date) && !sundaySet.has(a.date)).map(a => a.date));
+      const unsubmittedWorkingDays = Array.from(workingDaysSet).filter(d => !submittedWorkingDays.has(d)).length;
+      const totalPresent = fullDays + halfDays * 0.5 + unsubmittedWorkingDays;
       // Calculate unmarked records (before effective start date)
       const unmarkedRecords = attendanceRecords.filter(a => (a.student_id === student.student_id || a.student_id === student.id) && a.date < effectiveStartDate).length;
       // Use shared calculation for consistent rounding across all views
