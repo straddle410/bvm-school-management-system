@@ -24,7 +24,9 @@ function CollectionReportContent() {
   useEffect(() => {
     if (!academicYear) return;
     getClassesForYear(academicYear).then(result => {
-      setAvailableClasses(result?.classes || []);
+      const classes = result?.classes || [];
+      console.log('[DEBUG] Available classes:', classes); // DEBUG
+      setAvailableClasses(classes);
     });
   }, [academicYear]);
   
@@ -50,6 +52,7 @@ function CollectionReportContent() {
             return raw ? JSON.parse(raw) : null;
           } catch { return null; }
         })();
+        console.log('[DEBUG] Query params:', { academicYear, dateRange, normalizedClass });
         const res = await base44.functions.invoke('getCollectionByClass', {
           academicYear,
           dateFrom: dateRange.start,
