@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Home, BarChart3, BookMarked, MessageSquare, MoreHorizontal } from 'lucide-react';
@@ -12,9 +12,27 @@ const navItems = [
   { label: 'More',       icon: MoreHorizontal, page: 'StudentMore', noticesBadge: true },
 ];
 
+// Sub-pages that belong to each student tab root
+const STUDENT_TAB_SUB_PAGES = {
+  StudentDashboard: [],
+  StudentAttendance: [],
+  StudentMarks: [],
+  StudentMessaging: [],
+  StudentMore: ['StudentFees', 'StudentDiary', 'StudentTimetable', 'StudentHallTicketView', 'StudentNotices', 'StudentHomework', 'StudentProfile', 'StudentNotifications'],
+};
+
+const getActiveStudentTab = (currentPage) => {
+  if (navItems.some(i => i.page === currentPage)) return currentPage;
+  for (const [tab, subs] of Object.entries(STUDENT_TAB_SUB_PAGES)) {
+    if (subs.includes(currentPage)) return tab;
+  }
+  return null;
+};
+
 export default function StudentBottomNav({ currentPage }) {
   const [badges, setBadges] = useState({ messages: 0, notices: 0 });
   const [studentSession, setStudentSession] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     try {
@@ -22,6 +40,15 @@ export default function StudentBottomNav({ currentPage }) {
       setStudentSession(session);
     } catch {}
   }, []);
+
+  // Stack preservation: save last visited URL per student tab
+  useEffect(() => {
+    const activeTab = getActiveStudentTab(currentPage);
+    if (activeTab) {
+      sessionStorage.setItem('activeStudentTab', activeTab);
+      sessionStorage.setItem(`studentTabUrl_${activeTab}`, location.pathname + location.search);
+    }
+  }, [currentPage, location.pathname, location.search]);
 
   useEffect(() => {
     if (!studentSession?.student_id) return;
@@ -86,12 +113,15 @@ export default function StudentBottomNav({ currentPage }) {
       <div className="mx-3 md:mx-4 mb-3 md:mb-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/60 dark:border-gray-700/60">
         <div className="flex items-center justify-around px-2 md:px-3 py-3 md:py-4">
           {navItems.map((item) => {
-            const isActive = currentPage === item.page;
-            const badgeCount = getBadgeCount(item);
+            const activeTab = getActiveStudentTab(currentPage);
+            const isActive = activeTab === item.page;
+            const rootHref = createPageUrl(item.page);
+            const storedUrl = sessionStorage.getItem(`studentTabUrl_${item.page}`);
+            const href = (currentPage === item.page) ? rootHref : (storedUrl || rootHref);
             return (
               <Link
                 key={item.page}
-                to={createPageUrl(item.page)}
+                to={href}
                 className="relative flex flex-col items-center gap-1 md:gap-1.5 px-4 py-2 transition-all min-h-[60px] md:min-h-[70px] justify-center"
               >
                 {isActive && (
