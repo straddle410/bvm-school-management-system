@@ -15,13 +15,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch invoices and payments (using user-scoped access)
-    const invoices = await base44.entities.FeeInvoice.filter({
+    // Fetch invoices and payments using service role (RLS allows staff access)
+    const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       student_id,
       academic_year
     });
 
-    const payments = await base44.entities.FeePayment.filter({
+    const payments = await base44.asServiceRole.entities.FeePayment.filter({
       student_id,
       academic_year
     });
