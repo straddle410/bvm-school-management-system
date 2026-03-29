@@ -72,10 +72,7 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
   const { data: teachers = [] } = useQuery({
     queryKey: ['staff-teachers'],
     queryFn: async () => {
-      const staffList = await base44.entities.StaffAccount.filter(
-        { is_teacher: true, is_active: true },
-        'name'
-      );
+      const staffList = await base44.entities.StaffAccount.filter({ role: 'teacher' });
       return staffList;
     }
   });
@@ -251,9 +248,10 @@ export default function TimetableForm({ entry, onSubmit, onCancel, academicYear 
                 required
               >
                 <option value="">Select Teacher</option>
-                {teachers.map(teacher => (
-                  <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
-                ))}
+                {teachers.map(teacher => {
+                    const teacherName = teacher.staff_name || teacher.full_name || teacher.name || teacher.email;
+                    return <option key={teacher.id} value={teacher.id}>{teacherName}</option>;
+                  })}
               </select>
             </div>
             <div>
