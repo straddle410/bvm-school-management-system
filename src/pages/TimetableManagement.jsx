@@ -76,7 +76,7 @@ export default function TimetableManagement() {
 
   const { data: allTeachers = [] } = useQuery({
     queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryFn: () => base44.entities.StaffAccount.filter({ role: 'teacher' }),
     enabled: true
   });
 
