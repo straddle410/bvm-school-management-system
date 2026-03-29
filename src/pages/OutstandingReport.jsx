@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import LoginRequired from '@/components/LoginRequired';
@@ -20,6 +20,10 @@ function SortIcon({ field, sort }) {
   return sort.endsWith('desc')
     ? <ArrowDown className="h-3 w-3 inline ml-1 text-slate-600" />
     : <ArrowUp className="h-3 w-3 inline ml-1 text-slate-600" />;
+}
+
+function fmt(num) {
+  return (num || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
 function OutstandingReportContent() {
