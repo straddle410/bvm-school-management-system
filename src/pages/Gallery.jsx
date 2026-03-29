@@ -118,9 +118,13 @@ export default function Gallery() {
   const createAlbumMutation = useMutation({
     mutationFn: () => base44.entities.EventAlbum.create({ ...newAlbum, academic_year: academicYear, status: 'Published' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['albums', academicYear] });
       setShowCreateAlbum(false);
       setNewAlbum({ name: '', description: '', event_date: '', visibility: ['Public'] });
+      toast.success('Album created successfully!');
+    },
+    onError: (err) => {
+      toast.error('Failed to create album: ' + (err?.message || 'Unknown error'));
     }
   });
 

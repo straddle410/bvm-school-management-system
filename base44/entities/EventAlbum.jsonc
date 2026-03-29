@@ -1,0 +1,57 @@
+{
+  "name": "EventAlbum",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Album/Event name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Event date"
+    },
+    "cover_photo_url": {
+      "type": "string",
+      "description": "Cover photo URL"
+    },
+    "visibility": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Public",
+          "Staff Only",
+          "Students & Parents"
+        ]
+      },
+      "description": "Visibility options (multiple can be selected)"
+    },
+    "upload_permission": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails with upload permission"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published"
+      ],
+      "default": "Draft"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
