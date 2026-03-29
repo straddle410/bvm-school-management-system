@@ -9,18 +9,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'student_id and academic_year required' }, { status: 400 });
     }
 
-    // Fetch invoices
+    // Fetch invoices and payments
     const invoices = await base44.asServiceRole.entities.FeeInvoice.filter({
       student_id,
       academic_year
     });
 
-    // Fetch payments (active only)
     const payments = await base44.asServiceRole.entities.FeePayment.filter({
       student_id,
-      academic_year,
-      status: 'Active'
+      academic_year
     });
+
+    // Filter active payments only
+    const activePayments = payments.filter(p => p.status === 'Active');
 
     // Format invoices
     const formattedInvoices = invoices.map(inv => ({
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
     }));
 
     // Format payments
-    const formattedPayments = payments.map(p => ({
+    const formattedPayments = activePayments.map(p => ({
       id: p.id,
       date: p.payment_date,
       receiptNo: p.receipt_no,
