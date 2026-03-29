@@ -37,6 +37,12 @@ export default function PaymentsList({ academicYear, isAdmin, canVoidReceipt }) 
   const [classFilter, setClassFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [availableClasses, setAvailableClasses] = useState([]);
+  const [fromDate, setFromDate] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [toDate, setToDate] = useState(() => today());
+  const [activePreset, setActivePreset] = useState(null);
+  const [printingPaymentId, setPrintingPaymentId] = useState(null);
+  const [reversingPayment, setReversingPayment] = useState(null);
+  const [voidingPaymentId, setVoidingPaymentId] = useState(null);
 
   React.useEffect(() => {
     if (!academicYear) return;
