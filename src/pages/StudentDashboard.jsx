@@ -130,10 +130,22 @@ export default function StudentDashboard() {
 
   const { data: attendData } = useQuery({
     queryKey: ['student-attendance-pct', student?.student_id],
-    queryFn: () => base44.functions.invoke('calculateAttendanceSummaryForStudent', {
-      student_id: student.student_id,
-      academic_year: student.academic_year
-    }).then(r => r.data || {}),
+    queryFn: async () => {
+      const [years, students] = await Promise.all([
+        base44.entities.AcademicYear.filter({ year: student.academic_year }).catch(() => []),
+        base44.entities.Student.filter({ student_id: student.student_id }).catch(() => [])
+      ]);
+      const academicYearStart = years?.[0]?.start_date || new Date().toISOString().split('T')[0];
+      const effectiveStartDate = students?.[0]?.admission_date || academicYearStart;
+      const endDate = new Date().toISOString().split('T')[0];
+      const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
+        student_id: student.student_id,
+        academic_year: student.academic_year,
+        start_date: effectiveStartDate,
+        end_date: endDate
+      });
+      return res.data || {};
+    },
     enabled: enableAttendance && !!student?.student_id,
     staleTime: 5 * 60 * 1000,
   });

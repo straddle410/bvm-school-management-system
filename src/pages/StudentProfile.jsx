@@ -31,13 +31,8 @@ const STATUS_COLORS = {
   Transferred: 'bg-orange-100 text-orange-700',
 };
 
-function ProfileContent({ student, attendance, marks }) {
-  const presentDays = attendance.filter(a => a.attendance_type === 'full_day' || a.attendance_type === 'half_day').length;
-  const totalDays = attendance.filter(a => a.attendance_type !== 'holiday').length;
-  const attendancePercentage = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
-  const avgMarks = marks.length > 0
-    ? (marks.reduce((sum, m) => sum + (m.marks_obtained || 0), 0) / marks.length).toFixed(1)
-    : null;
+function ProfileContent({ student, attendance, marks, attendancePct }) {
+  const attendancePercentage = attendancePct !== null && attendancePct !== undefined ? attendancePct : 0;
 
   return (
     <div className="space-y-6">
@@ -245,7 +240,7 @@ export default function StudentProfile() {
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['student-attendance', student?.student_id, student?.academic_year],
+    queryKey: ['student-attendance-records', student?.student_id, student?.academic_year],
     queryFn: () => base44.entities.Attendance.filter({ 
       student_id: student?.student_id, 
       academic_year: student?.academic_year 
@@ -256,17 +251,25 @@ export default function StudentProfile() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: marks = [] } = useQuery({
-    queryKey: ['student-marks', student?.student_id, student?.academic_year],
-    queryFn: () => base44.entities.Marks.filter({ 
-      student_id: student?.student_id,
-      academic_year: student?.academic_year,
-      status: 'Published'
-    }, '-updated_date', 100),
+  const { data: attendanceSummary = {} } = useQuery({
+    queryKey: ['student-attendance-summary-profile', student?.student_id, student?.academic_year],
+    queryFn: async () => {
+      const [years] = await Promise.all([
+        base44.entities.AcademicYear.filter({ year: student.academic_year }).catch(() => [])
+      ]);
+      const academicYearStart = years?.[0]?.start_date || new Date().toISOString().split('T')[0];
+      const effectiveStartDate = student.admission_date || academicYearStart;
+      const endDate = new Date().toISOString().split('T')[0];
+      const res = await base44.functions.invoke('calculateAttendanceSummaryForStudent', {
+        student_id: student.student_id,
+        academic_year: student.academic_year,
+        start_date: effectiveStartDate,
+        end_date: endDate
+      });
+      return res.data || {};
+    },
     enabled: !!student?.student_id,
-    staleTime: 0,
-    refetchOnMount: 'stale',
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Subscribe to real-time updates
@@ -341,7 +344,7 @@ export default function StudentProfile() {
             </TabsList>
 
             <TabsContent value="profile">
-              <ProfileContent student={student} attendance={attendance} marks={marks} />
+              <ProfileContent student={student} attendance={attendance} marks={marks} attendancePct={attendanceSummary?.percentage} />
             </TabsContent>
 
             <TabsContent value="audit">
@@ -428,7 +431,7 @@ export default function StudentProfile() {
                 </div>
               )}
             </div>
-            <ProfileContent student={student} attendance={attendance} marks={marks} />
+            <ProfileContent student={student} attendance={attendance} marks={marks} attendancePct={attendanceSummary?.percentage} />
             </div>
             )}
             </div>
