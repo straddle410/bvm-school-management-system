@@ -33,6 +33,9 @@ const STATUS_COLORS = {
 
 function ProfileContent({ student, attendance, marks, attendancePct }) {
   const attendancePercentage = attendancePct !== null && attendancePct !== undefined ? attendancePct : 0;
+  const avgMarks = marks.length > 0
+    ? (marks.reduce((sum, m) => sum + (m.marks_obtained || 0), 0) / marks.length).toFixed(1)
+    : null;
 
   return (
     <div className="space-y-6">
