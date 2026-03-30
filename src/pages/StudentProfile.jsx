@@ -31,10 +31,11 @@ const STATUS_COLORS = {
   Transferred: 'bg-orange-100 text-orange-700',
 };
 
-function ProfileContent({ student, attendance, marks, attendancePct }) {
+function ProfileContent({ student, attendance, marks = [], attendancePct }) {
   const attendancePercentage = attendancePct !== null && attendancePct !== undefined ? attendancePct : 0;
-  const avgMarks = marks.length > 0
-    ? (marks.reduce((sum, m) => sum + (m.marks_obtained || 0), 0) / marks.length).toFixed(1)
+  const publishedMarks = marks.filter(m => m.marks_obtained != null && m.max_marks > 0);
+  const avgMarks = publishedMarks.length > 0
+    ? Math.round(publishedMarks.reduce((sum, m) => sum + (m.marks_obtained / m.max_marks) * 100, 0) / publishedMarks.length) + '%'
     : null;
 
   return (
@@ -252,6 +253,16 @@ export default function StudentProfile() {
     staleTime: 0,
     refetchOnMount: 'stale',
     refetchOnWindowFocus: true,
+  });
+
+  const { data: marks = [] } = useQuery({
+    queryKey: ['student-marks-profile', student?.student_id, student?.academic_year],
+    queryFn: () => base44.entities.Marks.filter(
+      { student_id: student?.student_id, academic_year: student?.academic_year },
+      '-created_date', 200
+    ),
+    enabled: !!student?.student_id,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: attendanceSummary = {} } = useQuery({
