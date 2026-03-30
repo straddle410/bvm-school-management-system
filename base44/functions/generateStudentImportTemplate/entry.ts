@@ -1,28 +1,8 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // CSV template with header row and two example rows
-    // NOTE: class_name and section must match Settings → Class Sections for the academic year.
-    // student_id is intentionally excluded — it is auto-generated on Approval.
     const headers = [
-      'name',
-      'class_name',
-      'section',
-      'parent_name',
-      'parent_phone',
-      'parent_email',
-      'dob',
-      'gender',
-      'address',
-      'blood_group'
+      'name', 'class_name', 'section', 'parent_name', 'parent_phone',
+      'parent_email', 'dob', 'gender', 'address', 'blood_group'
     ];
 
     const exampleRows = [
