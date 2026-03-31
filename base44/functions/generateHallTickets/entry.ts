@@ -130,15 +130,6 @@ Deno.serve(async (req) => {
 
       const hallTickets = [];
 
-      let randomSequence = [];
-      if (assignmentType === 'random') {
-        randomSequence = Array.from({ length: students.length }, (_, i) => i + 1);
-        for (let i = randomSequence.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [randomSequence[i], randomSequence[j]] = [randomSequence[j], randomSequence[i]];
-        }
-      }
-
       // Fetch existing hall tickets for this class/section/exam to skip students who already have one
       const existingTicketsForClass = await base44.asServiceRole.entities.HallTicket.filter({
         class_name: classname,
@@ -167,14 +158,67 @@ Deno.serve(async (req) => {
         }, { status: 400 });
       }
 
-      activeStudents.forEach((student, idx) => {
-        let xx;
+      // ── GAP-FILL LOGIC ──
+      // Total class strength = all students (with + without tickets)
+      const classStrength = students.length;
+
+      // Extract which sequential numbers (xx part) are already used by existing tickets
+      // Hall ticket format: YY + CC + XX (last classStrength digits = XX)
+      const prefix = `${yy}${cc}`;
+      const usedNumbers = new Set(
+        existingTicketsForClass
+          .map(t => {
+            const num = t.hall_ticket_number?.startsWith(prefix)
+              ? parseInt(t.hall_ticket_number.slice(prefix.length), 10)
+              : null;
+            return num;
+          })
+          .filter(n => n !== null && !isNaN(n))
+      );
+
+      // Build list of missing slot numbers in range 1..classStrength
+      const missingSlots = [];
+      for (let i = 1; i <= classStrength; i++) {
+        if (!usedNumbers.has(i)) missingSlots.push(i);
+      }
+
+      // If random mode, shuffle the missing slots
+      if (assignmentType === 'random') {
+        for (let i = missingSlots.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [missingSlots[i], missingSlots[j]] = [missingSlots[j], missingSlots[i]];
+        }
+      }
+
+      // Sort activeStudents by roll_no for sequential, natural order for random
+      const sortedActiveStudents = assignmentType === 'sequential'
+        ? [...activeStudents].sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0))
+        : activeStudents;
+
+      sortedActiveStudents.forEach((student, idx) => {
+        let slotNumber;
         if (assignmentType === 'sequential') {
-          xx = String(student.roll_no || idx + 1).padStart(2, '0');
+          // For sequential: prefer student's own roll_no if the slot is free, else take next free gap
+          const preferredSlot = student.roll_no && !usedNumbers.has(student.roll_no) ? student.roll_no : null;
+          if (preferredSlot) {
+            slotNumber = preferredSlot;
+            // Mark as used so next student doesn't collide
+            usedNumbers.add(preferredSlot);
+            const mIdx = missingSlots.indexOf(preferredSlot);
+            if (mIdx !== -1) missingSlots.splice(mIdx, 1);
+          } else {
+            slotNumber = missingSlots.shift();
+          }
         } else {
-          xx = String(randomSequence[idx]).padStart(2, '0');
+          slotNumber = missingSlots[idx];
         }
 
+        if (!slotNumber) {
+          console.warn(`[WARN] No available slot for student ${student.id} in Class ${classname}-${section}`);
+          return;
+        }
+
+        const xx = String(slotNumber).padStart(2, '0');
         const hallTicketNumber = `${yy}${cc}${xx}`;
 
         hallTickets.push({
