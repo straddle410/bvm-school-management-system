@@ -80,6 +80,7 @@ export default function Students() {
   const [resetStudent, setResetStudent] = useState(null);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetResult, setResetResult] = useState(null);
+  const [bulkProgress, setBulkProgress] = useState(null); // { processed, total, toStatus, failed }
   const LIMIT = 25;
   const debounceRef = useRef(null);
 
@@ -521,72 +522,68 @@ export default function Students() {
     if (!isAdmin) { toast.error('Only Admin/Principal can change student status.'); return; }
     if (selectedIds.size === 0 || !toStatus) return;
 
-    const ids = Array.from(selectedIds);
+    const ids = Array.from(selectedIds).filter(id => {
+      const s = students.find(st => st.id === id);
+      return s && isValidTransition(s.status, toStatus);
+    });
+    if (ids.length === 0) return;
+
     let processed = 0;
     let failed = 0;
     const failedNames = [];
 
+    setBulkProgress({ processed: 0, total: ids.length, toStatus, failed: 0 });
+
     for (const id of ids) {
       const student = students.find(s => s.id === id);
       if (!student) continue;
-      if (!isValidTransition(student.status, toStatus)) continue;
 
-      // SPECIAL CASE: Approving student → call dedicated approval function
-       // This generates student_id AND roll_no in SAME transaction, no automation dependency
-       if (toStatus === 'Approved' && !student.student_id) {
-         const approveRes = await base44.functions.invoke('approveStudentAndGenerateRollNo', {
-           student_db_id: id,
-           staffInfo: user
-         });
-         if (approveRes.data?.error) {
-           failed++;
-           failedNames.push(student.name);
-           continue;
-         }
-         processed++;
-       } else {
-         // Standard status updates (Pending→Verified, Approved→Published, etc)
-         const updates = { status: toStatus };
-         if (toStatus === 'Verified')  updates.verified_by  = user.email;
+      if (toStatus === 'Approved' && !student.student_id) {
+        const approveRes = await base44.functions.invoke('approveStudentAndGenerateRollNo', {
+          student_db_id: id,
+          staffInfo: user
+        });
+        if (approveRes.data?.error) {
+          failed++;
+          failedNames.push(student.name);
+        } else {
+          processed++;
+        }
+      } else {
+        const updates = { status: toStatus };
+        if (toStatus === 'Verified') updates.verified_by = user.email;
 
-         const updateRes = await base44.functions.invoke('updateStudentWithAudit', {
-           student_db_id: id,
-           updates,
-           staff_session_token: getStaffSession()?.staff_session_token || null
-         });
+        const updateRes = await base44.functions.invoke('updateStudentWithAudit', {
+          student_db_id: id,
+          updates,
+          staff_session_token: getStaffSession()?.staff_session_token || null
+        });
 
-         // Check for errors in response
-         if (updateRes.data?.error) {
-           failed++;
-           failedNames.push(student.name);
-           continue;
-         }
-         processed++;
-       }
-     }
+        if (updateRes.data?.error) {
+          failed++;
+          failedNames.push(student.name);
+        } else {
+          processed++;
+        }
+      }
 
-    // Refresh list after processing completes
-    queryClient.invalidateQueries(['students']);
-
-    // Show appropriate feedback based on results
-    if (processed === 0 && failed > 0) {
-      // All failed
-      toast.error(`Failed to update: ${failedNames.join(', ')}`);
-      // Keep selection for retry
-      return;
+      setBulkProgress({ processed: processed + failed, total: ids.length, toStatus, failed });
     }
 
+    setBulkProgress(null);
+    queryClient.invalidateQueries(['students']);
+
+    if (processed === 0 && failed > 0) {
+      toast.error(`Failed to update: ${failedNames.join(', ')}`);
+      return;
+    }
     if (processed > 0 && failed === 0) {
-      // All succeeded
       toast.success(`${processed} student(s) updated to ${toStatus}`);
       setSelectedIds(new Set());
       setBulkAction('');
     }
-
     if (processed > 0 && failed > 0) {
-      // Partial success
       toast.error(`${processed} updated, ${failed} failed: ${failedNames.join(', ')}`);
-      // Keep selection for retry on failed students only
       const newSelection = new Set(ids.filter(id => {
         const s = students.find(st => st.id === id);
         return s && !isValidTransition(s.status, toStatus);
@@ -1049,6 +1046,36 @@ export default function Students() {
           onConfirm={handlePastYearConfirm}
           onCancel={() => setShowPastYearWarning(false)}
         />
+
+        {/* Bulk Progress Overlay */}
+        {bulkProgress && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <div className="text-center mb-4">
+                <div className="text-lg font-bold text-slate-800">Updating Students…</div>
+                <div className="text-sm text-slate-500 mt-1">
+                  Marking as <span className="font-semibold text-[#1a237e]">{bulkProgress.toStatus}</span>
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="flex justify-between text-xs text-slate-500 mb-1">
+                  <span>{bulkProgress.processed} of {bulkProgress.total} done</span>
+                  <span className="font-bold text-[#1a237e]">{Math.round((bulkProgress.processed / bulkProgress.total) * 100)}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="h-3 rounded-full bg-[#1a237e] transition-all duration-300"
+                    style={{ width: `${Math.round((bulkProgress.processed / bulkProgress.total) * 100)}%` }}
+                  />
+                </div>
+              </div>
+              {bulkProgress.failed > 0 && (
+                <p className="text-xs text-red-500 text-center">{bulkProgress.failed} failed so far</p>
+              )}
+              <p className="text-xs text-slate-400 text-center mt-2">Please wait, do not close this page…</p>
+            </div>
+          </div>
+        )}
 
         {/* Reset Password Dialog */}
         <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
