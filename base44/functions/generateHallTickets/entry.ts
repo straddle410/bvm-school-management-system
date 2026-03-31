@@ -244,6 +244,35 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'All students already have hall tickets for this exam. No new tickets generated.', count: 0 });
     }
 
+    // ── GLOBAL DUPLICATE CHECK across entire exam type ──
+    // Fetch ALL existing hall tickets for this exam type + academic year (all classes)
+    const allExistingTickets = await base44.asServiceRole.entities.HallTicket.filter({
+      exam_type: examTypeId,
+      academic_year: academicYear
+    });
+    const allExistingNumbers = new Set(allExistingTickets.map(t => t.hall_ticket_number).filter(Boolean));
+
+    // Check if any of our new tickets collide with existing ones
+    const duplicateNumbers = allHallTickets.filter(t => allExistingNumbers.has(t.hall_ticket_number));
+    if (duplicateNumbers.length > 0) {
+      const dupeList = [...new Set(duplicateNumbers.map(t => t.hall_ticket_number))].join(', ');
+      return Response.json({
+        error: `Duplicate hall ticket numbers detected: ${dupeList}. Please delete conflicting tickets first and regenerate.`,
+        duplicateHallTicketNumbers: dupeList
+      }, { status: 400 });
+    }
+
+    // Also check within the batch itself for duplicates
+    const batchNumbers = allHallTickets.map(t => t.hall_ticket_number);
+    const batchSet = new Set(batchNumbers);
+    if (batchNumbers.length !== batchSet.size) {
+      const seen = new Set();
+      const dupes = batchNumbers.filter(n => seen.size === seen.add(n).size);
+      return Response.json({
+        error: `Internal duplicate hall ticket numbers in generated batch: ${[...new Set(dupes)].join(', ')}. Please contact support.`,
+      }, { status: 400 });
+    }
+
     await base44.asServiceRole.entities.HallTicket.bulkCreate(allHallTickets);
 
     await base44.asServiceRole.entities.HallTicketLog.create({
