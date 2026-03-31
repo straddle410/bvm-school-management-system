@@ -81,6 +81,8 @@ export default function Students() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetResult, setResetResult] = useState(null);
   const [bulkProgress, setBulkProgress] = useState(null); // { processed, total, toStatus, failed }
+  const [sortField, setSortField] = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
   const LIMIT = 25;
   const debounceRef = useRef(null);
 
@@ -652,6 +654,21 @@ export default function Students() {
   });
   const pendingDeletionCount = (pendingDeletions || []).filter(r => r.account_type === 'student' && r.status === 'Pending').length;
 
+  const handleSort = (field) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir('asc'); }
+  };
+
+  const sortedStudents = [...students].sort((a, b) => {
+    let aVal = a[sortField] ?? '';
+    let bVal = b[sortField] ?? '';
+    if (sortField === 'roll_no') { aVal = parseInt(aVal) || 0; bVal = parseInt(bVal) || 0; }
+    else { aVal = String(aVal).toLowerCase(); bVal = String(bVal).toLowerCase(); }
+    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   // Stats derived from server total count (accurate) per tab
   const totalActive = activeTab === 'active' ? totalCount : allStudents.filter(s => s.status === 'Published').length;
   const totalPending = allStudents.filter(s => s.status === 'Pending').length;
@@ -874,16 +891,17 @@ export default function Students() {
                 <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                   <div className="w-4 flex-shrink-0" />
                   <div className="w-9 flex-shrink-0" />
-                  <div className="w-48 flex-shrink-0">Name / ID</div>
-                  <div className="w-20 flex-shrink-0">Class</div>
-                  <div className="w-16 flex-shrink-0">Sec</div>
-                  <div className="w-16 flex-shrink-0">Roll</div>
-                  <div className="w-24 flex-shrink-0">Status</div>
+                  {[{f:'name',label:'Name / ID',w:'w-48'},{f:'class_name',label:'Class',w:'w-20'},{f:'section',label:'Sec',w:'w-16'},{f:'roll_no',label:'Roll',w:'w-16'},{f:'status',label:'Status',w:'w-24'}].map(col => (
+                    <button key={col.f} onClick={() => handleSort(col.f)} className={`${col.w} flex-shrink-0 flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300 transition-colors`}>
+                      {col.label}
+                      <span className="text-[10px]">{sortField === col.f ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                    </button>
+                  ))}
                   <div className="w-20 flex-shrink-0">Transport</div>
                   <div className="w-20 flex-shrink-0">Hostel</div>
                   <div className="w-8 flex-shrink-0" />
                 </div>
-                {students.map(student => (
+                {sortedStudents.map(student => (
                   <div key={student.id} className="flex gap-2 items-start">
                     {isAdmin && !isLocked(student) && !student.is_deleted && activeTab !== 'alumni' && !showDeleted && (
                       <input
