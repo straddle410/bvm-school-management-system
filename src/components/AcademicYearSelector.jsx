@@ -43,8 +43,8 @@ export default function AcademicYearSelector() {
     );
   }
 
-  // Admin: show all non-archived years
-  displayYears = displayYears.filter(y => (y.status || '').toLowerCase() !== 'archived');
+  // Admin: show all years (including archived) so admin can review past data
+  // displayYears already contains all years — no filtering needed
 
   if (displayYears.length === 0) {
     return (
