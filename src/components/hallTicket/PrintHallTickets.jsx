@@ -117,39 +117,39 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .ticket-slot:first-child { padding-top: 0; }
     .ticket-slot:nth-child(3) { padding-bottom: 0; }
     .ticket-slot-empty { visibility: hidden; }
-    .ticket { flex: 1; display: flex; flex-direction: column; border: 1px solid #888; border-radius: 3px; overflow: hidden; } border-radius: 3px; overflow: hidden; }
+    .ticket { flex: 1; display: flex; flex-direction: column; border: 1.5px solid #555; border-radius: 3px; overflow: hidden; }
 
-    /* HEADER */
-    .header { background: #f0f0f0; color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 2px solid #333; }
+    /* HEADER — light gray instead of dark blue */
+    .header { background: #f2f2f2; color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1.5px solid #555; }
     .header-text { text-align: center; flex: 1; }
     .header h2 { font-size: 13px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
-    .header p { font-size: 9px; color: #555; margin-top: 2px; }
+    .header p { font-size: 9px; color: #444; margin-top: 2px; }
     .logo { height: 34px; width: 34px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
 
     /* BADGE */
-    .badge-row { background: #e8e8e8; color: #111; text-align: center; font-size: 10px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #aaa; -webkit-print-color-adjust: exact; print-color-adjust: exact; } background: #e8eaf6; color: #1a237e; text-align: center; font-size: 10px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #c5cae9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge-row { background: #e8e8e8; color: #111; text-align: center; font-size: 10px; font-weight: 700; padding: 2px 0; letter-spacing: 0.05em; border-bottom: 1px solid #bbb; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     /* BODY */
     .body-row { display: flex; flex: 1; min-height: 0; }
 
     /* STUDENT COL */
-    .student-col { display: flex; flex-direction: column; padding: 5px 6px; border-right: 1px solid #ddd; width: 52mm; flex-shrink: 0; gap: 5px; }
+    .student-col { display: flex; flex-direction: column; padding: 5px 6px; border-right: 1px solid #ccc; width: 52mm; flex-shrink: 0; gap: 5px; }
     .photo-wrap { display: flex; justify-content: center; }
-    .photo { width: 60px; height: 75px; object-fit: cover; border: 1.5px solid #1a237e; border-radius: 3px; }
+    .photo { width: 60px; height: 75px; object-fit: cover; border: 1.5px solid #555; border-radius: 3px; }
     .no-photo { width: 60px; height: 75px; background: #eee; border: 1.5px solid #ccc; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #999; text-align: center; }
     .fields { display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
     .field-item { line-height: 1; }
-    .lbl { font-size: 7.5px; color: #888; line-height: 1.1; }
-    .val { font-size: 10px; font-weight: 700; color: #222; line-height: 1.3; }
-    .val.ht { color: #111; font-size: 11px; } font-size: 11px; }
+    .lbl { font-size: 7.5px; color: #666; line-height: 1.1; }
+    .val { font-size: 10px; font-weight: 700; color: #111; line-height: 1.3; }
+    .val.ht { color: #111; font-size: 11px; }
 
     /* SCHEDULE COL */
     .schedule-col { flex: 1; padding: 4px 5px; display: flex; flex-direction: column; }
-    .sec-title { font-size: 10px; font-weight: 700; color: #111; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; } margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .sec-title { font-size: 10px; font-weight: 700; color: #111; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
     table { border-collapse: collapse; width: 100%; font-size: 9px; flex: 1; }
     table tbody { display: table-row-group; }
     th { background: #e8e8e8; color: #111; padding: 3px 4px; text-align: left; font-size: 9px; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #aaa; }
-    td { border: 1px solid #bbb; padding: 1px 4px; font-size: 9px; vertical-align: middle; } padding: 1px 4px; font-size: 9px; vertical-align: middle; }
+    td { border: 1px solid #ccc; padding: 1px 4px; font-size: 9px; vertical-align: middle; background: #fff; }
 
     /* WATERMARK */
     .watermark { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -159,9 +159,9 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .schedule-col > *:not(.watermark) { position: relative; z-index: 1; }
 
     /* FOOTER */
-    .footer-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 6px 5px; border-top: 1px solid #ddd; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 6px 5px; border-top: 1px solid #ccc; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .instr { flex: 1; }
-    .instr b { font-size: 8px; color: #92400e; display: block; margin-bottom: 2px; }
+    .instr b { font-size: 8px; color: #555; display: block; margin-bottom: 2px; }
     .instr ul { padding-left: 12px; }
     .instr li { font-size: 7.5px; color: #555; line-height: 1.5; }
     .sig { text-align: center; font-size: 8px; color: #444; font-weight: 600; flex-shrink: 0; }
