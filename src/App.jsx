@@ -8,6 +8,7 @@ import StudentQuiz from './pages/StudentQuiz'
 import StudentChangePassword from './pages/StudentChangePassword'
 import DeleteAccount from './pages/DeleteAccount'
 import PublicReceipt from './pages/PublicReceipt'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -88,6 +89,7 @@ function App() {
             {/* Public routes — no auth check */}
             <Route path="/receipt" element={<PublicReceipt />} />
             <Route path="/receipt/:receipt_no" element={<PublicReceipt />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             {/* All other routes go through auth */}
             <Route path="*" element={<AuthenticatedApp />} />
           </Routes>
