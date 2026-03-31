@@ -78,12 +78,7 @@ export default function StudentLogin() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-100/30 rounded-full blur-3xl" />
       </div>
 
-      <Link
-        to={createPageUrl('Dashboard')}
-        className="absolute top-5 left-5 z-20 flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </Link>
+
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 relative z-10">
 
@@ -169,6 +164,12 @@ export default function StudentLogin() {
           <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-5">
             Forgot your password? Contact the school administration to reset it.
           </p>
+
+          <div className="mt-4 text-center">
+            <Link to={createPageUrl('StaffLogin')} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+              Staff? Login here →
+            </Link>
+          </div>
         </div>
 
         {/* Legal Links */}

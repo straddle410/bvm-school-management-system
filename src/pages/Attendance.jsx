@@ -88,6 +88,36 @@ function MarkAttendanceTab({
   const [rangeEnd, setRangeEnd] = useState('');
   const [rangeReason, setRangeReason] = useState('');
   const [rangeProgress, setRangeProgress] = useState(0);
+
+  const saveRangeMutation = useMutation({
+    mutationFn: async () => {
+      if (!rangeStart || !rangeEnd) throw new Error('Start and end dates are required');
+      const days = eachDayOfInterval({ start: parseISO(rangeStart), end: parseISO(rangeEnd) });
+      let progress = 0;
+      for (const day of days) {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        await base44.entities.Holiday.create({
+          date: dateStr,
+          title: rangeReason || 'Holiday',
+          reason: rangeReason || '',
+          marked_by: user?.email || 'admin',
+          academic_year: academicYear,
+          status: 'Active'
+        });
+        progress = Math.round(((days.indexOf(day) + 1) / days.length) * 100);
+        setRangeProgress(progress);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      setShowRangeMode(false);
+      setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeProgress(0);
+      toast.success('Holiday range marked successfully');
+    },
+    onError: (err) => {
+      toast.error('Failed to mark holiday range: ' + (err?.message || 'Unknown error'));
+    }
+  });
   const [halfDayModal, setHalfDayModal] = useState({ isOpen: false, studentId: null, studentName: null });
   const [showPastYearWarning, setShowPastYearWarning] = useState(false);
   const [manuallyChanged, setManuallyChanged] = useState(false);

@@ -162,7 +162,7 @@ export default function StaffLogin() {
     <div className="min-h-screen bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] flex items-center justify-center p-4">
       {/* Back button */}
       <button
-        onClick={() => navigate(createPageUrl('Home'))}
+        onClick={() => navigate(createPageUrl('StudentLogin'))}
         className="absolute top-4 left-4 flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -267,6 +267,12 @@ export default function StaffLogin() {
             <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
               For account issues, contact your administrator.
             </p>
+
+            <div className="mt-4 text-center">
+              <Link to={createPageUrl('StudentLogin')} className="text-sm text-indigo-400 hover:text-indigo-300 hover:underline font-medium">
+                Student? Login here →
+              </Link>
+            </div>
           </form>
 
           {/* Legal Links inside card */}

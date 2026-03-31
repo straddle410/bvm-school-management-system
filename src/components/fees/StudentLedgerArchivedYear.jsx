@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, User, AlertCircle } from 'lucide-react';
+import { Search, User, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
 import FeePaymentForm from './FeePaymentForm';
 import ArchivedYearPaymentWarning from './ArchivedYearPaymentWarning';
 

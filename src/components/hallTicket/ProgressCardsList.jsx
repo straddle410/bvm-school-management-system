@@ -105,7 +105,10 @@ export default function ProgressCardsList() {
       return response.data;
     },
     onSuccess: (data) => {
-      const blob = new Blob([Buffer.from(data.zipData, 'base64')], { type: 'application/zip' });
+      const binary = atob(data.zipData);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/zip' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

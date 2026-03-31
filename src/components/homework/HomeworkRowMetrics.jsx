@@ -31,55 +31,19 @@ export default function HomeworkRowMetrics({
   submissions = [],
   assignedStudents = [],
 }) {
-  // VIEW_ONLY homework: use simplified card
+  // Hooks MUST be called unconditionally before any early return
+  const [metrics, setMetrics] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [activeModal, setActiveModal] = useState(null);
+
+  useEffect(() => {
+    // Only load metrics for SUBMISSION_REQUIRED
+    if (homework.submission_mode === 'VIEW_ONLY') return;
+
+  // VIEW_ONLY homework: use simplified card (after hooks)
   if (homework.submission_mode === 'VIEW_ONLY') {
     return <HomeworkViewOnlyCard homework={homework} />;
   }
-
-  // SUBMISSION_REQUIRED: show full metrics
-  const [metrics, setMetrics] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [activeModal, setActiveModal] = useState(null); // 'submitted'|'pending'|'graded'|'revision'|'late'
-
-  useEffect(() => {
-    const loadMetrics = async () => {
-      try {
-        // Get assigned students if not provided
-        let students = assignedStudents;
-        if (assignedStudents.length === 0) {
-          const studentFilter = {
-            class_name: homework.class_name,
-            is_deleted: false,
-            is_active: true,
-            status: 'Published',
-            academic_year: homework.academic_year,
-          };
-          if (homework.section && homework.section !== 'All') {
-            studentFilter.section = homework.section;
-          }
-          students = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
-        }
-        
-        setStudents(students);
-        const calculated = getHomeworkAggregatedMetrics(homework, submissions, students);
-        setMetrics(calculated);
-      } catch (err) {
-        console.error('Error loading metrics:', err);
-        // Fallback to empty metrics
-        setMetrics({
-          totalStudents: 0,
-          submittedCount: 0,
-          pendingCount: 0,
-          gradedCount: 0,
-          revisionRequiredCount: 0,
-          lateCount: 0,
-          completionPercent: 0,
-        });
-      }
-    };
-    
-    loadMetrics();
-  }, [homework, submissions, assignedStudents]);
 
   if (!metrics) return <div className="text-center py-2 text-gray-400">Loading metrics...</div>;
 

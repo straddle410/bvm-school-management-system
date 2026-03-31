@@ -22,28 +22,10 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const [showSegmentation, setShowSegmentation] = useState(false);
   const qc = useQueryClient();
   const user = getStaffSession();
-  
-  // ACCESS CONTROL: Check if user can view this homework
   const canAccess = canManageHomework(homework, user);
+
   if (!canAccess) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style={{ paddingBottom: '64px' }}>
-        <div className="bg-white w-full max-w-md rounded-2xl p-6 flex flex-col items-center gap-4">
-          <AlertCircle className="h-12 w-12 text-red-500" />
-          <div className="text-center">
-            <h2 className="font-bold text-slate-800 mb-2">Access Denied</h2>
-            <p className="text-sm text-gray-600">You do not have permission to view or manage this homework.</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 rounded-lg"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery({
     queryKey: ['hw-submissions', homework.id, academicYear],

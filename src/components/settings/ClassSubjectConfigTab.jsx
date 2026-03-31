@@ -352,18 +352,8 @@ export default function ClassSubjectConfigTab() {
              <Save className="h-4 w-4" />
              {saving ? 'Saving...' : `Save for Class ${selectedClass}`}
            </Button>
-           {/* Dev-only test button */}
-           {process.env.NODE_ENV === 'development' && (
-             <Button
-               onClick={() => testClassMapping(selectedClass, selected)}
-               variant="outline"
-               size="sm"
-               className="gap-2 text-xs"
-             >
-               <Zap className="h-3 w-3" />
-               Test Save
-             </Button>
-           )}
+           {/* Dev-only test button — hidden in production */}
+           {false && (
          </div>
       </CardContent>
 

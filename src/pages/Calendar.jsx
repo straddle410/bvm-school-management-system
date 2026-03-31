@@ -39,6 +39,12 @@ const EVENT_TYPES = [
 
 export default function Calendar() {
   const [user, setUser] = useState(null);
+  const [academicYear] = useState(() => {
+    try {
+      const ay = localStorage.getItem('academic_year');
+      return ay || '';
+    } catch { return ''; }
+  });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showEventDialog, setShowEventDialog] = useState(false);

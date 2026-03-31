@@ -21,8 +21,8 @@ export default function Index() {
       return;
     }
 
-    // No session — go to home/landing
-    navigate(createPageUrl('Home'), { replace: true });
+    // No session — go to student login
+    navigate(createPageUrl('StudentLogin'), { replace: true });
   }, [navigate]);
 
   return null;
