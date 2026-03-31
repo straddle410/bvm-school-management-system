@@ -45,7 +45,9 @@ Deno.serve(async (req) => {
       exclude_archived = false,
       show_deleted = false,
       academic_year,
-      staff_session_token
+      staff_session_token,
+      sort_field = 'name',
+      sort_dir = 'asc'
     } = body;
 
     if (!academic_year) return Response.json({ error: 'academic_year is required' }, { status: 400 });
@@ -134,6 +136,17 @@ Deno.serve(async (req) => {
         s.parent_name?.toLowerCase().includes(q)
       );
     }
+
+    // Sort all results before pagination
+    results.sort((a, b) => {
+      let aVal = a[sort_field] ?? '';
+      let bVal = b[sort_field] ?? '';
+      if (sort_field === 'roll_no') { aVal = parseInt(aVal) || 0; bVal = parseInt(bVal) || 0; }
+      else { aVal = String(aVal).toLowerCase(); bVal = String(bVal).toLowerCase(); }
+      if (aVal < bVal) return sort_dir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sort_dir === 'asc' ? 1 : -1;
+      return 0;
+    });
 
     const total_count = results.length;
     const total_pages = Math.max(1, Math.ceil(total_count / limit));

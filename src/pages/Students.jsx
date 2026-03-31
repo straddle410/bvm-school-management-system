@@ -128,7 +128,7 @@ export default function Students() {
   }, []);
 
   const { data: studentsData, isLoading } = useQuery({
-    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, activeTab, showDeleted],
+    queryKey: ['students', academicYear, page, LIMIT, debouncedSearch, filterClass, filterSection, activeTab, showDeleted, sortField, sortDir],
     queryFn: async () => {
       let effectiveStatus = '';
       let exclude_archived = false;
@@ -157,6 +157,8 @@ export default function Students() {
         show_deleted: showDeleted && isAdmin,
         academic_year: academicYear,
         staff_session_token: session?.staff_session_token || null,
+        sort_field: sortField,
+        sort_dir: sortDir,
       });
       return res.data;
     },
@@ -659,15 +661,8 @@ export default function Students() {
     else { setSortField(field); setSortDir('asc'); }
   };
 
-  const sortedStudents = [...students].sort((a, b) => {
-    let aVal = a[sortField] ?? '';
-    let bVal = b[sortField] ?? '';
-    if (sortField === 'roll_no') { aVal = parseInt(aVal) || 0; bVal = parseInt(bVal) || 0; }
-    else { aVal = String(aVal).toLowerCase(); bVal = String(bVal).toLowerCase(); }
-    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-    return 0;
-  });
+  // Sorting is now done server-side; use students directly
+  const sortedStudents = students;
 
   // Stats derived from server total count (accurate) per tab
   const totalActive = activeTab === 'active' ? totalCount : allStudents.filter(s => s.status === 'Published').length;
