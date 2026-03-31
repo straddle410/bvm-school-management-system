@@ -352,8 +352,6 @@ export default function ClassSubjectConfigTab() {
              <Save className="h-4 w-4" />
              {saving ? 'Saving...' : `Save for Class ${selectedClass}`}
            </Button>
-           {/* Dev-only test button — hidden in production */}
-           {false && (
          </div>
       </CardContent>
 

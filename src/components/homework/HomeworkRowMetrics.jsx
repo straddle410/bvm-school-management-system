@@ -37,10 +37,25 @@ export default function HomeworkRowMetrics({
   const [activeModal, setActiveModal] = useState(null);
 
   useEffect(() => {
-    // Only load metrics for SUBMISSION_REQUIRED
     if (homework.submission_mode === 'VIEW_ONLY') return;
+    const loadMetrics = async () => {
+      try {
+        let studentList = assignedStudents;
+        if (assignedStudents.length === 0) {
+          const studentFilter = { class_name: homework.class_name, is_deleted: false, is_active: true, status: 'Published', academic_year: homework.academic_year };
+          if (homework.section && homework.section !== 'All') studentFilter.section = homework.section;
+          studentList = await base44.entities.Student.filter(studentFilter, 'student_id', 500);
+        }
+        setStudents(studentList);
+        setMetrics(getHomeworkAggregatedMetrics(homework, submissions, studentList));
+      } catch {
+        setMetrics({ totalStudents: 0, submittedCount: 0, pendingCount: 0, gradedCount: 0, revisionRequiredCount: 0, lateCount: 0, completionPercent: 0 });
+      }
+    };
+    loadMetrics();
+  }, [homework, submissions, assignedStudents]);
 
-  // VIEW_ONLY homework: use simplified card (after hooks)
+  // VIEW_ONLY: simplified card (after hooks)
   if (homework.submission_mode === 'VIEW_ONLY') {
     return <HomeworkViewOnlyCard homework={homework} />;
   }

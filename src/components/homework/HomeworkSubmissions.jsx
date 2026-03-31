@@ -24,33 +24,17 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const user = getStaffSession();
   const canAccess = canManageHomework(homework, user);
 
-  if (!canAccess) {
-    return (
-
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery({
     queryKey: ['hw-submissions', homework.id, academicYear],
     queryFn: () => base44.entities.HomeworkSubmission.filter({ homework_id: homework.id }, '-created_date', 200),
     enabled: !!academicYear
   });
 
-  // Query assigned students for this homework's class/section
   const { data: assignedStudents = [] } = useQuery({
     queryKey: ['hw-assigned-students', homework.class_name, homework.section, academicYear],
     queryFn: async () => {
-      // Build filter for students matching this homework's class/section
-      const studentFilter = {
-        class_name: homework.class_name,
-        is_deleted: false,
-        status: 'Published',
-        academic_year: academicYear
-      };
-
-      // Add section filter
-      if (homework.section && homework.section !== 'All') {
-        studentFilter.section = homework.section;
-      }
-      // If section is "All", we already have class_name, no section filter needed
-
+      const studentFilter = { class_name: homework.class_name, is_deleted: false, status: 'Published', academic_year: academicYear };
+      if (homework.section && homework.section !== 'All') studentFilter.section = homework.section;
       return base44.entities.Student.filter(studentFilter, 'student_id', 500);
     },
     enabled: !!academicYear
@@ -170,8 +154,22 @@ export default function HomeworkSubmissions({ homework, onClose }) {
   const totalUniqueSubmitted = latestMap.size;
   const pending = Math.max(0, totalStudents - totalUniqueSubmitted);
 
-  // Calculate marks statistics (GRADED submissions only with teacher_marks)
   const { averageMarks, highestMarks, lowestMarks } = getMarksStatistics(submissions);
+
+  if (!canAccess) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style={{ paddingBottom: '64px' }}>
+        <div className="bg-white w-full max-w-md rounded-2xl p-6 flex flex-col items-center gap-4">
+          <AlertCircle className="h-12 w-12 text-red-500" />
+          <div className="text-center">
+            <h2 className="font-bold text-slate-800 mb-2">Access Denied</h2>
+            <p className="text-sm text-gray-600">You do not have permission to view or manage this homework.</p>
+          </div>
+          <button onClick={onClose} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 rounded-lg">Close</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" style={{ paddingBottom: '64px' }}>
