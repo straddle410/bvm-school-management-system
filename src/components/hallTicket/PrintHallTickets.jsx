@@ -148,8 +148,8 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .sec-title { font-size: 10px; font-weight: 700; color: #111; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
     table { border-collapse: collapse; width: 100%; font-size: 9px; flex: 1; }
     table tbody { display: table-row-group; }
-    th { background: #e8e8e8; color: #111; padding: 3px 4px; text-align: left; font-size: 9px; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #aaa; }
-    td { border: 1px solid #ccc; padding: 1px 4px; font-size: 9px; vertical-align: middle; background: #fff; }
+    th { background: #e8e8e8; color: #111; padding: 3px 4px; text-align: left; font-size: 9px; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 2px solid #333; }
+    td { border: 2px solid #333; padding: 1px 4px; font-size: 9px; vertical-align: middle; background: #fff; }
 
     /* WATERMARK */
     .watermark { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
