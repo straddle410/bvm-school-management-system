@@ -77,7 +77,10 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
           </div>
           <div class="sig ao-sig"><div class="sig-line"></div>AO Signature</div>
           <div style="flex:1;"></div>
-          <div class="sig"><div class="sig-line"></div>Principal Signature</div>
+          <div class="sig">
+            <img src="https://media.base44.com/images/public/69965572f33252d650e49c9b/babdd5525_WhatsAppImage2026-03-31at44055PM.jpeg" style="width:80px; height:36px; object-fit:contain; mix-blend-mode:multiply; display:block; margin:0 auto 0;"/>
+            <div class="sig-line"></div>Principal Signature
+          </div>
         </div>
       </div>
     </div>`;
@@ -162,7 +165,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .instr ul { padding-left: 12px; }
     .instr li { font-size: 7.5px; color: #555; line-height: 1.5; }
     .sig { text-align: center; font-size: 8px; color: #444; font-weight: 600; flex-shrink: 0; }
-    .sig-line { border-top: 1px solid #666; width: 62px; margin: 16px auto 2px; }
+    .sig-line { border-top: 1px solid #666; width: 80px; margin: 0 auto 2px; }
   </style></head><body>${pagesHTML}</body></html>`);
 
   win.document.close();
