@@ -141,19 +141,18 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
   // Calculate total outstanding for selected students
   const totalOutstanding = selectedIds.reduce((sum, sid) => sum + getOutstandingBalance(sid), 0);
 
-  // Search & filter students (only those with FeeInvoices)
+  // Search & filter students
   const searchLower = searchQuery.toLowerCase();
-  const searchResults = selectedClass
-    ? studentsWithInvoices.filter(s => 
-        s.class_name === selectedClass &&
-        (s.name.toLowerCase().includes(searchLower) || s.student_id.toLowerCase().includes(searchLower))
-      )
-    : studentsWithInvoices.filter(s =>
-        s.name.toLowerCase().includes(searchLower) || s.student_id.toLowerCase().includes(searchLower)
-      );
+  const searchResults = allStudents.filter(s => {
+    const matchClass = !selectedClass || s.class_name === selectedClass;
+    const matchSearch = !searchLower ||
+      (s.name || '').toLowerCase().includes(searchLower) ||
+      (s.student_id || '').toLowerCase().includes(searchLower);
+    return matchClass && matchSearch;
+  });
 
   // Students currently selected
-  const selectedStudents = studentsWithInvoices.filter(s => selectedIds.includes(String(s.student_id).trim()));
+  const selectedStudents = allStudents.filter(s => selectedIds.includes(String(s.student_id).trim()));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
