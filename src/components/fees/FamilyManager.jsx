@@ -61,18 +61,14 @@ export default function FamilyManager({ academicYear, isArchived, feeHeads = [] 
     staleTime: 5 * 60 * 1000 // 5 mins — reduces refetch on tab switches
   });
 
-  // ✅ FIX #6: Paginate students instead of loading all at once
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['students-all-published', academicYear, studentPage],
+    queryKey: ['students-all-published', academicYear],
     queryFn: async () => {
-      const all = await base44.entities.Student.filter({ 
+      return await base44.entities.Student.filter({ 
         academic_year: academicYear, 
-        status: 'Published', 
-        is_deleted: false,
-        is_active: true
+        status: 'Published',
+        is_deleted: false
       });
-      const start = studentPage * STUDENTS_LIMIT;
-      return all.slice(start, start + STUDENTS_LIMIT);
     },
     enabled: !!academicYear,
     staleTime: 5 * 60 * 1000
