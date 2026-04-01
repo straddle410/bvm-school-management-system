@@ -1107,7 +1107,7 @@ export default function Attendance() {
               {canViewReports && <TabsTrigger value="snapshot">Daily Snapshot</TabsTrigger>}
               {canViewReports && <TabsTrigger value="summary">Summary Report</TabsTrigger>}
               {isAdmin && <TabsTrigger value="holidays">Holidays</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="absent-notif">Absent Notify</TabsTrigger>}
+              {(isAdmin || isExamStaff) && <TabsTrigger value="absent-notif">Absent Notify</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="mark">
@@ -1149,7 +1149,7 @@ export default function Attendance() {
               </TabsContent>
             )}
 
-            {isAdmin && (
+            {(isAdmin || isExamStaff) && (
               <TabsContent value="absent-notif">
                 <AbsentNotificationTab academicYear={academicYear} user={user} />
               </TabsContent>

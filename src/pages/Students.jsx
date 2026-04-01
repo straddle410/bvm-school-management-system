@@ -100,6 +100,8 @@ export default function Students() {
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'admin' ||
                   user?.role === 'Principal' || user?.role === 'principal';
+  const isExamStaff = (user?.role || '').toLowerCase() === 'exam_staff';
+  const isAdminOrExamStaff = isAdmin || isExamStaff;
 
   useEffect(() => {
     if (!academicYear) return;
@@ -689,7 +691,7 @@ export default function Students() {
             </div>
 
             {/* Right: actions */}
-            {isAdmin && (
+            {isAdminOrExamStaff && (
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {/* Add Student — always visible */}
                 <Button size="sm" onClick={openAdd} className="bg-[#1a237e] hover:bg-[#283593] rounded-lg h-8 px-3 text-xs">
@@ -704,7 +706,7 @@ export default function Students() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => setShowBulkUpload(true)}>
+                   <DropdownMenuItem onClick={() => setShowBulkUpload(true)}>
                       <Upload className="h-4 w-4 mr-2 text-gray-500" /> Import Students
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => { if (students.length === 0) { toast.error('No students to export'); return; } const headers = ['student_id','name','class_name','section','roll_no','parent_name','parent_phone','parent_email','dob','gender','address','blood_group','admission_date','status']; const rows = students.map(s => headers.map(h => `"${(s[h]||'').toString().replace(/"/g,'""')}"`).join(',')); const csv = [headers.join(','),...rows].join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `students-${academicYear}-${new Date().toISOString().split('T')[0]}.csv`; a.click(); toast.success('Exported'); }} title="Security: password fields excluded from export">
@@ -713,9 +715,11 @@ export default function Students() {
                     <DropdownMenuItem onClick={() => setShowManageRolls(true)}>
                       <Hash className="h-4 w-4 mr-2 text-gray-500" /> Roll Numbers
                     </DropdownMenuItem>
+                    {isAdmin && (
                     <DropdownMenuItem onClick={() => setShowPromote(true)}>
                       <TrendingUp className="h-4 w-4 mr-2 text-gray-500" /> Promote Students
                     </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -729,9 +733,9 @@ export default function Students() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm flex overflow-hidden">
             {[
               { key: 'active', label: 'Active Students', color: 'text-green-700', activeBg: 'bg-green-50 border-b-2 border-green-600' },
-              ...(isAdmin ? [{ key: 'pipeline', label: 'Admission Pipeline', color: 'text-yellow-700', activeBg: 'bg-yellow-50 border-b-2 border-yellow-500' }] : []),
-              ...(isAdmin ? [{ key: 'alumni', label: 'Alumni / Archive', color: 'text-gray-600', activeBg: 'bg-gray-50 border-b-2 border-gray-500' }] : []),
-              ...(isAdmin ? [{ key: 'deletion', label: 'Deletion Requests', color: 'text-red-700', activeBg: 'bg-red-50 border-b-2 border-red-500' }] : []),
+              ...(isAdminOrExamStaff ? [{ key: 'pipeline', label: 'Admission Pipeline', color: 'text-yellow-700', activeBg: 'bg-yellow-50 border-b-2 border-yellow-500' }] : []),
+              ...(isAdminOrExamStaff ? [{ key: 'alumni', label: 'Alumni / Archive', color: 'text-gray-600', activeBg: 'bg-gray-50 border-b-2 border-gray-500' }] : []),
+              ...(isAdminOrExamStaff ? [{ key: 'deletion', label: 'Deletion Requests', color: 'text-red-700', activeBg: 'bg-red-50 border-b-2 border-red-500' }] : []),
             ].map(tab => (
               <button
                  key={tab.key}
