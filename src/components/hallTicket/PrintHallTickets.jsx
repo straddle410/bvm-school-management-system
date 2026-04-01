@@ -118,7 +118,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
     .ticket-slot:first-child { padding-top: 0; }
     .ticket-slot:nth-child(3) { padding-bottom: 0; }
     .ticket-slot-empty { visibility: hidden; }
-    .ticket { flex: 1; display: flex; flex-direction: column; border: 1.25px solid #333; border-radius: 3px; overflow: hidden; }
+    .ticket { flex: 1; display: flex; flex-direction: column; border: 1.5px solid #333; border-radius: 3px; overflow: hidden; } border-radius: 3px; overflow: hidden; }
 
     /* HEADER */
     .header { background: #f2f2f2; color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: center; border-bottom: 1.25px solid #333; }
