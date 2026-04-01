@@ -39,7 +39,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
       if (session) {
         const parsed = JSON.parse(session);
         const role = (parsed?.role || '').trim().toLowerCase();
-        if (role === 'admin' || role === 'principal') {
+        if (role === 'admin' || role === 'principal' || role === 'exam_staff') {
           setUser({ role: 'admin' });
           return;
         }
@@ -53,7 +53,7 @@ export default function ExamTypeManager({ isAdmin = false, showAddButton = true 
     });
   }, []);
   
-  const hasPermission = isAdmin || (user?.role === 'admin');
+  const hasPermission = isAdmin || (user?.role === 'admin') || (user?.role === 'exam_staff');
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
