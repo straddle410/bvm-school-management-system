@@ -28,8 +28,10 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
          <div class="header">
            <div class="header-inner">
              ${proxiedLogoUrl ? `<img src="${proxiedLogoUrl}" class="logo"/>` : ''}
-             <h2>${schoolProfile?.school_name || 'School'}</h2>
-             ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
+             <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+               <h2>${schoolProfile?.school_name || 'School'}</h2>
+               ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
+             </div>
            </div>
          </div>
         <div class="badge-row">HALL TICKET — ${examName}</div>
