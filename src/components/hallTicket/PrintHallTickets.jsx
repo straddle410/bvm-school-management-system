@@ -28,12 +28,10 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
          <div class="header">
            <div class="header-inner">
              ${proxiedLogoUrl ? `<img src="${proxiedLogoUrl}" class="logo"/>` : ''}
-             <div class="header-text">
-               <h2>${schoolProfile?.school_name || 'School'}</h2>
-               ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
-             </div>
+             <h2>${schoolProfile?.school_name || 'School'}</h2>
+             ${schoolProfile?.address ? `<p>${schoolProfile.address}</p>` : ''}
            </div>
-        </div>
+         </div>
         <div class="badge-row">HALL TICKET — ${examName}</div>
         <div class="body-row" style="position:relative;">
           ${proxiedWatermarkUrl ? `<img src="${proxiedWatermarkUrl}" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; height:200px; object-fit:contain; opacity:0.15; filter:grayscale(80%); z-index:5; pointer-events:none;"/>` : ''}
@@ -122,8 +120,8 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
     /* HEADER */
     .header { background: #f2f2f2; color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: center; border-bottom: 1.25px solid #333; }
-    .header-inner { display: flex; align-items: center; gap: 6px; } color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1.25px solid #333; }
-    .header-text { text-align: center; width: 100%; }
+    .header-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; } color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1.25px solid #333; }
+
     .header h2 { font-size: 13px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
     .header p { font-size: 9px; color: #444; margin-top: 2px; text-align: center; letter-spacing: 0.08em; padding: 0 4px; }
     .logo { height: 34px; width: 34px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
