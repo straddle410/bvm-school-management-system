@@ -196,8 +196,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
   };
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-wrap gap-4">
         <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(null); setSearch(''); setStudentPage(0); }}>
           <SelectTrigger className="w-56 text-base min-h-[48px]"><SelectValue placeholder="Select Class" /></SelectTrigger>
@@ -489,7 +488,6 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
           }}
         />
       )}
-      </div>
-      </PullToRefresh>
-      );
-      }
+    </div>
+  );
+}
