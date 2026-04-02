@@ -206,7 +206,7 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
+      <main className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
         <StaffAuthGuard currentPageName={currentPageName}>
           {children}
         </StaffAuthGuard>
