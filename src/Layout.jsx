@@ -155,7 +155,7 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem("vite-ui-theme", "light");
     return (
       <AcademicYearProvider>
-        <div className="min-h-screen bg-gray-100 flex flex-col relative">
+        <div className="h-screen bg-gray-100 flex flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto">
             <StudentAuthGuard currentPageName={currentPageName}>
               {children}
@@ -170,7 +170,7 @@ export default function Layout({ children, currentPageName }) {
     <AcademicYearProvider>
       <MessageNotificationListener />
       <StaffAuthGuard currentPageName={currentPageName}>
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col w-full" style={{ 
+    <div className="h-screen bg-[#f0f4ff] flex flex-col w-full overflow-hidden" style={{
       fontFamily: "'Segoe UI', sans-serif",
       paddingTop: 'env(safe-area-inset-top)',
       paddingBottom: 'env(safe-area-inset-bottom)',
