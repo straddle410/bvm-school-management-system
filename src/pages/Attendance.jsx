@@ -1096,10 +1096,9 @@ export default function Attendance() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Attendance">
-      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden overflow-y-auto">
         <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
-        <PullToRefresh onRefresh={handleRefresh}>
         <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-6 flex flex-wrap h-auto gap-1 p-1">
@@ -1155,7 +1154,6 @@ export default function Attendance() {
               </TabsContent>
             )}
 
-            {/* Block roles landing on tabs they cannot access via state or bookmark */}
             {!isAdmin && activeTab === 'holidays' && (
               <TabsContent value="holidays">
                 <Card className="border-red-200 bg-red-50">
@@ -1182,7 +1180,6 @@ export default function Attendance() {
             )}
           </Tabs>
         </div>
-        </PullToRefresh>
       </div>
     </LoginRequired>
   );
