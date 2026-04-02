@@ -239,17 +239,17 @@ export default function DefaultersReportPage() {
     setReminderResult(null);
     setConfirmResend(false);
     try {
-      // Fetch full student records to get parent details
-      const studentRecords = await Promise.all(
-        selectedStudents.map(studentCode =>
-          base44.entities.Student.filter({ student_id: studentCode })
-        )
-      );
-      const studentMap = {};
-      studentRecords.flat().forEach(s => { studentMap[s.student_id] = s; });
+      const selectedRows = rows.filter(r => selectedStudents.includes(r.student.id));
 
-      const schoolProfileList = await base44.entities.SchoolProfile.list();
-      const schoolName = schoolProfileList?.[0]?.school_name || 'School';
+      // Batch fetch: 1 query per unique class instead of 1 per student
+      const uniqueClasses = [...new Set(selectedRows.map(r => r.class?.name).filter(Boolean))];
+      const [studentFetches, schoolProfileList] = await Promise.all([
+        Promise.all(uniqueClasses.map(cls => base44.entities.Student.filter({ class_name: cls, academic_year: academicYear }))),
+        base44.entities.SchoolProfile.list(),
+      ]);
+      const studentMap = {};
+      studentFetches.flat().forEach(s => { studentMap[s.student_id] = s; });
+      const schoolName = (schoolProfileList?.[0]?.school_name || 'School').trim();
 
       const recipients = [];
       for (const row of rows.filter(r => selectedStudents.includes(r.student.id))) {
