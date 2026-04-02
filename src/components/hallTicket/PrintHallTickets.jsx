@@ -120,7 +120,7 @@ export function printHallTickets(tickets, timetableMap, schoolProfile, examTypes
 
     /* HEADER */
     .header { background: #f2f2f2; color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: center; border-bottom: 1.25px solid #333; }
-    .header-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; } color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1.25px solid #333; }
+    .header-inner { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; text-align: center; } color: #111; padding: 5px 8px 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1.25px solid #333; }
 
     .header h2 { font-size: 13px; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
     .header p { font-size: 9px; color: #444; margin-top: 2px; text-align: center; letter-spacing: 0.08em; padding: 0 4px; }
