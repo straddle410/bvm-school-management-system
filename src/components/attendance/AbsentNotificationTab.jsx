@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 export default function AbsentNotificationTab({ academicYear, user }) {
   const todayDate = format(new Date(), 'yyyy-MM-dd');
   const [selectedDate, setSelectedDate] = useState(todayDate);
+  const [selectedClass, setSelectedClass] = useState('');
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sending, setSending] = useState(false);
   const [sentResults, setSentResults] = useState(null);
@@ -21,7 +22,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
   const [resendCount, setResendCount] = useState(0);
   const queryClient = useQueryClient();
 
-  const { data: absentRecords = [], isLoading } = useQuery({
+  const { data: allAbsentRecords = [], isLoading } = useQuery({
     queryKey: ['absent-records-for-notif', selectedDate, academicYear],
     queryFn: () => base44.entities.Attendance.filter({
       date: selectedDate,
@@ -52,6 +53,12 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     refetchOnWindowFocus: true,
   });
 
+  // Unique classes from absent records
+  const availableClasses = [...new Set(allAbsentRecords.map(r => r.class_name).filter(Boolean))].sort();
+
+  // Filter by selected class
+  const absentRecords = selectedClass ? allAbsentRecords.filter(r => r.class_name === selectedClass) : allAbsentRecords;
+
   // Map: student_id -> log status (sent/delivered)
   const notifiedStudentIds = new Set(
     waLogs.filter(l => l.status === 'sent' || l.status === 'delivered').map(l => l.student_id)
@@ -72,6 +79,8 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       setSelectedIds(new Set(absentRecords.map(r => r.id)));
     }
   };
+
+  const allSelected = absentRecords.length > 0 && selectedIds.size === absentRecords.length;
 
   const doSend = async () => {
     setSending(true);
@@ -162,26 +171,40 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     doSend();
   };
 
-  const allSelected = absentRecords.length > 0 && selectedIds.size === absentRecords.length;
-
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-slate-600 dark:text-gray-400 whitespace-nowrap">Date:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={e => {
-                setSelectedDate(e.target.value);
-                setSelectedIds(new Set());
-                setSentResults(null);
-                queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] });
-                queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] });
-              }}
-              className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm"
-            />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400 whitespace-nowrap">Date:</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={e => {
+                  setSelectedDate(e.target.value);
+                  setSelectedIds(new Set());
+                  setSelectedClass('');
+                  setSentResults(null);
+                  queryClient.invalidateQueries({ queryKey: ['absent-records-for-notif'] });
+                  queryClient.invalidateQueries({ queryKey: ['absent-notif-messages'] });
+                }}
+                className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400 whitespace-nowrap">Class:</label>
+              <select
+                value={selectedClass}
+                onChange={e => { setSelectedClass(e.target.value); setSelectedIds(new Set()); }}
+                className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">All Classes</option>
+                {availableClasses.map(c => (
+                  <option key={c} value={c}>Class {c}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <p className="text-xs text-slate-500 dark:text-gray-400">
             Select a date to view absent students and send notifications.
