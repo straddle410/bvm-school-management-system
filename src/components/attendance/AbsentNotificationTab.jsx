@@ -43,7 +43,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
       const logs = await base44.entities.WhatsAppMessageLog.filter({
         use_case: 'Absent',
       });
-      // Filter logs for the selected date
       return logs.filter(l => l.timestamp_sent && l.timestamp_sent.startsWith(selectedDate));
     },
     enabled: !!selectedDate && !!academicYear,
@@ -89,14 +88,17 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     setConfirmResend(false);
     try {
       const selectedRecords = absentRecords.filter(r => selectedIds.has(r.id));
-      const studentIds = [...new Set(selectedRecords.map(r => r.student_id))];
+
+      // Batch fetch: 1 query per unique class instead of 1 per student
+      const uniqueClasses = [...new Set(selectedRecords.map(r => r.class_name).filter(Boolean))];
       const [studentFetches, schoolProfileList] = await Promise.all([
-        Promise.all(studentIds.map(id => base44.entities.Student.filter({ student_id: id }))),
+        Promise.all(uniqueClasses.map(cls => base44.entities.Student.filter({ class_name: cls, academic_year: academicYear }))),
         base44.entities.SchoolProfile.list(),
       ]);
+
+      const schoolName = (schoolProfileList?.[0]?.school_name || 'School').trim();
       const studentMap = {};
       studentFetches.flat().forEach(s => { studentMap[s.student_id] = s; });
-      const schoolName = (schoolProfileList?.[0]?.school_name || 'School').trim();
 
       const rawDateStr = selectedDate || new Date().toISOString().slice(0, 10);
       const parsedDate = new Date(rawDateStr);
@@ -125,8 +127,6 @@ export default function AbsentNotificationTab({ academicYear, user }) {
           schoolName,    // {{5}} school_name
         ];
 
-        console.log('Absent FINAL variables:', variables);
-
         if (variables.length !== 5 || variables.some(v => !v || v.toString().trim() === '')) {
           console.error('[AbsentNotification] Invalid variables', variables);
           continue;
@@ -141,6 +141,7 @@ export default function AbsentNotificationTab({ academicYear, user }) {
         return;
       }
 
+      // Single bulk API call — 1 credit for all recipients
       const res = await base44.functions.invoke('sendWhatsAppBulkMessage', {
         template_id: 'absent_notification',
         use_case: 'Absent',
