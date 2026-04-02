@@ -1096,7 +1096,7 @@ export default function Attendance() {
 
   return (
     <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Attendance">
-      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden overflow-y-auto">
+      <div className="bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
         <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
         <div className="px-3 sm:px-4 lg:px-8 py-4 max-w-full">
