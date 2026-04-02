@@ -228,7 +228,6 @@ html {
 
 /* Ensure scrollable containers don't cause overscroll issues */
 .overflow-y-auto, .overflow-auto, .overflow-y-scroll {
-  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
 
