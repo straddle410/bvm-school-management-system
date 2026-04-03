@@ -10,6 +10,7 @@ import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser, BellRing,
+  UserCheck,
 } from 'lucide-react';
 
 // ── Icon name → lucide component map ─────────────────────────────────────────
@@ -345,7 +346,7 @@ export default function Dashboard() {
             </section>
           ))}
 
-          {/* Notification Analytics + Financial Management — admin only */}
+          {/* Notification Analytics + Financial Management + Staff — admin only */}
           <section className="mb-8">
             <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Analytics &amp; Finance</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -363,6 +364,14 @@ export default function Dashboard() {
                     <DollarSign className="h-6 w-6" />
                   </div>
                   <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Financial Management</span>
+                </div>
+              </Link>
+              <Link to="/StaffAttendanceSalary" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 p-3 rounded-2xl text-white">
+                    <UserCheck className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Staff Attendance &amp; Salary</span>
                 </div>
               </Link>
             </div>

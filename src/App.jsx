@@ -10,6 +10,7 @@ import DeleteAccount from './pages/DeleteAccount'
 import PublicReceipt from './pages/PublicReceipt'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import FinancialManagement from './pages/FinancialManagement'
+import StaffAttendanceSalary from './pages/StaffAttendanceSalary'
 
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
       <Route path="/StudentQuiz" element={<LayoutWrapper currentPageName="StudentQuiz"><PageTransition><StudentQuiz /></PageTransition></LayoutWrapper>} />
       <Route path="/StudentChangePassword" element={<LayoutWrapper currentPageName="StudentChangePassword"><PageTransition><StudentChangePassword /></PageTransition></LayoutWrapper>} />
       <Route path="/FinancialManagement" element={<LayoutWrapper currentPageName="FinancialManagement"><PageTransition><FinancialManagement /></PageTransition></LayoutWrapper>} />
+      <Route path="/StaffAttendanceSalary" element={<LayoutWrapper currentPageName="StaffAttendanceSalary"><PageTransition><StaffAttendanceSalary /></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><DeleteAccount /></PageTransition>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

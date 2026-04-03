@@ -1,0 +1,50 @@
+{
+  "name": "StaffAttendance",
+  "type": "object",
+  "properties": {
+    "staff_id": {
+      "type": "string",
+      "description": "StaffAccount ID"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "Staff name (denormalized)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Attendance date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Present",
+        "Absent",
+        "Half Day",
+        "Leave",
+        "Holiday"
+      ],
+      "default": "Present",
+      "description": "Attendance status"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Optional remarks"
+    },
+    "marked_by": {
+      "type": "string",
+      "description": "Email of admin who marked"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2025-26)"
+    }
+  },
+  "required": [
+    "staff_id",
+    "staff_name",
+    "date",
+    "status",
+    "academic_year"
+  ]
+}

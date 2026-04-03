@@ -1,0 +1,92 @@
+{
+  "name": "SalaryPayment",
+  "type": "object",
+  "properties": {
+    "staff_id": {
+      "type": "string",
+      "description": "StaffAccount ID"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "Staff name (denormalized)"
+    },
+    "designation": {
+      "type": "string",
+      "description": "Staff designation"
+    },
+    "salary_month": {
+      "type": "string",
+      "description": "Month/Year e.g. March 2026"
+    },
+    "base_salary": {
+      "type": "number",
+      "description": "Base salary amount"
+    },
+    "allowances": {
+      "type": "number",
+      "default": 0,
+      "description": "Additional allowances"
+    },
+    "deductions": {
+      "type": "number",
+      "default": 0,
+      "description": "Deductions (leave, advance, etc.)"
+    },
+    "net_payable": {
+      "type": "number",
+      "description": "Net payable (base + allowances - deductions)"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of payment"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "Cash",
+        "Bank Transfer",
+        "Cheque",
+        "UPI"
+      ],
+      "default": "Bank Transfer",
+      "description": "Mode of payment"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Transaction / Cheque reference"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Paid"
+      ],
+      "default": "Pending",
+      "description": "Payment status"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2025-26)"
+    },
+    "financial_year": {
+      "type": "string",
+      "description": "Financial year (e.g. 2025-2026)"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Linked Transaction ID in financial module (auto-created on Paid)"
+    },
+    "paid_by": {
+      "type": "string",
+      "description": "Email of admin who marked as paid"
+    }
+  },
+  "required": [
+    "staff_id",
+    "staff_name",
+    "salary_month",
+    "net_payable",
+    "academic_year"
+  ]
+}
