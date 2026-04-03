@@ -258,6 +258,7 @@ export default function Staff() {
       'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
       'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
       'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
+      'cleaner': 'cleaner',
     };
     const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
     const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
@@ -385,6 +386,7 @@ export default function Staff() {
         'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
         'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
         'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
+        'cleaner': 'cleaner',
       };
       const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
       const derivedRole = selectedTemplate ? (ROLE_NAME_MAP[rawRoleName] || rawRoleName) : (editingStaff?.role || '');
