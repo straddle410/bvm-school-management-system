@@ -224,16 +224,29 @@ export default function Dashboard() {
   if (isAccountant) {
     const feeTiles = visibleTiles.filter(t => t.section === 'Fees & Finance');
 
-    return (
+          return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Accountant'}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
-          <section>
+          <section className="mb-8">
             <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Fees &amp; Accounts</h2>
             {feeTiles.length > 0 ? <TileGrid tiles={feeTiles} /> : <EmptyTilesMessage />}
+          </section>
+          <section>
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Financial Management</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <Link to="/FinancialManagement" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
+                    <DollarSign className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Financial Management</span>
+                </div>
+              </Link>
+            </div>
           </section>
         </div>
       </div>
@@ -332,9 +345,9 @@ export default function Dashboard() {
             </section>
           ))}
 
-          {/* Notification Analytics shortcut — admin only */}
+          {/* Notification Analytics + Financial Management — admin only */}
           <section className="mb-8">
-            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Analytics</h2>
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Analytics &amp; Finance</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <Link to="/NotificationAnalytics" className="block">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
@@ -342,6 +355,14 @@ export default function Dashboard() {
                     <BellRing className="h-6 w-6" />
                   </div>
                   <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Notification Analytics</span>
+                </div>
+              </Link>
+              <Link to="/FinancialManagement" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
+                    <DollarSign className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Financial Management</span>
                 </div>
               </Link>
             </div>
