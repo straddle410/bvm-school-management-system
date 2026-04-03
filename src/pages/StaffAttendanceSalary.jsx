@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
-import { CalendarDays, IndianRupee } from 'lucide-react';
+import { CalendarDays, IndianRupee, Settings2 } from 'lucide-react';
+import SalarySetupTab from '@/components/staffSalary/SalarySetupTab';
 import StaffAttendanceTab from '@/components/staffSalary/StaffAttendanceTab';
 import StaffSalaryTab from '@/components/staffSalary/StaffSalaryTab';
 
@@ -24,6 +25,9 @@ export default function StaffAttendanceSalary() {
             <TabsTrigger value="salary" className="flex-1 gap-2">
               <IndianRupee className="h-4 w-4" /> Salary
             </TabsTrigger>
+            <TabsTrigger value="setup" className="flex-1 gap-2">
+              <Settings2 className="h-4 w-4" /> Setup
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="attendance">
@@ -32,6 +36,10 @@ export default function StaffAttendanceSalary() {
 
           <TabsContent value="salary">
             <StaffSalaryTab academicYear={academicYear} />
+          </TabsContent>
+
+          <TabsContent value="setup">
+            <SalarySetupTab academicYear={academicYear} />
           </TabsContent>
         </Tabs>
       </div>

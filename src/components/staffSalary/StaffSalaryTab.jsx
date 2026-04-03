@@ -3,14 +3,22 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, CheckCircle2, Clock, IndianRupee } from 'lucide-react';
+import { CheckCircle2, IndianRupee, Calendar } from 'lucide-react';
 
 const MONTHS = [
   'January','February','March','April','May','June',
   'July','August','September','October','November','December'
 ];
+
+// Days present calculation: Present=1, Half Day=0.5, else=0
+function calcDaysFromAttendance(records) {
+  return records.reduce((sum, r) => {
+    if (r.status === 'Present') return sum + 1;
+    if (r.status === 'Half Day') return sum + 0.5;
+    return sum;
+  }, 0);
+}
 
 function getFinancialYear(dateStr) {
   const d = new Date(dateStr);
@@ -20,259 +28,286 @@ function getFinancialYear(dateStr) {
   return `${start}-${start + 1}`;
 }
 
-const EMPTY_FORM = {
-  staff_id: '', staff_name: '', designation: '',
-  salary_month: '', base_salary: '', allowances: '0',
-  deductions: '0', payment_date: '', payment_method: 'Bank Transfer',
-  reference_number: '',
-};
+function daysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function getMonthDateRange(year, month) {
+  const pad = n => String(n).padStart(2, '0');
+  const start = `${year}-${pad(month + 1)}-01`;
+  const end = `${year}-${pad(month + 1)}-${pad(daysInMonth(year, month))}`;
+  return { start, end };
+}
 
 export default function StaffSalaryTab({ academicYear }) {
-  const [payments, setPayments] = useState([]);
-  const [staffList, setStaffList] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [filterMonth, setFilterMonth] = useState('');
+  const now = new Date();
+  const [selYear, setSelYear] = useState(now.getFullYear());
+  const [selMonth, setSelMonth] = useState(now.getMonth()); // 0-indexed
 
-  useEffect(() => { loadData(); }, [academicYear]);
+  const [staffData, setStaffData] = useState([]); // { staff, config, attendance, daysPresent, earned, payment }
+  const [loading, setLoading] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payMethod, setPayMethod] = useState('Bank Transfer');
+  const [payDate, setPayDate] = useState(now.toISOString().slice(0, 10));
+
+  useEffect(() => { loadData(); }, [selYear, selMonth, academicYear]);
 
   const loadData = async () => {
     setLoading(true);
+    const { start, end } = getMonthDateRange(selYear, selMonth);
+    const monthLabel = `${MONTHS[selMonth]} ${selYear}`;
     try {
-      const [pays, staff] = await Promise.all([
-        base44.entities.SalaryPayment.filter({ academic_year: academicYear }),
+      const [staffList, configs, allAttendance, payments] = await Promise.all([
         base44.entities.StaffAccount.filter({ is_active: true }),
+        base44.entities.StaffSalaryConfig.filter({ academic_year: academicYear }),
+        base44.entities.StaffAttendance.list('-date', 5000),
+        base44.entities.SalaryPayment.filter({ academic_year: academicYear }),
       ]);
-      setPayments(pays.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || '')));
-      setStaffList(staff);
-    } catch { toast.error('Failed to load'); }
+
+      const configMap = {};
+      configs.forEach(c => { configMap[c.staff_id] = c; });
+
+      const paymentMap = {};
+      payments.forEach(p => { if (p.salary_month === monthLabel) paymentMap[p.staff_id] = p; });
+
+      // Filter attendance for this month
+      const monthAttendance = allAttendance.filter(a => a.date >= start && a.date <= end);
+
+      const data = staffList.map(s => {
+        const config = configMap[s.id];
+        const att = monthAttendance.filter(a => a.staff_id === s.id);
+        const daysPresent = calcDaysFromAttendance(att);
+        const today = new Date();
+        // Days elapsed so far this month (cap at total days in month)
+        const totalDays = daysInMonth(selYear, selMonth);
+        const workingDays = config?.working_days_per_month || 26;
+        const dailyRate = config ? config.monthly_salary / workingDays : 0;
+        const earned = Math.round(dailyRate * daysPresent);
+        const payment = paymentMap[s.id] || null;
+
+        return { staff: s, config, att, daysPresent, totalDays, earned, payment, dailyRate };
+      });
+
+      setStaffData(data);
+    } catch { toast.error('Failed to load salary data'); }
     finally { setLoading(false); }
   };
 
-  const net = (f) => {
-    const b = parseFloat(f.base_salary) || 0;
-    const a = parseFloat(f.allowances) || 0;
-    const d = parseFloat(f.deductions) || 0;
-    return b + a - d;
-  };
-
-  const handleStaffChange = (staffId) => {
-    const s = staffList.find(x => x.id === staffId);
-    setForm(f => ({ ...f, staff_id: staffId, staff_name: s?.name || '', designation: s?.designation || s?.role || '' }));
-  };
-
-  const handleSave = async () => {
-    if (!form.staff_id || !form.salary_month || !form.base_salary) {
-      toast.error('Fill staff, month and base salary');
-      return;
-    }
-    setSaving(true);
-    try {
-      const netPayable = net(form);
-      await base44.entities.SalaryPayment.create({
-        ...form,
-        base_salary: parseFloat(form.base_salary),
-        allowances: parseFloat(form.allowances) || 0,
-        deductions: parseFloat(form.deductions) || 0,
-        net_payable: netPayable,
-        status: 'Pending',
-        academic_year: academicYear,
-      });
-      toast.success('Salary record created');
-      setShowForm(false);
-      setForm(EMPTY_FORM);
-      loadData();
-    } catch { toast.error('Failed to save'); }
-    finally { setSaving(false); }
-  };
-
-  const markPaid = async (payment) => {
-    if (!payment.payment_date || !payment.payment_method) {
-      toast.error('Set payment date and method first');
-      return;
-    }
-    setSaving(true);
+  const markAllPaid = async () => {
+    const unpaid = staffData.filter(d => d.config && !d.payment);
+    if (unpaid.length === 0) { toast.info('All staff already marked as paid for this month'); return; }
+    if (!payDate) { toast.error('Select payment date'); return; }
+    setPaying(true);
     const session = (() => { try { return JSON.parse(localStorage.getItem('staff_session')); } catch { return null; } })();
-    try {
-      const fy = getFinancialYear(payment.payment_date);
-      const payDate = new Date(payment.payment_date);
-      const ayStart = payDate.getMonth() >= 3 ? payDate.getFullYear() : payDate.getFullYear() - 1;
-      const ay = `${ayStart}-${String(ayStart + 1).slice(2)}`;
+    const monthLabel = `${MONTHS[selMonth]} ${selYear}`;
+    const fy = getFinancialYear(payDate);
+    const payDateObj = new Date(payDate);
+    const ayStart = payDateObj.getMonth() >= 3 ? payDateObj.getFullYear() : payDateObj.getFullYear() - 1;
+    const ay = `${ayStart}-${String(ayStart + 1).slice(2)}`;
 
-      // Create expense transaction in financial module
+    try {
+      await Promise.all(unpaid.map(async (d) => {
+        // Create expense transaction
+        const tx = await base44.entities.Transaction.create({
+          type: 'Expense',
+          category: 'Salaries & Wages',
+          description: `Salary: ${d.staff.name} — ${monthLabel} (${d.daysPresent} days)`,
+          amount: d.earned,
+          transaction_date: payDate,
+          payment_method: payMethod,
+          status: 'Completed',
+          academic_year: ay,
+          financial_year: fy,
+          recorded_by: session?.email || '',
+        });
+        // Create salary payment record
+        await base44.entities.SalaryPayment.create({
+          staff_id: d.staff.id,
+          staff_name: d.staff.name,
+          designation: d.staff.designation || d.staff.role || '',
+          salary_month: monthLabel,
+          base_salary: d.config.monthly_salary,
+          allowances: 0,
+          deductions: 0,
+          net_payable: d.earned,
+          payment_date: payDate,
+          payment_method: payMethod,
+          status: 'Paid',
+          academic_year: academicYear,
+          financial_year: fy,
+          transaction_id: tx.id,
+          paid_by: session?.email || '',
+        });
+      }));
+      toast.success(`${unpaid.length} salary payment(s) marked as Paid — expenses recorded in Financial Management`);
+      loadData();
+    } catch { toast.error('Failed to process payments'); }
+    finally { setPaying(false); }
+  };
+
+  const markOnePaid = async (d) => {
+    if (!payDate) { toast.error('Select payment date'); return; }
+    setPaying(true);
+    const session = (() => { try { return JSON.parse(localStorage.getItem('staff_session')); } catch { return null; } })();
+    const monthLabel = `${MONTHS[selMonth]} ${selYear}`;
+    const fy = getFinancialYear(payDate);
+    const payDateObj = new Date(payDate);
+    const ayStart = payDateObj.getMonth() >= 3 ? payDateObj.getFullYear() : payDateObj.getFullYear() - 1;
+    const ay = `${ayStart}-${String(ayStart + 1).slice(2)}`;
+    try {
       const tx = await base44.entities.Transaction.create({
         type: 'Expense',
         category: 'Salaries & Wages',
-        description: `Salary: ${payment.staff_name} — ${payment.salary_month}`,
-        amount: payment.net_payable,
-        transaction_date: payment.payment_date,
-        payment_method: payment.payment_method,
-        reference_number: payment.reference_number || '',
+        description: `Salary: ${d.staff.name} — ${monthLabel} (${d.daysPresent} days)`,
+        amount: d.earned,
+        transaction_date: payDate,
+        payment_method: payMethod,
         status: 'Completed',
         academic_year: ay,
         financial_year: fy,
         recorded_by: session?.email || '',
       });
-
-      await base44.entities.SalaryPayment.update(payment.id, {
+      await base44.entities.SalaryPayment.create({
+        staff_id: d.staff.id,
+        staff_name: d.staff.name,
+        designation: d.staff.designation || d.staff.role || '',
+        salary_month: monthLabel,
+        base_salary: d.config.monthly_salary,
+        allowances: 0,
+        deductions: 0,
+        net_payable: d.earned,
+        payment_date: payDate,
+        payment_method: payMethod,
         status: 'Paid',
-        paid_by: session?.email || '',
+        academic_year: academicYear,
+        financial_year: fy,
         transaction_id: tx.id,
+        paid_by: session?.email || '',
       });
-
-      toast.success('Marked as Paid — expense recorded in Financial Management');
+      toast.success(`Salary paid for ${d.staff.name}`);
       loadData();
-    } catch { toast.error('Failed to mark as paid'); }
-    finally { setSaving(false); }
+    } catch { toast.error('Failed'); }
+    finally { setPaying(false); }
   };
 
-  const updatePaymentField = async (id, field, value) => {
-    await base44.entities.SalaryPayment.update(id, { [field]: value });
-    setPayments(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
-  };
-
-  const totalPaid = payments.filter(p => p.status === 'Paid').reduce((s, p) => s + (p.net_payable || 0), 0);
-  const totalPending = payments.filter(p => p.status === 'Pending').reduce((s, p) => s + (p.net_payable || 0), 0);
-
-  const filtered = filterMonth ? payments.filter(p => p.salary_month?.includes(filterMonth)) : payments;
+  const totalEarned = staffData.reduce((s, d) => s + (d.config ? d.earned : 0), 0);
+  const totalPaid = staffData.filter(d => d.payment).reduce((s, d) => s + (d.payment.net_payable || 0), 0);
+  const totalPending = totalEarned - totalPaid;
+  const allPaid = staffData.filter(d => d.config).every(d => d.payment);
 
   return (
-    <div className="space-y-4">
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 border border-green-200 text-center">
-          <p className="text-xs text-green-600 font-medium">Paid This Year</p>
-          <p className="text-base font-bold text-green-700">₹{totalPaid.toLocaleString('en-IN')}</p>
-        </div>
-        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 border border-amber-200 text-center">
-          <p className="text-xs text-amber-600 font-medium">Pending</p>
-          <p className="text-base font-bold text-amber-700">₹{totalPending.toLocaleString('en-IN')}</p>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex gap-2 items-center">
-        <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-          className="flex-1 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm">
-          <option value="">All Months</option>
-          {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+    <div className="space-y-4 pb-32">
+      {/* Month selector */}
+      <div className="flex gap-2 items-center flex-wrap">
+        <Calendar className="h-4 w-4 text-slate-500 flex-shrink-0" />
+        <select value={selMonth} onChange={e => setSelMonth(parseInt(e.target.value))}
+          className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm">
+          {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
         </select>
-        <Button size="sm" onClick={() => setShowForm(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-          <Plus className="h-4 w-4 mr-1" /> Add
-        </Button>
+        <select value={selYear} onChange={e => setSelYear(parseInt(e.target.value))}
+          className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm">
+          {[2024, 2025, 2026, 2027].map(y => <option key={y}>{y}</option>)}
+        </select>
       </div>
 
-      {/* List */}
       {loading ? (
         <div className="flex justify-center py-10"><div className="w-7 h-7 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" /></div>
-      ) : filtered.length === 0 ? (
-        <Card><CardContent className="py-10 text-center text-slate-500">No salary records found.</CardContent></Card>
       ) : (
-        <div className="space-y-3">
-          {filtered.map(p => (
-            <Card key={p.id} className="border-0 shadow-sm dark:bg-gray-800">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{p.staff_name}</p>
-                    <p className="text-xs text-slate-500">{p.designation} · {p.salary_month}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-slate-800 dark:text-white flex items-center gap-1">
-                      <IndianRupee className="h-3.5 w-3.5" />{(p.net_payable || 0).toLocaleString('en-IN')}
-                    </p>
-                    <Badge variant="outline" className={p.status === 'Paid' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-amber-100 text-amber-700 border-amber-200'}>
-                      {p.status === 'Paid' ? <CheckCircle2 className="h-3 w-3 mr-1 inline" /> : <Clock className="h-3 w-3 mr-1 inline" />}
-                      {p.status}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="text-xs text-slate-500 flex gap-4">
-                  <span>Base: ₹{(p.base_salary || 0).toLocaleString('en-IN')}</span>
-                  <span>Allow: +₹{(p.allowances || 0).toLocaleString('en-IN')}</span>
-                  <span>Deduct: -₹{(p.deductions || 0).toLocaleString('en-IN')}</span>
-                </div>
-                {p.status === 'Pending' && (
-                  <div className="flex gap-2 flex-wrap pt-1 border-t dark:border-gray-700">
-                    <input
-                      type="date"
-                      defaultValue={p.payment_date || ''}
-                      onBlur={e => updatePaymentField(p.id, 'payment_date', e.target.value)}
-                      placeholder="Payment Date"
-                      className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1 text-xs flex-1 min-w-28"
-                    />
-                    <select
-                      defaultValue={p.payment_method || 'Bank Transfer'}
-                      onBlur={e => updatePaymentField(p.id, 'payment_method', e.target.value)}
-                      className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1 text-xs"
-                    >
-                      {['Cash','Bank Transfer','Cheque','UPI'].map(m => <option key={m}>{m}</option>)}
-                    </select>
-                    <Button size="sm" onClick={() => markPaid(p)} disabled={saving}
-                      className="bg-green-600 hover:bg-green-700 text-white text-xs h-7">
-                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Mark Paid
-                    </Button>
-                  </div>
-                )}
-                {p.status === 'Paid' && (
-                  <p className="text-xs text-green-600 dark:text-green-400 pt-1 border-t dark:border-gray-700">
-                    ✓ Paid on {p.payment_date} via {p.payment_method} · Expense auto-recorded in Financial Management
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <>
+          {/* Staff List */}
+          <div className="space-y-2">
+            {staffData.map(d => {
+              const isPaid = !!d.payment;
+              const hasConfig = !!d.config;
+              return (
+                <Card key={d.staff.id} className={`border-0 shadow-sm dark:bg-gray-800 ${isPaid ? 'opacity-75' : ''}`}>
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-sm text-slate-900 dark:text-white">{d.staff.name}</p>
+                          {isPaid && <Badge variant="outline" className="text-[10px] bg-green-100 text-green-700 border-green-200"><CheckCircle2 className="h-3 w-3 mr-0.5 inline" />Paid</Badge>}
+                          {!hasConfig && <Badge variant="outline" className="text-[10px] bg-slate-100 text-slate-500">No salary configured</Badge>}
+                        </div>
+                        <p className="text-xs text-slate-500">{d.staff.designation || d.staff.role}</p>
+                        {hasConfig && (
+                          <div className="flex gap-3 mt-1.5 text-xs text-slate-500 flex-wrap">
+                            <span>Monthly: ₹{(d.config.monthly_salary || 0).toLocaleString('en-IN')}</span>
+                            <span>Days Present: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong></span>
+                            <span>Daily Rate: ₹{d.dailyRate.toFixed(0)}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        {hasConfig && (
+                          <>
+                            <p className={`font-bold text-base ${isPaid ? 'text-green-600' : 'text-slate-900 dark:text-white'}`}>
+                              ₹{d.earned.toLocaleString('en-IN')}
+                            </p>
+                            {isPaid && <p className="text-[10px] text-slate-400">{d.payment.payment_method}</p>}
+                          </>
+                        )}
+                        {hasConfig && !isPaid && (
+                          <Button size="sm" onClick={() => markOnePaid(d)} disabled={paying}
+                            className="mt-1 bg-green-600 hover:bg-green-700 text-white text-xs h-6 px-2">
+                            Mark Paid
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      {/* Add Form Dialog */}
-      <Dialog open={showForm} onOpenChange={v => { setShowForm(v); if (!v) setForm(EMPTY_FORM); }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Add Salary Record</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Staff Member</label>
-              <select value={form.staff_id} onChange={e => handleStaffChange(e.target.value)}
-                className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm mt-1">
-                <option value="">Select staff...</option>
-                {staffList.map(s => <option key={s.id} value={s.id}>{s.name} — {s.designation || s.role}</option>)}
-              </select>
+      {/* Sticky bottom panel */}
+      <div className="fixed bottom-20 left-0 right-0 px-4 z-40">
+        <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 p-4">
+          {/* Totals row */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="text-center">
+              <p className="text-[10px] text-slate-500">Total Earned</p>
+              <p className="font-bold text-sm text-slate-800 dark:text-white flex items-center justify-center gap-0.5">
+                <IndianRupee className="h-3 w-3" />{totalEarned.toLocaleString('en-IN')}
+              </p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Salary Month</label>
-              <select value={form.salary_month} onChange={e => setForm(f => ({ ...f, salary_month: e.target.value }))}
-                className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm mt-1">
-                <option value="">Select month...</option>
-                {MONTHS.map(m => <option key={m} value={`${m} ${new Date().getFullYear()}`}>{m} {new Date().getFullYear()}</option>)}
-              </select>
+            <div className="text-center">
+              <p className="text-[10px] text-green-600">Paid</p>
+              <p className="font-bold text-sm text-green-700 flex items-center justify-center gap-0.5">
+                <IndianRupee className="h-3 w-3" />{totalPaid.toLocaleString('en-IN')}
+              </p>
             </div>
-            {[
-              { label: 'Base Salary (₹)', key: 'base_salary' },
-              { label: 'Allowances (₹)', key: 'allowances' },
-              { label: 'Deductions (₹)', key: 'deductions' },
-            ].map(({ label, key }) => (
-              <div key={key}>
-                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">{label}</label>
-                <input type="number" value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm mt-1"
-                />
-              </div>
-            ))}
-            <div className="bg-slate-50 dark:bg-gray-700 rounded-lg p-3 text-sm">
-              <span className="text-slate-600 dark:text-gray-300">Net Payable: </span>
-              <span className="font-bold text-slate-900 dark:text-white">₹{net(form).toLocaleString('en-IN')}</span>
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}>Cancel</Button>
-              <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Record'}
-              </Button>
+            <div className="text-center">
+              <p className="text-[10px] text-amber-600">Pending</p>
+              <p className="font-bold text-sm text-amber-700 flex items-center justify-center gap-0.5">
+                <IndianRupee className="h-3 w-3" />{totalPending.toLocaleString('en-IN')}
+              </p>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {/* Payment controls */}
+          {!allPaid && (
+            <div className="flex gap-2 items-center flex-wrap">
+              <input type="date" value={payDate} onChange={e => setPayDate(e.target.value)}
+                className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm flex-1 min-w-28" />
+              <select value={payMethod} onChange={e => setPayMethod(e.target.value)}
+                className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm">
+                {['Cash','Bank Transfer','Cheque','UPI'].map(m => <option key={m}>{m}</option>)}
+              </select>
+              <Button onClick={markAllPaid} disabled={paying}
+                className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4">
+                {paying ? 'Processing...' : '✓ Pay All Pending'}
+              </Button>
+            </div>
+          )}
+          {allPaid && staffData.filter(d => d.config).length > 0 && (
+            <p className="text-center text-green-600 font-semibold text-sm">✓ All salaries paid for {MONTHS[selMonth]} {selYear}</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

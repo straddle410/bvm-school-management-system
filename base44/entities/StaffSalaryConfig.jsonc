@@ -1,0 +1,46 @@
+{
+  "name": "StaffSalaryConfig",
+  "type": "object",
+  "properties": {
+    "staff_id": {
+      "type": "string",
+      "description": "StaffAccount ID"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "Staff name (denormalized)"
+    },
+    "designation": {
+      "type": "string",
+      "description": "Designation"
+    },
+    "monthly_salary": {
+      "type": "number",
+      "description": "Gross monthly salary (for full month)"
+    },
+    "working_days_per_month": {
+      "type": "number",
+      "default": 26,
+      "description": "Expected working days per month (used for daily rate calculation)"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2025-26)"
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date",
+      "description": "Date from which this salary is effective"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    }
+  },
+  "required": [
+    "staff_id",
+    "staff_name",
+    "monthly_salary",
+    "academic_year"
+  ]
+}
