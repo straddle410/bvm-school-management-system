@@ -255,6 +255,8 @@ export const BASE_ROLE_PERMISSIONS = {
     [PERMS.CALENDAR_VIEW]: true,
   },
 
+  cleaner: {},
+
   // Admin / Principal bypass all permission checks — empty permissions is correct.
   admin:     {},
   principal: {},

@@ -17,6 +17,7 @@ import StaffAuthGuard from '@/components/StaffAuthGuard';
 // Don't register here - let StudentNotificationSettings handle it on user request
 
 const getBottomNav = (isAdmin, userRole) => {
+  if (userRole === 'cleaner') return [];
   if (userRole === 'accountant') {
     return [
       { name: 'Home',        icon: Home,          page: 'Dashboard' },

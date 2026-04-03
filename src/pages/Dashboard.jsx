@@ -133,6 +133,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [recentNotices, setRecentNotices] = useState([]);
 
+  const isCleaner = staffRole === 'cleaner';
   const isAdmin = staffRole === 'admin' || staffRole === 'principal';
   const isTeacher = staffRole === 'teacher';
   const isAccountant = staffRole === 'accountant';
@@ -216,6 +217,12 @@ export default function Dashboard() {
         <div className="w-8 h-8 border-4 border-[#1a237e] border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  // Cleaner role — redirect to dedicated page
+  if (isCleaner) {
+    window.location.replace('/CleanerDashboard');
+    return null;
   }
 
   // Compute once — all tiles visible to this user given role + effectivePermissions
