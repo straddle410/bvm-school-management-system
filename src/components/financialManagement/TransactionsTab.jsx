@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, TrendingUp, TrendingDown, ArrowRightLeft, Pencil, Trash2, Search, Filter } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, ArrowRightLeft, Pencil, Trash2, Search, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import TransactionForm from './TransactionForm';
 
@@ -29,7 +29,8 @@ function getFinancialYear(dateStr) {
 }
 
 export default function TransactionsTab({ dateRange, selectedPeriod }) {
-  const [transactions, setTransactions] = useState([]);
+  const [manualTransactions, setManualTransactions] = useState([]);
+  const [feePayments, setFeePayments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
@@ -37,17 +38,32 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
   const [filterType, setFilterType] = useState('All');
 
   useEffect(() => {
-    if (dateRange) loadTransactions();
+    if (dateRange) loadAll();
   }, [dateRange]);
 
-  const loadTransactions = async () => {
+  const loadAll = async () => {
     setLoading(true);
     try {
-      const all = await base44.entities.Transaction.list('-transaction_date', 500);
-      const filtered = all.filter(t =>
+      const [txAll, paymentsAll] = await Promise.all([
+        base44.entities.Transaction.list('-transaction_date', 500),
+        base44.entities.FeePayment.list('-payment_date', 2000),
+      ]);
+
+      // Filter manual transactions by date range
+      const filteredTx = txAll.filter(t =>
         t.transaction_date >= dateRange.start && t.transaction_date <= dateRange.end
       );
-      setTransactions(filtered);
+      setManualTransactions(filteredTx);
+
+      // Filter active cash fee payments within date range
+      const filteredPayments = paymentsAll.filter(p =>
+        p.status === 'Active' &&
+        p.affects_cash !== false &&
+        p.entry_type !== 'REVERSAL' &&
+        p.payment_date >= dateRange.start &&
+        p.payment_date <= dateRange.end
+      );
+      setFeePayments(filteredPayments);
     } catch (e) {
       toast.error('Failed to load transactions');
     } finally {
@@ -55,19 +71,35 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
     }
   };
 
+  // Convert FeePayments to display-compatible objects
+  const feeIncomeEntries = feePayments.map(p => ({
+    id: `fee_${p.id}`,
+    _isFeePayment: true,
+    type: 'Income',
+    category: 'Fees Collected',
+    description: `Fee: ${p.student_name || p.student_id} — ${p.installment_name || 'Payment'} (${p.receipt_no || ''})`,
+    amount: p.amount_paid || 0,
+    transaction_date: p.payment_date,
+    payment_method: p.payment_mode || 'Cash',
+    status: 'Completed',
+    reference_number: p.receipt_no,
+  }));
+
+  // Merge: fee income + manual transactions
+  const allEntries = [...feeIncomeEntries, ...manualTransactions].sort(
+    (a, b) => b.transaction_date.localeCompare(a.transaction_date)
+  );
+
   const handleSave = async (data) => {
     try {
       const staffRaw = localStorage.getItem('staff_session');
       const staff = staffRaw ? JSON.parse(staffRaw) : null;
       const fy = getFinancialYear(data.transaction_date);
-
-      // Determine academic_year from date
       const txDate = new Date(data.transaction_date);
       const year = txDate.getFullYear();
       const month = txDate.getMonth();
       const ayStart = month >= 3 ? year : year - 1;
       const academic_year = `${ayStart}-${String(ayStart + 1).slice(2)}`;
-
       const payload = { ...data, financial_year: fy, academic_year, recorded_by: staff?.email || '' };
 
       if (editingTx) {
@@ -79,7 +111,7 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
       }
       setShowForm(false);
       setEditingTx(null);
-      loadTransactions();
+      loadAll();
     } catch (e) {
       toast.error('Failed to save transaction');
     }
@@ -89,18 +121,22 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
     if (!confirm('Delete this transaction?')) return;
     await base44.entities.Transaction.delete(id);
     toast.success('Deleted');
-    loadTransactions();
+    loadAll();
   };
 
-  const displayed = transactions.filter(t => {
+  const displayed = allEntries.filter(t => {
     const matchType = filterType === 'All' || t.type === filterType;
-    const matchSearch = !search || t.description?.toLowerCase().includes(search.toLowerCase()) || t.category?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search ||
+      t.description?.toLowerCase().includes(search.toLowerCase()) ||
+      t.category?.toLowerCase().includes(search.toLowerCase());
     return matchType && matchSearch;
   });
 
-  const totalIncome = transactions.filter(t => t.type === 'Income').reduce((s, t) => s + (t.amount || 0), 0);
-  const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalIncome = allEntries.filter(t => t.type === 'Income').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalExpense = allEntries.filter(t => t.type === 'Expense').reduce((s, t) => s + (t.amount || 0), 0);
   const net = totalIncome - totalExpense;
+
+  const feeTotal = feeIncomeEntries.reduce((s, t) => s + t.amount, 0);
 
   return (
     <div className="space-y-4">
@@ -109,6 +145,7 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
         <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 border border-green-200 dark:border-green-800 text-center">
           <p className="text-xs text-green-600 dark:text-green-400 font-medium">Total Income</p>
           <p className="text-base font-bold text-green-700 dark:text-green-300">₹{totalIncome.toLocaleString('en-IN')}</p>
+          <p className="text-[10px] text-green-500">Fees: ₹{feeTotal.toLocaleString('en-IN')}</p>
         </div>
         <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 border border-red-200 dark:border-red-800 text-center">
           <p className="text-xs text-red-600 dark:text-red-400 font-medium">Total Expense</p>
@@ -119,6 +156,16 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
           <p className={`text-base font-bold ${net >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-orange-700 dark:text-orange-300'}`}>₹{net.toLocaleString('en-IN')}</p>
         </div>
       </div>
+
+      {/* Auto-sync notice */}
+      {feeIncomeEntries.length > 0 && (
+        <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-lg px-3 py-2">
+          <Zap className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+          <p className="text-xs text-emerald-700 dark:text-emerald-300">
+            <strong>{feeIncomeEntries.length} fee payment(s)</strong> auto-synced from Fee module (₹{feeTotal.toLocaleString('en-IN')})
+          </p>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex gap-2 items-center">
@@ -155,8 +202,9 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
         <div className="space-y-2">
           {displayed.map(tx => {
             const Icon = TYPE_ICONS[tx.type] || TrendingUp;
+            const isAutoFee = tx._isFeePayment;
             return (
-              <Card key={tx.id} className="border-0 shadow-sm dark:bg-gray-800">
+              <Card key={tx.id} className={`border-0 shadow-sm dark:bg-gray-800 ${isAutoFee ? 'border-l-4 border-l-emerald-400' : ''}`}>
                 <CardContent className="p-3">
                   <div className="flex items-start gap-3">
                     <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 ${tx.type === 'Income' ? 'bg-green-100' : tx.type === 'Expense' ? 'bg-red-100' : 'bg-blue-100'}`}>
@@ -164,8 +212,11 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{tx.description || tx.category}</p>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{tx.description || tx.category}</p>
+                            {isAutoFee && <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded font-medium flex-shrink-0">Auto-sync</span>}
+                          </div>
                           <p className="text-xs text-slate-500 dark:text-gray-400">{tx.category} · {tx.payment_method}</p>
                           <p className="text-xs text-slate-400 dark:text-gray-500">{tx.transaction_date}</p>
                         </div>
@@ -178,14 +229,17 @@ export default function TransactionsTab({ dateRange, selectedPeriod }) {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <Badge variant="outline" className="text-xs">{tx.status}</Badge>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingTx(tx); setShowForm(true); }}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:text-red-700" onClick={() => handleDelete(tx.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
+                        {!isAutoFee && (
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingTx(tx); setShowForm(true); }}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:text-red-700" onClick={() => handleDelete(tx.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                        {isAutoFee && <span className="text-[10px] text-slate-400">From Fee Module</span>}
                       </div>
                     </div>
                   </div>
