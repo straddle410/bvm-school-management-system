@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getSession } from '@/components/sessionHelper';
-import { PAGE_PERMISSION_MAP } from '@/components/permissionRegistry';
+import { PAGE_PERMISSION_MAP, BASE_ROLE_PERMISSIONS } from '@/components/permissionRegistry';
 import { getEffectivePermissions, isAdminRole, can } from '@/components/permissionHelper';
 
 const PUBLIC_PAGES = ['Index', 'index', 'Home', 'StaffLogin', 'StudentLogin'];
@@ -88,14 +88,31 @@ export default function StaffAuthGuard({ children, currentPageName }) {
     // If page has a mapping in PAGE_PERMISSION_MAP, enforce permission checks.
     const pageRule = PAGE_PERMISSION_MAP[currentPageName];
     if (pageRule) {
-      const isAdmin = isAdminRole(staffData?.role);
+      const role = (staffData?.role || '').toLowerCase();
+      const isAdmin = isAdminRole(role);
+      const isCeo = role === 'ceo';
 
       // Admin/Principal bypass
       if (isAdmin) return;
 
-      // adminOnly pages
+      // adminOnly pages — CEO cannot access
       if (pageRule.adminOnly) {
         navigate(createPageUrl('Dashboard'));
+        return;
+      }
+
+      // CEO: check against BASE_ROLE_PERMISSIONS.ceo for permission-gated pages
+      if (isCeo) {
+        if (pageRule.staffOnly) return; // staffOnly — CEO allowed
+        if (pageRule.permission) {
+          const ceoPerms = BASE_ROLE_PERMISSIONS?.ceo || {};
+          if (ceoPerms[pageRule.permission] === true) return;
+          // Also check effective_permissions in session
+          const effectivePerms = getEffectivePermissions(staffData);
+          if (effectivePerms[pageRule.permission] === true) return;
+          navigate(createPageUrl('Dashboard'));
+          return;
+        }
         return;
       }
 

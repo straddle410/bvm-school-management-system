@@ -1049,12 +1049,13 @@ export default function Students() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Promote — rendered hidden, triggered via triggerOpen state */}
+        {/* Promote — rendered hidden for CEO, triggered via triggerOpen state */}
         <PromoteStudents
           academicYear={academicYear}
           onPromoted={nextYear => { setAcademicYear(nextYear); queryClient.invalidateQueries(['students']); }}
           triggerOpen={showPromote}
           onTriggerHandled={() => setShowPromote(false)}
+          hidden={isCeo}
         />
 
         {/* Past Year Warning */}
