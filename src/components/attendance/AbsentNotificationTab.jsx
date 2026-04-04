@@ -36,6 +36,24 @@ export default function AbsentNotificationTab({ academicYear, user }) {
     refetchOnWindowFocus: true,
   });
 
+  // Fetch students to get phone numbers
+  const absentStudentIds = allAbsentRecords.map(r => r.student_id).filter(Boolean);
+  const { data: studentsList = [] } = useQuery({
+    queryKey: ['absent-students-phones', absentStudentIds.join(',')],
+    queryFn: async () => {
+      if (absentStudentIds.length === 0) return [];
+      const uniqueClasses = [...new Set(allAbsentRecords.map(r => r.class_name).filter(Boolean))];
+      const fetches = await Promise.all(uniqueClasses.map(cls =>
+        base44.entities.Student.filter({ class_name: cls, academic_year: academicYear })
+      ));
+      return fetches.flat();
+    },
+    enabled: absentStudentIds.length > 0 && !!academicYear,
+    staleTime: 60000,
+  });
+  const studentPhoneMap = {};
+  studentsList.forEach(s => { studentPhoneMap[s.student_id] = s.parent_phone || s.alternate_parent_phone || ''; });
+
   // Fetch WA logs for absent notifications on this date
   const { data: waLogs = [] } = useQuery({
     queryKey: ['absent-wa-logs', selectedDate, academicYear],
@@ -297,6 +315,13 @@ export default function AbsentNotificationTab({ academicYear, user }) {
                       <p className="text-xs text-slate-500 dark:text-gray-400">
                         {record.student_id} · Class {record.class_name}-{record.section}
                       </p>
+                      {studentPhoneMap[record.student_id] ? (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">
+                          📱 {studentPhoneMap[record.student_id]}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-red-400 mt-0.5">No phone</p>
+                      )}
                     </div>
                     {alreadyNotified ? (
                       <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
