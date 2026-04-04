@@ -251,7 +251,7 @@ export default function Dashboard() {
                   <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
                     <DollarSign className="h-6 w-6" />
                   </div>
-                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Financial Management</span>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Transactions &amp; Tax</span>
                 </div>
               </Link>
             </div>
@@ -370,7 +370,7 @@ export default function Dashboard() {
                   <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
                     <DollarSign className="h-6 w-6" />
                   </div>
-                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Financial Management</span>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Transactions &amp; Tax</span>
                 </div>
               </Link>
               <Link to="/StaffAttendanceSalary" className="block">
