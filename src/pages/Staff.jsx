@@ -258,13 +258,13 @@ export default function Staff() {
       'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
       'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
       'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
-      'cleaner': 'cleaner',
+      'cleaner': 'cleaner', 'ceo': 'ceo',
     };
     const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
     const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
 
-    // Generate ID client-side: A### for admin/accountant/principal, T### for everyone else
-    const ADMIN_ROLE_KEYS = ['admin', 'accountant', 'principal'];
+    // Generate ID client-side: A### for admin/accountant/principal/ceo, T### for everyone else
+    const ADMIN_ROLE_KEYS = ['admin', 'accountant', 'principal', 'ceo'];
     const isAdminRole = ADMIN_ROLE_KEYS.includes(derivedRole) || ADMIN_ROLE_KEYS.some(r => rawRoleName.includes(r));
     const prefix = isAdminRole ? 'A' : 'T';
     const existingIds = staffList
@@ -386,7 +386,7 @@ export default function Staff() {
         'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
         'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
         'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
-        'cleaner': 'cleaner',
+        'cleaner': 'cleaner', 'ceo': 'ceo',
       };
       const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
       const derivedRole = selectedTemplate ? (ROLE_NAME_MAP[rawRoleName] || rawRoleName) : (editingStaff?.role || '');
