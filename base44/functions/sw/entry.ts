@@ -41,8 +41,16 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(cacheNames.map((name) => caches.delete(name)));
+    }).then(() => clients.claim())
+  );
 });
 `;
 
