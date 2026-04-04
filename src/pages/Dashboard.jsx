@@ -232,7 +232,16 @@ export default function Dashboard() {
 
   // ─── CEO DASHBOARD ─────────────────────────────────────────────────────────
   if (isCeo) {
-    const ceoSections = groupBySection(visibleTiles);
+    const CEO_TILES = [
+      { label: 'Attendance',    to: '/Attendance',           icon: CheckSquare,   gradient: 'from-teal-400 to-teal-600' },
+      { label: 'Marks',         to: '/Marks',                icon: BookOpen,      gradient: 'from-green-400 to-green-600' },
+      { label: 'Students',      to: '/Students',             icon: Users,         gradient: 'from-blue-400 to-blue-600' },
+      { label: 'Messages',      to: '/Messaging',            icon: MessageSquare, gradient: 'from-sky-400 to-sky-600' },
+      { label: 'Notices',       to: '/Notices',              icon: Bell,          gradient: 'from-yellow-400 to-yellow-600' },
+      { label: 'Gallery',       to: '/Gallery',              icon: Image,         gradient: 'from-orange-400 to-orange-600' },
+      { label: 'Transactions',  to: '/FinancialManagement',  icon: DollarSign,    gradient: 'from-emerald-500 to-teal-600' },
+      { label: 'Staff Salary',  to: '/StaffAttendanceSalary',icon: UserCheck,     gradient: 'from-violet-500 to-fuchsia-600' },
+    ];
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
@@ -240,36 +249,18 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'CEO'}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
-
-          {ceoSections.map(section => (
-            <section key={section.title} className="mb-8">
-              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">{section.title}</h2>
-              <TileGrid tiles={section.tiles} />
-            </section>
-          ))}
-
-          {/* Financial Management & Staff Attendance/Salary — CEO access */}
-          <section className="mb-8">
-            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Management</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <Link to="/FinancialManagement" className="block">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {CEO_TILES.map(tile => (
+              <Link key={tile.label} to={tile.to} className="block">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
-                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
-                    <DollarSign className="h-6 w-6" />
+                  <div className={`bg-gradient-to-br ${tile.gradient} p-3 rounded-2xl text-white`}>
+                    <tile.icon className="h-6 w-6" />
                   </div>
-                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Transactions &amp; Tax</span>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">{tile.label}</span>
                 </div>
               </Link>
-              <Link to="/StaffAttendanceSalary" className="block">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
-                  <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 p-3 rounded-2xl text-white">
-                    <UserCheck className="h-6 w-6" />
-                  </div>
-                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Staff Attendance &amp; Salary</span>
-                </div>
-              </Link>
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
       </div>
     );

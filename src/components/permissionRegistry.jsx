@@ -257,8 +257,9 @@ export const BASE_ROLE_PERMISSIONS = {
 
   cleaner: {},
 
-  // CEO — top of school, full access except admin-only system config
+  // CEO — clean access to specific modules only
   ceo: {
+    // Attendance — full access
     [PERMS.ATTENDANCE_VIEW]: true,
     [PERMS.ATTENDANCE_MARK]: true,
     [PERMS.ATTENDANCE_VIEW_SUMMARY]: true,
@@ -266,58 +267,27 @@ export const BASE_ROLE_PERMISSIONS = {
     [PERMS.ATTENDANCE_MANAGE_HOLIDAYS]: true,
     [PERMS.ATTENDANCE_OVERRIDE_HOLIDAY]: true,
     [PERMS.ATTENDANCE_NEEDS_APPROVAL]: false,
+    // Marks — can review and publish
     [PERMS.MARKS_VIEW]: true,
     [PERMS.MARKS_ENTER]: true,
     [PERMS.MARKS_PUBLISH]: true,
     [PERMS.MARKS_NEEDS_APPROVAL]: false,
-    [PERMS.EXAMS_VIEW]: true,
-    [PERMS.EXAMS_MANAGE]: true,
-    [PERMS.HALL_TICKETS_GENERATE]: true,
-    [PERMS.PROGRESS_CARDS_GENERATE]: true,
+    // Students — view and manage (no promote — enforced in Students page)
+    [PERMS.STUDENTS_VIEW]: true,
+    [PERMS.STUDENTS_MANAGE]: true,
+    // Messages
+    [PERMS.MESSAGES_VIEW]: true,
+    [PERMS.MESSAGES_SEND]: true,
+    // Notices
     [PERMS.NOTICES_VIEW]: true,
     [PERMS.NOTICES_CREATE]: true,
     [PERMS.NOTICES_APPROVE]: true,
     [PERMS.NOTICES_NEEDS_APPROVAL]: false,
+    // Gallery
     [PERMS.GALLERY_VIEW]: true,
     [PERMS.GALLERY_UPLOAD]: true,
     [PERMS.GALLERY_APPROVE]: true,
     [PERMS.GALLERY_NEEDS_APPROVAL]: false,
-    [PERMS.QUIZ_VIEW]: true,
-    [PERMS.QUIZ_CREATE]: true,
-    [PERMS.QUIZ_PUBLISH]: true,
-    [PERMS.QUIZ_NEEDS_APPROVAL]: false,
-    [PERMS.HOMEWORK_VIEW]: true,
-    [PERMS.HOMEWORK_MANAGE]: true,
-    [PERMS.DIARY_VIEW]: true,
-    [PERMS.DIARY_MANAGE]: true,
-    [PERMS.TIMETABLE_VIEW]: true,
-    [PERMS.TIMETABLE_MANAGE]: true,
-    [PERMS.ADMISSIONS_VIEW]: true,
-    [PERMS.ADMISSIONS_REVIEW]: true,
-    [PERMS.STUDENTS_VIEW]: true,
-    [PERMS.STUDENTS_MANAGE]: true,
-    [PERMS.MESSAGES_VIEW]: true,
-    [PERMS.MESSAGES_SEND]: true,
-    [PERMS.CALENDAR_VIEW]: true,
-    [PERMS.REPORTS_VIEW]: true,
-    [PERMS.FEES_VIEW]: true,
-    [PERMS.FEES_LEDGER_VIEW]: true,
-    [PERMS.FEES_RECORD_PAYMENT]: true,
-    [PERMS.FEES_VOID_RECEIPT]: true,
-    [PERMS.FEES_PRINT_RECEIPT]: true,
-    [PERMS.FEES_APPLY_DISCOUNT]: true,
-    [PERMS.FEES_MANAGE_FAMILIES]: true,
-    [PERMS.FEES_MANAGE_FEE_PLANS]: true,
-    [PERMS.FEES_MANAGE_FEE_HEADS]: true,
-    [PERMS.FEES_MANAGE_ADHOC]: true,
-    [PERMS.FEES_GENERATE_INVOICES]: true,
-    [PERMS.FEES_CONFIGURE_RECEIPT]: true,
-    [PERMS.FEE_REPORTS_VIEW]: true,
-    [PERMS.FEE_REPORTS_COLLECTION]: true,
-    [PERMS.FEE_REPORTS_OUTSTANDING]: true,
-    [PERMS.FEE_REPORTS_LEDGER]: true,
-    [PERMS.FEE_REPORTS_EXPORT]: true,
-    [PERMS.FEE_REPORTS_PARENT_STATEMENT]: true,
   },
 
   // Admin / Principal bypass all permission checks — empty permissions is correct.

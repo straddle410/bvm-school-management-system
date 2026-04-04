@@ -29,11 +29,11 @@ function getNextAcademicYear(currentYear) {
   return `${startYear}-${endYear}`;
 }
 
-export default function PromoteStudents({ academicYear, onPromoted, triggerOpen, onTriggerHandled }) {
+export default function PromoteStudents({ academicYear, onPromoted, triggerOpen, onTriggerHandled, hidden }) {
   const [open, setOpen] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [result, setResult] = useState(null);
-  const [blockedYear, setBlockedYear] = useState(null); // non-null = blocked dialog
+  const [blockedYear, setBlockedYear] = useState(null);
 
   const nextYear = getNextAcademicYear(academicYear);
 
@@ -91,6 +91,8 @@ export default function PromoteStudents({ academicYear, onPromoted, triggerOpen,
       setPromoting(false);
     }
   };
+
+  if (hidden) return null;
 
   return (
     <>
