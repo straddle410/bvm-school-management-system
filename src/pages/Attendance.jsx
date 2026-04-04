@@ -1073,7 +1073,7 @@ export default function Attendance() {
     staleTime: 10 * 60 * 1000 // Cache for 10 mins
   });
 
-  const isAdmin = ['admin', 'principal'].includes((user?.role || '').toLowerCase());
+  const isAdmin = ['admin', 'principal', 'ceo'].includes((user?.role || '').toLowerCase());
   const isExamStaff = (user?.role || '').toLowerCase() === 'exam_staff';
   // exam_staff can access snapshot + summary but NOT holidays management
   const canViewReports = isAdmin || isExamStaff;
