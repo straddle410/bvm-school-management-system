@@ -72,11 +72,12 @@ const TILE_LEGACY_MAP = {
  *   4. canonical permission key check
  *   5. legacy key fallback (for pre-Phase-2 sessions)
  */
-function canSeeTile(tile, isAdmin, effectivePermissions) {
+function canSeeTile(tile, isAdmin, effectivePermissions, isCeo = false) {
   if (tile.adminOnly) return isAdmin;
   if (isAdmin) return true;
-  if (tile.staffOnly) return true;
-  if (!tile.requiredPerm) return false;
+  // CEO must have explicit permission — don't grant access via staffOnly alone
+  if (tile.staffOnly && !isCeo) return true;
+  if (!tile.requiredPerm) return isCeo ? false : false;
 
   // Direct canonical key check (Phase 2+ sessions)
   if (effectivePermissions[tile.requiredPerm] === true) return true;
@@ -87,8 +88,8 @@ function canSeeTile(tile, isAdmin, effectivePermissions) {
 }
 
 /** Returns all DASHBOARD_TILES visible to the current user. */
-function getVisibleTiles(isAdmin, effectivePermissions) {
-  return DASHBOARD_TILES.filter(tile => canSeeTile(tile, isAdmin, effectivePermissions));
+function getVisibleTiles(isAdmin, effectivePermissions, isCeo = false) {
+  return DASHBOARD_TILES.filter(tile => canSeeTile(tile, isAdmin, effectivePermissions, isCeo));
 }
 
 /** Groups a flat tile array by section, preserving DASHBOARD_TILES order. */
@@ -227,7 +228,7 @@ export default function Dashboard() {
   }
 
   // Compute once — all tiles visible to this user given role + effectivePermissions
-  const visibleTiles = getVisibleTiles(isAdmin, effectivePermissions);
+  const visibleTiles = getVisibleTiles(isAdmin, effectivePermissions, isCeo);
 
   // ─── CEO DASHBOARD ─────────────────────────────────────────────────────────
   if (isCeo) {
