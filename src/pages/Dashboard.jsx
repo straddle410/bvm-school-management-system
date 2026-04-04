@@ -135,6 +135,7 @@ export default function Dashboard() {
 
   const isCleaner = staffRole === 'cleaner';
   const isAdmin = staffRole === 'admin' || staffRole === 'principal';
+  const isCeo = staffRole === 'ceo';
   const isTeacher = staffRole === 'teacher';
   const isAccountant = staffRole === 'accountant';
   const isExamStaff = staffRole === 'exam_staff';
@@ -227,6 +228,51 @@ export default function Dashboard() {
 
   // Compute once — all tiles visible to this user given role + effectivePermissions
   const visibleTiles = getVisibleTiles(isAdmin, effectivePermissions);
+
+  // ─── CEO DASHBOARD ─────────────────────────────────────────────────────────
+  if (isCeo) {
+    const ceoSections = groupBySection(visibleTiles);
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'CEO'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
+          </div>
+
+          {ceoSections.map(section => (
+            <section key={section.title} className="mb-8">
+              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">{section.title}</h2>
+              <TileGrid tiles={section.tiles} />
+            </section>
+          ))}
+
+          {/* Financial Management & Staff Attendance/Salary — CEO access */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Management</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <Link to="/FinancialManagement" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
+                    <DollarSign className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Transactions &amp; Tax</span>
+                </div>
+              </Link>
+              <Link to="/StaffAttendanceSalary" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 p-3 rounded-2xl text-white">
+                    <UserCheck className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Staff Attendance &amp; Salary</span>
+                </div>
+              </Link>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   // ─── ACCOUNTANT DASHBOARD ───────────────────────────────────────────────────
   if (isAccountant) {

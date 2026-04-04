@@ -48,6 +48,8 @@ const STAFF_PAGES = [
   'AdmissionLanding',
   'PublicAdmission',
   'IDCards',
+  'FinancialManagement',
+  'StaffAttendanceSalary',
 ];
 
 export default function StaffAuthGuard({ children, currentPageName }) {

@@ -15,6 +15,7 @@
       "enum": [
         "admin",
         "principal",
+        "ceo",
         "teacher",
         "accountant",
         "staff",
@@ -22,7 +23,7 @@
         "exam_staff",
         "cleaner"
       ],
-      "description": "System role for permission checks. principal = same access as admin. exam_staff = marks + attendance only. cleaner = no module access."
+      "description": "System role for permission checks. principal = same access as admin. ceo = top-level access to all modules except system settings. exam_staff = marks + attendance only. cleaner = no module access."
     },
     "username": {
       "type": "string",
