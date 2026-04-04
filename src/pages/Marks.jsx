@@ -609,7 +609,7 @@ export default function Marks() {
   };
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Exams & Marks">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff', 'ceo']} pageName="Exams & Marks">
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
       <PageHeader 
         title={viewMode === 'entry' ? "Enter Marks" : "Review Marks"}

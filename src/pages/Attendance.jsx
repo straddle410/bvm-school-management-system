@@ -1093,7 +1093,7 @@ export default function Attendance() {
   };
 
   return (
-    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff']} pageName="Attendance">
+    <LoginRequired allowedRoles={['admin', 'principal', 'teacher', 'staff', 'exam_staff', 'ceo']} pageName="Attendance">
       <div className="bg-slate-50 dark:bg-gray-900 w-full">
         <PageHeader title="Attendance" subtitle="Mark attendance, view reports, and manage holidays" />
 
