@@ -9,6 +9,7 @@ const STATUS = {
   CHECKOUT: 'checkout',
   ALREADY: 'already',
   HALF_DAY: 'half_day',
+  HOLIDAY: 'holiday',
   ERROR: 'error',
 };
 
@@ -71,6 +72,9 @@ export default function KioskCheckin() {
           setStatus(STATUS.CHECKOUT);
           setMessage(`Check-out: ${data.checkout_time}`);
         }
+      } else if (data.status === 'holiday_checkin') {
+        setStatus(STATUS.HOLIDAY);
+        setMessage(`Today is ${data.holiday_title || 'a holiday'}. Your attendance has been recorded.`);
       } else if (data.status === 'already_checked_in') {
         setStatus(STATUS.ALREADY);
         setMessage('');
@@ -147,6 +151,7 @@ export default function KioskCheckin() {
               ${status === STATUS.SUCCESS ? 'bg-green-600' : ''}
               ${status === STATUS.CHECKOUT ? 'bg-teal-600' : ''}
               ${status === STATUS.HALF_DAY ? 'bg-orange-500' : ''}
+              ${status === STATUS.HOLIDAY ? 'bg-purple-600' : ''}
               ${status === STATUS.ALREADY ? 'bg-blue-600' : ''}
               ${status === STATUS.ERROR ? 'bg-red-600' : ''}
             `}
@@ -178,15 +183,16 @@ export default function KioskCheckin() {
                 <p className="text-lg mt-4 text-white/90 text-center">{message}</p>
               </>
             )}
-            {status === STATUS.ALREADY && (
+            {status === STATUS.HOLIDAY && (
               <>
-                <div className="text-8xl mb-4">👋</div>
-                <h2 className="text-3xl font-bold text-center">Hello!</h2>
+                <div className="text-8xl mb-4">🏖️</div>
+                <h2 className="text-3xl font-bold text-center">Holiday!</h2>
                 <p className="text-2xl font-semibold mt-2 text-center">{staffName}</p>
-                <p className="text-lg mt-4 text-white/90 text-center">You are already checked in today.</p>
+                <p className="text-lg mt-4 text-white/90 text-center">{message}</p>
+                <p className="text-base mt-3 text-yellow-200 text-center font-medium">Please contact admin for extra day work compensation.</p>
               </>
             )}
-            {status === STATUS.ERROR && (
+            {status === STATUS.ALREADY && (
               <>
                 <div className="text-8xl mb-4">❌</div>
                 <h2 className="text-3xl font-bold text-center">Not Recognized</h2>

@@ -87,6 +87,7 @@ function MarkAttendanceTab({
   const [rangeStart, setRangeStart] = useState('');
   const [rangeEnd, setRangeEnd] = useState('');
   const [rangeReason, setRangeReason] = useState('');
+  const [rangeAppliesTo, setRangeAppliesTo] = useState('All');
   const [rangeProgress, setRangeProgress] = useState(0);
 
   const saveRangeMutation = useMutation({
@@ -100,6 +101,7 @@ function MarkAttendanceTab({
           date: dateStr,
           title: rangeReason || 'Holiday',
           reason: rangeReason || '',
+          applies_to: rangeAppliesTo || 'All',
           marked_by: user?.email || 'admin',
           academic_year: academicYear,
           status: 'Active'
@@ -111,7 +113,7 @@ function MarkAttendanceTab({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
       setShowRangeMode(false);
-      setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeProgress(0);
+      setRangeStart(''); setRangeEnd(''); setRangeReason(''); setRangeAppliesTo('All'); setRangeProgress(0);
       toast.success('Holiday range marked successfully');
     },
     onError: (err) => {
@@ -181,8 +183,9 @@ function MarkAttendanceTab({
     staleTime: 5 * 60 * 1000
   });
 
-  // Filter holidays for current working date from parent-level holidays prop
-  const isMarkedHoliday = holidays.some(h => h.date === workingDate && h.status === 'Active');
+  // Filter holidays for current working date - only student-applicable holidays affect student attendance
+  // 'Staff Only' holidays should NOT block student attendance
+  const isMarkedHoliday = holidays.some(h => h.date === workingDate && h.status === 'Active' && (h.applies_to === 'All' || h.applies_to === 'Students Only' || !h.applies_to));
 
   // Phase 5: Use can() helper with effective permissions
   const userWithPerms = { ...user, effective_permissions: getEffectivePermissions(user || {}) };
@@ -454,6 +457,11 @@ function MarkAttendanceTab({
                     <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600 dark:text-gray-400">From</label><input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm" /></div>
                     <div className="flex items-center gap-1.5"><label className="text-xs text-slate-600 dark:text-gray-400">To</label><input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm" /></div>
                     <input type="text" placeholder="Reason (e.g. Summer Vacation)" value={rangeReason} onChange={e => setRangeReason(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]" />
+                    <select value={rangeAppliesTo} onChange={e => setRangeAppliesTo(e.target.value)} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1.5 text-sm">
+                      <option value="All">All</option>
+                      <option value="Students Only">Students Only</option>
+                      <option value="Staff Only">Staff Only</option>
+                    </select>
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button size="sm" className="bg-amber-500 hover:bg-amber-600" onClick={() => saveRangeMutation.mutate()} disabled={!rangeStart || !rangeEnd || saveRangeMutation.isPending}>
@@ -875,7 +883,7 @@ function AttendanceSummaryTab({
 function HolidaysTab({ academicYear, user, isAdmin }) {
    const [showForm, setShowForm] = useState(false);
    const [editingHoliday, setEditingHoliday] = useState(null);
-   const [formData, setFormData] = useState({ date: '', title: '', reason: '' });
+   const [formData, setFormData] = useState({ date: '', title: '', reason: '', applies_to: 'All' });
    const queryClient = useQueryClient();
 
    // Phase 5: Permission check using can() helper
@@ -912,7 +920,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
         base44.entities.AuditLog.create({ action: 'holiday_marked', module: 'Holiday', date: formData.date, performed_by: performedBy, details: `Marked ${formData.title}`, academic_year: academicYear });
       }
       toast.success('Holiday added');
-      setShowForm(false); setFormData({ date: '', title: '', reason: '' });
+      setShowForm(false); setFormData({ date: '', title: '', reason: '', applies_to: 'All' });
     }
   });
 
@@ -921,7 +929,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
       toast.success('Holiday updated');
-      setEditingHoliday(null); setShowForm(false); setFormData({ date: '', title: '', reason: '' });
+      setEditingHoliday(null); setShowForm(false); setFormData({ date: '', title: '', reason: '', applies_to: 'All' });
     }
   });
 
@@ -938,9 +946,10 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
   });
 
   const handleSubmit = () => {
-    if (!formData.date || !formData.title) { toast.error('Date and title are required'); return; }
-    if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; }
-    editingHoliday ? updateMutation.mutate(formData) : createMutation.mutate(formData);
+   if (!formData.date || !formData.title) { toast.error('Date and title are required'); return; }
+   if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; }
+   const dataToSave = { ...formData, applies_to: formData.applies_to || 'All' };
+   editingHoliday ? updateMutation.mutate(dataToSave) : createMutation.mutate(dataToSave);
   };
 
   const sortedHolidays = [...holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -960,7 +969,7 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Active Holidays — {academicYear}</h2>
-         <Button onClick={() => { setEditingHoliday(null); setFormData({ date: '', title: '', reason: '' }); setShowForm(true); }} disabled={yearLocked}>
+         <Button onClick={() => { setEditingHoliday(null); setFormData({ date: '', title: '', reason: '', applies_to: 'All' }); setShowForm(true); }} disabled={yearLocked}>
            <Plus className="h-4 w-4 mr-2" />Add Holiday
          </Button>
        </div>
@@ -990,6 +999,14 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
               <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Reason (optional)</label>
               <input type="text" value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm w-full mt-1" />
             </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Applies To</label>
+              <select value={formData.applies_to || 'All'} onChange={(e) => setFormData({ ...formData, applies_to: e.target.value })} className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm w-full mt-1">
+                <option value="All">All (Students + Staff)</option>
+                <option value="Students Only">Students Only</option>
+                <option value="Staff Only">Staff Only</option>
+              </select>
+            </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
               <Button size="sm" onClick={handleSubmit}>{editingHoliday ? 'Update' : 'Add'} Holiday</Button>
@@ -1010,12 +1027,15 @@ function HolidaysTab({ academicYear, user, isAdmin }) {
                     <Calendar className="h-5 w-5 text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 dark:text-white">{holiday.title}</p>
-                    <p className="text-sm text-slate-500 dark:text-gray-400">{format(parseISO(holiday.date), 'MMM dd, yyyy')} {holiday.reason && `· ${holiday.reason}`}</p>
+                   <p className="font-medium text-slate-900 dark:text-white">{holiday.title}</p>
+                   <p className="text-sm text-slate-500 dark:text-gray-400">{format(parseISO(holiday.date), 'MMM dd, yyyy')} {holiday.reason && `· ${holiday.reason}`}</p>
+                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${holiday.applies_to === 'Staff Only' ? 'bg-blue-100 text-blue-700' : holiday.applies_to === 'Students Only' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                     {holiday.applies_to === 'Staff Only' ? '👔 Staff Only' : holiday.applies_to === 'Students Only' ? '🎒 Students Only' : '👥 All'}
+                   </span>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="icon" variant="ghost" onClick={() => { if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; } setEditingHoliday(holiday); setFormData({ date: holiday.date, title: holiday.title, reason: holiday.reason || '' }); setShowForm(true); }} disabled={yearLocked}>
+                  <Button size="icon" variant="ghost" onClick={() => { if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; } setEditingHoliday(holiday); setFormData({ date: holiday.date, title: holiday.title, reason: holiday.reason || '', applies_to: holiday.applies_to || 'All' }); setShowForm(true); }} disabled={yearLocked}>
                     <Edit2 className="h-4 w-4 text-slate-400" />
                   </Button>
                   <Button size="icon" variant="ghost" onClick={() => { if (yearLocked) { toast.error('This academic year is locked. No mutations allowed.'); return; } deleteMutation.mutate(holiday.id); }} disabled={yearLocked}>

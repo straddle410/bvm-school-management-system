@@ -1,0 +1,51 @@
+{
+  "name": "Holiday",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Holiday date"
+    },
+    "title": {
+      "type": "string",
+      "description": "Holiday name (e.g., Diwali, Summer Vacation)"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason or description"
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "All",
+        "Students Only",
+        "Staff Only"
+      ],
+      "default": "All",
+      "description": "Who this holiday applies to: All = both students and staff, Students Only = students only (staff must work), Staff Only = staff only"
+    },
+    "marked_by": {
+      "type": "string",
+      "description": "Email of user who marked holiday"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Cancelled"
+      ],
+      "default": "Active",
+      "description": "Holiday status"
+    }
+  },
+  "required": [
+    "date",
+    "title",
+    "academic_year"
+  ]
+}
