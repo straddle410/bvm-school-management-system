@@ -19,7 +19,11 @@ const STATUSES = ['Present', 'Absent', 'Half Day', 'Leave', 'Holiday'];
 export default function StaffAttendanceTab({ academicYear }) {
   const [staffList, setStaffList] = useState([]);
   const [attendanceMap, setAttendanceMap] = useState({});
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    return ist.toISOString().slice(0, 10);
+  });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initializing, setInitializing] = useState(false);
