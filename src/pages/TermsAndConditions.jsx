@@ -12,11 +12,15 @@ const Section = ({ title, children }) => (
 
 export default function TermsAndConditions() {
   const [schoolName, setSchoolName] = useState('the School');
+  const [school, setSchool] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     base44.entities.SchoolProfile.list().then(profiles => {
-      if (profiles?.[0]?.school_name) setSchoolName(profiles[0].school_name);
+      if (profiles?.[0]) {
+        setSchool(profiles[0]);
+        setSchoolName(profiles[0].school_name || 'the School');
+      }
     }).catch(() => {});
   }, []);
 
@@ -32,7 +36,7 @@ export default function TermsAndConditions() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6 md:p-10">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{schoolName}</h1>
-          <p className="text-sm text-slate-500 dark:text-gray-400 mb-8">Terms and Conditions &mdash; Last updated: March 2026</p>
+          <p className="text-sm text-slate-500 dark:text-gray-400 mb-8">Terms and Conditions &mdash; Last updated: April 2026</p>
 
           <Section title="1. Acceptance of Terms">
             <p>By accessing or using the {schoolName} School Management Application ("the App"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you may not use the App.</p>
@@ -82,9 +86,12 @@ export default function TermsAndConditions() {
             <p>For questions, concerns, or requests related to these Terms and Conditions or your data, please contact the school administration:</p>
             <div className="mt-3 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600 space-y-2">
               <p className="font-semibold text-slate-800 dark:text-white">{schoolName}</p>
-              <p className="text-slate-600 dark:text-gray-300 text-sm">📍 Vidya Nagar Colony, Kothakota, Wanaparthy Dist</p>
-              <p className="text-slate-600 dark:text-gray-300 text-sm">📞 <a href="tel:+919101724665" className="underline hover:text-indigo-600">+91 91017 24665</a></p>
-              <p className="text-slate-600 dark:text-gray-300 text-sm">✉️ <a href="mailto:bvmschool1990@gmail.com" className="underline hover:text-indigo-600">bvmschool1990@gmail.com</a></p>
+              {school?.address && <p className="text-slate-600 dark:text-gray-300 text-sm">📍 {school.address}</p>}
+              {!school?.address && <p className="text-slate-600 dark:text-gray-300 text-sm">📍 Vidya Nagar Colony, Kothakota, Wanaparthy Dist</p>}
+              {school?.phone && <p className="text-slate-600 dark:text-gray-300 text-sm">📞 <a href={`tel:${school.phone}`} className="underline hover:text-indigo-600">{school.phone}</a></p>}
+              {!school?.phone && <p className="text-slate-600 dark:text-gray-300 text-sm">📞 <a href="tel:+919101724665" className="underline hover:text-indigo-600">+91 91017 24665</a></p>}
+              {school?.email && <p className="text-slate-600 dark:text-gray-300 text-sm">✉️ <a href={`mailto:${school.email}`} className="underline hover:text-indigo-600">{school.email}</a></p>}
+              {!school?.email && <p className="text-slate-600 dark:text-gray-300 text-sm">✉️ <a href="mailto:bvmschool1990@gmail.com" className="underline hover:text-indigo-600">bvmschool1990@gmail.com</a></p>}
             </div>
           </Section>
 

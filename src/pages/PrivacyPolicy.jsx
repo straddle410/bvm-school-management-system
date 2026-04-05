@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
           {/* Title Block */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{schoolName}</h1>
-            <p className="text-sm text-slate-500 dark:text-gray-400">Privacy Policy &mdash; Effective Date: March 2026</p>
+            <p className="text-sm text-slate-500 dark:text-gray-400">Privacy Policy &mdash; Effective Date: April 2026</p>
             <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg">
              <p className="text-sm text-indigo-800 dark:text-indigo-300">
                 <strong>{schoolName}</strong> ("we", "our", or "the School") is committed to protecting the privacy of our students, parents, staff, and all users of our School Management Application. This Privacy Policy explains what information we collect, how we use it, and the rights you have regarding your data.
@@ -81,6 +81,8 @@ export default function PrivacyPolicy() {
               ['Fee & Financial Data', 'Fee invoices, payment receipts, outstanding balances, discount details'],
               ['Parent / Guardian Info', 'Name, phone number, email address, relationship to student'],
               ['Staff Information', 'Name, designation, contact details, assigned classes, login credentials'],
+              ['Staff Attendance', 'Daily check-in/check-out times via QR kiosk, attendance status (Present, Half Day, Absent, Leave)'],
+              ['Staff Salary Data', 'Monthly salary configuration, daily attendance-based earnings, payment records'],
               ['Communication Data', 'Messages sent via the app, notices read, diary entries'],
               ['Homework & Submissions', 'Homework assigned, student submissions, grades, teacher feedback'],
               ['Login & Usage Data', 'Login timestamps, IP address, device info, session activity'],
@@ -213,7 +215,8 @@ export default function PrivacyPolicy() {
             <p>Our app requests the following device permissions to provide its features:</p>
             <DataTable rows={[
               ['Internet Access', 'Required to connect to the school server, load student records, and sync data'],
-              ['Camera', 'Used to capture student/staff profile photos (only when you initiate photo upload)'],
+              ['Camera', 'Used to capture student/staff profile photos and to scan QR codes for staff kiosk attendance check-in/check-out'],
+              ['QR Code Scanner', 'Used exclusively at the staff attendance kiosk to identify staff members via their QR badge'],
               ['Storage / Files', 'Used to save downloaded receipts, progress cards, and uploaded documents'],
               ['Push Notifications', 'Used to deliver important school alerts and attendance notifications to your device'],
               ['Network State', 'Used to check internet connectivity before syncing data'],
