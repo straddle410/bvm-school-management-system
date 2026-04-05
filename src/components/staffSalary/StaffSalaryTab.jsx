@@ -266,19 +266,30 @@ export default function StaffSalaryTab({ academicYear }) {
       {/* Month Stats Summary */}
       {monthStats && !loading && (
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {[
-            { label: 'Total Days', value: monthStats.totalDays, color: 'slate' },
-            { label: 'Sundays', value: monthStats.sundays, color: 'gray' },
-            { label: 'Total Holidays', value: monthStats.totalHolidays, color: 'amber' },
-            { label: 'Paid Holidays', value: monthStats.paidHolidays, color: 'green' },
-            { label: 'Unpaid Holidays', value: monthStats.unpaidHolidays, color: 'red' },
-            { label: 'Working Days', value: monthStats.effectiveWorkingDays, color: 'indigo' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className={`bg-${color}-50 dark:bg-${color}-900/20 rounded-xl p-3 text-center border border-${color}-100 dark:border-${color}-800`}>
-              <p className={`text-lg font-bold text-${color}-700 dark:text-${color}-300`}>{value}</p>
-              <p className={`text-[10px] text-${color}-500 dark:text-${color}-400 font-medium`}>{label}</p>
-            </div>
-          ))}
+          <div className="bg-slate-100 dark:bg-gray-700 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-slate-700 dark:text-white">{monthStats.totalDays}</p>
+            <p className="text-[10px] text-slate-500 font-medium">Total Days</p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-gray-600 dark:text-gray-300">{monthStats.sundays}</p>
+            <p className="text-[10px] text-gray-500 font-medium">Sundays</p>
+          </div>
+          <div className="bg-amber-100 dark:bg-gray-700 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{monthStats.totalHolidays}</p>
+            <p className="text-[10px] text-amber-600 font-medium">Total Holidays</p>
+          </div>
+          <div className="bg-green-100 dark:bg-gray-700 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-green-700 dark:text-green-300">{monthStats.paidHolidays}</p>
+            <p className="text-[10px] text-green-600 font-medium">Paid Holidays</p>
+          </div>
+          <div className="bg-red-100 dark:bg-gray-700 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-red-700 dark:text-red-300">{monthStats.unpaidHolidays}</p>
+            <p className="text-[10px] text-red-500 font-medium">Unpaid Holidays</p>
+          </div>
+          <div className="bg-indigo-100 dark:bg-indigo-900/40 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{monthStats.effectiveWorkingDays}</p>
+            <p className="text-[10px] text-indigo-600 font-medium">Working Days</p>
+          </div>
         </div>
       )}
 
