@@ -13,6 +13,7 @@ import FinancialManagement from './pages/FinancialManagement'
 import StaffAttendanceSalary from './pages/StaffAttendanceSalary'
 import CleanerDashboard from './pages/CleanerDashboard'
 import KioskCheckin from './pages/KioskCheckin'
+import StaffQRPrint from './pages/StaffQRPrint'
 
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/StaffAttendanceSalary" element={<LayoutWrapper currentPageName="StaffAttendanceSalary"><PageTransition><StaffAttendanceSalary /></PageTransition></LayoutWrapper>} />
       <Route path="/CleanerDashboard" element={<PageTransition><CleanerDashboard /></PageTransition>} />
       <Route path="/KioskCheckin" element={<PageTransition><KioskCheckin /></PageTransition>} />
+      <Route path="/StaffQRPrint" element={<LayoutWrapper currentPageName="StaffQRPrint"><PageTransition><StaffQRPrint /></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><DeleteAccount /></PageTransition>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
