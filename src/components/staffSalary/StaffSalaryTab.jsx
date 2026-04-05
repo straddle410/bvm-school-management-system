@@ -11,11 +11,12 @@ const MONTHS = [
   'July','August','September','October','November','December'
 ];
 
-// Days present calculation: Present=1, Half Day=0.5, else=0
-function calcDaysFromAttendance(records) {
+// Days present calculation: Present=1, Half Day=0.5, Holiday on paid holiday=1, else=0
+function calcDaysFromAttendance(records, paidHolidayDates = new Set()) {
   return records.reduce((sum, r) => {
     if (r.status === 'Present') return sum + 1;
     if (r.status === 'Half Day') return sum + 0.5;
+    if (r.status === 'Holiday' && paidHolidayDates.has(r.date)) return sum + 1;
     return sum;
   }, 0);
 }
@@ -57,12 +58,21 @@ export default function StaffSalaryTab({ academicYear }) {
     const { start, end } = getMonthDateRange(selYear, selMonth);
     const monthLabel = `${MONTHS[selMonth]} ${selYear}`;
     try {
-      const [staffList, configs, allAttendance, payments] = await Promise.all([
+      const [staffList, configs, allAttendance, payments, holidays] = await Promise.all([
         base44.entities.StaffAccount.filter({ is_active: true }),
         base44.entities.StaffSalaryConfig.filter({ academic_year: academicYear }),
         base44.entities.StaffAttendance.list('-date', 5000),
         base44.entities.SalaryPayment.filter({ academic_year: academicYear }),
+        base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' }),
       ]);
+
+      // Build set of paid holiday dates in this month (only holidays applicable to staff)
+      const paidHolidayDates = new Set(
+        holidays
+          .filter(h => h.is_paid !== false && (h.applies_to === 'All' || h.applies_to === 'Staff Only'))
+          .map(h => h.date)
+          .filter(d => d >= start && d <= end)
+      );
 
       const configMap = {};
       configs.forEach(c => { configMap[c.staff_id] = c; });
@@ -76,7 +86,7 @@ export default function StaffSalaryTab({ academicYear }) {
       const data = staffList.map(s => {
         const config = configMap[s.id];
         const att = monthAttendance.filter(a => a.staff_id === s.id);
-        const daysPresent = calcDaysFromAttendance(att);
+        const daysPresent = calcDaysFromAttendance(att, paidHolidayDates);
         const today = new Date();
         // Days elapsed so far this month (cap at total days in month)
         const totalDays = daysInMonth(selYear, selMonth);
@@ -233,7 +243,7 @@ export default function StaffSalaryTab({ academicYear }) {
                         {hasConfig && (
                           <div className="flex gap-3 mt-1.5 text-xs text-slate-500 flex-wrap">
                             <span>Monthly: ₹{(d.config.monthly_salary || 0).toLocaleString('en-IN')}</span>
-                            <span>Days Present: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong></span>
+                            <span>Days Present: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong> <span className="text-[10px] text-green-600">(incl. paid holidays)</span></span>
                             <span>Daily Rate: ₹{d.dailyRate.toFixed(0)}</span>
                           </div>
                         )}

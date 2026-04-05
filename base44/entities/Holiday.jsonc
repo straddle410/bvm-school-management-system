@@ -25,6 +25,11 @@
       "default": "All",
       "description": "Who this holiday applies to: All = both students and staff, Students Only = students only (staff must work), Staff Only = staff only"
     },
+    "is_paid": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this holiday is a paid holiday for staff (true by default). Unpaid holidays deduct from salary."
+    },
     "marked_by": {
       "type": "string",
       "description": "Email of user who marked holiday"
