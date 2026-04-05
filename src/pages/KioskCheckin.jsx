@@ -84,7 +84,7 @@ export default function KioskCheckin() {
   const navigate = useNavigate();
 
   const handleExitAttempt = () => {
-    if (exitPassword === '1234') {
+    if (exitPassword === '9265') {
       navigate('/Dashboard');
     } else {
       setExitError('Incorrect password. Try again.');
