@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { base44 } from '@/api/base44Client';
 
@@ -77,14 +78,37 @@ export default function KioskCheckin() {
     return () => clearTimeout(resetTimerRef.current);
   }, []);
 
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [exitPassword, setExitPassword] = useState('');
+  const [exitError, setExitError] = useState('');
+  const navigate = useNavigate();
+
+  const handleExitAttempt = () => {
+    if (exitPassword === '1234') {
+      navigate('/Dashboard');
+    } else {
+      setExitError('Incorrect password. Try again.');
+      setExitPassword('');
+    }
+  };
+
   const overlayVisible = status !== STATUS.SCANNING;
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-900 overflow-hidden">
       {/* Header */}
-      <div className="bg-[#1a237e] text-white text-center py-4 px-4 flex-shrink-0">
-        <h1 className="text-xl font-bold">{schoolName}</h1>
-        <p className="text-sm text-white/70 mt-0.5">Staff Attendance Kiosk</p>
+      <div className="bg-[#1a237e] text-white py-4 px-4 flex-shrink-0 flex items-center justify-between">
+        <button
+          onClick={() => setShowExitModal(true)}
+          className="text-white/50 hover:text-white text-xs border border-white/20 rounded-lg px-2 py-1"
+        >
+          🔒 Exit
+        </button>
+        <div className="text-center flex-1">
+          <h1 className="text-xl font-bold">{schoolName}</h1>
+          <p className="text-sm text-white/70 mt-0.5">Staff Attendance Kiosk</p>
+        </div>
+        <div className="w-16" />
       </div>
 
       {/* Scanner Area */}
@@ -147,6 +171,40 @@ export default function KioskCheckin() {
 
       {/* Prevent accidental navigation via back gesture — intercept popstate */}
       <BackLockEffect />
+
+      {/* Admin Exit Modal */}
+      {showExitModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Admin Exit</h2>
+            <p className="text-sm text-gray-500 mb-4">Enter admin password to leave the kiosk.</p>
+            <input
+              type="password"
+              value={exitPassword}
+              onChange={e => { setExitPassword(e.target.value); setExitError(''); }}
+              onKeyDown={e => e.key === 'Enter' && handleExitAttempt()}
+              placeholder="Password"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-lg mb-3 focus:outline-none focus:ring-2 focus:ring-[#1a237e]"
+              autoFocus
+            />
+            {exitError && <p className="text-red-500 text-sm mb-3">{exitError}</p>}
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowExitModal(false); setExitPassword(''); setExitError(''); }}
+                className="flex-1 border border-gray-300 rounded-xl py-3 text-gray-700 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExitAttempt}
+                className="flex-1 bg-[#1a237e] text-white rounded-xl py-3 font-semibold"
+              >
+                Exit Kiosk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
