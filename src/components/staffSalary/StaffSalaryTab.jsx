@@ -79,13 +79,15 @@ export default function StaffSalaryTab({ academicYear }) {
     const { start, end } = getMonthDateRange(selYear, selMonth);
     const monthLabel = `${MONTHS[selMonth]} ${selYear}`;
     try {
-      const [staffList, configs, allAttendance, payments, holidays] = await Promise.all([
+      const [staffList, configs, allAttendance, payments, allHolidays] = await Promise.all([
         base44.entities.StaffAccount.filter({ is_active: true }),
         base44.entities.StaffSalaryConfig.filter({ academic_year: academicYear }),
         base44.entities.StaffAttendance.list('-date', 5000),
         base44.entities.SalaryPayment.filter({ academic_year: academicYear }),
-        base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' }),
+        base44.entities.Holiday.filter({ status: 'Active' }),
       ]);
+      // Filter holidays to those falling in the selected month (regardless of academic_year)
+      const holidays = allHolidays.filter(h => h.date >= start && h.date <= end);
 
       // Build month stats
       const totalDays = daysInMonth(selYear, selMonth);
