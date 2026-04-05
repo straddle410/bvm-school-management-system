@@ -27,13 +27,21 @@
       "default": "Present",
       "description": "Attendance status"
     },
+    "checkin_time": {
+      "type": "string",
+      "description": "Time of first kiosk scan / check-in (HH:MM IST)"
+    },
+    "checkout_time": {
+      "type": "string",
+      "description": "Time of second kiosk scan / check-out (HH:MM IST)"
+    },
     "remarks": {
       "type": "string",
       "description": "Optional remarks"
     },
     "marked_by": {
       "type": "string",
-      "description": "Email of admin who marked"
+      "description": "Email of admin who marked, or KIOSK"
     },
     "academic_year": {
       "type": "string",

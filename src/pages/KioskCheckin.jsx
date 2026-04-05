@@ -6,7 +6,9 @@ import { base44 } from '@/api/base44Client';
 const STATUS = {
   SCANNING: 'scanning',
   SUCCESS: 'success',
+  CHECKOUT: 'checkout',
   ALREADY: 'already',
+  HALF_DAY: 'half_day',
   ERROR: 'error',
 };
 
@@ -54,9 +56,24 @@ export default function KioskCheckin() {
       const data = res.data;
       setStaffName(data.staff_name || '');
       if (data.status === 'success') {
-        setStatus(STATUS.SUCCESS);
+        if (data.attendance_status === 'Half Day') {
+          setStatus(STATUS.HALF_DAY);
+          setMessage(`Late arrival — check-in at ${data.checkin_time}`);
+        } else {
+          setStatus(STATUS.SUCCESS);
+          setMessage(`Check-in: ${data.checkin_time || ''}`);
+        }
+      } else if (data.status === 'checkout_success') {
+        if (data.attendance_status === 'Half Day') {
+          setStatus(STATUS.HALF_DAY);
+          setMessage(`Early check-out at ${data.checkout_time}. Marked Half Day.`);
+        } else {
+          setStatus(STATUS.CHECKOUT);
+          setMessage(`Check-out: ${data.checkout_time}`);
+        }
       } else if (data.status === 'already_checked_in') {
         setStatus(STATUS.ALREADY);
+        setMessage('');
       } else {
         setStatus(STATUS.ERROR);
         setMessage(data.message || 'Staff not found. Please contact admin.');
@@ -128,6 +145,8 @@ export default function KioskCheckin() {
           <div
             className={`absolute inset-0 flex flex-col items-center justify-center px-8 text-white transition-all
               ${status === STATUS.SUCCESS ? 'bg-green-600' : ''}
+              ${status === STATUS.CHECKOUT ? 'bg-teal-600' : ''}
+              ${status === STATUS.HALF_DAY ? 'bg-orange-500' : ''}
               ${status === STATUS.ALREADY ? 'bg-blue-600' : ''}
               ${status === STATUS.ERROR ? 'bg-red-600' : ''}
             `}
@@ -138,7 +157,25 @@ export default function KioskCheckin() {
                 <h2 className="text-3xl font-bold text-center">Welcome!</h2>
                 <p className="text-2xl font-semibold mt-2 text-center">{staffName}</p>
                 <p className="text-lg mt-4 text-white/90 text-center">You are now checked in.</p>
+                {message && <p className="text-base mt-1 text-white/70 text-center">{message}</p>}
                 <p className="text-base mt-1 text-white/70 text-center">Have a great day! 😊</p>
+              </>
+            )}
+            {status === STATUS.CHECKOUT && (
+              <>
+                <div className="text-8xl mb-4">👋</div>
+                <h2 className="text-3xl font-bold text-center">Goodbye!</h2>
+                <p className="text-2xl font-semibold mt-2 text-center">{staffName}</p>
+                <p className="text-lg mt-4 text-white/90 text-center">Checked out successfully.</p>
+                {message && <p className="text-base mt-1 text-white/70 text-center">{message}</p>}
+              </>
+            )}
+            {status === STATUS.HALF_DAY && (
+              <>
+                <div className="text-8xl mb-4">🕐</div>
+                <h2 className="text-3xl font-bold text-center">Half Day</h2>
+                <p className="text-2xl font-semibold mt-2 text-center">{staffName}</p>
+                <p className="text-lg mt-4 text-white/90 text-center">{message}</p>
               </>
             )}
             {status === STATUS.ALREADY && (

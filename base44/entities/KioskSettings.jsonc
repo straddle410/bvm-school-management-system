@@ -1,0 +1,22 @@
+{
+  "name": "KioskSettings",
+  "type": "object",
+  "properties": {
+    "late_checkin_time": {
+      "type": "string",
+      "description": "Time after which check-in is considered late and marks Half Day (HH:MM, 24h IST)"
+    },
+    "early_checkout_time": {
+      "type": "string",
+      "description": "Time before which check-out marks the day as Half Day (HH:MM, 24h IST)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Label/identifier for this settings record (e.g. default)"
+    }
+  },
+  "required": [
+    "late_checkin_time",
+    "early_checkout_time"
+  ]
+}
