@@ -10,7 +10,7 @@ import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser, BellRing,
-  UserCheck,
+  UserCheck, QrCode, Smartphone,
 } from 'lucide-react';
 
 // ── Icon name → lucide component map ─────────────────────────────────────────
@@ -390,6 +390,29 @@ export default function Dashboard() {
               <TileGrid tiles={section.tiles} />
             </section>
           ))}
+
+          {/* Kiosk & QR Cards — admin only */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">🖨️ Kiosk Attendance</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <Link to="/StaffQRPrint" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-2xl text-white">
+                    <QrCode className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Print QR ID Cards</span>
+                </div>
+              </Link>
+              <Link to="/KioskCheckin" className="block">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-3 rounded-2xl text-white">
+                    <Smartphone className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Kiosk Check-in</span>
+                </div>
+              </Link>
+            </div>
+          </section>
 
           {/* Notification Analytics + Financial Management + Staff — admin only */}
           <section className="mb-8">

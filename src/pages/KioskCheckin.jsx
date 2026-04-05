@@ -138,11 +138,28 @@ export default function KioskCheckin() {
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-800 text-center py-3 flex-shrink-0">
+      <div className="bg-gray-800 text-center py-3 flex-shrink-0 flex items-center justify-between px-4">
         <p className="text-gray-400 text-sm">
           {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
+        <span className="text-green-400 text-xs font-semibold bg-green-900/40 px-2 py-1 rounded-full">🟢 Kiosk Active</span>
       </div>
+
+      {/* Prevent accidental navigation via back gesture — intercept popstate */}
+      <BackLockEffect />
     </div>
   );
+}
+
+function BackLockEffect() {
+  useEffect(() => {
+    // Push a state so back button doesn't leave the kiosk page
+    window.history.pushState(null, '', window.location.href);
+    const handlePop = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
+  return null;
 }
