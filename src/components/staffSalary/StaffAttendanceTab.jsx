@@ -109,7 +109,7 @@ export default function StaffAttendanceTab({ academicYear }) {
   };
 
   const summary = staffList.reduce((acc, s) => {
-    const st = attendanceMap[s.id]?.status || 'Present';
+    const st = attendanceMap[s.id]?.status || 'Absent';
     acc[st] = (acc[st] || 0) + 1;
     return acc;
   }, {});
