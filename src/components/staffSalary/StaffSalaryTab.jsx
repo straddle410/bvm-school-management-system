@@ -66,6 +66,7 @@ export default function StaffSalaryTab({ academicYear }) {
   const [selMonth, setSelMonth] = useState(now.getMonth()); // 0-indexed
 
   const [staffData, setStaffData] = useState([]); // { staff, config, attendance, daysPresent, earned, payment }
+  const [monthStats, setMonthStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payMethod, setPayMethod] = useState('Bank Transfer');
@@ -85,6 +86,30 @@ export default function StaffSalaryTab({ academicYear }) {
         base44.entities.SalaryPayment.filter({ academic_year: academicYear }),
         base44.entities.Holiday.filter({ academic_year: academicYear, status: 'Active' }),
       ]);
+
+      // Build month stats
+      const totalDays = daysInMonth(selYear, selMonth);
+      const pad = n => String(n).padStart(2, '0');
+      let sundaysCount = 0;
+      for (let d = 1; d <= totalDays; d++) {
+        const dateStr = `${selYear}-${pad(selMonth + 1)}-${pad(d)}`;
+        if (new Date(dateStr + 'T00:00:00').getDay() === 0) sundaysCount++;
+      }
+      const staffHolidaysInMonth = holidays.filter(h =>
+        h.date >= start && h.date <= end &&
+        (h.applies_to === 'All' || h.applies_to === 'Staff Only')
+      );
+      const paidHolidaysInMonth = staffHolidaysInMonth.filter(h => h.is_paid !== false);
+      const unpaidHolidaysInMonth = staffHolidaysInMonth.filter(h => h.is_paid === false);
+      const effectiveWorkingDays = calcDynamicWorkingDays(selYear, selMonth, holidays);
+      setMonthStats({
+        totalDays,
+        sundays: sundaysCount,
+        totalHolidays: staffHolidaysInMonth.length,
+        paidHolidays: paidHolidaysInMonth.length,
+        unpaidHolidays: unpaidHolidaysInMonth.length,
+        effectiveWorkingDays,
+      });
 
       // Build set of paid holiday dates in this month (only holidays applicable to staff)
       const paidHolidayDates = new Set(
@@ -237,6 +262,25 @@ export default function StaffSalaryTab({ academicYear }) {
           {[2024, 2025, 2026, 2027].map(y => <option key={y}>{y}</option>)}
         </select>
       </div>
+
+      {/* Month Stats Summary */}
+      {monthStats && !loading && (
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {[
+            { label: 'Total Days', value: monthStats.totalDays, color: 'slate' },
+            { label: 'Sundays', value: monthStats.sundays, color: 'gray' },
+            { label: 'Total Holidays', value: monthStats.totalHolidays, color: 'amber' },
+            { label: 'Paid Holidays', value: monthStats.paidHolidays, color: 'green' },
+            { label: 'Unpaid Holidays', value: monthStats.unpaidHolidays, color: 'red' },
+            { label: 'Working Days', value: monthStats.effectiveWorkingDays, color: 'indigo' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className={`bg-${color}-50 dark:bg-${color}-900/20 rounded-xl p-3 text-center border border-${color}-100 dark:border-${color}-800`}>
+              <p className={`text-lg font-bold text-${color}-700 dark:text-${color}-300`}>{value}</p>
+              <p className={`text-[10px] text-${color}-500 dark:text-${color}-400 font-medium`}>{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-10"><div className="w-7 h-7 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" /></div>

@@ -18,11 +18,6 @@
       "type": "number",
       "description": "Gross monthly salary (for full month)"
     },
-    "working_days_per_month": {
-      "type": "number",
-      "default": 26,
-      "description": "Expected working days per month (used for daily rate calculation)"
-    },
     "academic_year": {
       "type": "string",
       "description": "Academic year (e.g. 2025-26)"

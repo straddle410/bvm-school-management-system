@@ -1,5 +1,19 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+    safelist: [
+      'bg-slate-50','border-slate-100','text-slate-700','text-slate-500',
+      'bg-gray-50','border-gray-100','text-gray-700','text-gray-500',
+      'bg-amber-50','border-amber-100','text-amber-700','text-amber-500',
+      'bg-green-50','border-green-100','text-green-700','text-green-500',
+      'bg-red-50','border-red-100','text-red-700','text-red-500',
+      'bg-indigo-50','border-indigo-100','text-indigo-700','text-indigo-500',
+      'dark:bg-slate-900/20','dark:border-slate-800','dark:text-slate-300','dark:text-slate-400',
+      'dark:bg-gray-900/20','dark:border-gray-800','dark:text-gray-300','dark:text-gray-400',
+      'dark:bg-amber-900/20','dark:border-amber-800','dark:text-amber-300','dark:text-amber-400',
+      'dark:bg-green-900/20','dark:border-green-800','dark:text-green-300','dark:text-green-400',
+      'dark:bg-red-900/20','dark:border-red-800','dark:text-red-300','dark:text-red-400',
+      'dark:bg-indigo-900/20','dark:border-indigo-800','dark:text-indigo-300','dark:text-indigo-400',
+    ],
     darkMode: ["class"],
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {

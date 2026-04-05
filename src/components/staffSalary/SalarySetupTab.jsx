@@ -30,7 +30,6 @@ export default function SalarySetupTab({ academicYear }) {
         const cfg = map[s.id];
         initEdits[s.id] = {
           monthly_salary: cfg?.monthly_salary ?? '',
-          working_days_per_month: cfg?.working_days_per_month ?? 26,
         };
       });
       setEdits(initEdits);
@@ -54,7 +53,6 @@ export default function SalarySetupTab({ academicYear }) {
           staff_name: s.name,
           designation: s.designation || s.role || '',
           monthly_salary: parseFloat(edit.monthly_salary) || 0,
-          working_days_per_month: parseInt(edit.working_days_per_month) || 26,
           academic_year: academicYear,
         };
         if (existing?.id) {
@@ -70,12 +68,13 @@ export default function SalarySetupTab({ academicYear }) {
   };
 
   const totalMonthly = staffList.reduce((sum, s) => sum + (parseFloat(edits[s.id]?.monthly_salary) || 0), 0);
+  // dailyRate is no longer shown here — it's dynamic per month (see Salary Report tab)
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-600 dark:text-gray-400">
-          Define monthly gross salary for each staff. Daily rate = Monthly ÷ Working Days.
+          Define monthly gross salary for each staff. Daily rate is auto-calculated based on actual working days each month.
         </p>
         <Button size="sm" onClick={saveAll} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
           <Save className="h-4 w-4 mr-1" /> {saving ? 'Saving...' : 'Save All'}
@@ -88,8 +87,7 @@ export default function SalarySetupTab({ academicYear }) {
         <>
           <div className="space-y-2">
             {staffList.map(s => {
-              const e = edits[s.id] || { monthly_salary: '', working_days_per_month: 26 };
-              const dailyRate = e.monthly_salary ? (parseFloat(e.monthly_salary) / (parseInt(e.working_days_per_month) || 26)) : 0;
+              const e = edits[s.id] || { monthly_salary: '' };
               return (
                 <Card key={s.id} className="border-0 shadow-sm dark:bg-gray-800">
                   <CardContent className="p-3">
@@ -99,30 +97,21 @@ export default function SalarySetupTab({ academicYear }) {
                         <p className="text-xs text-slate-500">{s.designation || s.role}</p>
                       </div>
                       <div className="flex gap-2 items-center flex-wrap">
-                        <div>
-                          <label className="text-[10px] text-slate-500 block mb-0.5">Monthly Salary (₹)</label>
-                          <input
-                            type="number"
-                            value={e.monthly_salary}
-                            onChange={ev => setField(s.id, 'monthly_salary', ev.target.value)}
-                            placeholder="e.g. 25000"
-                            className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm w-32"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-slate-500 block mb-0.5">Working Days/Month</label>
-                          <input
-                            type="number"
-                            value={e.working_days_per_month}
-                            onChange={ev => setField(s.id, 'working_days_per_month', ev.target.value)}
-                            className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm w-24"
-                          />
-                        </div>
-                        {dailyRate > 0 && (
-                          <div className="text-xs text-slate-500 dark:text-gray-400 mt-4">
-                            Daily rate: <span className="font-semibold text-slate-700 dark:text-gray-200">₹{dailyRate.toFixed(0)}</span>
-                          </div>
-                        )}
+                                   <div>
+                                     <label className="text-[10px] text-slate-500 block mb-0.5">Monthly Salary (₹)</label>
+                                     <input
+                                       type="number"
+                                       value={e.monthly_salary}
+                                       onChange={ev => setField(s.id, 'monthly_salary', ev.target.value)}
+                                       placeholder="e.g. 25000"
+                                       className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm w-32"
+                                     />
+                                   </div>
+                                  {e.monthly_salary > 0 && (
+                                    <div className="text-xs text-slate-500 dark:text-gray-400 mt-4">
+                                       Daily rate = Monthly ÷ <span className="text-blue-500">actual working days</span> (auto-calculated)
+                                    </div>
+                                  )}
                       </div>
                     </div>
                   </CardContent>
