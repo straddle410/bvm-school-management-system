@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { CalendarDays, Save } from 'lucide-react';
+import { CalendarDays, Save, RefreshCw } from 'lucide-react';
 
 const STATUS_COLORS = {
   Present: 'bg-green-100 text-green-700 border-green-200',
@@ -22,6 +22,7 @@ export default function StaffAttendanceTab({ academicYear }) {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [initializing, setInitializing] = useState(false);
 
   useEffect(() => { loadData(); }, [date, academicYear]);
 
@@ -43,6 +44,30 @@ export default function StaffAttendanceTab({ academicYear }) {
     }
   };
 
+  // Initialize today: mark all staff without a record as Absent
+  const initializeDay = async () => {
+    setInitializing(true);
+    const session = (() => { try { return JSON.parse(localStorage.getItem('staff_session')); } catch { return null; } })();
+    try {
+      const unrecorded = staffList.filter(s => !attendanceMap[s.id]?.id);
+      if (unrecorded.length === 0) { toast.info('All staff already have attendance records for this date'); setInitializing(false); return; }
+      await Promise.all(unrecorded.map(s =>
+        base44.entities.StaffAttendance.create({
+          staff_id: s.id,
+          staff_name: s.name,
+          date,
+          status: 'Absent',
+          academic_year: academicYear,
+          marked_by: session?.email || 'ADMIN',
+          remarks: 'Pre-initialized as Absent',
+        })
+      ));
+      toast.success(`${unrecorded.length} staff initialized as Absent`);
+      loadData();
+    } catch { toast.error('Failed to initialize attendance'); }
+    finally { setInitializing(false); }
+  };
+
   const setStatus = (staffId, status) => {
     setAttendanceMap(prev => ({
       ...prev,
@@ -56,7 +81,7 @@ export default function StaffAttendanceTab({ academicYear }) {
     try {
       await Promise.all(staffList.map(async (s) => {
         const existing = attendanceMap[s.id];
-        const status = existing?.status || 'Present';
+        const status = existing?.status || 'Absent';
         if (existing?.id) {
           await base44.entities.StaffAttendance.update(existing.id, { status });
         } else {
@@ -103,6 +128,9 @@ export default function StaffAttendanceTab({ academicYear }) {
             <Badge key={st} variant="outline" className={STATUS_COLORS[st]}>{st}: {count}</Badge>
           ))}
         </div>
+        <Button size="sm" onClick={initializeDay} disabled={initializing} variant="outline" className="border-amber-400 text-amber-700 hover:bg-amber-50">
+          <RefreshCw className="h-4 w-4 mr-1" /> {initializing ? 'Initializing...' : 'Init Day (All Absent)'}
+        </Button>
         <Button size="sm" onClick={saveAttendance} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
           <Save className="h-4 w-4 mr-1" /> {saving ? 'Saving...' : 'Save'}
         </Button>
@@ -115,7 +143,7 @@ export default function StaffAttendanceTab({ academicYear }) {
       ) : (
         <div className="space-y-2">
           {staffList.map(s => {
-            const status = attendanceMap[s.id]?.status || 'Present';
+            const status = attendanceMap[s.id]?.status || 'Absent';
             return (
               <Card key={s.id} className="border-0 shadow-sm dark:bg-gray-800">
                 <CardContent className="p-3 flex items-center gap-3 flex-wrap">

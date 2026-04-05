@@ -32,20 +32,33 @@ Deno.serve(async (req) => {
   const academicYears = await base44.asServiceRole.entities.AcademicYear.filter({ is_current: true });
   const academicYear = academicYears?.[0]?.year || '';
 
-  // Check if already checked in today
+  // Check if already has a record for today
   const existing = await base44.asServiceRole.entities.StaffAttendance.filter({
     staff_id: staff.id,
     date: today,
   });
 
   if (existing && existing.length > 0) {
+    const record = existing[0];
+    if (record.status === 'Present') {
+      return Response.json({
+        status: 'already_checked_in',
+        staff_name: staff.name,
+      });
+    }
+    // Was Absent (pre-initialized) — update to Present
+    await base44.asServiceRole.entities.StaffAttendance.update(record.id, {
+      status: 'Present',
+      marked_by: 'KIOSK',
+      remarks: 'Auto check-in via QR Kiosk',
+    });
     return Response.json({
-      status: 'already_checked_in',
+      status: 'success',
       staff_name: staff.name,
     });
   }
 
-  // Create attendance record
+  // No record yet — create attendance record
   await base44.asServiceRole.entities.StaffAttendance.create({
     staff_id: staff.id,
     staff_name: staff.name,
