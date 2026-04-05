@@ -1,10 +1,11 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
-import { CalendarDays, IndianRupee, Settings2 } from 'lucide-react';
+import { CalendarDays, IndianRupee, Settings2, Clock } from 'lucide-react';
 import SalarySetupTab from '@/components/staffSalary/SalarySetupTab';
 import StaffAttendanceTab from '@/components/staffSalary/StaffAttendanceTab';
 import StaffSalaryTab from '@/components/staffSalary/StaffSalaryTab';
+import KioskSettingsTab from '@/components/staffSalary/KioskSettingsTab';
 
 export default function StaffAttendanceSalary() {
   const { academicYear } = useAcademicYear();
@@ -18,15 +19,18 @@ export default function StaffAttendanceSalary() {
         </div>
 
         <Tabs defaultValue="attendance">
-          <TabsList className="w-full mb-4">
-            <TabsTrigger value="attendance" className="flex-1 gap-2">
+          <TabsList className="w-full mb-4 grid grid-cols-4">
+            <TabsTrigger value="attendance" className="gap-1 text-xs">
               <CalendarDays className="h-4 w-4" /> Attendance
             </TabsTrigger>
-            <TabsTrigger value="salary" className="flex-1 gap-2">
+            <TabsTrigger value="salary" className="gap-1 text-xs">
               <IndianRupee className="h-4 w-4" /> Salary
             </TabsTrigger>
-            <TabsTrigger value="setup" className="flex-1 gap-2">
+            <TabsTrigger value="setup" className="gap-1 text-xs">
               <Settings2 className="h-4 w-4" /> Setup
+            </TabsTrigger>
+            <TabsTrigger value="kiosk" className="gap-1 text-xs">
+              <Clock className="h-4 w-4" /> Kiosk
             </TabsTrigger>
           </TabsList>
 
@@ -40,6 +44,10 @@ export default function StaffAttendanceSalary() {
 
           <TabsContent value="setup">
             <SalarySetupTab academicYear={academicYear} />
+          </TabsContent>
+
+          <TabsContent value="kiosk">
+            <KioskSettingsTab />
           </TabsContent>
         </Tabs>
       </div>

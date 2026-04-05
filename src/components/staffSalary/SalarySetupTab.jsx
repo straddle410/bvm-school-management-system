@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Save, IndianRupee, Clock } from 'lucide-react';
+import { Save, IndianRupee } from 'lucide-react';
 
 export default function SalarySetupTab({ academicYear }) {
   const [staffList, setStaffList] = useState([]);
@@ -12,42 +12,7 @@ export default function SalarySetupTab({ academicYear }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Kiosk time settings
-  const [kioskSettings, setKioskSettings] = useState(null);
-  const [lateTime, setLateTime] = useState('09:30');
-  const [earlyTime, setEarlyTime] = useState('16:00');
-  const [savingKiosk, setSavingKiosk] = useState(false);
-
-  useEffect(() => {
-    loadData();
-    loadKioskSettings();
-  }, [academicYear]);
-
-  const loadKioskSettings = async () => {
-    try {
-      const list = await base44.entities.KioskSettings.list();
-      if (list?.[0]) {
-        setKioskSettings(list[0]);
-        setLateTime(list[0].late_checkin_time || '09:30');
-        setEarlyTime(list[0].early_checkout_time || '16:00');
-      }
-    } catch {}
-  };
-
-  const saveKioskSettings = async () => {
-    setSavingKiosk(true);
-    try {
-      const payload = { late_checkin_time: lateTime, early_checkout_time: earlyTime, label: 'default' };
-      if (kioskSettings?.id) {
-        await base44.entities.KioskSettings.update(kioskSettings.id, payload);
-      } else {
-        const created = await base44.entities.KioskSettings.create(payload);
-        setKioskSettings(created);
-      }
-      toast.success('Kiosk time settings saved');
-    } catch { toast.error('Failed to save kiosk settings'); }
-    finally { setSavingKiosk(false); }
-  };
+  useEffect(() => { loadData(); }, [academicYear]);
 
   const loadData = async () => {
     setLoading(true);
@@ -107,53 +72,7 @@ export default function SalarySetupTab({ academicYear }) {
   const totalMonthly = staffList.reduce((sum, s) => sum + (parseFloat(edits[s.id]?.monthly_salary) || 0), 0);
 
   return (
-    <div className="space-y-6">
-
-      {/* Kiosk Time Settings */}
-      <Card className="border-2 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-5 w-5 text-amber-600" />
-            <h3 className="font-bold text-slate-800 dark:text-white text-base">Kiosk Half-Day Time Rules</h3>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-gray-400 mb-4">
-            Staff scanning the kiosk <strong>after</strong> the late check-in time → marked <strong>Half Day</strong>.<br />
-            Staff scanning <strong>before</strong> the early check-out time on 2nd scan → marked <strong>Half Day</strong>.
-          </p>
-          <div className="flex gap-6 flex-wrap items-end">
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-gray-300 block mb-1">
-                ⏰ Late Check-in After
-              </label>
-              <input
-                type="time"
-                value={lateTime}
-                onChange={e => setLateTime(e.target.value)}
-                className="border-2 border-amber-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm font-medium"
-              />
-              <p className="text-[10px] text-amber-600 mt-0.5 font-medium">Scanning after this → Half Day</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-gray-300 block mb-1">
-                ⏰ Early Check-out Before
-              </label>
-              <input
-                type="time"
-                value={earlyTime}
-                onChange={e => setEarlyTime(e.target.value)}
-                className="border-2 border-amber-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm font-medium"
-              />
-              <p className="text-[10px] text-amber-600 mt-0.5 font-medium">Checking out before this → Half Day</p>
-            </div>
-            <Button onClick={saveKioskSettings} disabled={savingKiosk}
-              className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6">
-              <Save className="h-4 w-4 mr-1" /> {savingKiosk ? 'Saving...' : 'Save Times'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Salary Config */}
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-600 dark:text-gray-400">
           Define monthly gross salary for each staff. Daily rate = Monthly ÷ Working Days.
