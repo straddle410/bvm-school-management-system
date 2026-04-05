@@ -8,6 +8,7 @@ import { Download, CalendarDays, Users, Clock, UserCheck, UserX, Sun, Coffee } f
 import StaffAttendanceReportTable from './StaffAttendanceReportTable';
 
 const QUICK_RANGES = [
+  { label: 'Today', getValue: () => ({ from: todayIST(), to: todayIST() }) },
   { label: 'This Week', getValue: () => getWeekRange(0) },
   { label: 'Last Week', getValue: () => getWeekRange(-1) },
   { label: 'This Month', getValue: () => getMonthRange(0) },
@@ -52,9 +53,9 @@ function getDaysBack(days) {
 }
 
 export default function StaffAttendanceReportTab({ academicYear }) {
-  const [dateFrom, setDateFrom] = useState(() => getMonthRange(0).from);
-  const [dateTo, setDateTo] = useState(() => getMonthRange(0).to);
-  const [activeQuick, setActiveQuick] = useState('This Month');
+  const [dateFrom, setDateFrom] = useState(() => todayIST());
+  const [dateTo, setDateTo] = useState(() => todayIST());
+  const [activeQuick, setActiveQuick] = useState('Today');
   const [staffList, setStaffList] = useState([]);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
