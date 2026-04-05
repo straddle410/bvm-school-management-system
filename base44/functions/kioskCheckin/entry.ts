@@ -68,16 +68,25 @@ Deno.serve(async (req) => {
       return Response.json({ status: 'already_checked_in', staff_name: staff.name });
     }
 
-    // Has check-in but no checkout → this is a CHECK-OUT scan
+    // Has check-in but no checkout - check 30-min minimum before allowing checkout
     if (record.checkin_time) {
-      let newStatus = record.status; // keep existing (Present or Half Day)
-      if (earlyCheckoutTime && compareTimes(nowTime, earlyCheckoutTime) < 0) {
-        newStatus = 'Half Day'; // left early
+      const [ciH, ciM] = record.checkin_time.split(':').map(Number);
+      const [nowH, nowM] = nowTime.split(':').map(Number);
+      const minutesSinceCheckin = (nowH * 60 + nowM) - (ciH * 60 + ciM);
+
+      if (minutesSinceCheckin < 30) {
+        return Response.json({ status: 'already_checked_in', staff_name: staff.name });
       }
+
+      let newStatus = record.status;
+      if (earlyCheckoutTime && compareTimes(nowTime, earlyCheckoutTime) < 0) {
+        newStatus = 'Half Day';
+      }
+      const checkoutRemarks = 'Check-in: ' + record.checkin_time + ', Check-out: ' + nowTime + (newStatus === 'Half Day' ? ' (early checkout)' : '');
       await base44.asServiceRole.entities.StaffAttendance.update(record.id, {
         checkout_time: nowTime,
         status: newStatus,
-        remarks: `Check-in: ${record.checkin_time}, Check-out: ${nowTime}${newStatus === 'Half Day' ? ' (early checkout)' : ''}`,
+        remarks: checkoutRemarks,
       });
       return Response.json({
         status: 'checkout_success',
