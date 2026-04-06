@@ -23,12 +23,14 @@ function getAcademicYearMonths(academicYear) {
 
 export default function StaffSalaryOverview({ staffId, academicYear }) {
   const today = moment(todayIST());
-  const [selectedMonth, setSelectedMonth] = useState(today.format('MMMM YYYY'));
+  const months = useMemo(() => getAcademicYearMonths(academicYear), [academicYear]);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const m = getAcademicYearMonths(academicYear);
+    return m.length > 0 ? m[m.length - 1].format('MMMM YYYY') : today.format('MMMM YYYY');
+  });
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const months = useMemo(() => getAcademicYearMonths(academicYear), [academicYear]);
 
   // Is the selected month the current month?
   const isCurrentMonth = selectedMonth === today.format('MMMM YYYY');

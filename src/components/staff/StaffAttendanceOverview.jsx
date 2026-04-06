@@ -41,12 +41,14 @@ const STATUS_COLORS = {
 export default function StaffAttendanceOverview({ staffId, academicYear, staffName, designation }) {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [myLeaves, setMyLeaves] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState(moment(todayIST()).format('YYYY-MM'));
+  const months = useMemo(() => getAcademicYearMonths(academicYear), [academicYear]);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const m = getAcademicYearMonths(academicYear);
+    return m.length > 0 ? m[m.length - 1].format('YYYY-MM') : moment(todayIST()).format('YYYY-MM');
+  });
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const months = useMemo(() => getAcademicYearMonths(academicYear), [academicYear]);
 
   useEffect(() => {
     if (!staffId || !academicYear) return;
