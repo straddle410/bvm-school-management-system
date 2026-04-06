@@ -1,0 +1,88 @@
+{
+  "name": "StaffLeave",
+  "type": "object",
+  "properties": {
+    "staff_id": {
+      "type": "string",
+      "description": "StaffAccount ID"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "Staff name (denormalized)"
+    },
+    "designation": {
+      "type": "string"
+    },
+    "from_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Leave start date"
+    },
+    "to_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Leave end date"
+    },
+    "days": {
+      "type": "number",
+      "description": "Number of leave days"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for leave"
+    },
+    "leave_type": {
+      "type": "string",
+      "enum": [
+        "Sick Leave",
+        "Personal Leave",
+        "Emergency Leave",
+        "Other"
+      ],
+      "default": "Personal Leave"
+    },
+    "pay_type": {
+      "type": "string",
+      "enum": [
+        "Paid",
+        "Unpaid"
+      ],
+      "description": "Determined automatically based on month holiday count"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Pending"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Email of admin who reviewed"
+    },
+    "review_remarks": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "academic_year": {
+      "type": "string"
+    },
+    "salary_month": {
+      "type": "string",
+      "description": "e.g. April 2025 \u2014 derived from from_date"
+    }
+  },
+  "required": [
+    "staff_id",
+    "staff_name",
+    "from_date",
+    "to_date",
+    "reason",
+    "academic_year"
+  ]
+}

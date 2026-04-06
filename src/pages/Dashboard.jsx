@@ -135,6 +135,7 @@ export default function Dashboard() {
     return {};
   });
   const [staffId, setStaffId] = useState(null);
+  const [staffDesignation, setStaffDesignation] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [recentNotices, setRecentNotices] = useState([]);
 
@@ -163,6 +164,7 @@ export default function Dashboard() {
         setStaffRole(resolvedRole);
         setStaffName(session.name || session.full_name || '');
         setStaffId(session.staff_id || session.id || null);
+        setStaffDesignation(session.designation || '');
         setRoleSource('staff_session (localStorage — optimized)');
       } else {
         const currentUser = await base44.auth.me().catch(() => null);
@@ -310,7 +312,7 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="attendance">
-              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} staffName={staffName} designation={staffDesignation} />
             </TabsContent>
 
             <TabsContent value="salary">
@@ -363,7 +365,7 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="attendance">
-              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} staffName={staffName} designation={staffDesignation} />
             </TabsContent>
 
             <TabsContent value="salary">
@@ -399,7 +401,7 @@ export default function Dashboard() {
               </section>
             </TabsContent>
             <TabsContent value="attendance">
-              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} staffName={staffName} designation={staffDesignation} />
             </TabsContent>
             <TabsContent value="salary">
               <StaffSalaryOverview staffId={staffId} academicYear={academicYear} />
@@ -541,7 +543,7 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="attendance">
-            <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+            <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} staffName={staffName} designation={staffDesignation} />
           </TabsContent>
 
           <TabsContent value="salary">

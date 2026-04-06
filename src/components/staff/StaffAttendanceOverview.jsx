@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, AlertCircle, UserCheck, UserX, Clock, Coffee, Sun } from 'lucide-react';
+import { Loader2, AlertCircle, UserCheck, UserX, Clock, Coffee, Sun, PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import LeaveApplyModal from '@/components/staff/LeaveApplyModal';
 import moment from 'moment';
 
 function todayIST() {
@@ -36,13 +38,22 @@ const STATUS_COLORS = {
   Holiday: 'bg-gray-50 text-gray-600 border-gray-200',
 };
 
-export default function StaffAttendanceOverview({ staffId, academicYear }) {
+export default function StaffAttendanceOverview({ staffId, academicYear, staffName, designation }) {
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [myLeaves, setMyLeaves] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(moment(todayIST()).format('YYYY-MM'));
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const months = useMemo(() => getAcademicYearMonths(academicYear), [academicYear]);
+
+  useEffect(() => {
+    if (!staffId || !academicYear) return;
+    base44.entities.StaffLeave.filter({ staff_id: staffId, academic_year: academicYear })
+      .then(all => { all.sort((a,b) => b.from_date.localeCompare(a.from_date)); setMyLeaves(all); })
+      .catch(() => {});
+  }, [staffId, academicYear]);
 
   useEffect(() => {
     if (!staffId || !academicYear || !selectedMonth) return;
@@ -71,12 +82,42 @@ export default function StaffAttendanceOverview({ staffId, academicYear }) {
     }, { present: 0, absent: 0, halfDay: 0, leave: 0, holiday: 0 });
   }, [records]);
 
+  const leaveStatus = { Pending: 'text-yellow-600', Approved: 'text-green-600', Rejected: 'text-red-500' };
+
   if (!staffId) return (
     <div className="text-center text-sm text-gray-400 py-8">Staff account not linked.</div>
   );
 
   return (
     <div className="space-y-4">
+      {/* Apply Leave button */}
+      <div className="flex justify-end">
+        <Button onClick={() => setShowLeaveModal(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+          <PlusCircle className="h-4 w-4" /> Apply Leave
+        </Button>
+      </div>
+
+      {/* My Leave Requests */}
+      {myLeaves.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 text-sm">My Leave Requests</h3>
+          <div className="space-y-2">
+            {myLeaves.slice(0, 5).map(l => (
+              <div key={l.id} className="flex items-center justify-between text-sm border-b dark:border-gray-700 pb-2 last:border-0 last:pb-0">
+                <div>
+                  <span className="font-medium">{moment(l.from_date).format('MMM D')} – {moment(l.to_date).format('MMM D')}</span>
+                  <span className="text-gray-400 ml-2">{l.leave_type}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-medium ${leaveStatus[l.status]}`}>{l.status}</span>
+                  <span className="text-xs text-gray-400">{l.pay_type}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Month selector */}
       <div className="flex items-center gap-3">
         <label className="text-sm font-medium text-gray-600">Month:</label>
@@ -147,6 +188,19 @@ export default function StaffAttendanceOverview({ staffId, academicYear }) {
           </table>
         </div>
       )}
+
+      <LeaveApplyModal
+        open={showLeaveModal}
+        onClose={() => { setShowLeaveModal(false); 
+          base44.entities.StaffLeave.filter({ staff_id: staffId, academic_year: academicYear })
+            .then(all => { all.sort((a,b) => b.from_date.localeCompare(a.from_date)); setMyLeaves(all); })
+            .catch(() => {});
+        }}
+        staffId={staffId}
+        staffName={staffName || ''}
+        designation={designation || ''}
+        academicYear={academicYear}
+      />
     </div>
   );
 }

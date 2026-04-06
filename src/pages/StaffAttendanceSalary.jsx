@@ -1,12 +1,13 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicYear } from '@/components/AcademicYearContext';
-import { CalendarDays, IndianRupee, Settings2, Clock, BarChart2 } from 'lucide-react';
+import { CalendarDays, IndianRupee, Settings2, Clock, BarChart2, FileText } from 'lucide-react';
 import StaffAttendanceReportTab from '@/components/staffSalary/StaffAttendanceReportTab';
 import SalarySetupTab from '@/components/staffSalary/SalarySetupTab';
 import StaffAttendanceTab from '@/components/staffSalary/StaffAttendanceTab';
 import StaffSalaryTab from '@/components/staffSalary/StaffSalaryTab';
 import KioskSettingsTab from '@/components/staffSalary/KioskSettingsTab';
+import LeaveManagementTab from '@/components/staffSalary/LeaveManagementTab';
 
 export default function StaffAttendanceSalary() {
   const { academicYear } = useAcademicYear();
@@ -20,7 +21,7 @@ export default function StaffAttendanceSalary() {
         </div>
 
         <Tabs defaultValue="attendance">
-          <TabsList className="w-full mb-4 grid grid-cols-5">
+          <TabsList className="w-full mb-4 grid grid-cols-6">
             <TabsTrigger value="attendance" className="gap-1 text-xs">
               <CalendarDays className="h-4 w-4" /> Attendance
             </TabsTrigger>
@@ -35,6 +36,9 @@ export default function StaffAttendanceSalary() {
             </TabsTrigger>
             <TabsTrigger value="kiosk" className="gap-1 text-xs">
               <Clock className="h-4 w-4" /> Kiosk
+            </TabsTrigger>
+            <TabsTrigger value="leaves" className="gap-1 text-xs">
+              <FileText className="h-4 w-4" /> Leaves
             </TabsTrigger>
           </TabsList>
 
@@ -56,6 +60,10 @@ export default function StaffAttendanceSalary() {
 
           <TabsContent value="kiosk">
             <KioskSettingsTab />
+          </TabsContent>
+
+          <TabsContent value="leaves">
+            <LeaveManagementTab academicYear={academicYear} />
           </TabsContent>
         </Tabs>
       </div>
