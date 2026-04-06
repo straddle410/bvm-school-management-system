@@ -249,11 +249,11 @@ export default function StaffQRPrint() {
           }
           #print-area {
             display: grid !important;
-            grid-template-columns: repeat(2, 100mm) !important;
+            grid-template-columns: repeat(2, 70mm) !important;
             gap: 5mm !important;
             padding: 5mm !important;
             width: 100% !important;
-            auto-rows: 100mm !important;
+            auto-rows: 70mm !important;
           }
           .print-card {
             border: 1px solid #999 !important;
@@ -262,8 +262,8 @@ export default function StaffQRPrint() {
             break-inside: avoid !important;
             box-shadow: none !important;
             border-radius: 1px !important;
-            width: 100mm !important;
-            height: 100mm !important;
+            width: 70mm !important;
+            height: 70mm !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
