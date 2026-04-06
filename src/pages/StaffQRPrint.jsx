@@ -11,19 +11,7 @@ export default function StaffQRPrint() {
   const [loading, setLoading] = useState(true);
   const [qrImages, setQrImages] = useState({});
   const [schoolName, setSchoolName] = useState('BVM School');
-  const [qrsReady, setQrsReady] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
-
-  // Generate QR payload: staff_code|qr_token
-  const buildQRPayload = (staff_code, qr_token) => `${staff_code}|${qr_token}`;
-
-  const generateQRImage = async (staff_code, qr_token) => {
-    return QRCode.toDataURL(buildQRPayload(staff_code, qr_token), {
-      width: 200,
-      margin: 1,
-      color: { dark: '#000000', light: '#ffffff' },
-    });
-  };
 
   useEffect(() => {
     Promise.all([
@@ -32,7 +20,7 @@ export default function StaffQRPrint() {
     ]).then(async ([staff, profiles]) => {
       const validStaff = staff.filter(s => s.staff_code);
 
-      // Ensure every staff member has a qr_token; assign one if missing
+      // Ensure every staff member has a qr_token
       const updatedStaff = await Promise.all(validStaff.map(async (s) => {
         if (!s.qr_token) {
           const token = crypto.randomUUID();
@@ -46,13 +34,16 @@ export default function StaffQRPrint() {
       setFiltered(updatedStaff);
       if (profiles?.[0]?.school_name) setSchoolName(profiles[0].school_name);
 
-      // Generate QR images using staff_code|qr_token
+      // Generate QR images
       const entries = await Promise.all(updatedStaff.map(async (s) => {
-        const url = await generateQRImage(s.staff_code, s.qr_token);
+        const url = await QRCode.toDataURL(`${s.staff_code}|${s.qr_token}`, {
+          width: 150,
+          margin: 1,
+          color: { dark: '#000000', light: '#ffffff' },
+        });
         return [s.id, url];
       }));
       setQrImages(Object.fromEntries(entries));
-      setQrsReady(true);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -69,13 +60,23 @@ export default function StaffQRPrint() {
   const reissueQR = async (staff) => {
     const token = crypto.randomUUID();
     await base44.entities.StaffAccount.update(staff.id, { qr_token: token });
-    const url = await generateQRImage(staff.staff_code, token);
+    const url = await QRCode.toDataURL(`${staff.staff_code}|${token}`, {
+      width: 150,
+      margin: 1,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
     setStaffList(prev => prev.map(s => s.id === staff.id ? { ...s, qr_token: token } : s));
     setFiltered(prev => prev.map(s => s.id === staff.id ? { ...s, qr_token: token } : s));
     setQrImages(prev => ({ ...prev, [staff.id]: url }));
   };
 
-  const handleSelectAll = () => {
+  const toggleSelect = (id) => {
+    const newSet = new Set(selectedIds);
+    newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const toggleSelectAll = () => {
     if (selectedIds.size === filtered.length) {
       setSelectedIds(new Set());
     } else {
@@ -83,196 +84,150 @@ export default function StaffQRPrint() {
     }
   };
 
-  const handleSelectOne = (staffId) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(staffId)) {
-      newSelected.delete(staffId);
-    } else {
-      newSelected.add(staffId);
-    }
-    setSelectedIds(newSelected);
-  };
-
   const selectedStaff = filtered.filter(s => selectedIds.has(s.id));
 
   const handlePrint = () => {
     if (selectedStaff.length === 0) {
-      alert('Please select at least one staff member to print.');
-      return;
-    }
-    if (Object.keys(qrImages).length < selectedStaff.length) {
-      alert('Generating QR codes... Please wait for all QRs to load before printing.');
+      alert('Please select at least one staff member.');
       return;
     }
     window.print();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Controls — hidden on print */}
-      <div className="no-print bg-[#1a237e] text-white px-4 py-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">Staff QR Code Cards</h1>
-          <p className="text-white/70 text-sm">Print and distribute to staff for kiosk attendance</p>
-        </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-white/50" />
-            <input
-              type="text"
-              placeholder="Search staff..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 w-48"
-            />
-          </div>
-          <div className="flex gap-2 items-center">
-            <label className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg border border-white/20 cursor-pointer hover:bg-white/20">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="no-print sticky top-0 z-40 bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white px-4 py-4">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4">Staff QR Code Cards</h1>
+          
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/50" />
               <input
-                type="checkbox"
-                checked={selectedIds.size === filtered.length && filtered.length > 0}
-                onChange={handleSelectAll}
-                disabled={filtered.length === 0}
-                className="w-4 h-4 cursor-pointer"
+                type="text"
+                placeholder="Search by name, code..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg pl-10 pr-3 py-2 text-sm"
               />
-              <span className="text-white text-sm font-medium">Select All</span>
-            </label>
-            <Button 
-              onClick={handlePrint} 
-              disabled={!qrsReady || selectedStaff.length === 0}
-              className={`gap-2 ${!qrsReady || selectedStaff.length === 0 ? 'opacity-50 cursor-not-allowed' : 'bg-white text-[#1a237e] hover:bg-white/90'}`}
-            >
-              <Printer className="h-4 w-4" />
-              {!qrsReady ? 'Generating QRs...' : `Print (${selectedStaff.length})`}
-            </Button>
+            </div>
+            
+            <div className="flex gap-2">
+              <label className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded border border-white/20 cursor-pointer hover:bg-white/20">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === filtered.length && filtered.length > 0}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm font-medium">Select All</span>
+              </label>
+              <Button 
+                onClick={handlePrint}
+                disabled={selectedStaff.length === 0}
+                className="gap-2 bg-white text-[#1a237e] hover:bg-white/90"
+              >
+                <Printer className="h-4 w-4" />
+                Print ({selectedStaff.length})
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-4 border-[#1a237e] border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-          <p className="text-lg font-semibold">No staff found</p>
-          <p className="text-sm mt-1">Make sure staff members have a Staff Code assigned.</p>
-        </div>
-      ) : (
-        <div className="p-4">
-          {/* Staff without staff_code warning */}
-          {staffList.length === 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-yellow-800 text-sm">
-              ⚠️ No staff members have a Staff Code assigned. Please add staff codes in Staff management first.
-            </div>
-          )}
+      {/* Content */}
+      <div className="p-4 max-w-7xl mx-auto">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="w-8 h-8 border-4 border-[#1a237e] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg font-semibold">No staff found</p>
+            <p className="text-sm mt-1">Make sure staff members have Staff Code and is_active enabled.</p>
+          </div>
+        ) : (
+          <>
+            {/* Print Grid */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 print-grid">
+              {selectedStaff.map(staff => (
+                <div
+                  key={staff.id}
+                  className="bg-white border border-gray-300 rounded p-3 flex flex-col items-center text-center shadow-sm relative"
+                  style={{ pageBreakInside: 'avoid', aspectRatio: '1', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+                >
+                  {/* Checkbox */}
+                  <label className="absolute top-2 right-2 no-print cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(staff.id)}
+                      onChange={() => toggleSelect(staff.id)}
+                      className="w-4 h-4"
+                    />
+                  </label>
 
-          {/* Print grid */}
-           <div
-             id="print-area"
-             className="grid grid-cols-3 gap-6"
-           >
-            {selectedStaff.map(staff => (
-              <div
-                key={staff.id}
-                className={`rounded-lg border p-6 flex flex-col items-center text-center shadow-md print-card relative ${
-                  selectedIds.has(staff.id) ? 'bg-white border-blue-400' : 'bg-gray-50 border-gray-300'
-                }`}
-                style={{ pageBreakInside: 'avoid', breakInside: 'avoid', width: '100%' }}
-              >
-                {/* Selection checkbox */}
-                <label className="absolute top-2 right-2 cursor-pointer no-print">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(staff.id)}
-                    onChange={() => handleSelectOne(staff.id)}
-                    className="w-4 h-4 cursor-pointer"
-                  />
-                </label>
-                {/* School name */}
-                <p className="text-xs font-bold text-[#1a237e] uppercase tracking-wider mb-2">{schoolName}</p>
+                  {/* School Name (tiny) */}
+                  <p className="text-[9px] font-bold text-[#1a237e] uppercase tracking-wide mb-1">{schoolName}</p>
 
-                {/* Staff photo or avatar */}
-                {staff.photo_url ? (
-                  <img src={staff.photo_url} alt={staff.name} className="w-16 h-16 rounded-full object-cover border-2 border-[#1a237e] mb-3" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-[#e8eaf6] flex items-center justify-center mb-3 border-2 border-[#1a237e]">
-                    <span className="text-[#1a237e] font-bold text-xl">
-                      {staff.name?.charAt(0)?.toUpperCase() || '?'}
-                    </span>
-                  </div>
-                )}
-
-                {/* Name & designation */}
-                <p className="font-bold text-gray-900 text-base leading-tight max-w-full break-words">{staff.name}</p>
-                <p className="text-xs text-gray-600 mt-1">{staff.designation || staff.role || 'Staff'}</p>
-                <p className="text-xs text-[#1a237e] font-semibold mt-2">Code: {staff.staff_code}</p>
-
-                {/* QR Code */}
-                <div className="mt-4 p-2 bg-white border border-gray-300 rounded">
-                  {qrImages[staff.id] ? (
-                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-28 h-28" />
+                  {/* Photo */}
+                  {staff.photo_url ? (
+                    <img src={staff.photo_url} alt={staff.name} className="w-12 h-12 rounded-full object-cover border border-[#1a237e] mb-1" />
                   ) : (
-                    <div className="w-28 h-28 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
-                      Generating...
+                    <div className="w-12 h-12 rounded-full bg-[#e8eaf6] flex items-center justify-center border border-[#1a237e] mb-1">
+                      <span className="text-[#1a237e] font-bold text-sm">{staff.name?.charAt(0)?.toUpperCase() || '?'}</span>
                     </div>
                   )}
+
+                  {/* Name */}
+                  <p className="font-semibold text-gray-900 text-[11px] leading-tight break-words line-clamp-2">{staff.name}</p>
+
+                  {/* Designation */}
+                  <p className="text-[8px] text-gray-600">{staff.designation || 'Staff'}</p>
+
+                  {/* Code */}
+                  <p className="text-[9px] text-[#1a237e] font-bold mt-0.5">{staff.staff_code}</p>
+
+                  {/* QR Code */}
+                  {qrImages[staff.id] ? (
+                    <img src={qrImages[staff.id]} alt="QR" className="w-16 h-16 mt-1 border border-gray-300" />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-100 mt-1 flex items-center justify-center">
+                      <span className="text-[8px] text-gray-400">...</span>
+                    </div>
+                  )}
+
+                  {/* Reissue Button */}
+                  <button
+                    onClick={() => reissueQR(staff)}
+                    className="no-print text-[8px] text-red-600 underline hover:text-red-800 font-bold mt-0.5"
+                  >
+                    Reissue
+                  </button>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-2 font-medium">Scan at kiosk to check in</p>
-                <button
-                  onClick={() => reissueQR(staff)}
-                  className="no-print mt-3 text-xs text-red-600 underline hover:text-red-800 font-medium"
-                  title="Invalidates old card and generates a new QR token"
-                >
-                  🔄 Reissue Card
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       <style>{`
         @media print {
-          @page { size: A4; margin: 5mm; }
-          * { margin: 0 !important; padding: 0 !important; }
+          body, html { margin: 0; padding: 0; background: white; }
           .no-print { display: none !important; }
-          body, html { background: white !important; height: auto !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
-          main, .min-h-screen, .p-4, .bg-gray-100 {
-            height: auto !important; 
-            min-height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-            page-break-after: auto !important;
-            margin: 0 !important;
-            padding: 0 !important;
+          main, .p-4, .max-w-7xl { margin: 0; padding: 0; }
+          
+          @page {
+            size: A4;
+            margin: 5mm;
           }
-          #print-area {
+          
+          .print-grid {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 4mm !important;
             padding: 5mm !important;
-            width: 100% !important;
-            auto-rows: 65mm !important;
-          }
-          .print-card {
-            border: 1px solid #999 !important;
-            padding: 2px !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            box-shadow: none !important;
-            border-radius: 1px !important;
-            width: 100% !important;
-            height: 65mm !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            text-align: center !important;
-          }
-          .print-card p { margin: 2px 0 !important; font-size: 9px !important; }
-          .print-card img { width: 20mm !important; height: 20mm !important; margin: 2px 0 !important; }
-          .print-card:nth-child(n+10) {
-            page-break-before: avoid !important;
           }
         }
       `}</style>
