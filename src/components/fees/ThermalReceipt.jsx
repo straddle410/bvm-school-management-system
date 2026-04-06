@@ -51,7 +51,7 @@ export default function ThermalReceipt({ payment, student, school, invoice, rece
 
         {/* Receipt title */}
         <div className="text-center mb-2 border-b border-gray-300 pb-2">
-          <p className="font-bold text-xs">FEE RECEIPT</p>
+          <p className="font-bold text-xs">FEE RECEIPT - PARENT COPY</p>
           <p className="text-xs text-gray-600">{payment.academic_year}</p>
         </div>
 
