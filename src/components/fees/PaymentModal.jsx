@@ -120,6 +120,15 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
             {isOverpayment && (
               <p className="text-xs text-red-600 mt-1">Amount cannot exceed outstanding balance of ₹{outstanding.toLocaleString()}</p>
             )}
+            {enteredAmount > 0 && !isOverpayment && (
+              <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                <span className="text-sm text-slate-600 font-medium">Remaining Balance after payment:</span>
+                <span className={`text-base font-bold ${(outstanding - enteredAmount) === 0 ? 'text-green-600' : 'text-amber-600'}`}>
+                  ₹{(outstanding - enteredAmount).toLocaleString('en-IN')}
+                  {(outstanding - enteredAmount) === 0 && <span className="ml-1 text-xs">✓ Fully Paid</span>}
+                </span>
+              </div>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700">Payment Date *</label>
