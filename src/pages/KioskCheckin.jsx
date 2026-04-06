@@ -94,17 +94,20 @@ function KioskScanner({ schoolName }) {
   const [showExitModal, setShowExitModal] = useState(false);
   const [exitPassword, setExitPassword] = useState('');
   const [exitError, setExitError] = useState('');
-  const [facingMode, setFacingMode] = useState('environment');
   const [cameraKey, setCameraKey] = useState(0);
+  const facingModeRef = useRef('environment');
+  const [facingLabel, setFacingLabel] = useState('environment');
   const navigate = useNavigate();
 
   useEffect(() => {
     const divId = `qr-reader-${cameraKey}`;
+    const el = document.getElementById(divId);
+    if (!el) return;
     const qr = new Html5Qrcode(divId);
     scannerRef.current = qr;
 
     qr.start(
-      { facingMode },
+      { facingMode: facingModeRef.current },
       { fps: 10, qrbox: { width: 260, height: 260 } },
       (decodedText) => {
         if (processingRef.current) return;
@@ -120,7 +123,7 @@ function KioskScanner({ schoolName }) {
     return () => {
       qr.stop().catch(() => {});
     };
-  }, [cameraKey, facingMode]);
+  }, [cameraKey]);
 
   useEffect(() => {
     return () => clearTimeout(resetTimerRef.current);
@@ -171,7 +174,9 @@ function KioskScanner({ schoolName }) {
   };
 
   const toggleCamera = () => {
-    setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+    const next = facingModeRef.current === 'environment' ? 'user' : 'environment';
+    facingModeRef.current = next;
+    setFacingLabel(next);
     setCameraKey(prev => prev + 1);
   };
 
@@ -205,7 +210,7 @@ function KioskScanner({ schoolName }) {
           className="text-white/70 hover:text-white text-xs border border-white/20 rounded-lg px-2 py-1 w-16"
           title="Flip Camera"
         >
-          {facingMode === 'environment' ? '🤳 Front' : '📷 Back'}
+          {facingLabel === 'environment' ? '🤳 Front' : '📷 Back'}
         </button>
       </div>
 
