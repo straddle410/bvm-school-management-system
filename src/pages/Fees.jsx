@@ -16,7 +16,7 @@ import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import { useQuery } from '@tanstack/react-query';
 
 // Lazy load heavy fee tab components
-import StudentLedgerLazy from '@/components/fees/StudentLedger';
+const StudentLedgerLazy = lazy(() => import('@/components/fees/StudentLedger'));
 const StudentLedgerArchivedYearLazy = lazy(() => import('@/components/fees/StudentLedgerArchivedYear'));
 const PaymentsListLazy = lazy(() => import('@/components/fees/PaymentsList'));
 const AnnualFeePlanTabLazy = lazy(() => import('@/components/fees/AnnualFeePlanTab'));
