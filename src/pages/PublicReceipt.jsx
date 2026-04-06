@@ -100,12 +100,26 @@ export default function PublicReceipt() {
     : (invoice?.paid_amount || 0) + (payment?.amount_paid || 0);
   const balanceAfterPayment = displayNetAmount != null ? displayNetAmount - (totalPaidTillDate ?? 0) : null;
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleCancel = () => {
+    window.history.back();
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4">
-      <div className="max-w-lg mx-auto mb-4 flex justify-end">
+      <div className="max-w-lg mx-auto mb-4 flex justify-end gap-2">
         <Button onClick={handleDownload} variant="outline" size="sm">
           <Download className="h-4 w-4 mr-2" />
           Download PDF
+        </Button>
+        <Button onClick={handlePrint} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+          🖨️ Print
+        </Button>
+        <Button onClick={handleCancel} variant="outline" size="sm">
+          Cancel
         </Button>
       </div>
 
