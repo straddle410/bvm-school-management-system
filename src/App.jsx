@@ -8,6 +8,7 @@ import StudentQuiz from './pages/StudentQuiz'
 import StudentChangePassword from './pages/StudentChangePassword'
 import DeleteAccount from './pages/DeleteAccount'
 import PublicReceipt from './pages/PublicReceipt'
+import PublicReceiptThermal from './pages/PublicReceiptThermal'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import FinancialManagement from './pages/FinancialManagement'
 import StaffAttendanceSalary from './pages/StaffAttendanceSalary'
@@ -98,6 +99,7 @@ function App() {
           <Routes>
             {/* Public routes — no auth check */}
             <Route path="/receipt" element={<PublicReceipt />} />
+            <Route path="/receipt/thermal" element={<PublicReceiptThermal />} />
             <Route path="/receipt/:receipt_no" element={<PublicReceipt />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             {/* All other routes go through auth */}

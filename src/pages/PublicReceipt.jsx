@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Download } from 'lucide-react';
+import { Download, Thermometer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -85,7 +85,14 @@ export default function PublicReceipt() {
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4">
-      <div className="max-w-lg mx-auto mb-4 flex justify-end">
+      <div className="max-w-lg mx-auto mb-4 flex items-center justify-between gap-2">
+        <a
+          href={`/receipt/thermal?receipt_no=${receiptNo}`}
+          className="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 bg-white rounded-lg px-3 py-2 font-medium hover:bg-gray-50"
+        >
+          <Thermometer className="h-3.5 w-3.5" />
+          Thermal (3-inch)
+        </a>
         <Button onClick={handleDownload} variant="outline" size="sm">
           <Download className="h-4 w-4 mr-2" />
           Download PDF
