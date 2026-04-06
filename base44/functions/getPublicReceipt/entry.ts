@@ -10,12 +10,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'receipt_no is required' }, { status: 400 });
     }
 
-    // Direct filter by receipt_no
-    let payments = await base44.asServiceRole.entities.FeePayment.filter(
-      { receipt_no: receipt_no },
-      '-created_date',
-      5
-    );
+    // Direct filter by receipt_no with retry for newly created records
+    let payments = [];
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while ((!payments || payments.length === 0) && attempts < maxAttempts) {
+      try {
+        payments = await base44.asServiceRole.entities.FeePayment.filter(
+          { receipt_no: receipt_no },
+          '-created_date',
+          10
+        );
+        if (payments && payments.length > 0) break;
+      } catch (e) {
+        console.warn(`[getPublicReceipt] Attempt ${attempts + 1} failed:`, e.message);
+      }
+      attempts++;
+      if ((!payments || payments.length === 0) && attempts < maxAttempts) {
+        // Wait 200ms before retry
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
 
     // Fallback: normalize and search broader
     if (!payments || payments.length === 0) {
