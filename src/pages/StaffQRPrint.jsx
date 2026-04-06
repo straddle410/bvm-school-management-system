@@ -12,6 +12,7 @@ export default function StaffQRPrint() {
   const [qrImages, setQrImages] = useState({});
   const [schoolName, setSchoolName] = useState('BVM School');
   const [qrsReady, setQrsReady] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   // Generate QR payload: staff_code|qr_token
   const buildQRPayload = (staff_code, qr_token) => `${staff_code}|${qr_token}`;
@@ -74,8 +75,32 @@ export default function StaffQRPrint() {
     setQrImages(prev => ({ ...prev, [staff.id]: url }));
   };
 
+  const handleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(s => s.id)));
+    }
+  };
+
+  const handleSelectOne = (staffId) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(staffId)) {
+      newSelected.delete(staffId);
+    } else {
+      newSelected.add(staffId);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const selectedStaff = filtered.filter(s => selectedIds.has(s.id));
+
   const handlePrint = () => {
-    if (filtered.length === 0 || Object.keys(qrImages).length < filtered.length) {
+    if (selectedStaff.length === 0) {
+      alert('Please select at least one staff member to print.');
+      return;
+    }
+    if (Object.keys(qrImages).length < selectedStaff.length) {
       alert('Generating QR codes... Please wait for all QRs to load before printing.');
       return;
     }
@@ -101,14 +126,26 @@ export default function StaffQRPrint() {
               className="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 w-48"
             />
           </div>
-          <Button 
-            onClick={handlePrint} 
-            disabled={!qrsReady || filtered.length === 0}
-            className={`gap-2 ${!qrsReady || filtered.length === 0 ? 'opacity-50 cursor-not-allowed' : 'bg-white text-[#1a237e] hover:bg-white/90'}`}
-          >
-            <Printer className="h-4 w-4" />
-            {!qrsReady ? 'Generating QRs...' : `Print All (${filtered.length})`}
-          </Button>
+          <div className="flex gap-2 items-center">
+            <label className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg border border-white/20 cursor-pointer hover:bg-white/20">
+              <input
+                type="checkbox"
+                checked={selectedIds.size === filtered.length && filtered.length > 0}
+                onChange={handleSelectAll}
+                disabled={filtered.length === 0}
+                className="w-4 h-4 cursor-pointer"
+              />
+              <span className="text-white text-sm font-medium">Select All</span>
+            </label>
+            <Button 
+              onClick={handlePrint} 
+              disabled={!qrsReady || selectedStaff.length === 0}
+              className={`gap-2 ${!qrsReady || selectedStaff.length === 0 ? 'opacity-50 cursor-not-allowed' : 'bg-white text-[#1a237e] hover:bg-white/90'}`}
+            >
+              <Printer className="h-4 w-4" />
+              {!qrsReady ? 'Generating QRs...' : `Print (${selectedStaff.length})`}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -135,12 +172,23 @@ export default function StaffQRPrint() {
             id="print-area"
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
-            {filtered.map(staff => (
+            {selectedStaff.map(staff => (
               <div
                 key={staff.id}
-                className="bg-white rounded-lg border border-gray-300 p-6 flex flex-col items-center text-center shadow-md print-card"
+                className={`rounded-lg border p-6 flex flex-col items-center text-center shadow-md print-card relative ${
+                  selectedIds.has(staff.id) ? 'bg-white border-blue-400' : 'bg-gray-50 border-gray-300'
+                }`}
                 style={{ pageBreakInside: 'avoid', breakInside: 'avoid', width: '100%' }}
               >
+                {/* Selection checkbox */}
+                <label className="absolute top-2 right-2 cursor-pointer no-print">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(staff.id)}
+                    onChange={() => handleSelectOne(staff.id)}
+                    className="w-4 h-4 cursor-pointer"
+                  />
+                </label>
                 {/* School name */}
                 <p className="text-xs font-bold text-[#1a237e] uppercase tracking-wider mb-2">{schoolName}</p>
 
