@@ -343,11 +343,11 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={v => { if (!v) closeDialog(); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingDiscount ? 'Edit Discount' : 'Set Student Discount'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
             {/* Student selection (only when adding new) */}
             {!editingDiscount && (
               <div className="space-y-2">
