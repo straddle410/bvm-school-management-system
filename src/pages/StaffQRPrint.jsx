@@ -249,21 +249,21 @@ export default function StaffQRPrint() {
           }
           #print-area {
             display: grid !important;
-            grid-template-columns: repeat(2, 70mm) !important;
-            gap: 5mm !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 4mm !important;
             padding: 5mm !important;
             width: 100% !important;
-            auto-rows: 70mm !important;
+            auto-rows: 65mm !important;
           }
           .print-card {
             border: 1px solid #999 !important;
-            padding: 3px !important;
+            padding: 2px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             box-shadow: none !important;
             border-radius: 1px !important;
-            width: 70mm !important;
-            height: 70mm !important;
+            width: 100% !important;
+            height: 65mm !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -271,8 +271,8 @@ export default function StaffQRPrint() {
           }
           .print-card p { margin: 2px 0 !important; font-size: 9px !important; }
           .print-card img { width: 20mm !important; height: 20mm !important; margin: 2px 0 !important; }
-          .print-card:nth-child(9n) {
-            page-break-after: always !important;
+          .print-card:nth-child(n+10) {
+            page-break-before: avoid !important;
           }
         }
       `}</style>
