@@ -274,30 +274,49 @@ export default function Dashboard() {
   if (isAccountant) {
     const feeTiles = visibleTiles.filter(t => t.section === 'Fees & Finance');
 
-          return (
+    return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Accountant'}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
-          <section className="mb-8">
-            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Fees &amp; Accounts</h2>
-            {feeTiles.length > 0 ? <TileGrid tiles={feeTiles} /> : <EmptyTilesMessage />}
-          </section>
-          <section>
-            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Financial Management</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <Link to="/FinancialManagement" className="block">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
-                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
-                    <DollarSign className="h-6 w-6" />
-                  </div>
-                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Transactions &amp; Tax</span>
+
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="bg-white dark:bg-gray-800 shadow-sm">
+              <TabsTrigger value="overview"><LayoutDashboard className="h-4 w-4 mr-1" />Overview</TabsTrigger>
+              <TabsTrigger value="attendance"><CalendarDays className="h-4 w-4 mr-1" />My Attendance</TabsTrigger>
+              <TabsTrigger value="salary"><IndianRupee className="h-4 w-4 mr-1" />My Salary</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <section className="mb-8">
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Fees &amp; Accounts</h2>
+                {feeTiles.length > 0 ? <TileGrid tiles={feeTiles} /> : <EmptyTilesMessage />}
+              </section>
+              <section>
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Financial Management</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  <Link to="/FinancialManagement" className="block">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center gap-3">
+                      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white">
+                        <DollarSign className="h-6 w-6" />
+                      </div>
+                      <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 text-center leading-tight">Transactions &amp; Tax</span>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-            </div>
-          </section>
+              </section>
+            </TabsContent>
+
+            <TabsContent value="attendance">
+              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+            </TabsContent>
+
+            <TabsContent value="salary">
+              <StaffSalaryOverview staffId={staffId} academicYear={academicYear} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
