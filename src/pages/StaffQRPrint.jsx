@@ -121,47 +121,47 @@ export default function StaffQRPrint() {
           {/* Print grid */}
           <div
             id="print-area"
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
             {filtered.map(staff => (
               <div
                 key={staff.id}
-                className="bg-white rounded-xl border-2 border-[#1a237e] p-4 flex flex-col items-center text-center shadow print-card"
-                style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}
+                className="bg-white rounded-lg border border-gray-300 p-6 flex flex-col items-center text-center shadow-md print-card"
+                style={{ pageBreakInside: 'avoid', breakInside: 'avoid', width: '100%' }}
               >
                 {/* School name */}
-                <p className="text-[10px] font-bold text-[#1a237e] uppercase tracking-wide mb-1">{schoolName}</p>
+                <p className="text-xs font-bold text-[#1a237e] uppercase tracking-wider mb-2">{schoolName}</p>
 
                 {/* Staff photo or avatar */}
                 {staff.photo_url ? (
-                  <img src={staff.photo_url} alt={staff.name} className="w-14 h-14 rounded-full object-cover border-2 border-[#1a237e] mb-2" />
+                  <img src={staff.photo_url} alt={staff.name} className="w-16 h-16 rounded-full object-cover border-2 border-[#1a237e] mb-3" />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-[#e8eaf6] flex items-center justify-center mb-2 border-2 border-[#1a237e]">
-                    <span className="text-[#1a237e] font-bold text-lg">
+                  <div className="w-16 h-16 rounded-full bg-[#e8eaf6] flex items-center justify-center mb-3 border-2 border-[#1a237e]">
+                    <span className="text-[#1a237e] font-bold text-xl">
                       {staff.name?.charAt(0)?.toUpperCase() || '?'}
                     </span>
                   </div>
                 )}
 
                 {/* Name & designation */}
-                <p className="font-bold text-gray-900 text-sm leading-tight">{staff.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{staff.designation || staff.role || 'Staff'}</p>
-                <p className="text-xs text-[#1a237e] font-semibold mt-0.5">Code: {staff.staff_code}</p>
+                <p className="font-bold text-gray-900 text-base leading-tight max-w-full break-words">{staff.name}</p>
+                <p className="text-xs text-gray-600 mt-1">{staff.designation || staff.role || 'Staff'}</p>
+                <p className="text-xs text-[#1a237e] font-semibold mt-2">Code: {staff.staff_code}</p>
 
                 {/* QR Code */}
-                <div className="mt-3 p-1 border border-gray-200 rounded-lg">
+                <div className="mt-4 p-2 bg-white border border-gray-300 rounded">
                   {qrImages[staff.id] ? (
-                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-24 h-24" />
+                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-28 h-28" />
                   ) : (
-                    <div className="w-24 h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+                    <div className="w-28 h-28 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
                       Generating...
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">Scan at kiosk to check in</p>
+                <p className="text-[10px] text-gray-500 mt-2 font-medium">Scan at kiosk to check in</p>
                 <button
                   onClick={() => reissueQR(staff)}
-                  className="no-print mt-1.5 text-[10px] text-red-500 underline hover:text-red-700"
+                  className="no-print mt-3 text-xs text-red-600 underline hover:text-red-800 font-medium"
                   title="Invalidates old card and generates a new QR token"
                 >
                   🔄 Reissue Card
@@ -169,28 +169,33 @@ export default function StaffQRPrint() {
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Print styles */}
+          </div>
+          )}
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          body { background: white !important; }
+          body { background: white !important; margin: 0 !important; padding: 0 !important; }
           #print-area {
             display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 8px !important;
-            padding: 8px !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+            padding: 12px !important;
+            width: 100% !important;
           }
           .print-card {
-            border: 2px solid #1a237e !important;
-            padding: 8px !important;
+            border: 1px solid #999 !important;
+            padding: 12px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            box-shadow: none !important;
+            border-radius: 4px !important;
+          }
+          .print-card img {
+            max-width: 100% !important;
+            height: auto !important;
           }
         }
-      `}</style>
-    </div>
-  );
-}
+        `}</style>
+        </div>
+        );
+        }
