@@ -275,9 +275,6 @@ export default function StaffQRPrint() {
           .print-card:nth-child(9n) {
             page-break-after: always !important;
           }
-          .print-card:nth-child(10) {
-            page-break-before: always !important;
-          }
         }
       `}</style>
     </div>
