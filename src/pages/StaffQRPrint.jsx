@@ -212,7 +212,7 @@ export default function StaffQRPrint() {
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          html, body { background: white !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; width: 100% !important; height: auto !important; }
           #print-area {
             display: grid !important;
             grid-template-columns: repeat(2, 1fr) !important;
