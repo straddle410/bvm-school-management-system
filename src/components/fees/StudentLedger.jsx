@@ -66,7 +66,7 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
         status: 'Published', 
         is_deleted: false,
         is_active: true
-      }, 'name', 200);
+      }, 'roll_no', 200);
       const start = studentPage * STUDENTS_LIMIT;
       return all.slice(start, start + STUDENTS_LIMIT);
     },
@@ -184,12 +184,12 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
     };
   }, [selectedStudent, academicYear]);
 
-  const filteredStudents = useMemo(() => 
-    students.filter(s =>
+  const filteredStudents = useMemo(() => {
+    const filtered = students.filter(s =>
       s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.toLowerCase().includes(search.toLowerCase())
-    ),
-    [students, search]
-  );
+    );
+    return [...filtered].sort((a, b) => (a.roll_no ?? 9999) - (b.roll_no ?? 9999));
+  }, [students, search]);
 
   const handleRefresh = async () => {
     await refetchFeeData();
