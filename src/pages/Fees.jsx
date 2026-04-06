@@ -48,10 +48,10 @@ export default function Fees() {
   const isAdmin = role === 'admin' || role === 'principal';
 
   const canVoidReceipt = can(userWithPerms, 'fees_void_receipt');
-  const canViewLedger = can(userWithPerms, 'fees_view') || can(userWithPerms, 'fees_ledger_view');
+  const canViewLedger = can(userWithPerms, 'fees_ledger_view') || can(userWithPerms, 'fees_view');
   const canViewPayments = can(userWithPerms, 'fees_record_payment') || can(userWithPerms, 'fees_view');
   const canApplyDiscount = can(userWithPerms, 'fees_apply_discount');
-  const canApplyCharge = can(userWithPerms, 'fees_manage_adhoc_charges') || role === 'accountant';
+  const canApplyCharge = can(userWithPerms, 'fees_manage_adhoc_charges');
   const canManageFamilies = can(userWithPerms, 'fees_manage_families');
 
   const selectedYearObj = academicYears?.find(y => y.year === academicYear);
