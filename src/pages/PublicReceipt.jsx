@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Download, Thermometer } from 'lucide-react';
@@ -11,6 +11,16 @@ export default function PublicReceipt() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const receiptNo = urlParams.get('receipt_no') || '';
+
+  // Auto-redirect to thermal if school prefers that layout
+  useEffect(() => {
+    if (!receiptNo) return;
+    base44.entities.SchoolProfile.list().then(profiles => {
+      if (profiles?.[0]?.default_receipt_layout === 'thermal') {
+        window.location.replace(`/receipt/thermal?receipt_no=${receiptNo}`);
+      }
+    }).catch(() => {});
+  }, [receiptNo]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['public-receipt', receiptNo],
