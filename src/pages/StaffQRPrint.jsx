@@ -82,13 +82,13 @@ export default function StaffQRPrint() {
   const toPrint = selectedIds.length > 0 ? filtered.filter(s => selectedIds.includes(s.id)) : filtered;
 
   return (
-    <div className="min-h-screen bg-gray-100 print:bg-white print:m-0 print:p-0">
+    <div className="min-h-screen bg-gray-100">
       {/* Controls — hidden on print */}
       <div className="no-print bg-[#1a237e] text-white px-4 py-4 flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:gap-3 sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-bold">Staff QR Code Cards</h1>
-            <p className="text-white/70 text-sm">Print on A4 sheet — 9 cards per page (3×3 grid)</p>
+            <p className="text-white/70 text-sm">Print and distribute to staff for kiosk attendance</p>
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             <div className="relative w-full sm:w-48">
@@ -126,7 +126,7 @@ export default function StaffQRPrint() {
           <p className="text-sm mt-1">Make sure staff members have a Staff Code assigned.</p>
         </div>
       ) : (
-        <div className="p-4 print:p-0 print:m-0">
+        <div className="p-4">
           {/* Staff without staff_code warning */}
           {staffList.length === 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-yellow-800 text-sm">
@@ -154,53 +154,53 @@ export default function StaffQRPrint() {
             </div>
           )}
 
-          {/* Print grid — 3x3 for A4 */}
+          {/* Print grid */}
           <div
             id="print-area"
-            className="grid gap-1.5 grid-cols-3"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
           >
             {toPrint.map(staff => (
               <div
                 key={staff.id}
-                className="bg-white border border-[#1a237e] p-1 flex flex-col items-center text-center print-card h-full"
+                className="bg-white rounded-xl border-2 border-[#1a237e] p-4 flex flex-col items-center text-center shadow print-card"
                 style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}
               >
                 {/* School name */}
-                <p className="text-[7px] font-bold text-[#1a237e] uppercase tracking-tight mb-0.5">{schoolName}</p>
+                <p className="text-[10px] font-bold text-[#1a237e] uppercase tracking-wide mb-1">{schoolName}</p>
 
                 {/* Staff photo or avatar */}
                 {staff.photo_url ? (
-                  <img src={staff.photo_url} alt={staff.name} className="w-7 h-7 rounded-full object-cover border border-[#1a237e] mb-0.5" />
+                  <img src={staff.photo_url} alt={staff.name} className="w-14 h-14 rounded-full object-cover border-2 border-[#1a237e] mb-2" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-[#e8eaf6] flex items-center justify-center mb-0.5 border border-[#1a237e]">
-                    <span className="text-[#1a237e] font-bold text-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#e8eaf6] flex items-center justify-center mb-2 border-2 border-[#1a237e]">
+                    <span className="text-[#1a237e] font-bold text-lg">
                       {staff.name?.charAt(0)?.toUpperCase() || '?'}
                     </span>
                   </div>
                 )}
 
                 {/* Name & designation */}
-                <p className="font-bold text-gray-900 text-[7px] leading-tight">{staff.name}</p>
-                <p className="text-[6px] text-gray-500 mt-0.5">{staff.designation || staff.role || 'Staff'}</p>
-                <p className="text-[6px] text-[#1a237e] font-semibold mt-0.5">Code: {staff.staff_code}</p>
+                <p className="font-bold text-gray-900 text-sm leading-tight">{staff.name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{staff.designation || staff.role || 'Staff'}</p>
+                <p className="text-xs text-[#1a237e] font-semibold mt-0.5">Code: {staff.staff_code}</p>
 
                 {/* QR Code */}
-                <div className="mt-2 p-1 border border-gray-200 rounded flex-1 flex items-center justify-center">
+                <div className="mt-3 p-2 border border-gray-200 rounded-lg">
                   {qrImages[staff.id] ? (
-                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-28 h-28" />
+                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-40 h-40" />
                   ) : (
-                    <div className="w-28 h-28 bg-gray-100 flex items-center justify-center text-[6px] text-gray-400">
+                    <div className="w-40 h-40 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
                       Generating...
                     </div>
                   )}
                 </div>
-                <p className="text-[6px] text-gray-400 mt-1">Scan at kiosk</p>
+                <p className="text-[10px] text-gray-400 mt-1">Scan at kiosk to check in</p>
                 <button
                   onClick={() => reissueQR(staff)}
-                  className="no-print mt-0.5 text-[6px] text-red-500 underline hover:text-red-700"
+                  className="no-print mt-1.5 text-[10px] text-red-500 underline hover:text-red-700"
                   title="Invalidates old card and generates a new QR token"
                 >
-                  🔄 Reissue
+                  🔄 Reissue Card
                 </button>
               </div>
             ))}
@@ -212,33 +212,19 @@ export default function StaffQRPrint() {
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          html, body { 
-            background: white !important; 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            overflow: visible !important; 
-            width: 210mm !important; 
-            height: 297mm !important;
-          }
+          body { background: white !important; }
           #print-area {
             display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 4px !important;
-            padding: 8mm !important;
-            width: 210mm !important;
-            height: auto !important;
-            box-sizing: border-box !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 8px !important;
+            padding: 8px !important;
           }
           .print-card {
-            border: 1px solid #1a237e !important;
-            padding: 2px !important;
-            min-height: 210px !important;
+            border: 2px solid #1a237e !important;
+            padding: 8px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
-            border-radius: 2px !important;
           }
-          .print-card p { margin: 1px 0 !important; }
-          .print-card img { object-fit: cover !important; }
         }
       `}</style>
     </div>
