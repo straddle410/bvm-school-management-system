@@ -6,11 +6,14 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { useApprovalsCount } from '@/components/ApprovalsCountBadge';
 import { getEffectivePermissions } from '@/components/permissionHelper';
 import { DASHBOARD_TILES } from '@/components/permissionRegistry';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import StaffAttendanceOverview from '@/components/staff/StaffAttendanceOverview';
+import StaffSalaryOverview from '@/components/staff/StaffSalaryOverview';
 import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser, BellRing,
-  UserCheck, QrCode, Smartphone,
+  UserCheck, QrCode, Smartphone, LayoutDashboard, CalendarDays, IndianRupee,
 } from 'lucide-react';
 
 // ── Icon name → lucide component map ─────────────────────────────────────────
@@ -131,6 +134,7 @@ export default function Dashboard() {
     } catch {}
     return {};
   });
+  const [staffId, setStaffId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recentNotices, setRecentNotices] = useState([]);
 
@@ -158,7 +162,7 @@ export default function Dashboard() {
         const resolvedRole = normaliseRole(session.role);
         setStaffRole(resolvedRole);
         setStaffName(session.name || session.full_name || '');
-        // Permissions already initialized from state default
+        setStaffId(session.id || null);
         setRoleSource('staff_session (localStorage — optimized)');
       } else {
         const currentUser = await base44.auth.me().catch(() => null);
@@ -301,7 +305,7 @@ export default function Dashboard() {
 
   // ─── TEACHER DASHBOARD ──────────────────────────────────────────────────────
   if (isTeacher) {
-    const teacherTiles = visibleTiles.filter(t => t.page !== 'Students'); // Students page hidden from teachers
+    const teacherTiles = visibleTiles.filter(t => t.page !== 'Students');
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
@@ -311,25 +315,42 @@ export default function Dashboard() {
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
 
-          <section className="mb-8">
-            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Quick Actions</h2>
-            {teacherTiles.length > 0 ? <TileGrid tiles={teacherTiles} /> : <EmptyTilesMessage />}
-          </section>
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="bg-white dark:bg-gray-800 shadow-sm">
+              <TabsTrigger value="overview"><LayoutDashboard className="h-4 w-4 mr-1" />Overview</TabsTrigger>
+              <TabsTrigger value="attendance"><CalendarDays className="h-4 w-4 mr-1" />My Attendance</TabsTrigger>
+              <TabsTrigger value="salary"><IndianRupee className="h-4 w-4 mr-1" />My Salary</TabsTrigger>
+            </TabsList>
 
-          {recentNotices.length > 0 && (
-            <section>
-              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Recent Notices</h2>
-              <div className="space-y-3">
-                {recentNotices.slice(0, 3).map(notice => (
-                  <div key={notice.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border-l-4 border-yellow-500">
-                    <p className="font-semibold text-gray-900 dark:text-white">{notice.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notice.notice_type}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{notice.description}</p>
+            <TabsContent value="overview">
+              <section>
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Quick Actions</h2>
+                {teacherTiles.length > 0 ? <TileGrid tiles={teacherTiles} /> : <EmptyTilesMessage />}
+              </section>
+              {recentNotices.length > 0 && (
+                <section className="mt-6">
+                  <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Recent Notices</h2>
+                  <div className="space-y-3">
+                    {recentNotices.slice(0, 3).map(notice => (
+                      <div key={notice.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border-l-4 border-yellow-500">
+                        <p className="font-semibold text-gray-900 dark:text-white">{notice.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notice.notice_type}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{notice.description}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-          )}
+                </section>
+              )}
+            </TabsContent>
+
+            <TabsContent value="attendance">
+              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+            </TabsContent>
+
+            <TabsContent value="salary">
+              <StaffSalaryOverview staffId={staffId} academicYear={academicYear} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
@@ -337,7 +358,7 @@ export default function Dashboard() {
 
   // ─── EXAM STAFF DASHBOARD ───────────────────────────────────────────────────
   if (isExamStaff) {
-    const examTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
+    const examTiles = visibleTiles;
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
@@ -346,10 +367,25 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {staffName || 'Exam Staff'}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
           </div>
-          <section>
-            <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Exam &amp; Attendance</h2>
-            {examTiles.length > 0 ? <TileGrid tiles={examTiles} /> : <EmptyTilesMessage />}
-          </section>
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="bg-white dark:bg-gray-800 shadow-sm">
+              <TabsTrigger value="overview"><LayoutDashboard className="h-4 w-4 mr-1" />Overview</TabsTrigger>
+              <TabsTrigger value="attendance"><CalendarDays className="h-4 w-4 mr-1" />My Attendance</TabsTrigger>
+              <TabsTrigger value="salary"><IndianRupee className="h-4 w-4 mr-1" />My Salary</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+              <section>
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">Exam &amp; Attendance</h2>
+                {examTiles.length > 0 ? <TileGrid tiles={examTiles} /> : <EmptyTilesMessage />}
+              </section>
+            </TabsContent>
+            <TabsContent value="attendance">
+              <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+            </TabsContent>
+            <TabsContent value="salary">
+              <StaffSalaryOverview staffId={staffId} academicYear={academicYear} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
@@ -452,8 +488,7 @@ export default function Dashboard() {
   }
 
   // ─── GENERIC DASHBOARD (staff, librarian, custom role templates) ─────────────
-  // Role is used only to select this shell. Tiles shown are entirely permission-driven.
-  const genericTiles = visibleTiles; // adminOnly tiles already excluded by canSeeTile
+  const genericTiles = visibleTiles;
   const genericSections = groupBySection(genericTiles);
 
   return (
@@ -464,18 +499,36 @@ export default function Dashboard() {
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{academicYear && `Academic Year: ${academicYear}`}</p>
         </div>
 
-        {genericTiles.length === 0 ? (
-          <EmptyTilesMessage />
-        ) : (
-          genericSections.map(section => (
-            <section key={section.title} className="mb-8">
-              {genericSections.length > 1 && (
-                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">{section.title}</h2>
-              )}
-              <TileGrid tiles={section.tiles} />
-            </section>
-          ))
-        )}
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="bg-white dark:bg-gray-800 shadow-sm">
+            <TabsTrigger value="overview"><LayoutDashboard className="h-4 w-4 mr-1" />Overview</TabsTrigger>
+            <TabsTrigger value="attendance"><CalendarDays className="h-4 w-4 mr-1" />My Attendance</TabsTrigger>
+            <TabsTrigger value="salary"><IndianRupee className="h-4 w-4 mr-1" />My Salary</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            {genericTiles.length === 0 ? (
+              <EmptyTilesMessage />
+            ) : (
+              genericSections.map(section => (
+                <section key={section.title} className="mb-8">
+                  {genericSections.length > 1 && (
+                    <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4">{section.title}</h2>
+                  )}
+                  <TileGrid tiles={section.tiles} />
+                </section>
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            <StaffAttendanceOverview staffId={staffId} academicYear={academicYear} />
+          </TabsContent>
+
+          <TabsContent value="salary">
+            <StaffSalaryOverview staffId={staffId} academicYear={academicYear} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
