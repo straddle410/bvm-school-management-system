@@ -72,7 +72,7 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
        // Navigate based on receipt layout type
        const studentId = invoice.student_id || '';
        const className = invoice.class_name || '';
-       const receiptPage = layoutType === 'thermal_3inch' ? '/PublicReceipt' : '/PrintReceiptA5';
+       const receiptPage = layoutType === 'thermal_3inch' ? '/receipt' : '/PrintReceiptA5';
        const params = layoutType === 'thermal_3inch' 
          ? `receipt_no=${data.receipt_no}`
          : `paymentId=${data.payment_id}&studentId=${encodeURIComponent(studentId)}&className=${encodeURIComponent(className)}`;
