@@ -94,14 +94,12 @@ function KioskScanner({ schoolName }) {
   const [showExitModal, setShowExitModal] = useState(false);
   const [exitPassword, setExitPassword] = useState('');
   const [exitError, setExitError] = useState('');
+  const [facingMode, setFacingMode] = useState('environment');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const qr = new Html5Qrcode('qr-reader');
-    scannerRef.current = qr;
-
+  const startScanner = (qr, mode) => {
     qr.start(
-      { facingMode: 'environment' },
+      { facingMode: mode },
       { fps: 10, qrbox: { width: 280, height: 280 } },
       (decodedText) => {
         if (processingRef.current) return;
@@ -113,11 +111,17 @@ function KioskScanner({ schoolName }) {
       setStatus(STATUS.ERROR);
       setMessage('Camera access denied. Please allow camera permission.');
     });
+  };
+
+  useEffect(() => {
+    const qr = new Html5Qrcode('qr-reader');
+    scannerRef.current = qr;
+    startScanner(qr, facingMode);
 
     return () => {
       qr.stop().catch(() => {});
     };
-  }, []);
+  }, [facingMode]);
 
   useEffect(() => {
     return () => clearTimeout(resetTimerRef.current);
@@ -167,6 +171,13 @@ function KioskScanner({ schoolName }) {
     }, 4000);
   };
 
+  const toggleCamera = async () => {
+    if (scannerRef.current) {
+      await scannerRef.current.stop().catch(() => {});
+    }
+    setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+  };
+
   const handleExitAttempt = () => {
     if (exitPassword === '9265') {
       navigate('/Dashboard');
@@ -192,7 +203,13 @@ function KioskScanner({ schoolName }) {
           <h1 className="text-xl font-bold">{schoolName}</h1>
           <p className="text-sm text-white/70 mt-0.5">Staff Attendance Kiosk</p>
         </div>
-        <div className="w-16" />
+        <button
+          onClick={toggleCamera}
+          className="text-white/70 hover:text-white text-xs border border-white/20 rounded-lg px-2 py-1 w-16"
+          title="Flip Camera"
+        >
+          {facingMode === 'environment' ? '🤳 Front' : '📷 Back'}
+        </button>
       </div>
 
       {/* Scanner Area */}
