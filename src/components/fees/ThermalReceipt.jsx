@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import html2canvas from 'html2canvas';
@@ -6,13 +7,18 @@ import jsPDF from 'jspdf';
 
 export default function ThermalReceipt({ payment, student, school, invoice, receiptNo }) {
   const receiptRef = useRef();
+  const navigate = useNavigate();
 
   const handlePrint = () => {
     window.print();
   };
 
   const handleCancel = () => {
-    window.history.back();
+    if (payment?.student_id && payment?.class_name) {
+      navigate(`/Fees?tab=ledger&className=${payment.class_name}&studentId=${payment.student_id}`);
+    } else {
+      window.history.back();
+    }
   };
 
   const snapshot = payment?.receipt_snapshot;

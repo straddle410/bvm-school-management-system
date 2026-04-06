@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Download } from 'lucide-react';
@@ -9,6 +10,7 @@ import jsPDF from 'jspdf';
 
 export default function PublicReceipt() {
   const receiptRef = useRef();
+  const navigate = useNavigate();
 
   const urlParams = new URLSearchParams(window.location.search);
   const receiptNo = urlParams.get('receipt_no') || '';
@@ -105,7 +107,11 @@ export default function PublicReceipt() {
   };
 
   const handleCancel = () => {
-    window.history.back();
+    if (data?.payment?.student_id && data?.payment?.class_name) {
+      navigate(`/Fees?tab=ledger&className=${data.payment.class_name}&studentId=${data.payment.student_id}`);
+    } else {
+      window.history.back();
+    }
   };
 
   return (
