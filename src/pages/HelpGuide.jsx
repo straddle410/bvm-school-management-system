@@ -115,6 +115,17 @@ const GUIDES = [
         ],
       },
       {
+        title: 'Staff Attendance & Leave Management',
+        steps: [
+          'Go to More → Staff Attendance & Salary to manage staff attendance and leaves.',
+          'Under the "Leave Management" tab, view all pending, approved, and rejected leave requests.',
+          'Tap a leave request to review the dates, reason, and pay type (Paid/Unpaid).',
+          'Pay type is determined automatically: if there are 2+ non-Sunday holidays in the month, the first leave is Paid; subsequent leaves are Unpaid.',
+          'Add remarks and tap "Approve" or "Reject" to process the request.',
+          'Approved leaves are automatically reflected in the staff attendance records for those dates.',
+        ],
+      },
+      {
         title: 'App Settings',
         steps: [
           'Go to More → Settings to configure school-wide settings.',
@@ -335,6 +346,17 @@ const GUIDES = [
           'Modules you have access to appear in the bottom navigation or the More menu.',
           'If you cannot access a feature you need, request your administrator to update your permissions.',
           'Changes to permissions take effect on your next login.',
+        ],
+      },
+      {
+        title: 'My Attendance & Leave',
+        steps: [
+          'Go to More → My Attendance to view your monthly attendance records.',
+          'The month dropdown only shows months within the current academic year.',
+          'Tap "Apply Leave" to submit a leave request — enter from/to dates, leave type, and reason.',
+          'The system automatically determines if your leave is Paid or Unpaid based on the number of non-Sunday holidays in that month.',
+          'Your leave requests are listed with their current status (Pending, Approved, Rejected).',
+          'Once approved by admin, the leave days are reflected in your attendance record.',
         ],
       },
       {
