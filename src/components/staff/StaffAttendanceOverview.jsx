@@ -13,21 +13,17 @@ function todayIST() {
   return ist.toISOString().slice(0, 10);
 }
 
-function getAcademicYearMonths(academicYear) {
-  // e.g. "2025-26" → April 2025 to March 2026
-  const parts = academicYear?.split('-');
-  if (!parts || parts.length < 2) return [];
-  const startYear = parseInt(parts[0]);
-  const endYear = startYear + 1;
-  const months = [];
-  for (let m = 3; m <= 11; m++) {
-    months.push(moment({ year: startYear, month: m }));
-  }
-  for (let m = 0; m <= 2; m++) {
-    months.push(moment({ year: endYear, month: m }));
-  }
+function getMonthsFromDateRange(startDate, endDate) {
   const today = moment(todayIST());
-  return months.filter(m => m.isSameOrBefore(today, 'month'));
+  const start = moment(startDate).startOf('month');
+  const end = moment.min(moment(endDate).startOf('month'), today.startOf('month'));
+  const months = [];
+  let cur = start.clone();
+  while (cur.isSameOrBefore(end, 'month')) {
+    months.push(cur.clone());
+    cur.add(1, 'month');
+  }
+  return months;
 }
 
 const STATUS_COLORS = {
@@ -41,14 +37,25 @@ const STATUS_COLORS = {
 export default function StaffAttendanceOverview({ staffId, academicYear, staffName, designation }) {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [myLeaves, setMyLeaves] = useState([]);
-  const months = useMemo(() => getAcademicYearMonths(academicYear), [academicYear]);
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const m = getAcademicYearMonths(academicYear);
-    return m.length > 0 ? m[m.length - 1].format('YYYY-MM') : moment(todayIST()).format('YYYY-MM');
-  });
+  const [months, setMonths] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(moment(todayIST()).format('YYYY-MM'));
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!academicYear) return;
+    base44.entities.AcademicYear.filter({ year: academicYear })
+      .then(results => {
+        const ay = results[0];
+        if (ay?.start_date && ay?.end_date) {
+          const m = getMonthsFromDateRange(ay.start_date, ay.end_date);
+          setMonths(m);
+          if (m.length > 0) setSelectedMonth(m[m.length - 1].format('YYYY-MM'));
+        }
+      })
+      .catch(() => {});
+  }, [academicYear]);
 
   useEffect(() => {
     if (!staffId || !academicYear) return;
