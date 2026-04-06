@@ -212,9 +212,14 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
      return `${val} off ${scopeLabel}`;
    };
 
-   const filteredStudents = students.filter(s =>
-     !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.includes(search)
-   );
+   const sortedStudents = useMemo(() => 
+    [...students].sort((a, b) => (a.roll_no ?? 9999) - (b.roll_no ?? 9999)),
+    [students]
+  );
+
+  const filteredStudents = sortedStudents.filter(s =>
+    !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.student_id?.includes(search)
+  );
 
   return (
     <div className="space-y-4">
@@ -386,8 +391,10 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
                     >
                       <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
                       <SelectContent>
-                        {students.map(s => (
-                          <SelectItem key={s.student_id} value={s.student_id}>{s.name} ({s.student_id})</SelectItem>
+                        {sortedStudents.map(s => (
+                          <SelectItem key={s.student_id} value={s.student_id}>
+                            {s.roll_no ? `[${s.roll_no}] ` : ''}{s.name} ({s.student_id})
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
