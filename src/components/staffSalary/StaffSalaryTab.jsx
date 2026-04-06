@@ -120,18 +120,19 @@ export default function StaffSalaryTab({ academicYear }) {
       const data = staffList.map(s => {
         const config = configMap[s.id];
         const att = monthAttendance.filter(a => a.staff_id === s.id);
-        // Sundays are always paid; add them to days present automatically
-        const attendanceDays = calcDaysFromAttendance(att, paidHolidayDates);
-        const daysPresent = attendanceDays + sundaysInMonth;
+        const isExempt = !!s.exempt_from_kiosk;
+        // Exempt staff get full month days (no scan needed)
+        const attendanceDays = isExempt ? 0 : calcDaysFromAttendance(att, paidHolidayDates);
+        const daysPresent = isExempt ? daysInMonth(selYear, selMonth) : attendanceDays + sundaysInMonth;
         const totalDays = daysInMonth(selYear, selMonth);
         const workingDays = calcDynamicWorkingDays(selYear, selMonth); // = totalDays
         const dailyRate = config ? config.monthly_salary / workingDays : 0;
-        const rawEarned = dailyRate * Math.min(daysPresent, workingDays);
+        const rawEarned = isExempt ? (config ? config.monthly_salary : 0) : dailyRate * Math.min(daysPresent, workingDays);
         const isMonthOver = (selYear < now.getFullYear()) || (selYear === now.getFullYear() && selMonth < now.getMonth());
         const earned = isMonthOver ? Math.round(rawEarned / 10) * 10 : Math.round(rawEarned);
         const payment = paymentMap[s.id] || null;
 
-        return { staff: s, config, att, daysPresent, totalDays, workingDays, earned, payment, dailyRate };
+        return { staff: s, config, att, daysPresent, totalDays, workingDays, earned, payment, dailyRate, isExempt };
       });
 
       setStaffData(data);
@@ -312,11 +313,11 @@ export default function StaffSalaryTab({ academicYear }) {
                         <p className="text-xs text-slate-500">{d.staff.designation || d.staff.role}</p>
                         {hasConfig && (
                           <div className="flex gap-3 mt-1.5 text-xs text-slate-500 flex-wrap">
-                            <span>Monthly: ₹{(d.config.monthly_salary || 0).toLocaleString('en-IN')}</span>
-                            <span>Days Paid: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong> <span className="text-[10px] text-green-600">(attendance + Sundays)</span></span>
-                            <span>Total Days: <strong className="text-slate-700 dark:text-gray-300">{d.workingDays}</strong></span>
-                            <span>Daily Rate: ₹{d.dailyRate.toFixed(1)}</span>
-                          </div>
+                               <span>Monthly: ₹{(d.config.monthly_salary || 0).toLocaleString('en-IN')}</span>
+                               <span>Days Paid: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong> <span className={`text-[10px] ${d.isExempt ? 'text-purple-600 font-semibold' : 'text-green-600'}`}>{d.isExempt ? '★ Full Month (Exempt)' : '(attendance + Sundays)'}</span></span>
+                               <span>Total Days: <strong className="text-slate-700 dark:text-gray-300">{d.workingDays}</strong></span>
+                               {!d.isExempt && <span>Daily Rate: ₹{d.dailyRate.toFixed(1)}</span>}
+                             </div>
                         )}
                       </div>
                       <div className="text-right flex-shrink-0">

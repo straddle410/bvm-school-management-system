@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Power, Copy, Search, Users, KeyRound, Send, Lock, Unlock, Trash2, ChevronDown, AlertTriangle, ScanLine } from 'lucide-react';
 import StaffDeletionRequestsTab from '@/components/staff/StaffDeletionRequestsTab';
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -346,6 +346,7 @@ export default function Staff() {
       classes: member.classes || [],
       sections: member.sections || [],
       class_teacher_of: member.class_teacher_of || '',
+      exempt_from_kiosk: member.exempt_from_kiosk || false,
     });
     setShowDialog(true);
   };
@@ -795,7 +796,8 @@ export default function Staff() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-slate-900 dark:text-white text-sm">{member.name}</p>
-                              {getStatusBadge(member)}
+                                {getStatusBadge(member)}
+                                {member.exempt_from_kiosk && <Badge className="bg-purple-100 text-purple-700 text-[10px]">No Scan – Full Salary</Badge>}
                             </div>
                             <p className="text-xs text-slate-500 dark:text-gray-400">@{member.username}</p>
                             {member.last_login_at && (
@@ -806,47 +808,60 @@ export default function Staff() {
                           </div>
 
                           <div className="flex items-center gap-1 flex-shrink-0">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => openEdit(member)}
-                            >
-                              <Edit className="h-4 w-4 text-slate-500" />
-                            </Button>
+                             <Button
+                               size="icon"
+                               variant="ghost"
+                               className="h-8 w-8"
+                               onClick={() => openEdit(member)}
+                             >
+                               <Edit className="h-4 w-4 text-slate-500" />
+                             </Button>
 
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-amber-500"
-                              onClick={() => openResetPasswordModal(member)}
-                              disabled={resetPasswordMutation.isPending}
-                              title="Reset Password"
-                            >
-                              <KeyRound className="h-4 w-4" />
-                            </Button>
+                             <Button
+                               size="icon"
+                               variant="ghost"
+                               className={`h-8 w-8 ${member.exempt_from_kiosk ? 'text-purple-600' : 'text-slate-300'}`}
+                               title={member.exempt_from_kiosk ? 'Kiosk Exempt (Full Salary) — click to remove' : 'Click to exempt from kiosk scanning'}
+                               onClick={() => {
+                                 base44.entities.StaffAccount.update(member.id, { exempt_from_kiosk: !member.exempt_from_kiosk })
+                                   .then(() => { queryClient.invalidateQueries({ queryKey: ['staff-accounts-rbac'] }); toast.success(member.exempt_from_kiosk ? `${member.name} now requires kiosk scan` : `${member.name} exempted — full salary will be paid`); })
+                               }}
+                             >
+                               <ScanLine className="h-4 w-4" />
+                             </Button>
 
-                            {member.account_locked_until && new Date(member.account_locked_until) > new Date() && (
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-red-500"
-                                onClick={() => unlockAccountMutation.mutate(member)}
-                                disabled={unlockAccountMutation.isPending}
-                              >
-                                <Unlock className="h-4 w-4" />
-                              </Button>
-                            )}
+                             <Button
+                               size="icon"
+                               variant="ghost"
+                               className="h-8 w-8 text-amber-500"
+                               onClick={() => openResetPasswordModal(member)}
+                               disabled={resetPasswordMutation.isPending}
+                               title="Reset Password"
+                             >
+                               <KeyRound className="h-4 w-4" />
+                             </Button>
 
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className={`h-8 w-8 ${member.is_active ? 'text-green-500' : 'text-slate-400'}`}
-                              onClick={() => toggleActiveMutation.mutate({ id: member.id, is_active: !member.is_active })}
-                            >
-                              <Power className="h-4 w-4" />
-                            </Button>
-                          </div>
+                             {member.account_locked_until && new Date(member.account_locked_until) > new Date() && (
+                               <Button
+                                 size="icon"
+                                 variant="ghost"
+                                 className="h-8 w-8 text-red-500"
+                                 onClick={() => unlockAccountMutation.mutate(member)}
+                                 disabled={unlockAccountMutation.isPending}
+                               >
+                                 <Unlock className="h-4 w-4" />
+                               </Button>
+                             )}
+
+                             <Button
+                               size="icon"
+                               variant="ghost"
+                               className={`h-8 w-8 ${member.is_active ? 'text-green-500' : 'text-slate-400'}`}
+                               onClick={() => toggleActiveMutation.mutate({ id: member.id, is_active: !member.is_active })}
+                             >
+                               <Power className="h-4 w-4" />
+                             </Button>
+                           </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -1006,14 +1021,24 @@ export default function Staff() {
                 </div>
 
                 <div className="col-span-2">
-                  <Label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={form.is_active}
-                      onCheckedChange={(checked) => setForm(f => ({ ...f, is_active: checked }))}
-                    />
-                    Active Account
-                  </Label>
-                </div>
+                   <Label className="flex items-center gap-2">
+                     <Checkbox
+                       checked={form.is_active}
+                       onCheckedChange={(checked) => setForm(f => ({ ...f, is_active: checked }))}
+                     />
+                     Active Account
+                   </Label>
+                 </div>
+                 <div className="col-span-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-3">
+                   <Label className="flex items-center gap-2 cursor-pointer">
+                     <Checkbox
+                       checked={form.exempt_from_kiosk || false}
+                       onCheckedChange={(checked) => setForm(f => ({ ...f, exempt_from_kiosk: checked }))}
+                     />
+                     <span className="font-semibold text-purple-800 dark:text-purple-300">Exempt from Kiosk Scanning</span>
+                   </Label>
+                   <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 ml-6">When enabled, this staff member does not need to scan QR code. They will automatically get full salary for all days of the month.</p>
+                 </div>
               </div>
 
               <Accordion type="single" collapsible>

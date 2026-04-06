@@ -270,6 +270,11 @@
     },
     "notes": {
       "type": "string"
+    },
+    "exempt_from_kiosk": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, this staff member is exempt from QR kiosk scanning. They are automatically counted as Present for all days of the month and receive full salary."
     }
   },
   "required": [
