@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { CheckCircle2, IndianRupee, Calendar } from 'lucide-react';
+import { CheckCircle2, IndianRupee, Calendar, RefreshCw } from 'lucide-react';
 
 const MONTHS = [
   'January','February','March','April','May','June',
@@ -254,6 +254,10 @@ export default function StaffSalaryTab({ academicYear }) {
           className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm">
           {[2024, 2025, 2026, 2027].map(y => <option key={y}>{y}</option>)}
         </select>
+        <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="flex items-center gap-1.5">
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          Recalculate
+        </Button>
       </div>
 
       {/* Month Stats Summary */}
