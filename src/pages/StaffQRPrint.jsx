@@ -162,7 +162,7 @@ export default function StaffQRPrint() {
             {toPrint.map(staff => (
               <div
                 key={staff.id}
-                className="bg-white border border-[#1a237e] p-2 flex flex-col items-center text-center print-card"
+                className="bg-white border border-[#1a237e] p-1 flex flex-col items-center text-center print-card h-full"
                 style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}
               >
                 {/* School name */}
@@ -185,16 +185,16 @@ export default function StaffQRPrint() {
                 <p className="text-[6px] text-[#1a237e] font-semibold mt-0.5">Code: {staff.staff_code}</p>
 
                 {/* QR Code */}
-                <div className="mt-1 p-0.5 border border-gray-200 rounded">
+                <div className="mt-2 p-1 border border-gray-200 rounded flex-1 flex items-center justify-center">
                   {qrImages[staff.id] ? (
-                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-20 h-20" />
+                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-28 h-28" />
                   ) : (
-                    <div className="w-20 h-20 bg-gray-100 flex items-center justify-center text-[6px] text-gray-400">
+                    <div className="w-28 h-28 bg-gray-100 flex items-center justify-center text-[6px] text-gray-400">
                       Generating...
                     </div>
                   )}
                 </div>
-                <p className="text-[6px] text-gray-400 mt-0.5">Scan at kiosk</p>
+                <p className="text-[6px] text-gray-400 mt-1">Scan at kiosk</p>
                 <button
                   onClick={() => reissueQR(staff)}
                   className="no-print mt-0.5 text-[6px] text-red-500 underline hover:text-red-700"
@@ -231,7 +231,8 @@ export default function StaffQRPrint() {
           }
           .print-card {
             border: 1px solid #1a237e !important;
-            padding: 3px !important;
+            padding: 2px !important;
+            min-height: 210px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             border-radius: 2px !important;
