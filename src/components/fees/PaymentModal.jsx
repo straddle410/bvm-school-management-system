@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useMutation } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
   const navigate = useNavigate();
   const staffInfo = getStaffSession();
   const outstanding = (invoice.balance != null ? invoice.balance : invoice.total_amount) || 0;
+  const [layoutType, setLayoutType] = useState('standard');
 
   const [form, setForm] = useState({
     amountPaid: 0,
@@ -28,6 +29,21 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
 
   const enteredAmount = parseFloat(form?.amountPaid) || 0;
   const isOverpayment = enteredAmount > outstanding;
+
+  // Fetch receipt layout on mount
+  useEffect(() => {
+    const fetchLayoutType = async () => {
+      try {
+        const results = await base44.entities.FeeReceiptConfig.filter({ academic_year: invoice.academic_year });
+        if (results.length > 0) {
+          setLayoutType(results[0].layout_type || 'standard');
+        }
+      } catch (e) {
+        console.error('Error fetching receipt layout:', e);
+      }
+    };
+    if (invoice.academic_year) fetchLayoutType();
+  }, [invoice.academic_year]);
 
   const payMutation = useMutation({
     mutationFn: async () => {
@@ -53,10 +69,14 @@ export default function PaymentModal({ invoice, onClose, onSuccess }) {
 
        // Note: Notification triggered automatically by FeePayment entity automation
        onClose();
-       // Navigate to print page, passing student context for back-navigation
+       // Navigate based on receipt layout type
        const studentId = invoice.student_id || '';
        const className = invoice.class_name || '';
-       navigate(`/PrintReceiptA5?paymentId=${data.payment_id}&studentId=${encodeURIComponent(studentId)}&className=${encodeURIComponent(className)}`);
+       const receiptPage = layoutType === 'thermal_3inch' ? '/PublicReceipt' : '/PrintReceiptA5';
+       const params = layoutType === 'thermal_3inch' 
+         ? `receipt_no=${data.receipt_no}`
+         : `paymentId=${data.payment_id}&studentId=${encodeURIComponent(studentId)}&className=${encodeURIComponent(className)}`;
+       navigate(`${receiptPage}?${params}`);
     },
     onError: (e) => {
       console.error('[PaymentModal] Error:', e);
