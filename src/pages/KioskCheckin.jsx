@@ -95,12 +95,17 @@ function KioskScanner({ schoolName }) {
   const [exitPassword, setExitPassword] = useState('');
   const [exitError, setExitError] = useState('');
   const [facingMode, setFacingMode] = useState('environment');
+  const [cameraKey, setCameraKey] = useState(0);
   const navigate = useNavigate();
 
-  const startScanner = (qr, mode) => {
+  useEffect(() => {
+    const divId = `qr-reader-${cameraKey}`;
+    const qr = new Html5Qrcode(divId);
+    scannerRef.current = qr;
+
     qr.start(
-      { facingMode: mode },
-      { fps: 10, qrbox: { width: 280, height: 280 } },
+      { facingMode },
+      { fps: 10, qrbox: { width: 260, height: 260 } },
       (decodedText) => {
         if (processingRef.current) return;
         processingRef.current = true;
@@ -111,17 +116,11 @@ function KioskScanner({ schoolName }) {
       setStatus(STATUS.ERROR);
       setMessage('Camera access denied. Please allow camera permission.');
     });
-  };
-
-  useEffect(() => {
-    const qr = new Html5Qrcode('qr-reader');
-    scannerRef.current = qr;
-    startScanner(qr, facingMode);
 
     return () => {
       qr.stop().catch(() => {});
     };
-  }, [facingMode]);
+  }, [cameraKey, facingMode]);
 
   useEffect(() => {
     return () => clearTimeout(resetTimerRef.current);
@@ -171,11 +170,9 @@ function KioskScanner({ schoolName }) {
     }, 4000);
   };
 
-  const toggleCamera = async () => {
-    if (scannerRef.current) {
-      await scannerRef.current.stop().catch(() => {});
-    }
+  const toggleCamera = () => {
     setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+    setCameraKey(prev => prev + 1);
   };
 
   const handleExitAttempt = () => {
@@ -214,7 +211,7 @@ function KioskScanner({ schoolName }) {
 
       {/* Scanner Area */}
       <div className="flex-1 flex flex-col items-center justify-center relative">
-        <div id="qr-reader" className="w-full max-w-sm" style={{ opacity: overlayVisible ? 0 : 1 }} />
+        <div id={`qr-reader-${cameraKey}`} className="w-full max-w-sm" style={{ opacity: overlayVisible ? 0 : 1 }} />
 
         {status === STATUS.SCANNING && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
