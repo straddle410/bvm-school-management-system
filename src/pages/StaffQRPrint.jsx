@@ -11,6 +11,7 @@ export default function StaffQRPrint() {
   const [loading, setLoading] = useState(true);
   const [qrImages, setQrImages] = useState({});
   const [schoolName, setSchoolName] = useState('BVM School');
+  const [qrsReady, setQrsReady] = useState(false);
 
   // Generate QR payload: staff_code|qr_token
   const buildQRPayload = (staff_code, qr_token) => `${staff_code}|${qr_token}`;
@@ -50,6 +51,7 @@ export default function StaffQRPrint() {
         return [s.id, url];
       }));
       setQrImages(Object.fromEntries(entries));
+      setQrsReady(true);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -72,7 +74,13 @@ export default function StaffQRPrint() {
     setQrImages(prev => ({ ...prev, [staff.id]: url }));
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    if (filtered.length === 0 || Object.keys(qrImages).length < filtered.length) {
+      alert('Generating QR codes... Please wait for all QRs to load before printing.');
+      return;
+    }
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -93,9 +101,13 @@ export default function StaffQRPrint() {
               className="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 w-48"
             />
           </div>
-          <Button onClick={handlePrint} className="bg-white text-[#1a237e] hover:bg-white/90 gap-2">
+          <Button 
+            onClick={handlePrint} 
+            disabled={!qrsReady || filtered.length === 0}
+            className={`gap-2 ${!qrsReady || filtered.length === 0 ? 'opacity-50 cursor-not-allowed' : 'bg-white text-[#1a237e] hover:bg-white/90'}`}
+          >
             <Printer className="h-4 w-4" />
-            Print All ({filtered.length})
+            {!qrsReady ? 'Generating QRs...' : `Print All (${filtered.length})`}
           </Button>
         </div>
       </div>
