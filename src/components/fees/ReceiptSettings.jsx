@@ -14,7 +14,7 @@ export default function ReceiptSettings() {
   const queryClient = useQueryClient();
   const { academicYear, academicYears } = useAcademicYear();
   const [selectedYear, setSelectedYear] = useState(academicYear || '');
-  const [form, setForm] = useState({ prefix: 'RCPT', next_number: 1, padding: 4 });
+  const [form, setForm] = useState({ prefix: 'RCPT', next_number: 1, padding: 4, layout_type: 'standard' });
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['fee-receipt-config', selectedYear],
@@ -24,15 +24,15 @@ export default function ReceiptSettings() {
 
   useEffect(() => {
     if (config) {
-      setForm({ prefix: config.prefix || 'RCPT', next_number: config.next_number || 1, padding: config.padding || 4 });
+      setForm({ prefix: config.prefix || 'RCPT', next_number: config.next_number || 1, padding: config.padding || 4, layout_type: config.layout_type || 'standard' });
     } else {
-      setForm({ prefix: 'RCPT', next_number: 1, padding: 4 });
+      setForm({ prefix: 'RCPT', next_number: 1, padding: 4, layout_type: 'standard' });
     }
   }, [config, selectedYear]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const data = { academic_year: selectedYear, prefix: form.prefix, next_number: parseInt(form.next_number) || 1, padding: parseInt(form.padding) || 4 };
+      const data = { academic_year: selectedYear, prefix: form.prefix, next_number: parseInt(form.next_number) || 1, padding: parseInt(form.padding) || 4, layout_type: form.layout_type || 'standard' };
       if (config?.id) return base44.entities.FeeReceiptConfig.update(config.id, data);
       return base44.entities.FeeReceiptConfig.create(data);
     },
@@ -66,8 +66,20 @@ export default function ReceiptSettings() {
           </div>
 
           {selectedYear && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+           <>
+             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+               <Label className="text-blue-900 font-semibold">Receipt Layout Type</Label>
+               <Select value={form.layout_type || 'standard'} onValueChange={v => setForm({ ...form, layout_type: v })}>
+                 <SelectTrigger className="mt-2 bg-white"><SelectValue /></SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="standard">Standard Layout (A5 Page)</SelectItem>
+                   <SelectItem value="thermal_3inch">Thermal Printer (3-inch)</SelectItem>
+                 </SelectContent>
+               </Select>
+               <p className="text-xs text-blue-700 mt-2">Select based on your printer type. Thermal layout optimizes for 3-inch thermal printers.</p>
+             </div>
+
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Label>Prefix</Label>
                   <Input className="mt-1" value={form.prefix} onChange={e => setForm({ ...form, prefix: e.target.value.toUpperCase() })} placeholder="RCPT" maxLength={10} />

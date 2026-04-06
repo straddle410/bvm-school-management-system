@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ThermalReceipt from '@/components/fees/ThermalReceipt';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -19,6 +20,16 @@ export default function PublicReceipt() {
     queryFn: async () => {
       const res = await base44.functions.invoke('getPublicReceipt', { receipt_no: receiptNo });
       return res.data;
+    }
+  });
+
+  // Fetch receipt config to get layout preference
+  const { data: receiptConfig } = useQuery({
+    queryKey: ['receipt-config', data?.payment?.academic_year],
+    enabled: !!data?.payment?.academic_year,
+    queryFn: async () => {
+      const results = await base44.entities.FeeReceiptConfig.filter({ academic_year: data.payment.academic_year });
+      return results[0] || null;
     }
   });
 
@@ -72,6 +83,12 @@ export default function PublicReceipt() {
   }
 
   const { payment, student, school, invoice } = data;
+  const layoutType = receiptConfig?.layout_type || 'standard';
+
+  // Render thermal layout if selected
+  if (layoutType === 'thermal_3inch') {
+    return <ThermalReceipt payment={payment} student={student} school={school} invoice={invoice} receiptNo={receiptNo} />;
+  }
 
   const snapshot = payment?.receipt_snapshot;
   const displayGrossAmount = snapshot?.invoice_gross_total ?? invoice?.gross_total ?? invoice?.total_amount;
@@ -92,7 +109,7 @@ export default function PublicReceipt() {
         </Button>
       </div>
 
-      <div ref={receiptRef} className="bg-white w-full max-w-lg mx-auto rounded-lg shadow-md" style={{ padding: '24px' }}>
+      <div ref={receiptRef} className="bg-white w-full max-w-lg mx-auto rounded-lg shadow-md" style={{ padding: '24px', fontSize: '14px' }}>
 
         {/* Header */}
         <div className="border-b-2 border-gray-800 pb-4 mb-5 flex items-center gap-3">

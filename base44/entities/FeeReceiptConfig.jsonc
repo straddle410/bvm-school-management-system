@@ -1,0 +1,37 @@
+{
+  "name": "FeeReceiptConfig",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year this config belongs to (e.g. 2024-25)"
+    },
+    "prefix": {
+      "type": "string",
+      "default": "RCPT",
+      "description": "Receipt prefix (default: RCPT)"
+    },
+    "next_number": {
+      "type": "number",
+      "default": 1,
+      "description": "Next sequence number to use"
+    },
+    "padding": {
+      "type": "number",
+      "default": 4,
+      "description": "Zero-padding width (default: 4 \u2192 0001)"
+    },
+    "layout_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "thermal_3inch"
+      ],
+      "default": "standard",
+      "description": "Receipt layout type: standard (A5) or thermal_3inch (3-inch thermal printer)"
+    }
+  },
+  "required": [
+    "academic_year"
+  ]
+}
