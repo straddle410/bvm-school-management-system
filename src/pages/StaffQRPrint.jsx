@@ -386,27 +386,6 @@ export default function StaffQRPrint() {
           </div>
         ))}
       </div>
-      </div>
-            )}
-
-            {/* Name */}
-            <p className="font-semibold text-gray-900 text-[10px] leading-tight line-clamp-2">{staff.name}</p>
-
-            {/* Designation */}
-            <p className="text-[8px] text-gray-600">{staff.designation || 'Staff'}</p>
-
-            {/* Code */}
-            <p className="text-[9px] text-[#1a237e] font-bold mt-1">{staff.staff_code}</p>
-
-            {/* QR Code */}
-            {qrImages[staff.id] ? (
-              <img src={qrImages[staff.id]} alt="QR" className="w-14 h-14 mt-1" />
-            ) : (
-              <div className="w-14 h-14 bg-gray-100 mt-1" />
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
