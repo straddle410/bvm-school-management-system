@@ -185,11 +185,11 @@ export default function StaffQRPrint() {
                 <p className="text-xs text-[#1a237e] font-semibold mt-0.5">Code: {staff.staff_code}</p>
 
                 {/* QR Code */}
-                <div className="mt-3 p-1 border border-gray-200 rounded-lg">
+                <div className="mt-3 p-2 border border-gray-200 rounded-lg">
                   {qrImages[staff.id] ? (
-                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-24 h-24" />
+                    <img src={qrImages[staff.id]} alt={`QR for ${staff.name}`} className="w-40 h-40" />
                   ) : (
-                    <div className="w-24 h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+                    <div className="w-40 h-40 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
                       Generating...
                     </div>
                   )}
