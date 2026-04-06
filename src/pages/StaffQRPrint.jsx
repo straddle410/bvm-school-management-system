@@ -294,23 +294,99 @@ export default function StaffQRPrint() {
       `}</style>
 
       {/* Hidden Print Grid */}
-      <div className="hidden print:block print-grid p-[5mm]">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '5mm',
+        padding: '5mm',
+        width: '100%',
+      }} className="hidden print:block">
         {selectedStaff.map(staff => (
           <div
             key={staff.id}
-            className="bg-white border border-gray-300 rounded p-2 flex flex-col items-center text-center"
-            style={{ pageBreakInside: 'avoid', aspectRatio: '1' }}
+            style={{
+              pageBreakInside: 'avoid',
+              border: '1px solid #999',
+              borderRadius: '4px',
+              padding: '4mm',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              minHeight: '70mm',
+              backgroundColor: '#fff',
+              boxSizing: 'border-box',
+              textAlign: 'center',
+            }}
           >
             {/* School Name */}
-            <p className="text-[9px] font-bold text-[#1a237e] uppercase tracking-wider mb-1">{schoolName}</p>
+            <div style={{ fontSize: '8px', fontWeight: 'bold', color: '#1a237e', textTransform: 'uppercase', marginBottom: '2mm' }}>
+              {schoolName}
+            </div>
 
             {/* Photo */}
             {staff.photo_url ? (
-              <img src={staff.photo_url} alt={staff.name} className="w-10 h-10 rounded-full object-cover border border-[#1a237e] mb-1" />
+              <img src={staff.photo_url} alt={staff.name} style={{
+                width: '12mm',
+                height: '12mm',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '1px solid #1a237e',
+                marginBottom: '2mm',
+              }} />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-[#e8eaf6] flex items-center justify-center border border-[#1a237e] mb-1">
-                <span className="text-[#1a237e] font-bold text-xs">{staff.name?.charAt(0)?.toUpperCase()}</span>
+              <div style={{
+                width: '12mm',
+                height: '12mm',
+                borderRadius: '50%',
+                backgroundColor: '#e8eaf6',
+                border: '1px solid #1a237e',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '2mm',
+                color: '#1a237e',
+                fontWeight: 'bold',
+                fontSize: '9px',
+              }}>
+                {staff.name?.charAt(0)?.toUpperCase()}
               </div>
+            )}
+
+            {/* Name */}
+            <div style={{ fontSize: '9px', fontWeight: '600', color: '#000', marginBottom: '1mm', lineHeight: '1.2' }}>
+              {staff.name}
+            </div>
+
+            {/* Designation */}
+            <div style={{ fontSize: '7px', color: '#666', marginBottom: '1mm' }}>
+              {staff.designation || 'Staff'}
+            </div>
+
+            {/* Code */}
+            <div style={{ fontSize: '8px', color: '#1a237e', fontWeight: 'bold', marginBottom: '2mm', fontFamily: 'monospace' }}>
+              {staff.staff_code}
+            </div>
+
+            {/* QR Code */}
+            {qrImages[staff.id] ? (
+              <img src={qrImages[staff.id]} alt="QR" style={{
+                width: '18mm',
+                height: '18mm',
+                marginTop: 'auto',
+              }} />
+            ) : (
+              <div style={{
+                width: '18mm',
+                height: '18mm',
+                backgroundColor: '#f0f0f0',
+                marginTop: 'auto',
+              }} />
+            )}
+          </div>
+        ))}
+      </div>
+      </div>
             )}
 
             {/* Name */}
