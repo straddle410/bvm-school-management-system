@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Search, User, Receipt } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import StudentListVirtual from './StudentListVirtual';
-import PullToRefresh from '@/components/PullToRefresh';
 import { getClassesForYear } from '@/components/classSectionHelper';
 
 const LoadingSpinner = () => (
