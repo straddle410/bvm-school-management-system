@@ -14,19 +14,87 @@ const STATUS = {
 };
 
 export default function KioskCheckin() {
-  const [status, setStatus] = useState(STATUS.SCANNING);
-  const [staffName, setStaffName] = useState('');
-  const [message, setMessage] = useState('');
+  const [unlocked, setUnlocked] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinLoading, setPinLoading] = useState(false);
   const [schoolName, setSchoolName] = useState('BVM School');
-  const scannerRef = useRef(null);
-  const processingRef = useRef(false);
-  const resetTimerRef = useRef(null);
 
   useEffect(() => {
     base44.entities.SchoolProfile.list().then(p => {
       if (p?.[0]?.school_name) setSchoolName(p[0].school_name);
     }).catch(() => {});
   }, []);
+
+  const handlePinSubmit = async () => {
+    if (pin.length !== 6) { setPinError('Please enter a 6-digit PIN.'); return; }
+    setPinLoading(true);
+    setPinError('');
+    try {
+      const res = await base44.functions.invoke('verifyKioskPin', { pin });
+      if (res.data?.success) {
+        setUnlocked(true);
+      } else {
+        setPinError(res.data?.message || 'Incorrect PIN.');
+        setPin('');
+      }
+    } catch {
+      setPinError('Error verifying PIN. Try again.');
+    } finally {
+      setPinLoading(false);
+    }
+  };
+
+  if (!unlocked) {
+    return (
+      <div className="fixed inset-0 bg-[#1a237e] flex flex-col items-center justify-center px-6">
+        <div className="mb-8 text-center">
+          <div className="text-6xl mb-4">🔐</div>
+          <h1 className="text-3xl font-bold text-white">{schoolName}</h1>
+          <p className="text-white/70 mt-2 text-lg">Staff Attendance Kiosk</p>
+        </div>
+        <div className="bg-white rounded-2xl p-8 w-full max-w-xs shadow-2xl">
+          <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">Enter Kiosk PIN</h2>
+          <p className="text-sm text-gray-500 mb-5 text-center">Enter the 6-digit PIN to activate the scanner.</p>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={6}
+            value={pin}
+            onChange={e => { setPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
+            onKeyDown={e => e.key === 'Enter' && handlePinSubmit()}
+            placeholder="● ● ● ● ● ●"
+            className="w-full border-2 border-gray-300 rounded-xl px-4 py-4 text-2xl text-center tracking-widest mb-3 focus:outline-none focus:border-[#1a237e]"
+            autoFocus
+          />
+          {pinError && <p className="text-red-500 text-sm mb-3 text-center">{pinError}</p>}
+          <button
+            onClick={handlePinSubmit}
+            disabled={pinLoading || pin.length !== 6}
+            className="w-full bg-[#1a237e] text-white rounded-xl py-4 font-bold text-lg disabled:opacity-50"
+          >
+            {pinLoading ? 'Verifying...' : 'Unlock Kiosk'}
+          </button>
+        </div>
+        <p className="text-white/40 text-xs mt-6">Contact admin if you don't know the PIN.</p>
+      </div>
+    );
+  }
+
+  return <KioskScanner schoolName={schoolName} />;
+}
+
+function KioskScanner({ schoolName }) {
+  const [status, setStatus] = useState(STATUS.SCANNING);
+  const [staffName, setStaffName] = useState('');
+  const [message, setMessage] = useState('');
+  const scannerRef = useRef(null);
+  const processingRef = useRef(false);
+  const resetTimerRef = useRef(null);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [exitPassword, setExitPassword] = useState('');
+  const [exitError, setExitError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const qr = new Html5Qrcode('qr-reader');
@@ -49,6 +117,10 @@ export default function KioskCheckin() {
     return () => {
       qr.stop().catch(() => {});
     };
+  }, []);
+
+  useEffect(() => {
+    return () => clearTimeout(resetTimerRef.current);
   }, []);
 
   const handleScan = async (staffCode) => {
@@ -82,7 +154,7 @@ export default function KioskCheckin() {
         setStatus(STATUS.ERROR);
         setMessage(data.message || 'Staff not found. Please contact admin.');
       }
-    } catch (err) {
+    } catch {
       setStatus(STATUS.ERROR);
       setMessage('Staff not found. Please contact admin.');
     }
@@ -94,15 +166,6 @@ export default function KioskCheckin() {
       processingRef.current = false;
     }, 4000);
   };
-
-  useEffect(() => {
-    return () => clearTimeout(resetTimerRef.current);
-  }, []);
-
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [exitPassword, setExitPassword] = useState('');
-  const [exitError, setExitError] = useState('');
-  const navigate = useNavigate();
 
   const handleExitAttempt = () => {
     if (exitPassword === '9265') {
@@ -144,7 +207,6 @@ export default function KioskCheckin() {
           </div>
         )}
 
-        {/* Feedback Overlay */}
         {overlayVisible && (
           <div
             className={`absolute inset-0 flex flex-col items-center justify-center px-8 text-white transition-all
@@ -212,10 +274,8 @@ export default function KioskCheckin() {
         <span className="text-green-400 text-xs font-semibold bg-green-900/40 px-2 py-1 rounded-full">🟢 Kiosk Active</span>
       </div>
 
-      {/* Prevent accidental navigation via back gesture — intercept popstate */}
       <BackLockEffect />
 
-      {/* Admin Exit Modal */}
       {showExitModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6">
           <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
@@ -254,7 +314,6 @@ export default function KioskCheckin() {
 
 function BackLockEffect() {
   useEffect(() => {
-    // Push a state so back button doesn't leave the kiosk page
     window.history.pushState(null, '', window.location.href);
     const handlePop = () => {
       window.history.pushState(null, '', window.location.href);

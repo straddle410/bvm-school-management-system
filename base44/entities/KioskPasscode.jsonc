@@ -1,0 +1,22 @@
+{
+  "name": "KioskPasscode",
+  "type": "object",
+  "properties": {
+    "pin": {
+      "type": "string",
+      "description": "6-digit kiosk unlock PIN"
+    },
+    "last_updated_by": {
+      "type": "string",
+      "description": "Email of admin who last updated the PIN"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether PIN is required to unlock kiosk"
+    }
+  },
+  "required": [
+    "pin"
+  ]
+}
