@@ -12,28 +12,44 @@ export default function StaffQRPrint() {
   const [qrImages, setQrImages] = useState({});
   const [schoolName, setSchoolName] = useState('BVM School');
 
+  // Generate QR payload: staff_code|qr_token
+  const buildQRPayload = (staff_code, qr_token) => `${staff_code}|${qr_token}`;
+
+  const generateQRImage = async (staff_code, qr_token) => {
+    return QRCode.toDataURL(buildQRPayload(staff_code, qr_token), {
+      width: 200,
+      margin: 1,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+  };
+
   useEffect(() => {
     Promise.all([
       base44.entities.StaffAccount.filter({ is_active: true }),
       base44.entities.SchoolProfile.list(),
-    ]).then(([staff, profiles]) => {
+    ]).then(async ([staff, profiles]) => {
       const validStaff = staff.filter(s => s.staff_code);
-      setStaffList(validStaff);
-      setFiltered(validStaff);
+
+      // Ensure every staff member has a qr_token; assign one if missing
+      const updatedStaff = await Promise.all(validStaff.map(async (s) => {
+        if (!s.qr_token) {
+          const token = crypto.randomUUID();
+          await base44.entities.StaffAccount.update(s.id, { qr_token: token });
+          return { ...s, qr_token: token };
+        }
+        return s;
+      }));
+
+      setStaffList(updatedStaff);
+      setFiltered(updatedStaff);
       if (profiles?.[0]?.school_name) setSchoolName(profiles[0].school_name);
 
-      // Generate QR codes for all staff
-      const promises = validStaff.map(async (s) => {
-        const url = await QRCode.toDataURL(s.staff_code, {
-          width: 200,
-          margin: 1,
-          color: { dark: '#000000', light: '#ffffff' },
-        });
+      // Generate QR images using staff_code|qr_token
+      const entries = await Promise.all(updatedStaff.map(async (s) => {
+        const url = await generateQRImage(s.staff_code, s.qr_token);
         return [s.id, url];
-      });
-      Promise.all(promises).then(entries => {
-        setQrImages(Object.fromEntries(entries));
-      });
+      }));
+      setQrImages(Object.fromEntries(entries));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -46,6 +62,15 @@ export default function StaffQRPrint() {
       s.designation?.toLowerCase().includes(q)
     ));
   }, [search, staffList]);
+
+  const reissueQR = async (staff) => {
+    const token = crypto.randomUUID();
+    await base44.entities.StaffAccount.update(staff.id, { qr_token: token });
+    const url = await generateQRImage(staff.staff_code, token);
+    setStaffList(prev => prev.map(s => s.id === staff.id ? { ...s, qr_token: token } : s));
+    setFiltered(prev => prev.map(s => s.id === staff.id ? { ...s, qr_token: token } : s));
+    setQrImages(prev => ({ ...prev, [staff.id]: url }));
+  };
 
   const handlePrint = () => window.print();
 
@@ -134,6 +159,13 @@ export default function StaffQRPrint() {
                   )}
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">Scan at kiosk to check in</p>
+                <button
+                  onClick={() => reissueQR(staff)}
+                  className="no-print mt-1.5 text-[10px] text-red-500 underline hover:text-red-700"
+                  title="Invalidates old card and generates a new QR token"
+                >
+                  🔄 Reissue Card
+                </button>
               </div>
             ))}
           </div>

@@ -23,7 +23,7 @@
         "exam_staff",
         "cleaner"
       ],
-      "description": "System role for permission checks. principal = same access as admin. ceo = top-level access to all modules except system settings. exam_staff = marks + attendance only. cleaner = no module access."
+      "description": "System role for permission checks."
     },
     "username": {
       "type": "string",
@@ -35,49 +35,39 @@
     },
     "password_updated_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "When password was last updated"
+      "format": "date-time"
     },
     "force_password_change": {
       "type": "boolean",
-      "default": true,
-      "description": "Force user to change password on next login"
+      "default": true
     },
     "is_active": {
       "type": "boolean",
-      "default": true,
-      "description": "Account active status"
+      "default": true
     },
     "failed_login_attempts": {
       "type": "number",
-      "default": 0,
-      "description": "Count of failed login attempts"
+      "default": 0
     },
     "account_locked_until": {
       "type": "string",
-      "format": "date-time",
-      "description": "Account locked until this timestamp (null if not locked)"
+      "format": "date-time"
     },
     "last_login_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "Timestamp of last successful login"
+      "format": "date-time"
     },
     "last_login_ip": {
-      "type": "string",
-      "description": "IP address of last login"
+      "type": "string"
     },
     "role_template_id": {
-      "type": "string",
-      "description": "Reference to RoleTemplate for RBAC"
+      "type": "string"
     },
     "permissions_override": {
-      "type": "object",
-      "description": "Override permissions beyond role template"
+      "type": "object"
     },
     "permissions": {
       "type": "object",
-      "description": "Legacy permissions object (for backward compatibility)",
       "properties": {
         "attendance": {
           "type": "boolean",
@@ -194,25 +184,25 @@
       }
     },
     "photo_url": {
-      "type": "string",
-      "description": "Profile photo URL"
+      "type": "string"
     },
     "mobile": {
-      "type": "string",
-      "description": "Mobile number"
+      "type": "string"
     },
     "email": {
-      "type": "string",
-      "description": "Email address"
+      "type": "string"
     },
     "joining_date": {
       "type": "string",
-      "format": "date",
-      "description": "Date of joining"
+      "format": "date"
     },
     "staff_code": {
       "type": "string",
       "description": "Internal staff code (e.g., T001)"
+    },
+    "qr_token": {
+      "type": "string",
+      "description": "Unique secret token embedded in the staff QR card. Changes each time a new QR card is printed, invalidating old cards."
     },
     "gender": {
       "type": "string",
@@ -220,83 +210,66 @@
         "Male",
         "Female",
         "Other"
-      ],
-      "description": "Gender"
+      ]
     },
     "dob": {
       "type": "string",
-      "format": "date",
-      "description": "Date of birth"
+      "format": "date"
     },
     "qualification": {
-      "type": "string",
-      "description": "Educational qualification (e.g., B.A., M.Sc., B.Ed)"
+      "type": "string"
     },
     "experience_years": {
-      "type": "number",
-      "description": "Years of experience"
+      "type": "number"
     },
     "address_line1": {
-      "type": "string",
-      "description": "Address line 1"
+      "type": "string"
     },
     "address_line2": {
-      "type": "string",
-      "description": "Address line 2"
+      "type": "string"
     },
     "city": {
-      "type": "string",
-      "description": "City"
+      "type": "string"
     },
     "state": {
-      "type": "string",
-      "description": "State/Province"
+      "type": "string"
     },
     "pincode": {
-      "type": "string",
-      "description": "Postal code"
+      "type": "string"
     },
     "emergency_contact_name": {
-      "type": "string",
-      "description": "Emergency contact person name"
+      "type": "string"
     },
     "emergency_contact_phone": {
-      "type": "string",
-      "description": "Emergency contact phone"
+      "type": "string"
     },
     "is_teacher": {
       "type": "boolean",
-      "default": false,
-      "description": "Is this staff member a teacher"
+      "default": false
     },
     "subjects": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Subjects taught (e.g., Math, Science)"
+      }
     },
     "classes": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Classes assigned (e.g., Class 5, Class 6)"
+      }
     },
     "sections": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Sections assigned (e.g., A, B, C)"
+      }
     },
     "class_teacher_of": {
-      "type": "string",
-      "description": "Class teacher of (e.g., Class 5-A)"
+      "type": "string"
     },
     "notes": {
-      "type": "string",
-      "description": "Admin notes"
+      "type": "string"
     }
   },
   "required": [

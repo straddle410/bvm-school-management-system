@@ -17,11 +17,16 @@ function compareTimes(a, b) {
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
-  const { staff_code } = await req.json();
+  const { staff_code: rawPayload } = await req.json();
 
-  if (!staff_code) {
-    return Response.json({ status: 'error', message: 'No staff code provided.' }, { status: 400 });
+  if (!rawPayload) {
+    return Response.json({ status: 'error', message: 'No QR code provided.' }, { status: 400 });
   }
+
+  // New QR format: "staff_code|qr_token"
+  const parts = rawPayload.trim().split('|');
+  const staff_code = parts[0];
+  const scanned_token = parts[1] || null;
 
   // Find staff by staff_code
   const staffList = await base44.asServiceRole.entities.StaffAccount.filter({ staff_code: staff_code.trim() });
@@ -34,6 +39,13 @@ Deno.serve(async (req) => {
 
   if (!staff.is_active) {
     return Response.json({ status: 'error', message: 'This account is inactive. Please contact admin.' });
+  }
+
+  // Validate QR token — if staff has a qr_token set, the scanned token MUST match
+  if (staff.qr_token) {
+    if (!scanned_token || scanned_token !== staff.qr_token) {
+      return Response.json({ status: 'error', message: 'Invalid or expired QR card. Please get a new card from admin.' });
+    }
   }
 
   // Get today's date in IST (YYYY-MM-DD)
@@ -52,8 +64,8 @@ Deno.serve(async (req) => {
   ]);
   const academicYear = academicYears?.[0]?.year || '';
   const kioskSettings = kioskSettingsList?.[0] || null;
-  const lateCheckinTime = kioskSettings?.late_checkin_time || null;   // e.g. '09:30'
-  const earlyCheckoutTime = kioskSettings?.early_checkout_time || null; // e.g. '16:00'
+  const lateCheckinTime = kioskSettings?.late_checkin_time || null;
+  const earlyCheckoutTime = kioskSettings?.early_checkout_time || null;
 
   // Check if already has a record for today
   const existing = await base44.asServiceRole.entities.StaffAttendance.filter({
@@ -63,6 +75,7 @@ Deno.serve(async (req) => {
 
   if (existing && existing.length > 0) {
     const record = existing[0];
+
     // Already checked out today
     if (record.checkout_time) {
       return Response.json({ status: 'already_checked_in', staff_name: staff.name });
