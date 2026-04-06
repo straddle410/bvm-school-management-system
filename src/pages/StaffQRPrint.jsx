@@ -249,22 +249,21 @@ export default function StaffQRPrint() {
           }
           #print-area {
             display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 4px !important;
+            grid-template-columns: repeat(2, 85.6mm) !important;
+            gap: 5mm !important;
             padding: 5mm !important;
             width: 100% !important;
-            auto-rows: max-content !important;
+            auto-rows: 54mm !important;
           }
           .print-card {
             border: 1px solid #999 !important;
-            padding: 5px !important;
+            padding: 3px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             box-shadow: none !important;
             border-radius: 1px !important;
-            width: 100% !important;
-            height: auto !important;
-            min-height: 95mm !important;
+            width: 85.6mm !important;
+            height: 54mm !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
