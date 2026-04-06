@@ -65,7 +65,7 @@ export default function ThermalReceipt({ payment, student, school, invoice, rece
         </Button>
       </div>
 
-      <div ref={receiptRef} className="bg-white mx-auto rounded-lg" style={{ width: '80mm', padding: '8mm', fontSize: '12px', lineHeight: '1.4' }}>
+      <div ref={receiptRef} className="bg-white mx-auto rounded-lg" style={{ width: '80mm', padding: '8mm', fontSize: '14px', lineHeight: '1.4' }}>
         {/* Header with logo */}
         <div className="text-center border-b border-gray-800 pb-2 mb-2">
           {school?.logo_url && (
