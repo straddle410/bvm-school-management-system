@@ -40,24 +40,9 @@ function getMonthDateRange(year, month) {
   return { start, end };
 }
 
-// Dynamic working days = all days in month - Sundays - unpaid staff holidays
-function calcDynamicWorkingDays(year, month, holidays) {
-  const total = daysInMonth(year, month);
-  const pad = n => String(n).padStart(2, '0');
-  let workingDays = 0;
-  const unpaidStaffHolidayDates = new Set(
-    holidays
-      .filter(h => h.is_paid === false && (h.applies_to === 'All' || h.applies_to === 'Staff Only') && h.status === 'Active')
-      .map(h => h.date)
-  );
-  for (let d = 1; d <= total; d++) {
-    const dateStr = `${year}-${pad(month + 1)}-${pad(d)}`;
-    const dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
-    if (dayOfWeek === 0) continue; // Sunday
-    if (unpaidStaffHolidayDates.has(dateStr)) continue; // Unpaid holiday
-    workingDays++;
-  }
-  return workingDays;
+// Total calendar days in the month (Sundays included as paid holidays)
+function calcDynamicWorkingDays(year, month) {
+  return daysInMonth(year, month);
 }
 
 export default function StaffSalaryTab({ academicYear }) {
@@ -89,24 +74,26 @@ export default function StaffSalaryTab({ academicYear }) {
       // Filter holidays to those falling in the selected month (regardless of academic_year)
       const holidays = allHolidays.filter(h => h.date >= start && h.date <= end);
 
+      // Count Sundays in this month (auto paid holidays)
+      const pad2 = n => String(n).padStart(2, '0');
+      let sundaysInMonth = 0;
+      for (let d = 1; d <= daysInMonth(selYear, selMonth); d++) {
+        const dateStr = `${selYear}-${pad2(selMonth + 1)}-${pad2(d)}`;
+        if (new Date(dateStr + 'T00:00:00').getDay() === 0) sundaysInMonth++;
+      }
+
       // Build month stats
       const totalDays = daysInMonth(selYear, selMonth);
-      const pad = n => String(n).padStart(2, '0');
-      let sundaysCount = 0;
-      for (let d = 1; d <= totalDays; d++) {
-        const dateStr = `${selYear}-${pad(selMonth + 1)}-${pad(d)}`;
-        if (new Date(dateStr + 'T00:00:00').getDay() === 0) sundaysCount++;
-      }
       const staffHolidaysInMonth = holidays.filter(h =>
         h.date >= start && h.date <= end &&
         (h.applies_to === 'All' || h.applies_to === 'Staff Only')
       );
       const paidHolidaysInMonth = staffHolidaysInMonth.filter(h => h.is_paid !== false);
       const unpaidHolidaysInMonth = staffHolidaysInMonth.filter(h => h.is_paid === false);
-      const effectiveWorkingDays = calcDynamicWorkingDays(selYear, selMonth, holidays);
+      const effectiveWorkingDays = calcDynamicWorkingDays(selYear, selMonth);
       setMonthStats({
         totalDays,
-        sundays: sundaysCount,
+        sundays: sundaysInMonth,
         totalHolidays: staffHolidaysInMonth.length,
         paidHolidays: paidHolidaysInMonth.length,
         unpaidHolidays: unpaidHolidaysInMonth.length,
@@ -133,11 +120,13 @@ export default function StaffSalaryTab({ academicYear }) {
       const data = staffList.map(s => {
         const config = configMap[s.id];
         const att = monthAttendance.filter(a => a.staff_id === s.id);
-        const daysPresent = calcDaysFromAttendance(att, paidHolidayDates);
+        // Sundays are always paid; add them to days present automatically
+        const attendanceDays = calcDaysFromAttendance(att, paidHolidayDates);
+        const daysPresent = attendanceDays + sundaysInMonth;
         const totalDays = daysInMonth(selYear, selMonth);
-        const workingDays = calcDynamicWorkingDays(selYear, selMonth, holidays);
+        const workingDays = calcDynamicWorkingDays(selYear, selMonth); // = totalDays
         const dailyRate = config ? config.monthly_salary / workingDays : 0;
-        const earned = Math.round(dailyRate * daysPresent);
+        const earned = Math.round(dailyRate * Math.min(daysPresent, workingDays));
         const payment = paymentMap[s.id] || null;
 
         return { staff: s, config, att, daysPresent, totalDays, workingDays, earned, payment, dailyRate };
@@ -290,7 +279,7 @@ export default function StaffSalaryTab({ academicYear }) {
           </div>
           <div className="bg-indigo-100 dark:bg-indigo-900/40 rounded-xl p-3 text-center">
             <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{monthStats.effectiveWorkingDays}</p>
-            <p className="text-[10px] text-indigo-600 font-medium">Working Days</p>
+            <p className="text-[10px] text-indigo-600 font-medium">Salary Days</p>
           </div>
         </div>
       )}
@@ -318,8 +307,8 @@ export default function StaffSalaryTab({ academicYear }) {
                         {hasConfig && (
                           <div className="flex gap-3 mt-1.5 text-xs text-slate-500 flex-wrap">
                             <span>Monthly: ₹{(d.config.monthly_salary || 0).toLocaleString('en-IN')}</span>
-                            <span>Days Present: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong> <span className="text-[10px] text-green-600">(incl. paid holidays)</span></span>
-                            <span>Working Days: <strong className="text-slate-700 dark:text-gray-300">{d.workingDays}</strong> <span className="text-[10px] text-blue-500">(auto)</span></span>
+                            <span>Days Paid: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong> <span className="text-[10px] text-green-600">(attendance + Sundays)</span></span>
+                            <span>Total Days: <strong className="text-slate-700 dark:text-gray-300">{d.workingDays}</strong></span>
                             <span>Daily Rate: ₹{d.dailyRate.toFixed(0)}</span>
                           </div>
                         )}
