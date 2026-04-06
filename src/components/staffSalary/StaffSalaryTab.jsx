@@ -126,7 +126,9 @@ export default function StaffSalaryTab({ academicYear }) {
         const totalDays = daysInMonth(selYear, selMonth);
         const workingDays = calcDynamicWorkingDays(selYear, selMonth); // = totalDays
         const dailyRate = config ? config.monthly_salary / workingDays : 0;
-        const earned = Math.round(dailyRate * Math.min(daysPresent, workingDays));
+        const rawEarned = dailyRate * Math.min(daysPresent, workingDays);
+        const isMonthOver = (selYear < now.getFullYear()) || (selYear === now.getFullYear() && selMonth < now.getMonth());
+        const earned = isMonthOver ? Math.round(rawEarned / 10) * 10 : Math.round(rawEarned);
         const payment = paymentMap[s.id] || null;
 
         return { staff: s, config, att, daysPresent, totalDays, workingDays, earned, payment, dailyRate };
@@ -309,7 +311,7 @@ export default function StaffSalaryTab({ academicYear }) {
                             <span>Monthly: ₹{(d.config.monthly_salary || 0).toLocaleString('en-IN')}</span>
                             <span>Days Paid: <strong className="text-slate-700 dark:text-gray-300">{d.daysPresent}</strong> <span className="text-[10px] text-green-600">(attendance + Sundays)</span></span>
                             <span>Total Days: <strong className="text-slate-700 dark:text-gray-300">{d.workingDays}</strong></span>
-                            <span>Daily Rate: ₹{d.dailyRate.toFixed(0)}</span>
+                            <span>Daily Rate: ₹{d.dailyRate.toFixed(1)}</span>
                           </div>
                         )}
                       </div>
