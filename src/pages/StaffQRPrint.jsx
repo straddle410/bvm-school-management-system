@@ -253,8 +253,8 @@ export default function StaffQRPrint() {
             gap: 4px !important;
             padding: 5mm !important;
             width: 100% !important;
-            grid-auto-rows: 95mm !important;
-            page-break-inside: auto !important;
+            auto-rows: max-content !important;
+            page-break-inside: avoid !important;
           }
           .print-card {
             border: 1px solid #999 !important;
@@ -264,7 +264,8 @@ export default function StaffQRPrint() {
             box-shadow: none !important;
             border-radius: 1px !important;
             width: 100% !important;
-            height: 100% !important;
+            height: auto !important;
+            min-height: 95mm !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
