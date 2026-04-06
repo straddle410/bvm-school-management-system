@@ -263,7 +263,6 @@ export default function StaffQRPrint() {
             height: auto !important;
           }
           .print-card:nth-child(9n) {
-            break-after: page !important;
             page-break-after: always !important;
           }
           .print-card img { max-width: 100% !important; height: auto !important; }
