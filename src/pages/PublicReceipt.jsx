@@ -110,7 +110,14 @@ export default function PublicReceipt() {
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4">
-      <div className="max-w-lg mx-auto mb-4 flex justify-end gap-2">
+      <style>{`
+        @media print {
+          .button-container { display: none; }
+          body { background: white; }
+          .receipt-container { box-shadow: none; margin: 0; }
+        }
+      `}</style>
+      <div className="button-container max-w-lg mx-auto mb-4 flex justify-end gap-2">
         <Button onClick={handleDownload} variant="outline" size="sm">
           <Download className="h-4 w-4 mr-2" />
           Download PDF
@@ -123,7 +130,7 @@ export default function PublicReceipt() {
         </Button>
       </div>
 
-      <div ref={receiptRef} className="bg-white w-full max-w-lg mx-auto rounded-lg shadow-md" style={{ padding: '24px', fontSize: '14px' }}>
+      <div ref={receiptRef} className="receipt-container bg-white w-full max-w-lg mx-auto rounded-lg shadow-md" style={{ padding: '24px', fontSize: '14px' }}>
 
         {/* Header */}
         <div className="border-b-2 border-gray-800 pb-4 mb-5 flex items-center gap-3">
