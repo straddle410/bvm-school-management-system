@@ -234,39 +234,47 @@ export default function StaffQRPrint() {
 
       <style>{`
         @media print {
+          @page { size: A4; margin: 5mm; }
           * { margin: 0 !important; padding: 0 !important; }
           .no-print { display: none !important; }
-          body, html { background: white !important; height: auto !important; overflow: visible !important; }
+          body, html { background: white !important; height: auto !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
           main, .min-h-screen, .p-4, .bg-gray-100 {
             height: auto !important; 
             min-height: auto !important;
             max-height: none !important;
             overflow: visible !important;
             page-break-after: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           #print-area {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
-            gap: 8px !important;
-            padding: 8px !important;
+            gap: 4px !important;
+            padding: 5mm !important;
             width: 100% !important;
             auto-rows: max-content !important;
             page-break-inside: auto !important;
           }
           .print-card {
             border: 1px solid #999 !important;
-            padding: 8px !important;
+            padding: 5px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             box-shadow: none !important;
-            border-radius: 2px !important;
+            border-radius: 1px !important;
             width: 100% !important;
             height: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
           }
+          .print-card p { margin: 2px 0 !important; font-size: 9px !important; }
+          .print-card img { width: 20mm !important; height: 20mm !important; margin: 2px 0 !important; }
           .print-card:nth-child(9n) {
             page-break-after: always !important;
           }
-          .print-card img { max-width: 100% !important; height: auto !important; }
         }
       `}</style>
     </div>
