@@ -254,7 +254,6 @@ export default function StaffQRPrint() {
             padding: 5mm !important;
             width: 100% !important;
             auto-rows: max-content !important;
-            page-break-inside: avoid !important;
           }
           .print-card {
             border: 1px solid #999 !important;
