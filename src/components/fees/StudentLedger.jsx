@@ -401,12 +401,14 @@ export default function StudentLedger({ academicYear, isArchivedYear, feeHeads =
                      <Receipt className="h-6 w-6 mr-2" />
                      Record Payment
                    </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+                 )}
+                 </CardContent>
+                 </Card>
+                 )}
+                 </div>
+                 )}
+
+
 
       {/* Additional Fees Section */}
       {selectedStudent && adhocInvoices.length > 0 && (
