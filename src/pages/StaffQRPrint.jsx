@@ -11,6 +11,7 @@ export default function StaffQRPrint() {
   const [loading, setLoading] = useState(true);
   const [qrImages, setQrImages] = useState({});
   const [schoolName, setSchoolName] = useState('BVM School');
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // Generate QR payload: staff_code|qr_token
   const buildQRPayload = (staff_code, qr_token) => `${staff_code}|${qr_token}`;
@@ -74,29 +75,44 @@ export default function StaffQRPrint() {
 
   const handlePrint = () => window.print();
 
+  const handleSelectAll = () => setSelectedIds(filtered.map(s => s.id));
+  const handleClearAll = () => setSelectedIds([]);
+  const handleToggle = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const toPrint = selectedIds.length > 0 ? filtered.filter(s => selectedIds.includes(s.id)) : filtered;
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Controls — hidden on print */}
-      <div className="no-print bg-[#1a237e] text-white px-4 py-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">Staff QR Code Cards</h1>
-          <p className="text-white/70 text-sm">Print and distribute to staff for kiosk attendance</p>
-        </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-white/50" />
-            <input
-              type="text"
-              placeholder="Search staff..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 w-48"
-            />
+      <div className="no-print bg-[#1a237e] text-white px-4 py-4 flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:gap-3 sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold">Staff QR Code Cards</h1>
+            <p className="text-white/70 text-sm">Print and distribute to staff for kiosk attendance</p>
           </div>
-          <Button onClick={handlePrint} className="bg-white text-[#1a237e] hover:bg-white/90 gap-2">
-            <Printer className="h-4 w-4" />
-            Print All ({filtered.length})
-          </Button>
+          <div className="flex gap-2 items-center flex-wrap">
+            <div className="relative w-full sm:w-48">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-white/50" />
+              <input
+                type="text"
+                placeholder="Search staff..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
+              />
+            </div>
+            <Button onClick={handleSelectAll} variant="outline" className="bg-white/10 text-white hover:bg-white/20 text-sm">
+              Select All ({filtered.length})
+            </Button>
+            <Button onClick={handleClearAll} variant="outline" className="bg-white/10 text-white hover:bg-white/20 text-sm">
+              Clear
+            </Button>
+            <Button onClick={handlePrint} className="bg-white text-[#1a237e] hover:bg-white/90 gap-2">
+              <Printer className="h-4 w-4" />
+              Print ({toPrint.length})
+            </Button>
+            {selectedIds.length > 0 && <span className="text-white text-sm font-semibold">Selected: {selectedIds.length}</span>}
+          </div>
         </div>
       </div>
 
@@ -118,12 +134,32 @@ export default function StaffQRPrint() {
             </div>
           )}
 
+          {/* Selection Checklist */}
+          {filtered.length > 0 && (
+            <div className="bg-white rounded-lg p-4 mb-4 border border-gray-200 no-print">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">Select Staff Members to Print</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                {filtered.map(staff => (
+                  <label key={staff.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(staff.id)}
+                      onChange={() => handleToggle(staff.id)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-800">{staff.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Print grid */}
           <div
             id="print-area"
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
           >
-            {filtered.map(staff => (
+            {toPrint.map(staff => (
               <div
                 key={staff.id}
                 className="bg-white rounded-xl border-2 border-[#1a237e] p-4 flex flex-col items-center text-center shadow print-card"
