@@ -169,8 +169,9 @@ export default function StaffQRPrint() {
               </div>
             ))}
           </div>
-          </div>
-          )}
+        </div>
+      )}
+
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -195,7 +196,7 @@ export default function StaffQRPrint() {
             height: auto !important;
           }
         }
-        `}</style>
-        </div>
-        );
-        }
+      `}</style>
+    </div>
+  );
+}
