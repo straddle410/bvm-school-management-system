@@ -7,6 +7,14 @@ import jsPDF from 'jspdf';
 export default function ThermalReceipt({ payment, student, school, invoice, receiptNo }) {
   const receiptRef = useRef();
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleCancel = () => {
+    window.history.back();
+  };
+
   const snapshot = payment?.receipt_snapshot;
   const displayGrossAmount = snapshot?.invoice_gross_total ?? invoice?.gross_total ?? invoice?.total_amount;
   const displayDiscountAmount = snapshot?.invoice_discount_total ?? invoice?.discount_total ?? 0;
@@ -33,9 +41,21 @@ export default function ThermalReceipt({ payment, student, school, invoice, rece
 
   return (
     <div className="min-h-screen bg-gray-100 py-4 px-2">
-      <div className="max-w-xs mx-auto mb-3 flex justify-center">
+      <style>{`
+        @media print {
+          .button-container { display: none; }
+          body { background: white; }
+        }
+      `}</style>
+      <div className="button-container max-w-xs mx-auto mb-3 flex justify-center gap-2">
         <Button onClick={handleDownload} variant="outline" size="sm" className="text-xs">
           <Download className="h-3 w-3 mr-1" /> Download PDF
+        </Button>
+        <Button onClick={handlePrint} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
+          🖨️ Print
+        </Button>
+        <Button onClick={handleCancel} variant="outline" size="sm" className="text-xs">
+          Cancel
         </Button>
       </div>
 
