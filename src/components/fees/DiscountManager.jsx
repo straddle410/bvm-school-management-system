@@ -234,7 +234,7 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
         <div className="flex gap-2 flex-wrap">
           <Select value={filterClass} onValueChange={setFilterClass}>
             <SelectTrigger className="w-36"><SelectValue placeholder="All Classes" /></SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={null}>All Classes</SelectItem>
               {availableClasses.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
             </SelectContent>
