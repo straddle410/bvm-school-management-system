@@ -168,10 +168,10 @@ export default function StaffQRPrint() {
           )}
 
           {/* Print grid */}
-          <div
-            id="print-area"
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          >
+           <div
+             id="print-area"
+             className="grid grid-cols-3 gap-6"
+           >
             {selectedStaff.map(staff => (
               <div
                 key={staff.id}
@@ -247,18 +247,19 @@ export default function StaffQRPrint() {
           #print-area {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
-            gap: 12px !important;
-            padding: 12px !important;
+            gap: 8px !important;
+            padding: 8px !important;
             width: 100% !important;
             auto-rows: max-content !important;
+            page-break-inside: auto !important;
           }
           .print-card {
             border: 1px solid #999 !important;
-            padding: 12px !important;
+            padding: 8px !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             box-shadow: none !important;
-            border-radius: 4px !important;
+            border-radius: 2px !important;
             width: 100% !important;
             height: auto !important;
           }
