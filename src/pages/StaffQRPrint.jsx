@@ -265,6 +265,7 @@ export default function StaffQRPrint() {
             border-radius: 1px !important;
             width: 100% !important;
             height: auto !important;
+            min-height: 60mm !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -274,6 +275,9 @@ export default function StaffQRPrint() {
           .print-card img { width: 20mm !important; height: 20mm !important; margin: 2px 0 !important; }
           .print-card:nth-child(9n) {
             page-break-after: always !important;
+          }
+          .print-card:nth-child(10) {
+            page-break-before: always !important;
           }
         }
       `}</style>
