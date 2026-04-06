@@ -162,7 +162,7 @@ export default function Dashboard() {
         const resolvedRole = normaliseRole(session.role);
         setStaffRole(resolvedRole);
         setStaffName(session.name || session.full_name || '');
-        setStaffId(session.id || null);
+        setStaffId(session.staff_id || session.id || null);
         setRoleSource('staff_session (localStorage — optimized)');
       } else {
         const currentUser = await base44.auth.me().catch(() => null);
