@@ -482,6 +482,49 @@ export default function DiscountManager({ academicYear, isArchived, feeHeads = [
               </div>
             )}
 
+            {/* Live Balance Preview */}
+            {selectedStudent && studentInvoice && (
+              (() => {
+                const gross = studentInvoice.gross_total ?? studentInvoice.total_amount ?? 0;
+                const paid = studentInvoice.paid_amount ?? 0;
+                const val = parseFloat(form.discount_value) || 0;
+                const discountAmt = form.discount_type === 'PERCENT' ? (gross * val / 100) : val;
+                const netAfterDiscount = Math.max(0, gross - discountAmt);
+                const balance = Math.max(0, netAfterDiscount - paid);
+                const originalBalance = Math.max(0, gross - paid);
+                return (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1 text-sm">
+                    <p className="font-semibold text-blue-800 mb-1">Live Balance</p>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Gross Total</span>
+                      <span>₹{gross.toLocaleString('en-IN')}</span>
+                    </div>
+                    {val > 0 && (
+                      <div className="flex justify-between text-emerald-700">
+                        <span>Discount Applied</span>
+                        <span>− ₹{discountAmt.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-slate-600">
+                      <span>Net Payable</span>
+                      <span>₹{netAfterDiscount.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Already Paid</span>
+                      <span>₹{paid.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base border-t border-blue-200 pt-1 mt-1">
+                      <span className={balance === 0 ? 'text-green-700' : 'text-red-700'}>Balance Due</span>
+                      <span className={balance === 0 ? 'text-green-700' : 'text-red-700'}>₹{balance.toLocaleString('en-IN')}</span>
+                    </div>
+                    {val > 0 && originalBalance !== balance && (
+                      <p className="text-xs text-blue-600">Balance reduced from ₹{originalBalance.toLocaleString('en-IN')} → ₹{balance.toLocaleString('en-IN')}</p>
+                    )}
+                  </div>
+                );
+              })()
+            )}
+
             {/* Preview */}
             {form.discount_value && selectedStudent && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
