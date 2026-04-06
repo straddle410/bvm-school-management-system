@@ -150,8 +150,9 @@ Deno.serve(async (req) => {
         if (existing && existing.length > 0) {
           const link = existing[0];
           if (link.staff_id !== account.id) {
-            console.warn(`LINK_CONFLICT: base44_user_id=${authUser.id} linked to ${link.staff_id}, logging in as ${account.id}`);
-            linkStatus = 'CONFLICT';
+            console.warn(`LINK_CONFLICT: base44_user_id=${authUser.id} was linked to ${link.staff_id}, updating to ${account.id}`);
+            await base44.asServiceRole.entities.StaffAuthLink.update(link.id, { staff_id: account.id, last_login_at: now });
+            linkStatus = 'UPDATED';
           } else {
             await base44.asServiceRole.entities.StaffAuthLink.update(link.id, { last_login_at: now });
             linkStatus = 'EXISTING';
