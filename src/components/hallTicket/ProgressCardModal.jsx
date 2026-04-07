@@ -109,7 +109,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           </Button>
         </DialogHeader>
 
-        <div className="text-[10px] border border-gray-400 rounded overflow-hidden">
+        <div className="text-[10px] border-2 border-gray-800 rounded overflow-hidden shadow-lg">
 
           {/* Header: centered */}
           <div className="bg-[#f2f2f2] text-[#111] px-4 py-3 flex items-center justify-center gap-3 border-b border-gray-400">
