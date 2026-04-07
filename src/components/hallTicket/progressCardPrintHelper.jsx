@@ -331,8 +331,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
     </div>
     <div class="sig-block">
       <div class="sig-line"></div>
-      <div class="sig-name">${card.parent_name || 'Parent / Guardian'}</div>
-      <div class="sig-label">Parent Signature</div>
+      <div class="sig-label">Parent / Guardian Signature</div>
     </div>
   </div>
 
