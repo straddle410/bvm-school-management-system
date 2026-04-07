@@ -3,8 +3,8 @@
  * Uses the same ink-efficient grey scheme as hall tickets.
  */
 export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], examMarksConfig = null) {
-  const subjects = (card.exam_performance?.[0]?.subject_details || []);
-  const subjectCount = subjects.length;
+  const rawSubjects = (card.exam_performance?.[0]?.subject_details || []);
+  const subjectCount = rawSubjects.length;
   const isCompact = subjectCount > 6;
   const schoolAddress = schoolProfile?.address || '';
   const logoUrl = schoolProfile?.logo_url
@@ -12,17 +12,17 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
     : '';
   const examName = card.exam_performance?.[0]?.exam_type_name || card.exam_performance?.[0]?.exam_name || 'Exam';
   const sortedSubjects = subjectOrder.length > 0
-    ? [...subjects].sort((a, b) => {
+    ? [...rawSubjects].sort((a, b) => {
         const ai = subjectOrder.indexOf(a.subject);
         const bi = subjectOrder.indexOf(b.subject);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
-    : subjects;
+    : rawSubjects;
 
   // Detect internal/external from actual data first, fall back to config
-  const hasInternal = subjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
-  const maxInternal = examMarksConfig?.max_internal_marks || (hasInternal ? subjects.reduce((m, s) => Math.max(m, s.internal_marks || 0), 0) : 0);
-  const maxExternal = examMarksConfig?.max_external_marks || (hasInternal ? subjects.reduce((m, s) => Math.max(m, s.external_marks || 0), 0) : 100);
+  const hasInternal = sortedSubjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || (hasInternal ? sortedSubjects.reduce((m, s) => Math.max(m, s.internal_marks || 0), 0) : 0);
+  const maxExternal = examMarksConfig?.max_external_marks || (hasInternal ? sortedSubjects.reduce((m, s) => Math.max(m, s.external_marks || 0), 0) : 100);
 
   const att = card.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
@@ -135,6 +135,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
       </table>`;
   }
 
+  const schoolName = schoolProfile?.school_name || 'School';
   const photoHtml = card.student_photo_url
     ? `<img src="https://images.weserv.nl/?url=${encodeURIComponent(card.student_photo_url)}" style="width:90px;height:115px;object-fit:cover;border:1.5px solid #333;border-radius:3px;flex-shrink:0" />`
     : `<div style="width:90px;height:115px;background:#eee;border:1.5px solid #333;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#555">${(card.student_name || '?').charAt(0).toUpperCase()}</div>`;
