@@ -46,6 +46,14 @@ Deno.serve(async (req) => {
       section
     });
 
+    // Fetch holiday overrides for this class/section to handle Sunday/holiday exceptions
+    const overrides = await base44.asServiceRole.entities.HolidayOverride.filter({
+      class_name,
+      section,
+      academic_year
+    });
+    const overrideSet = new Set(overrides.map(o => o.date));
+
     const calculateAttendanceForRange = (records, startDate, endDate) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -64,7 +72,9 @@ Deno.serve(async (req) => {
       const halfDayDates = new Set();
 
       allInRange.forEach(a => {
-        if (!a.is_holiday && a.attendance_type !== 'holiday') {
+        // If there's an override for this date, count it as a working day regardless of holiday status
+        const hasOverride = overrideSet.has(a.date);
+        if ((!a.is_holiday && a.attendance_type !== 'holiday') || hasOverride) {
           uniqueWorkingDates.add(a.date);
           if (a.attendance_type === 'full_day') fullDayDates.add(a.date);
           else if (a.attendance_type === 'half_day') halfDayDates.add(a.date);
@@ -117,7 +127,9 @@ Deno.serve(async (req) => {
         const monthHalfDayDates = new Set();
 
         allMonthRecords.forEach(a => {
-          if (!a.is_holiday && a.attendance_type !== 'holiday') {
+          // If there's an override for this date, count it as a working day regardless of holiday status
+          const hasOverride = overrideSet.has(a.date);
+          if ((!a.is_holiday && a.attendance_type !== 'holiday') || hasOverride) {
             uniqueMonthWorkingDates.add(a.date);
             if (a.attendance_type === 'full_day') monthFullDayDates.add(a.date);
             else if (a.attendance_type === 'half_day') monthHalfDayDates.add(a.date);
