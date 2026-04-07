@@ -165,7 +165,8 @@ function MarkAttendanceTab({
       date: workingDate, class_name: selectedClass, section: selectedSection, academic_year: academicYear
     }),
     enabled: !!selectedClass && !!selectedSection && !!workingDate,
-    staleTime: 0 // Always re-fetch after save to get latest status from backend
+    staleTime: 0, // Always re-fetch after save to get latest status from backend
+    refetchInterval: 60000 // Auto-refetch every 60 seconds to capture 3:30 PM auto-submission
   });
 
   const isRecordLocked = existingAttendance.length > 0 && existingAttendance[0]?.is_locked;
