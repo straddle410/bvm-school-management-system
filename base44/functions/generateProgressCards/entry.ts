@@ -349,31 +349,21 @@ Deno.serve(async (req) => {
       // Calculate attendance summary
        let attendanceSummary = null;
        console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, records: ${studentAttendance.length}`);
-       if (globalAttendanceStartDate && globalAttendanceEndDate && studentAttendance.length > 0) {
-         const studentRecordsInRange = studentAttendance.filter(a => {
-           const attDate = new Date(a.date);
-           attDate.setUTCHours(0, 0, 0, 0);
-           const rangeStart = new Date(globalAttendanceStartDate);
-           const rangeEnd = new Date(globalAttendanceEndDate);
-           rangeStart.setUTCHours(0, 0, 0, 0);
-           rangeEnd.setUTCHours(23, 59, 59, 999);
-           return attDate >= rangeStart && attDate <= rangeEnd;
-         });
-
-         if (studentRecordsInRange.length > 0) {
-           const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
+       if (globalAttendanceStartDate && globalAttendanceEndDate) {
+         const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
+         if (rangeResult.working_days > 0) {
            attendanceSummary = {
-             range_start: globalAttendanceStartDate,
-             range_end: globalAttendanceEndDate,
-             ...rangeResult
-           };
-           console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
-         } else {
-           console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) has no attendance in range ${globalAttendanceStartDate} to ${globalAttendanceEndDate} - card generated without attendance data`);
-         }
-         } else {
-         console.warn(`[SKIP-ATTENDANCE] Missing attendance range or records for ${student.student_name} - card generated without attendance data`);
-         }
+              range_start: globalAttendanceStartDate,
+              range_end: globalAttendanceEndDate,
+              ...rangeResult
+            };
+            console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
+           } else {
+           console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) - no working days found in range`);
+           }
+           } else {
+           console.warn(`[SKIP-ATTENDANCE] Missing attendance range for ${student.student_name}`);
+           }
 
       // Generate ONE card ONLY for the selected exam type
       Object.values(student.exams).filter(ed => ed.exam_type === selectedExamTypeId || ed.exam_type === examTypeIdOrName).forEach(examData => {
