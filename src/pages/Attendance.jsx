@@ -572,44 +572,48 @@ function MarkAttendanceTab({
                     <p className="text-sm text-slate-400 dark:text-gray-500 mt-1">All {filteredStudents.length} students will be marked as holiday</p>
                   </div>
                 ) : filteredStudents.length === 0 ? (
-                 <div className="py-12 text-center text-slate-400 dark:text-gray-500">No published students in this class</div>
-               ) : (
-                 <div className="overflow-y-auto max-h-[600px] divide-y dark:divide-gray-700 flex-1">
-                   {filteredStudents.map((student, index) => {
-                     const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
-                     const attendanceDisabled = effectiveHoliday || isRecordLocked;
-                     const bgColor = attType === 'absent' ? 'bg-red-50 dark:bg-red-900/20' : attType === 'half_day' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-white dark:bg-gray-800';
-                     return (
-                       <div key={student.id} className={`flex flex-col gap-2 p-3 sm:p-4 transition-colors ${attendanceDisabled ? 'bg-slate-50 dark:bg-gray-700 opacity-60' : bgColor}`}>
-                         <div className="flex items-center gap-2">
-                           <span className="text-xs text-slate-400 dark:text-gray-500 w-6 flex-shrink-0 text-center">{student.roll_no || index + 1}</span>
-                           <div className="flex-1 min-w-0">
-                             <p className="font-semibold text-slate-900 dark:text-white text-base leading-tight">{student.name}</p>
-                             <p className="text-xs text-slate-500 dark:text-gray-400">{student.student_id}</p>
-                           </div>
-                         </div>
-                         <div className="flex gap-2 ml-8">
-                           {[
-                             { type: 'full_day', color: 'green', Icon: CheckCircle2, label: 'Present' },
-                             { type: 'half_day', color: 'yellow', Icon: AlertCircle, label: 'Half Day' },
-                             { type: 'absent', color: 'red', Icon: XCircle, label: 'Absent' }
-                           ].map(({ type, color, Icon, label }) => (
-                             <Button key={type} size="sm"
-                               variant={attType === type ? 'default' : 'outline'}
-                               className={`flex-1 gap-1 text-xs ${attType === type ? `bg-${color}-600 hover:bg-${color}-700` : ''}`}
-                               onClick={() => type === 'half_day'
-                                 ? setHalfDayModal({ isOpen: true, studentId: student.student_id || student.id, studentName: student.name })
-                                 : setAttendanceType(student.student_id || student.id, type)}
-                               disabled={attendanceDisabled}
-                             >
-                               <Icon className="h-4 w-4" />
-                               <span className="hidden sm:inline">{label}</span>
-                             </Button>
-                           ))}
-                         </div>
-                       </div>
-                       );
-                       })}
+                  <div className="py-12 text-center text-slate-400 dark:text-gray-500">No published students in this class</div>
+                ) : (
+                  <div className="overflow-y-auto max-h-[600px] divide-y dark:divide-gray-700 flex-1">
+                    {filteredStudents.map((student, index) => {
+                      const attType = attendanceData[student.student_id || student.id]?.attendance_type || 'full_day';
+                      const isBeforeAdmission = student.admission_date && workingDate < student.admission_date;
+                      const attendanceDisabled = effectiveHoliday || isRecordLocked || isBeforeAdmission;
+                      const bgColor = isBeforeAdmission ? 'bg-slate-100 dark:bg-gray-700 opacity-50' : (attType === 'absent' ? 'bg-red-50 dark:bg-red-900/20' : attType === 'half_day' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-white dark:bg-gray-800');
+                      return (
+                        <div key={student.id} className={`flex flex-col gap-2 p-3 sm:p-4 transition-colors ${bgColor}`}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-400 dark:text-gray-500 w-6 flex-shrink-0 text-center">{student.roll_no || index + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-semibold text-base leading-tight ${isBeforeAdmission ? 'text-slate-400 dark:text-gray-500' : 'text-slate-900 dark:text-white'}`}>{student.name}</p>
+                              <p className="text-xs text-slate-500 dark:text-gray-400">{student.student_id}</p>
+                              {isBeforeAdmission && student.admission_date && (
+                                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1">📅 Admitted: {format(parseISO(student.admission_date), 'MMM dd, yyyy')}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 ml-8">
+                            {[
+                              { type: 'full_day', color: 'green', Icon: CheckCircle2, label: 'Present' },
+                              { type: 'half_day', color: 'yellow', Icon: AlertCircle, label: 'Half Day' },
+                              { type: 'absent', color: 'red', Icon: XCircle, label: 'Absent' }
+                            ].map(({ type, color, Icon, label }) => (
+                              <Button key={type} size="sm"
+                                variant={attType === type ? 'default' : 'outline'}
+                                className={`flex-1 gap-1 text-xs ${attType === type ? `bg-${color}-600 hover:bg-${color}-700` : ''}`}
+                                onClick={() => type === 'half_day'
+                                  ? setHalfDayModal({ isOpen: true, studentId: student.student_id || student.id, studentName: student.name })
+                                  : setAttendanceType(student.student_id || student.id, type)}
+                                disabled={attendanceDisabled}
+                              >
+                                <Icon className="h-4 w-4" />
+                                <span className="hidden sm:inline">{label}</span>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        );
+                        })}
                  </div>
                )}
              </CardContent>
