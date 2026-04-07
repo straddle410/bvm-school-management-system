@@ -28,18 +28,14 @@ Deno.serve(async (req) => {
   const staff_code = parts[0];
   const scanned_token = parts[1] || null;
 
-  // Find staff by staff_code
-  const staffList = await base44.asServiceRole.entities.StaffAccount.filter({ staff_code: staff_code.trim() });
-
-  if (!staffList || staffList.length === 0) {
-    return Response.json({ status: 'error', message: 'Staff not found. Please contact admin.' });
+  // Find staff by staff_code — optimized single lookup with early return
+  const staffList = await base44.asServiceRole.entities.StaffAccount.filter({ staff_code: staff_code.trim(), is_active: true });
+  if (!staffList?.length) {
+    return Response.json({ status: 'error', message: 'Staff not found.' }, { status: 400 });
   }
-
   const staff = staffList[0];
 
-  if (!staff.is_active) {
-    return Response.json({ status: 'error', message: 'This account is inactive. Please contact admin.' });
-  }
+
 
   // Validate QR token — if staff has a qr_token set, the scanned token MUST match
   if (staff.qr_token) {

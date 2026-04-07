@@ -108,14 +108,11 @@ function KioskScanner({ schoolName }) {
 
     qr.start(
       { facingMode: facingModeRef.current },
-      { fps: 10, qrbox: { width: 260, height: 260 } },
+      { fps: 20, qrbox: { width: 260, height: 260 } },
       (decodedText) => {
         if (processingRef.current) return;
         processingRef.current = true;
         handleScan(decodedText);
-      },
-      () => {}
-    ).catch(() => {
       setStatus(STATUS.ERROR);
       setMessage('Camera access denied. Please allow camera permission.');
     });
@@ -170,7 +167,7 @@ function KioskScanner({ schoolName }) {
       setStaffName('');
       setMessage('');
       processingRef.current = false;
-    }, 4000);
+    }, 2500);
   };
 
   const toggleCamera = () => {
