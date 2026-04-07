@@ -145,7 +145,6 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   <title>Progress Card - ${card.student_name}</title>
   <style>
     @page { size: A4; margin: 10mm; }
-    body { border: 3px solid #000; min-height: calc(100vh - 0px); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 14px; color: #111; background: #fff; }
 
