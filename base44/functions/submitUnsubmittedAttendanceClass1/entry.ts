@@ -9,16 +9,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized — admin access required' }, { status: 403 });
     }
 
+    const { start_date, end_date } = await req.json();
+
     // Find all unsubmitted attendance for Class 1
     const allAttendance = await base44.asServiceRole.entities.Attendance.filter({
       class_name: '1'
     });
 
-    const unsubmittedRecords = allAttendance.filter(a => a.status === 'Taken');
+    let unsubmittedRecords = allAttendance.filter(a => a.status === 'Taken');
+    
+    // Filter by date range if provided
+    if (start_date && end_date) {
+      unsubmittedRecords = unsubmittedRecords.filter(a => a.date >= start_date && a.date <= end_date);
+    }
 
     if (unsubmittedRecords.length === 0) {
       return Response.json({
-        message: 'No unsubmitted attendance records found for Class 1',
+        message: 'No unsubmitted attendance records found for Class 1' + (start_date && end_date ? ` between ${start_date} and ${end_date}` : ''),
         submitted: 0
       });
     }
