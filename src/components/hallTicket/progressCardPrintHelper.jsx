@@ -145,6 +145,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   <title>Progress Card - ${card.student_name}</title>
   <style>
     @page { size: A4; margin: 10mm; }
+    body { border: 3px solid #000; min-height: calc(100vh - 0px); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 14px; color: #111; background: #fff; }
 
@@ -244,6 +245,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   </style>
 </head>
 <body>
+  <div style="border: 3px solid #000; overflow: hidden;">
 
   <!-- 1. HEADER: centered — logo + school name + address -->
   <div class="header">
@@ -338,6 +340,8 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   <!-- FOOTER -->
   <div class="footer">
     <p>Generated: ${new Date(card.generated_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} &nbsp;|&nbsp; This is an official document from the school management system.</p>
+  </div>
+
   </div>
 
 </body>
