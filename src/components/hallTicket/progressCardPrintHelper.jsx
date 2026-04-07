@@ -83,11 +83,11 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   let attendanceSection = '';
   if (monthlyBreakdown.length > 0) {
     const attRows = monthlyBreakdown.map(m => `
-      <tr>
-        <td>${m.month}</td>
-        <td style="text-align:center">${m.working_days}</td>
-        <td style="text-align:center">${m.present_days}</td>
-        <td style="text-align:center">${m.absent_days ?? (m.working_days - m.present_days)}</td>
+     <tr>
+       <td>${m.month}</td>
+       <td style="text-align:center">${m.working_days}</td>
+       <td style="text-align:center">${m.total_present}</td>
+       <td style="text-align:center">${m.attendance_percentage || 0}%</td>
       </tr>`).join('');
     const totalWorking = monthlyBreakdown.reduce((s, m) => s + (m.working_days || 0), 0);
     const totalPresent = monthlyBreakdown.reduce((s, m) => s + (m.present_days || 0), 0);
@@ -113,7 +113,6 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   } else {
     const wd = att.working_days || 0;
     const pd = att.total_present_days || 0;
-    const ab = wd - pd;
     attendanceSection = `
       <table>
         <thead><tr>
@@ -128,7 +127,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
             <td>${att.range_start || ''} – ${att.range_end || ''}</td>
             <td style="text-align:center">${wd}</td>
             <td style="text-align:center">${pd}</td>
-            <td style="text-align:center">${ab}</td>
+            <td style="text-align:center">${wd - pd}</td>
             <td style="text-align:center;font-weight:700">${att.attendance_percentage || 0}%</td>
           </tr>
         </tbody>
