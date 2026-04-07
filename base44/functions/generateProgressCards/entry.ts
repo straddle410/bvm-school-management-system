@@ -207,9 +207,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch holidays and overrides once for all students
-    const holidays = await base44.asServiceRole.entities.Holiday.filter({ academic_year: academicYear });
-
     const progressCards = [];
     const uniqueStudents = new Map();
 
@@ -220,181 +217,21 @@ Deno.serve(async (req) => {
       if (uniqueStudents.has(studentKey)) continue;
       uniqueStudents.set(studentKey, true);
 
-      const studentAttendance = await base44.entities.Attendance.filter({
-        student_id: student.student_id,
-        class_name: student.class_name,
-        section: student.section
-      });
-
-      // Fetch overrides for this specific class/section
-      const overrides = await base44.asServiceRole.entities.HolidayOverride.filter({
-        class_name: student.class_name,
-        section: student.section,
-        academic_year: academicYear
-      });
-
-      const isWorkingDay = (dateStr) => {
-        const d = new Date(dateStr);
-        const day = d.getUTCDay();
-        if (day === 0 || day === 6) return false;
-        const holiday = holidays.find(h => h.date === dateStr && h.status === 'Active');
-        if (holiday) {
-          const override = overrides.find(o => o.date === dateStr);
-          return !!override;
-        }
-        return true;
-      };
-
-      const calcAttendanceForRange = (records, startDate, endDate) => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        start.setUTCHours(0, 0, 0, 0);
-        end.setUTCHours(23, 59, 59, 999);
-
-        // Build attendance map: date -> record
-        const attendanceMap = {};
-        records.forEach(a => {
-          if (a.date >= startDate && a.date <= endDate && (a.status === 'Submitted' || a.status === 'Approved' || a.auto_submitted === true)) {
-            attendanceMap[a.date] = a;
-          }
-        });
-
-        // Calculate working dates from calendar
-        const workingDates = [];
-        let current = new Date(start);
-        while (current <= end) {
-          const dateStr = current.toISOString().split('T')[0];
-          if (isWorkingDay(dateStr)) {
-            workingDates.push(dateStr);
-          }
-          current.setUTCDate(current.getUTCDate() + 1);
-        }
-
-        // Calculate present/absent (missing = present by default)
-        const fullDayDates = new Set();
-        const halfDayDates = new Set();
-        const absentDayDates = new Set();
-
-        workingDates.forEach(dateStr => {
-          const record = attendanceMap[dateStr];
-          if (!record) {
-            fullDayDates.add(dateStr);
-          } else if (record.attendance_type === 'full_day') {
-            fullDayDates.add(dateStr);
-          } else if (record.attendance_type === 'half_day') {
-            halfDayDates.add(dateStr);
-          } else if (record.attendance_type === 'absent') {
-            absentDayDates.add(dateStr);
-          }
-        });
-
-        const workingDays = workingDates.length;
-        const fullDays = fullDayDates.size;
-        const halfDays = halfDayDates.size;
-        const absentDays = absentDayDates.size;
-        const totalPresent = fullDays + (halfDays * 0.5);
-        const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
-
-        // Month-wise breakdown
-        const months = [];
-        let current2 = new Date(start);
-        while (current2 <= end) {
-          const monthStart = new Date(current2.getFullYear(), current2.getMonth(), 1);
-          const monthEnd = new Date(current2.getFullYear(), current2.getMonth() + 1, 0);
-          monthStart.setUTCHours(0, 0, 0, 0);
-          monthEnd.setUTCHours(23, 59, 59, 999);
-          const periodStart = monthStart < start ? start : monthStart;
-          const periodEnd = monthEnd > end ? end : monthEnd;
-
-          // Get working dates for this month
-          const monthWorkingDates = [];
-          let monthCurrent = new Date(periodStart);
-          while (monthCurrent <= periodEnd) {
-            const dateStr = monthCurrent.toISOString().split('T')[0];
-            if (isWorkingDay(dateStr)) {
-              monthWorkingDates.push(dateStr);
-            }
-            monthCurrent.setUTCDate(monthCurrent.getUTCDate() + 1);
-          }
-
-          const mFullDates = new Set();
-          const mHalfDates = new Set();
-          const mAbsentDates = new Set();
-
-          monthWorkingDates.forEach(dateStr => {
-            const record = attendanceMap[dateStr];
-            if (!record) {
-              mFullDates.add(dateStr);
-            } else if (record.attendance_type === 'full_day') {
-              mFullDates.add(dateStr);
-            } else if (record.attendance_type === 'half_day') {
-              mHalfDates.add(dateStr);
-            } else if (record.attendance_type === 'absent') {
-              mAbsentDates.add(dateStr);
-            }
-          });
-
-          const mWorking = monthWorkingDates.length;
-          const mFull = mFullDates.size;
-          const mHalf = mHalfDates.size;
-          const mAbsent = mAbsentDates.size;
-          const mPresent = mFull + (mHalf * 0.5);
-          const mPct = mWorking > 0 ? Math.round((mPresent / mWorking) * 100) : 0;
-
-          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const monthName = monthNames[current2.getMonth()];
-          let displayText = monthName;
-          if (periodStart.getMonth() === periodEnd.getMonth()) {
-            if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
-              displayText = `${monthName} (${periodStart.getDate()}–${periodEnd.getDate()})`;
-            }
-          }
-
-          months.push({
-            month: monthName,
-            year: current2.getFullYear(),
-            month_display: displayText,
-            period_start: periodStart.toISOString().split('T')[0],
-            period_end: periodEnd.toISOString().split('T')[0],
-            working_days: mWorking,
-            full_days_present: mFull,
-            half_days_present: mHalf,
-            absent_days: mAbsent,
-            present_days: Math.round(mPresent * 100) / 100,
-            total_present: Math.round(mPresent * 100) / 100,
-            attendance_percentage: mPct
-          });
-
-          current2.setMonth(current2.getMonth() + 1);
-        }
-
-        return {
-          working_days: workingDays,
-          full_days_present: fullDays,
-          half_days_present: halfDays,
-          absent_days: absentDays,
-          total_present_days: Math.round(totalPresent * 100) / 100,
-          attendance_percentage: percentage,
-          month_wise_breakdown: months
-        };
-      };
-
+      // Call existing calculateAttendanceSummary function to get attendance data
       let attendanceSummary = null;
-      console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, studentRecords: ${studentAttendance.length}`);
-      if (globalAttendanceStartDate && globalAttendanceEndDate) {
-        const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
-        if (rangeResult.working_days > 0) {
-          attendanceSummary = {
-            range_start: globalAttendanceStartDate,
-            range_end: globalAttendanceEndDate,
-            ...rangeResult
-          };
-          console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
-        } else {
-          console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) - no working days found in range`);
-        }
-      } else {
-        console.warn(`[SKIP-ATTENDANCE] Missing attendance range for ${student.student_name}`);
+      try {
+        const attendanceSummaryResp = await base44.functions.invoke('calculateAttendanceSummary', {
+          student_id: student.student_id,
+          class_name: student.class_name,
+          section: student.section,
+          start_date: globalAttendanceStartDate,
+          end_date: globalAttendanceEndDate,
+          academic_year: academicYear
+        });
+        attendanceSummary = attendanceSummaryResp?.data?.attendance_summary || null;
+        console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary?.working_days}, full=${attendanceSummary?.full_days_present}, half=${attendanceSummary?.half_days_present}, absent=${attendanceSummary?.absent_days}, pct=${attendanceSummary?.attendance_percentage}%`);
+      } catch (error) {
+        console.warn(`[SKIP-ATTENDANCE] Failed to get attendance for student ${student.student_name} (${student.student_id}): ${error.message}`);
       }
 
       Object.values(student.exams).filter(ed => ed.exam_type === selectedExamTypeId || ed.exam_type === examTypeIdOrName).forEach(examData => {
