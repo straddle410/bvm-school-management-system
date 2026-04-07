@@ -8,10 +8,14 @@ import { useAcademicYear } from '@/components/AcademicYearContext';
 import { toast } from 'sonner';
 import ProgressCardModal from './ProgressCardModal';
 import { getClassesForYear } from '@/components/classSectionHelper';
+import { printMultipleProgressCards } from './progressCardPrintHelper';
 
 export default function ProgressCardsList() {
   const { academicYear } = useAcademicYear();
   const [availableClasses, setAvailableClasses] = useState([]);
+  const [filters, setFilters] = useState({ class: '', student_name: '', exam_type: '' });
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedCards, setSelectedCards] = useState(new Set());
 
   useEffect(() => {
     if (!academicYear) return;
@@ -19,9 +23,6 @@ export default function ProgressCardsList() {
       .then(res => setAvailableClasses(res.classes || []))
       .catch(() => setAvailableClasses([]));
   }, [academicYear]);
-  const [filters, setFilters] = useState({ class: '', student_name: '', exam_type: '' });
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [selectedCards, setSelectedCards] = useState(new Set());
 
   const { data: examTypes = [] } = useQuery({
     queryKey: ['examTypes', academicYear],
@@ -33,8 +34,7 @@ export default function ProgressCardsList() {
     queryFn: async () => {
       const query = { academic_year: academicYear };
       if (filters.class) query.class_name = filters.class;
-      
-      // Paginate to fetch ALL cards beyond the 50 default limit
+
       let allCards = [];
       let skip = 0;
       const batchSize = 100;
@@ -45,11 +45,9 @@ export default function ProgressCardsList() {
         if (batch.length < batchSize) break;
         skip += batchSize;
       }
-      
+
       let cards = allCards;
-      
-      // Filter by exam type — resolve selected exam ID to both id and name for matching
-      // because different backend functions store exam_type as name or as id
+
       if (filters.exam_type) {
         const selectedExam = examTypes.find(e => e.id === filters.exam_type);
         const selectedId = filters.exam_type;
@@ -63,45 +61,35 @@ export default function ProgressCardsList() {
           )
         );
       }
-      
+
       if (filters.student_name) {
         cards = cards.filter(c => c.student_name.toLowerCase().includes(filters.student_name.toLowerCase()));
       }
-      
+
       return cards;
     },
     staleTime: 0,
     enabled: examTypes.length > 0 || !filters.exam_type
   });
 
-  const handleViewDetails = (card) => {
-    setSelectedCard(card);
-  };
+  const handleViewDetails = (card) => setSelectedCard(card);
 
   const toggleCardSelection = (cardId) => {
     const newSelected = new Set(selectedCards);
-    if (newSelected.has(cardId)) {
-      newSelected.delete(cardId);
-    } else {
-      newSelected.add(cardId);
-    }
+    if (newSelected.has(cardId)) newSelected.delete(cardId);
+    else newSelected.add(cardId);
     setSelectedCards(newSelected);
   };
 
   const toggleSelectAll = () => {
-    if (selectedCards.size === progressCards.length) {
-      setSelectedCards(new Set());
-    } else {
-      setSelectedCards(new Set(progressCards.map(c => c.id)));
-    }
+    if (selectedCards.size === progressCards.length) setSelectedCards(new Set());
+    else setSelectedCards(new Set(progressCards.map(c => c.id)));
   };
 
   const generateZipMutation = useMutation({
     mutationFn: async () => {
       const cardsToExport = progressCards.filter(c => selectedCards.has(c.id));
-      const response = await base44.functions.invoke('generateProgressCardsZip', {
-        progressCards: cardsToExport
-      });
+      const response = await base44.functions.invoke('generateProgressCardsZip', { progressCards: cardsToExport });
       return response.data;
     },
     onSuccess: (data) => {
@@ -120,9 +108,7 @@ export default function ProgressCardsList() {
       toast.success('Progress cards downloaded as ZIP');
       setSelectedCards(new Set());
     },
-    onError: (error) => {
-      toast.error('Failed to download progress cards');
-    }
+    onError: () => toast.error('Failed to download progress cards')
   });
 
   const deleteMutation = useMutation({
@@ -133,86 +119,23 @@ export default function ProgressCardsList() {
     },
     onSuccess: (count) => {
       refetch();
-      if (count > 0) {
-        toast.success(`Deleted ${count} progress cards`);
-      } else {
-        toast.error('Failed to delete: Access denied or cards are locked');
-      }
+      if (count > 0) toast.success(`Deleted ${count} progress cards`);
+      else toast.error('Failed to delete: Access denied or cards are locked');
       setSelectedCards(new Set());
     },
-    onError: (error) => {
-      toast.error('Failed to delete progress cards');
-    }
+    onError: () => toast.error('Failed to delete progress cards')
   });
 
   const handleDeleteSelected = () => {
-    const count = selectedCards.size;
-    if (!window.confirm(`Delete ${count} progress card(s)? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete ${selectedCards.size} progress card(s)? This cannot be undone.`)) return;
     deleteMutation.mutate();
   };
 
-  const handlePrintSelected = () => {
+  const handlePrintSelected = async () => {
     const cardsToPrint = progressCards.filter(c => selectedCards.has(c.id));
-    if (cardsToPrint.length === 0) {
-      toast.error('Please select at least one progress card to print');
-      return;
-    }
-
-    const printWindow = window.open('', '_blank');
-    const htmlContent = `
-      <html>
-      <head>
-        <style>
-          * { margin: 0; padding: 0; }
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .page { page-break-after: always; border: 1px solid #ccc; padding: 40px; min-height: 297mm; margin-bottom: 20px; }
-          .header { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 20px; margin: -40px -40px 20px -40px; }
-          .header h2 { font-size: 24px; margin-bottom: 5px; }
-          .info { margin: 20px 0; }
-          .info-row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
-          .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
-          .stat-box { background: #f5f5f5; padding: 15px; text-align: center; border-left: 4px solid #1a237e; }
-          .stat-value { font-size: 28px; font-weight: bold; color: #1a237e; }
-          .stat-label { font-size: 11px; color: #666; margin-top: 5px; }
-          @media print { body { padding: 0; } .page { page-break-after: always; margin: 0; } }
-        </style>
-      </head>
-      <body>
-        ${cardsToPrint.map(card => `
-          <div class="page">
-            <div class="header">
-              <h2>${card.student_name}</h2>
-              <p style="font-size: 12px;">Progress Card</p>
-            </div>
-            <div class="info">
-              <div class="info-row">
-                <span><strong>Class:</strong> ${card.class_name}</span>
-                <span><strong>Section:</strong> ${card.section}</span>
-                <span><strong>Roll:</strong> ${card.roll_number}</span>
-              </div>
-            </div>
-            <div class="stats">
-              <div class="stat-box">
-                <div class="stat-value">${(card.overall_stats?.overall_percentage || 0).toFixed(1)}%</div>
-                <div class="stat-label">Overall %</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value">${card.overall_stats?.overall_grade || '-'}</div>
-                <div class="stat-label">Grade</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value">#${card.overall_stats?.overall_rank || '-'}</div>
-                <div class="stat-label">Rank</div>
-              </div>
-            </div>
-          </div>
-        `).join('')}
-      </body>
-      </html>
-    `;
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
+    if (cardsToPrint.length === 0) { toast.error('Please select at least one progress card to print'); return; }
+    const profiles = await base44.entities.SchoolProfile.list();
+    printMultipleProgressCards(cardsToPrint, profiles[0] || null);
   };
 
   return (
@@ -279,86 +202,49 @@ export default function ProgressCardsList() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Generated Progress Cards ({progressCards.length})</CardTitle>
             {progressCards.length > 0 && (
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={toggleSelectAll}
-                  className="gap-2"
-                >
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" variant="outline" onClick={toggleSelectAll} className="gap-2">
                   {selectedCards.size === progressCards.length ? (
-                    <>
-                      <CheckSquare2 className="h-4 w-4" />
-                      Deselect All
-                    </>
+                    <><CheckSquare2 className="h-4 w-4" />Deselect All</>
                   ) : (
-                    <>
-                      <Square className="h-4 w-4" />
-                      Select All
-                    </>
+                    <><Square className="h-4 w-4" />Select All</>
                   )}
                 </Button>
                 {selectedCards.size > 0 && (
-                   <>
-                     <Button
-                       size="sm"
-                       variant="default"
-                       onClick={handlePrintSelected}
-                       className="gap-2 bg-blue-600 hover:bg-blue-700"
-                     >
-                       <Printer className="h-4 w-4" />
-                       Print Selected ({selectedCards.size})
-                     </Button>
-                     <Button
-                       size="sm"
-                       variant="default"
-                       onClick={() => generateZipMutation.mutate()}
-                       disabled={generateZipMutation.isPending}
-                       className="gap-2 bg-green-600 hover:bg-green-700"
-                     >
-                       <Download className="h-4 w-4" />
-                       {generateZipMutation.isPending ? 'Downloading...' : `Download ZIP (${selectedCards.size})`}
-                     </Button>
-                     <Button
-                       size="sm"
-                       variant="destructive"
-                       onClick={handleDeleteSelected}
-                       disabled={deleteMutation.isPending}
-                       className="gap-2"
-                     >
-                       <Trash2 className="h-4 w-4" />
-                       {deleteMutation.isPending ? 'Deleting...' : `Delete Selected (${selectedCards.size})`}
-                     </Button>
-                   </>
-                 )}
+                  <>
+                    <Button size="sm" variant="default" onClick={handlePrintSelected} className="gap-2 bg-blue-600 hover:bg-blue-700">
+                      <Printer className="h-4 w-4" />
+                      Print Selected ({selectedCards.size})
+                    </Button>
+                    <Button size="sm" variant="default" onClick={() => generateZipMutation.mutate()} disabled={generateZipMutation.isPending} className="gap-2 bg-green-600 hover:bg-green-700">
+                      <Download className="h-4 w-4" />
+                      {generateZipMutation.isPending ? 'Downloading...' : `Download ZIP (${selectedCards.size})`}
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={handleDeleteSelected} disabled={deleteMutation.isPending} className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      {deleteMutation.isPending ? 'Deleting...' : `Delete Selected (${selectedCards.size})`}
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <p className="text-gray-500">Loading...</p>
-            </div>
+            <div className="flex justify-center py-8"><p className="text-gray-500">Loading...</p></div>
           ) : progressCards.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No progress cards found</p>
-            </div>
+            <div className="text-center py-8"><p className="text-gray-500">No progress cards found</p></div>
           ) : (
             <div className="space-y-3">
               {progressCards.map((card) => (
                 <div key={card.id} className={`border rounded-lg p-4 transition cursor-pointer ${selectedCards.has(card.id) ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3 flex-1">
-                      <button
-                        onClick={() => toggleCardSelection(card.id)}
-                        className="mt-1 flex-shrink-0"
-                      >
-                        {selectedCards.has(card.id) ? (
-                          <CheckSquare2 className="h-5 w-5 text-blue-600" />
-                        ) : (
-                          <Square className="h-5 w-5 text-gray-400" />
-                        )}
+                      <button onClick={() => toggleCardSelection(card.id)} className="mt-1 flex-shrink-0">
+                        {selectedCards.has(card.id)
+                          ? <CheckSquare2 className="h-5 w-5 text-blue-600" />
+                          : <Square className="h-5 w-5 text-gray-400" />}
                       </button>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{card.student_name}</h3>
@@ -366,30 +252,17 @@ export default function ProgressCardsList() {
                           Class {card.class_name} - Section {card.section} | Roll: {card.roll_number}
                         </p>
                         {card.exam_performance?.[0]?.exam_name && (
-                          <p className="text-xs text-blue-600 font-medium mt-1">
-                            Exam: {card.exam_performance[0].exam_name}
-                          </p>
+                          <p className="text-xs text-blue-600 font-medium mt-1">Exam: {card.exam_performance[0].exam_name}</p>
                         )}
                         <div className="mt-2 flex gap-4 text-sm">
-                          <span className="text-gray-600">
-                            Overall: <span className="font-semibold text-blue-600">{card.overall_stats?.overall_percentage?.toFixed(2) || 0}%</span>
-                          </span>
-                          <span className="text-gray-600">
-                            Grade: <span className="font-semibold text-green-600">{card.overall_stats?.overall_grade || '-'}</span>
-                          </span>
-                          <span className="text-gray-600">
-                            Rank: <span className="font-semibold text-purple-600">#{card.overall_stats?.overall_rank || '-'}</span>
-                          </span>
+                          <span className="text-gray-600">Overall: <span className="font-semibold text-blue-600">{card.overall_stats?.overall_percentage?.toFixed(2) || 0}%</span></span>
+                          <span className="text-gray-600">Grade: <span className="font-semibold text-green-600">{card.overall_stats?.overall_grade || '-'}</span></span>
+                          <span className="text-gray-600">Rank: <span className="font-semibold text-purple-600">#{card.overall_stats?.overall_rank || '-'}</span></span>
                         </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => handleViewDetails(card)}
-                        title="View Details"
-                      >
+                      <Button size="icon" variant="outline" onClick={() => handleViewDetails(card)} title="View Details">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </div>
@@ -401,7 +274,6 @@ export default function ProgressCardsList() {
         </CardContent>
       </Card>
 
-      {/* Modal */}
       <ProgressCardModal
         card={selectedCard}
         isOpen={!!selectedCard}
