@@ -16,30 +16,22 @@ Deno.serve(async (req) => {
       class_name: '1'
     });
 
-    let unsubmittedRecords = allAttendance.filter(a => a.status === 'Taken');
+    let targetRecords = allAttendance;
     
     // Filter by date range if provided
     if (start_date && end_date) {
-      unsubmittedRecords = unsubmittedRecords.filter(a => a.date >= start_date && a.date <= end_date);
+      targetRecords = targetRecords.filter(a => a.date >= start_date && a.date <= end_date);
     }
 
-    if (unsubmittedRecords.length === 0) {
+    if (targetRecords.length === 0) {
       return Response.json({
-        message: 'No unsubmitted attendance records found for Class 1' + (start_date && end_date ? ` between ${start_date} and ${end_date}` : ''),
+        message: 'No attendance records found for Class 1' + (start_date && end_date ? ` between ${start_date} and ${end_date}` : ''),
         submitted: 0
       });
     }
 
-    // Update all unsubmitted records to "Submitted"
-    const updates = unsubmittedRecords.map(record => ({
-      ...record,
-      status: 'Submitted',
-      submitted_at: new Date().toISOString(),
-      marked_by: user.email || 'SYSTEM'
-    }));
-
-    // Bulk update
-    for (const record of updates) {
+    // Update all records to "Submitted" status
+    for (const record of targetRecords) {
       await base44.asServiceRole.entities.Attendance.update(record.id, {
         status: 'Submitted',
         submitted_at: new Date().toISOString(),
@@ -48,8 +40,8 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      message: `Successfully submitted ${unsubmittedRecords.length} attendance records for Class 1`,
-      submitted: unsubmittedRecords.length,
+      message: `Successfully submitted ${targetRecords.length} attendance records for Class 1` + (start_date && end_date ? ` between ${start_date} and ${end_date}` : ''),
+      submitted: targetRecords.length,
       submittedAt: new Date().toISOString(),
       submittedBy: user.email
     });
