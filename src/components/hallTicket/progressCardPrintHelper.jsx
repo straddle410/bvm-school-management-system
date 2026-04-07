@@ -244,7 +244,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   </style>
 </head>
 <body>
-  <div style="border: 1px solid #ccc; margin: 15px auto; max-width: 850px; border-radius: 4px;">
+  <div style="border: 2px solid #000; margin: 15px auto; max-width: 850px; border-radius: 4px;">
 
   <!-- 1. HEADER: centered — logo + school name + address -->
   <div class="header">
