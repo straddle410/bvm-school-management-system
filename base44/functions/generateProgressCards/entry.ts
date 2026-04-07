@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 function validateAcademicYearBoundary(date, academicYearStart, academicYearEnd) {
   const d = new Date(date);
@@ -16,7 +16,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { academicYear, classNameFilter, sectionFilter, examTypeIdOrName, _staffToken } = body;
 
-    // Auth: validate via staff token (custom sessions, no Base44 JWT)
     const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
     const headerToken = authHeader.replace('Bearer ', '').trim();
     if (!headerToken && !_staffToken) {
@@ -27,106 +26,96 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Academic year, class, section, and exam type are required' }, { status: 400 });
     }
 
-    // ── ACADEMIC YEAR BOUNDARY CHECK ──
     const yearConfigs = await base44.asServiceRole.entities.AcademicYear.filter({ year: academicYear });
     if (yearConfigs.length === 0) {
       return Response.json({ error: `Academic year "${academicYear}" is not configured in the system.` }, { status: 400 });
     }
     const yearConfig = yearConfigs[0];
 
-    // Standardize class name format (handle both "9" and "Class 9")
     const normalizeClassName = (name) => {
       if (!name) return name;
       const str = name.toString().trim();
       return /^[0-9]$/.test(str) || ['Nursery', 'LKG', 'UKG'].includes(str) ? str : str.replace(/^Class\s*/i, '');
     };
 
-    // Fetch subject order from ClassSubjectConfig (same source as hall tickets)
-     const classSubjectConfigs = await base44.asServiceRole.entities.ClassSubjectConfig.filter({
-       academic_year: academicYear,
-       class_name: normalizeClassName(classNameFilter)
-     });
-     const subjectSortMap = {};
-     if (classSubjectConfigs.length > 0 && Array.isArray(classSubjectConfigs[0].subject_names)) {
-       classSubjectConfigs[0].subject_names.forEach((name, idx) => {
-         subjectSortMap[name] = idx;
-       });
-     }
+    const classSubjectConfigs = await base44.asServiceRole.entities.ClassSubjectConfig.filter({
+      academic_year: academicYear,
+      class_name: normalizeClassName(classNameFilter)
+    });
+    const subjectSortMap = {};
+    if (classSubjectConfigs.length > 0 && Array.isArray(classSubjectConfigs[0].subject_names)) {
+      classSubjectConfigs[0].subject_names.forEach((name, idx) => {
+        subjectSortMap[name] = idx;
+      });
+    }
 
-     // Resolve the selected exam type ID (could be passed as ID or name)
-     const allExamTypesForFilter = await base44.asServiceRole.entities.ExamType.filter({ academic_year: academicYear });
-     const selectedExamTypeRecord = allExamTypesForFilter.find(et => et.id === examTypeIdOrName || et.name === examTypeIdOrName);
-     if (!selectedExamTypeRecord) {
-       return Response.json({ error: `Exam type "${examTypeIdOrName}" not found for academic year ${academicYear}.` }, { status: 400 });
-     }
-     const selectedExamTypeId = selectedExamTypeRecord.id;
+    const allExamTypesForFilter = await base44.asServiceRole.entities.ExamType.filter({ academic_year: academicYear });
+    const selectedExamTypeRecord = allExamTypesForFilter.find(et => et.id === examTypeIdOrName || et.name === examTypeIdOrName);
+    if (!selectedExamTypeRecord) {
+      return Response.json({ error: `Exam type "${examTypeIdOrName}" not found for academic year ${academicYear}.` }, { status: 400 });
+    }
+    const selectedExamTypeId = selectedExamTypeRecord.id;
 
-     // Fetch published or approved marks with filters — strictly for the selected exam type
-     const marksFilter = {
-       academic_year: academicYear,
-       exam_type: selectedExamTypeId
-     };
-     if (classNameFilter) marksFilter.class_name = normalizeClassName(classNameFilter);
-     if (sectionFilter) marksFilter.section = sectionFilter;
+    const marksFilter = {
+      academic_year: academicYear,
+      exam_type: selectedExamTypeId
+    };
+    if (classNameFilter) marksFilter.class_name = normalizeClassName(classNameFilter);
+    if (sectionFilter) marksFilter.section = sectionFilter;
 
-     const allMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
-     const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
+    const allMarks = await base44.asServiceRole.entities.Marks.filter(marksFilter);
+    const publishedMarks = allMarks.filter(m => m.status === 'Published' || m.status === 'Approved');
 
-     if (publishedMarks.length === 0) {
-       return Response.json({ message: 'No approved or published marks found', cardsGenerated: 0 });
-     }
+    if (publishedMarks.length === 0) {
+      return Response.json({ message: 'No approved or published marks found', cardsGenerated: 0 });
+    }
 
-     // Group by student and exam type, deduplicate marks
-     const studentExamData = {};
-     const seenMarks = new Set(); // Track seen marks to prevent duplicates
+    const studentExamData = {};
+    const seenMarks = new Set();
 
-     publishedMarks.forEach(mark => {
-       // Create a unique identifier for this mark entry
-       const markId = `${mark.student_id}__${mark.exam_type}__${mark.subject}`;
-       if (seenMarks.has(markId)) return; // Skip duplicate marks
-       seenMarks.add(markId);
+    publishedMarks.forEach(mark => {
+      const markId = `${mark.student_id}__${mark.exam_type}__${mark.subject}`;
+      if (seenMarks.has(markId)) return;
+      seenMarks.add(markId);
 
-       const key = `${mark.student_id}__${mark.exam_type}`;
-       if (!studentExamData[key]) {
-         studentExamData[key] = {
-           student_id: mark.student_id,
-           student_name: mark.student_name,
-           class_name: normalizeClassName(mark.class_name),
-           section: mark.section,
-           roll_number: mark.roll_number,
-           exam_type: mark.exam_type,
-           exam_name: mark.exam_type,
-           subjects: [],
-           total_marks: 0,
-           max_marks: 0
-         };
-       }
-       studentExamData[key].subjects.push({
-         subject: mark.subject,
-         marks_obtained: mark.marks_obtained,
-         internal_marks: mark.internal_marks_obtained ?? null,
-         external_marks: mark.external_marks_obtained ?? null,
-         max_marks: mark.max_marks,
-         grade: mark.grade,
-         sort_order: subjectSortMap[mark.subject] || 0
-       });
-       studentExamData[key].total_marks += mark.marks_obtained;
-       studentExamData[key].max_marks += mark.max_marks;
-     });
+      const key = `${mark.student_id}__${mark.exam_type}`;
+      if (!studentExamData[key]) {
+        studentExamData[key] = {
+          student_id: mark.student_id,
+          student_name: mark.student_name,
+          class_name: normalizeClassName(mark.class_name),
+          section: mark.section,
+          roll_number: mark.roll_number,
+          exam_type: mark.exam_type,
+          exam_name: mark.exam_type,
+          subjects: [],
+          total_marks: 0,
+          max_marks: 0
+        };
+      }
+      studentExamData[key].subjects.push({
+        subject: mark.subject,
+        marks_obtained: mark.marks_obtained,
+        internal_marks: mark.internal_marks_obtained ?? null,
+        external_marks: mark.external_marks_obtained ?? null,
+        max_marks: mark.max_marks,
+        grade: mark.grade,
+        sort_order: subjectSortMap[mark.subject] || 0
+      });
+      studentExamData[key].total_marks += mark.marks_obtained;
+      studentExamData[key].max_marks += mark.max_marks;
+    });
 
-     // Sort subjects by sort_order in all exam data
-     Object.values(studentExamData).forEach(examData => {
-       examData.subjects.sort((a, b) => a.sort_order - b.sort_order);
-     });
+    Object.values(studentExamData).forEach(examData => {
+      examData.subjects.sort((a, b) => a.sort_order - b.sort_order);
+    });
 
-    // Build exam type name map from already-fetched records
     const examTypeMap = {};
     allExamTypesForFilter.forEach(et => {
       examTypeMap[et.id] = et.name;
       examTypeMap[et.name] = et.name;
     });
 
-    // Group by student to calculate ranks per exam
     const studentData = {};
     Object.values(studentExamData).forEach(examData => {
       if (!studentData[examData.student_id]) {
@@ -142,7 +131,6 @@ Deno.serve(async (req) => {
       studentData[examData.student_id].exams[examData.exam_type] = examData;
     });
 
-    // Calculate ranks for each exam type
     const examRanks = {};
     Object.values(studentExamData).forEach(examData => {
       const examKey = `${examData.exam_type}__${examData.class_name}__${examData.section}`;
@@ -153,7 +141,6 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Sort and assign ranks
     Object.keys(examRanks).forEach(key => {
       examRanks[key].sort((a, b) => b.total - a.total);
       examRanks[key] = examRanks[key].map((item, idx) => ({
@@ -162,15 +149,12 @@ Deno.serve(async (req) => {
       }));
     });
 
-    // Use already-fetched exam type records
     const examTypeRecords = allExamTypesForFilter;
 
-    // Determine attendance range once - use the exam with the latest END date (most comprehensive range)
     let globalAttendanceStartDate = null;
     let globalAttendanceEndDate = null;
     let rangeExamType = null;
 
-    // Validate attendance ranges are within academic year
     for (const et of examTypeRecords.filter(e => e.attendance_range_start || e.attendance_range_end)) {
       if (et.attendance_range_start && !validateAcademicYearBoundary(et.attendance_range_start, yearConfig.start_date, yearConfig.end_date)) {
         return Response.json({
@@ -186,7 +170,6 @@ Deno.serve(async (req) => {
 
     const examTypesWithRange = examTypeRecords.filter(e => e.attendance_range_start && e.attendance_range_end);
     if (examTypesWithRange.length > 0) {
-      // Sort by end_date descending to get the exam with the latest end date (most comprehensive)
       const sorted = examTypesWithRange.sort((a, b) => new Date(b.attendance_range_end) - new Date(a.attendance_range_end));
       globalAttendanceStartDate = sorted[0].attendance_range_start;
       globalAttendanceEndDate = sorted[0].attendance_range_end;
@@ -199,7 +182,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // VALIDATION: Check if attendance records exist within the selected range
     const attendanceInRange = await base44.asServiceRole.entities.Attendance.filter({
       academic_year: academicYear
     });
@@ -225,93 +207,142 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate overall statistics and generate progress cards (one card per exam type per student)
+    // Fetch holidays and overrides once for all students
+    const holidays = await base44.asServiceRole.entities.Holiday.filter({ academic_year: academicYear });
+
     const progressCards = [];
     const uniqueStudents = new Map();
 
-    // Use all students with published marks (marks records are authoritative, not Student entity status)
     const filteredStudentList = Object.values(studentData);
     for (let si = 0; si < filteredStudentList.length; si++) {
       const student = filteredStudentList[si];
       const studentKey = `${student.student_id}__${student.class_name}__${student.section}__${academicYear}`;
-      if (uniqueStudents.has(studentKey)) continue; // Skip duplicate student entries
+      if (uniqueStudents.has(studentKey)) continue;
       uniqueStudents.set(studentKey, true);
 
-      // Fetch attendance records for this student (once per student, not per exam)
       const studentAttendance = await base44.entities.Attendance.filter({
         student_id: student.student_id,
         class_name: student.class_name,
         section: student.section
       });
 
-      // Calculate attendance summary once (shared for all exam types)
+      // Fetch overrides for this specific class/section
+      const overrides = await base44.asServiceRole.entities.HolidayOverride.filter({
+        class_name: student.class_name,
+        section: student.section,
+        academic_year: academicYear
+      });
+
+      const isWorkingDay = (dateStr) => {
+        const d = new Date(dateStr);
+        const day = d.getUTCDay();
+        if (day === 0 || day === 6) return false;
+        const holiday = holidays.find(h => h.date === dateStr && h.status === 'Active');
+        if (holiday) {
+          const override = overrides.find(o => o.date === dateStr);
+          return !!override;
+        }
+        return true;
+      };
+
       const calcAttendanceForRange = (records, startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
         start.setUTCHours(0, 0, 0, 0);
         end.setUTCHours(23, 59, 59, 999);
 
-        const allInRange = records.filter(a => {
-          const attDate = new Date(a.date);
-          attDate.setUTCHours(0, 0, 0, 0);
-          return attDate >= start && attDate <= end;
-        });
-
-        const uniqueWorkingDates = new Set();
-        const fullDayDates = new Set();
-        const halfDayDates = new Set();
-
-        allInRange.forEach(a => {
-          if (!a.is_holiday && a.attendance_type !== 'holiday') {
-            uniqueWorkingDates.add(a.date);
-            if (a.attendance_type === 'full_day') fullDayDates.add(a.date);
-            else if (a.attendance_type === 'half_day') halfDayDates.add(a.date);
+        // Build attendance map: date -> record
+        const attendanceMap = {};
+        records.forEach(a => {
+          if (a.date >= startDate && a.date <= endDate && (a.status === 'Submitted' || a.status === 'Approved' || a.auto_submitted === true)) {
+            attendanceMap[a.date] = a;
           }
         });
 
-        const workingDays = uniqueWorkingDates.size;
-        const fullDays = fullDayDates.size;
-        const halfDays = halfDayDates.size;
-        const totalPresent = fullDays + (halfDays * 0.5);
-        const absentDays = workingDays - fullDays - halfDays;
-        const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
-
-        const months = [];
+        // Calculate working dates from calendar
+        const workingDates = [];
         let current = new Date(start);
         while (current <= end) {
-          const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-          const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+          const dateStr = current.toISOString().split('T')[0];
+          if (isWorkingDay(dateStr)) {
+            workingDates.push(dateStr);
+          }
+          current.setUTCDate(current.getUTCDate() + 1);
+        }
+
+        // Calculate present/absent (missing = present by default)
+        const fullDayDates = new Set();
+        const halfDayDates = new Set();
+        const absentDayDates = new Set();
+
+        workingDates.forEach(dateStr => {
+          const record = attendanceMap[dateStr];
+          if (!record) {
+            fullDayDates.add(dateStr);
+          } else if (record.attendance_type === 'full_day') {
+            fullDayDates.add(dateStr);
+          } else if (record.attendance_type === 'half_day') {
+            halfDayDates.add(dateStr);
+          } else if (record.attendance_type === 'absent') {
+            absentDayDates.add(dateStr);
+          }
+        });
+
+        const workingDays = workingDates.length;
+        const fullDays = fullDayDates.size;
+        const halfDays = halfDayDates.size;
+        const absentDays = absentDayDates.size;
+        const totalPresent = fullDays + (halfDays * 0.5);
+        const percentage = workingDays > 0 ? Math.round((totalPresent / workingDays) * 100) : 0;
+
+        // Month-wise breakdown
+        const months = [];
+        let current2 = new Date(start);
+        while (current2 <= end) {
+          const monthStart = new Date(current2.getFullYear(), current2.getMonth(), 1);
+          const monthEnd = new Date(current2.getFullYear(), current2.getMonth() + 1, 0);
           monthStart.setUTCHours(0, 0, 0, 0);
           monthEnd.setUTCHours(23, 59, 59, 999);
           const periodStart = monthStart < start ? start : monthStart;
           const periodEnd = monthEnd > end ? end : monthEnd;
 
-          const monthRecords = allInRange.filter(a => {
-            const attDate = new Date(a.date);
-            attDate.setUTCHours(0, 0, 0, 0);
-            return attDate >= periodStart && attDate <= periodEnd;
-          });
+          // Get working dates for this month
+          const monthWorkingDates = [];
+          let monthCurrent = new Date(periodStart);
+          while (monthCurrent <= periodEnd) {
+            const dateStr = monthCurrent.toISOString().split('T')[0];
+            if (isWorkingDay(dateStr)) {
+              monthWorkingDates.push(dateStr);
+            }
+            monthCurrent.setUTCDate(monthCurrent.getUTCDate() + 1);
+          }
 
-          const mWorkingDates = new Set();
           const mFullDates = new Set();
           const mHalfDates = new Set();
-          monthRecords.forEach(a => {
-            if (!a.is_holiday && a.attendance_type !== 'holiday') {
-              mWorkingDates.add(a.date);
-              if (a.attendance_type === 'full_day') mFullDates.add(a.date);
-              else if (a.attendance_type === 'half_day') mHalfDates.add(a.date);
+          const mAbsentDates = new Set();
+
+          monthWorkingDates.forEach(dateStr => {
+            const record = attendanceMap[dateStr];
+            if (!record) {
+              mFullDates.add(dateStr);
+            } else if (record.attendance_type === 'full_day') {
+              mFullDates.add(dateStr);
+            } else if (record.attendance_type === 'half_day') {
+              mHalfDates.add(dateStr);
+            } else if (record.attendance_type === 'absent') {
+              mAbsentDates.add(dateStr);
             }
           });
 
-          const mWorking = mWorkingDates.size;
+          const mWorking = monthWorkingDates.length;
           const mFull = mFullDates.size;
           const mHalf = mHalfDates.size;
+          const mAbsent = mAbsentDates.size;
           const mPresent = mFull + (mHalf * 0.5);
-          const mAbsent = mWorking - mFull - mHalf;
           const mPct = mWorking > 0 ? Math.round((mPresent / mWorking) * 100) : 0;
 
           const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const monthName = monthNames[current.getMonth()];
+          const monthName = monthNames[current2.getMonth()];
           let displayText = monthName;
           if (periodStart.getMonth() === periodEnd.getMonth()) {
             if (periodStart.getDate() !== 1 || periodEnd.getDate() !== new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 0).getDate()) {
@@ -319,34 +350,23 @@ Deno.serve(async (req) => {
             }
           }
 
-          // For each month, also calculate student-specific present/absent
-          const studentMonthRecords = studentAttendance.filter(a => {
-            const attDate = new Date(a.date);
-            attDate.setUTCHours(0, 0, 0, 0);
-            return attDate >= periodStart && attDate <= periodEnd && !a.is_holiday && a.attendance_type !== 'holiday';
-          });
-          const studentFullDays = studentMonthRecords.filter(a => a.attendance_type === 'full_day').length;
-          const studentHalfDays = studentMonthRecords.filter(a => a.attendance_type === 'half_day').length;
-          const studentPresent = studentFullDays + (studentHalfDays * 0.5);
-          const studentAbsent = mWorking - studentFullDays - studentHalfDays;
-          const studentMonthPct = mWorking > 0 ? Math.round((studentPresent / mWorking) * 100) : 0;
-
           months.push({
             month: monthName,
-            year: current.getFullYear(),
+            year: current2.getFullYear(),
             month_display: displayText,
             period_start: periodStart.toISOString().split('T')[0],
             period_end: periodEnd.toISOString().split('T')[0],
             working_days: mWorking,
-            full_days_present: studentFullDays,
-            half_days_present: studentHalfDays,
-            present_days: Math.round(studentPresent * 100) / 100,
-            absent_days: studentAbsent,
-            total_present: Math.round(studentPresent * 100) / 100,
-            attendance_percentage: studentMonthPct
+            full_days_present: mFull,
+            half_days_present: mHalf,
+            absent_days: mAbsent,
+            present_days: Math.round(mPresent * 100) / 100,
+            total_present: Math.round(mPresent * 100) / 100,
+            attendance_percentage: mPct
           });
-          current.setMonth(current.getMonth() + 1);
-          }
+
+          current2.setMonth(current2.getMonth() + 1);
+        }
 
         return {
           working_days: workingDays,
@@ -359,26 +379,24 @@ Deno.serve(async (req) => {
         };
       };
 
-      // Calculate attendance summary
       let attendanceSummary = null;
       console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, studentRecords: ${studentAttendance.length}`);
       if (globalAttendanceStartDate && globalAttendanceEndDate) {
         const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
         if (rangeResult.working_days > 0) {
-           attendanceSummary = {
-              range_start: globalAttendanceStartDate,
-              range_end: globalAttendanceEndDate,
-              ...rangeResult
-            };
-            console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
-           } else {
-           console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) - no working days found in range`);
-           }
-           } else {
-           console.warn(`[SKIP-ATTENDANCE] Missing attendance range for ${student.student_name}`);
-           }
+          attendanceSummary = {
+            range_start: globalAttendanceStartDate,
+            range_end: globalAttendanceEndDate,
+            ...rangeResult
+          };
+          console.log(`[CALC-DONE] Summary: working_days=${attendanceSummary.working_days}, full=${attendanceSummary.full_days_present}, half=${attendanceSummary.half_days_present}, absent=${attendanceSummary.absent_days}, pct=${attendanceSummary.attendance_percentage}%`);
+        } else {
+          console.warn(`[SKIP-ATTENDANCE] Student ${student.student_name} (${student.student_id}) - no working days found in range`);
+        }
+      } else {
+        console.warn(`[SKIP-ATTENDANCE] Missing attendance range for ${student.student_name}`);
+      }
 
-      // Generate ONE card ONLY for the selected exam type
       Object.values(student.exams).filter(ed => ed.exam_type === selectedExamTypeId || ed.exam_type === examTypeIdOrName).forEach(examData => {
         const examKey = `${examData.exam_type}__${examData.class_name}__${examData.section}`;
         const rankData = examRanks[examKey]?.find(r => r.student_id === student.student_id);
@@ -418,20 +436,17 @@ Deno.serve(async (req) => {
           status: 'Generated'
         });
       });
-    } // end for loop
+    }
 
-    // FETCH existing cards for this class/section to find duplicates
     const allExistingCards = await base44.asServiceRole.entities.ProgressCard.filter({
       academic_year: academicYear,
       class_name: normalizeClassName(classNameFilter),
       section: sectionFilter
     });
 
-    // Build a set of student_ids that already have a card for this exact exam type
     const studentsWithCard = new Set();
     for (const card of allExistingCards) {
       const ep = card.exam_performance?.[0] || {};
-      // Match by exam_type_id (UUID) OR exam_type (could be UUID or name) OR exam_type_name
       const isMatch =
         ep.exam_type_id === selectedExamTypeId ||
         ep.exam_type === selectedExamTypeId ||
@@ -442,24 +457,21 @@ Deno.serve(async (req) => {
 
     console.log(`[DEDUP] Existing cards for this exam type: ${studentsWithCard.size}, exam type ID: ${selectedExamTypeId}, name: ${selectedExamTypeRecord?.name}`);
 
-    // Only keep progress cards for students who do NOT already have one
     const newCards = progressCards.filter(c => !studentsWithCard.has(c.student_id));
     const skippedCount = progressCards.length - newCards.length;
 
     console.log(`[SKIP-CHECK] Total candidates: ${progressCards.length}, Already exist: ${skippedCount}, To create: ${newCards.length}`);
 
-    // Create ONLY the missing cards
     if (newCards.length > 0) {
       await base44.asServiceRole.entities.ProgressCard.bulkCreate(newCards);
     }
 
-    const totalStudents = progressCards.length + skippedCount;
     return Response.json({
-     message: `${newCards.length} cards generated, ${skippedCount} already existed, 0 duplicates created`,
-     cardsGenerated: newCards.length,
-     skippedCount: skippedCount,
-     totalStudents: progressCards.length,
-     examTypeName: selectedExamTypeRecord?.name || examTypeIdOrName
+      message: `${newCards.length} cards generated, ${skippedCount} already existed, 0 duplicates created`,
+      cardsGenerated: newCards.length,
+      skippedCount: skippedCount,
+      totalStudents: progressCards.length,
+      examTypeName: selectedExamTypeRecord?.name || examTypeIdOrName
     });
   } catch (error) {
     console.error('Progress card generation error:', error);
