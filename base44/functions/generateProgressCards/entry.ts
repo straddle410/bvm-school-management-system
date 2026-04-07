@@ -399,8 +399,8 @@ Deno.serve(async (req) => {
             percentage: Math.round(percentage * 100) / 100,
             rank: rankData?.rank || 0,
             grade: grade,
-            subject_details: examData.subjects.map(({ subject, marks_obtained, max_marks, grade, teacher_remarks }) => ({
-              subject, marks_obtained, max_marks, grade, teacher_remarks
+            subject_details: examData.subjects.map(({ subject, marks_obtained, internal_marks, external_marks, max_marks, grade, teacher_remarks }) => ({
+              subject, marks_obtained, internal_marks, external_marks, max_marks, grade, teacher_remarks
             }))
           }],
           overall_stats: {
