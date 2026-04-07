@@ -47,41 +47,42 @@ export default function MarksTable({
   }
 
   return (
-    <div className="overflow-x-auto border rounded-lg bg-white dark:bg-gray-900 w-full">
-      <table className="w-full border-collapse text-sm md:text-base" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:bg-gray-900 w-full shadow-sm">
+      <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-slate-800 text-white sticky top-0">
-            <th className="border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-left font-semibold w-6 md:w-12 sticky left-0 bg-slate-800 z-20">Roll</th>
-            <th className="border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-left font-semibold sticky left-6 md:left-16 bg-slate-800 z-20 text-xs md:text-sm">ID</th>
-            <th className="border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-left font-semibold sticky left-16 md:left-40 bg-slate-800 z-20 text-xs md:text-sm">Name</th>
+          <tr className="bg-slate-800 text-white">
+            <th className="px-3 py-3 text-left font-semibold text-xs uppercase tracking-wider sticky left-0 bg-slate-800 z-20 w-10">Roll</th>
+            <th className="px-3 py-3 text-left font-semibold text-xs uppercase tracking-wider sticky left-10 bg-slate-800 z-20 min-w-[160px]">Student</th>
             {subjects.map(subject => (
               hasInternal ? (
-                <th key={subject} colSpan={2} className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-normal text-xs md:text-sm min-w-24">
-                  {subject}
-                  <div className="flex gap-1 justify-center mt-0.5">
-                    <span className="text-[9px] font-normal opacity-70">Int({maxInternal})</span>
-                    <span className="text-[9px] font-normal opacity-70">Ext({maxExternal})</span>
+                <th key={subject} colSpan={2} className="px-2 py-2 text-center font-semibold text-xs uppercase tracking-wider bg-slate-700 min-w-[140px]">
+                  <div>{subject}</div>
+                  <div className="flex justify-center gap-2 mt-1">
+                    <span className="text-[10px] font-normal bg-blue-600 text-white px-1.5 py-0.5 rounded">Int /{maxInternal}</span>
+                    <span className="text-[10px] font-normal bg-slate-500 text-white px-1.5 py-0.5 rounded">Ext /{maxExternal}</span>
                   </div>
                 </th>
               ) : (
-                <th key={subject} className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-normal text-xs md:text-sm min-w-16 md:min-w-auto">
-                  {subject}
+                <th key={subject} className="px-3 py-3 text-center font-semibold text-xs uppercase tracking-wider bg-slate-700 min-w-[100px]">
+                  <div>{subject}</div>
+                  <div className="text-[10px] font-normal opacity-70 mt-0.5">/{maxMarks}</div>
                 </th>
               )
             ))}
-            <th className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-600 text-xs md:text-sm min-w-16">
-              Total
-            </th>
+            <th className="px-3 py-3 text-center font-semibold text-xs uppercase tracking-wider bg-slate-600 min-w-[80px]">Total</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100">
           {sortedStudents.map((student, idx) => {
             const studentId = student.student_id || student.id;
+            const rowBg = idx % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-slate-50 dark:bg-gray-800';
             return (
-              <tr key={studentId} className={idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}>
-                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 font-medium text-slate-700 text-center sticky left-0 z-10 text-xs ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.roll_no || '—'}</td>
-                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-slate-600 dark:text-gray-400 text-xs md:text-sm sticky left-6 md:left-16 z-10 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.student_id}</td>
-                 <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 font-medium text-slate-900 dark:text-gray-200 text-xs md:text-sm sticky left-16 md:left-40 z-10 max-w-24 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.name || student.student_id}</td>
+              <tr key={studentId} className={`${rowBg} hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors`}>
+                <td className={`px-3 py-2 text-center font-bold text-slate-500 text-sm sticky left-0 z-10 ${rowBg}`}>{student.roll_no || '—'}</td>
+                <td className={`px-3 py-2 sticky left-10 z-10 ${rowBg}`}>
+                  <div className="font-semibold text-slate-900 dark:text-gray-100 text-sm leading-tight">{student.name || student.student_id}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{student.student_id}</div>
+                </td>
                 {subjects.map((subject, subjectIdx) => {
                   const marks = marksData[studentId]?.[subject]?.marks_obtained;
                   const internalMarks = marksData[studentId]?.[subject]?.internal_marks_obtained;
@@ -91,110 +92,100 @@ export default function MarksTable({
                   if (hasInternal) {
                     return (
                       <React.Fragment key={subject}>
-                        {/* Internal marks cell */}
-                        <td className="border border-slate-200 px-1 py-1 text-center min-w-12">
-                          <div className={`flex items-center justify-center rounded p-0.5 ${
-                            internalMarks !== undefined && internalMarks !== '' && parseFloat(internalMarks) >= 0 ? 'bg-blue-50' : 'bg-slate-100'
-                          }`}>
-                            <Input
-                              id={`marks-${idx}-${subjectIdx}-int`}
-                              type="number"
-                              inputMode="decimal"
-                              min="0"
-                              max={maxInternal}
-                              step="0.5"
-                              value={internalMarks ?? ''}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === '' || parseFloat(val) <= maxInternal) {
-                                  onMarkChange?.(studentId, subject, 'internal_marks_obtained', val);
-                                }
-                              }}
-                              disabled={isLocked}
-                              className="w-10 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 text-blue-700"
-                              placeholder="—"
-                            />
-                          </div>
+                        <td className="px-1 py-2 text-center">
+                          <input
+                            id={`marks-${idx}-${subjectIdx}-int`}
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            max={maxInternal}
+                            step="0.5"
+                            value={internalMarks ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || parseFloat(val) <= maxInternal)
+                                onMarkChange?.(studentId, subject, 'internal_marks_obtained', val);
+                            }}
+                            disabled={isLocked}
+                            placeholder="—"
+                            className="w-14 h-9 text-center text-sm font-semibold rounded-lg border-2 border-blue-200 bg-blue-50 text-blue-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
                         </td>
-                        {/* External marks cell */}
-                        <td className="border border-slate-200 px-1 py-1 text-center min-w-12">
-                          <div className={`flex items-center justify-center rounded p-0.5 ${
-                            status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
-                          }`}>
-                            <Input
-                              id={`marks-${idx}-${subjectIdx}-ext`}
-                              type="number"
-                              inputMode="decimal"
-                              min="0"
-                              max={maxExternal}
-                              step="0.5"
-                              value={externalMarks ?? ''}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === '' || parseFloat(val) <= maxExternal) {
-                                  onMarkChange?.(studentId, subject, 'external_marks_obtained', val);
-                                }
-                              }}
-                              disabled={isLocked}
-                              className={`w-10 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 ${
-                                status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
-                              }`}
-                              placeholder="—"
-                            />
-                          </div>
+                        <td className="px-1 py-2 text-center">
+                          <input
+                            id={`marks-${idx}-${subjectIdx}-ext`}
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            max={maxExternal}
+                            step="0.5"
+                            value={externalMarks ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || parseFloat(val) <= maxExternal)
+                                onMarkChange?.(studentId, subject, 'external_marks_obtained', val);
+                            }}
+                            disabled={isLocked}
+                            placeholder="—"
+                            className={`w-14 h-9 text-center text-sm font-semibold rounded-lg border-2 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                              status === 'pass'
+                                ? 'border-green-300 bg-green-50 text-green-800 focus:border-green-500 focus:ring-green-200'
+                                : status === 'fail'
+                                ? 'border-red-300 bg-red-50 text-red-800 focus:border-red-500 focus:ring-red-200'
+                                : 'border-slate-200 bg-white text-slate-700 focus:border-indigo-400 focus:ring-indigo-100'
+                            }`}
+                          />
                         </td>
                       </React.Fragment>
                     );
                   }
 
                   return (
-                    <td key={subject} className="border border-slate-200 px-1 md:px-3 py-1 md:py-2 text-center min-w-16 md:min-w-auto">
-                       <div className={`flex items-center justify-center rounded p-0.5 md:p-1 ${
-                         status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
-                       }`}>
-                         <Input
-                           id={`marks-${idx}-${subjectIdx}`}
-                           type="number"
-                           inputMode="decimal"
-                           min="0"
-                           max={maxMarks}
-                           step="0.5"
-                           value={marks ?? ''}
-                           onChange={(e) => {
-                             const val = e.target.value;
-                             if (val === '' || parseFloat(val) <= maxMarks) {
-                               onMarkChange?.(studentId, subject, val);
-                             }
-                           }}
-                           onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
-                           disabled={isLocked}
-                           className={`w-10 md:w-14 text-center text-xs md:text-sm font-semibold border-0 bg-transparent dark:bg-gray-700 px-0.5 md:px-1 py-0.5 md:py-1 ${
-                             status === 'pass' ? 'text-green-700 dark:text-green-400' : status === 'fail' ? 'text-red-700 dark:text-red-400' : 'text-slate-700 dark:text-gray-300'
-                           } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                           placeholder="—"
-                         />
-                       </div>
-                     </td>
+                    <td key={subject} className="px-2 py-2 text-center">
+                      <input
+                        id={`marks-${idx}-${subjectIdx}`}
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max={maxMarks}
+                        step="0.5"
+                        value={marks ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '' || parseFloat(val) <= maxMarks)
+                            onMarkChange?.(studentId, subject, val);
+                        }}
+                        onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
+                        disabled={isLocked}
+                        placeholder="—"
+                        className={`w-16 h-9 text-center text-sm font-semibold rounded-lg border-2 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          status === 'pass'
+                            ? 'border-green-300 bg-green-50 text-green-800 focus:border-green-500 focus:ring-green-200'
+                            : status === 'fail'
+                            ? 'border-red-300 bg-red-50 text-red-800 focus:border-red-500 focus:ring-red-200'
+                            : 'border-slate-200 bg-white text-slate-700 focus:border-indigo-400 focus:ring-indigo-100'
+                        }`}
+                      />
+                    </td>
                   );
                 })}
-                {/* Total column */}
-                {(() => {
-                  const total = subjects.reduce((sum, subject) => {
-                    const m = marksData[studentId]?.[subject]?.marks_obtained;
-                    return m !== undefined && m !== '' ? sum + parseFloat(m) : sum;
-                  }, 0);
-                  const hasAny = subjects.some(subject => {
-                    const m = marksData[studentId]?.[subject]?.marks_obtained;
-                    return m !== undefined && m !== '';
-                  });
-                  return (
-                    <td className="border border-slate-200 px-1 md:px-3 py-1 md:py-2 text-center min-w-16 bg-slate-100 dark:bg-gray-700">
-                       <span className="text-xs md:text-sm font-bold text-slate-800 dark:text-gray-200">
-                         {hasAny ? total : '—'}
-                       </span>
-                     </td>
-                  );
-                })()}
+                <td className="px-3 py-2 text-center bg-slate-100 dark:bg-gray-700">
+                  {(() => {
+                    const total = subjects.reduce((sum, subject) => {
+                      const m = marksData[studentId]?.[subject]?.marks_obtained;
+                      return m !== undefined && m !== '' ? sum + parseFloat(m) : sum;
+                    }, 0);
+                    const hasAny = subjects.some(subject => {
+                      const m = marksData[studentId]?.[subject]?.marks_obtained;
+                      return m !== undefined && m !== '';
+                    });
+                    return (
+                      <span className="text-sm font-bold text-slate-800 dark:text-gray-200">
+                        {hasAny ? total : '—'}
+                      </span>
+                    );
+                  })()}
+                </td>
               </tr>
             );
           })}
