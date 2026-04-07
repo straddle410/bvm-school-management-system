@@ -219,7 +219,10 @@ function MarkAttendanceTab({
     }
   }, [existingAttendance, isSunday, isMarkedHoliday, holidays, hasOverride, effectiveHoliday]);
 
-  const filteredStudents = [...students].sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
+  // ✅ FIX: EXCLUDE students not yet admitted on workingDate to prevent orphan attendance records
+  const filteredStudents = [...students]
+    .filter(s => !s.admission_date || workingDate >= s.admission_date) // Only include admitted students
+    .sort((a, b) => (a.roll_no || 0) - (b.roll_no || 0));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -233,7 +236,7 @@ function MarkAttendanceTab({
       
       if (!staffToken) throw new Error('❌ Session expired. Please login again.');
 
-      // Call UPSERT function for each student — handles create/update + forces status=Submitted
+      // ✅ SAFETY: Only save for students already in filteredStudents (admitted on workingDate)
       const savePromises = filteredStudents.map(student => {
         const sid = student.student_id || student.id;
         const existing = attendanceData[sid];
@@ -250,6 +253,9 @@ function MarkAttendanceTab({
           academic_year: academicYear,
           status: effectiveHoliday ? 'Holiday' : 'Submitted'
         };
+        if (student.admission_date && workingDate < student.admission_date) {
+          return Promise.resolve({ skipped: true });
+        }
         return base44.functions.invoke('updateAttendanceWithValidation', {
           data,
           staff_session_token: staffToken
@@ -481,6 +487,17 @@ function MarkAttendanceTab({
 
       {selectedClass && selectedSection && (
         <>
+          {students.length > filteredStudents.length && (
+            <Card className="border-l-4 border-l-blue-400 bg-blue-50 dark:bg-blue-900/20">
+              <CardContent className="p-3 flex items-start gap-3 text-sm">
+                <AlertCircle className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-blue-700 dark:text-blue-300">
+                  📅 {students.length - filteredStudents.length} student(s) not yet admitted on {format(new Date(workingDate), 'MMM dd, yyyy')} — excluded from attendance
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {(isSunday || isMarkedHoliday) && !hasOverride && (
             <Card className="border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-900/20">
               <CardContent className="p-4 flex items-center justify-between">
