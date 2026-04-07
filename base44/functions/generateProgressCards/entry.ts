@@ -41,12 +41,17 @@ Deno.serve(async (req) => {
       return /^[0-9]$/.test(str) || ['Nursery', 'LKG', 'UKG'].includes(str) ? str : str.replace(/^Class\s*/i, '');
     };
 
-    // Fetch subjects for sorting
-     const allSubjects = await base44.asServiceRole.entities.Subject.list();
-     const subjectSortMap = {};
-     allSubjects.forEach(s => {
-       subjectSortMap[s.name] = s.sort_order || 0;
+    // Fetch subject order from ClassSubjectConfig (same source as hall tickets)
+     const classSubjectConfigs = await base44.asServiceRole.entities.ClassSubjectConfig.filter({
+       academic_year: academicYear,
+       class_name: normalizeClassName(classNameFilter)
      });
+     const subjectSortMap = {};
+     if (classSubjectConfigs.length > 0 && Array.isArray(classSubjectConfigs[0].subject_names)) {
+       classSubjectConfigs[0].subject_names.forEach((name, idx) => {
+         subjectSortMap[name] = idx;
+       });
+     }
 
      // Resolve the selected exam type ID (could be passed as ID or name)
      const allExamTypesForFilter = await base44.asServiceRole.entities.ExamType.filter({ academic_year: academicYear });
