@@ -36,7 +36,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
     roll_number: card.roll_number || studentData?.roll_no || '—',
   };
 
-  const examName = enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
+  const examName = enrichedCard.exam_performance?.[0]?.exam_type_name || enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
   const subjects = enrichedCard.exam_performance?.[0]?.subject_details || [];
   const att = enrichedCard.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);

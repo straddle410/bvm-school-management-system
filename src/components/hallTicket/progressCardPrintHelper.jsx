@@ -8,7 +8,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
   const logoUrl = schoolProfile?.logo_url
     ? `https://images.weserv.nl/?url=${encodeURIComponent(schoolProfile.logo_url)}`
     : '';
-  const examName = card.exam_performance?.[0]?.exam_name || 'Exam';
+  const examName = card.exam_performance?.[0]?.exam_type_name || card.exam_performance?.[0]?.exam_name || 'Exam';
   const subjects = card.exam_performance?.[0]?.subject_details || [];
   const att = card.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
