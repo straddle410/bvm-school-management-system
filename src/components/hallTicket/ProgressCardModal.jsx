@@ -76,6 +76,8 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
   const examName = enrichedCard.exam_performance?.[0]?.exam_type_name || enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
   const subjects = enrichedCard.exam_performance?.[0]?.subject_details || [];
+  const subjectCount = subjects.length;
+  const isCompact = subjectCount > 6;
 
   // Detect internal/external from actual data first, fall back to config
   const hasInternal = subjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
@@ -158,15 +160,15 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             Subject-wise Marks
           </div>
           <div className="px-3 py-2">
-            <table className="w-full border-collapse text-[9px]">
+           <table className={`w-full border-collapse ${isCompact ? 'text-[8px]' : 'text-[9px]'}`}>
               <thead>
                 <tr className="bg-[#e8e8e8] text-[#111]">
-                  <th className="border border-gray-400 px-2 py-1.5 text-left font-bold">S.No</th>
-                  <th className="border border-gray-400 px-2 py-1.5 text-left font-bold">Subject</th>
-                  {hasInternal && <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">Internal ({maxInternal})</th>}
-                  {hasInternal && <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">External ({maxExternal})</th>}
-                  <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">{hasInternal ? 'Total' : 'Marks'}</th>
-                  <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">Grade</th>
+                  <th className={`border border-gray-400 font-bold text-left ${isCompact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}>S.No</th>
+                  <th className={`border border-gray-400 font-bold text-left ${isCompact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}>Subject</th>
+                  {hasInternal && <th className={`border border-gray-400 font-bold text-center ${isCompact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}>Internal ({maxInternal})</th>}
+                  {hasInternal && <th className={`border border-gray-400 font-bold text-center ${isCompact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}>External ({maxExternal})</th>}
+                  <th className={`border border-gray-400 font-bold text-center ${isCompact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}>{hasInternal ? 'Total' : 'Marks'}</th>
+                  <th className={`border border-gray-400 font-bold text-center ${isCompact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}>Grade</th>
                 </tr>
               </thead>
               <tbody>
@@ -174,12 +176,12 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                   <tr><td colSpan={hasInternal ? 6 : 4} className="text-center py-3 text-gray-400 border border-gray-300">No marks data</td></tr>
                 ) : subjects.map((sub, i) => (
                   <tr key={i} className="bg-white">
-                    <td className="border border-gray-300 px-2 py-1 text-center">{i + 1}</td>
-                    <td className="border border-gray-300 px-2 py-1 font-semibold">{sub.subject}</td>
-                    {hasInternal && <td className="border border-gray-300 px-2 py-1 text-center">{sub.internal_marks ?? '—'}</td>}
-                    {hasInternal && <td className="border border-gray-300 px-2 py-1 text-center">{sub.external_marks ?? '—'}</td>}
-                    <td className="border border-gray-300 px-2 py-1 text-center">{sub.marks_obtained} / {sub.max_marks}</td>
-                    <td className="border border-gray-300 px-2 py-1 text-center font-bold">{sub.grade || '—'}</td>
+                    <td className={`border border-gray-300 text-center font-semibold ${isCompact ? 'px-1.5 py-0.5' : 'px-2 py-1'}`}>{i + 1}</td>
+                    <td className={`border border-gray-300 font-semibold ${isCompact ? 'px-1.5 py-0.5' : 'px-2 py-1'}`}>{sub.subject}</td>
+                    {hasInternal && <td className={`border border-gray-300 text-center ${isCompact ? 'px-1.5 py-0.5' : 'px-2 py-1'}`}>{sub.internal_marks ?? '—'}</td>}
+                    {hasInternal && <td className={`border border-gray-300 text-center ${isCompact ? 'px-1.5 py-0.5' : 'px-2 py-1'}`}>{sub.external_marks ?? '—'}</td>}
+                    <td className={`border border-gray-300 text-center ${isCompact ? 'px-1.5 py-0.5' : 'px-2 py-1'}`}>{sub.marks_obtained} / {sub.max_marks}</td>
+                    <td className={`border border-gray-300 text-center font-bold ${isCompact ? 'px-1.5 py-0.5' : 'px-2 py-1'}`}>{sub.grade || '—'}</td>
                   </tr>
                 ))}
                 {subjects.length > 0 && (
@@ -244,18 +246,18 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           </div>
 
           {/* Remarks */}
-          <div className="bg-[#e8e8e8] text-[#111] text-[9px] font-bold uppercase tracking-widest px-3 py-1 border-t border-b border-gray-400">
-            Remarks
+          <div className={`bg-[#e8e8e8] text-[#111] font-bold uppercase tracking-widest px-3 py-1 border-t border-b border-gray-400 ${isCompact ? 'text-[7.5px]' : 'text-[9px]'}`}>
+           Remarks
           </div>
-          <div className="p-3 bg-[#fafafa]">
+          <div className={`bg-[#fafafa] ${isCompact ? 'p-2' : 'p-3'}`}>
             <div className="flex gap-4">
               <div className="flex-1 border-r border-gray-300 pr-4">
-                <div className="text-[8px] font-bold text-white uppercase tracking-wide mb-1">Attendance Remark</div>
-                <div className="text-[9.5px] text-white leading-relaxed" style={{backgroundColor: '#000'}}>{attRemark}</div>
+                <div className={`font-bold text-white uppercase tracking-wide mb-1 ${isCompact ? 'text-[7px]' : 'text-[8px]'}`}>Attendance Remark</div>
+                <div className={`text-white leading-relaxed ${isCompact ? 'text-[8px] leading-tight' : 'text-[9.5px] leading-relaxed'}`} style={{backgroundColor: '#000'}}>{attRemark}</div>
               </div>
               <div className="flex-1">
-                <div className="text-[8px] font-bold text-white uppercase tracking-wide mb-1">Academic Remark</div>
-                <div className="text-[9.5px] text-white leading-relaxed" style={{backgroundColor: '#000'}}>{acaRemark}</div>
+                <div className={`font-bold text-white uppercase tracking-wide mb-1 ${isCompact ? 'text-[7px]' : 'text-[8px]'}`}>Academic Remark</div>
+                <div className={`text-white leading-relaxed ${isCompact ? 'text-[8px] leading-tight' : 'text-[9.5px] leading-relaxed'}`} style={{backgroundColor: '#000'}}>{acaRemark}</div>
               </div>
             </div>
             {enrichedCard.class_teacher_remarks && (

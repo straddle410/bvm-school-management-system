@@ -3,25 +3,26 @@
  * Uses the same ink-efficient grey scheme as hall tickets.
  */
 export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], examMarksConfig = null) {
-  const schoolName = schoolProfile?.school_name || 'School';
+  const subjects = (card.exam_performance?.[0]?.subject_details || []);
+  const subjectCount = subjects.length;
+  const isCompact = subjectCount > 6;
   const schoolAddress = schoolProfile?.address || '';
   const logoUrl = schoolProfile?.logo_url
     ? `https://images.weserv.nl/?url=${encodeURIComponent(schoolProfile.logo_url)}`
     : '';
   const examName = card.exam_performance?.[0]?.exam_type_name || card.exam_performance?.[0]?.exam_name || 'Exam';
-  const rawSubjects = card.exam_performance?.[0]?.subject_details || [];
-  const subjects = subjectOrder.length > 0
-    ? [...rawSubjects].sort((a, b) => {
+  const sortedSubjects = subjectOrder.length > 0
+    ? [...subjects].sort((a, b) => {
         const ai = subjectOrder.indexOf(a.subject);
         const bi = subjectOrder.indexOf(b.subject);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
-    : rawSubjects;
+    : subjects;
 
   // Detect internal/external from actual data first, fall back to config
-  const hasInternal = rawSubjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
-  const maxInternal = examMarksConfig?.max_internal_marks || (hasInternal ? rawSubjects.reduce((m, s) => Math.max(m, s.internal_marks || 0), 0) : 0);
-  const maxExternal = examMarksConfig?.max_external_marks || (hasInternal ? rawSubjects.reduce((m, s) => Math.max(m, s.external_marks || 0), 0) : 100);
+  const hasInternal = subjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || (hasInternal ? subjects.reduce((m, s) => Math.max(m, s.internal_marks || 0), 0) : 0);
+  const maxExternal = examMarksConfig?.max_external_marks || (hasInternal ? subjects.reduce((m, s) => Math.max(m, s.external_marks || 0), 0) : 100);
 
   const att = card.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
@@ -41,8 +42,8 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
 
   // Academic Remark
   let acaRemark = '';
-  const lowSubjects = subjects.filter(s => s.max_marks > 0 && (s.marks_obtained / s.max_marks) * 100 < 70);
-  const allExcellent = subjects.length > 0 && subjects.every(s => s.max_marks > 0 && (s.marks_obtained / s.max_marks) * 100 >= 90);
+  const lowSubjects = sortedSubjects.filter(s => s.max_marks > 0 && (s.marks_obtained / s.max_marks) * 100 < 70);
+  const allExcellent = sortedSubjects.length > 0 && sortedSubjects.every(s => s.max_marks > 0 && (s.marks_obtained / s.max_marks) * 100 >= 90);
   if (allExcellent) {
     acaRemark = 'Outstanding academic performance across all subjects. The student has demonstrated exceptional dedication and consistency.';
   } else if (lowSubjects.length > 0) {
@@ -53,11 +54,11 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   }
 
   // Totals for subject table
-  const totalObtained = subjects.reduce((s, sub) => s + (sub.marks_obtained || 0), 0);
-  const totalMax = subjects.reduce((s, sub) => s + (sub.max_marks || 0), 0);
+  const totalObtained = sortedSubjects.reduce((s, sub) => s + (sub.marks_obtained || 0), 0);
+  const totalMax = sortedSubjects.reduce((s, sub) => s + (sub.max_marks || 0), 0);
 
   // Subject rows — dynamic columns based on hasInternal
-  const subjectRows = subjects.map((sub, idx) => {
+  const subjectRows = sortedSubjects.map((sub, idx) => {
     const internal = sub.internal_marks != null ? sub.internal_marks : '—';
     const external = sub.external_marks != null ? sub.external_marks : '—';
     return `
@@ -70,7 +71,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
       </tr>`;
   }).join('');
 
-  const totalRow = subjects.length > 0 ? `
+  const totalRow = sortedSubjects.length > 0 ? `
     <tr style="background:#e8e8e8;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact">
       <td colspan="2" style="text-align:right;padding-right:10px">Total</td>
       ${hasInternal ? '<td style="text-align:center">—</td><td style="text-align:center">—</td>' : ''}
@@ -145,6 +146,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   <title>Progress Card - ${card.student_name}</title>
   <style>
     @page { size: A4; margin: 10mm; }
+    .progress-card { ${isCompact ? 'font-size: 12px;' : ''} }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 14px; color: #111; background: #fff; }
 
@@ -209,6 +211,16 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
       print-color-adjust: exact;
     }
 
+    /* DYNAMIC SCALING FOR SUBJECT COUNT */
+    .card-compact { font-size: 12px; }
+    .card-compact table { font-size: 11px; }
+    .card-compact th, .card-compact td { padding: 5px 8px !important; }
+    .card-compact .table-wrap { padding: 8px 16px; }
+    .card-compact .sec-header { padding: 4px 16px; font-size: 11px; }
+    .card-compact .lbl { font-size: 9px; }
+    .card-compact .val { font-size: 13px; }
+    .card-compact .remark-text { font-size: 11px; line-height: 1.5; }
+
     /* TABLES */
     table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
     th {
@@ -244,7 +256,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   </style>
 </head>
 <body>
-  <div style="border: 2px solid #000; margin: 15px auto; max-width: 850px; border-radius: 4px;">
+  <div style="border: 2px solid #000; margin: 15px auto; max-width: 850px; border-radius: 4px;" class="progress-card${isCompact ? ' card-compact' : ''}">
 
   <!-- 1. HEADER: centered — logo + school name + address -->
   <div class="header">
