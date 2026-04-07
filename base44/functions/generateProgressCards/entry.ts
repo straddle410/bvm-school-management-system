@@ -338,15 +338,15 @@ Deno.serve(async (req) => {
             period_start: periodStart.toISOString().split('T')[0],
             period_end: periodEnd.toISOString().split('T')[0],
             working_days: mWorking,
-            present_days: Math.round(studentPresent * 100) / 100,
             full_days_present: studentFullDays,
             half_days_present: studentHalfDays,
-            absent_days: Math.round(studentAbsent * 100) / 100,
+            present_days: Math.round(studentPresent * 100) / 100,
+            absent_days: studentAbsent,
             total_present: Math.round(studentPresent * 100) / 100,
             attendance_percentage: studentMonthPct
           });
           current.setMonth(current.getMonth() + 1);
-        }
+          }
 
         return {
           working_days: workingDays,
