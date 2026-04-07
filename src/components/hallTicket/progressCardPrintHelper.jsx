@@ -124,8 +124,8 @@ export function buildProgressCardHTML(card, schoolProfile) {
   }
 
   const photoHtml = card.student_photo_url
-    ? `<img src="https://images.weserv.nl/?url=${encodeURIComponent(card.student_photo_url)}" style="width:64px;height:80px;object-fit:cover;border:1.25px solid #333;border-radius:3px;flex-shrink:0" />`
-    : `<div style="width:64px;height:80px;background:#eee;border:1.25px solid #333;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#555">${(card.student_name || '?').charAt(0).toUpperCase()}</div>`;
+    ? `<img src="https://images.weserv.nl/?url=${encodeURIComponent(card.student_photo_url)}" style="width:80px;height:100px;object-fit:cover;border:1.5px solid #333;border-radius:3px;flex-shrink:0" />`
+    : `<div style="width:80px;height:100px;background:#eee;border:1.5px solid #333;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#555">${(card.student_name || '?').charAt(0).toUpperCase()}</div>`;
 
   return `<!DOCTYPE html>
 <html>
@@ -133,38 +133,38 @@ export function buildProgressCardHTML(card, schoolProfile) {
   <meta charset="UTF-8"/>
   <title>Progress Card - ${card.student_name}</title>
   <style>
-    @page { size: A4; margin: 10mm; }
+    @page { size: A4; margin: 12mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 10px; color: #111; background: #fff; }
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #111; background: #fff; }
 
-    /* HEADER — centered, same grey as hall ticket */
+    /* HEADER */
     .header {
       background: #f2f2f2;
       color: #111;
-      padding: 10px 14px 8px;
+      padding: 14px 18px 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      border-bottom: 1.25px solid #333;
+      gap: 14px;
+      border-bottom: 1.5px solid #333;
       text-align: center;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .header-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
-    .header-school { font-size: 16px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
-    .header-addr { font-size: 9px; color: #444; margin-top: 2px; letter-spacing: 0.04em; }
+    .header-logo { width: 56px; height: 56px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+    .header-school { font-size: 20px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
+    .header-addr { font-size: 11px; color: #444; margin-top: 3px; letter-spacing: 0.04em; }
 
     /* BADGE */
     .badge-row {
       background: #e8e8e8;
       color: #111;
       text-align: center;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
-      padding: 3px 0;
+      padding: 5px 0;
       letter-spacing: 0.06em;
-      border-bottom: 1.25px solid #333;
+      border-bottom: 1.5px solid #333;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -173,63 +173,63 @@ export function buildProgressCardHTML(card, schoolProfile) {
     .student-row {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
-      padding: 8px 10px;
-      border-bottom: 1.25px solid #333;
+      gap: 16px;
+      padding: 12px 14px;
+      border-bottom: 1.5px solid #333;
       background: #fafafa;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .student-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px 16px; flex: 1; }
-    .lbl { font-size: 7.5px; color: #666; line-height: 1.1; }
-    .val { font-size: 10px; font-weight: 700; color: #111; line-height: 1.3; }
+    .student-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 20px; flex: 1; }
+    .lbl { font-size: 9px; color: #666; line-height: 1.2; }
+    .val { font-size: 12px; font-weight: 700; color: #111; line-height: 1.4; }
 
     /* SECTION HEADERS */
     .sec-header {
       background: #e8e8e8;
       color: #111;
-      font-size: 9.5px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      padding: 3px 10px;
-      border-bottom: 1.25px solid #333;
+      padding: 5px 14px;
+      border-bottom: 1.5px solid #333;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
 
     /* TABLES */
-    table { border-collapse: collapse; width: 100%; font-size: 9.5px; }
+    table { border-collapse: collapse; width: 100%; font-size: 11px; }
     th {
       background: #e8e8e8;
       color: #111;
-      padding: 3px 6px;
+      padding: 5px 8px;
       text-align: left;
-      font-size: 9px;
+      font-size: 10.5px;
       font-weight: 700;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
-      border: 1.25px solid #333;
+      border: 1.5px solid #333;
     }
-    td { border: 1.25px solid #333; padding: 3px 6px; vertical-align: middle; background: #fff; }
+    td { border: 1.5px solid #333; padding: 5px 8px; vertical-align: middle; background: #fff; }
 
     /* REMARKS */
-    .remarks-box { border: 1.25px solid #333; border-top: none; padding: 7px 10px; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .remark-label { font-size: 8px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-    .remark-text { font-size: 9.5px; color: #333; line-height: 1.5; }
+    .remarks-box { border: 1.5px solid #333; border-top: none; padding: 10px 14px; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .remark-label { font-size: 9.5px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .remark-text { font-size: 11px; color: #333; line-height: 1.6; }
 
     /* SIGNATURES */
-    .sig-row { display: flex; justify-content: space-between; padding: 6px 24px 4px; border-top: 1.25px solid #333; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sig-row { display: flex; justify-content: space-between; padding: 8px 32px 6px; border-top: 1.5px solid #333; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .sig-block { text-align: center; }
-    .sig-line { border-top: 1.25px solid #333; width: 80px; margin: 18px auto 2px; }
-    .sig-name { font-size: 9px; font-weight: 700; color: #111; }
-    .sig-label { font-size: 8px; color: #444; margin-top: 1px; }
+    .sig-line { border-top: 1.5px solid #333; width: 100px; margin: 28px auto 3px; }
+    .sig-name { font-size: 11px; font-weight: 700; color: #111; }
+    .sig-label { font-size: 9.5px; color: #444; margin-top: 2px; }
 
     /* FOOTER */
-    .footer { text-align: center; border-top: 1.25px solid #333; margin-top: 4px; padding-top: 3px; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .footer p { font-size: 8px; color: #666; }
+    .footer { text-align: center; border-top: 1.5px solid #333; margin-top: 6px; padding-top: 4px; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer p { font-size: 9.5px; color: #666; }
 
-    .table-wrap { padding: 6px 10px; }
+    .table-wrap { padding: 8px 14px; }
   </style>
 </head>
 <body>
