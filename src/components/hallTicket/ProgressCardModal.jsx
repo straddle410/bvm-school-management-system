@@ -271,11 +271,11 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             {[
               [schoolProfile?.principal_name || 'Principal', 'Principal'],
               [enrichedCard.class_teacher_name || 'Class Teacher', 'Class Teacher'],
-              ['', 'Parent / Guardian Signature'],
+              [null, 'Parent / Guardian Signature'],
             ].map(([name, label]) => (
               <div key={label} className="text-center">
                 <div className="w-20 border-t border-gray-500 mt-8 mb-1 mx-auto" />
-                {name && <div className="text-[9px] font-bold text-[#111]">{name}</div>}
+                <div className="h-[18px]">{name && <div className="text-[9px] font-bold text-[#111]">{name}</div>}</div>
                 <div className="text-[8px] text-gray-500">{label}</div>
               </div>
             ))}
