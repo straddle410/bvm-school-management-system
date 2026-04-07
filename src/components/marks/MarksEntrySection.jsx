@@ -11,6 +11,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 
 export default function MarksEntrySection({
   selectedExam,
+  examMarksConfig,
   maxMarks,
   passingMarks,
   currentStatus,
@@ -140,6 +141,7 @@ export default function MarksEntrySection({
                 maxMarks={maxMarks}
                 passingMarks={passingMarks}
                 isLocked={isLocked}
+                examMarksConfig={examMarksConfig}
               />
             )}
           </div>
@@ -163,6 +165,7 @@ export default function MarksEntrySection({
                 maxMarks={maxMarks}
                 passingMarks={passingMarks}
                 isLocked={isLocked}
+                examMarksConfig={examMarksConfig}
               />
             )}
           </div>

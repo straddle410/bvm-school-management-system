@@ -8,8 +8,12 @@ export default function MarksTable({
   onMarkChange,
   maxMarks,
   passingMarks,
-  isLocked = false
+  isLocked = false,
+  examMarksConfig = null
 }) {
+  const hasInternal = examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || 0;
+  const maxExternal = examMarksConfig?.max_external_marks || maxMarks;
   const getMarkStatus = (marks) => {
     if (marks === undefined || marks === null) return '';
     const numMarks = parseFloat(marks);
@@ -51,9 +55,19 @@ export default function MarksTable({
             <th className="border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-left font-semibold sticky left-6 md:left-16 bg-slate-800 z-20 text-xs md:text-sm">ID</th>
             <th className="border border-slate-200 px-1 md:px-4 py-2 md:py-3 text-left font-semibold sticky left-16 md:left-40 bg-slate-800 z-20 text-xs md:text-sm">Name</th>
             {subjects.map(subject => (
-              <th key={subject} className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-normal text-xs md:text-sm min-w-16 md:min-w-auto">
-                {subject}
-              </th>
+              hasInternal ? (
+                <th key={subject} colSpan={2} className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-normal text-xs md:text-sm min-w-24">
+                  {subject}
+                  <div className="flex gap-1 justify-center mt-0.5">
+                    <span className="text-[9px] font-normal opacity-70">Int({maxInternal})</span>
+                    <span className="text-[9px] font-normal opacity-70">Ext({maxExternal})</span>
+                  </div>
+                </th>
+              ) : (
+                <th key={subject} className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-700 whitespace-normal text-xs md:text-sm min-w-16 md:min-w-auto">
+                  {subject}
+                </th>
+              )
             ))}
             <th className="border border-slate-200 px-1 md:px-3 py-2 md:py-3 text-center font-semibold bg-slate-600 text-xs md:text-sm min-w-16">
               Total
@@ -70,7 +84,68 @@ export default function MarksTable({
                  <td className={`border border-slate-200 px-1 md:px-4 py-2 md:py-3 font-medium text-slate-900 dark:text-gray-200 text-xs md:text-sm sticky left-16 md:left-40 z-10 max-w-24 ${idx % 2 === 0 ? 'bg-slate-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>{student.name || student.student_id}</td>
                 {subjects.map((subject, subjectIdx) => {
                   const marks = marksData[studentId]?.[subject]?.marks_obtained;
+                  const internalMarks = marksData[studentId]?.[subject]?.internal_marks_obtained;
+                  const externalMarks = marksData[studentId]?.[subject]?.external_marks_obtained;
                   const status = getMarkStatus(marks);
+
+                  if (hasInternal) {
+                    return (
+                      <React.Fragment key={subject}>
+                        {/* Internal marks cell */}
+                        <td className="border border-slate-200 px-1 py-1 text-center min-w-12">
+                          <div className={`flex items-center justify-center rounded p-0.5 ${
+                            internalMarks !== undefined && internalMarks !== '' && parseFloat(internalMarks) >= 0 ? 'bg-blue-50' : 'bg-slate-100'
+                          }`}>
+                            <Input
+                              id={`marks-${idx}-${subjectIdx}-int`}
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              max={maxInternal}
+                              step="0.5"
+                              value={internalMarks ?? ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '' || parseFloat(val) <= maxInternal) {
+                                  onMarkChange?.(studentId, subject, 'internal_marks_obtained', val);
+                                }
+                              }}
+                              disabled={isLocked}
+                              className="w-10 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 text-blue-700"
+                              placeholder="—"
+                            />
+                          </div>
+                        </td>
+                        {/* External marks cell */}
+                        <td className="border border-slate-200 px-1 py-1 text-center min-w-12">
+                          <div className={`flex items-center justify-center rounded p-0.5 ${
+                            status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
+                          }`}>
+                            <Input
+                              id={`marks-${idx}-${subjectIdx}-ext`}
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              max={maxExternal}
+                              step="0.5"
+                              value={externalMarks ?? ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '' || parseFloat(val) <= maxExternal) {
+                                  onMarkChange?.(studentId, subject, 'external_marks_obtained', val);
+                                }
+                              }}
+                              disabled={isLocked}
+                              className={`w-10 text-center text-xs font-semibold border-0 bg-transparent px-0.5 py-0.5 ${
+                                status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                              }`}
+                              placeholder="—"
+                            />
+                          </div>
+                        </td>
+                      </React.Fragment>
+                    );
+                  }
 
                   return (
                     <td key={subject} className="border border-slate-200 px-1 md:px-3 py-1 md:py-2 text-center min-w-16 md:min-w-auto">

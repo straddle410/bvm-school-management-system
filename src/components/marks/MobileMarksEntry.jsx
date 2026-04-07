@@ -10,8 +10,12 @@ export default function MobileMarksEntry({
   onMarkChange,
   maxMarks,
   passingMarks,
-  isLocked = false
+  isLocked = false,
+  examMarksConfig = null
 }) {
+  const hasInternal = examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || 0;
+  const maxExternal = examMarksConfig?.max_external_marks || maxMarks;
   const [currentSubjectIdx, setCurrentSubjectIdx] = useState(0);
   const currentSubject = subjects[currentSubjectIdx];
 
@@ -70,6 +74,9 @@ export default function MobileMarksEntry({
           const marks = marksData[studentId]?.[currentSubject]?.marks_obtained;
           const status = getMarkStatus(marks);
 
+          const internalMarks = marksData[studentId]?.[currentSubject]?.internal_marks_obtained;
+          const externalMarks = marksData[studentId]?.[currentSubject]?.external_marks_obtained;
+
           return (
             <div key={studentId} className="bg-white p-4 rounded-lg border space-y-2">
               <div className="flex justify-between items-start">
@@ -79,32 +86,78 @@ export default function MobileMarksEntry({
                 </div>
               </div>
 
-              <div className={`flex items-center rounded p-3 ${
-                status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
-              }`}>
-                <Input
-                   id={`mobile-marks-${idx}`}
-                   type="number"
-                   inputMode="decimal"
-                   min="0"
-                   max={maxMarks}
-                   step="0.5"
-                   value={marks ?? ''}
-                   onChange={(e) => {
-                     const val = e.target.value;
-                     if (val === '' || parseFloat(val) <= maxMarks) {
-                       onMarkChange?.(studentId, currentSubject, val);
-                     }
-                   }}
-                   onKeyDown={(e) => handleKeyDown(e, idx)}
-                   disabled={isLocked}
-                   className={`w-full text-center text-lg font-semibold border-0 bg-transparent px-2 py-2 ${
-                     status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
-                   } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                   placeholder="Enter marks"
-                 />
-                <span className="text-xs font-semibold text-slate-500 ml-2">/{maxMarks}</span>
-              </div>
+              {hasInternal ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-blue-600 w-20">Internal ({maxInternal})</span>
+                    <div className="flex-1 bg-blue-50 rounded p-2 flex items-center">
+                      <Input
+                        type="number" inputMode="decimal" min="0" max={maxInternal} step="0.5"
+                        value={internalMarks ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '' || parseFloat(val) <= maxInternal)
+                            onMarkChange?.(studentId, currentSubject, 'internal_marks_obtained', val);
+                        }}
+                        disabled={isLocked}
+                        className="w-full text-center text-lg font-semibold border-0 bg-transparent text-blue-700"
+                        placeholder="—"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-600 w-20">External ({maxExternal})</span>
+                    <div className={`flex-1 rounded p-2 flex items-center ${
+                      status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
+                    }`}>
+                      <Input
+                        type="number" inputMode="decimal" min="0" max={maxExternal} step="0.5"
+                        value={externalMarks ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '' || parseFloat(val) <= maxExternal)
+                            onMarkChange?.(studentId, currentSubject, 'external_marks_obtained', val);
+                        }}
+                        disabled={isLocked}
+                        className={`w-full text-center text-lg font-semibold border-0 bg-transparent ${
+                          status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                        }`}
+                        placeholder="—"
+                      />
+                    </div>
+                  </div>
+                  {marks !== undefined && marks !== '' && (
+                    <div className="text-center text-xs text-slate-500">Total: <strong>{marks}</strong> / {maxMarks}</div>
+                  )}
+                </div>
+              ) : (
+                <div className={`flex items-center rounded p-3 ${
+                  status === 'pass' ? 'bg-green-100' : status === 'fail' ? 'bg-red-100' : 'bg-slate-100'
+                }`}>
+                  <Input
+                     id={`mobile-marks-${idx}`}
+                     type="number"
+                     inputMode="decimal"
+                     min="0"
+                     max={maxMarks}
+                     step="0.5"
+                     value={marks ?? ''}
+                     onChange={(e) => {
+                       const val = e.target.value;
+                       if (val === '' || parseFloat(val) <= maxMarks) {
+                         onMarkChange?.(studentId, currentSubject, val);
+                       }
+                     }}
+                     onKeyDown={(e) => handleKeyDown(e, idx)}
+                     disabled={isLocked}
+                     className={`w-full text-center text-lg font-semibold border-0 bg-transparent px-2 py-2 ${
+                       status === 'pass' ? 'text-green-700' : status === 'fail' ? 'text-red-700' : 'text-slate-700'
+                     } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                     placeholder="Enter marks"
+                   />
+                  <span className="text-xs font-semibold text-slate-500 ml-2">/{maxMarks}</span>
+                </div>
+              )}
             </div>
           );
         })}

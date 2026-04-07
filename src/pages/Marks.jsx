@@ -187,6 +187,20 @@ export default function Marks() {
       .slice(0, 100);
   }, [selectedClass, selectedExam, examTypes, examTypesData.timetable]);
 
+  const { data: examMarksConfig = null } = useQuery({
+    queryKey: ['examMarksConfig', selectedClass, selectedExamType?.id],
+    queryFn: async () => {
+      if (!selectedClass || !selectedExamType?.id) return null;
+      const results = await base44.entities.ExamMarksConfig.filter({
+        class_name: selectedClass,
+        exam_type_id: selectedExamType.id
+      });
+      return results[0] || null;
+    },
+    enabled: !!(selectedClass && selectedExamType?.id),
+    staleTime: 5 * 60 * 1000
+  });
+
   const { data: existingMarks = [], refetch: refetchMarks } = useQuery({
     queryKey: ['marks', selectedClass, selectedSection, selectedExam, academicYear],
     queryFn: () => {
@@ -229,7 +243,9 @@ export default function Marks() {
       existingMarks.forEach(m => {
         if (!data[m.student_id]) data[m.student_id] = {};
         data[m.student_id][m.subject] = { 
-          marks_obtained: m.marks_obtained, 
+          marks_obtained: m.marks_obtained,
+          internal_marks_obtained: m.internal_marks_obtained,
+          external_marks_obtained: m.external_marks_obtained,
           id: m.id, 
           status: m.status,
           remarks: m.remarks 
@@ -315,12 +331,16 @@ export default function Marks() {
             else if (percentage >= 50) grade = 'C';
             else if (percentage >= (selectedExamType?.min_marks_to_pass || passingMarks)) grade = 'D';
 
+            const internalVal = existing.internal_marks_obtained != null && existing.internal_marks_obtained !== '' ? parseFloat(existing.internal_marks_obtained) : undefined;
+            const externalVal = existing.external_marks_obtained != null && existing.external_marks_obtained !== '' ? parseFloat(existing.external_marks_obtained) : undefined;
             markEntries.push({
               student_id: student.student_id || student.id,
               student_name: student.name,
               subject: subject,
               exam_type: selectedExamType?.id || selectedExam,
               marks_obtained: marks,
+              internal_marks_obtained: internalVal,
+              external_marks_obtained: externalVal,
               max_marks: maxMarks,
               grade,
               academic_year: academicYear,
@@ -373,14 +393,23 @@ export default function Marks() {
      }
    });
 
-  const updateMarks = (studentId, subject, value) => {
-    setMarksData(prev => ({
-      ...prev,
-      [studentId]: { 
-        ...prev[studentId], 
-        [subject]: { ...prev[studentId]?.[subject], marks_obtained: value }
+  // fieldOrValue: if 4th arg provided → it's the field name; else defaults to marks_obtained (backward compat with virtual tables)
+  const updateMarks = (studentId, subject, fieldOrValue, value) => {
+    const field = value !== undefined ? fieldOrValue : 'marks_obtained';
+    const actualValue = value !== undefined ? value : fieldOrValue;
+    setMarksData(prev => {
+      const current = prev[studentId]?.[subject] || {};
+      const updated = { ...current, [field]: actualValue };
+      // Auto-compute total marks when internal or external changes
+      if (field === 'internal_marks_obtained' || field === 'external_marks_obtained') {
+        const int_ = parseFloat(field === 'internal_marks_obtained' ? actualValue : updated.internal_marks_obtained) || 0;
+        const ext_ = parseFloat(field === 'external_marks_obtained' ? actualValue : updated.external_marks_obtained) || 0;
+        updated.marks_obtained = actualValue === '' && field === 'internal_marks_obtained' ? updated.external_marks_obtained : 
+                                  actualValue === '' && field === 'external_marks_obtained' ? updated.internal_marks_obtained :
+                                  int_ + ext_;
       }
-    }));
+      return { ...prev, [studentId]: { ...prev[studentId], [subject]: updated } };
+    });
   };
 
   const addNewSubject = () => {
@@ -651,8 +680,9 @@ export default function Marks() {
            <>
              <Suspense fallback={<TabLoadingSpinner />}>
                <MarksEntrySectionLazy
-                 selectedExam={selectedExam}
-                 maxMarks={maxMarks}
+                  selectedExam={selectedExam}
+                  examMarksConfig={examMarksConfig}
+                  maxMarks={maxMarks}
                  passingMarks={passingMarks}
                  currentStatus={currentStatus}
                  filteredStudents={filteredStudents}
