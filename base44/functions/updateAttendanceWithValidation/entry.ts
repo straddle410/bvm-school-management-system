@@ -176,72 +176,14 @@ Deno.serve(async (req) => {
       console.log("UPDATING ATTENDANCE:", { id: existingRecord.id, payload: savePayload });
       const updateResult = await base44.entities.Attendance.update(existingRecord.id, savePayload);
       console.log("UPDATE RESULT:", updateResult);
+      return Response.json({ message: 'Attendance updated successfully', success: true, action: 'updated' });
     } else {
       // CREATE
       console.log("CREATING ATTENDANCE:", savePayload);
       const createResult = await base44.entities.Attendance.create(savePayload);
       console.log("CREATE RESULT:", createResult);
+      return Response.json({ message: 'Attendance created successfully', success: true, action: 'created' });
     }
-
-    // ── AUTO-MARK UNMARKED STUDENTS ──
-    // After teacher saves for one student, auto-mark all other students in the class with present/full_day
-    if (!isAdmin) {
-      try {
-        // Get all published students for this class/section admitted on or before this date
-        const allStudentsInClass = await base44.entities.Student.filter({
-          status: 'Published',
-          class_name: class_name,
-          section: section,
-          academic_year: academic_year,
-          is_deleted: false
-        });
-
-        // Get existing attendance records for this date/class/section
-        const existingAttendanceForDate = await base44.entities.Attendance.filter({
-          date: date,
-          class_name: class_name,
-          section: section,
-          academic_year: academic_year
-        });
-        const markedStudentIds = new Set(existingAttendanceForDate.map(a => a.student_id));
-
-        // Find unmarked students (admitted on or before this date)
-        const unmarkedStudents = allStudentsInClass.filter(s => {
-          const sid = s.student_id || s.id;
-          const isMarked = markedStudentIds.has(sid);
-          const isAdmitted = !s.admission_date || date >= s.admission_date;
-          return !isMarked && isAdmitted;
-        });
-
-        console.log(`Auto-marking ${unmarkedStudents.length} unmarked students for ${class_name}-${section} on ${date}`);
-
-        // Create full_day present records for all unmarked students
-        if (unmarkedStudents.length > 0) {
-          const autoMarkRecords = unmarkedStudents.map(s => ({
-            date,
-            class_name,
-            section,
-            student_id: s.student_id || s.id,
-            student_name: s.name,
-            attendance_type: 'full_day',
-            is_present: true,
-            is_holiday: false,
-            academic_year,
-            status: 'Submitted',
-            marked_by: markedByFinal,
-            submitted_at: now,
-            auto_submitted: true
-          }));
-
-          await base44.entities.Attendance.bulkCreate(autoMarkRecords);
-          console.log(`Auto-marked ${unmarkedRecords.length} students`);
-        }
-      } catch (autoMarkError) {
-        console.warn('Auto-mark failed but proceeding:', autoMarkError);
-      }
-    }
-
-    return Response.json({ message: 'Attendance saved and unmarked students auto-marked', success: true, action: existingRecord ? 'updated' : 'created' });
 
   } catch (error) {
     console.error('Update attendance error:', error);
