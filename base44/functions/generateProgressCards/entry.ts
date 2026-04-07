@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
       uniqueStudents.set(studentKey, true);
 
       // Fetch attendance records for this student (once per student, not per exam)
-      const studentAttendance = await base44.asServiceRole.entities.Attendance.filter({
+      const studentAttendance = await base44.entities.Attendance.filter({
         student_id: student.student_id,
         class_name: student.class_name,
         section: student.section
