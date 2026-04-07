@@ -134,8 +134,24 @@ export default function ProgressCardsList() {
   const handlePrintSelected = async () => {
     const cardsToPrint = progressCards.filter(c => selectedCards.has(c.id));
     if (cardsToPrint.length === 0) { toast.error('Please select at least one progress card to print'); return; }
-    const profiles = await base44.entities.SchoolProfile.list();
-    printMultipleProgressCards(cardsToPrint, profiles[0] || null);
+    // Fetch all students in selected class to enrich photo/parent/roll
+    const studentIds = [...new Set(cardsToPrint.map(c => c.student_id).filter(Boolean))];
+    const [profiles, allStudents] = await Promise.all([
+      base44.entities.SchoolProfile.list(),
+      base44.entities.Student.filter({ class_name: cardsToPrint[0]?.class_name })
+    ]);
+    const studentMap = {};
+    allStudents.forEach(s => { if (s.student_id) studentMap[s.student_id] = s; });
+    const enrichedCards = cardsToPrint.map(c => {
+      const s = studentMap[c.student_id] || {};
+      return {
+        ...c,
+        student_photo_url: c.student_photo_url || s.photo_url || null,
+        parent_name: c.parent_name || s.parent_name || '—',
+        roll_number: c.roll_number || s.roll_no || '—',
+      };
+    });
+    printMultipleProgressCards(enrichedCards, profiles[0] || null);
   };
 
   return (

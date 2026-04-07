@@ -15,11 +15,30 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
     }
   });
 
+  // Fetch student data to get photo, parent_name, roll_no
+  const { data: studentData } = useQuery({
+    queryKey: ['student', card?.student_id],
+    queryFn: async () => {
+      if (!card?.student_id) return null;
+      const results = await base44.entities.Student.filter({ student_id: card.student_id });
+      return results[0] || null;
+    },
+    enabled: !!card?.student_id
+  });
+
   if (!card) return null;
 
-  const examName = card.exam_performance?.[0]?.exam_name || 'Exam';
-  const subjects = card.exam_performance?.[0]?.subject_details || [];
-  const att = card.attendance_summary || {};
+  // Enrich card with student data
+  const enrichedCard = {
+    ...card,
+    student_photo_url: card.student_photo_url || studentData?.photo_url || null,
+    parent_name: card.parent_name || studentData?.parent_name || '—',
+    roll_number: card.roll_number || studentData?.roll_no || '—',
+  };
+
+  const examName = enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
+  const subjects = enrichedCard.exam_performance?.[0]?.subject_details || [];
+  const att = enrichedCard.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
 
   let attRemark = '';
@@ -41,15 +60,15 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
-          <DialogTitle className="text-base font-bold">Progress Card — {card.student_name}</DialogTitle>
-          <Button size="sm" variant="outline" onClick={() => printProgressCard(card, schoolProfile)} className="gap-2">
+          <DialogTitle className="text-base font-bold">Progress Card — {enrichedCard.student_name}</DialogTitle>
+          <Button size="sm" variant="outline" onClick={() => printProgressCard(enrichedCard, schoolProfile)} className="gap-2">
             <Printer className="h-4 w-4" /> Print A4
           </Button>
         </DialogHeader>
 
         <div className="text-[10px] border border-gray-400 rounded overflow-hidden">
 
-          {/* Header: centered — logo + school name + address */}
+          {/* Header: centered */}
           <div className="bg-[#f2f2f2] text-[#111] px-4 py-3 flex items-center justify-center gap-3 border-b border-gray-400">
             {schoolProfile?.logo_url && (
               <img src={schoolProfile.logo_url} alt="Logo" className="w-11 h-11 object-contain rounded flex-shrink-0" />
@@ -60,28 +79,28 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Badge: exam type + Progress Card */}
+          {/* Badge: dynamic exam type + Progress Card */}
           <div className="bg-[#e8e8e8] text-[#111] text-center text-[10px] font-bold py-1 tracking-widest border-b border-gray-400 uppercase">
             {examName} Progress Card
           </div>
 
           {/* Student Info */}
           <div className="flex items-start gap-4 p-3 bg-[#fafafa] border-b border-gray-400">
-            {card.student_photo_url ? (
-              <img src={card.student_photo_url} alt="Student" className="w-16 h-20 object-cover rounded border border-gray-400 flex-shrink-0" />
+            {enrichedCard.student_photo_url ? (
+              <img src={enrichedCard.student_photo_url} alt="Student" className="w-16 h-20 object-cover rounded border border-gray-400 flex-shrink-0" />
             ) : (
               <div className="w-16 h-20 bg-[#eee] border border-gray-400 rounded flex-shrink-0 flex items-center justify-center text-gray-500 font-bold text-2xl">
-                {(card.student_name || '?').charAt(0).toUpperCase()}
+                {(enrichedCard.student_name || '?').charAt(0).toUpperCase()}
               </div>
             )}
             <div className="grid grid-cols-3 gap-x-6 gap-y-2 flex-1">
               {[
-                ['Student Name', card.student_name],
-                ['Parent / Guardian', card.parent_name || '—'],
-                ['Academic Year', card.academic_year],
-                ['Class & Section', `${card.class_name} – ${card.section}`],
-                ['Roll Number', card.roll_number || '—'],
-                ['Overall %', `${(card.overall_stats?.overall_percentage || 0).toFixed(1)}%${card.overall_stats?.overall_grade ? ` (${card.overall_stats.overall_grade})` : ''}`]
+                ['Student Name', enrichedCard.student_name],
+                ['Parent / Guardian', enrichedCard.parent_name],
+                ['Academic Year', enrichedCard.academic_year],
+                ['Class & Section', `${enrichedCard.class_name} – ${enrichedCard.section}`],
+                ['Roll Number', enrichedCard.roll_number],
+                ['Overall %', `${(enrichedCard.overall_stats?.overall_percentage || 0).toFixed(1)}%${enrichedCard.overall_stats?.overall_grade ? ` (${enrichedCard.overall_stats.overall_grade})` : ''}`]
               ].map(([label, value]) => (
                 <div key={label}>
                   <div className="text-[7.5px] text-gray-500 leading-tight">{label}</div>
@@ -123,7 +142,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                     <td className="border border-gray-400 px-2 py-1 text-center">—</td>
                     <td className="border border-gray-400 px-2 py-1 text-center">—</td>
                     <td className="border border-gray-400 px-2 py-1 text-center">{totalObtained} / {totalMax}</td>
-                    <td className="border border-gray-400 px-2 py-1 text-center">{(card.overall_stats?.overall_percentage || 0).toFixed(1)}% ({card.overall_stats?.overall_grade || '—'})</td>
+                    <td className="border border-gray-400 px-2 py-1 text-center">{(enrichedCard.overall_stats?.overall_percentage || 0).toFixed(1)}% ({enrichedCard.overall_stats?.overall_grade || '—'})</td>
                   </tr>
                 )}
               </tbody>
@@ -193,10 +212,10 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                 <div className="text-[9.5px] text-gray-700 leading-relaxed">{acaRemark}</div>
               </div>
             </div>
-            {card.class_teacher_remarks && (
+            {enrichedCard.class_teacher_remarks && (
               <div className="mt-2 pt-2 border-t border-gray-300">
                 <div className="text-[8px] font-bold text-gray-500 uppercase tracking-wide mb-1">Class Teacher Remarks</div>
-                <div className="text-[9.5px] text-gray-700 leading-relaxed">{card.class_teacher_remarks}</div>
+                <div className="text-[9.5px] text-gray-700 leading-relaxed">{enrichedCard.class_teacher_remarks}</div>
               </div>
             )}
           </div>
@@ -205,8 +224,8 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           <div className="flex justify-between px-8 pt-1 pb-2 border-t border-gray-400 bg-[#fafafa]">
             {[
               [schoolProfile?.principal_name || 'Principal', 'Principal'],
-              [card.class_teacher_name || 'Class Teacher', 'Class Teacher'],
-              [card.parent_name || 'Parent / Guardian', 'Parent Signature'],
+              [enrichedCard.class_teacher_name || 'Class Teacher', 'Class Teacher'],
+              [enrichedCard.parent_name || 'Parent / Guardian', 'Parent Signature'],
             ].map(([name, label]) => (
               <div key={label} className="text-center">
                 <div className="w-20 border-t border-gray-500 mt-8 mb-1 mx-auto" />
@@ -218,7 +237,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
           {/* Footer */}
           <div className="text-center bg-[#fafafa] border-t border-gray-300 py-1 text-[8px] text-gray-400">
-            Generated: {new Date(card.generated_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} &nbsp;|&nbsp; Official document from the school management system.
+            Generated: {new Date(enrichedCard.generated_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} &nbsp;|&nbsp; Official document from the school management system.
           </div>
         </div>
       </DialogContent>
