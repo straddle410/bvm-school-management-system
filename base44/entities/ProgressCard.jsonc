@@ -1,0 +1,267 @@
+{
+  "name": "ProgressCard",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student ID (FK \u2192 Student.id)"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class/Grade - ENFORCED isolation"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section - ENFORCED isolation"
+    },
+    "roll_number": {
+      "type": "number",
+      "description": "Roll number"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25) - ENFORCED isolation"
+    },
+    "exam_performance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "exam_type_id": {
+            "type": "string",
+            "description": "Exam type UUID (FK \u2192 ExamType.id)"
+          },
+          "exam_type_name": {
+            "type": "string",
+            "description": "Exam type display name"
+          },
+          "exam_category": {
+            "type": "string",
+            "description": "Exam category (Summative/Formative/Internal/Final)"
+          },
+          "total_marks_obtained": {
+            "type": "number",
+            "description": "Total marks obtained in this exam"
+          },
+          "total_max_marks": {
+            "type": "number",
+            "description": "Total max marks for this exam"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "Percentage scored in this exam"
+          },
+          "grade": {
+            "type": "string",
+            "description": "Overall grade for this exam"
+          },
+          "rank_in_class": {
+            "type": "number",
+            "description": "Rank among classmates in this exam"
+          },
+          "subject_details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "subject": {
+                  "type": "string"
+                },
+                "marks_obtained": {
+                  "type": "number"
+                },
+                "max_marks": {
+                  "type": "number"
+                },
+                "percentage": {
+                  "type": "number"
+                },
+                "grade": {
+                  "type": "string"
+                },
+                "teacher_remarks": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Subject-wise breakdown for this exam"
+          }
+        }
+      },
+      "description": "Performance in each exam type"
+    },
+    "overall_stats": {
+      "type": "object",
+      "properties": {
+        "total_marks_obtained": {
+          "type": "number",
+          "description": "Total marks across all exams in the year"
+        },
+        "total_possible_marks": {
+          "type": "number",
+          "description": "Total possible marks"
+        },
+        "overall_percentage": {
+          "type": "number",
+          "description": "Overall percentage for the year"
+        },
+        "overall_grade": {
+          "type": "string",
+          "description": "Overall grade for the year"
+        },
+        "overall_rank": {
+          "type": "number",
+          "description": "Overall rank in class for the year"
+        },
+        "class_strength": {
+          "type": "number",
+          "description": "Total students in class for ranking context"
+        }
+      },
+      "description": "Overall academic year statistics"
+    },
+    "attendance_summary": {
+      "type": "object",
+      "properties": {
+        "range_start": {
+          "type": "string",
+          "format": "date",
+          "description": "Attendance range start date"
+        },
+        "range_end": {
+          "type": "string",
+          "format": "date",
+          "description": "Attendance range end date"
+        },
+        "working_days": {
+          "type": "number",
+          "description": "Total working days in the range"
+        },
+        "full_days_present": {
+          "type": "number",
+          "description": "Number of full days present"
+        },
+        "half_days_present": {
+          "type": "number",
+          "description": "Number of half days present"
+        },
+        "total_present_days": {
+          "type": "number",
+          "description": "Total present days (full days + half days \u00d7 0.5)"
+        },
+        "attendance_percentage": {
+          "type": "number",
+          "description": "Attendance percentage (0-100)"
+        },
+        "month_wise_breakdown": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "month": {
+                "type": "string",
+                "description": "Month name (e.g., 'December', 'January')"
+              },
+              "year": {
+                "type": "number",
+                "description": "Year (e.g., 2024)"
+              },
+              "month_display": {
+                "type": "string",
+                "description": "Display text (e.g., 'Dec (15\u201331)', 'Jan', 'Feb (1\u201315)')"
+              },
+              "period_start": {
+                "type": "string",
+                "format": "date",
+                "description": "Start date of this month period (within range)"
+              },
+              "period_end": {
+                "type": "string",
+                "format": "date",
+                "description": "End date of this month period (within range)"
+              },
+              "working_days": {
+                "type": "number",
+                "description": "Working days in this period"
+              },
+              "full_days_present": {
+                "type": "number",
+                "description": "Full days present in this period"
+              },
+              "half_days_present": {
+                "type": "number",
+                "description": "Half days present in this period"
+              },
+              "total_present": {
+                "type": "number",
+                "description": "Total present days (full + half\u00d70.5) in this period"
+              },
+              "attendance_percentage": {
+                "type": "number",
+                "description": "Attendance percentage for this period"
+              }
+            }
+          },
+          "description": "Month-wise attendance breakdown within the range"
+        }
+      },
+      "description": "Attendance summary with month-wise breakdown for exam range"
+    },
+    "class_teacher_remarks": {
+      "type": "string",
+      "description": "Class teacher's overall remarks"
+    },
+    "class_teacher_name": {
+      "type": "string",
+      "description": "Class teacher name"
+    },
+    "principal_name": {
+      "type": "string",
+      "description": "Principal name for signature"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the card was generated"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Generated by (admin email)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Generated",
+        "Published"
+      ],
+      "default": "Generated",
+      "description": "Card status - Published = locked, immutable"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Locked after publish - prevents modifications"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL to generated progress card PDF"
+    }
+  },
+  "required": [
+    "student_id",
+    "student_name",
+    "class_name",
+    "section",
+    "academic_year"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": true
+  }
+}
