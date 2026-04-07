@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       let skip = 0;
       const batchSize = 100;
       while (true) {
-        const batch = await base44.asServiceRole.entities.ProgressCard.list(null, batchSize, skip);
+        const batch = await base44.entities.ProgressCard.list(null, batchSize, skip);
         if (!batch || batch.length === 0) break;
         allCards = allCards.concat(batch);
         if (batch.length < batchSize) break;
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
           for (let attempt = 1; attempt <= 3; attempt++) {
             await sleep(2000 * attempt);
             try {
-              await base44.asServiceRole.entities.ProgressCard.delete(id);
+              await base44.entities.ProgressCard.delete(id);
               deletedCount++;
               retrySuccess = true;
               break;
