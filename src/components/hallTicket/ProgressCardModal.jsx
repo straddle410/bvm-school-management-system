@@ -16,6 +16,17 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
   });
 
   // Fetch student data to get photo, parent_name, roll_no
+  // Fetch ClassSubjectConfig to sort subjects in correct order
+  const { data: subjectOrder } = useQuery({
+    queryKey: ['classSubjectConfig', card?.class_name],
+    queryFn: async () => {
+      if (!card?.class_name) return [];
+      const configs = await base44.entities.ClassSubjectConfig.filter({ class_name: card.class_name });
+      return configs[0]?.subject_names || [];
+    },
+    enabled: !!card?.class_name
+  });
+
   const { data: studentData } = useQuery({
     queryKey: ['student', card?.student_id],
     queryFn: async () => {
@@ -28,12 +39,26 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
   if (!card) return null;
 
-  // Enrich card with student data
+  // Sort subjects by ClassSubjectConfig order
+  const sortSubjects = (subjects) => {
+    if (!subjectOrder || subjectOrder.length === 0) return subjects;
+    return [...subjects].sort((a, b) => {
+      const ai = subjectOrder.indexOf(a.subject);
+      const bi = subjectOrder.indexOf(b.subject);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+  };
+
+  // Enrich card with student data and sorted subjects
   const enrichedCard = {
     ...card,
     student_photo_url: card.student_photo_url || studentData?.photo_url || null,
     parent_name: card.parent_name || studentData?.parent_name || '—',
     roll_number: card.roll_number || studentData?.roll_no || '—',
+    exam_performance: card.exam_performance?.map(ep => ({
+      ...ep,
+      subject_details: sortSubjects(ep.subject_details || [])
+    }))
   };
 
   const examName = enrichedCard.exam_performance?.[0]?.exam_type_name || enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
@@ -61,7 +86,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
           <DialogTitle className="text-base font-bold">Progress Card — {enrichedCard.student_name}</DialogTitle>
-          <Button size="sm" variant="outline" onClick={() => printProgressCard(enrichedCard, schoolProfile)} className="gap-2">
+          <Button size="sm" variant="outline" onClick={() => printProgressCard(enrichedCard, schoolProfile, subjectOrder || [])} className="gap-2">
             <Printer className="h-4 w-4" /> Print A4
           </Button>
         </DialogHeader>

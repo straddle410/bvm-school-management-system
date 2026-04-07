@@ -2,14 +2,21 @@
  * Generates a full A4 print-ready HTML string for a Progress Card.
  * Uses the same ink-efficient grey scheme as hall tickets.
  */
-export function buildProgressCardHTML(card, schoolProfile) {
+export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
   const schoolName = schoolProfile?.school_name || 'School';
   const schoolAddress = schoolProfile?.address || '';
   const logoUrl = schoolProfile?.logo_url
     ? `https://images.weserv.nl/?url=${encodeURIComponent(schoolProfile.logo_url)}`
     : '';
   const examName = card.exam_performance?.[0]?.exam_type_name || card.exam_performance?.[0]?.exam_name || 'Exam';
-  const subjects = card.exam_performance?.[0]?.subject_details || [];
+  const rawSubjects = card.exam_performance?.[0]?.subject_details || [];
+  const subjects = subjectOrder.length > 0
+    ? [...rawSubjects].sort((a, b) => {
+        const ai = subjectOrder.indexOf(a.subject);
+        const bi = subjectOrder.indexOf(b.subject);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      })
+    : rawSubjects;
   const att = card.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
   const monthlyBreakdown = att.monthly_breakdown || [];
@@ -334,8 +341,8 @@ export function buildProgressCardHTML(card, schoolProfile) {
 </html>`;
 }
 
-export function printProgressCard(card, schoolProfile) {
-  const html = buildProgressCardHTML(card, schoolProfile);
+export function printProgressCard(card, schoolProfile, subjectOrder = []) {
+  const html = buildProgressCardHTML(card, schoolProfile, subjectOrder);
   const win = window.open('', '_blank');
   win.document.write(html);
   win.document.close();
@@ -343,11 +350,11 @@ export function printProgressCard(card, schoolProfile) {
   setTimeout(() => { win.print(); }, 400);
 }
 
-export function printMultipleProgressCards(cards, schoolProfile) {
+export function printMultipleProgressCards(cards, schoolProfile, subjectOrder = []) {
   if (!cards || cards.length === 0) return;
 
   const pagesHtml = cards.map((card, i) => {
-    const cardHtml = buildProgressCardHTML(card, schoolProfile);
+    const cardHtml = buildProgressCardHTML(card, schoolProfile, subjectOrder);
     const bodyMatch = cardHtml.match(/<body>([\s\S]*)<\/body>/);
     const body = bodyMatch ? bodyMatch[1] : '';
     return `<div style="${i < cards.length - 1 ? 'page-break-after:always;' : ''}">${body}</div>`;

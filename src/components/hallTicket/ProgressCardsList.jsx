@@ -136,10 +136,13 @@ export default function ProgressCardsList() {
     if (cardsToPrint.length === 0) { toast.error('Please select at least one progress card to print'); return; }
     // Fetch all students in selected class to enrich photo/parent/roll
     const studentIds = [...new Set(cardsToPrint.map(c => c.student_id).filter(Boolean))];
-    const [profiles, allStudents] = await Promise.all([
+    const className = cardsToPrint[0]?.class_name;
+    const [profiles, allStudents, subjectConfigs] = await Promise.all([
       base44.entities.SchoolProfile.list(),
-      base44.entities.Student.filter({ class_name: cardsToPrint[0]?.class_name })
+      base44.entities.Student.filter({ class_name: className }),
+      className ? base44.entities.ClassSubjectConfig.filter({ class_name: className }) : Promise.resolve([])
     ]);
+    const subjectOrder = subjectConfigs[0]?.subject_names || [];
     const studentMap = {};
     allStudents.forEach(s => { if (s.student_id) studentMap[s.student_id] = s; });
     const enrichedCards = cardsToPrint.map(c => {
@@ -151,7 +154,7 @@ export default function ProgressCardsList() {
         roll_number: c.roll_number || s.roll_no || '—',
       };
     });
-    printMultipleProgressCards(enrichedCards, profiles[0] || null);
+    printMultipleProgressCards(enrichedCards, profiles[0] || null, subjectOrder);
   };
 
   return (
