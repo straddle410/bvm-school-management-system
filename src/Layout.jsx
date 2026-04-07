@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -47,7 +47,7 @@ const getBottomNav = (isAdmin, userRole) => {
 };
 
 
-const LogoWithFallback = ({ src, alt, schoolProfile }) => {
+const LogoWithFallback = React.memo(({ src, alt, schoolProfile }) => {
   const [imgError, setImgError] = useState(false);
   const logoUrl = src || schoolProfile?.logo_url;
   const proxiedLogoUrl = getProxiedImageUrl(logoUrl);
@@ -57,8 +57,7 @@ const LogoWithFallback = ({ src, alt, schoolProfile }) => {
     </div> :
 
   <img src={proxiedLogoUrl} alt={alt} width={36} height={36} className="h-9 w-9 object-contain rounded-full bg-white p-0.5 flex-shrink-0 shadow" loading="lazy" onError={() => setImgError(true)} />;
-
-};
+});
 
 // Pages that don't use the app shell
 const NO_LAYOUT_PAGES = ['Index', 'index', 'Home', 'PublicAdmission', 'StaffLogin', 'StudentLogin', 'StudentDashboard', 'StudentHomework', 'StudentMessaging', 'StudentQuiz', 'StudentChangePassword', 'UserProfile', 'PrintReceiptA5', 'TermsAndConditions', 'PrivacyPolicy', 'HelpGuide', 'DeleteAccount'];
@@ -87,6 +86,9 @@ export default function Layout({ children, currentPageName }) {
     const isTabRoot = navItems.some(item => item.page === currentPageName);
     if (isTabRoot) sessionStorage.setItem('activeStaffTab', currentPageName);
   }, [currentPageName, userRole, isAdmin]);
+
+  // Memoize navigation items to prevent recalculation on every render
+  const navItems = useMemo(() => getBottomNav(isAdmin, userRole), [isAdmin, userRole]);
 
   useEffect(() => {
     // Root route is handled by pages/Index.js which does session-based restore
@@ -216,8 +218,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom Navigation */}
       <nav className="no-print fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg">
         <div className="flex items-center justify-around py-1 overflow-x-auto">
-          {getBottomNav(isAdmin, userRole).map((item) => {
-              const navItems = getBottomNav(isAdmin, userRole);
+          {navItems.map((item) => {
               const activeTab = sessionStorage.getItem('activeStaffTab');
               const onSubPage = !navItems.some(n => n.page === currentPageName);
               const isActive = currentPageName === item.page || (onSubPage && activeTab === item.page);
