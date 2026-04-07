@@ -3,10 +3,6 @@
  * Uses the same ink-efficient grey scheme as hall tickets.
  */
 export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], examMarksConfig = null) {
-  const hasInternal = examMarksConfig?.has_internal_marks || false;
-  const maxInternal = examMarksConfig?.max_internal_marks || 0;
-  const maxExternal = examMarksConfig?.max_external_marks || 100;
-
   const schoolName = schoolProfile?.school_name || 'School';
   const schoolAddress = schoolProfile?.address || '';
   const logoUrl = schoolProfile?.logo_url
@@ -21,6 +17,11 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
     : rawSubjects;
+
+  // Detect internal/external from actual data first, fall back to config
+  const hasInternal = rawSubjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || (hasInternal ? rawSubjects.reduce((m, s) => Math.max(m, s.internal_marks || 0), 0) : 0);
+  const maxExternal = examMarksConfig?.max_external_marks || (hasInternal ? rawSubjects.reduce((m, s) => Math.max(m, s.external_marks || 0), 0) : 100);
 
   const att = card.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);

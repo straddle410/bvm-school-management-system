@@ -74,12 +74,13 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
     }))
   };
 
-  const hasInternal = examMarksConfig?.has_internal_marks || false;
-  const maxInternal = examMarksConfig?.max_internal_marks || 0;
-  const maxExternal = examMarksConfig?.max_external_marks || 100;
-
   const examName = enrichedCard.exam_performance?.[0]?.exam_type_name || enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
   const subjects = enrichedCard.exam_performance?.[0]?.subject_details || [];
+
+  // Detect internal/external from actual data first, fall back to config
+  const hasInternal = subjects.some(s => s.internal_marks != null) || examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || (hasInternal ? subjects.reduce((m, s) => Math.max(m, s.internal_marks || 0), 0) : 0);
+  const maxExternal = examMarksConfig?.max_external_marks || (hasInternal ? subjects.reduce((m, s) => Math.max(m, s.external_marks || 0), 0) : 100);
   const att = enrichedCard.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
 
