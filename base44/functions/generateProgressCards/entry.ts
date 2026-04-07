@@ -104,6 +104,8 @@ Deno.serve(async (req) => {
        studentExamData[key].subjects.push({
          subject: mark.subject,
          marks_obtained: mark.marks_obtained,
+         internal_marks: mark.internal_marks_obtained ?? null,
+         external_marks: mark.external_marks_obtained ?? null,
          max_marks: mark.max_marks,
          grade: mark.grade,
          sort_order: subjectSortMap[mark.subject] || 0

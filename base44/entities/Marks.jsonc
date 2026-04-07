@@ -32,11 +32,19 @@
     },
     "marks_obtained": {
       "type": "number",
-      "description": "Marks obtained"
+      "description": "Total marks obtained (sum of internal + external if applicable)"
+    },
+    "internal_marks_obtained": {
+      "type": "number",
+      "description": "Internal marks obtained (only used when ExamMarksConfig.has_internal_marks = true)"
+    },
+    "external_marks_obtained": {
+      "type": "number",
+      "description": "External marks obtained (only used when ExamMarksConfig.has_internal_marks = true)"
     },
     "max_marks": {
       "type": "number",
-      "description": "Maximum marks"
+      "description": "Maximum marks (total)"
     },
     "grade": {
       "type": "string",

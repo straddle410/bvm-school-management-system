@@ -47,6 +47,7 @@ import FeesBackupTab from '@/components/fees/FeesBackupTab';
 import FullBackupTab from '@/components/settings/FullBackupTab';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
 import MessageTemplatesTab from '@/components/settings/MessageTemplatesTab';
+import ExamMarksConfigTab from '@/components/settings/ExamMarksConfigTab';
 
 function TransportFeeSettings({ schoolProfiles, queryClient }) {
   const [amount, setAmount] = useState('');
@@ -468,6 +469,7 @@ export default function Settings() {
       'fees-backup': 'Fees Backup',
       'full-backup': 'Full School Backup',
       'data-reset': 'Data Reset',
+      'exam-marks-config': 'Exam Marks Config',
     };
     return titles[activeItem] || 'Settings';
   };
@@ -949,6 +951,11 @@ export default function Settings() {
           {/* Data Reset */}
           {activeItem === 'data-reset' && (
             <DataResetTab schoolProfiles={schoolProfiles} academicYears={academicYears} />
+          )}
+
+          {/* Exam Marks Config */}
+          {activeItem === 'exam-marks-config' && (
+            <ExamMarksConfigTab />
           )}
 
           {/* Message Templates */}

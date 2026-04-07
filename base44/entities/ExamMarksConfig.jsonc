@@ -1,0 +1,42 @@
+{
+  "name": "ExamMarksConfig",
+  "type": "object",
+  "properties": {
+    "exam_type_id": {
+      "type": "string",
+      "description": "ID of the ExamType entity"
+    },
+    "exam_type_name": {
+      "type": "string",
+      "description": "Denormalized exam type name for display"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name (e.g., 'Nursery', '1', '10')"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., '2024-25')"
+    },
+    "has_internal_marks": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, marks are split into Internal + External. If false, only total marks apply."
+    },
+    "max_internal_marks": {
+      "type": "number",
+      "default": 0,
+      "description": "Maximum marks for internal assessment (used only when has_internal_marks=true)"
+    },
+    "max_external_marks": {
+      "type": "number",
+      "description": "Maximum marks for external/written assessment"
+    }
+  },
+  "required": [
+    "exam_type_id",
+    "class_name",
+    "academic_year",
+    "max_external_marks"
+  ]
+}

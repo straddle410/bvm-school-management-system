@@ -2,7 +2,11 @@
  * Generates a full A4 print-ready HTML string for a Progress Card.
  * Uses the same ink-efficient grey scheme as hall tickets.
  */
-export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
+export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], examMarksConfig = null) {
+  const hasInternal = examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || 0;
+  const maxExternal = examMarksConfig?.max_external_marks || 100;
+
   const schoolName = schoolProfile?.school_name || 'School';
   const schoolAddress = schoolProfile?.address || '';
   const logoUrl = schoolProfile?.logo_url
@@ -17,6 +21,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
     : rawSubjects;
+
   const att = card.attendance_summary || {};
   const attPct = parseFloat(att.attendance_percentage || 0);
   const monthlyBreakdown = att.monthly_breakdown || [];
@@ -50,7 +55,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
   const totalObtained = subjects.reduce((s, sub) => s + (sub.marks_obtained || 0), 0);
   const totalMax = subjects.reduce((s, sub) => s + (sub.max_marks || 0), 0);
 
-  // Subject rows
+  // Subject rows — dynamic columns based on hasInternal
   const subjectRows = subjects.map((sub, idx) => {
     const internal = sub.internal_marks != null ? sub.internal_marks : '—';
     const external = sub.external_marks != null ? sub.external_marks : '—';
@@ -58,8 +63,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
       <tr style="background:#fff">
         <td style="text-align:center">${idx + 1}</td>
         <td><b>${sub.subject}</b></td>
-        <td style="text-align:center">${internal}</td>
-        <td style="text-align:center">${external}</td>
+        ${hasInternal ? `<td style="text-align:center">${internal}</td><td style="text-align:center">${external}</td>` : ''}
         <td style="text-align:center">${sub.marks_obtained ?? '—'} / ${sub.max_marks || '—'}</td>
         <td style="text-align:center;font-weight:700">${sub.grade || '—'}</td>
       </tr>`;
@@ -68,11 +72,10 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
   const totalRow = subjects.length > 0 ? `
     <tr style="background:#e8e8e8;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact">
       <td colspan="2" style="text-align:right;padding-right:10px">Total</td>
-      <td style="text-align:center">—</td>
-      <td style="text-align:center">—</td>
+      ${hasInternal ? '<td style="text-align:center">—</td><td style="text-align:center">—</td>' : ''}
       <td style="text-align:center">${totalObtained} / ${totalMax}</td>
       <td style="text-align:center">${(card.overall_stats?.overall_percentage || 0).toFixed(1)}% (${card.overall_stats?.overall_grade || '—'})</td>
-    </tr>` : '';
+    </tr>` : ''
 
   // Attendance rows
   let attendanceSection = '';
@@ -273,10 +276,9 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
       <thead>
         <tr>
           <th style="width:5%;text-align:center">S.No</th>
-          <th style="width:30%">Subject</th>
-          <th style="width:15%;text-align:center">Internal Marks</th>
-          <th style="width:15%;text-align:center">External Marks</th>
-          <th style="width:20%;text-align:center">Total Marks</th>
+          <th style="width:${hasInternal ? '25%' : '45%'}">Subject</th>
+          ${hasInternal ? `<th style="width:15%;text-align:center">Internal (${maxInternal})</th><th style="width:15%;text-align:center">External (${maxExternal})</th>` : ''}
+          <th style="width:20%;text-align:center">${hasInternal ? 'Total Marks' : 'Marks'}</th>
           <th style="width:15%;text-align:center">Grade</th>
         </tr>
       </thead>
@@ -341,8 +343,8 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = []) {
 </html>`;
 }
 
-export function printProgressCard(card, schoolProfile, subjectOrder = []) {
-  const html = buildProgressCardHTML(card, schoolProfile, subjectOrder);
+export function printProgressCard(card, schoolProfile, subjectOrder = [], examMarksConfig = null) {
+  const html = buildProgressCardHTML(card, schoolProfile, subjectOrder, examMarksConfig);
   const win = window.open('', '_blank');
   win.document.write(html);
   win.document.close();
@@ -350,17 +352,17 @@ export function printProgressCard(card, schoolProfile, subjectOrder = []) {
   setTimeout(() => { win.print(); }, 400);
 }
 
-export function printMultipleProgressCards(cards, schoolProfile, subjectOrder = []) {
+export function printMultipleProgressCards(cards, schoolProfile, subjectOrder = [], examMarksConfig = null) {
   if (!cards || cards.length === 0) return;
 
   const pagesHtml = cards.map((card, i) => {
-    const cardHtml = buildProgressCardHTML(card, schoolProfile, subjectOrder);
+    const cardHtml = buildProgressCardHTML(card, schoolProfile, subjectOrder, examMarksConfig);
     const bodyMatch = cardHtml.match(/<body>([\s\S]*)<\/body>/);
     const body = bodyMatch ? bodyMatch[1] : '';
     return `<div style="${i < cards.length - 1 ? 'page-break-after:always;' : ''}">${body}</div>`;
   }).join('');
 
-  const firstHtml = buildProgressCardHTML(cards[0], schoolProfile);
+  const firstHtml = buildProgressCardHTML(cards[0], schoolProfile, subjectOrder, examMarksConfig);
   const stylesMatch = firstHtml.match(/<style>([\s\S]*?)<\/style>/);
   const styles = stylesMatch ? stylesMatch[1] : '';
 

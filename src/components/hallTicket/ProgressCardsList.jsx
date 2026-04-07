@@ -137,12 +137,15 @@ export default function ProgressCardsList() {
     // Fetch all students in selected class to enrich photo/parent/roll
     const studentIds = [...new Set(cardsToPrint.map(c => c.student_id).filter(Boolean))];
     const className = cardsToPrint[0]?.class_name;
-    const [profiles, allStudents, subjectConfigs] = await Promise.all([
+    const examTypeId = cardsToPrint[0]?.exam_performance?.[0]?.exam_type_id || cardsToPrint[0]?.exam_performance?.[0]?.exam_type;
+    const [profiles, allStudents, subjectConfigs, marksConfigs] = await Promise.all([
       base44.entities.SchoolProfile.list(),
       base44.entities.Student.filter({ class_name: className }),
-      className ? base44.entities.ClassSubjectConfig.filter({ class_name: className }) : Promise.resolve([])
+      className ? base44.entities.ClassSubjectConfig.filter({ class_name: className }) : Promise.resolve([]),
+      (className && examTypeId) ? base44.entities.ExamMarksConfig.filter({ class_name: className, exam_type_id: examTypeId }) : Promise.resolve([])
     ]);
     const subjectOrder = subjectConfigs[0]?.subject_names || [];
+    const examMarksConfig = marksConfigs[0] || null;
     const studentMap = {};
     allStudents.forEach(s => { if (s.student_id) studentMap[s.student_id] = s; });
     const enrichedCards = cardsToPrint.map(c => {
@@ -154,7 +157,7 @@ export default function ProgressCardsList() {
         roll_number: c.roll_number || s.roll_no || '—',
       };
     });
-    printMultipleProgressCards(enrichedCards, profiles[0] || null, subjectOrder);
+    printMultipleProgressCards(enrichedCards, profiles[0] || null, subjectOrder, examMarksConfig);
   };
 
   return (

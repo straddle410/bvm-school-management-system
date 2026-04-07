@@ -15,7 +15,6 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
     }
   });
 
-  // Fetch student data to get photo, parent_name, roll_no
   // Fetch ClassSubjectConfig to sort subjects in correct order
   const { data: subjectOrder } = useQuery({
     queryKey: ['classSubjectConfig', card?.class_name],
@@ -25,6 +24,20 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
       return configs[0]?.subject_names || [];
     },
     enabled: !!card?.class_name
+  });
+
+  // Fetch ExamMarksConfig to know if internal/external breakdown applies
+  const examTypeId = card?.exam_performance?.[0]?.exam_type_id || card?.exam_performance?.[0]?.exam_type;
+  const { data: examMarksConfig } = useQuery({
+    queryKey: ['examMarksConfig', card?.class_name, examTypeId],
+    queryFn: async () => {
+      const results = await base44.entities.ExamMarksConfig.filter({
+        class_name: card.class_name,
+        exam_type_id: examTypeId
+      });
+      return results[0] || null;
+    },
+    enabled: !!card?.class_name && !!examTypeId
   });
 
   const { data: studentData } = useQuery({
@@ -61,6 +74,10 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
     }))
   };
 
+  const hasInternal = examMarksConfig?.has_internal_marks || false;
+  const maxInternal = examMarksConfig?.max_internal_marks || 0;
+  const maxExternal = examMarksConfig?.max_external_marks || 100;
+
   const examName = enrichedCard.exam_performance?.[0]?.exam_type_name || enrichedCard.exam_performance?.[0]?.exam_name || 'Exam';
   const subjects = enrichedCard.exam_performance?.[0]?.subject_details || [];
   const att = enrichedCard.attendance_summary || {};
@@ -86,7 +103,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
           <DialogTitle className="text-base font-bold">Progress Card — {enrichedCard.student_name}</DialogTitle>
-          <Button size="sm" variant="outline" onClick={() => printProgressCard(enrichedCard, schoolProfile, subjectOrder || [])} className="gap-2">
+          <Button size="sm" variant="outline" onClick={() => printProgressCard(enrichedCard, schoolProfile, subjectOrder || [], examMarksConfig)} className="gap-2">
             <Printer className="h-4 w-4" /> Print A4
           </Button>
         </DialogHeader>
@@ -143,20 +160,23 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             <table className="w-full border-collapse text-[9px]">
               <thead>
                 <tr className="bg-[#e8e8e8] text-[#111]">
-                  {['S.No', 'Subject', 'Internal', 'External', 'Total', 'Grade'].map(h => (
-                    <th key={h} className="border border-gray-400 px-2 py-1.5 text-left font-bold">{h}</th>
-                  ))}
+                  <th className="border border-gray-400 px-2 py-1.5 text-left font-bold">S.No</th>
+                  <th className="border border-gray-400 px-2 py-1.5 text-left font-bold">Subject</th>
+                  {hasInternal && <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">Internal ({maxInternal})</th>}
+                  {hasInternal && <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">External ({maxExternal})</th>}
+                  <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">{hasInternal ? 'Total' : 'Marks'}</th>
+                  <th className="border border-gray-400 px-2 py-1.5 text-center font-bold">Grade</th>
                 </tr>
               </thead>
               <tbody>
                 {subjects.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-3 text-gray-400 border border-gray-300">No marks data</td></tr>
+                  <tr><td colSpan={hasInternal ? 6 : 4} className="text-center py-3 text-gray-400 border border-gray-300">No marks data</td></tr>
                 ) : subjects.map((sub, i) => (
                   <tr key={i} className="bg-white">
                     <td className="border border-gray-300 px-2 py-1 text-center">{i + 1}</td>
                     <td className="border border-gray-300 px-2 py-1 font-semibold">{sub.subject}</td>
-                    <td className="border border-gray-300 px-2 py-1 text-center">{sub.internal_marks ?? '—'}</td>
-                    <td className="border border-gray-300 px-2 py-1 text-center">{sub.external_marks ?? '—'}</td>
+                    {hasInternal && <td className="border border-gray-300 px-2 py-1 text-center">{sub.internal_marks ?? '—'}</td>}
+                    {hasInternal && <td className="border border-gray-300 px-2 py-1 text-center">{sub.external_marks ?? '—'}</td>}
                     <td className="border border-gray-300 px-2 py-1 text-center">{sub.marks_obtained} / {sub.max_marks}</td>
                     <td className="border border-gray-300 px-2 py-1 text-center font-bold">{sub.grade || '—'}</td>
                   </tr>
@@ -164,8 +184,8 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                 {subjects.length > 0 && (
                   <tr className="bg-[#e8e8e8] font-bold">
                     <td colSpan={2} className="border border-gray-400 px-2 py-1 text-right">Total</td>
-                    <td className="border border-gray-400 px-2 py-1 text-center">—</td>
-                    <td className="border border-gray-400 px-2 py-1 text-center">—</td>
+                    {hasInternal && <td className="border border-gray-400 px-2 py-1 text-center">—</td>}
+                    {hasInternal && <td className="border border-gray-400 px-2 py-1 text-center">—</td>}
                     <td className="border border-gray-400 px-2 py-1 text-center">{totalObtained} / {totalMax}</td>
                     <td className="border border-gray-400 px-2 py-1 text-center">{(enrichedCard.overall_stats?.overall_percentage || 0).toFixed(1)}% ({enrichedCard.overall_stats?.overall_grade || '—'})</td>
                   </tr>

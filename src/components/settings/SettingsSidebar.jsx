@@ -18,6 +18,7 @@ const MENU_GROUPS = [
       { id: 'subjects', label: 'Subjects', requiredRoles: ['admin', 'principal'] },
       { id: 'class-subjects', label: 'Class Subjects', requiredRoles: ['admin', 'principal'] },
       { id: 'class-sections', label: 'Class Sections', requiredRoles: ['admin', 'principal'] },
+      { id: 'exam-marks-config', label: 'Exam Marks Config', requiredRoles: ['admin', 'principal'] },
     ],
   },
   {
