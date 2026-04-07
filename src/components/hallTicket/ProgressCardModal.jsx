@@ -250,18 +250,18 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           <div className="p-3 bg-[#fafafa]">
             <div className="flex gap-4">
               <div className="flex-1 border-r border-gray-300 pr-4">
-                <div className="text-[8px] font-bold text-gray-500 uppercase tracking-wide mb-1">Attendance Remark</div>
-                <div className="text-[9.5px] text-gray-700 leading-relaxed">{attRemark}</div>
+                <div className="text-[8px] font-bold text-white uppercase tracking-wide mb-1">Attendance Remark</div>
+                <div className="text-[9.5px] text-white leading-relaxed" style={{backgroundColor: '#000'}}>{attRemark}</div>
               </div>
               <div className="flex-1">
-                <div className="text-[8px] font-bold text-gray-500 uppercase tracking-wide mb-1">Academic Remark</div>
-                <div className="text-[9.5px] text-gray-700 leading-relaxed">{acaRemark}</div>
+                <div className="text-[8px] font-bold text-white uppercase tracking-wide mb-1">Academic Remark</div>
+                <div className="text-[9.5px] text-white leading-relaxed" style={{backgroundColor: '#000'}}>{acaRemark}</div>
               </div>
             </div>
             {enrichedCard.class_teacher_remarks && (
               <div className="mt-2 pt-2 border-t border-gray-300">
-                <div className="text-[8px] font-bold text-gray-500 uppercase tracking-wide mb-1">Class Teacher Remarks</div>
-                <div className="text-[9.5px] text-gray-700 leading-relaxed">{enrichedCard.class_teacher_remarks}</div>
+                <div className="text-[8px] font-bold text-white uppercase tracking-wide mb-1">Class Teacher Remarks</div>
+                <div className="text-[9.5px] text-white leading-relaxed" style={{backgroundColor: '#000'}}>{enrichedCard.class_teacher_remarks}</div>
               </div>
             )}
           </div>
@@ -271,11 +271,11 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             {[
               [schoolProfile?.principal_name || 'Principal', 'Principal'],
               [enrichedCard.class_teacher_name || 'Class Teacher', 'Class Teacher'],
-              [enrichedCard.parent_name || 'Parent / Guardian', 'Parent Signature'],
+              ['', 'Parent / Guardian Signature'],
             ].map(([name, label]) => (
               <div key={label} className="text-center">
                 <div className="w-20 border-t border-gray-500 mt-8 mb-1 mx-auto" />
-                <div className="text-[9px] font-bold text-[#111]">{name}</div>
+                {name && <div className="text-[9px] font-bold text-[#111]">{name}</div>}
                 <div className="text-[8px] text-gray-500">{label}</div>
               </div>
             ))}
