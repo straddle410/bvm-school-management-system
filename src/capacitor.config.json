@@ -3,7 +3,7 @@
   "appName": "BVM School",
   "webDir": "dist",
   "version": "1.0.1",
-  "versionCode": 3,
+  "versionCode": 100,
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 0
