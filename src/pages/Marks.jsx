@@ -187,6 +187,8 @@ export default function Marks() {
       .slice(0, 100);
   }, [selectedClass, selectedExam, examTypes, examTypesData.timetable]);
 
+  const selectedExamType = examTypes.find(e => e.name === selectedExam);
+
   const { data: examMarksConfig = null } = useQuery({
     queryKey: ['examMarksConfig', selectedClass, selectedExamType?.id],
     queryFn: async () => {
@@ -278,7 +280,6 @@ export default function Marks() {
     ? timetableSubjects 
     : (subjects.length > 0 ? subjects : DEFAULT_SUBJECTS);
 
-  const selectedExamType = examTypes.find(e => e.name === selectedExam);
   const maxMarks = selectedExamType?.max_marks || 100;
   const passingMarks = selectedExamType?.min_marks_to_pass || 40;
 
