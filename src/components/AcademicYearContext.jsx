@@ -125,12 +125,25 @@ export function AcademicYearProvider({ children }) {
 
     init();
 
-    // Subscribe to AcademicYear changes
-    const unsubscribe = base44.entities.AcademicYear.subscribe(() => {
-      base44.entities.AcademicYear.list('-start_date').then(setAcademicYears).catch(() => {});
-    });
+    // Subscribe to AcademicYear changes (debounced on Android)
+    let subscriptionUnsubscribe;
+    let debounceTimer;
+    
+    const isAndroid = /android/i.test(navigator.userAgent);
+    const handleYearChange = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      const delay = isAndroid ? 3000 : 500; // Reduce refresh frequency on Android
+      debounceTimer = setTimeout(() => {
+        base44.entities.AcademicYear.list('-start_date').then(setAcademicYears).catch(() => {});
+      }, delay);
+    };
+    
+    subscriptionUnsubscribe = base44.entities.AcademicYear.subscribe(handleYearChange);
 
-    return unsubscribe;
+    return () => {
+      if (subscriptionUnsubscribe) subscriptionUnsubscribe();
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
   }, []);
 
   const setAcademicYear = (year) => {

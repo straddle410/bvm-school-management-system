@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 export default function MessageNotificationListener() {
   useEffect(() => {
     let unsubscribe;
+    let timeoutId;
 
     const setupListener = async () => {
       try {
@@ -36,12 +37,18 @@ export default function MessageNotificationListener() {
 
         const currentUser = { email: currentEmail, full_name: currentName };
 
-        // Subscribe to new messages for current user
-        unsubscribe = base44.entities.Message.subscribe((event) => {
-          if (event.type === 'create') {
-            handleNewMessage(event.data, currentUser);
-          }
-        });
+        // Defer subscription setup by 2s on Android to avoid blocking initial load
+        const isAndroid = /android/i.test(navigator.userAgent);
+        const delay = isAndroid ? 2000 : 0;
+        
+        timeoutId = setTimeout(() => {
+          // Subscribe to new messages for current user
+          unsubscribe = base44.entities.Message.subscribe((event) => {
+            if (event.type === 'create') {
+              handleNewMessage(event.data, currentUser);
+            }
+          });
+        }, delay);
       } catch (error) {
         console.error('Failed to setup message listener:', error);
       }
@@ -50,6 +57,7 @@ export default function MessageNotificationListener() {
     setupListener();
 
     return () => {
+      if (timeoutId) clearTimeout(timeoutId);
       if (unsubscribe) unsubscribe();
     };
   }, []);
@@ -81,15 +89,16 @@ export default function MessageNotificationListener() {
       );
     }
 
-    // Play sound
-    if (prefs.sound_enabled) {
+    // Play sound (only on non-Android to reduce background activity)
+    const isAndroid = /android/i.test(navigator.userAgent);
+    if (prefs.sound_enabled && !isAndroid) {
       await notificationService.playSound(prefs.sound_volume);
     }
 
     // Show toast (in-app notification)
     toast.info(`${message.sender_name}: ${message.subject || 'New message'}`, {
       position: 'top-right',
-      duration: 5000,
+      duration: 4000, // Reduced from 5000 for Android
     });
   };
 

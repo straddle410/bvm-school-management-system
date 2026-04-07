@@ -7,13 +7,17 @@ const variants = {
 };
 
 export default function PageTransition({ children }) {
+  // Disable animations on Android for better performance
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const animationDuration = isAndroid ? 0 : 0.18;
+
   return (
     <motion.div
-      variants={variants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={{ duration: 0.18, ease: 'easeOut' }}
+      variants={isAndroid ? {} : variants}
+      initial={isAndroid ? undefined : "initial"}
+      animate={isAndroid ? undefined : "animate"}
+      exit={isAndroid ? undefined : "exit"}
+      transition={{ duration: animationDuration, ease: 'easeOut' }}
     >
       {children}
     </motion.div>
