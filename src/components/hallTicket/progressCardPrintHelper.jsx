@@ -1,10 +1,6 @@
 /**
  * Generates a full A4 print-ready HTML string for a Progress Card.
- * Uses the same ink-efficient grey scheme as hall tickets:
- *   Header: #f2f2f2 bg, #111 text
- *   Section/table headers: #e8e8e8 bg, #111 text
- *   Borders: #333
- *   Footer: #fafafa
+ * Uses the same ink-efficient grey scheme as hall tickets.
  */
 export function buildProgressCardHTML(card, schoolProfile) {
   const schoolName = schoolProfile?.school_name || 'School';
@@ -18,7 +14,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
   const attPct = parseFloat(att.attendance_percentage || 0);
   const monthlyBreakdown = att.monthly_breakdown || [];
 
-  // ── Attendance Remark ──
+  // Attendance Remark
   let attRemark = '';
   if (attPct < 60) {
     attRemark = 'Attendance is critically low. Immediate and sustained improvement is required to meet the minimum requirement.';
@@ -30,7 +26,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     attRemark = 'Attendance is satisfactory. Continued regularity is encouraged.';
   }
 
-  // ── Academic Remark ──
+  // Academic Remark
   let acaRemark = '';
   const lowSubjects = subjects.filter(s => s.max_marks > 0 && (s.marks_obtained / s.max_marks) * 100 < 70);
   const allExcellent = subjects.length > 0 && subjects.every(s => s.max_marks > 0 && (s.marks_obtained / s.max_marks) * 100 >= 90);
@@ -43,7 +39,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     acaRemark = 'Good academic performance overall. With continued effort, the student has the potential to achieve even greater results.';
   }
 
-  // ── Subject rows ──
+  // Subject rows
   const subjectRows = subjects.map((sub, idx) => {
     const internal = sub.internal_marks != null ? sub.internal_marks : '—';
     const external = sub.external_marks != null ? sub.external_marks : '—';
@@ -58,7 +54,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
       </tr>`;
   }).join('');
 
-  // ── Attendance rows ──
+  // Attendance rows
   let attendanceSection = '';
   if (monthlyBreakdown.length > 0) {
     const attRows = monthlyBreakdown.map(m => `
@@ -122,7 +118,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
 <html>
 <head>
   <meta charset="UTF-8"/>
-  <title>Progress Card – ${card.student_name}</title>
+  <title>Progress Card - ${card.student_name}</title>
   <style>
     @page { size: A4; margin: 10mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -173,7 +169,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     .lbl { font-size: 7.5px; color: #666; line-height: 1.1; }
     .val { font-size: 10px; font-weight: 700; color: #111; line-height: 1.3; }
 
-    /* SECTION HEADERS — same as hall ticket th style */
+    /* SECTION HEADERS */
     .sec-header {
       background: #e8e8e8;
       color: #111;
@@ -224,17 +220,17 @@ export function buildProgressCardHTML(card, schoolProfile) {
 </head>
 <body>
 
-  <!-- 1. HEADER -->
+  <!-- 1. HEADER: logo beside school name -->
   <div class="header">
     ${logoUrl ? `<img src="${logoUrl}" class="header-logo" />` : ''}
-    <div style="flex:1;text-align:center">
+    <div>
       <div class="header-school">${schoolName}</div>
       ${schoolAddress ? `<div class="header-addr">${schoolAddress}</div>` : ''}
     </div>
   </div>
 
-  <!-- BADGE -->
-  <div class="badge-row">PROGRESS CARD — ${examName.toUpperCase()}</div>
+  <!-- BADGE: dynamic exam name -->
+  <div class="badge-row">${examName.toUpperCase()} PROGRESS CARD</div>
 
   <!-- 2. STUDENT INFO -->
   <div class="student-row">

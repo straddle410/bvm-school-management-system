@@ -46,20 +46,20 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
 
         <div className="space-y-0 text-[10px] border border-gray-400 rounded overflow-hidden">
 
-          {/* Header — light grey like hall ticket */}
+          {/* Header: logo beside school name */}
           <div className="bg-[#f2f2f2] text-[#111] px-4 py-3 flex items-center gap-3 border-b border-gray-400">
             {schoolProfile?.logo_url && (
               <img src={schoolProfile.logo_url} alt="Logo" className="w-10 h-10 object-contain rounded flex-shrink-0" />
             )}
-            <div className="flex-1 text-center">
+            <div>
               <div className="text-sm font-extrabold uppercase tracking-widest">{schoolProfile?.school_name || 'School'}</div>
               {schoolProfile?.address && <div className="text-[9px] text-gray-500 mt-0.5">{schoolProfile.address}</div>}
             </div>
           </div>
 
-          {/* Badge row */}
+          {/* Badge: dynamic exam name */}
           <div className="bg-[#e8e8e8] text-[#111] text-center text-[10px] font-bold py-1 tracking-widest border-b border-gray-400 uppercase">
-            Progress Card — {examName}
+            {examName} Progress Card
           </div>
 
           {/* Student Info */}
