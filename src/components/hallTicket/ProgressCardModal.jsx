@@ -34,6 +34,9 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
   else if (lowSubjects.length > 0) acaRemark = `Needs improvement in: ${lowSubjects.map(s => s.subject).join(', ')}.`;
   else acaRemark = 'Good overall performance. Keep up the effort.';
 
+  const totalObtained = subjects.reduce((s, sub) => s + (sub.marks_obtained || 0), 0);
+  const totalMax = subjects.reduce((s, sub) => s + (sub.max_marks || 0), 0);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -44,20 +47,20 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
           </Button>
         </DialogHeader>
 
-        <div className="space-y-0 text-[10px] border border-gray-400 rounded overflow-hidden">
+        <div className="text-[10px] border border-gray-400 rounded overflow-hidden">
 
-          {/* Header: logo beside school name */}
-          <div className="bg-[#f2f2f2] text-[#111] px-4 py-3 flex items-center gap-3 border-b border-gray-400">
+          {/* Header: centered — logo + school name + address */}
+          <div className="bg-[#f2f2f2] text-[#111] px-4 py-3 flex items-center justify-center gap-3 border-b border-gray-400">
             {schoolProfile?.logo_url && (
-              <img src={schoolProfile.logo_url} alt="Logo" className="w-10 h-10 object-contain rounded flex-shrink-0" />
+              <img src={schoolProfile.logo_url} alt="Logo" className="w-11 h-11 object-contain rounded flex-shrink-0" />
             )}
-            <div>
+            <div className="text-center">
               <div className="text-sm font-extrabold uppercase tracking-widest">{schoolProfile?.school_name || 'School'}</div>
               {schoolProfile?.address && <div className="text-[9px] text-gray-500 mt-0.5">{schoolProfile.address}</div>}
             </div>
           </div>
 
-          {/* Badge: dynamic exam name */}
+          {/* Badge: exam type + Progress Card */}
           <div className="bg-[#e8e8e8] text-[#111] text-center text-[10px] font-bold py-1 tracking-widest border-b border-gray-400 uppercase">
             {examName} Progress Card
           </div>
@@ -88,7 +91,7 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Marks Table */}
+          {/* Marks Table with Total row */}
           <div className="bg-[#e8e8e8] text-[#111] text-[9px] font-bold uppercase tracking-widest px-3 py-1 border-b border-gray-400">
             Subject-wise Marks
           </div>
@@ -114,6 +117,15 @@ export default function ProgressCardModal({ card, isOpen, onClose }) {
                     <td className="border border-gray-300 px-2 py-1 text-center font-bold">{sub.grade || '—'}</td>
                   </tr>
                 ))}
+                {subjects.length > 0 && (
+                  <tr className="bg-[#e8e8e8] font-bold">
+                    <td colSpan={2} className="border border-gray-400 px-2 py-1 text-right">Total</td>
+                    <td className="border border-gray-400 px-2 py-1 text-center">—</td>
+                    <td className="border border-gray-400 px-2 py-1 text-center">—</td>
+                    <td className="border border-gray-400 px-2 py-1 text-center">{totalObtained} / {totalMax}</td>
+                    <td className="border border-gray-400 px-2 py-1 text-center">{(card.overall_stats?.overall_percentage || 0).toFixed(1)}% ({card.overall_stats?.overall_grade || '—'})</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

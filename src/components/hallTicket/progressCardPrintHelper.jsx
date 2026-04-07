@@ -39,6 +39,10 @@ export function buildProgressCardHTML(card, schoolProfile) {
     acaRemark = 'Good academic performance overall. With continued effort, the student has the potential to achieve even greater results.';
   }
 
+  // Totals for subject table
+  const totalObtained = subjects.reduce((s, sub) => s + (sub.marks_obtained || 0), 0);
+  const totalMax = subjects.reduce((s, sub) => s + (sub.max_marks || 0), 0);
+
   // Subject rows
   const subjectRows = subjects.map((sub, idx) => {
     const internal = sub.internal_marks != null ? sub.internal_marks : '—';
@@ -53,6 +57,15 @@ export function buildProgressCardHTML(card, schoolProfile) {
         <td style="text-align:center;font-weight:700">${sub.grade || '—'}</td>
       </tr>`;
   }).join('');
+
+  const totalRow = subjects.length > 0 ? `
+    <tr style="background:#e8e8e8;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+      <td colspan="2" style="text-align:right;padding-right:10px">Total</td>
+      <td style="text-align:center">—</td>
+      <td style="text-align:center">—</td>
+      <td style="text-align:center">${totalObtained} / ${totalMax}</td>
+      <td style="text-align:center">${(card.overall_stats?.overall_percentage || 0).toFixed(1)}% (${card.overall_stats?.overall_grade || '—'})</td>
+    </tr>` : '';
 
   // Attendance rows
   let attendanceSection = '';
@@ -124,23 +137,25 @@ export function buildProgressCardHTML(card, schoolProfile) {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 10px; color: #111; background: #fff; }
 
-    /* HEADER — same as hall ticket */
+    /* HEADER — centered, same grey as hall ticket */
     .header {
       background: #f2f2f2;
       color: #111;
-      padding: 8px 10px 6px;
+      padding: 10px 14px 8px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 12px;
       border-bottom: 1.25px solid #333;
+      text-align: center;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .header-logo { width: 40px; height: 40px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
-    .header-school { font-size: 15px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
-    .header-addr { font-size: 9px; color: #444; margin-top: 2px; letter-spacing: 0.05em; }
+    .header-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+    .header-school { font-size: 16px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #111; }
+    .header-addr { font-size: 9px; color: #444; margin-top: 2px; letter-spacing: 0.04em; }
 
-    /* BADGE — same as hall ticket badge-row */
+    /* BADGE */
     .badge-row {
       background: #e8e8e8;
       color: #111;
@@ -148,7 +163,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
       font-size: 10px;
       font-weight: 700;
       padding: 3px 0;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       border-bottom: 1.25px solid #333;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
@@ -192,7 +207,6 @@ export function buildProgressCardHTML(card, schoolProfile) {
       text-align: left;
       font-size: 9px;
       font-weight: 700;
-      letter-spacing: 0.03em;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       border: 1.25px solid #333;
@@ -220,7 +234,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
 </head>
 <body>
 
-  <!-- 1. HEADER: logo beside school name -->
+  <!-- 1. HEADER: centered — logo + school name + address -->
   <div class="header">
     ${logoUrl ? `<img src="${logoUrl}" class="header-logo" />` : ''}
     <div>
@@ -229,7 +243,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     </div>
   </div>
 
-  <!-- BADGE: dynamic exam name -->
+  <!-- BADGE: exam type + Progress Card -->
   <div class="badge-row">${examName.toUpperCase()} PROGRESS CARD</div>
 
   <!-- 2. STUDENT INFO -->
@@ -245,7 +259,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     </div>
   </div>
 
-  <!-- 3. MARKS TABLE -->
+  <!-- 3. MARKS TABLE with Total row -->
   <div class="sec-header">Subject-wise Marks</div>
   <div class="table-wrap">
     <table>
@@ -261,6 +275,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
       </thead>
       <tbody>
         ${subjectRows || '<tr><td colspan="6" style="text-align:center;padding:10px;color:#999;background:#fff">No marks data available</td></tr>'}
+        ${totalRow}
       </tbody>
     </table>
   </div>
