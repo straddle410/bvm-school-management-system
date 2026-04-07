@@ -74,6 +74,14 @@
                 "marks_obtained": {
                   "type": "number"
                 },
+                "internal_marks": {
+                  "type": "number",
+                  "description": "Internal marks obtained"
+                },
+                "external_marks": {
+                  "type": "number",
+                  "description": "External marks obtained"
+                },
                 "max_marks": {
                   "type": "number"
                 },
@@ -98,64 +106,50 @@
       "type": "object",
       "properties": {
         "total_marks_obtained": {
-          "type": "number",
-          "description": "Total marks across all exams in the year"
+          "type": "number"
         },
         "total_possible_marks": {
-          "type": "number",
-          "description": "Total possible marks"
+          "type": "number"
         },
         "overall_percentage": {
-          "type": "number",
-          "description": "Overall percentage for the year"
+          "type": "number"
         },
         "overall_grade": {
-          "type": "string",
-          "description": "Overall grade for the year"
+          "type": "string"
         },
         "overall_rank": {
-          "type": "number",
-          "description": "Overall rank in class for the year"
+          "type": "number"
         },
         "class_strength": {
-          "type": "number",
-          "description": "Total students in class for ranking context"
+          "type": "number"
         }
-      },
-      "description": "Overall academic year statistics"
+      }
     },
     "attendance_summary": {
       "type": "object",
       "properties": {
         "range_start": {
           "type": "string",
-          "format": "date",
-          "description": "Attendance range start date"
+          "format": "date"
         },
         "range_end": {
           "type": "string",
-          "format": "date",
-          "description": "Attendance range end date"
+          "format": "date"
         },
         "working_days": {
-          "type": "number",
-          "description": "Total working days in the range"
+          "type": "number"
         },
         "full_days_present": {
-          "type": "number",
-          "description": "Number of full days present"
+          "type": "number"
         },
         "half_days_present": {
-          "type": "number",
-          "description": "Number of half days present"
+          "type": "number"
         },
         "total_present_days": {
-          "type": "number",
-          "description": "Total present days (full days + half days \u00d7 0.5)"
+          "type": "number"
         },
         "attendance_percentage": {
-          "type": "number",
-          "description": "Attendance percentage (0-100)"
+          "type": "number"
         },
         "month_wise_breakdown": {
           "type": "array",
@@ -163,74 +157,57 @@
             "type": "object",
             "properties": {
               "month": {
-                "type": "string",
-                "description": "Month name (e.g., 'December', 'January')"
+                "type": "string"
               },
               "year": {
-                "type": "number",
-                "description": "Year (e.g., 2024)"
+                "type": "number"
               },
               "month_display": {
-                "type": "string",
-                "description": "Display text (e.g., 'Dec (15\u201331)', 'Jan', 'Feb (1\u201315)')"
+                "type": "string"
               },
               "period_start": {
                 "type": "string",
-                "format": "date",
-                "description": "Start date of this month period (within range)"
+                "format": "date"
               },
               "period_end": {
                 "type": "string",
-                "format": "date",
-                "description": "End date of this month period (within range)"
+                "format": "date"
               },
               "working_days": {
-                "type": "number",
-                "description": "Working days in this period"
+                "type": "number"
               },
               "full_days_present": {
-                "type": "number",
-                "description": "Full days present in this period"
+                "type": "number"
               },
               "half_days_present": {
-                "type": "number",
-                "description": "Half days present in this period"
+                "type": "number"
               },
               "total_present": {
-                "type": "number",
-                "description": "Total present days (full + half\u00d70.5) in this period"
+                "type": "number"
               },
               "attendance_percentage": {
-                "type": "number",
-                "description": "Attendance percentage for this period"
+                "type": "number"
               }
             }
-          },
-          "description": "Month-wise attendance breakdown within the range"
+          }
         }
-      },
-      "description": "Attendance summary with month-wise breakdown for exam range"
+      }
     },
     "class_teacher_remarks": {
-      "type": "string",
-      "description": "Class teacher's overall remarks"
+      "type": "string"
     },
     "class_teacher_name": {
-      "type": "string",
-      "description": "Class teacher name"
+      "type": "string"
     },
     "principal_name": {
-      "type": "string",
-      "description": "Principal name for signature"
+      "type": "string"
     },
     "generated_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "When the card was generated"
+      "format": "date-time"
     },
     "generated_by": {
-      "type": "string",
-      "description": "Generated by (admin email)"
+      "type": "string"
     },
     "status": {
       "type": "string",
@@ -238,17 +215,14 @@
         "Generated",
         "Published"
       ],
-      "default": "Generated",
-      "description": "Card status - Published = locked, immutable"
+      "default": "Generated"
     },
     "is_locked": {
       "type": "boolean",
-      "default": false,
-      "description": "Locked after publish - prevents modifications"
+      "default": false
     },
     "pdf_url": {
-      "type": "string",
-      "description": "URL to generated progress card PDF"
+      "type": "string"
     }
   },
   "required": [
