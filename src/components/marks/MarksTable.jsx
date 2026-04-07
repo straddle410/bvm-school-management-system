@@ -27,13 +27,22 @@ export default function MarksTable({
     return rollA - rollB;
   });
 
-  const handleKeyDown = (e, studentIdx, subjectIdx) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      // Navigate to next student, same subject
+  const handleKeyDown = (e, studentIdx, subjectIdx, field) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (hasInternal) {
+      if (field === 'int') {
+        // int → ext same student same subject
+        document.getElementById(`marks-${studentIdx}-${subjectIdx}-ext`)?.focus();
+      } else {
+        // ext → int of next student same subject
+        if (studentIdx < sortedStudents.length - 1) {
+          document.getElementById(`marks-${studentIdx + 1}-${subjectIdx}-int`)?.focus();
+        }
+      }
+    } else {
       if (studentIdx < sortedStudents.length - 1) {
-        const nextInputId = `marks-${studentIdx + 1}-${subjectIdx}`;
-        document.getElementById(nextInputId)?.focus();
+        document.getElementById(`marks-${studentIdx + 1}-${subjectIdx}`)?.focus();
       }
     }
   };
@@ -106,6 +115,7 @@ export default function MarksTable({
                               if (val === '' || parseFloat(val) <= maxInternal)
                                 onMarkChange?.(studentId, subject, 'internal_marks_obtained', val);
                             }}
+                            onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx, 'int')}
                             disabled={isLocked}
                             placeholder="—"
                             className="w-14 h-9 text-center text-sm font-semibold rounded-lg border-2 border-blue-200 bg-blue-50 text-blue-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -125,6 +135,7 @@ export default function MarksTable({
                               if (val === '' || parseFloat(val) <= maxExternal)
                                 onMarkChange?.(studentId, subject, 'external_marks_obtained', val);
                             }}
+                            onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx, 'ext')}
                             disabled={isLocked}
                             placeholder="—"
                             className={`w-14 h-9 text-center text-sm font-semibold rounded-lg border-2 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
@@ -155,7 +166,7 @@ export default function MarksTable({
                           if (val === '' || parseFloat(val) <= maxMarks)
                             onMarkChange?.(studentId, subject, val);
                         }}
-                        onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx)}
+                        onKeyDown={(e) => handleKeyDown(e, idx, subjectIdx, 'total')}
                         disabled={isLocked}
                         placeholder="—"
                         className={`w-16 h-9 text-center text-sm font-semibold rounded-lg border-2 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
