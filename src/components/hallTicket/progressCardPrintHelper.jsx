@@ -230,11 +230,11 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
     .remark-text { font-size: 12px; color: #333; line-height: 1.7; }
 
     /* SIGNATURES */
-    .sig-row { display: flex; justify-content: space-between; padding: 10px 36px 8px; border-top: 1.5px solid #333; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .sig-block { text-align: center; }
-    .sig-line { border-top: 1.5px solid #333; width: 110px; margin: 34px auto 4px; }
-    .sig-name { font-size: 12px; font-weight: 700; color: #111; }
-    .sig-label { font-size: 10px; color: #444; margin-top: 2px; }
+    .sig-row { display: flex; justify-content: space-between; align-items: flex-end; padding: 10px 36px 8px; border-top: 1.5px solid #333; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sig-block { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .sig-line { border-top: 1.5px solid #333; width: 110px; margin-bottom: 30px; }
+    .sig-name { font-size: 12px; font-weight: 700; color: #111; margin-bottom: 2px; }
+    .sig-label { font-size: 10px; color: #444; }
 
     /* FOOTER */
     .footer { text-align: center; border-top: 1.5px solid #333; margin-top: 6px; padding-top: 5px; background: #fafafa; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
