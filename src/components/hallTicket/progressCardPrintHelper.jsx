@@ -1,8 +1,6 @@
 /**
  * Generates a full A4 print-ready HTML string for a Progress Card.
- * @param {object} card - ProgressCard entity data
- * @param {object} schoolProfile - SchoolProfile entity data
- * @returns {string} full HTML document string
+ * Uses grey/neutral theme (no blue ink) for ink-efficient printing.
  */
 export function buildProgressCardHTML(card, schoolProfile) {
   const schoolName = schoolProfile?.school_name || 'School';
@@ -43,16 +41,14 @@ export function buildProgressCardHTML(card, schoolProfile) {
   const subjectRows = subjects.map((sub, idx) => {
     const internal = sub.internal_marks != null ? sub.internal_marks : '—';
     const external = sub.external_marks != null ? sub.external_marks : '—';
-    const total = sub.marks_obtained != null ? sub.marks_obtained : '—';
-    const maxTotal = sub.max_marks || '—';
     return `
-      <tr style="background:${idx % 2 === 0 ? '#f9fafb' : '#fff'}">
+      <tr style="background:${idx % 2 === 0 ? '#f9f9f9' : '#fff'}">
         <td style="text-align:center">${idx + 1}</td>
         <td><strong>${sub.subject}</strong></td>
         <td style="text-align:center">${internal}</td>
         <td style="text-align:center">${external}</td>
-        <td style="text-align:center">${total} / ${maxTotal}</td>
-        <td style="text-align:center;font-weight:700;color:#1a237e">${sub.grade || '—'}</td>
+        <td style="text-align:center">${sub.marks_obtained ?? '—'} / ${sub.max_marks || '—'}</td>
+        <td style="text-align:center;font-weight:700;color:#333">${sub.grade || '—'}</td>
       </tr>`;
   }).join('');
 
@@ -71,17 +67,15 @@ export function buildProgressCardHTML(card, schoolProfile) {
     const totalAbsent = totalWorking - totalPresent;
     attendanceSection = `
       <table>
-        <thead>
-          <tr>
-            <th>Month</th>
-            <th style="text-align:center">Working Days</th>
-            <th style="text-align:center">Present Days</th>
-            <th style="text-align:center">Absent Days</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>Month</th>
+          <th style="text-align:center">Working Days</th>
+          <th style="text-align:center">Present Days</th>
+          <th style="text-align:center">Absent Days</th>
+        </tr></thead>
         <tbody>
           ${attRows}
-          <tr style="background:#e8eaf6;font-weight:700">
+          <tr style="background:#efefef;font-weight:700">
             <td>Total</td>
             <td style="text-align:center">${totalWorking}</td>
             <td style="text-align:center;color:#16a34a">${totalPresent}</td>
@@ -95,30 +89,28 @@ export function buildProgressCardHTML(card, schoolProfile) {
     const ab = wd - pd;
     attendanceSection = `
       <table>
-        <thead>
-          <tr>
-            <th>Period</th>
-            <th style="text-align:center">Working Days</th>
-            <th style="text-align:center">Present Days</th>
-            <th style="text-align:center">Absent Days</th>
-            <th style="text-align:center">Attendance %</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>Period</th>
+          <th style="text-align:center">Working Days</th>
+          <th style="text-align:center">Present Days</th>
+          <th style="text-align:center">Absent Days</th>
+          <th style="text-align:center">Attendance %</th>
+        </tr></thead>
         <tbody>
           <tr>
             <td>${att.range_start || ''} – ${att.range_end || ''}</td>
             <td style="text-align:center">${wd}</td>
             <td style="text-align:center;color:#16a34a;font-weight:600">${pd}</td>
             <td style="text-align:center;color:#dc2626;font-weight:600">${ab}</td>
-            <td style="text-align:center;font-weight:700;color:#1a237e">${att.attendance_percentage || 0}%</td>
+            <td style="text-align:center;font-weight:700;color:#333">${att.attendance_percentage || 0}%</td>
           </tr>
         </tbody>
       </table>`;
   }
 
   const photoHtml = card.student_photo_url
-    ? `<img src="${card.student_photo_url}" style="width:64px;height:80px;object-fit:cover;border:1.5px solid #9fa8da;border-radius:4px;flex-shrink:0" />`
-    : `<div style="width:64px;height:80px;background:#e8eaf6;border:1.5px solid #9fa8da;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#3949ab">${(card.student_name || '?').charAt(0).toUpperCase()}</div>`;
+    ? `<img src="${card.student_photo_url}" style="width:64px;height:80px;object-fit:cover;border:1.5px solid #aaa;border-radius:4px;flex-shrink:0" />`
+    : `<div style="width:64px;height:80px;background:#e5e5e5;border:1.5px solid #aaa;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#555">${(card.student_name || '?').charAt(0).toUpperCase()}</div>`;
 
   return `<!DOCTYPE html>
 <html>
@@ -130,9 +122,9 @@ export function buildProgressCardHTML(card, schoolProfile) {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 10px; color: #222; background: #fff; }
 
-    /* HEADER */
+    /* HEADER — grey like hall ticket */
     .header {
-      background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+      background: linear-gradient(135deg, #444 0%, #666 100%);
       color: white;
       padding: 14px 16px 10px;
       display: flex;
@@ -143,11 +135,11 @@ export function buildProgressCardHTML(card, schoolProfile) {
     }
     .header-logo { width: 52px; height: 52px; object-fit: contain; border-radius: 4px; background: #fff; flex-shrink: 0; }
     .header-logo-placeholder { width: 52px; height: 52px; background: rgba(255,255,255,0.2); border-radius: 4px; flex-shrink: 0; }
-    .header-text { flex: 1; }
     .header-school { font-size: 18px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; }
-    .header-addr { font-size: 9px; color: #c5cae9; margin-top: 3px; }
+    .header-addr { font-size: 9px; color: #ddd; margin-top: 3px; }
     .exam-badge {
-      background: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.35);
       border-radius: 5px;
       padding: 4px 14px;
       font-size: 11px;
@@ -163,16 +155,16 @@ export function buildProgressCardHTML(card, schoolProfile) {
       align-items: flex-start;
       gap: 14px;
       padding: 10px 14px;
-      border-bottom: 2px solid #1a237e;
-      background: #f5f6ff;
+      border-bottom: 2px solid #555;
+      background: #f7f7f7;
     }
     .student-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 18px; flex: 1; }
     .lbl { font-size: 8px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-    .val { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin-top: 1px; }
+    .val { font-size: 10.5px; font-weight: 700; color: #222; margin-top: 1px; }
 
-    /* SECTION HEADERS */
+    /* SECTION HEADERS — grey */
     .sec-header {
-      background: #1a237e;
+      background: #555;
       color: white;
       font-size: 9.5px;
       font-weight: 700;
@@ -186,7 +178,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     /* TABLES */
     table { border-collapse: collapse; width: 100%; font-size: 9.5px; }
     th {
-      background: #3949ab;
+      background: #666;
       color: white;
       padding: 5px 8px;
       text-align: left;
@@ -195,24 +187,24 @@ export function buildProgressCardHTML(card, schoolProfile) {
       letter-spacing: 0.04em;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
-      border: 1px solid #5c6bc0;
+      border: 1px solid #888;
     }
-    td { border: 1px solid #dde1f5; padding: 4px 8px; vertical-align: middle; }
+    td { border: 1px solid #ddd; padding: 4px 8px; vertical-align: middle; }
 
     /* REMARKS */
-    .remarks-box { border: 1.5px solid #9fa8da; border-radius: 4px; margin: 8px 10px; padding: 8px 10px; background: #fafbff; }
-    .remark-label { font-size: 8.5px; font-weight: 700; color: #1a237e; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .remarks-box { border: 1.5px solid #bbb; border-radius: 4px; margin: 8px 10px; padding: 8px 10px; background: #fafafa; }
+    .remark-label { font-size: 8.5px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
     .remark-text { font-size: 9.5px; color: #333; line-height: 1.5; }
 
     /* SIGNATURES */
     .sig-row { display: flex; justify-content: space-between; padding: 8px 30px 4px; margin-top: 4px; }
     .sig-block { text-align: center; }
-    .sig-line { border-top: 1.5px solid #555; width: 90px; margin: 20px auto 4px; }
-    .sig-name { font-size: 9px; font-weight: 700; color: #1a237e; }
+    .sig-line { border-top: 1.5px solid #666; width: 90px; margin: 20px auto 4px; }
+    .sig-name { font-size: 9px; font-weight: 700; color: #333; }
     .sig-label { font-size: 8px; color: #666; margin-top: 1px; }
 
     /* FOOTER */
-    .footer { text-align: center; border-top: 1px solid #c5cae9; margin: 4px 10px 0; padding-top: 4px; }
+    .footer { text-align: center; border-top: 1px solid #ccc; margin: 4px 10px 0; padding-top: 4px; }
     .footer p { font-size: 8px; color: #999; }
 
     .section-wrap { margin: 0; }
@@ -226,7 +218,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     ${logoUrl
       ? `<img src="${logoUrl}" class="header-logo" />`
       : `<div class="header-logo-placeholder"></div>`}
-    <div class="header-text">
+    <div style="flex:1">
       <div class="header-school">${schoolName}</div>
       ${schoolAddress ? `<div class="header-addr">${schoolAddress}</div>` : ''}
     </div>
@@ -242,7 +234,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
       <div><div class="lbl">Academic Year</div><div class="val">${card.academic_year || '—'}</div></div>
       <div><div class="lbl">Class &amp; Section</div><div class="val">${card.class_name || '—'} – ${card.section || '—'}</div></div>
       <div><div class="lbl">Roll Number</div><div class="val">${card.roll_number || '—'}</div></div>
-      <div><div class="lbl">Overall %</div><div class="val" style="color:#1a237e">${(card.overall_stats?.overall_percentage || 0).toFixed(1)}%&nbsp;&nbsp;${card.overall_stats?.overall_grade ? `(${card.overall_stats.overall_grade})` : ''}</div></div>
+      <div><div class="lbl">Overall %</div><div class="val">${(card.overall_stats?.overall_percentage || 0).toFixed(1)}%${card.overall_stats?.overall_grade ? ` (${card.overall_stats.overall_grade})` : ''}</div></div>
     </div>
   </div>
 
@@ -281,7 +273,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
     <div class="sec-header">Remarks</div>
     <div class="remarks-box">
       <div style="display:flex;gap:16px">
-        <div style="flex:1;border-right:1px solid #c5cae9;padding-right:12px">
+        <div style="flex:1;border-right:1px solid #ccc;padding-right:12px">
           <div class="remark-label">📅 Attendance Remark</div>
           <div class="remark-text">${attRemark}</div>
         </div>
@@ -291,7 +283,7 @@ export function buildProgressCardHTML(card, schoolProfile) {
         </div>
       </div>
       ${card.class_teacher_remarks ? `
-        <div style="margin-top:8px;padding-top:6px;border-top:1px solid #c5cae9">
+        <div style="margin-top:8px;padding-top:6px;border-top:1px solid #ccc">
           <div class="remark-label">🎓 Class Teacher Remarks</div>
           <div class="remark-text">${card.class_teacher_remarks}</div>
         </div>` : ''}
@@ -328,9 +320,6 @@ export function buildProgressCardHTML(card, schoolProfile) {
 </html>`;
 }
 
-/**
- * Opens a new window and prints the progress card HTML.
- */
 export function printProgressCard(card, schoolProfile) {
   const html = buildProgressCardHTML(card, schoolProfile);
   const win = window.open('', '_blank');
@@ -340,34 +329,23 @@ export function printProgressCard(card, schoolProfile) {
   setTimeout(() => { win.print(); }, 400);
 }
 
-/**
- * Opens a new window and prints multiple progress cards (one per page).
- */
 export function printMultipleProgressCards(cards, schoolProfile) {
   if (!cards || cards.length === 0) return;
 
-  // Build combined HTML with each card on its own page
   const pagesHtml = cards.map((card, i) => {
     const cardHtml = buildProgressCardHTML(card, schoolProfile);
-    // Extract just the body content
     const bodyMatch = cardHtml.match(/<body>([\s\S]*)<\/body>/);
     const body = bodyMatch ? bodyMatch[1] : '';
-    const needsBreak = i < cards.length - 1;
-    return `<div style="${needsBreak ? 'page-break-after:always;' : ''}">${body}</div>`;
+    return `<div style="${i < cards.length - 1 ? 'page-break-after:always;' : ''}">${body}</div>`;
   }).join('');
 
-  // Use the styles from first card, strip body tags
   const firstHtml = buildProgressCardHTML(cards[0], schoolProfile);
   const stylesMatch = firstHtml.match(/<style>([\s\S]*?)<\/style>/);
   const styles = stylesMatch ? stylesMatch[1] : '';
 
   const combinedHtml = `<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8"/>
-  <title>Progress Cards Bulk Print</title>
-  <style>${styles}</style>
-</head>
+<head><meta charset="UTF-8"/><title>Progress Cards Bulk Print</title><style>${styles}</style></head>
 <body>${pagesHtml}</body>
 </html>`;
 
