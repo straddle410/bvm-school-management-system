@@ -320,7 +320,7 @@ function MarkAttendanceTab({
     setAttendanceData(data);
   };
 
-  const currentStatus = existingAttendance[0]?.status || 'Not Submitted';
+  const currentStatus = existingAttendance.length > 0 ? 'Submitted' : 'Not Submitted';
   const fullDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'full_day').length;
   const halfDayCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'half_day').length;
   const absentCount = filteredStudents.filter(s => attendanceData[s.student_id || s.id]?.attendance_type === 'absent').length;
