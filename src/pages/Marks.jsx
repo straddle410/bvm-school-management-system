@@ -188,18 +188,19 @@ export default function Marks() {
   }, [selectedClass, selectedExam, examTypes, examTypesData.timetable]);
 
   const selectedExamType = examTypes.find(e => e.name === selectedExam);
+  const selectedExamTypeId = selectedExamType?.id;
 
   const { data: examMarksConfig = null } = useQuery({
-    queryKey: ['examMarksConfig', selectedClass, selectedExamType?.id],
+    queryKey: ['examMarksConfig', selectedClass, selectedExamTypeId],
     queryFn: async () => {
-      if (!selectedClass || !selectedExamType?.id) return null;
+      if (!selectedClass || !selectedExamTypeId) return null;
       const results = await base44.entities.ExamMarksConfig.filter({
         class_name: selectedClass,
-        exam_type_id: selectedExamType.id
+        exam_type_id: selectedExamTypeId
       });
       return results[0] || null;
     },
-    enabled: !!(selectedClass && selectedExamType?.id),
+    enabled: !!(selectedClass && selectedExamTypeId),
     staleTime: 5 * 60 * 1000
   });
 
