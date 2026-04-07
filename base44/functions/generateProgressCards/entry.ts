@@ -359,18 +359,11 @@ Deno.serve(async (req) => {
         };
       };
 
-      // Get ALL class attendance records (not just this student) to count true working days
-      const classAttendance = await base44.asServiceRole.entities.Attendance.filter({
-        class_name: student.class_name,
-        section: student.section,
-        academic_year: academicYear
-      });
-
       // Calculate attendance summary
       let attendanceSummary = null;
-      console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, classRecords: ${classAttendance.length}, studentRecords: ${studentAttendance.length}`);
+      console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, studentRecords: ${studentAttendance.length}`);
       if (globalAttendanceStartDate && globalAttendanceEndDate) {
-        const rangeResult = calcAttendanceForRange(classAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
+        const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
         if (rangeResult.working_days > 0) {
            attendanceSummary = {
               range_start: globalAttendanceStartDate,
