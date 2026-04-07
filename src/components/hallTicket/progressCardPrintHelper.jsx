@@ -244,7 +244,7 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   </style>
 </head>
 <body>
-  <div style="border: 1px solid #ccc; overflow: hidden;">
+
 
   <!-- 1. HEADER: centered — logo + school name + address -->
   <div class="header">
@@ -339,8 +339,6 @@ export function buildProgressCardHTML(card, schoolProfile, subjectOrder = [], ex
   <!-- FOOTER -->
   <div class="footer">
     <p>Generated: ${new Date(card.generated_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} &nbsp;|&nbsp; This is an official document from the school management system.</p>
-  </div>
-
   </div>
 
 </body>
