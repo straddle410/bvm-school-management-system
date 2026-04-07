@@ -319,6 +319,18 @@ Deno.serve(async (req) => {
             }
           }
 
+          // For each month, also calculate student-specific present/absent
+          const studentMonthRecords = studentAttendance.filter(a => {
+            const attDate = new Date(a.date);
+            attDate.setUTCHours(0, 0, 0, 0);
+            return attDate >= periodStart && attDate <= periodEnd && !a.is_holiday && a.attendance_type !== 'holiday';
+          });
+          const studentFullDays = studentMonthRecords.filter(a => a.attendance_type === 'full_day').length;
+          const studentHalfDays = studentMonthRecords.filter(a => a.attendance_type === 'half_day').length;
+          const studentPresent = studentFullDays + (studentHalfDays * 0.5);
+          const studentAbsent = mWorking - studentFullDays - studentHalfDays;
+          const studentMonthPct = mWorking > 0 ? Math.round((studentPresent / mWorking) * 100) : 0;
+
           months.push({
             month: monthName,
             year: current.getFullYear(),
@@ -326,11 +338,12 @@ Deno.serve(async (req) => {
             period_start: periodStart.toISOString().split('T')[0],
             period_end: periodEnd.toISOString().split('T')[0],
             working_days: mWorking,
-            full_days_present: mFull,
-            half_days_present: mHalf,
-            absent_days: mAbsent,
-            total_present: Math.round(mPresent * 100) / 100,
-            attendance_percentage: mPct
+            present_days: Math.round(studentPresent * 100) / 100,
+            full_days_present: studentFullDays,
+            half_days_present: studentHalfDays,
+            absent_days: Math.round(studentAbsent * 100) / 100,
+            total_present: Math.round(studentPresent * 100) / 100,
+            attendance_percentage: studentMonthPct
           });
           current.setMonth(current.getMonth() + 1);
         }
@@ -346,12 +359,19 @@ Deno.serve(async (req) => {
         };
       };
 
+      // Get ALL class attendance records (not just this student) to count true working days
+      const classAttendance = await base44.asServiceRole.entities.Attendance.filter({
+        class_name: student.class_name,
+        section: student.section,
+        academic_year: academicYear
+      });
+
       // Calculate attendance summary
-       let attendanceSummary = null;
-       console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, records: ${studentAttendance.length}`);
-       if (globalAttendanceStartDate && globalAttendanceEndDate) {
-         const rangeResult = calcAttendanceForRange(studentAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
-         if (rangeResult.working_days > 0) {
+      let attendanceSummary = null;
+      console.log(`[CALC-START] Student: ${student.student_name}, startDate: ${globalAttendanceStartDate}, endDate: ${globalAttendanceEndDate}, classRecords: ${classAttendance.length}, studentRecords: ${studentAttendance.length}`);
+      if (globalAttendanceStartDate && globalAttendanceEndDate) {
+        const rangeResult = calcAttendanceForRange(classAttendance, globalAttendanceStartDate, globalAttendanceEndDate);
+        if (rangeResult.working_days > 0) {
            attendanceSummary = {
               range_start: globalAttendanceStartDate,
               range_end: globalAttendanceEndDate,
