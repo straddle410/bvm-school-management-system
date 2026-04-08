@@ -34,7 +34,7 @@ export default function Index() {
   return (
     <div className="fixed inset-0 w-full h-full">
       <img
-        src="https://media.base44.com/images/public/69965572f33252d650e49c9b/98d9b52fa_bvmsplashscreen.png"
+        src="https://media.base44.com/images/public/69965572f33252d650e49c9b/f5d2c65a0_Gemini_Generated_Image_6i2xe56i2xe56i2x.png"
         alt="BVM School Splash"
         className="w-full h-full object-cover"
       />
