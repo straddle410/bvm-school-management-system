@@ -10,7 +10,10 @@
       "launchAutoHide": true,
       "backgroundColor": "#ffffff",
       "androidSplashResourceName": "splash",
-      "showSpinner": false
+      "showSpinner": false,
+      "launchFadeOutDuration": 300,
+      "splashFullScreen": true,
+      "splashImmersive": true
     }
   }
 }
