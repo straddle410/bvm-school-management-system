@@ -43,12 +43,10 @@ export default function LiveBusMap({ routeId }) {
   useEffect(() => {
     if (!routeId) return;
 
-    // Initial fetch
     base44.entities.BusLocation.filter({ route_id: routeId, status: 'active' })
       .then(data => { setBusLocation(data[0] || null); setLoading(false); })
       .catch(() => setLoading(false));
 
-    // Real-time subscription
     unsubRef.current = base44.entities.BusLocation.subscribe((event) => {
       if (event.data?.route_id !== routeId) return;
       if (event.type === 'delete') { setBusLocation(null); return; }
@@ -61,16 +59,16 @@ export default function LiveBusMap({ routeId }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8 bg-white rounded-2xl border border-gray-100">
+      <div className="flex items-center justify-center h-full bg-white">
         <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-700 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="flex flex-col h-full bg-white overflow-hidden">
       {/* Driver Info Bar */}
-      <div className="px-4 py-3 bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white">
+      <div className="px-4 py-3 bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -93,19 +91,19 @@ export default function LiveBusMap({ routeId }) {
                 Maps
               </a>
             )}
-            {busLocation?.driver_phone ? (
+            {busLocation?.driver_phone && (
               <a href={`tel:${busLocation.driver_phone}`}
                 className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all">
                 <Phone className="h-3.5 w-3.5" />
                 Call
               </a>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
 
       {/* Status Bar */}
-      <div className={`px-4 py-2 flex items-center gap-2 text-xs font-semibold ${busLocation ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+      <div className={`px-4 py-2 flex items-center gap-2 text-xs font-semibold flex-shrink-0 ${busLocation ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
         <div className={`h-2 w-2 rounded-full ${busLocation ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
         {busLocation ? (
           <span>Live · Updated {formatTime(busLocation.last_updated)}</span>
@@ -116,7 +114,7 @@ export default function LiveBusMap({ routeId }) {
 
       {/* Map */}
       {busLocation ? (
-        <div style={{ height: '320px', width: '100%' }}>
+        <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
           <MapContainer
             center={[busLocation.latitude, busLocation.longitude]}
             zoom={15}
@@ -138,7 +136,7 @@ export default function LiveBusMap({ routeId }) {
           </MapContainer>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+        <div className="flex flex-col items-center justify-center flex-1 text-gray-400">
           <MapPin className="h-10 w-10 mb-3 opacity-30" />
           <p className="text-sm font-medium">Bus tracking not active</p>
           <p className="text-xs mt-1 text-gray-400">Driver will start sharing location when the route begins</p>

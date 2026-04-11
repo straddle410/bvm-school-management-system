@@ -391,18 +391,16 @@ export default function StudentDashboard() {
 
         {/* Bus Map Full-screen Overlay */}
         {showBusMap && student?.transport_route_id && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
-            <div className="bg-white dark:bg-slate-900 flex-1 flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white flex-shrink-0">
+          <div className="fixed inset-0 z-50 flex flex-col bg-white">
+              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white flex-shrink-0" style={{paddingTop: 'max(12px, env(safe-area-inset-top))'}}>
                 <p className="font-bold text-base">Live Bus Tracking</p>
                 <button onClick={() => setShowBusMap(false)} className="p-2 hover:bg-white/20 rounded-lg transition">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1" style={{minHeight: 0}}>
                 <LiveBusMap routeId={student.transport_route_id} />
               </div>
-            </div>
           </div>
         )}
 
