@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { base44 } from '@/api/base44Client';
-import { Bus, Phone, MapPin, Clock, AlertCircle, Navigation } from 'lucide-react';
+import { Bus, Phone, MapPin, ExternalLink } from 'lucide-react';
 
 // Fix leaflet default icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -81,13 +81,26 @@ export default function LiveBusMap({ routeId }) {
               <p className="text-blue-200 text-xs">{busLocation?.bus_number ? `Bus ${busLocation.bus_number}` : busLocation?.route_name || 'Your Route'}</p>
             </div>
           </div>
-          {busLocation?.driver_phone ? (
-            <a href={`tel:${busLocation.driver_phone}`}
-              className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all">
-              <Phone className="h-3.5 w-3.5" />
-              Call Driver
-            </a>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {busLocation?.latitude && busLocation?.longitude && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${busLocation.latitude},${busLocation.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Maps
+              </a>
+            )}
+            {busLocation?.driver_phone ? (
+              <a href={`tel:${busLocation.driver_phone}`}
+                className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all">
+                <Phone className="h-3.5 w-3.5" />
+                Call
+              </a>
+            ) : null}
+          </div>
         </div>
       </div>
 
