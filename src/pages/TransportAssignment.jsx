@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Bus, MapPin, Loader2, Check, ChevronLeft, ChevronRight, ArrowLeft, XCircle } from 'lucide-react';
+import { Search, Bus, MapPin, Loader2, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/components/AcademicYearContext';
 import { getStaffSession } from '@/components/useStaffSession';
@@ -25,7 +25,7 @@ export default function TransportAssignment() {
   const debounceRef = useRef(null);
   const [page, setPage] = useState(1);
   const [filterRoute, setFilterRoute] = useState('all');
-  const [filterAssigned, setFilterAssigned] = useState('all');
+  const [filterAssigned, setFilterAssigned] = useState('assigned');
   const [showDialog, setShowDialog] = useState(false);
   const [studentToAssign, setStudentToAssign] = useState(null);
   const [formRouteId, setFormRouteId] = useState('');
@@ -179,11 +179,10 @@ export default function TransportAssignment() {
               </SelectContent>
             </Select>
             <Select value={filterAssigned} onValueChange={v => { setFilterAssigned(v); setPage(1); }}>
-              <SelectTrigger className="bg-white"><SelectValue placeholder="All Students" /></SelectTrigger>
+              <SelectTrigger className="bg-white"><SelectValue placeholder="Transport Enabled" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="assigned">✅ Transport Enabled</SelectItem>
                 <SelectItem value="all">All Students</SelectItem>
-                <SelectItem value="assigned">✅ Assigned</SelectItem>
-                <SelectItem value="unassigned">⚠️ Unassigned</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -212,30 +211,18 @@ export default function TransportAssignment() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-900 text-sm truncate">{student.name}</p>
                     <p className="text-xs text-slate-400">Class {student.class_name}-{student.section}</p>
-                    {student.transport_enabled ? (
-                      <div className="flex items-center gap-1 mt-1 text-xs text-blue-700 bg-blue-50 w-fit px-2 py-0.5 rounded-full">
-                        <Bus className="h-3 w-3" />
-                        <span className="font-medium">{student.transport_route_name}</span>
-                        {student.transport_stop_name && (
-                          <><span className="text-blue-300">·</span><MapPin className="h-3 w-3" /><span>{student.transport_stop_name}</span></>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="mt-1 text-xs text-gray-400 italic">No transport</span>
-                    )}
+                    <div className="flex items-center gap-1 mt-1 text-xs text-blue-700 bg-blue-50 w-fit px-2 py-0.5 rounded-full">
+                      <Bus className="h-3 w-3" />
+                      <span className="font-medium">{student.transport_route_name || 'Route not set'}</span>
+                      {student.transport_stop_name && (
+                        <><span className="text-blue-300">·</span><MapPin className="h-3 w-3" /><span>{student.transport_stop_name}</span></>
+                      )}
+                      {!student.transport_stop_name && <span className="text-amber-500 ml-1">· No stop</span>}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {student.transport_enabled && (
-                      <button
-                        onClick={() => { if (window.confirm(`Remove transport for ${student.name}?`)) removeMutation.mutate(student.id); }}
-                        disabled={removeMutation.isPending}
-                        className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition"
-                      >
-                        <XCircle className="h-4 w-4" />
-                      </button>
-                    )}
                     <Button size="sm" onClick={() => openAssign(student)} className="bg-[#1a237e] hover:bg-[#283593] text-xs h-8 px-3 rounded-lg">
-                      {student.transport_enabled ? 'Change' : 'Assign'}
+                      {student.transport_stop_name ? 'Change Stop' : 'Assign Stop'}
                     </Button>
                   </div>
                 </div>
