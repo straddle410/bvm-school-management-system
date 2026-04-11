@@ -34,13 +34,21 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { staff_session_token, student_ids, transport_enabled } = body;
 
-    // Verify token
+    // Verify token — fall back to base44 auth if no staff token
+    let role = null;
     const payload = await verifyStaffToken(staff_session_token);
-    if (!payload) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (payload) {
+      role = (payload.role || '').toLowerCase();
+    } else {
+      try {
+        const user = await base44.auth.me();
+        if (user) role = (user.role || '').toLowerCase();
+      } catch {}
     }
 
-    const role = (payload.role || '').toLowerCase();
+    if (!role) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     if (role !== 'admin' && role !== 'principal') {
       return Response.json({ error: 'Forbidden: Admin/Principal only' }, { status: 403 });
     }
