@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Phone } from 'lucide-react';
+import { Eye, Phone, History } from 'lucide-react';
 import { format } from 'date-fns';
 
 const LoadingSpinner = () => (
@@ -21,6 +21,9 @@ export default function DailySnapshotTab() {
   const [selectedClassData, setSelectedClassData] = useState(null);
   const [viewType, setViewType] = useState('full_day');
   const [academicYearData, setAcademicYearData] = useState(null);
+  const [last5Modal, setLast5Modal] = useState(null); // {class_name, section, students}
+  const [last5Attendance, setLast5Attendance] = useState({});
+  const [isLoadingLast5, setIsLoadingLast5] = useState(false);
 
   // Fetch academic year data for date constraints
   useEffect(() => {
@@ -260,6 +263,45 @@ export default function DailySnapshotTab() {
   const totalHoliday = reportData.reduce((s, r) => s + r.holiday, 0);
   const totalUnmarked = reportData.reduce((s, r) => s + r.unmarked, 0);
 
+  // Compute last 5 non-Sunday dates from selectedDate (inclusive, descending)
+  const last5Dates = useMemo(() => {
+    if (!selectedDate) return [];
+    const dates = [];
+    const current = new Date(selectedDate + 'T00:00:00');
+    while (dates.length < 5) {
+      if (getDay(current) !== 0) dates.push(format(current, 'yyyy-MM-dd'));
+      current.setDate(current.getDate() - 1);
+    }
+    return dates; // descending (newest first)
+  }, [selectedDate]);
+
+  // Fetch last 5 days attendance when modal opens
+  useEffect(() => {
+    if (!last5Modal || last5Dates.length === 0) return;
+    setIsLoadingLast5(true);
+    setLast5Attendance({});
+    Promise.all(
+      last5Dates.map(date =>
+        base44.entities.Attendance.filter({
+          academic_year: academicYear,
+          class_name: last5Modal.class_name,
+          section: last5Modal.section,
+          date
+        })
+      )
+    ).then(results => {
+      const map = {};
+      last5Dates.forEach((date, i) => {
+        map[date] = {};
+        results[i].forEach(rec => {
+          map[date][rec.student_id] = rec.attendance_type || 'full_day';
+        });
+      });
+      setLast5Attendance(map);
+      setIsLoadingLast5(false);
+    }).catch(() => setIsLoadingLast5(false));
+  }, [last5Modal, last5Dates, academicYear]);
+
   const formatSubmittedTime = (submittedAt) => {
     if (!submittedAt) return 'Not Submitted';
     try {
@@ -320,6 +362,7 @@ export default function DailySnapshotTab() {
                       <th className="text-center p-3 font-semibold text-slate-700 w-28">Attendance %</th>
                       <th className="text-left p-3 font-semibold text-slate-700 min-w-40">Submitted By</th>
                       <th className="text-left p-3 font-semibold text-slate-700 min-w-36">Submitted Time</th>
+                      <th className="text-center p-3 font-semibold text-slate-700 w-24">Last 5 Days</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -384,8 +427,22 @@ export default function DailySnapshotTab() {
                               <span className="text-xs text-gray-400">Not Submitted</span>
                             )}
                           </td>
+                          <td className="text-center p-3">
+                            <button
+                              onClick={() => {
+                                const classStudents = allStudents.filter(
+                                  s => s.class_name === row.class_name && s.section === row.section
+                                );
+                                setLast5Modal({ class_name: row.class_name, section: row.section, students: classStudents });
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition text-xs font-medium"
+                            >
+                              <History className="h-3.5 w-3.5" />
+                              View
+                            </button>
+                          </td>
                           </tr>
-                      );
+                          );
                     })}
                     {/* Totals row */}
                     <tr className="bg-slate-100 border-t-2 border-slate-300">
@@ -399,6 +456,7 @@ export default function DailySnapshotTab() {
                       <td className="text-center p-3 font-bold">
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{overallPct}%</span>
                       </td>
+                      <td className="p-3"></td>
                       <td className="p-3"></td>
                       <td className="p-3"></td>
                       </tr>
@@ -468,6 +526,60 @@ export default function DailySnapshotTab() {
               ));
             })()}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Last 5 Days Dialog */}
+      <Dialog open={!!last5Modal} onOpenChange={(open) => !open && setLast5Modal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Last 5 Working Days — Class {last5Modal?.class_name}{last5Modal?.section ? `-${last5Modal.section}` : ''}
+            </DialogTitle>
+          </DialogHeader>
+          {isLoadingLast5 ? (
+            <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" /></div>
+          ) : (
+            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-white z-10">
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left p-2 font-semibold text-slate-700 min-w-40">Student</th>
+                    {last5Dates.map(date => (
+                      <th key={date} className="text-center p-2 font-semibold text-slate-700 min-w-20">
+                        <div className="text-xs">{format(new Date(date + 'T00:00:00'), 'dd MMM')}</div>
+                        <div className="text-[10px] text-slate-400">{format(new Date(date + 'T00:00:00'), 'EEE')}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(last5Modal?.students || []).map((student, idx) => (
+                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="p-2 font-medium text-slate-800">{student.name}</td>
+                      {last5Dates.map(date => {
+                        const status = last5Attendance[date]?.[student.student_id];
+                        const noRecord = last5Attendance[date] !== undefined && status === undefined;
+                        const label = !status ? (noRecord ? 'U' : '…') : status === 'full_day' ? 'P' : status === 'half_day' ? 'H' : status === 'absent' ? 'A' : status === 'holiday' ? '–' : 'U';
+                        const color = !status ? (noRecord ? 'bg-slate-100 text-slate-500' : 'text-slate-400') : status === 'full_day' ? 'bg-green-100 text-green-700' : status === 'half_day' ? 'bg-yellow-100 text-yellow-700' : status === 'absent' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
+                        return (
+                          <td key={date} className="text-center p-2">
+                            <span className={`inline-block w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${color}`}>{label}</span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex gap-3 flex-wrap pt-3 px-2 text-xs text-slate-500">
+                <span><span className="inline-block w-4 h-4 rounded-full bg-green-100 text-green-700 text-center font-bold">P</span> Present</span>
+                <span><span className="inline-block w-4 h-4 rounded-full bg-yellow-100 text-yellow-700 text-center font-bold">H</span> Half Day</span>
+                <span><span className="inline-block w-4 h-4 rounded-full bg-red-100 text-red-700 text-center font-bold">A</span> Absent</span>
+                <span><span className="inline-block w-4 h-4 rounded-full bg-slate-100 text-slate-500 text-center font-bold">U</span> Unmarked</span>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
