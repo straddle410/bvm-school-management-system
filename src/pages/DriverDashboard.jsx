@@ -52,16 +52,25 @@ export default function DriverDashboard() {
       ]);
       if (profiles[0]) setSchoolProfile(profiles[0]);
 
-      if (!session.assigned_route_id) {
+      // Session token may not carry assigned_route_id — fetch full staff record
+      let assignedRouteId = session.assigned_route_id;
+      if (!assignedRouteId && session.id) {
+        const staffRecords = await base44.entities.StaffAccount.filter({ id: session.id }).catch(() => []);
+        assignedRouteId = staffRecords[0]?.assigned_route_id;
+        // Update sessionRef so GPS broadcast also has it
+        if (assignedRouteId) sessionRef.current = { ...session, assigned_route_id: assignedRouteId };
+      }
+
+      if (!assignedRouteId) {
         setError('No route assigned to your account. Please contact admin.');
         setLoading(false);
         return;
       }
 
       const [routeData, stopsData, studentsData] = await Promise.all([
-        base44.entities.TransportRoute.filter({ id: session.assigned_route_id }).catch(() => []),
-        base44.entities.TransportStop.filter({ route_id: session.assigned_route_id }).catch(() => []),
-        base44.entities.Student.filter({ transport_route_id: session.assigned_route_id, is_deleted: false }).catch(() => []),
+        base44.entities.TransportRoute.filter({ id: assignedRouteId }).catch(() => []),
+        base44.entities.TransportStop.filter({ route_id: assignedRouteId }).catch(() => []),
+        base44.entities.Student.filter({ transport_route_id: assignedRouteId, is_deleted: false }).catch(() => []),
       ]);
 
       if (routeData[0]) setRoute(routeData[0]);
