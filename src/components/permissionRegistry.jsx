@@ -502,39 +502,48 @@ export const PAGE_PERMISSION_MAP = {
 //   iconName     — lucide-react icon name (string, resolved in Dashboard component)
 //   gradient     — tailwind gradient classes for ActionCard
 export const DASHBOARD_TILES = [
+  // ── Student Management ────────────────────────────────────────────────────
+  { id: 'students',   label: 'Students',   page: 'Students',   section: 'Student Management', requiredPerm: null,                   staffOnly: true,  iconName: 'Users',    gradient: 'from-blue-400 to-blue-600' },
+  { id: 'admissions', label: 'Admissions', page: 'Admissions', section: 'Student Management', requiredPerm: PERMS.ADMISSIONS_VIEW,                    iconName: 'FileText', gradient: 'from-amber-400 to-amber-600' },
+
   // ── Academics ──────────────────────────────────────────────────────────────
-  { id: 'students',   label: 'Students',   page: 'Students',            section: 'Academics', requiredPerm: null,                          staffOnly: true,  iconName: 'Users',        gradient: 'from-blue-400 to-blue-600' },
-  { id: 'attendance', label: 'Attendance', page: 'Attendance',          section: 'Academics', requiredPerm: PERMS.ATTENDANCE_VIEW,                           iconName: 'CheckSquare',  gradient: 'from-teal-400 to-teal-600' },
-  { id: 'marks',      label: 'Marks',      page: 'Marks',               section: 'Academics', requiredPerm: PERMS.MARKS_VIEW,                                iconName: 'BookOpen',     gradient: 'from-green-400 to-green-600' },
-  { id: 'exams',      label: 'Progress Card',      page: 'ExamManagement',      section: 'Academics', requiredPerm: PERMS.EXAMS_VIEW,                                iconName: 'BookMarked',   gradient: 'from-purple-400 to-purple-600' },
-  { id: 'results',    label: 'Results',    page: 'Results',             section: 'Academics', requiredPerm: PERMS.MARKS_VIEW,                                iconName: 'BarChart3',    gradient: 'from-blue-400 to-blue-600' },
-  { id: 'hall_ticket', label: 'Hall Tickets', page: 'HallTicketManagement', section: 'Academics', requiredPerm: PERMS.EXAMS_VIEW,                           iconName: 'FileText',     gradient: 'from-indigo-400 to-indigo-600' },
-  { id: 'timetable',  label: 'Timetable',  page: 'TimetableManagement', section: 'Academics', requiredPerm: PERMS.TIMETABLE_VIEW,                            iconName: 'Calendar',     gradient: 'from-cyan-400 to-cyan-600' },
-  { id: 'homework',   label: 'Homework',   page: 'Homework',            section: 'Academics', requiredPerm: PERMS.HOMEWORK_VIEW,                             iconName: 'BookMarked',   gradient: 'from-pink-400 to-pink-600' },
-  { id: 'diary',      label: 'Diary',      page: 'DiaryManagement',     section: 'Academics', requiredPerm: PERMS.DIARY_VIEW,                                iconName: 'NotebookPen',  gradient: 'from-rose-400 to-rose-600' },
-  { id: 'admissions', label: 'Admissions', page: 'Admissions',          section: 'Academics', requiredPerm: PERMS.ADMISSIONS_VIEW,                           iconName: 'FileText',     gradient: 'from-amber-400 to-amber-600' },
+  { id: 'attendance',   label: 'Attendance',     page: 'Attendance',           section: 'Academics', requiredPerm: PERMS.ATTENDANCE_VIEW,  iconName: 'CheckSquare', gradient: 'from-teal-400 to-teal-600' },
+  { id: 'marks',        label: 'Marks',          page: 'Marks',                section: 'Academics', requiredPerm: PERMS.MARKS_VIEW,       iconName: 'BookOpen',    gradient: 'from-green-400 to-green-600' },
+  { id: 'results',      label: 'Results',        page: 'Results',              section: 'Academics', requiredPerm: PERMS.MARKS_VIEW,       iconName: 'BarChart3',   gradient: 'from-blue-400 to-blue-600' },
+  { id: 'exams',        label: 'Progress Cards', page: 'ExamManagement',       section: 'Academics', requiredPerm: PERMS.EXAMS_VIEW,       iconName: 'BookMarked',  gradient: 'from-purple-400 to-purple-600' },
+  { id: 'hall_ticket',  label: 'Hall Tickets',   page: 'HallTicketManagement', section: 'Academics', requiredPerm: PERMS.EXAMS_VIEW,       iconName: 'ClipboardCheck', gradient: 'from-indigo-400 to-indigo-600' },
+  { id: 'timetable',    label: 'Timetable',      page: 'TimetableManagement',  section: 'Academics', requiredPerm: PERMS.TIMETABLE_VIEW,   iconName: 'Calendar',    gradient: 'from-cyan-400 to-cyan-600' },
+  { id: 'homework',     label: 'Homework',       page: 'Homework',             section: 'Academics', requiredPerm: PERMS.HOMEWORK_VIEW,    iconName: 'BookMarked',  gradient: 'from-pink-400 to-pink-600' },
+  { id: 'diary',        label: 'Diary',          page: 'DiaryManagement',      section: 'Academics', requiredPerm: PERMS.DIARY_VIEW,       iconName: 'NotebookPen', gradient: 'from-rose-400 to-rose-600' },
 
   // ── Communication ───────────────────────────────────────────────────────────
-  { id: 'notices',    label: 'Notices',    page: 'Notices',             section: 'Communication', requiredPerm: PERMS.NOTICES_VIEW,         iconName: 'Bell',           gradient: 'from-yellow-400 to-yellow-600' },
-  { id: 'gallery',    label: 'Gallery',    page: 'Gallery',             section: 'Communication', requiredPerm: PERMS.GALLERY_VIEW,         iconName: 'Image',          gradient: 'from-orange-400 to-orange-600' },
-  { id: 'quiz',       label: 'Quiz',       page: 'Quiz',                section: 'Communication', requiredPerm: PERMS.QUIZ_VIEW,            iconName: 'ListChecks',     gradient: 'from-indigo-400 to-indigo-600' },
-  { id: 'messaging',  label: 'Messages',   page: 'Messaging',           section: 'Communication', requiredPerm: PERMS.MESSAGES_VIEW,        iconName: 'MessageSquare',  gradient: 'from-sky-400 to-sky-600' },
+  { id: 'notices',   label: 'Notices',  page: 'Notices',   section: 'Communication', requiredPerm: PERMS.NOTICES_VIEW,  iconName: 'Bell',          gradient: 'from-yellow-400 to-yellow-600' },
+  { id: 'gallery',   label: 'Gallery',  page: 'Gallery',   section: 'Communication', requiredPerm: PERMS.GALLERY_VIEW,  iconName: 'Image',         gradient: 'from-orange-400 to-orange-600' },
+  { id: 'quiz',      label: 'Quiz',     page: 'Quiz',      section: 'Communication', requiredPerm: PERMS.QUIZ_VIEW,     iconName: 'ListChecks',    gradient: 'from-indigo-400 to-indigo-600' },
+  { id: 'messaging', label: 'Messages', page: 'Messaging', section: 'Communication', requiredPerm: PERMS.MESSAGES_VIEW, iconName: 'MessageSquare', gradient: 'from-sky-400 to-sky-600' },
 
   // ── Fees & Finance ─────────────────────────────────────────────────────────
-  { id: 'fees',            label: 'Fee Collection',   page: 'Fees',                 section: 'Fees & Finance', requiredPerm: PERMS.FEES_VIEW,                    iconName: 'Wallet',      gradient: 'from-emerald-400 to-emerald-600' },
-  { id: 'collection_rpt',  label: 'Collection Rpt',   page: 'CollectionReport',     section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_COLLECTION,       iconName: 'BarChart3',   gradient: 'from-blue-400 to-blue-600' },
-  { id: 'outstanding_rpt', label: 'Outstanding',      page: 'OutstandingReport',    section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_OUTSTANDING,      iconName: 'TrendingUp',  gradient: 'from-red-400 to-red-600' },
-  { id: 'ledger_rpt',      label: 'Ledger',           page: 'StudentLedgerReport',  section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_LEDGER,           iconName: 'BookOpen',    gradient: 'from-violet-400 to-violet-600' },
-  { id: 'daybook_rpt',     label: 'Day Book',         page: 'DayBookReport',        section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_COLLECTION,       iconName: 'FileText',    gradient: 'from-slate-400 to-slate-600' },
-  { id: 'closing_rpt',     label: 'Daily Closing',    page: 'DailyClosingReport',   section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_COLLECTION,       iconName: 'Receipt',     gradient: 'from-teal-400 to-teal-600' },
-  { id: 'defaulters_rpt',  label: 'Defaulters',       page: 'DefaultersReport',     section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_OUTSTANDING,      iconName: 'AlertCircle', gradient: 'from-orange-400 to-orange-600' },
-  { id: 'parent_stmt',     label: 'Parent Statement', page: 'ParentStatement',      section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_PARENT_STATEMENT, iconName: 'DollarSign',  gradient: 'from-pink-400 to-pink-600' },
+  { id: 'fees',             label: 'Fee Collection',    page: 'Fees',                 section: 'Fees & Finance', requiredPerm: PERMS.FEES_VIEW,                    iconName: 'Wallet',      gradient: 'from-emerald-400 to-emerald-600' },
+  { id: 'collection_rpt',   label: 'Collection Report', page: 'CollectionReport',     section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_COLLECTION,       iconName: 'BarChart3',   gradient: 'from-blue-400 to-blue-600' },
+  { id: 'outstanding_rpt',  label: 'Outstanding Dues',  page: 'OutstandingReport',    section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_OUTSTANDING,      iconName: 'TrendingUp',  gradient: 'from-red-400 to-red-600' },
+  { id: 'ledger_rpt',       label: 'Student Ledger',    page: 'StudentLedgerReport',  section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_LEDGER,           iconName: 'BookOpen',    gradient: 'from-violet-400 to-violet-600' },
+  { id: 'daybook_rpt',      label: 'Day Book',          page: 'DayBookReport',        section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_COLLECTION,       iconName: 'FileText',    gradient: 'from-slate-400 to-slate-600' },
+  { id: 'closing_rpt',      label: 'Daily Closing',     page: 'DailyClosingReport',   section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_COLLECTION,       iconName: 'Receipt',     gradient: 'from-teal-400 to-teal-600' },
+  { id: 'defaulters_rpt',   label: 'Defaulters',        page: 'DefaultersReport',     section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_OUTSTANDING,      iconName: 'AlertCircle', gradient: 'from-orange-400 to-orange-600' },
+  { id: 'parent_stmt',      label: 'Parent Statement',  page: 'ParentStatement',      section: 'Fees & Finance', requiredPerm: PERMS.FEE_REPORTS_PARENT_STATEMENT, iconName: 'DollarSign',  gradient: 'from-pink-400 to-pink-600' },
+  { id: 'transactions',     label: 'Transactions & Tax',page: 'FinancialManagement',  section: 'Fees & Finance', requiredPerm: null, adminOnly: true,               iconName: 'DollarSign',  gradient: 'from-emerald-500 to-teal-600' },
 
   // ── Reports & Analytics ────────────────────────────────────────────────────
-  { id: 'reports',   label: 'Reports',   page: 'ReportsManagement',  section: 'Reports & Analytics', requiredPerm: null, adminOnly: true,  iconName: 'BarChart3',  gradient: 'from-purple-400 to-purple-600' },
-  { id: 'analytics', label: 'Analytics', page: 'AnalyticsDashboard', section: 'Reports & Analytics', requiredPerm: null, adminOnly: true,  iconName: 'TrendingUp', gradient: 'from-fuchsia-400 to-fuchsia-600' },
+  { id: 'reports',                label: 'Reports',                page: 'ReportsManagement',     section: 'Reports & Analytics', requiredPerm: null, adminOnly: true, iconName: 'BarChart3',  gradient: 'from-purple-400 to-purple-600' },
+  { id: 'analytics',              label: 'Analytics',              page: 'AnalyticsDashboard',    section: 'Reports & Analytics', requiredPerm: null, adminOnly: true, iconName: 'TrendingUp', gradient: 'from-fuchsia-400 to-fuchsia-600' },
+  { id: 'notification_analytics', label: 'Notification Analytics', page: 'NotificationAnalytics', section: 'Reports & Analytics', requiredPerm: null, adminOnly: true, iconName: 'BellRing',   gradient: 'from-indigo-500 to-purple-600' },
 
-  // ── Administration (admin/principal only) ──────────────────────────────────
-  { id: 'staff_mgmt', label: 'Staff',    page: 'Staff',    section: 'Administration', requiredPerm: null, adminOnly: true, iconName: 'BookUser', gradient: 'from-amber-400 to-amber-600' },
-  { id: 'settings',   label: 'Settings', page: 'Settings', section: 'Administration', requiredPerm: null, adminOnly: true, iconName: 'Settings', gradient: 'from-gray-400 to-gray-600' },
+  // ── Staff Management ───────────────────────────────────────────────────────
+  { id: 'staff_mgmt', label: 'Staff Directory',     page: 'Staff',                 section: 'Staff Management', requiredPerm: null, adminOnly: true, iconName: 'BookUser',   gradient: 'from-amber-400 to-amber-600' },
+  { id: 'staff_sal',  label: 'Attendance & Salary', page: 'StaffAttendanceSalary', section: 'Staff Management', requiredPerm: null, adminOnly: true, iconName: 'UserCheck',  gradient: 'from-violet-500 to-fuchsia-600' },
+  { id: 'qr_print',   label: 'Print QR ID Cards',   page: 'StaffQRPrint',          section: 'Staff Management', requiredPerm: null, adminOnly: true, iconName: 'QrCode',     gradient: 'from-cyan-500 to-blue-600' },
+  { id: 'kiosk',      label: 'Kiosk Check-in',      page: 'KioskCheckin',          section: 'Staff Management', requiredPerm: null, adminOnly: true, iconName: 'Smartphone', gradient: 'from-green-500 to-emerald-600' },
+
+  // ── Administration ─────────────────────────────────────────────────────────
+  { id: 'settings', label: 'Settings', page: 'Settings', section: 'Administration', requiredPerm: null, adminOnly: true, iconName: 'Settings', gradient: 'from-gray-400 to-gray-600' },
 ];
