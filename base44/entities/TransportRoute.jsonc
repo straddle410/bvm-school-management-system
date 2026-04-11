@@ -1,0 +1,43 @@
+{
+  "name": "TransportRoute",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Route name (e.g., North Zone Route 1)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Route description / coverage area"
+    },
+    "fee_type": {
+      "type": "string",
+      "enum": [
+        "yearly",
+        "monthly",
+        "stop_based"
+      ],
+      "default": "yearly",
+      "description": "How fee is calculated: yearly = fixed annual, monthly = fixed monthly \u00d7 12, stop_based = per stop amount"
+    },
+    "fixed_yearly_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "Annual fee for this route (used when fee_type = yearly)"
+    },
+    "fixed_monthly_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly fee for this route (used when fee_type = monthly, annual = \u00d7 12)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Active routes are shown for student assignment"
+    }
+  },
+  "required": [
+    "name",
+    "fee_type"
+  ]
+}

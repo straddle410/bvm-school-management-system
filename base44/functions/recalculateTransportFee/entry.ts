@@ -26,7 +26,32 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.SchoolProfile.list().then(r => r[0] || {})
     ]);
 
-    const transportFeeAmount = schoolProfile.transport_fee_amount || 0;
+    // Fetch transport routes and stops for route-based fee calculation
+    const [routes, stops] = await Promise.all([
+      base44.asServiceRole.entities.TransportRoute.list(),
+      base44.asServiceRole.entities.TransportStop.list()
+    ]);
+    const routeMap = Object.fromEntries(routes.map(r => [r.id, r]));
+    const stopMap = Object.fromEntries(stops.map(s => [s.id, s]));
+
+    const getAnnualFee = (student) => {
+      // New route-based system
+      if (student.transport_route_id) {
+        const route = routeMap[student.transport_route_id];
+        if (!route) return 0;
+        if (route.fee_type === 'yearly') return route.fixed_yearly_fee || 0;
+        if (route.fee_type === 'monthly') return (route.fixed_monthly_fee || 0) * 12;
+        if (route.fee_type === 'stop_based') {
+          const stop = student.transport_stop_id ? stopMap[student.transport_stop_id] : null;
+          return stop?.fee_amount || 0;
+        }
+      }
+      // Fallback: legacy transport_enabled with school profile fixed fee
+      if (student.transport_enabled) {
+        return schoolProfile.transport_fee_amount || 0;
+      }
+      return 0;
+    };
 
     // Fetch all related data
     const [students, invoices, payments] = await Promise.all([
@@ -65,8 +90,8 @@ Deno.serve(async (req) => {
 
       const invoice = invoiceList[0];
       const feeHeads = invoice.fee_heads || [];
-      const transportEnabled = student.transport_enabled || false;
-      const targetTransportAmt = transportEnabled ? transportFeeAmount : 0;
+      const targetTransportAmt = getAnnualFee(student);
+      const transportEnabled = targetTransportAmt > 0 || student.transport_route_id || student.transport_enabled;
 
       // Calculate existing transport from fee_heads
       const existingTransportLine = feeHeads.find(fh => fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport');

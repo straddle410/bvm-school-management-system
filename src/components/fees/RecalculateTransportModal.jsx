@@ -50,7 +50,7 @@ export default function RecalculateTransportModal({ open, onClose, academicYear,
     queryFn: () => base44.entities.SchoolProfile.list().then(r => r[0] || null)
   });
 
-  const transportFeeAmount = schoolProfile?.transport_fee_amount || 0;
+  // Route-based system — fee is determined per student from their assigned route/stop
 
   const toggleAll = () => {
     if (selectedStudentIds.length === students.length) setSelectedStudentIds([]);
@@ -120,10 +120,10 @@ export default function RecalculateTransportModal({ open, onClose, academicYear,
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2 text-sm text-amber-800">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <div>
-                Syncs existing annual invoices with each student's current <strong>transport_enabled</strong> flag.
-                Transport fee rate: <strong>₹{transportFeeAmount.toLocaleString()}</strong> (from School Profile).
+                Syncs existing annual invoices with each student's current transport route/stop assignment.
+                Fee is calculated per student based on their assigned route and stop (yearly, monthly×12, or stop-based).
                 <br />
-                <strong>Locked invoices</strong> (have payments) → adjustment entry. <strong>Unlocked</strong> → invoice edited directly.
+                <strong>Unlocked invoices</strong> → edited directly.
               </div>
             </div>
 
@@ -169,9 +169,9 @@ export default function RecalculateTransportModal({ open, onClose, academicYear,
                         <p className="text-sm font-medium truncate">{s.name}</p>
                         <p className="text-xs text-slate-400">{s.student_id}</p>
                       </div>
-                      <Badge className={s.transport_enabled ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}>
+                      <Badge className={s.transport_route_id ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}>
                         <Bus className="h-3 w-3 mr-1" />
-                        {s.transport_enabled ? 'Transport ON' : 'Transport OFF'}
+                        {s.transport_route_name || (s.transport_enabled ? 'Transport ON' : 'No Route')}
                       </Badge>
                     </label>
                   ))}
@@ -224,8 +224,8 @@ export default function RecalculateTransportModal({ open, onClose, academicYear,
                         </td>
                         <td className="px-2 py-2 text-center">
                           <Badge className={r.transport_enabled ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}>
-                            {r.transport_enabled ? 'ON' : 'OFF'}
-                          </Badge>
+                              {r.transport_route_name || (r.transport_enabled ? 'ON' : 'OFF')}
+                            </Badge>
                         </td>
                         <td className="px-2 py-2 text-right font-mono text-slate-600">₹{(r.old_total || 0).toLocaleString()}</td>
                         <td className={`px-2 py-2 text-right font-mono font-semibold ${r.delta > 0 ? 'text-red-700' : r.delta < 0 ? 'text-green-700' : 'text-slate-500'}`}>

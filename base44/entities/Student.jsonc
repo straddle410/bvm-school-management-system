@@ -122,7 +122,28 @@
     "transport_enabled": {
       "type": "boolean",
       "default": false,
-      "description": "Whether the student uses school transport. Adds a fixed Transport fee line item to their annual invoice."
+      "description": "Whether the student uses school transport. Set automatically when transport_route_id is assigned."
+    },
+    "transport_route_id": {
+      "type": "string",
+      "description": "TransportRoute ID assigned to this student. If null, student does not use transport."
+    },
+    "transport_stop_id": {
+      "type": "string",
+      "description": "TransportStop ID (must belong to transport_route_id). Required for stop_based routes."
+    },
+    "transport_route_name": {
+      "type": "string",
+      "description": "Denormalized route name for display"
+    },
+    "transport_stop_name": {
+      "type": "string",
+      "description": "Denormalized stop name for display"
+    },
+    "annual_transport_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "Annual transport fee calculated from the assigned route/stop. Used by fee recalculation."
     },
     "hostel_enabled": {
       "type": "boolean",
