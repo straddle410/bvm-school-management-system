@@ -609,6 +609,7 @@ export default function Students() {
       staff_session_token: session?.staff_session_token || null,
       student_ids: Array.from(selectedIds),
       transport_enabled,
+      // When turning OFF, backend will clear all transport fields automatically
     });
     setTransportLoading(false);
     setShowTransportConfirm(false);

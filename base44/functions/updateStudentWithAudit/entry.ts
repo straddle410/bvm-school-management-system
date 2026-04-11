@@ -79,6 +79,36 @@ Deno.serve(async (req) => {
       }
     }
 
+    // If transport is being disabled, clear all transport fields
+    if (updates.transport_enabled === false) {
+      updates.transport_route_id = null;
+      updates.transport_route_name = '';
+      updates.transport_stop_id = null;
+      updates.transport_stop_name = '';
+      updates.annual_transport_fee = 0;
+    }
+
+    // If route is being changed, recalculate fee authoritatively from DB
+    if (updates.transport_route_id && updates.transport_route_id !== current.transport_route_id) {
+      const routes = await base44.asServiceRole.entities.TransportRoute.list();
+      const stops = await base44.asServiceRole.entities.TransportStop.list();
+      const route = routes.find(r => r.id === updates.transport_route_id);
+      const stopId = updates.transport_stop_id || current.transport_stop_id;
+      const stop = stopId ? stops.find(s => s.id === stopId) : null;
+      if (route) {
+        if (route.fee_type === 'yearly') updates.annual_transport_fee = route.fixed_yearly_fee || 0;
+        else if (route.fee_type === 'monthly') updates.annual_transport_fee = (route.fixed_monthly_fee || 0) * 12;
+        else if (route.fee_type === 'stop_based') updates.annual_transport_fee = stop?.fee_amount || 0;
+        updates.transport_route_name = route.name;
+        updates.transport_enabled = true;
+      }
+    } else if (updates.transport_stop_id && updates.transport_stop_id !== current.transport_stop_id) {
+      // Stop changed on same stop_based route — recalculate
+      const stops = await base44.asServiceRole.entities.TransportStop.list();
+      const stop = stops.find(s => s.id === updates.transport_stop_id);
+      if (stop) updates.annual_transport_fee = stop.fee_amount || 0;
+    }
+
     // Apply the update
     const updated = await base44.asServiceRole.entities.Student.update(student_db_id, updates);
 

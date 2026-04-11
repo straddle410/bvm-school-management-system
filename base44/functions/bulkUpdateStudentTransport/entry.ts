@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { staff_session_token, student_ids, transport_enabled } = body;
+    const { staff_session_token, student_ids, transport_enabled, transport_route_id, transport_route_name, transport_stop_id, transport_stop_name, annual_transport_fee } = body;
 
     // Verify token — fall back to base44 auth if no staff token
     let role = null;
@@ -61,13 +61,52 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'transport_enabled must be a boolean' }, { status: 400 });
     }
 
+    // Build the definitive update payload on the backend
+    let updatePayload;
+    if (!transport_enabled) {
+      // Turning transport OFF: clear ALL transport fields
+      updatePayload = {
+        transport_enabled: false,
+        transport_route_id: null,
+        transport_route_name: '',
+        transport_stop_id: null,
+        transport_stop_name: '',
+        annual_transport_fee: 0
+      };
+    } else if (transport_route_id) {
+      // Assigning a route: fetch route/stop from DB and calculate fee authoritatively
+      const routes = await base44.asServiceRole.entities.TransportRoute.list();
+      const stops = await base44.asServiceRole.entities.TransportStop.list();
+      const route = routes.find(r => r.id === transport_route_id);
+      const stop = transport_stop_id ? stops.find(s => s.id === transport_stop_id) : null;
+
+      let calculatedFee = 0;
+      if (route) {
+        if (route.fee_type === 'yearly') calculatedFee = route.fixed_yearly_fee || 0;
+        else if (route.fee_type === 'monthly') calculatedFee = (route.fixed_monthly_fee || 0) * 12;
+        else if (route.fee_type === 'stop_based') calculatedFee = stop?.fee_amount || 0;
+      }
+
+      updatePayload = {
+        transport_enabled: true,
+        transport_route_id,
+        transport_route_name: route?.name || transport_route_name || '',
+        transport_stop_id: transport_stop_id || null,
+        transport_stop_name: stop?.name || transport_stop_name || '',
+        annual_transport_fee: calculatedFee
+      };
+    } else {
+      // Simple toggle ON (no route specified)
+      updatePayload = { transport_enabled: true };
+    }
+
     // Update in batches of 10
     let updatedCount = 0;
     const batchSize = 10;
     for (let i = 0; i < student_ids.length; i += batchSize) {
       const batch = student_ids.slice(i, i + batchSize);
       await Promise.all(batch.map(id =>
-        base44.asServiceRole.entities.Student.update(id, { transport_enabled })
+        base44.asServiceRole.entities.Student.update(id, updatePayload)
           .then(() => { updatedCount++; })
           .catch(() => {})
       ));

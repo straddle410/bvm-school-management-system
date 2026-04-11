@@ -80,14 +80,26 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
   };
 
   const handleRouteChange = (routeId) => {
+    if (!routeId || routeId === 'none') {
+      onChange({
+        ...formData,
+        transport_route_id: null,
+        transport_route_name: '',
+        transport_stop_id: null,
+        transport_stop_name: '',
+        transport_enabled: false,
+        annual_transport_fee: 0
+      });
+      return;
+    }
     const route = allRoutes.find(r => r.id === routeId) || null;
     onChange({
       ...formData,
-      transport_route_id: routeId || null,
+      transport_route_id: routeId,
       transport_route_name: route?.name || '',
       transport_stop_id: null,
       transport_stop_name: '',
-      transport_enabled: !!route,
+      transport_enabled: true,
       annual_transport_fee: computeAnnualFee(route, null)
     });
   };

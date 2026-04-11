@@ -149,14 +149,14 @@ Deno.serve(async (req) => {
             // Update existing transport line
             updatedFeeHeads = feeHeads.map(fh =>
               (fh.fee_head_id === 'transport' || fh.fee_head_name === 'Transport') && !fh.is_hostel
-                ? { ...fh, amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
+                ? { ...fh, amount: targetTransportAmt, gross_amount: targetTransportAmt, net_amount: targetTransportAmt, discount_amount: 0 }
                 : fh
             );
           } else {
             // Add transport line
             updatedFeeHeads = [
               ...feeHeads,
-              { fee_head_name: 'Transport', fee_head_id: 'transport', amount: transportFeeAmount, gross_amount: transportFeeAmount, net_amount: transportFeeAmount, discount_amount: 0 }
+              { fee_head_name: 'Transport', fee_head_id: 'transport', amount: targetTransportAmt, gross_amount: targetTransportAmt, net_amount: targetTransportAmt, discount_amount: 0 }
             ];
           }
         } else {
@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
       no_change: results.filter(r => r.status === 'NO_CHANGE').length,
       skipped: results.filter(r => r.status === 'SKIP').length,
       errors: results.filter(r => r.status === 'ERROR').length,
-      transport_fee_amount: transportFeeAmount
+      transport_fee_amount: undefined
     };
 
     return Response.json({ success: true, previewOnly, summary, results });
