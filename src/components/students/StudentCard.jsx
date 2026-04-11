@@ -75,6 +75,14 @@ export default function StudentCard({ student, onView, onEdit, onArchive, onDele
                {student.status === 'Published' ? 'Active' : student.status}
              </span>
            </div>
+           {/* Route */}
+           <div className="w-24 flex-shrink-0">
+             {student.transport_route_name ? (
+               <span className="text-[10px] text-blue-700 font-semibold truncate block">{student.transport_route_name}</span>
+             ) : (
+               <span className="text-[10px] text-gray-300">—</span>
+             )}
+           </div>
            {/* Transport */}
            <div className="w-20 flex-shrink-0">
              {student.transport_enabled ? (

@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight, Hash, Archive, ChevronDown, Bus, MoreVertical, Download, TrendingUp, ArrowLeft, UserX } from 'lucide-react';
 import DeletionRequestsTab from '@/components/students/DeletionRequestsTab';
+import RouteStudentSummary from '@/components/students/RouteStudentSummary';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
@@ -737,6 +738,7 @@ export default function Students() {
               { key: 'active', label: 'Active Students', color: 'text-green-700', activeBg: 'bg-green-50 border-b-2 border-green-600' },
               ...(isAdminOrExamStaff ? [{ key: 'pipeline', label: 'Admission Pipeline', color: 'text-yellow-700', activeBg: 'bg-yellow-50 border-b-2 border-yellow-500' }] : []),
               ...(isAdminOrExamStaff ? [{ key: 'alumni', label: 'Alumni / Archive', color: 'text-gray-600', activeBg: 'bg-gray-50 border-b-2 border-gray-500' }] : []),
+              ...(isAdminOrExamStaff ? [{ key: 'transport', label: '🚌 Transport', color: 'text-blue-700', activeBg: 'bg-blue-50 border-b-2 border-blue-500' }] : []),
               ...(isAdminOrExamStaff ? [{ key: 'deletion', label: 'Deletion Requests', color: 'text-red-700', activeBg: 'bg-red-50 border-b-2 border-red-500' }] : []),
             ].map(tab => (
               <button
@@ -866,13 +868,18 @@ export default function Students() {
             </div>
           )}
 
+          {/* Transport Summary Tab */}
+          {activeTab === 'transport' && isAdminOrExamStaff && (
+            <RouteStudentSummary academicYear={academicYear} />
+          )}
+
           {/* Deletion Requests Tab */}
           {activeTab === 'deletion' && isAdmin && (
             <DeletionRequestsTab />
           )}
 
           {/* List */}
-          {activeTab !== 'deletion' && (
+          {activeTab !== 'deletion' && activeTab !== 'transport' && (
             isLoading ? (
               <div className="space-y-3">
                 {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white dark:bg-gray-800 rounded-2xl animate-pulse" />)}
@@ -892,7 +899,7 @@ export default function Students() {
                 <div className="hidden sm:flex items-center gap-4 px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                   <div className="w-4 flex-shrink-0" />
                   <div className="w-9 flex-shrink-0" />
-                  {[{f:'name',label:'Name / ID',w:'w-48'},{f:'class_name',label:'Class',w:'w-20'},{f:'section',label:'Sec',w:'w-16'},{f:'roll_no',label:'Roll',w:'w-16'},{f:'status',label:'Status',w:'w-24'}].map(col => (
+                  {[{f:'name',label:'Name / ID',w:'w-48'},{f:'class_name',label:'Class',w:'w-20'},{f:'section',label:'Sec',w:'w-16'},{f:'roll_no',label:'Roll',w:'w-16'},{f:'status',label:'Status',w:'w-24'},{f:'transport_route_name',label:'Route',w:'w-24'}].map(col => (
                     <button key={col.f} onClick={() => handleSort(col.f)} className={`${col.w} flex-shrink-0 flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300 transition-colors`}>
                       {col.label}
                       <span className="text-[10px]">{sortField === col.f ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}</span>
@@ -929,7 +936,7 @@ export default function Students() {
           )}
 
           {/* Pagination */}
-          {activeTab !== 'deletion' && totalPages > 1 && (
+          {activeTab !== 'deletion' && activeTab !== 'transport' && totalPages > 1 && (
             <div className="flex items-center justify-center gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-3">
               <Button
                 variant="outline"
