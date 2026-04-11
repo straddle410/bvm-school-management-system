@@ -24,6 +24,31 @@ export default function StaffQRPrint() {
     });
   };
 
+  const addStaffToList = async (newStaff) => {
+    if (!newStaff.staff_code) return; // skip staff without a code
+    let s = newStaff;
+    // Ensure qr_token is present (automation may not have run yet)
+    if (!s.qr_token) {
+      // wait briefly for automation then re-fetch
+      await new Promise(r => setTimeout(r, 2000));
+      try {
+        const fresh = await base44.entities.StaffAccount.get(s.id);
+        if (fresh) s = fresh;
+      } catch {}
+    }
+    if (!s.qr_token) return; // still no token, skip
+    const url = await generateQRImage(s.staff_code, s.qr_token);
+    setStaffList(prev => {
+      if (prev.find(x => x.id === s.id)) return prev;
+      return [...prev, s];
+    });
+    setFiltered(prev => {
+      if (prev.find(x => x.id === s.id)) return prev;
+      return [...prev, s];
+    });
+    setQrImages(prev => ({ ...prev, [s.id]: url }));
+  };
+
   useEffect(() => {
     Promise.all([
       base44.entities.StaffAccount.filter({ is_active: true }),
@@ -53,6 +78,15 @@ export default function StaffQRPrint() {
       setQrImages(Object.fromEntries(entries));
       setLoading(false);
     }).catch(() => setLoading(false));
+
+    // Real-time: auto-add newly created staff
+    const unsubscribe = base44.entities.StaffAccount.subscribe((event) => {
+      if (event.type === 'create' && event.data) {
+        addStaffToList(event.data);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
