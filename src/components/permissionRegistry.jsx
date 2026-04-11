@@ -504,8 +504,7 @@ export const PAGE_PERMISSION_MAP = {
 export const DASHBOARD_TILES = [
   // ── Student Management ────────────────────────────────────────────────────
   { id: 'students',   label: 'Students',   page: 'Students',   section: 'Student Management', requiredPerm: null,                   staffOnly: true,  iconName: 'Users',    gradient: 'from-blue-400 to-blue-600' },
-  { id: 'transport_assign', label: 'Transport Assignment', page: 'TransportAssignment', section: 'Student Management', requiredPerm: null, adminOnly: true, iconName: 'Bus', gradient: 'from-cyan-500 to-sky-600' },
-  { id: 'admissions', label: 'Admissions', page: 'Admissions', section: 'Student Management', requiredPerm: PERMS.ADMISSIONS_VIEW, iconName: 'FileText', gradient: 'from-amber-400 to-amber-600' },
+  { id: 'admissions', label: 'Admissions', page: 'Admissions', section: 'Student Management', requiredPerm: PERMS.ADMISSIONS_VIEW,                    iconName: 'FileText', gradient: 'from-amber-400 to-amber-600' },
 
   // ── Academics ──────────────────────────────────────────────────────────────
   { id: 'attendance',   label: 'Attendance',     page: 'Attendance',           section: 'Academics', requiredPerm: PERMS.ATTENDANCE_VIEW,  iconName: 'CheckSquare', gradient: 'from-teal-400 to-teal-600' },
