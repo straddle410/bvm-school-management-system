@@ -13,6 +13,13 @@ const TRANSFER_CATEGORIES = ['Cash Deposit to Bank'];
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Cheque', 'UPI', 'Online', 'Debit Card', 'Credit Card'];
 const STATUSES = ['Completed', 'Pending Bank Deposit', 'Reconciled'];
 
+const Field = ({ label, children }) => (
+  <div>
+    <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">{label}</label>
+    {children}
+  </div>
+);
+
 export default function TransactionForm({ initial, onSave, onCancel }) {
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
@@ -50,13 +57,6 @@ export default function TransactionForm({ initial, onSave, onCancel }) {
     if (!form.amount || isNaN(Number(form.amount)) || Number(form.amount) <= 0) return;
     onSave({ ...form, amount: Number(form.amount) });
   };
-
-  const Field = ({ label, children }) => (
-    <div>
-      <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">{label}</label>
-      {children}
-    </div>
-  );
 
   const cls = "w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm";
 
