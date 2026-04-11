@@ -258,13 +258,13 @@ export default function Staff() {
       'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
       'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
       'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
-      'cleaner': 'cleaner', 'ceo': 'ceo',
-    };
-    const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
-    const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
+      'cleaner': 'cleaner', 'ceo': 'ceo', 'driver': 'driver',
+      };
+      const rawRoleName = (selectedTemplate.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
+      const derivedRole = ROLE_NAME_MAP[rawRoleName] || rawRoleName;
 
-    // Generate ID client-side: A### for admin/accountant/principal/ceo, T### for everyone else
-    const ADMIN_ROLE_KEYS = ['admin', 'accountant', 'principal', 'ceo'];
+      // Generate ID client-side: A### for admin/accountant/principal/ceo, T### for everyone else
+      const ADMIN_ROLE_KEYS = ['admin', 'accountant', 'principal', 'ceo'];
     const isAdminRole = ADMIN_ROLE_KEYS.includes(derivedRole) || ADMIN_ROLE_KEYS.some(r => rawRoleName.includes(r));
     const prefix = isAdminRole ? 'A' : 'T';
     const existingIds = staffList
@@ -316,6 +316,11 @@ export default function Staff() {
     setShowDialog(true);
   };
 
+  const { data: routesList = [] } = useQuery({
+    queryKey: ['transport-routes-list'],
+    queryFn: () => base44.entities.TransportRoute.filter({ is_active: true }),
+  });
+
   const openEdit = (member) => {
     setEditingStaff(member);
     setForm({
@@ -347,6 +352,9 @@ export default function Staff() {
       sections: member.sections || [],
       class_teacher_of: member.class_teacher_of || '',
       exempt_from_kiosk: member.exempt_from_kiosk || false,
+      assigned_route_id: member.assigned_route_id || '',
+      assigned_route_name: member.assigned_route_name || '',
+      bus_number: member.bus_number || '',
     });
     setShowDialog(true);
   };
@@ -387,7 +395,7 @@ export default function Staff() {
         'admin': 'admin', 'principal': 'principal', 'teacher': 'teacher',
         'accountant': 'accountant', 'staff': 'staff', 'librarian': 'librarian',
         'exam staff': 'exam_staff', 'exam_staff': 'exam_staff',
-        'cleaner': 'cleaner', 'ceo': 'ceo',
+        'cleaner': 'cleaner', 'ceo': 'ceo', 'driver': 'driver',
       };
       const rawRoleName = (selectedTemplate?.name || '').trim().toLowerCase().replace(/\s+\d+$/, '');
       const derivedRole = selectedTemplate ? (ROLE_NAME_MAP[rawRoleName] || rawRoleName) : (editingStaff?.role || '');
@@ -1039,9 +1047,32 @@ export default function Staff() {
                    </Label>
                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 ml-6">When enabled, this staff member does not need to scan QR code. They will automatically get full salary for all days of the month.</p>
                  </div>
-              </div>
+                 {(editingStaff?.role === 'driver' || (roleTemplates.find(r => r.id === form.role_template_id)?.name || '').toLowerCase() === 'driver') && (
+                   <div className="col-span-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 space-y-3">
+                     <p className="text-sm font-bold text-blue-800 dark:text-blue-300">🚌 Driver Settings</p>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                       <div>
+                         <Label>Assigned Route</Label>
+                         <Select value={form.assigned_route_id || ''} onValueChange={(v) => {
+                           const route = routesList.find(r => r.id === v);
+                           setForm(f => ({ ...f, assigned_route_id: v, assigned_route_name: route?.name || '' }));
+                         }}>
+                           <SelectTrigger><SelectValue placeholder="Select route" /></SelectTrigger>
+                           <SelectContent className="max-h-[260px] overflow-y-auto">
+                             {routesList.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                           </SelectContent>
+                         </Select>
+                       </div>
+                       <div>
+                         <Label>Bus Number</Label>
+                         <Input value={form.bus_number || ''} onChange={e => setForm(f => ({ ...f, bus_number: e.target.value }))} placeholder="e.g. TN01AB1234" />
+                       </div>
+                     </div>
+                   </div>
+                 )}
+                 </div>
 
-              <Accordion type="single" collapsible>
+                 <Accordion type="single" collapsible>
                 <AccordionItem value="profile">
                   <AccordionTrigger className="text-sm font-semibold">Profile Details</AccordionTrigger>
                   <AccordionContent>
