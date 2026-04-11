@@ -48,6 +48,7 @@ export default function StudentDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartY = useRef(0);
   const [isDark, setIsDark] = useDarkMode();
+  const [showBusMap, setShowBusMap] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -367,12 +368,42 @@ export default function StudentDashboard() {
           </div>
         </section>
 
-        {/* Live Bus Tracking */}
+        {/* Track Bus Tile */}
         {student?.transport_enabled && student?.transport_route_id && (
-          <section className="mt-5">
-            <h2 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-3">Live Bus Tracking</h2>
-            <LiveBusMap routeId={student.transport_route_id} />
+          <section className="mt-4">
+            <button
+              onClick={() => setShowBusMap(true)}
+              className="w-full flex items-center gap-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 px-4 py-4 active:scale-95 transition-transform"
+            >
+              <div className="h-12 w-12 rounded-xl bg-[#1a237e] flex items-center justify-center flex-shrink-0">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 11h20"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-bold text-gray-900 dark:text-white text-sm">Track My Bus</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Tap to see live bus location</p>
+              </div>
+              <div className="h-8 w-8 rounded-full bg-[#1a237e] flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
           </section>
+        )}
+
+        {/* Bus Map Full-screen Overlay */}
+        {showBusMap && student?.transport_route_id && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
+            <div className="bg-white dark:bg-slate-900 flex-1 flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white flex-shrink-0">
+                <p className="font-bold text-base">Live Bus Tracking</p>
+                <button onClick={() => setShowBusMap(false)} className="p-2 hover:bg-white/20 rounded-lg transition">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <LiveBusMap routeId={student.transport_route_id} />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Logout */}
