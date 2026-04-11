@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Upload, CheckCircle, ChevronLeft, ChevronRight, Hash, Archive, ChevronDown, Bus, MoreVertical, Download, TrendingUp, ArrowLeft, UserX } from 'lucide-react';
 import DeletionRequestsTab from '@/components/students/DeletionRequestsTab';
+import BulkAssignStopModal from '@/components/students/BulkAssignStopModal';
 import RouteStudentSummary from '@/components/students/RouteStudentSummary';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -71,6 +72,7 @@ export default function Students() {
   const [showHostelConfirm, setShowHostelConfirm] = useState(false);
   const [hostelLoading, setHostelLoading] = useState(false);
   const [showPromote, setShowPromote] = useState(false);
+  const [showBulkAssignStop, setShowBulkAssignStop] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -870,7 +872,21 @@ export default function Students() {
 
           {/* Transport Summary Tab */}
           {activeTab === 'transport' && isAdminOrExamStaff && (
-            <RouteStudentSummary academicYear={academicYear} />
+            <div className="space-y-3">
+              {isAdmin && (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 flex items-center justify-between">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">Bulk assign multiple students to a specific stop</p>
+                  <Button
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700 gap-2 text-xs"
+                    onClick={() => setShowBulkAssignStop(true)}
+                  >
+                    <Bus className="h-3.5 w-3.5" /> Bulk Assign Stop
+                  </Button>
+                </div>
+              )}
+              <RouteStudentSummary academicYear={academicYear} />
+            </div>
           )}
 
           {/* Deletion Requests Tab */}
@@ -1056,6 +1072,14 @@ export default function Students() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Bulk Assign Stop Modal */}
+        <BulkAssignStopModal
+          open={showBulkAssignStop}
+          onClose={() => setShowBulkAssignStop(false)}
+          academicYear={academicYear}
+          onSuccess={() => queryClient.invalidateQueries(['students'])}
+        />
 
         {/* Promote — rendered hidden for CEO, triggered via triggerOpen state */}
         <PromoteStudents
