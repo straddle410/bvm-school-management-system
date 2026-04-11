@@ -89,6 +89,11 @@ export default function StudentDashboard() {
 
     setStudent(session);
 
+    // Refresh student data from DB to pick up transport/other changes made after login
+    base44.entities.Student.filter({ student_id: session.student_id, is_deleted: false }, 'student_id', 1)
+      .then(results => { if (results?.[0]) setStudent(s => ({ ...s, ...results[0] })); })
+      .catch(() => {});
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('openFees') === '1') {
       const receiptNo = params.get('receiptNo');
