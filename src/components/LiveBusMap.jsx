@@ -40,12 +40,19 @@ export default function LiveBusMap({ routeId }) {
   const [loading, setLoading] = useState(true);
   const unsubRef = useRef(null);
 
-  useEffect(() => {
-    if (!routeId) return;
-
+  const fetchLocation = () => {
     base44.entities.BusLocation.filter({ route_id: routeId, status: 'active' })
       .then(data => { setBusLocation(data[0] || null); setLoading(false); })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!routeId) return;
+
+    fetchLocation();
+
+    // Poll every 10 seconds as a fallback
+    const pollInterval = setInterval(fetchLocation, 10000);
 
     unsubRef.current = base44.entities.BusLocation.subscribe((event) => {
       if (event.data?.route_id !== routeId) return;
@@ -54,7 +61,10 @@ export default function LiveBusMap({ routeId }) {
       if (event.data?.status === 'active') setBusLocation(event.data);
     });
 
-    return () => { if (unsubRef.current) unsubRef.current(); };
+    return () => {
+      clearInterval(pollInterval);
+      if (unsubRef.current) unsubRef.current();
+    };
   }, [routeId]);
 
   if (loading) {
