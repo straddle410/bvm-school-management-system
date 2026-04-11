@@ -13,7 +13,7 @@ import {
   ClipboardCheck, CheckSquare, BookOpen, BookMarked, Bell, Image, NotebookPen,
   ListChecks, Calendar, MessageSquare, AlertCircle, Wallet, BarChart3,
   TrendingUp, Receipt, Users, Settings, FileText, DollarSign, BookUser, BellRing,
-  UserCheck, QrCode, Smartphone, LayoutDashboard, CalendarDays, IndianRupee,
+  UserCheck, QrCode, Smartphone, LayoutDashboard, CalendarDays, IndianRupee, Bus,
 } from 'lucide-react';
 
 // ── Icon name → lucide component map ─────────────────────────────────────────
@@ -22,7 +22,7 @@ const ICON_MAP = {
   Users, CheckSquare, BookOpen, BookMarked, Calendar, NotebookPen,
   FileText, Bell, Image, ListChecks, MessageSquare, Wallet, BarChart3,
   TrendingUp, Receipt, AlertCircle, DollarSign, BookUser, Settings, ClipboardCheck,
-  BellRing, UserCheck, QrCode, Smartphone,
+  BellRing, UserCheck, QrCode, Smartphone, Bus,
 };
 
 // ── Session helpers ───────────────────────────────────────────────────────────
