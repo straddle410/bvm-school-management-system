@@ -13,6 +13,7 @@ import { useDarkMode } from '@/components/useDarkMode';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StudentNotificationHub from '@/components/StudentNotificationHub';
+import LiveBusMap from '@/components/LiveBusMap';
 import { clearSession } from '@/components/sessionHelper';
 
 function getStudentSession() {
@@ -360,6 +361,14 @@ export default function StudentDashboard() {
              })}
           </div>
         </section>
+
+        {/* Live Bus Tracking */}
+        {student?.transport_enabled && student?.transport_route_id && (
+          <section className="mt-5">
+            <h2 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-3">Live Bus Tracking</h2>
+            <LiveBusMap routeId={student.transport_route_id} />
+          </section>
+        )}
 
         {/* Logout */}
         <div className="mt-6 mb-2">

@@ -18,6 +18,7 @@ const CleanerDashboard = lazy(() => import('./pages/CleanerDashboard'))
 const KioskCheckin = lazy(() => import('./pages/KioskCheckin'))
 const StaffQRPrint = lazy(() => import('./pages/StaffQRPrint'))
 const DriverDashboard = lazy(() => import('./pages/DriverDashboard'))
+const TransportTracking = lazy(() => import('./pages/TransportTracking'))
 
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -93,6 +94,7 @@ const AuthenticatedApp = () => {
       <Route path="/StaffQRPrint" element={<LayoutWrapper currentPageName="StaffQRPrint"><PageTransition><Suspense fallback={<LazyPageFallback />}><StaffQRPrint /></Suspense></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><Suspense fallback={<LazyPageFallback />}><DeleteAccount /></Suspense></PageTransition>} />
       <Route path="/DriverDashboard" element={<PageTransition><Suspense fallback={<LazyPageFallback />}><DriverDashboard /></Suspense></PageTransition>} />
+      <Route path="/TransportTracking" element={<LayoutWrapper currentPageName="TransportTracking"><PageTransition><Suspense fallback={<LazyPageFallback />}><TransportTracking /></Suspense></PageTransition></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </AnimatePresence>

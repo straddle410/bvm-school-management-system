@@ -1,0 +1,67 @@
+{
+  "name": "BusLocation",
+  "type": "object",
+  "properties": {
+    "route_id": {
+      "type": "string",
+      "description": "TransportRoute ID"
+    },
+    "route_name": {
+      "type": "string",
+      "description": "Denormalized route name"
+    },
+    "driver_id": {
+      "type": "string",
+      "description": "StaffAccount ID of the driver"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Driver full name"
+    },
+    "driver_phone": {
+      "type": "string",
+      "description": "Driver mobile number"
+    },
+    "bus_number": {
+      "type": "string",
+      "description": "Bus/vehicle number"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Current latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Current longitude"
+    },
+    "accuracy": {
+      "type": "number",
+      "description": "GPS accuracy in meters"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last location update"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "inactive",
+      "description": "active = driver is broadcasting, inactive = route ended"
+    }
+  },
+  "required": [
+    "route_id",
+    "driver_id",
+    "status"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": false
+  }
+}
