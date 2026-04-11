@@ -52,10 +52,11 @@ export default function DriverDashboard() {
       ]);
       if (profiles[0]) setSchoolProfile(profiles[0]);
 
-      // Session token may not carry assigned_route_id — fetch full staff record
+      // Session token may not carry assigned_route_id — fetch full staff record using staff_id
       let assignedRouteId = session.assigned_route_id;
-      if (!assignedRouteId && session.id) {
-        const staffRecords = await base44.entities.StaffAccount.filter({ id: session.id }).catch(() => []);
+      const staffDbId = session.staff_id || session.id;
+      if (!assignedRouteId && staffDbId) {
+        const staffRecords = await base44.entities.StaffAccount.filter({ id: staffDbId }).catch(() => []);
         assignedRouteId = staffRecords[0]?.assigned_route_id;
         // Update sessionRef so GPS broadcast also has it
         if (assignedRouteId) sessionRef.current = { ...session, assigned_route_id: assignedRouteId };
