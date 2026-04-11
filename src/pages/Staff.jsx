@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
 import { validatePasswordPolicy } from '@/components/utils/passwordPolicy';
+import { getStaffSession } from '@/components/useStaffSession';
 import TeacherAssignmentSection from '@/components/staff/TeacherAssignmentSection';
 
 const generateTempPassword = () => {
@@ -179,7 +180,7 @@ export default function Staff() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ staff_id, temp_password }) => {
-      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const session = getStaffSession() || {};
       const res = await base44.functions.invoke('resetStaffPassword', {
         staff_id,
         temp_password,
@@ -205,7 +206,7 @@ export default function Staff() {
 
   const unlockAccountMutation = useMutation({
     mutationFn: async (member) => {
-      const session = JSON.parse(localStorage.getItem('staff_session') || '{}');
+      const session = getStaffSession() || {};
       const res = await base44.functions.invoke('unlockStaffAccount', {
         staff_id: member.id,
         staff_session_token: session?.staff_session_token || null,
