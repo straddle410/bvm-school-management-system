@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -13,6 +13,9 @@ import MessageNotificationListener from '@/components/messaging/MessageNotificat
 import { getProxiedImageUrl } from '@/components/imageProxy';
 import StudentAuthGuard from '@/components/StudentAuthGuard';
 import StaffAuthGuard from '@/components/StaffAuthGuard';
+
+// Module-level school profile cache — avoids repeated API calls across navigations
+let _cachedSchoolProfile = null;
 
 // Don't register here - let StudentNotificationSettings handle it on user request
 
@@ -103,17 +106,22 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   const loadData = async (hasStudentSession) => {
-    // If student session exists, don't call auth.me() - just load school profile
-    if (hasStudentSession) {
+    // Use cached school profile if available
+    if (_cachedSchoolProfile) {
+      setSchoolProfile(_cachedSchoolProfile);
+    } else {
       try {
         const profiles = await base44.entities.SchoolProfile.list();
-        if (profiles.length > 0) setSchoolProfile(profiles[0]);
+        if (profiles.length > 0) {
+          _cachedSchoolProfile = profiles[0];
+          setSchoolProfile(profiles[0]);
+        }
       } catch {}
-      return;
     }
 
+    if (hasStudentSession) return;
+
     // Staff session in localStorage is the AUTHORITATIVE source for role/nav.
-    // base44.auth.me() may return a different role — do NOT overwrite staff role.
     let staffRoleFromSession = '';
     try {
       const staffRaw = localStorage.getItem('staff_session');
@@ -124,11 +132,6 @@ export default function Layout({ children, currentPageName }) {
         setIsAdmin(staffRoleFromSession === 'admin' || staffRoleFromSession === 'principal');
         setUser(staffUser);
       }
-    } catch {}
-
-    try {
-      const profiles = await base44.entities.SchoolProfile.list();
-      if (profiles.length > 0) setSchoolProfile(profiles[0]);
     } catch {}
 
     // Only use auth.me() role if no staff session exists
@@ -210,9 +213,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-        <StaffAuthGuard currentPageName={currentPageName}>
-          {children}
-        </StaffAuthGuard>
+        {children}
       </main>
 
       {/* Bottom Navigation */}

@@ -292,9 +292,6 @@ input, textarea, [contenteditable="true"] {
 button, a[role="button"], [role="button"] {
   min-height: 44px;
   min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btn, [class*="Button"], [class*="btn"] {
@@ -306,38 +303,6 @@ button[size="icon"], button[size="sm"]:has(svg:only-child) {
   min-height: 44px;
   min-width: 44px;
   padding: 8px !important;
-}
-
-/* Touch-friendly spacing */
-a, button {
-  min-touch-target: 44px;
-  margin-bottom: 4px;
-}
-
-/* ── Native-Like Touch Targets (44px minimum) ── */
-button, a[role="button"], [role="button"] {
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn, [class*="Button"], [class*="btn"] {
-  min-height: 44px;
-}
-
-/* Icon buttons */
-button[size="icon"], button[size="sm"]:has(svg:only-child) {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px !important;
-}
-
-/* Touch-friendly spacing */
-a, button {
-  min-touch-target: 44px;
-  margin-bottom: 4px;
 }
 
 /* Print-specific styles */
