@@ -183,13 +183,14 @@ Deno.serve(async (req) => {
     }
 
     // 5. Load staff account
-    const accounts = await base44.asServiceRole.entities.StaffAccount.filter({ id: staff_id });
-    if (!accounts || accounts.length === 0) {
+    let account = null;
+    try {
+      account = await base44.asServiceRole.entities.StaffAccount.get(staff_id);
+    } catch {}
+    if (!account) {
       console.error(`[changeStaffPassword] STAFF_NOT_FOUND: id=${staff_id}`);
       return Response.json({ error: 'Staff account not found.', code: 'STAFF_SESSION_INVALID' }, { status: 401 });
     }
-
-    const account = accounts[0];
 
     // 6. Verify current password.
     // Staff passwords must always be hashed server-side with bcrypt. Never hash on frontend.
