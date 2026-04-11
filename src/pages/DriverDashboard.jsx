@@ -288,7 +288,10 @@ export default function DriverDashboard() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-gray-900 text-sm truncate">{stop.name}</p>
-                          <p className="text-xs text-gray-400">{stopStudents.length} student{stopStudents.length !== 1 ? 's' : ''}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-gray-400">{stopStudents.length} student{stopStudents.length !== 1 ? 's' : ''}</p>
+                            {stop.scheduled_time && <p className="text-xs text-blue-600 font-semibold">🕐 {stop.scheduled_time}</p>}
+                          </div>
                         </div>
                       </div>
                       {isExpanded ? <ChevronUp className="h-4 w-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />}

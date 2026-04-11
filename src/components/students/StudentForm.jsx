@@ -287,7 +287,7 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
                 </SelectContent>
               </Select>
             </div>
-            {selectedRoute?.fee_type === 'stop_based' && (
+            {formData.transport_route_id && stopsForRoute.length > 0 && (
               <div>
                 <Label className="text-xs">Boarding Stop</Label>
                 <Select
@@ -302,13 +302,14 @@ export default function StudentForm({ formData, onChange, onPhotoChange, photoFi
                     <SelectItem value="none">— Select Stop —</SelectItem>
                     {stopsForRoute.map(s => (
                       <SelectItem key={s.id} value={s.id}>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />{s.name}{s.fee_amount ? ` — ₹${s.fee_amount.toLocaleString()}` : ''}
-                        </span>
+                        {s.name}{s.scheduled_time ? ` · ${s.scheduled_time}` : ''}{s.fee_amount && selectedRoute?.fee_type === 'stop_based' ? ` — ₹${s.fee_amount.toLocaleString()}` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {formData.transport_stop_id && stopsForRoute.find(s => s.id === formData.transport_stop_id)?.scheduled_time && (
+                  <p className="text-xs text-blue-600 mt-1">🕐 Pickup at {stopsForRoute.find(s => s.id === formData.transport_stop_id)?.scheduled_time}</p>
+                )}
               </div>
             )}
             {formData.transport_route_id && (

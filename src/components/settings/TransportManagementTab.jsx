@@ -12,7 +12,7 @@ import { Bus, Plus, Trash2, Edit2, MapPin, ChevronDown, ChevronRight } from 'luc
 import { toast } from 'sonner';
 
 const EMPTY_ROUTE = { name: '', description: '', fee_type: 'yearly', fixed_yearly_fee: 0, fixed_monthly_fee: 0, is_active: true };
-const EMPTY_STOP = { name: '', fee_amount: 0, sort_order: 0 };
+const EMPTY_STOP = { name: '', fee_amount: 0, sort_order: 0, scheduled_time: '' };
 
 function computeAnnualFee(route, stop) {
   if (!route) return 0;
@@ -32,6 +32,11 @@ export default function TransportManagementTab() {
   const [editingStop, setEditingStop] = useState(null);
   const [stopRouteId, setStopRouteId] = useState(null);
   const [stopForm, setStopForm] = useState({ ...EMPTY_STOP });
+
+  const { data: allStudents = [] } = useQuery({
+    queryKey: ['students-transport'],
+    queryFn: () => base44.entities.Student.filter({ transport_enabled: true, is_deleted: false })
+  });
 
   const { data: routes = [], isLoading: loadingRoutes } = useQuery({
     queryKey: ['transport-routes'],
@@ -124,7 +129,7 @@ export default function TransportManagementTab() {
   const openEditStop = (stop) => {
     setStopRouteId(stop.route_id);
     setEditingStop(stop);
-    setStopForm({ name: stop.name, fee_amount: stop.fee_amount || 0, sort_order: stop.sort_order || 0 });
+    setStopForm({ name: stop.name, fee_amount: stop.fee_amount || 0, sort_order: stop.sort_order || 0, scheduled_time: stop.scheduled_time || '' });
     setShowStopDialog(true);
   };
 
@@ -211,29 +216,35 @@ export default function TransportManagementTab() {
                     <div className="border-t divide-y">
                       {stops.map(stop => (
                         <div key={stop.id} className="flex items-center gap-3 px-5 py-2.5 bg-white hover:bg-slate-50">
-                          <MapPin className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-700">{stop.name}</p>
-                            {route.fee_type === 'stop_based' && (
-                              <p className="text-xs text-slate-400">₹{(stop.fee_amount || 0).toLocaleString()} / year</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditStop(stop)}>
-                              <Edit2 className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-red-400 hover:text-red-600"
-                              onClick={() => { if (window.confirm(`Delete stop "${stop.name}"?`)) deleteStopMutation.mutate(stop.id); }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
+                         <MapPin className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                         <div className="flex-1 min-w-0">
+                           <p className="text-sm font-medium text-slate-700">{stop.name}</p>
+                           <div className="flex items-center gap-3 mt-0.5">
+                             {route.fee_type === 'stop_based' && (
+                               <span className="text-xs text-slate-400">₹{(stop.fee_amount || 0).toLocaleString()} / year</span>
+                             )}
+                             {stop.scheduled_time && (
+                               <span className="text-xs text-blue-600 font-medium">🕐 {stop.scheduled_time}</span>
+                             )}
+                             <span className="text-xs text-green-600">{allStudents.filter(st => st.transport_stop_id === stop.id).length} student(s)</span>
+                           </div>
+                         </div>
+                         <div className="flex items-center gap-1">
+                           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditStop(stop)}>
+                             <Edit2 className="h-3 w-3" />
+                           </Button>
+                           <Button
+                             size="icon"
+                             variant="ghost"
+                             className="h-7 w-7 text-red-400 hover:text-red-600"
+                             onClick={() => { if (window.confirm(`Delete stop "${stop.name}"?`)) deleteStopMutation.mutate(stop.id); }}
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                         </div>
                         </div>
-                      ))}
-                      <div className="px-5 py-2 bg-white">
+                        ))}
+                        <div className="px-5 py-2 bg-white">
                         <Button size="sm" variant="ghost" className="text-xs gap-1 text-amber-700 hover:bg-amber-50" onClick={() => openAddStop(route.id)}>
                           <Plus className="h-3 w-3" /> Add Stop
                         </Button>
@@ -331,6 +342,11 @@ export default function TransportManagementTab() {
                 </div>
               ) : null;
             })()}
+            <div>
+              <Label>Scheduled Pickup Time</Label>
+              <Input type="time" value={stopForm.scheduled_time} onChange={e => setStopForm(p => ({ ...p, scheduled_time: e.target.value }))} className="mt-1" placeholder="e.g., 07:30" />
+              <p className="text-xs text-slate-400 mt-1">Morning pickup time at this stop</p>
+            </div>
             <div>
               <Label>Sort Order</Label>
               <Input type="number" min="0" value={stopForm.sort_order} onChange={e => setStopForm(p => ({ ...p, sort_order: parseInt(e.target.value) || 0 }))} className="mt-1" placeholder="0" />

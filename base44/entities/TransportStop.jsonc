@@ -19,6 +19,10 @@
       "type": "number",
       "default": 0,
       "description": "Display order along the route"
+    },
+    "scheduled_time": {
+      "type": "string",
+      "description": "Scheduled pickup/drop time at this stop (e.g., 07:30 AM)"
     }
   },
   "required": [
