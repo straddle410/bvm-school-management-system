@@ -6,12 +6,12 @@
   "versionCode": 2,
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2500,
+      "launchShowDuration": 750,
       "launchAutoHide": true,
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#1a237e",
       "androidSplashResourceName": "splash",
       "showSpinner": false,
-      "launchFadeOutDuration": 300,
+      "launchFadeOutDuration": 400,
       "splashFullScreen": true,
       "splashImmersive": true
     }
