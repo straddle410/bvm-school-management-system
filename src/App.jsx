@@ -17,6 +17,7 @@ const StaffAttendanceSalary = lazy(() => import('./pages/StaffAttendanceSalary')
 const CleanerDashboard = lazy(() => import('./pages/CleanerDashboard'))
 const KioskCheckin = lazy(() => import('./pages/KioskCheckin'))
 const StaffQRPrint = lazy(() => import('./pages/StaffQRPrint'))
+const DriverDashboard = lazy(() => import('./pages/DriverDashboard'))
 
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -91,6 +92,7 @@ const AuthenticatedApp = () => {
       <Route path="/KioskCheckin" element={<PageTransition><Suspense fallback={<LazyPageFallback />}><KioskCheckin /></Suspense></PageTransition>} />
       <Route path="/StaffQRPrint" element={<LayoutWrapper currentPageName="StaffQRPrint"><PageTransition><Suspense fallback={<LazyPageFallback />}><StaffQRPrint /></Suspense></PageTransition></LayoutWrapper>} />
       <Route path="/DeleteAccount" element={<PageTransition><Suspense fallback={<LazyPageFallback />}><DeleteAccount /></Suspense></PageTransition>} />
+      <Route path="/DriverDashboard" element={<PageTransition><Suspense fallback={<LazyPageFallback />}><DriverDashboard /></Suspense></PageTransition>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </AnimatePresence>

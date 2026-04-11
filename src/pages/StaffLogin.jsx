@@ -102,6 +102,10 @@ export default function StaffLogin() {
       }
 
       toast.success('Login successful');
+      if (response.data.role === 'driver') {
+        navigate(createPageUrl('DriverDashboard'));
+        return;
+      }
       navigate(createPageUrl('Dashboard'));
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');

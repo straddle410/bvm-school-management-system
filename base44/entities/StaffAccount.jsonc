@@ -8,7 +8,7 @@
     },
     "designation": {
       "type": "string",
-      "description": "Job designation (Teacher, Accountant, etc.)"
+      "description": "Job designation (Teacher, Accountant, Driver, etc.)"
     },
     "role": {
       "type": "string",
@@ -21,9 +21,22 @@
         "staff",
         "librarian",
         "exam_staff",
-        "cleaner"
+        "cleaner",
+        "driver"
       ],
       "description": "System role for permission checks."
+    },
+    "assigned_route_id": {
+      "type": "string",
+      "description": "For driver role: the TransportRoute ID assigned to this driver"
+    },
+    "assigned_route_name": {
+      "type": "string",
+      "description": "Denormalized route name for driver display"
+    },
+    "bus_number": {
+      "type": "string",
+      "description": "Bus/vehicle number for this driver"
     },
     "username": {
       "type": "string",
@@ -202,7 +215,7 @@
     },
     "qr_token": {
       "type": "string",
-      "description": "Unique secret token embedded in the staff QR card. Changes each time a new QR card is printed, invalidating old cards."
+      "description": "Unique secret token embedded in the staff QR card."
     },
     "gender": {
       "type": "string",
@@ -274,7 +287,7 @@
     "exempt_from_kiosk": {
       "type": "boolean",
       "default": false,
-      "description": "If true, this staff member is exempt from QR kiosk scanning. They are automatically counted as Present for all days of the month and receive full salary."
+      "description": "If true, counted as Present for all days and receives full salary."
     }
   },
   "required": [
