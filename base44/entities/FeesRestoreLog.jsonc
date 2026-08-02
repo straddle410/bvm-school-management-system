@@ -1,0 +1,45 @@
+{
+  "name": "FeesRestoreLog",
+  "type": "object",
+  "properties": {
+    "restored_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "restored_by_user_id": {
+      "type": "string"
+    },
+    "backup_id": {
+      "type": "string"
+    },
+    "restore_mode": {
+      "type": "string",
+      "enum": [
+        "MERGE",
+        "REPLACE"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "COMPLETED",
+        "FAILED"
+      ],
+      "default": "COMPLETED"
+    },
+    "deleted_counts": {
+      "type": "object"
+    },
+    "inserted_counts": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "backup_id",
+    "restore_mode",
+    "status"
+  ]
+}

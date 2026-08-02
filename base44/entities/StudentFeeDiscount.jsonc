@@ -1,0 +1,87 @@
+{
+  "name": "StudentFeeDiscount",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year \u2014 ENFORCED, must match student.academic_year"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID (student.student_id)"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name (denormalized)"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class (denormalized)"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "PERCENT",
+        "AMOUNT"
+      ],
+      "description": "PERCENT = percentage off, AMOUNT = fixed rupee amount off"
+    },
+    "discount_value": {
+      "type": "number",
+      "description": "Percentage (0\u2013100) or fixed amount depending on discount_type"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "TOTAL",
+        "FEE_HEAD"
+      ],
+      "description": "TOTAL = applied on full invoice total, FEE_HEAD = applied only on a specific fee head"
+    },
+    "fee_head_id": {
+      "type": "string",
+      "description": "Required when scope = FEE_HEAD. ID of the fee head to discount."
+    },
+    "fee_head_name": {
+      "type": "string",
+      "description": "Fee head name (denormalized, for display)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Reason or notes for the discount. Sibling discounts are prefixed with [SIBLING]."
+    },
+    "discount_source": {
+      "type": "string",
+      "enum": [
+        "MANUAL",
+        "FAMILY"
+      ],
+      "default": "MANUAL",
+      "description": "MANUAL = set individually by admin, FAMILY = applied via sibling/family grouping (locked)"
+    },
+    "family_id": {
+      "type": "string",
+      "description": "FeeFamily ID if discount_source = FAMILY"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Archived"
+      ],
+      "default": "Active",
+      "description": "Active = applied on invoice generation, Archived = ignored"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of admin who set the discount"
+    }
+  },
+  "required": [
+    "academic_year",
+    "student_id",
+    "discount_type",
+    "discount_value",
+    "scope"
+  ]
+}

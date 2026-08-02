@@ -1,0 +1,99 @@
+{
+  "name": "Timetable",
+  "type": "object",
+  "properties": {
+    "class_name": {
+      "type": "string",
+      "enum": [
+        "Nursery",
+        "LKG",
+        "UKG",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "description": "Class name"
+    },
+    "section": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "default": "A",
+      "description": "Section"
+    },
+    "day": {
+      "type": "string",
+      "enum": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "description": "Day of the week"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time in HH:MM format (e.g., 09:00)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time in HH:MM format (e.g., 10:00)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject name"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Assigned teacher name"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Assigned teacher ID"
+    },
+    "room_number": {
+      "type": "string",
+      "description": "Room/Class number"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published"
+      ],
+      "default": "Draft",
+      "description": "Timetable status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or special instructions"
+    }
+  },
+  "required": [
+    "class_name",
+    "section",
+    "day",
+    "start_time",
+    "end_time",
+    "subject",
+    "teacher_name",
+    "academic_year"
+  ]
+}

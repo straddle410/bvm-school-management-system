@@ -1,0 +1,109 @@
+{
+  "name": "ExamType",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": [
+        "Summative Assessment 1",
+        "Summative Assessment 2",
+        "Summative Assessment 3",
+        "Annual Exam",
+        "Formative Assessment 1",
+        "Formative Assessment 2",
+        "Formative Assessment 3",
+        "Formative Assessment 4",
+        "Unit Test 1",
+        "Unit Test 2",
+        "Mid Term",
+        "Final"
+      ],
+      "description": "Exam type name (standardized across all modules)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Exam type description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Summative",
+        "Formative",
+        "Internal",
+        "Final",
+        "Unit Test",
+        "Term"
+      ],
+      "description": "Assessment category for classification"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25) - ENFORCED for data isolation"
+    },
+    "max_marks": {
+      "type": "number",
+      "description": "Maximum marks for this exam (default: 100 for Summative, 20 for Formative)"
+    },
+    "min_marks_to_pass": {
+      "type": "number",
+      "description": "Minimum marks required to pass (default: 40 for Summative, 10 for Formative)"
+    },
+    "applicable_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Classes this exam applies to (e.g., ['1', '2', '3']). Empty = all classes"
+    },
+    "attendance_range_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Attendance report range start date (inclusive)"
+    },
+    "attendance_range_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Attendance report range end date (inclusive)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is active exam type - for workflow filtering"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Locked after results published - prevents modifications"
+    },
+    "timetable_created": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flag: Timetable created for this exam"
+    },
+    "hall_tickets_generated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flag: Hall tickets generated for this exam"
+    },
+    "marks_entry_started": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flag: Marks entry started for this exam"
+    },
+    "results_published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flag: Results published for this exam - triggers lock"
+    },
+    "progress_cards_generated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flag: Progress cards generated from results"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "academic_year"
+  ]
+}

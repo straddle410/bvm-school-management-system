@@ -1,0 +1,150 @@
+{
+  "name": "FeeInvoice",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year \u2014 ENFORCED, must match student.academic_year"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name (denormalized)"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section"
+    },
+    "installment_name": {
+      "type": "string",
+      "description": "Installment name (e.g. Q1, Term 1)"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Due date for this installment"
+    },
+    "invoice_type": {
+      "type": "string",
+      "enum": [
+        "ANNUAL",
+        "ADHOC"
+      ],
+      "default": "ANNUAL",
+      "description": "ANNUAL = annual fee plan invoice, ADHOC = additional/adhoc charge"
+    },
+    "charge_id": {
+      "type": "string",
+      "description": "AdditionalCharge ID (only for ADHOC invoices)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Display title \u2014 used for ADHOC invoices"
+    },
+    "fee_heads": {
+      "type": "array",
+      "description": "Line items with gross/discount/net breakdown",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fee_head_id": {
+            "type": "string"
+          },
+          "fee_head_name": {
+            "type": "string"
+          },
+          "gross_amount": {
+            "type": "number"
+          },
+          "discount_amount": {
+            "type": "number"
+          },
+          "net_amount": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Legacy: equals net_amount"
+          }
+        }
+      }
+    },
+    "gross_total": {
+      "type": "number",
+      "description": "Sum of all line items before discounts"
+    },
+    "discount_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Total discount applied"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Net payable amount (gross_total - discount_total)"
+    },
+    "paid_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount paid so far"
+    },
+    "balance": {
+      "type": "number",
+      "description": "Remaining balance"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Partial",
+        "Paid",
+        "Overdue",
+        "Waived",
+        "Cancelled"
+      ],
+      "default": "Pending",
+      "description": "Payment status"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Email of staff who generated the invoice"
+    },
+    "waiver_reason": {
+      "type": "string",
+      "description": "Reason for waiver if status is Waived"
+    },
+    "discount_snapshot": {
+      "type": "object",
+      "description": "Snapshot of discount rule applied at generation time",
+      "properties": {
+        "discount_id": {
+          "type": "string"
+        },
+        "discount_type": {
+          "type": "string"
+        },
+        "discount_value": {
+          "type": "number"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "fee_head_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "academic_year",
+    "student_id",
+    "installment_name",
+    "total_amount"
+  ]
+}

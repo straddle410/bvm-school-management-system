@@ -1,0 +1,102 @@
+{
+  "name": "AdminResetLog",
+  "type": "object",
+  "properties": {
+    "admin_user_id": {
+      "type": "string",
+      "description": "Email of admin who ran the reset"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the reset ran"
+    },
+    "modules_selected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Modules selected for reset"
+    },
+    "academic_year_filter": {
+      "type": "string",
+      "description": "Optional academic year filter applied"
+    },
+    "dry_run_preview_counts": {
+      "type": "object",
+      "description": "Counts from the dry-run preview"
+    },
+    "actual_deleted_counts": {
+      "type": "object",
+      "description": "Actual deleted counts (null if dry-run)"
+    },
+    "otp_email_used": {
+      "type": "string",
+      "description": "Email OTP was sent to"
+    },
+    "otp_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When OTP was verified"
+    },
+    "confirmation_phrase_ok": {
+      "type": "boolean"
+    },
+    "confirmation_schoolname_ok": {
+      "type": "boolean"
+    },
+    "confirmation_date_ok": {
+      "type": "boolean"
+    },
+    "is_dry_run": {
+      "type": "boolean",
+      "default": false
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "otp_hash": {
+      "type": "string",
+      "description": "Bcrypt hash of OTP (internal use)"
+    },
+    "otp_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "otp_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "otp_used": {
+      "type": "boolean",
+      "default": false
+    },
+    "otp_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "reset_token_hash": {
+      "type": "string",
+      "description": "Hash of issued reset_token"
+    },
+    "reset_token_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reset_token_used": {
+      "type": "boolean",
+      "default": false
+    },
+    "pre_reset_backup_id": {
+      "type": "string",
+      "description": "ID of the safety backup created before reset"
+    }
+  },
+  "required": [
+    "admin_user_id",
+    "timestamp"
+  ]
+}

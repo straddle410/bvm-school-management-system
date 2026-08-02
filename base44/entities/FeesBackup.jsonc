@@ -1,0 +1,72 @@
+{
+  "name": "FeesBackup",
+  "type": "object",
+  "properties": {
+    "created_by_user_id": {
+      "type": "string",
+      "description": "Email of user who created backup (null for scheduled)"
+    },
+    "backup_type": {
+      "type": "string",
+      "enum": [
+        "DAILY_AUTO",
+        "MANUAL"
+      ],
+      "default": "MANUAL"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year filtered (empty = all years)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CREATED",
+        "COMPLETED",
+        "FAILED"
+      ],
+      "default": "CREATED"
+    },
+    "counts_summary": {
+      "type": "object",
+      "description": "Record counts per entity"
+    },
+    "file_json": {
+      "type": "object",
+      "description": "Full backup payload stored in DB"
+    },
+    "checksum": {
+      "type": "string",
+      "description": "SHA-256 hash of JSON payload for integrity"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "drive_file_id": {
+      "type": "string"
+    },
+    "drive_file_name": {
+      "type": "string"
+    },
+    "drive_export_status": {
+      "type": "string",
+      "enum": [
+        "NOT_EXPORTED",
+        "EXPORTED",
+        "FAILED"
+      ],
+      "default": "NOT_EXPORTED"
+    },
+    "drive_exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "drive_error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "backup_type",
+    "status"
+  ]
+}

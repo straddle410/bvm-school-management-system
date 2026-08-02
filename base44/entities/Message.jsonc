@@ -1,0 +1,112 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "sender_id": {
+      "type": "string",
+      "description": "Sender's ID (student_id or user email)"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Sender's display name"
+    },
+    "sender_role": {
+      "type": "string",
+      "enum": [
+        "student",
+        "teacher",
+        "admin"
+      ],
+      "description": "Role of the sender"
+    },
+    "recipient_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "class",
+        "section"
+      ],
+      "description": "Type of recipient"
+    },
+    "recipient_id": {
+      "type": "string",
+      "description": "Recipient student_id or user email (for individual)"
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Recipient display name"
+    },
+    "recipient_class": {
+      "type": "string",
+      "description": "Target class (for class/section messages)"
+    },
+    "recipient_section": {
+      "type": "string",
+      "description": "Target section (for section messages)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Message subject"
+    },
+    "body": {
+      "type": "string",
+      "description": "Message body"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the message has been read by recipient"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when recipient's device first fetched this message"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when recipient opened/viewed the message thread"
+    },
+    "thread_id": {
+      "type": "string",
+      "description": "Thread ID for grouping replies"
+    },
+    "parent_message_id": {
+      "type": "string",
+      "description": "ID of the message being replied to"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    },
+    "subject_area": {
+      "type": "string",
+      "description": "Associated subject (optional)"
+    },
+    "attachment_url": {
+      "type": "string",
+      "description": "Optional attachment URL"
+    },
+    "context_type": {
+      "type": "string",
+      "description": "Context type for system messages (e.g. absent_notification)"
+    },
+    "context_id": {
+      "type": "string",
+      "description": "Context ID for duplicate prevention (e.g. attendance record ID)"
+    },
+    "is_push_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates if a push notification was sent for this message"
+    }
+  },
+  "required": [
+    "sender_id",
+    "sender_name",
+    "sender_role",
+    "recipient_type",
+    "body",
+    "academic_year"
+  ]
+}

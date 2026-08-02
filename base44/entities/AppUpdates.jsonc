@@ -1,0 +1,36 @@
+{
+  "name": "AppUpdates",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Short title of the update or planned feature"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional longer description or notes"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "recent",
+        "coming_soon"
+      ],
+      "description": "recent = already released, coming_soon = planned feature"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Release date (for recent) or target date (for coming soon)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show this entry in the Help Guide"
+    }
+  },
+  "required": [
+    "title",
+    "type"
+  ]
+}

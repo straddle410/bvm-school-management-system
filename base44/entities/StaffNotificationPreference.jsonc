@@ -1,0 +1,58 @@
+{
+  "name": "StaffNotificationPreference",
+  "type": "object",
+  "properties": {
+    "staff_id": {
+      "type": "string",
+      "description": "StaffAccount.id (UUID) \u2014 internal FK, used for joins"
+    },
+    "staff_code": {
+      "type": "string",
+      "description": "StaffAccount.staff_id (e.g. T101, A101) \u2014 human-readable staff code, copied from StaffAccount"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "StaffAccount.name \u2014 display name of the staff member"
+    },
+    "staff_email": {
+      "type": "string",
+      "description": "Staff member email (optional, kept for legacy)"
+    },
+    "browser_push_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether browser push notifications are enabled"
+    },
+    "browser_push_token": {
+      "type": "string",
+      "description": "VAPID push subscription JSON string"
+    },
+    "onesignal_player_id": {
+      "type": "string",
+      "description": "OneSignal Player ID for bulk push notifications"
+    },
+    "notify_on_student_message": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify when a student sends a message"
+    },
+    "notify_on_quiz_submission": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify when a student submits a quiz"
+    },
+    "notify_on_homework_submission": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify when a student submits homework"
+    },
+    "notify_on_notice": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify when a notice is published"
+    }
+  },
+  "required": [
+    "staff_id"
+  ]
+}

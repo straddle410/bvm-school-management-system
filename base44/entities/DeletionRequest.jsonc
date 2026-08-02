@@ -1,0 +1,70 @@
+{
+  "name": "DeletionRequest",
+  "type": "object",
+  "properties": {
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "student",
+        "staff"
+      ],
+      "description": "Type of account requesting deletion"
+    },
+    "username": {
+      "type": "string",
+      "description": "Username of the account"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Full name of the account holder"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "Transferred to another school",
+        "Graduated / Passed out",
+        "Personal reasons",
+        "Privacy concerns",
+        "No longer using the app",
+        "Other"
+      ],
+      "description": "Reason for deletion request"
+    },
+    "additional_notes": {
+      "type": "string",
+      "description": "Optional additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Pending",
+      "description": "Admin review status"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Admin who reviewed the request"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the request was reviewed"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection (if rejected)"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Internal DB ID of the account"
+    }
+  },
+  "required": [
+    "account_type",
+    "username",
+    "reason"
+  ]
+}

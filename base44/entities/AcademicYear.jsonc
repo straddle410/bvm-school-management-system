@@ -1,0 +1,50 @@
+{
+  "name": "AcademicYear",
+  "type": "object",
+  "properties": {
+    "year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Year start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Year end date"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is current year"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is locked/archived"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Closed",
+        "Archived"
+      ],
+      "default": "Active",
+      "description": "Operational status - only ONE can be Active"
+    },
+    "admission_open": {
+      "type": "boolean",
+      "default": false,
+      "description": "Allow admission submissions for this year - multiple years can be true"
+    }
+  },
+  "required": [
+    "year",
+    "start_date",
+    "end_date"
+  ]
+}

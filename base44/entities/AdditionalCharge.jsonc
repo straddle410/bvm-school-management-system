@@ -1,0 +1,77 @@
+{
+  "name": "AdditionalCharge",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Charge title e.g. Outing Fee \u2013 July 2025"
+    },
+    "fee_head_id": {
+      "type": "string",
+      "description": "Fee head ID"
+    },
+    "fee_head_name": {
+      "type": "string",
+      "description": "Fee head name (denormalized)"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Target class"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Flat amount per student (\u20b9)"
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "CLASS",
+        "SELECTED"
+      ],
+      "default": "CLASS",
+      "description": "CLASS = all active students in class, SELECTED = specific students"
+    },
+    "student_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Student IDs when applies_to = SELECTED"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PUBLISHED",
+        "CANCELLED"
+      ],
+      "default": "DRAFT",
+      "description": "Charge lifecycle status"
+    },
+    "invoices_created": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of invoices created on publish"
+    },
+    "invoices_skipped": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of duplicates skipped on publish"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of admin who created the charge"
+    }
+  },
+  "required": [
+    "academic_year",
+    "title",
+    "class_name",
+    "amount",
+    "applies_to"
+  ]
+}

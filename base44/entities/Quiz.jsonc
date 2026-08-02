@@ -1,0 +1,70 @@
+{
+  "name": "Quiz",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Quiz title"
+    },
+    "quiz_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Quiz date"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Target class"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MCQ",
+              "Descriptive"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correct_answer": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Quiz questions"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Submitted",
+        "Approved",
+        "Published"
+      ],
+      "default": "Draft"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    }
+  },
+  "required": [
+    "title",
+    "quiz_date",
+    "class_name"
+  ]
+}

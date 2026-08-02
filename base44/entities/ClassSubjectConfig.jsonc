@@ -1,0 +1,40 @@
+{
+  "name": "ClassSubjectConfig",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25) - ENFORCED isolation"
+    },
+    "class_name": {
+      "type": "string",
+      "enum": [
+        "Nursery",
+        "LKG",
+        "UKG",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "description": "Class name"
+    },
+    "subject_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of subject names assigned to this class for this year"
+    }
+  },
+  "required": [
+    "academic_year",
+    "class_name"
+  ]
+}

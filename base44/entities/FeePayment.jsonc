@@ -1,0 +1,146 @@
+{
+  "name": "FeePayment",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year \u2014 ENFORCED, must match invoice.academic_year"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "FeeInvoice ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name (denormalized)"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class"
+    },
+    "installment_name": {
+      "type": "string",
+      "description": "Installment name"
+    },
+    "receipt_no": {
+      "type": "string",
+      "description": "Auto-generated receipt number"
+    },
+    "amount_paid": {
+      "type": "number",
+      "description": "Amount paid in this transaction (negative for credits)"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of payment"
+    },
+    "payment_mode": {
+      "type": "string",
+      "enum": [
+        "Cash",
+        "Cheque",
+        "Online",
+        "DD",
+        "UPI"
+      ],
+      "default": "Cash",
+      "description": "Mode of payment"
+    },
+    "reference_no": {
+      "type": "string",
+      "description": "Cheque/Transaction or application reference number \u2014 stable unique identifier for deduplication/reversal"
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "CASH_PAYMENT",
+        "CREDIT_ADJUSTMENT",
+        "REVERSAL"
+      ],
+      "default": "CASH_PAYMENT",
+      "description": "Type of ledger entry: CASH_PAYMENT (actual money received), CREDIT_ADJUSTMENT (discount/credit, not cash), REVERSAL (voids previous)"
+    },
+    "affects_cash": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this entry affects cash collected: false for discounts/credits, true for actual payments"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Remarks"
+    },
+    "collected_by": {
+      "type": "string",
+      "description": "Email of staff who collected"
+    },
+    "collected_by_name": {
+      "type": "string",
+      "description": "Display name of staff who collected (denormalized for printing)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "VOID"
+      ],
+      "default": "Active",
+      "description": "Active = valid payment; VOID = cancelled/voided"
+    },
+    "void_reason": {
+      "type": "string",
+      "description": "Reason for voiding"
+    },
+    "voided_by": {
+      "type": "string",
+      "description": "Email of staff who voided the payment"
+    },
+    "voided_by_name": {
+      "type": "string",
+      "description": "Display name of staff who voided (denormalized for printing)"
+    },
+    "voided_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of voiding"
+    },
+    "receipt_snapshot": {
+      "type": "object",
+      "description": "Frozen receipt state at payment time \u2014 NEVER changes after creation",
+      "properties": {
+        "invoice_gross_total": {
+          "type": "number",
+          "description": "Invoice gross total at payment time"
+        },
+        "invoice_discount_total": {
+          "type": "number",
+          "description": "Invoice discount total at payment time"
+        },
+        "invoice_net_total": {
+          "type": "number",
+          "description": "Invoice net total (payable amount) at payment time"
+        },
+        "total_paid_before": {
+          "type": "number",
+          "description": "Total amount paid BEFORE this payment"
+        },
+        "balance_before": {
+          "type": "number",
+          "description": "Outstanding balance BEFORE this payment"
+        }
+      }
+    }
+  },
+  "required": [
+    "academic_year",
+    "invoice_id",
+    "student_id",
+    "amount_paid",
+    "payment_date",
+    "receipt_no"
+  ]
+}

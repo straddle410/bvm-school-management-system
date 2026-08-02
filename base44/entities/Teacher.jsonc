@@ -1,0 +1,77 @@
+{
+  "name": "Teacher",
+  "type": "object",
+  "properties": {
+    "teacher_id": {
+      "type": "string",
+      "description": "Unique staff ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Full name"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Teacher",
+        "Principal",
+        "HOD",
+        "Vice Principal",
+        "Coordinator",
+        "Counselor",
+        "Librarian",
+        "Admin Staff"
+      ],
+      "default": "Teacher",
+      "description": "Staff role/designation"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Photo URL"
+    },
+    "subjects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Subjects taught"
+    },
+    "classes_assigned": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Classes assigned"
+    },
+    "qualification": {
+      "type": "string",
+      "description": "Educational qualification"
+    },
+    "joining_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of joining"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive",
+        "On Leave"
+      ],
+      "default": "Active"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}

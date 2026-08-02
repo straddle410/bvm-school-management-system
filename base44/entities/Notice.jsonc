@@ -1,0 +1,94 @@
+{
+  "name": "Notice",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Notice title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Notice content/body"
+    },
+    "notice_type": {
+      "type": "string",
+      "enum": [
+        "General",
+        "Exam",
+        "Holiday",
+        "PTM",
+        "Fee",
+        "Urgent",
+        "Event"
+      ],
+      "default": "General",
+      "description": "Type of notice"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "All",
+        "Students",
+        "Parents",
+        "Staff",
+        "Teachers"
+      ],
+      "default": "All",
+      "description": "Target audience"
+    },
+    "target_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific classes (when target_audience is Students). Empty means all classes."
+    },
+    "publish_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date to publish"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date notice expires"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pin to top"
+    },
+    "attachment_url": {
+      "type": "string",
+      "description": "Attachment file URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Submitted",
+        "Approved",
+        "Published"
+      ],
+      "default": "Draft"
+    },
+    "created_by_name": {
+      "type": "string",
+      "description": "Creator's name"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    },
+    "sendPushNotification": {
+      "type": "boolean",
+      "default": false,
+      "description": "Send push notification to students (uses integration credits, admin/exam_staff only)"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "notice_type"
+  ]
+}

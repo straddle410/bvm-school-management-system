@@ -1,0 +1,55 @@
+{
+  "name": "StudentFollowUp",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student ID (indexed for lookups)"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (indexed for filtering)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "NEW",
+        "CALLED",
+        "FOLLOW_UP",
+        "PROMISED",
+        "PAID_PARTIAL",
+        "PAID_FULL",
+        "DO_NOT_CALL"
+      ],
+      "default": "NEW",
+      "description": "Follow-up status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ],
+      "description": "Priority level (optional)"
+    },
+    "note": {
+      "type": "string",
+      "description": "Follow-up note/remarks (required)"
+    },
+    "next_followup_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date for next follow-up (optional)"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of staff who created the note"
+    }
+  },
+  "required": [
+    "student_id",
+    "academic_year",
+    "note"
+  ]
+}

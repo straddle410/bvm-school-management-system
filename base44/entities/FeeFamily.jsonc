@@ -1,0 +1,79 @@
+{
+  "name": "FeeFamily",
+  "type": "object",
+  "properties": {
+    "family_name": {
+      "type": "string",
+      "description": "Display name for the family (e.g. Sharma Family)"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year this family grouping belongs to"
+    },
+    "parent_phone": {
+      "type": "string",
+      "description": "Primary parent phone used for auto-suggestion"
+    },
+    "student_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of student_ids in this family"
+    },
+    "student_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Denormalized student names for display"
+    },
+    "sibling_discount_type": {
+      "type": "string",
+      "enum": [
+        "PERCENT",
+        "AMOUNT"
+      ],
+      "description": "Type of sibling discount to apply"
+    },
+    "sibling_discount_value": {
+      "type": "number",
+      "description": "Discount value (percentage or fixed amount)"
+    },
+    "sibling_discount_scope": {
+      "type": "string",
+      "enum": [
+        "TOTAL",
+        "FEE_HEAD"
+      ],
+      "default": "TOTAL",
+      "description": "Apply discount on total or specific fee head"
+    },
+    "sibling_discount_fee_head_id": {
+      "type": "string",
+      "description": "Fee head ID if scope is FEE_HEAD"
+    },
+    "sibling_discount_fee_head_name": {
+      "type": "string",
+      "description": "Fee head name (denormalized)"
+    },
+    "sibling_discount_applied": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether sibling discount has been applied to individual student records"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about this family grouping"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of staff who created the family"
+    }
+  },
+  "required": [
+    "family_name",
+    "academic_year",
+    "student_ids"
+  ]
+}

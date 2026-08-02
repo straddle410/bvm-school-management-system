@@ -1,0 +1,70 @@
+{
+  "name": "CalendarEvent",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Event title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Event description"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "Holiday",
+        "Exam",
+        "PTM",
+        "Event",
+        "Meeting",
+        "Other"
+      ],
+      "description": "Type of event"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date"
+    },
+    "all_day": {
+      "type": "boolean",
+      "default": true,
+      "description": "All day event"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time"
+    },
+    "target_audience": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Target audience"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Pending",
+        "Published"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "title",
+    "event_type",
+    "start_date"
+  ]
+}

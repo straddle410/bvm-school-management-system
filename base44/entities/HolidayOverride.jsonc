@@ -1,0 +1,38 @@
+{
+  "name": "HolidayOverride",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of override"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name for the override"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section for the override"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Staff ID of user who applied override"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for override"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year"
+    }
+  },
+  "required": [
+    "date",
+    "class_name",
+    "section",
+    "user_id",
+    "academic_year"
+  ]
+}

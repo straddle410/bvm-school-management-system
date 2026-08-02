@@ -1,0 +1,52 @@
+{
+  "name": "ExamTimetable",
+  "type": "object",
+  "properties": {
+    "exam_type": {
+      "type": "string",
+      "description": "Exam type ID"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class this timetable entry applies to"
+    },
+    "subject_name": {
+      "type": "string",
+      "description": "Subject name"
+    },
+    "exam_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Exam date"
+    },
+    "day": {
+      "type": "string",
+      "description": "Day of week (auto-filled)"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time (HH:MM)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time (HH:MM)"
+    },
+    "room_number": {
+      "type": "string",
+      "description": "Room number (optional)"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year"
+    }
+  },
+  "required": [
+    "exam_type",
+    "class_name",
+    "subject_name",
+    "exam_date",
+    "start_time",
+    "end_time",
+    "academic_year"
+  ]
+}

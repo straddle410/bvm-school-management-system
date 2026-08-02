@@ -1,0 +1,70 @@
+{
+  "name": "StudentNotificationPreference",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student ID (e.g. S0001) \u2014 human-readable student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name \u2014 display name copied from Student entity"
+    },
+    "notifications_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Master switch: enable/disable all notifications"
+    },
+    "message_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable message notifications"
+    },
+    "notice_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable notice notifications"
+    },
+    "quiz_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable quiz notifications"
+    },
+    "homework_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable homework notifications"
+    },
+    "marks_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable marks/results notifications"
+    },
+    "sound_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable notification sound"
+    },
+    "sound_volume": {
+      "type": "number",
+      "default": 0.7,
+      "description": "Sound volume (0.0 to 1.0)"
+    },
+    "browser_push_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable browser push notifications"
+    },
+    "browser_push_token": {
+      "type": "string",
+      "description": "Browser push notification subscription token"
+    },
+    "onesignal_player_id": {
+      "type": "string",
+      "description": "OneSignal Player ID for bulk push notifications"
+    }
+  },
+  "required": [
+    "student_id"
+  ]
+}

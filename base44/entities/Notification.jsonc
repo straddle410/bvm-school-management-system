@@ -1,0 +1,70 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_student_id": {
+      "type": "string",
+      "description": "Student ID of the recipient (for student notifications)"
+    },
+    "recipient_staff_id": {
+      "type": "string",
+      "description": "Staff email of the recipient (for staff notifications)"
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Name of the recipient"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "diary_published",
+        "homework_assigned",
+        "quiz_posted",
+        "notice_posted",
+        "results_posted",
+        "marks_published",
+        "class_message",
+        "attendance_alert",
+        "student_message",
+        "quiz_submitted",
+        "homework_submitted",
+        "notice_posted_staff"
+      ],
+      "description": "Type of notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID of the related entity (e.g., Diary ID, Quiz ID, Notice ID)"
+    },
+    "action_url": {
+      "type": "string",
+      "description": "URL to navigate to when notification is tapped"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the notification has been read"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year"
+    },
+    "duplicate_key": {
+      "type": "string",
+      "description": "Unique key for deduplication (entityType_entityId_recipientId)"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "message"
+  ]
+}

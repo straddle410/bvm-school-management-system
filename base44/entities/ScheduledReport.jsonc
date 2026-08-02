@@ -1,0 +1,100 @@
+{
+  "name": "ScheduledReport",
+  "type": "object",
+  "properties": {
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "Monthly Attendance",
+        "Term-End Progress"
+      ],
+      "description": "Type of report"
+    },
+    "class_name": {
+      "type": "string",
+      "enum": [
+        "Nursery",
+        "LKG",
+        "UKG",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "description": "Target class"
+    },
+    "section": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "Section"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Report period start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Report period end date"
+    },
+    "delivery_recipients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Email recipients (parents/teachers)"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date to generate and send report"
+    },
+    "include_in_email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send as email attachment or just generate"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Generated",
+        "Sent",
+        "Failed"
+      ],
+      "default": "Pending",
+      "description": "Report status"
+    },
+    "generated_file_url": {
+      "type": "string",
+      "description": "URL of generated PDF report"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g., 2024-25)"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Created by admin email"
+    }
+  },
+  "required": [
+    "report_type",
+    "class_name",
+    "start_date",
+    "end_date",
+    "academic_year"
+  ]
+}

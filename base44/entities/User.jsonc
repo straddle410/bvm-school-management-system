@@ -1,0 +1,57 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user",
+        "principal",
+        "teacher",
+        "staff",
+        "student",
+        "parent"
+      ],
+      "default": "user"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Linked student ID (for student/parent role)"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Linked teacher ID"
+    },
+    "is_first_login": {
+      "type": "boolean",
+      "default": true,
+      "description": "First login flag"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last login timestamp"
+    }
+  },
+  "required": [
+    "display_name",
+    "phone",
+    "photo_url",
+    "student_id",
+    "teacher_id",
+    "last_login"
+  ]
+}

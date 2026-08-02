@@ -1,0 +1,48 @@
+{
+  "name": "HallTicketLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "generated",
+        "downloaded",
+        "printed",
+        "approved",
+        "locked",
+        "edited"
+      ],
+      "description": "Action type"
+    },
+    "hall_ticket_id": {
+      "type": "string",
+      "description": "Hall ticket ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "performed_by": {
+      "type": "string",
+      "description": "User email who performed action"
+    },
+    "details": {
+      "type": "string",
+      "description": "Action details"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "User IP address"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Action timestamp"
+    }
+  },
+  "required": [
+    "action",
+    "hall_ticket_id",
+    "performed_by"
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "name": "SchoolProfile",
+  "type": "object",
+  "properties": {
+    "school_name": {
+      "type": "string",
+      "description": "Name of the school"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL of school logo"
+    },
+    "address": {
+      "type": "string",
+      "description": "School address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "School email"
+    },
+    "website": {
+      "type": "string",
+      "description": "School website URL"
+    },
+    "principal_name": {
+      "type": "string",
+      "description": "Name of principal"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Current academic year"
+    },
+    "tagline": {
+      "type": "string",
+      "description": "School tagline/motto"
+    },
+    "hall_ticket_template_url": {
+      "type": "string",
+      "description": "URL of uploaded hall ticket Excel template"
+    },
+    "transport_fee_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Fixed transport fee amount for the whole school"
+    },
+    "hostel_fee_config": {
+      "type": "array",
+      "description": "Class-wise hostel fee amounts. Each entry has class_name and amount.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "class_name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "is_test_school": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable to allow the Data Reset tool. Must be false for production schools."
+    },
+    "backup_auto_drive_export": {
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-export daily fees backups to Google Drive"
+    },
+    "full_backup_drive_folder_id": {
+      "type": "string",
+      "description": "Google Drive folder ID for full school backups (separate from fees)"
+    },
+    "full_backup_drive_folder_name": {
+      "type": "string",
+      "description": "Google Drive folder name for full school backups (display purposes)"
+    },
+    "auto_export_full_backup_to_drive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-export weekly full school backups to Google Drive"
+    },
+    "absent_message_template": {
+      "type": "string",
+      "description": "Custom message template for absent notifications. Supports placeholders: {student_name}, {class}, {section}, {date}, {school_name}"
+    },
+    "fee_reminder_template": {
+      "type": "string",
+      "description": "Custom message template for fee reminders. Supports placeholders: {student_name}, {class}, {parent_name}, {amount_due}, {school_name}"
+    }
+  },
+  "required": [
+    "school_name"
+  ]
+}

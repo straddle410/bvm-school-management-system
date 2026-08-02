@@ -1,0 +1,145 @@
+{
+  "name": "HomeworkSubmission",
+  "type": "object",
+  "properties": {
+    "homework_id": {
+      "type": "string",
+      "description": "Homework ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section"
+    },
+    "homework_type": {
+      "type": "string",
+      "enum": [
+        "MCQ",
+        "Descriptive",
+        "Project",
+        "Assignment",
+        "Other"
+      ],
+      "description": "Type of homework"
+    },
+    "mcq_answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_index": {
+            "type": "number"
+          },
+          "selected_option": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "MCQ selected answers"
+    },
+    "descriptive_answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_index": {
+            "type": "number"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Written answers"
+    },
+    "file_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Uploaded file URLs (project/assignment)"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Latest submission timestamp"
+    },
+    "is_late": {
+      "type": "boolean",
+      "default": false,
+      "description": "Submitted after due date"
+    },
+    "mcq_score": {
+      "type": "number",
+      "description": "Auto-calculated MCQ score"
+    },
+    "mcq_total": {
+      "type": "number",
+      "description": "Total MCQ questions"
+    },
+    "attempt_no": {
+      "type": "number",
+      "default": 1,
+      "description": "Submission attempt number (1, 2, 3...)"
+    },
+    "teacher_marks": {
+      "type": "number",
+      "description": "Marks given by teacher"
+    },
+    "teacher_feedback": {
+      "type": "string",
+      "description": "Teacher feedback/remarks"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "SUBMITTED",
+        "REVISION_REQUIRED",
+        "RESUBMITTED",
+        "GRADED"
+      ],
+      "default": "SUBMITTED",
+      "description": "Submission lifecycle status"
+    },
+    "graded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When teacher graded the submission"
+    },
+    "graded_by": {
+      "type": "string",
+      "description": "Teacher name who graded"
+    },
+    "revision_requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When teacher requested revision"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    }
+  },
+  "required": [
+    "homework_id",
+    "student_id"
+  ],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": false
+  }
+}

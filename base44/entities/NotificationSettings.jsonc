@@ -1,0 +1,28 @@
+{
+  "name": "NotificationSettings",
+  "type": "object",
+  "properties": {
+    "enable_push": {
+      "type": "boolean",
+      "default": true,
+      "description": "Master switch to enable/disable all push notifications"
+    },
+    "absent_template": {
+      "type": "string",
+      "description": "Template for absent notifications. Supports: {{student_name}}, {{class}}, {{section}}, {{date}}, {{school_name}}"
+    },
+    "fee_template": {
+      "type": "string",
+      "description": "Template for fee reminders. Supports: {{student_name}}, {{parent_name}}, {{amount}}, {{class}}, {{school_name}}"
+    },
+    "notice_template": {
+      "type": "string",
+      "description": "Template for notice notifications. Supports: {{title}}, {{school_name}}"
+    },
+    "fee_payment_template": {
+      "type": "string",
+      "description": "Template for fee payment received notifications. Supports: {{student_name}}, {{amount}}, {{receipt_no}}, {{school_name}}"
+    }
+  },
+  "required": []
+}

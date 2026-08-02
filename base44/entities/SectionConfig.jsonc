@@ -1,0 +1,44 @@
+{
+  "name": "SectionConfig",
+  "type": "object",
+  "properties": {
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year this config belongs to (e.g., 2025-26) \u2014 REQUIRED for year-wise isolation"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name exactly as used across the app (e.g., Nursery, LKG, UKG, 1, 2 ... 10). Plain string \u2014 no enum restriction so new classes can be added without schema changes."
+    },
+    "section": {
+      "type": "string",
+      "description": "Section identifier (e.g., A, B, C, D). Plain string \u2014 no enum restriction. One record per class+section+year combination."
+    },
+    "class_display_order": {
+      "type": "number",
+      "description": "Sort order for this class in dropdowns (e.g., Nursery=1, LKG=2, UKG=3, 1=4, 2=5 ... 10=13). Used by classSectionHelper to return classes in correct order."
+    },
+    "section_display_order": {
+      "type": "number",
+      "description": "Sort order for sections within this class (e.g., A=1, B=2, C=3). Used by classSectionHelper."
+    },
+    "capacity": {
+      "type": "number",
+      "description": "Maximum number of students allowed in this section (optional \u2014 for future use)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this class-section is currently active for the year. Inactive entries are hidden from all dropdowns."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes (e.g., room number, class teacher name)"
+    }
+  },
+  "required": [
+    "academic_year",
+    "class_name",
+    "section"
+  ]
+}

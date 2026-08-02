@@ -1,0 +1,42 @@
+{
+  "name": "NotificationPreference",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User email address"
+    },
+    "notifications_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable/disable all notifications"
+    },
+    "message_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable message notifications"
+    },
+    "sound_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable notification sound"
+    },
+    "sound_volume": {
+      "type": "number",
+      "default": 0.7,
+      "description": "Sound volume (0.0 to 1.0)"
+    },
+    "browser_push_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable browser push notifications"
+    },
+    "browser_push_token": {
+      "type": "string",
+      "description": "Browser push notification subscription token"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

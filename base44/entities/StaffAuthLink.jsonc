@@ -1,0 +1,23 @@
+{
+  "name": "StaffAuthLink",
+  "type": "object",
+  "properties": {
+    "base44_user_id": {
+      "type": "string",
+      "description": "Base44 platform user ID (from auth.me().id) \u2014 unique per staff login"
+    },
+    "staff_id": {
+      "type": "string",
+      "description": "StaffAccount record ID \u2014 unique per staff member"
+    },
+    "last_login_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last successful login"
+    }
+  },
+  "required": [
+    "base44_user_id",
+    "staff_id"
+  ]
+}

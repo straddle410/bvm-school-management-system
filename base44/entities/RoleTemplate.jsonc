@@ -1,0 +1,27 @@
+{
+  "name": "RoleTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique role template name (e.g., Teacher, Accountant)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this role"
+    },
+    "permissions": {
+      "type": "object",
+      "description": "JSON object mapping permission keys to boolean values"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false,
+      "description": "System-managed templates cannot be deleted"
+    }
+  },
+  "required": [
+    "name",
+    "permissions"
+  ]
+}

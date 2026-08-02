@@ -1,0 +1,149 @@
+{
+  "name": "AdmissionApplication",
+  "type": "object",
+  "properties": {
+    "application_no": {
+      "type": "string",
+      "description": "Auto-generated application number"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student full name"
+    },
+    "dob": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ],
+      "description": "Gender"
+    },
+    "applying_for_class": {
+      "type": "string",
+      "enum": [
+        "Nursery",
+        "LKG",
+        "UKG",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "description": "Applying for class"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section assigned at approval (e.g. A, B, C, D) \u2014 no enum restriction, driven by SectionConfig"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Student photo URL"
+    },
+    "parent_name": {
+      "type": "string",
+      "description": "Parent/Guardian name"
+    },
+    "parent_phone": {
+      "type": "string",
+      "description": "Parent phone number"
+    },
+    "parent_email": {
+      "type": "string",
+      "description": "Parent email"
+    },
+    "address": {
+      "type": "string",
+      "description": "Residential address"
+    },
+    "previous_school": {
+      "type": "string",
+      "description": "Previous school name (if any)"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Document URLs (birth certificate, previous school certificate, etc)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Verified",
+        "Approved",
+        "Converted",
+        "Rejected"
+      ],
+      "default": "Pending",
+      "description": "Application workflow status"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Email of staff/teacher who verified"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When verified"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Email of admin who approved"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When approved"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection (if rejected)"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Admin remarks/notes"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Internal notes (editable in Verified status)"
+    },
+    "assigned_roll_no": {
+      "type": "number",
+      "description": "Roll number assigned during approval"
+    },
+    "assigned_student_id": {
+      "type": "string",
+      "description": "Link to created Student record"
+    },
+    "academic_year": {
+      "type": "string",
+      "description": "Academic year (e.g. 2024-25)"
+    }
+  },
+  "required": [
+    "student_name",
+    "applying_for_class",
+    "parent_name",
+    "parent_phone",
+    "parent_email"
+  ],
+  "rls": {
+    "create": true,
+    "read": true,
+    "update": false,
+    "delete": false
+  }
+}
