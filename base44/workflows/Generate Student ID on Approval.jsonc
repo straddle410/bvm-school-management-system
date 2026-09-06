@@ -1,0 +1,37 @@
+{
+  "name": "Generate Student ID on Approval",
+  "description": "Automatically generates unique student ID, username, and password when student status changes to Approved (and student_id is null)",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Student"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "generate_student_id_on_approval",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "generateStudentIdOnApproval",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "generateStudentIdOnApproval"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Auto-generate Progress Cards on Mark Publish",
+  "description": "",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Marks"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_generate_progress_cards_on_mark_publish",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "generateProgressCards",
+            "args": {
+              "academicYear": "current_year",
+              "classNameFilter": null,
+              "sectionFilter": null,
+              "examTypeIdOrName": null
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "generateProgressCards"
+  }
+}
